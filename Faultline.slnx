@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Faultline.Core/Faultline.Core.csproj" />
+    <Project Path="src/Faultline.Web/Faultline.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Faultline.Core.Tests/Faultline.Core.Tests.csproj" />
+  </Folder>
+</Solution>

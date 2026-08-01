@@ -1,0 +1,305 @@
+@page "/"
+@layout MainLayout
+@inject GameSession Session
+@implements IDisposable
+
+<PageTitle>Faultline</PageTitle>
+
+<div class="shell">
+    <div class="board-pane">
+        <h1>Faultline <span class="sub">M1 — move &amp; attack</span></h1>
+
+        <div class="status">
+            <span class="chip">@PhaseLabel</span>
+            <span class="chip">Round @State.Round</span>
+            <span class="chip team-@TeamClass(State.ActiveTeam)">@ActiveLabel</span>
+            <span class="chip">Momentum @State.Momentum / 6</span>
+            <span class="chip">Seed @Session.Seed</span>
+        </div>
+
+        <div class="grid" style="grid-template-columns: repeat(@State.Board.Width, var(--cell));">
+            @foreach (var coord in State.Board.AllCoords())
+            {
+                var cell = coord;
+                var unit = State.UnitAt(cell);
+                <button type="button"
+                        class="@CellClass(cell, unit)"
+                        disabled="@(!IsClickable(cell, unit))"
+                        title="@Tooltip(cell, unit)"
+                        @onclick="() => OnCellClick(cell, unit)">
+                    @if (unit is not null)
+                    {
+                        <span class="glyph">@EventText.Glyph(unit.Kind)</span>
+                        <span class="hp">@unit.Hp/@unit.MaxHp</span>
+                    }
+                    else if (IsDeployTarget(cell))
+                    {
+                        <span class="marker">+</span>
+                    }
+                    else if (Session.MoveTargets.ContainsKey(cell))
+                    {
+                        <span class="marker">•</span>
+                    }
+                </button>
+            }
+        </div>
+
+        <div class="legend">
+            <span><i class="sw open"></i>open</span>
+            <span><i class="sw wall"></i>wall</span>
+            <span><i class="sw pit"></i>pit</span>
+            <span><i class="sw spikes"></i>spikes</span>
+            <span><i class="sw high"></i>high ground</span>
+        </div>
+    </div>
+
+    <div class="side-pane">
+        <div class="panel">
+            <h2>Turn</h2>
+
+            @if (State.Outcome != FightOutcome.InProgress)
+            {
+                <p class="outcome @(State.Outcome == FightOutcome.Won ? "won" : "lost")">
+                    @(State.Outcome == FightOutcome.Won ? "Fight won." : "Fight lost.")
+                </p>
+            }
+            else if (State.Phase == Phase.Deployment)
+            {
+                <p>
+                    <strong>@ActiveLabel</strong> places <strong>@PendingDeployName</strong>.
+                    Click a highlighted tile in your corner.
+                </p>
+            }
+            else if (Session.AwaitingEnemy)
+            {
+                <p>Enemy activating…</p>
+                <p class="note">M1 has no AI yet, so enemies pass. The priority-list planner lands in M3.</p>
+            }
+            else if (SelectedUnit is not null)
+            {
+                <p>
+                    <strong>@SelectedUnit.Name</strong> [@EventText.Side(SelectedUnit.Team)] —
+                    @SelectedUnit.Hp/@SelectedUnit.MaxHp HP, Move @SelectedUnit.Move
+                </p>
+                <ul class="halves">
+                    <li class="@(SelectedUnit.HasMoved ? "spent" : string.Empty)">Move</li>
+                    <li class="@(SelectedUnit.HasActed ? "spent" : string.Empty)">Action</li>
+                </ul>
+                <p class="note">
+                    @if (Session.MoveTargets.Count > 0)
+                    {
+                        <text>Click a marked tile to move. </text>
+                    }
+                    @if (Session.AttackTargets.Count > 0)
+                    {
+                        <text>Click a ringed enemy to attack.</text>
+                    }
+                </p>
+                @if (Session.EndCommand is not null)
+                {
+                    <button class="action" @onclick="EndActivation">End activation</button>
+                }
+            }
+            else
+            {
+                <p>Select one of @ActiveLabel's units to activate.</p>
+            }
+
+            <button class="action secondary" @onclick="Restart">New run</button>
+        </div>
+
+        <div class="panel">
+            <h2>Units</h2>
+            <table class="units">
+                <tbody>
+                    @foreach (var unit in State.Units)
+                    {
+                        <tr class="@(unit.IsOnBoard ? string.Empty : "down") @(Session.Selected == unit.Id ? "sel" : string.Empty)">
+                            <td class="team-@TeamClass(unit.Team)">@EventText.Side(unit.Team)</td>
+                            <td>@unit.Name</td>
+                            <td>@(unit.IsAlive ? $"{unit.Hp}/{unit.MaxHp}" : "down")</td>
+                            <td>@(unit.IsOnBoard ? unit.Position.ToString() : "—")</td>
+                            <td>@(unit.HasActivated ? "done" : string.Empty)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel log-panel">
+            <h2>Log</h2>
+            <ol class="log">
+                @foreach (var line in RecentLog())
+                {
+                    <li>@line</li>
+                }
+            </ol>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _resolvingEnemy;
+    private bool _disposed;
+
+    private GameState State => Session.State;
+
+    private Unit? SelectedUnit => Session.Selected is null ? null : State.FindUnit(Session.Selected.Value);
+
+    private string PhaseLabel => State.Phase switch
+    {
+        Phase.Deployment => "Deployment",
+        Phase.Battle => "Battle",
+        _ => "Complete",
+    };
+
+    private string ActiveLabel => State.ActiveTeam switch
+    {
+        Team.PlayerA => "Player A",
+        Team.PlayerB => "Player B",
+        _ => "Enemy",
+    };
+
+    private string PendingDeployName =>
+        Session.PendingDeployUnit is null
+            ? "—"
+            : State.UnitById(Session.PendingDeployUnit.Value).Name;
+
+    private IEnumerable<string> RecentLog()
+    {
+        var log = Session.Log;
+        int take = log.Count < 60 ? log.Count : 60;
+        for (int i = log.Count - 1; i >= log.Count - take; i--)
+        {
+            yield return log[i];
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // Enemy slots resolve on a short delay so the hotseat players can watch them tick past.
+        if (!_resolvingEnemy && Session.AwaitingEnemy)
+        {
+            _resolvingEnemy = true;
+            _ = ResolveEnemyAsync();
+        }
+    }
+
+    private async Task ResolveEnemyAsync()
+    {
+        await Task.Delay(400);
+
+        if (!_disposed && Session.AwaitingEnemy)
+        {
+            Session.ResolveEnemyActivation();
+        }
+
+        _resolvingEnemy = false;
+
+        if (!_disposed)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void OnCellClick(Coord coord, Unit? unit)
+    {
+        if (IsDeployTarget(coord))
+        {
+            Session.Submit(Session.DeployTargets[coord]);
+            return;
+        }
+
+        if (unit is not null && Session.AttackTargets.TryGetValue(unit.Id, out var attack))
+        {
+            Session.Submit(attack);
+            return;
+        }
+
+        if (Session.MoveTargets.TryGetValue(coord, out var move))
+        {
+            Session.Submit(move);
+            return;
+        }
+
+        if (unit is not null && Session.Selectable.Contains(unit.Id))
+        {
+            Session.Select(unit.Id);
+        }
+    }
+
+    private void EndActivation()
+    {
+        if (Session.EndCommand is not null)
+        {
+            Session.Submit(Session.EndCommand);
+        }
+    }
+
+    private void Restart() => Session.NewRun(Session.Seed + 1);
+
+    private bool IsDeployTarget(Coord coord) => Session.DeployTargets.ContainsKey(coord);
+
+    private bool IsClickable(Coord coord, Unit? unit) =>
+        IsDeployTarget(coord)
+        || Session.MoveTargets.ContainsKey(coord)
+        || (unit is not null && Session.AttackTargets.ContainsKey(unit.Id))
+        || (unit is not null && Session.Selectable.Contains(unit.Id));
+
+    private string CellClass(Coord coord, Unit? unit)
+    {
+        var classes = new List<string> { "cell", EventText.TileClass(State.Board.At(coord)) };
+
+        if (unit is not null)
+        {
+            classes.Add("occupied");
+            classes.Add("team-" + TeamClass(unit.Team));
+
+            if (Session.Selected == unit.Id)
+            {
+                classes.Add("selected");
+            }
+
+            if (Session.AttackTargets.ContainsKey(unit.Id))
+            {
+                classes.Add("attackable");
+            }
+        }
+        else if (IsDeployTarget(coord))
+        {
+            classes.Add("deploy");
+        }
+        else if (Session.MoveTargets.ContainsKey(coord))
+        {
+            classes.Add("movable");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private static string TeamClass(Team team) => team switch
+    {
+        Team.PlayerA => "a",
+        Team.PlayerB => "b",
+        _ => "e",
+    };
+
+    private string Tooltip(Coord coord, Unit? unit)
+    {
+        var terrain = State.Board.At(coord).ToString();
+
+        if (unit is not null)
+        {
+            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp} — {terrain} {coord}";
+        }
+
+        if (Session.MoveTargets.ContainsKey(coord))
+        {
+            return $"Move here — {terrain} {coord}";
+        }
+
+        return $"{terrain} {coord}";
+    }
+
+    public void Dispose() => _disposed = true;
+}

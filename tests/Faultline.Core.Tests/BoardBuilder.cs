@@ -1,0 +1,110 @@
+using System.Collections.Generic;
+using Faultline.Core;
+
+namespace Faultline.Core.Tests;
+
+/// <summary>
+/// Builds a small battle-phase state from string art so rule tests read like the board they test.
+/// Layout characters match <see cref="BoardLayout"/>: '.' open, '#' wall, 'O' pit, '^' spikes, 'H' high ground.
+/// </summary>
+public sealed class BoardBuilder
+{
+    private readonly List<string> _rows;
+    private readonly List<Placement> _placements = new();
+    private Team? _activeTeam;
+    private int _seed = 1;
+
+    private BoardBuilder(IEnumerable<string> rows) => _rows = new List<string>(rows);
+
+    /// <summary>Starts a builder from layout rows, top row first.</summary>
+    public static BoardBuilder Rows(params string[] rows) => new(rows);
+
+    /// <summary>An entirely open board of the given size.</summary>
+    public static BoardBuilder Open(int width, int height)
+    {
+        var rows = new List<string>(height);
+        for (int y = 0; y < height; y++)
+        {
+            rows.Add(new string(BoardLayout.Open, width));
+        }
+
+        return new BoardBuilder(rows);
+    }
+
+    /// <summary>Places a unit. Units are given ids in the order they are added.</summary>
+    public BoardBuilder Place(UnitKind kind, Team team, int x, int y, int? hp = null)
+    {
+        _placements.Add(new Placement(kind, team, new Coord(x, y), hp));
+        return this;
+    }
+
+    /// <summary>Places a player-A unit.</summary>
+    public BoardBuilder PlayerA(UnitKind kind, int x, int y, int? hp = null) =>
+        Place(kind, Team.PlayerA, x, y, hp);
+
+    /// <summary>Places a player-B unit.</summary>
+    public BoardBuilder PlayerB(UnitKind kind, int x, int y, int? hp = null) =>
+        Place(kind, Team.PlayerB, x, y, hp);
+
+    /// <summary>Places an enemy unit.</summary>
+    public BoardBuilder Enemy(UnitKind kind, int x, int y, int? hp = null) =>
+        Place(kind, Team.Enemy, x, y, hp);
+
+    /// <summary>Overrides which team holds the first activation slot.</summary>
+    public BoardBuilder Active(Team team)
+    {
+        _activeTeam = team;
+        return this;
+    }
+
+    /// <summary>Sets the run seed.</summary>
+    public BoardBuilder Seed(int seed)
+    {
+        _seed = seed;
+        return this;
+    }
+
+    /// <summary>Produces a round-1 battle state with every unit already deployed.</summary>
+    public GameState Build()
+    {
+        var board = BoardLayout.Parse(_rows);
+        var units = new List<Unit>(_placements.Count);
+
+        for (int i = 0; i < _placements.Count; i++)
+        {
+            var placement = _placements[i];
+            var unit = Unit.FromTemplate(new UnitId(i), placement.Kind, placement.Team) with
+            {
+                Position = placement.At,
+                IsDeployed = true,
+            };
+
+            if (placement.Hp.HasValue)
+            {
+                unit = unit with { Hp = placement.Hp.Value };
+            }
+
+            units.Add(unit);
+        }
+
+        var active = _activeTeam ?? (_placements.Count > 0 ? _placements[0].Team : Team.PlayerA);
+
+        return new GameState
+        {
+            Seed = _seed,
+            RngState = _seed,
+            Fight = new FightDefinition { Number = 1, Name = "Test", Board = board },
+            Board = board,
+            Units = units,
+            Round = 1,
+            Phase = Phase.Battle,
+            ActiveTeam = active,
+            NextPlayerTeam = active.IsPlayer() ? active : Team.PlayerA,
+            ActiveUnitId = null,
+            Momentum = 0,
+            Outcome = FightOutcome.InProgress,
+        };
+    }
+
+    private readonly record struct Placement(UnitKind Kind, Team Team, Coord At, int? Hp);
+}

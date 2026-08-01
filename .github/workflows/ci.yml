@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+  core-purity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # CLAUDE.md prime directive 1. Core is the DLL that gets dropped into Unity unchanged, so this
+      # runs on every change: BCL-only usings, netstandard2.1, and no source of nondeterminism.
+      - name: Target framework is unchanged
+        run: |
+          grep -q '<TargetFramework>netstandard2.1</TargetFramework>' src/Faultline.Core/Faultline.Core.csproj \
+            || { echo "Core TFM is not netstandard2.1"; exit 1; }
+
+      - name: No usings outside the BCL
+        run: |
+          bad=$(grep -rhoE '^[[:space:]]*using[[:space:]]+[A-Za-z0-9_.]+' src/Faultline.Core --include='*.cs' \
+                | sed -E 's/^[[:space:]]*using[[:space:]]+//' \
+                | grep -vE '^(System|Faultline)' || true)
+          if [ -n "$bad" ]; then echo "Non-BCL usings in Core:"; echo "$bad"; exit 1; fi
+
+      - name: No engine or web references in Core
+        run: |
+          if grep -rnE 'using (Unity|UnityEngine|Microsoft\.AspNetCore)' src/Faultline.Core --include='*.cs'; then
+            echo "Core references an engine or web framework"; exit 1
+          fi
+
+      # Comment lines are stripped first, so prose about the rule ("no float math here") does not
+      # trip the check that enforces it.
+      - name: No floating point or wall-clock in Core rules
+        run: |
+          hits=$(grep -rn --include='*.cs' -E '\b(float|double|decimal|DateTime|DateTimeOffset|Stopwatch)\b' src/Faultline.Core \
+                 | grep -vE ':[0-9]+:[[:space:]]*(//|\*|/\*)' || true)
+          if [ -n "$hits" ]; then echo "Core contains float math or wall-clock access:"; echo "$hits"; exit 1; fi
+
+      - name: No unseeded randomness in Core
+        run: |
+          hits=$(grep -rn --include='*.cs' -E '\bnew Random\b|System\.Random|Guid\.NewGuid' src/Faultline.Core \
+                 | grep -vE ':[0-9]+:[[:space:]]*(//|\*|/\*)' || true)
+          if [ -n "$hits" ]; then echo "Core contains unseeded randomness; use IRng:"; echo "$hits"; exit 1; fi
+
+      - name: No project references out of Core
+        run: |
+          if grep -q '<ProjectReference' src/Faultline.Core/Faultline.Core.csproj; then
+            echo "Core must not reference other projects"; exit 1
+          fi
+          if grep -q '<PackageReference' src/Faultline.Core/Faultline.Core.csproj; then
+            echo "Core must not take NuGet dependencies"; exit 1
+          fi

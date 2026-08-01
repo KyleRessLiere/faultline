@@ -1,0 +1,322 @@
+/* Placeholder styling only. CLAUDE.md: ugly is fine, wrong is not — this exists to make the
+   rules legible, not to look finished. */
+
+:root {
+    --cell: 68px;
+    --bg: #14161b;
+    --panel: #1d2027;
+    --line: #333944;
+    --text: #e6e8ec;
+    --muted: #98a0ae;
+    --a: #5aa9ff;
+    --b: #58d0a0;
+    --e: #ff6b6b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+.boot {
+    padding: 3rem;
+    color: var(--muted);
+}
+
+h1 {
+    font-size: 1.4rem;
+    margin: 0 0 .75rem;
+    font-weight: 600;
+}
+
+h1 .sub {
+    font-size: .8rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: .5rem;
+}
+
+h2 {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin: 0 0 .5rem;
+}
+
+.shell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    align-items: flex-start;
+}
+
+.board-pane {
+    flex: 0 0 auto;
+}
+
+.side-pane {
+    flex: 1 1 320px;
+    min-width: 300px;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: .75rem;
+}
+
+.chip {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .2rem .7rem;
+    font-size: .78rem;
+}
+
+.chip.team-a { border-color: var(--a); color: var(--a); }
+.chip.team-b { border-color: var(--b); color: var(--b); }
+.chip.team-e { border-color: var(--e); color: var(--e); }
+
+/* Board */
+
+.grid {
+    display: grid;
+    gap: 3px;
+    background: var(--line);
+    padding: 3px;
+    border-radius: 4px;
+    width: max-content;
+}
+
+.cell {
+    width: var(--cell);
+    height: var(--cell);
+    border: 2px solid transparent;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font: inherit;
+    color: var(--text);
+    cursor: default;
+    padding: 0;
+}
+
+.cell:not(:disabled) {
+    cursor: pointer;
+}
+
+.cell.open    { background: #2b303a; }
+.cell.wall    { background: #5a6070; }
+.cell.pit     { background: #0b0c10; }
+.cell.spikes  { background: #6d3a2f; }
+.cell.high    { background: #3f4b3a; }
+.cell.cracked { background: #2b303a; border-style: dashed; border-color: #7a6a3a; }
+
+.cell.movable {
+    outline: 2px solid rgba(90, 169, 255, .8);
+    outline-offset: -4px;
+}
+
+.cell.deploy {
+    outline: 2px dashed rgba(88, 208, 160, .9);
+    outline-offset: -4px;
+}
+
+.cell.attackable {
+    border-color: var(--e);
+}
+
+.cell.selected {
+    border-color: #ffd166;
+}
+
+.cell.team-a .glyph { color: var(--a); }
+.cell.team-b .glyph { color: var(--b); }
+.cell.team-e .glyph { color: var(--e); }
+
+.glyph {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: .04em;
+}
+
+.hp {
+    font-size: .68rem;
+    color: var(--muted);
+}
+
+.marker {
+    color: rgba(230, 232, 236, .55);
+    font-size: 1rem;
+}
+
+.legend {
+    display: flex;
+    gap: 1rem;
+    margin-top: .75rem;
+    font-size: .75rem;
+    color: var(--muted);
+}
+
+.legend span {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.sw.open   { background: #2b303a; }
+.sw.wall   { background: #5a6070; }
+.sw.pit    { background: #0b0c10; border: 1px solid #333; }
+.sw.spikes { background: #6d3a2f; }
+.sw.high   { background: #3f4b3a; }
+
+/* Panels */
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: .9rem;
+}
+
+.panel p {
+    margin: 0 0 .6rem;
+    line-height: 1.45;
+}
+
+.note {
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+.outcome {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.outcome.won  { color: var(--b); }
+.outcome.lost { color: var(--e); }
+
+.halves {
+    list-style: none;
+    display: flex;
+    gap: .4rem;
+    padding: 0;
+    margin: 0 0 .6rem;
+}
+
+.halves li {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: .15rem .6rem;
+    font-size: .78rem;
+}
+
+.halves li.spent {
+    color: var(--muted);
+    text-decoration: line-through;
+    opacity: .6;
+}
+
+.action {
+    background: #2f6fd0;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: .45rem .9rem;
+    font: inherit;
+    cursor: pointer;
+    margin-right: .4rem;
+}
+
+.action.secondary {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+}
+
+.units {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+
+.units td {
+    padding: .2rem .35rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.units tr.down td {
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+.units tr.sel td {
+    background: rgba(255, 209, 102, .1);
+}
+
+.units td.team-a { color: var(--a); font-weight: 700; }
+.units td.team-b { color: var(--b); font-weight: 700; }
+.units td.team-e { color: var(--e); font-weight: 700; }
+
+.log-panel {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: .78rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.log li:first-child {
+    color: var(--text);
+}
+
+#blazor-error-ui {
+    background: #ffe08a;
+    color: #222;
+    bottom: 0;
+    display: none;
+    left: 0;
+    padding: .6rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: .75rem;
+    top: .5rem;
+}
