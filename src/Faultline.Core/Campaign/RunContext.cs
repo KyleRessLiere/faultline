@@ -34,5 +34,16 @@ namespace Faultline.Core
 
         /// <summary>What happened inside the fight, in order.</summary>
         public List<GameEvent> FightEvents { get; }
+
+        /// <summary>
+        /// The board as it stood when this command finished, set by a handler that touched one.
+        /// </summary>
+        /// <remarks>
+        /// Needed because the winning command is also the command that leaves the fight: the run
+        /// advances, <see cref="RunState.Fight"/> is cleared (D-055), and a renderer would otherwise
+        /// have nothing to draw the killing blow on. The step reports the board the step happened on;
+        /// the run does not carry it forward.
+        /// </remarks>
+        public GameState? FinalBoard { get; set; }
     }
 }

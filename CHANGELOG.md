@@ -1,5 +1,28 @@
 # Changelog
 
+## Runs — attrition, checkpoints, and a campaign layer in Core
+
+- **The run moved out of the shell and into Core.** `Campaign.ApplyRun(RunState, RunCommand)` is the
+  whole contract, deliberately the same shape as `Game.Apply`. Campaign mode had shipped as renderer
+  code; "a downed unit returns at half its maximum" is a rule, and rules do not live in a renderer.
+- **Determinism reaches the run level.** Combat commands travel to the fight wrapped in a
+  `PlayCommand`, so a run is one command stream: seed plus log replays to an identical run and an
+  identical hash.
+- **No healing between fights.** A unit that finishes on 3 of 7 starts the next one on 3 of 7. The
+  squad list is now the scoreboard.
+- **Downed units return at half maximum, rounded down** — Vanguard 3, Wardbearer 3, Archer 2,
+  Threadcaster 2 — and between fights read as what they are: down, on nothing.
+- **Two checkpoints**, after the fourth fight and the eighth, restoring every unit that can still be
+  fielded and clearing the downed mark with it.
+- **Voided is still the one permanent loss.** No rest brings it back; its slot is dropped rather than
+  filled with a substitute.
+- Collision damage is untouched and still allegiance-blind — which is the point. Slamming your own
+  Vanguard into a Husk now costs 2 hit points it carries forward, so the game's strongest interaction
+  finally has a price that outlives the board.
+- **A campaign is data**: an id, a squad, an ordered list of nodes. Exactly two node types — fight and
+  rest — behind a handler seam, so a third is a new handler rather than a rework. A test pins the
+  count at two.
+
 ## The curated set, and a campaign to play it in
 
 - **62 battles cut to 35, then three new ones authored: 65 on disk, 38 active.** The 27 retirements

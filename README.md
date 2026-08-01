@@ -114,13 +114,22 @@ round — the fight is about reading those intents and moving the board out from
 
 ### Two ways in
 
-**`/campaign` — the run.** The ten campaign fights in order. A win advances, a loss ends the run. A
-unit **voided** — lost down a pit — is gone for the rest of the run and does not appear in later
-fights; a unit merely **downed** comes back next fight at full health. A campaign fight whose
-`.fight` file has not been authored yet is skipped and marked on the screen, and joins the spine on
-its own when the file lands. The run lives in this browser's storage — seed, how far you got, which
-classes are gone — and survives a reload; the half-played board does not, so a reload restarts the
-current fight from deployment.
+**`/campaign` — the run.** Twelve nodes: ten fights and two rests. Start one with a seed; a win
+advances, a loss ends the run.
+
+**There is no healing between fights.** A unit that finishes on 3 of 7 starts the next one on 3 of 7,
+so the squad list on the campaign screen is the thing to watch — it is the only place the cost of a
+fight is visible. A unit knocked to zero reads **downed** and walks back on at half its maximum,
+rounded down. A unit lost down a pit reads **voided** and is gone for the run; its side simply fields
+one fewer body from then on. The two rests, after the fourth fight and the eighth, restore everything
+that can still be fielded.
+
+Worth knowing while you play: **collision damage does not care whose unit it is.** Shoving your own
+Vanguard into a Husk is 2 to both, and those 2 follow the Vanguard into the next fight.
+
+The run lives in this browser's storage — the seed, the node, and what every squad member is
+carrying. **A reload keeps the run but not the board**: the fight you were in restarts from
+deployment, and both screens say so.
 
 **`/battles` — the picker.** Every active board, grouped Campaign / Trials / Co-op gauntlet / Other,
 with retired boards and their reasons collapsed at the bottom. Anything here plays as a one-off:

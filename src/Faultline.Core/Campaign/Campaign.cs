@@ -199,6 +199,82 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Rebuilds a run from what a save holds: its seed, how far it got, and what the squad is
+        /// carrying. The fight in progress is not restored — a restored run stands on its node and
+        /// enters it again (DECISIONS.md D-050).
+        /// </summary>
+        /// <remarks>
+        /// This exists so a renderer never has to assemble a <see cref="RunState"/> out of its own
+        /// parts. A save is three facts, and the invariants between them — that the squad matches the
+        /// campaign, that a finished run is Complete, that a run past its last node has won — are the
+        /// rules' business, not the storage layer's.
+        /// </remarks>
+        /// <param name="campaign">Campaign the save belongs to.</param>
+        /// <param name="seed">Seed the run was started from.</param>
+        /// <param name="nodeIndex">Node it had reached.</param>
+        /// <param name="squad">The squad as it stood, in campaign order.</param>
+        /// <param name="fightsWon">How many fights it had cleared.</param>
+        /// <param name="outcome">Whether it had already ended.</param>
+        /// <returns>The run, standing on its node.</returns>
+        /// <exception cref="ArgumentException">The squad does not match the campaign's.</exception>
+        public static RunState Restore(
+            CampaignDefinition campaign,
+            int seed,
+            int nodeIndex,
+            IReadOnlyList<RunUnit> squad,
+            int fightsWon,
+            RunOutcome outcome)
+        {
+            if (campaign is null)
+            {
+                throw new ArgumentNullException(nameof(campaign));
+            }
+
+            if (squad is null)
+            {
+                throw new ArgumentNullException(nameof(squad));
+            }
+
+            if (squad.Count != campaign.Squad.Count)
+            {
+                throw new ArgumentException(
+                    "The save holds " + squad.Count + " squad members and campaign '" + campaign.Id
+                    + "' fields " + campaign.Squad.Count + ".",
+                    nameof(squad));
+            }
+
+            for (int i = 0; i < squad.Count; i++)
+            {
+                if (squad[i].Kind != campaign.Squad[i])
+                {
+                    throw new ArgumentException(
+                        "Squad member " + i + " is a " + squad[i].Kind + " and campaign '" + campaign.Id
+                        + "' fields a " + campaign.Squad[i] + " there.",
+                        nameof(squad));
+                }
+            }
+
+            int index = nodeIndex < 0 ? 0 : nodeIndex;
+            bool past = index >= campaign.Length;
+            var ending = outcome != RunOutcome.InProgress
+                ? outcome
+                : past ? RunOutcome.Won : RunOutcome.InProgress;
+
+            return new RunState
+            {
+                Seed = seed,
+                Campaign = campaign,
+                NodeIndex = index,
+                Squad = squad,
+                FightsWon = fightsWon,
+                Outcome = ending,
+                Phase = ending == RunOutcome.InProgress ? RunPhase.AtNode : RunPhase.Complete,
+                Fight = null,
+                Bindings = Array.Empty<RunBinding>(),
+            };
+        }
+
+        /// <summary>
         /// Replays a run from its seed and command log. The whole save format, at both levels.
         /// </summary>
         /// <param name="campaign">Campaign the log was recorded against.</param>
@@ -222,6 +298,11 @@ namespace Faultline.Core
         }
 
         private static RunStepResult Result(RunState state, RunContext context) =>
-            new RunStepResult(state, context.RunEvents, context.FightEvents, LegalRunCommands(state));
+            new RunStepResult(
+                state,
+                context.RunEvents,
+                context.FightEvents,
+                LegalRunCommands(state),
+                context.FinalBoard);
     }
 }

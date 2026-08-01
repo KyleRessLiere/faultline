@@ -34,6 +34,7 @@ namespace Faultline.Core
 
             var start = Game.Start(adapted, state.Seed, loadout);
             context.FightEvents.AddRange(start.Events);
+            context.FinalBoard = start.NewState;
 
             context.RunEvents.Add(new FightBegan(
                 state.NodeIndex, fight.Id, fight.Number, fight.Name, bindings.Count));
@@ -104,6 +105,7 @@ namespace Faultline.Core
 
             var step = Game.Apply(state.Fight, play.Command);
             context.FightEvents.AddRange(step.Events);
+            context.FinalBoard = step.NewState;
 
             var next = state with { Fight = step.NewState };
 

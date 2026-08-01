@@ -476,6 +476,110 @@ public class RunTests
             handler.Step(RunFixture.Start(), new RestNode(), new EnterNodeCommand(), new RunContext()));
     }
 
+
+    // --- What a step reports, and what a save holds ------------------------------------------------
+
+    [Fact]
+    public void Step_ReportsTheBoardTheWinningBlowLandedOn()
+    {
+        // The winning command is also the command that leaves the fight, so RunState.Fight is already
+        // cleared by the time the caller sees it (D-055). Without FinalBoard a renderer could never
+        // draw the blow that ended the fight.
+        var run = RunFixture.StartedInFirstFight(out _);
+        var step = RunFixture.EndFightInAWin(run);
+
+        Assert.Null(step.NewState.Fight);
+        Assert.NotNull(step.FinalBoard);
+        Assert.Equal(FightOutcome.Won, step.FinalBoard!.Outcome);
+        Assert.NotEmpty(step.FightEvents);
+    }
+
+    [Fact]
+    public void Step_ReportsTheBoardForAnOrdinaryCommandToo()
+    {
+        var run = RunFixture.StartedInFirstFight(out _);
+
+        var step = Campaign.ApplyRun(run, Campaign.LegalRunCommands(run)[0]);
+
+        Assert.NotNull(step.FinalBoard);
+        Assert.Equal(step.NewState.Fight, step.FinalBoard);
+    }
+
+    [Fact]
+    public void Step_EnteringARestReportsNoBoardAtAll()
+    {
+        var run = RunFixture.AtTheFirstRest(out _);
+
+        var step = Campaign.ApplyRun(run, new EnterNodeCommand());
+
+        Assert.Null(step.FinalBoard);
+    }
+
+    [Fact]
+    public void Restore_BringsBackTheRunButNotTheBoard()
+    {
+        var run = RunFixture.StartedInFirstFight(out var vanguard);
+        run = RunFixture.Deploy(run);
+        run = RunFixture.HurtTo(run, vanguard, 2);
+        run = RunFixture.WinTheFight(run);
+        run = RunFixture.Enter(run);
+
+        var restored = Campaign.Restore(
+            run.Campaign, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome);
+
+        Assert.Equal(run.NodeIndex, restored.NodeIndex);
+        Assert.Equal(2, restored.FindUnit(vanguard)!.Hp);
+        Assert.Equal(RunPhase.AtNode, restored.Phase);
+        Assert.Null(restored.Fight);
+        Assert.Empty(restored.Bindings);
+
+        // And it can be played on: the node it stands on is entered again from deployment.
+        var again = RunFixture.Enter(restored);
+        Assert.Equal(RunPhase.InFight, again.Phase);
+        Assert.Equal(Phase.Deployment, again.Fight!.Phase);
+        Assert.Equal(2, RunFixture.OnBoard(again, vanguard).Hp);
+    }
+
+    [Fact]
+    public void Restore_RefusesASquadThatIsNotThisCampaigns()
+    {
+        var run = RunFixture.Start();
+        var wrong = new List<RunUnit>(run.Squad) { RunUnit.Fresh(new RunUnitId(9), UnitKind.Husk) };
+
+        Assert.Throws<System.ArgumentException>(() =>
+            Campaign.Restore(run.Campaign, run.Seed, 0, wrong, 0, RunOutcome.InProgress));
+
+        var swapped = run.Squad.Reverse().ToList();
+        Assert.Throws<System.ArgumentException>(() =>
+            Campaign.Restore(run.Campaign, run.Seed, 0, swapped, 0, RunOutcome.InProgress));
+    }
+
+    [Fact]
+    public void Restore_ARunPastItsLastNodeIsAWonRunNotAPlayableOne()
+    {
+        var run = RunFixture.Start();
+
+        var restored = Campaign.Restore(
+            run.Campaign, run.Seed, run.Campaign.Length, run.Squad, 10, RunOutcome.InProgress);
+
+        Assert.Equal(RunOutcome.Won, restored.Outcome);
+        Assert.Equal(RunPhase.Complete, restored.Phase);
+        Assert.Empty(Campaign.LegalRunCommands(restored));
+    }
+
+    [Fact]
+    public void Restore_ARestoredRunPlaysOnIdenticallyToTheOneItCameFrom()
+    {
+        var run = RunFixture.StartedInFirstFight(out _);
+        run = RunFixture.WinTheFight(run);
+
+        var restored = Campaign.Restore(
+            run.Campaign, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome);
+
+        Assert.Equal(run.GetHashCode(), restored.GetHashCode());
+        Assert.Equal(run, restored);
+    }
+
     private sealed record UnknownNode : CampaignNode
     {
         public override string Describe() => "unknown";
