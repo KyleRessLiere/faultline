@@ -394,10 +394,14 @@ twice loses one slot rather than both. A unit merely downed comes back next figh
 only voided — lost down a pit — is permanent.
 
 **D-050 — A reload restores the run, not the board.**
-Seed, position in the spine, and which classes are gone survive a reload; the half-played fight does
-not, and restarts from deployment. Restoring mid-board means persisting the command log, which is a
-larger promise than the run needed — and the seed plus the log is exactly the save format Core
-already has, so this is deferred rather than designed around.
+Seed, node index and the squad's carried HP survive a reload; the half-played fight does not, and
+restarts from deployment.
+
+The reason is now sharper than when this was first written. `RunState` holds the fight in progress, so
+persisting it is possible — but the honest way to persist a run is the seed and the command log, which
+replays *everything* including the half-played board, and the half-measure of serialising a board
+snapshot would be a second save format that has to agree with the first. Restarting the current fight
+is the cheap correct answer until the command log is what gets written.
 
 **D-051 — A side with no units left ends the run, and the shell is the wrong place for that.**
 `Game.Start` with an empty roster opens deployment on that side, offers no legal commands and never
@@ -406,3 +410,43 @@ reachable, so the shell detects it and ends the run rather than handing the play
 **Recorded as a Core gap, not a shell feature:** either deployment should skip a side with nothing to
 place, or `Start` should declare the fight unplayable. Until then the shell's check is a patch over
 a hole in the rules.
+
+**D-052 — The run is a layer in Core, not a feature of the shell, and it is shaped like the fight layer.**
+Campaign mode first shipped as shell code: a `CampaignRun` record in `Faultline.Web`, rewriting fight
+rosters and reading `unit.Voided` off finished states. It worked, and it was in the wrong place. The
+rule "a downed unit returns at half its maximum" is a *rule*; it belongs where the rules are, and a
+renderer holding it means no test in the Core suite can see it and the Unity client would have to
+reimplement it.
+
+So the run is now `Campaign.ApplyRun(RunState, RunCommand) → RunStepResult`, deliberately the same
+shape as `Game.Apply`: immutable state, full-payload events, ids over references, and one command
+stream. The shell renders run events and sends run commands, exactly as it renders game events and
+sends commands. **`Game.Start` gained one overload** — a `SquadLoadout` of per-slot starting hit points
+— and nothing else about a fight changes inside a run: same board, same enemies, same schedule, same
+ids, same draws. A fight played in a run and the same fight played alone are the same fight.
+
+**D-053 — A rest heals a downed unit; "living" means everything but voided.**
+"Fully heals all living units" has to decide what a downed unit is. It is alive: the run has exactly
+one permanent loss, and it is voided. So a checkpoint restores a downed unit to full and clears the
+mark, and the only thing it cannot touch is a unit that went down a pit. The alternative — a downed
+unit that stays down through a checkpoint — would make the run's two damage states two different kinds
+of permanent, and would leave a squad that scraped through fight 4 permanently crippled by a rest
+node whose entire job is to stop that.
+
+**D-054 — A run carries whole-unit identity, and binds it to roster slots by archetype.**
+D-049 carried `UnitKind`s because that is what fight files roster. Carrying *hit points* needs more
+than a class: two Vanguards on different HP are not interchangeable. So a run's squad is a list of
+`RunUnit`s with their own `RunUnitId`s — deliberately not `UnitId`s, which are dense within one fight
+and reassigned every time one starts, so the Vanguard is `u0` in one fight and `u2` in the next.
+
+When a fight begins, squad members are bound to that fight's roster slots by archetype, in campaign
+order, and the binding is recorded in `RunState` rather than inferred. It has to be recorded: the
+campaign fights split the same four classes across the two players differently — the Wardbearer is
+Player B's in eight fights and Player A's in two — so neither the side nor the position identifies
+anyone.
+
+**D-055 — A finished board does not follow the run to the next node.**
+`RunState.Fight` holds the fight belonging to the node currently entered, and `Campaign.Advance`
+clears it. A run standing on a rest while holding the last fight's corpse is a state nothing can ask a
+sensible question about. A run that *ended* keeps its board, because that board is the ending and the
+loss screen is drawn from it.

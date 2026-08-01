@@ -270,19 +270,60 @@ creator cannot produce a scenario the game would refuse. Errors block play; lint
 A scenario saved to the browser is playable immediately. A `.fight` file saved into
 `Fights/Data/` is an embedded resource, so it only becomes a built-in battle **after a rebuild**.
 
-**Playing a run.** `/campaign` walks the ten campaign fights in order. A win advances, a loss ends
-the run. A unit **voided** — lost down a pit — is gone for the rest of the run and does not appear in
-later fights; a unit merely **downed** comes back next fight at full health (D-049). The run is
-carried as a list of classes rather than of units, because that is what a fight file rosters. A
-campaign fight whose file has not been authored yet is skipped, marked on the screen, and joins the
-spine on its own when the file lands (D-048).
-
-The run survives a reload — seed, position, and which classes are gone — but the half-played board
-does not, and the current fight restarts from deployment (D-050). `/battles` plays any board as a
-one-off, with nothing carried in or out.
-
 **Authoring reference: [FIGHT_FORMAT.md](FIGHT_FORMAT.md)** — every key, every character, and the
 full error and lint tables.
+
+## Runs — the campaign layer
+
+A **run** is a squad walking an ordered list of **nodes**. It lives in Core, above the fight rules and
+shaped exactly like them: `Campaign.ApplyRun(RunState, RunCommand) → RunStepResult` is the whole
+contract, the state is immutable, and **the seed plus the ordered command log replays to an identical
+run and an identical hash** — combat commands included, because they travel to the fight wrapped in a
+`PlayCommand` and there is only ever one stream to record.
+
+A **campaign is data**: an id, a squad, and a list of nodes. There are exactly two node types.
+
+| Node | What it does |
+| --- | --- |
+| **Fight** | Plays a fight. A win advances to the next node; a loss ends the run. |
+| **Rest** | Restores every unit that can still be fielded, and advances. |
+
+The shipped campaign is **twelve nodes: fights 1–4, a rest, fights 5–8, a rest, fights 9–10** — the
+`docs/CURATED_SET.md` §1 spine with a checkpoint after the fourth and the eighth. The rests sit where
+the two hardest jumps are: fight 5 is the first objective that is not a kill, and fight 9 is a hold
+going into the boss.
+
+### Attrition — the exact numbers
+
+**There is no healing between fights.** A unit that finishes a fight on 3 of 7 starts the next one on
+3 of 7. Two things, and only two, give hit points back:
+
+- **A downed unit returns at half its maximum, rounded down.** Dropping to zero without being voided
+  leaves a unit **Downed**, and between fights it reads as exactly that: down, on nothing. When the
+  next fight begins it walks on at `MaxHp / 2` and is standing again. Vanguard 7 → **3**, Wardbearer
+  6 → **3**, Archer 4 → **2**, Threadcaster 4 → **2**.
+- **A rest restores every living unit to full**, and clears the downed mark with it — "living" means
+  everything but voided (D-053). It clears nothing else; a rest is not a phase with choices in it.
+
+**A voided unit stays dead for the run.** Lost down a pit is the game's one permanent loss, and no
+rest brings it back. Its side simply fields one fewer unit in every later fight — the slot is dropped,
+never filled with a substitute (D-049). A run with nothing left to field ends there (D-051).
+
+**Collision damage stays allegiance-blind.** A shove into a unit is 2 to *both* and staggers both,
+whoever they belong to, and nothing in the run layer special-cases teams. Slamming your own Vanguard
+into a Husk costs the Vanguard 2 real hit points that it carries to the next fight — which is what
+makes the game's best interaction cost something across a run.
+
+### The node seam
+
+What a node *does* lives in a `CampaignNodeHandler`, one per node type, looked up from a fixed table.
+The engine only ever asks a handler two questions: what happens when you are entered, and what is
+legal while you hold control. A third node type — an event, a choice of upgrade — is a node record, a
+run command record if it takes input, and a handler; **nothing in `ApplyRun` changes**. The table is
+fixed at type-load and never written to at run time, because a registry that could be added to
+mid-run would be exactly the hidden state replay determinism forbids.
+
+Two node types ship, and a test pins that number: a third is a change worth seeing in a diff.
 
 ## Fight 1 — "Kill All"
 

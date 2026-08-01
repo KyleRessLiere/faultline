@@ -17,7 +17,26 @@ namespace Faultline.Core
         /// <param name="fight">Authored fight data.</param>
         /// <param name="seed">Run seed; every later random draw descends from it.</param>
         /// <returns>The opening state, setup events, and the first legal commands.</returns>
-        public static StepResult Start(FightDefinition fight, int seed)
+        public static StepResult Start(FightDefinition fight, int seed) => Start(fight, seed, null);
+
+        /// <summary>
+        /// Sets up a fight whose players are already carrying damage, for a campaign run.
+        /// </summary>
+        /// <remarks>
+        /// The only difference from a standalone fight is the hit points the player units open on:
+        /// the board, the enemies, the schedule, the ids and every random draw are identical, so a
+        /// fight played inside a run and the same fight played on its own are the same fight
+        /// (DECISIONS.md D-052).
+        /// </remarks>
+        /// <param name="fight">Authored fight data.</param>
+        /// <param name="seed">Run seed; every later random draw descends from it.</param>
+        /// <param name="loadout">
+        /// Starting hit points for each roster slot, positionally against
+        /// <see cref="FightDefinition.RosterA"/> and <see cref="FightDefinition.RosterB"/>. Null, or a
+        /// short list, leaves the remaining slots at full health.
+        /// </param>
+        /// <returns>The opening state, setup events, and the first legal commands.</returns>
+        public static StepResult Start(FightDefinition fight, int seed, SquadLoadout? loadout)
         {
             if (fight is null)
             {
@@ -27,14 +46,18 @@ namespace Faultline.Core
             var units = new List<Unit>();
             int nextId = 0;
 
-            foreach (var kind in fight.RosterA)
+            for (int i = 0; i < fight.RosterA.Count; i++)
             {
-                units.Add(WithGrantedFooting(Unit.FromTemplate(new UnitId(nextId++), kind, Team.PlayerA), fight));
+                var unit = WithGrantedFooting(
+                    Unit.FromTemplate(new UnitId(nextId++), fight.RosterA[i], Team.PlayerA), fight);
+                units.Add(WithCarriedHp(unit, loadout?.HpFor(Team.PlayerA, i)));
             }
 
-            foreach (var kind in fight.RosterB)
+            for (int i = 0; i < fight.RosterB.Count; i++)
             {
-                units.Add(WithGrantedFooting(Unit.FromTemplate(new UnitId(nextId++), kind, Team.PlayerB), fight));
+                var unit = WithGrantedFooting(
+                    Unit.FromTemplate(new UnitId(nextId++), fight.RosterB[i], Team.PlayerB), fight);
+                units.Add(WithCarriedHp(unit, loadout?.HpFor(Team.PlayerB, i)));
             }
 
             var events = new List<GameEvent> { new FightStarted(fight.Number, fight.Name) };
@@ -99,6 +122,32 @@ namespace Faultline.Core
         /// </summary>
         private static Unit WithGrantedFooting(Unit unit, FightDefinition fight) =>
             unit with { Footing = fight.FootingFor(unit.Team, unit.Kind) };
+
+        /// <summary>
+        /// Opens a unit on the hit points a run is carrying for it. Clamped to the archetype's
+        /// ceiling and to at least 1 — a run never fields a corpse, because a unit with nothing left
+        /// is either downed, and comes back at half, or voided, and does not come back at all.
+        /// </summary>
+        private static Unit WithCarriedHp(Unit unit, int? hp)
+        {
+            if (hp is null)
+            {
+                return unit;
+            }
+
+            int carried = hp.Value;
+            if (carried > unit.MaxHp)
+            {
+                carried = unit.MaxHp;
+            }
+
+            if (carried < 1)
+            {
+                carried = 1;
+            }
+
+            return unit with { Hp = carried };
+        }
 
         /// <summary>Applies one command. The command must be present in the previous <see cref="StepResult.LegalNext"/>.</summary>
         /// <param name="state">State to advance.</param>

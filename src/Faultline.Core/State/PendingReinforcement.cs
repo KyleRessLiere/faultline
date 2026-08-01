@@ -4,7 +4,7 @@ namespace Faultline.Core
     /// One scheduled arrival that has not landed yet: which unit, which round, which tile.
     /// </summary>
     /// <remarks>
-    /// The unit itself is created undeployed at <see cref="Game.Start"/>, so its id is fixed before
+    /// The unit itself is created undeployed at <see cref="Game.Start(FightDefinition, int)"/>, so its id is fixed before
     /// the first command and the command log replays identically whatever happens to the schedule.
     /// </remarks>
     /// <param name="UnitId">The waiting unit, already in <see cref="GameState.Units"/> and undeployed.</param>
