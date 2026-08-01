@@ -1,0 +1,37 @@
+{
+    // Committed alongside tasks.json, for the same reason: this is the project's way in, not one
+    // machine's. F5 and Ctrl-F5 are bound by VS Code out of the box, so this file *is* the keybind —
+    // there is nothing to add to your own keybindings.json to start the game.
+    //
+    //   F5        start it with the debugger attached — breakpoints in C# hit in the browser
+    //   Ctrl-F5   start it without the debugger, which starts faster
+    //
+    // Both serve on the port src/Faultline.Web/Properties/launchSettings.json names (5137) and open
+    // a browser at it. If that port is already held by a server you forgot about, run the
+    // "Faultline: stop servers" task first — a stale dev server keeps handing out its own old build
+    // and the page fails in a way that looks like a code bug (see README).
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Faultline.Web is a standalone Blazor WebAssembly app — Microsoft.NET.Sdk.BlazorWebAssembly
+            // plus the DevServer package — so this is the "blazorwasm" launch type rather than
+            // "coreclr". It builds, starts the dev server, and attaches to the WASM runtime in the
+            // browser. Needs the C# extension (ms-dotnettools.csharp), which anything editing this
+            // repo already wants.
+            "name": "Faultline: play",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/src/Faultline.Web",
+            "browser": "chrome"
+        },
+        {
+            // The same thing in Edge, for when Chrome is not the default or is already driving a
+            // debug session. Identical otherwise.
+            "name": "Faultline: play (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/src/Faultline.Web",
+            "browser": "edge"
+        }
+    ]
+}

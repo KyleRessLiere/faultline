@@ -28,6 +28,7 @@ publish/
 # so the contents are ignored instead and tasks.json is named back in.
 .vscode/*
 !.vscode/tasks.json
+!.vscode/launch.json
 
 # Test results
 [Tt]est[Rr]esult*/

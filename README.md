@@ -96,6 +96,21 @@ dotnet build                               # build everything
 one machine's. Everything runs in the integrated terminal, so the build output and the server's own
 hosting logs land where you can read them, and build errors are clickable.
 
+**F5 starts the game.** `.vscode/launch.json` is committed too, so the keybind is already there —
+nothing to add to your own `keybindings.json`:
+
+| Key | Does |
+|---|---|
+| **F5** | Build, serve, open a browser, and attach the debugger — breakpoints in C# hit in the browser |
+| **Ctrl-F5** | The same without the debugger, which starts faster |
+
+Both use `src/Faultline.Web/Properties/launchSettings.json`, so they serve on **5137** rather than the
+5199 the scripts use — the two can run side by side. There is a Chrome config and an Edge one; pick
+from the dropdown in the Run panel. Debugging needs the C# extension (`ms-dotnettools.csharp`).
+
+If F5 fails to bind, a server you forgot about is holding 5137 — run **Faultline: stop servers**
+first. That task sweeps 5199–5210; for 5137 use `run.ps1 -Stop -Port 5137`.
+
 `Ctrl-Shift-P → Tasks: Run Task`:
 
 | Task | Does |
