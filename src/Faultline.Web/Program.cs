@@ -8,5 +8,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton<GameSession>();
+builder.Services.AddSingleton<FightFiles>();
+builder.Services.AddSingleton<CustomFightStore>();
 
 await builder.Build().RunAsync();

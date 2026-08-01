@@ -19,7 +19,7 @@ public sealed class GameSession
     private readonly List<string> _log = new();
 
     /// <summary>Creates a session already sitting on a fresh fight.</summary>
-    public GameSession() => NewRun(DefaultSeed);
+    public GameSession() => StartFight(FightLibrary.Fight1(), DefaultSeed);
 
     /// <summary>Seed used when the shell starts with no explicit choice.</summary>
     public const int DefaultSeed = 1;
@@ -52,16 +52,31 @@ public sealed class GameSession
     public AbilityDescriptor? SelectedAbility =>
         SelectedUnit is null ? null : AbilityDescriptor.ForKind(SelectedUnit.Kind);
 
-    /// <summary>Restarts the run on a fresh fight.</summary>
+    /// <summary>The fight currently loaded, authored or hand-built.</summary>
+    public FightDefinition Fight { get; private set; } = null!;
+
+    /// <summary>
+    /// Every authored fight, with its lints, for a picker to display. Lints are deliberately kept
+    /// alongside so a deviation from the brief is visible at selection time.
+    /// </summary>
+    public static IReadOnlyList<FightParseResult> Library => FightLibrary.LoadAll();
+
+    /// <summary>Restarts the current fight on a new seed.</summary>
     /// <param name="seed">Run seed.</param>
-    public void NewRun(int seed)
+    public void NewRun(int seed) => StartFight(Fight ?? FightLibrary.Fight1(), seed);
+
+    /// <summary>Loads a fight and starts it from the beginning.</summary>
+    /// <param name="fight">Authored or hand-built fight.</param>
+    /// <param name="seed">Run seed.</param>
+    public void StartFight(FightDefinition fight, int seed)
     {
+        Fight = fight;
         Seed = seed;
         _log.Clear();
         Selected = null;
         Hovered = null;
         Mode = ActionMode.Move;
-        Adopt(Game.Start(FightLibrary.Fight1(), seed));
+        Adopt(Game.Start(fight, seed));
     }
 
     /// <summary>Applies a command and folds the result into the session.</summary>

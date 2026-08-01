@@ -36,7 +36,13 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 .\run.ps1         # PowerShell
 ```
 
-Serves on http://localhost:5199.
+Serves on http://localhost:5199. Three screens:
+
+| Route | Screen |
+|---|---|
+| `/` | Battle select — every fight with its board, enemies and lints, plus anything you saved in the creator |
+| `/play` | The board, for whichever battle is loaded |
+| `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
 
 | bash | PowerShell | Does |
 |---|---|---|

@@ -1,5 +1,20 @@
 # Changelog
 
+## Battle select and the scenario creator
+
+- Battle select at `/`, the board moved to `/play`. Every fight from `FightLibrary` with its number,
+  name, description, a board thumbnail, enemy composition and its lints; a fight with parse errors is
+  shown as unplayable with the reason rather than hidden. Lints are collapsed but counted — visibly a
+  deviation, never a blocker.
+- Scenario creator at `/create`: 5×5–9×9 board, terrain/deploy-slot/enemy painting with drag, an
+  eraser, metadata fields, and per-side class rosters of 1–4. Every edit round-trips the draft through
+  `FightWriter.Write` → `FightParser.Parse`, so the errors and lints shown are Core's, not the shell's.
+- Class reference in the creator: stat block from `UnitTemplate` and ability name, effect and rules
+  text from `AbilityDescriptor` for all four player classes, with Hold called out as passive.
+- Saving a scenario: File System Access API into a real folder where the browser has it, a blob
+  download where it does not, and localStorage so custom scenarios survive a refresh and appear in the
+  picker immediately. A file in `Fights/Data` is only a built-in battle after a rebuild — the UI says so.
+
 ## Battles as data
 
 - `.fight` text format: terrain and placement share one grid, so a board is what it looks like and

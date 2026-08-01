@@ -1,4 +1,4 @@
-@page "/"
+@page "/play"
 @layout MainLayout
 @inject GameSession Session
 @implements IDisposable
@@ -10,6 +10,10 @@
         <h1>Faultline <span class="sub">M2 — displacement</span></h1>
 
         <div class="status">
+            <a class="chip link" href="battles">← Battles</a>
+            <span class="chip fight-chip" title="@Session.Fight.Id">
+                #@Session.Fight.Number @Session.Fight.Name
+            </span>
             <span class="chip">@PhaseLabel</span>
             <span class="chip">Round @State.Round</span>
             <span class="chip team-@TeamClass(State.ActiveTeam)">@ActiveLabel</span>
@@ -146,6 +150,7 @@
             }
 
             <button class="action secondary" @onclick="Restart">New run</button>
+            <a class="action secondary link-button" href="battles">Choose battle</a>
         </div>
 
         <div class="panel">

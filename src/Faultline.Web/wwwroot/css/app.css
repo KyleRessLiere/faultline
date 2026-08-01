@@ -88,6 +88,24 @@ h2 {
     font-size: .78rem;
 }
 
+.chip.link {
+    color: var(--text);
+    text-decoration: none;
+}
+
+.chip.link:hover {
+    border-color: var(--a);
+}
+
+.chip.fight-chip {
+    font-weight: 600;
+}
+
+.link-button {
+    display: inline-block;
+    text-decoration: none;
+}
+
 .chip.team-a { border-color: var(--a); color: var(--a); }
 .chip.team-b { border-color: var(--b); color: var(--b); }
 .chip.team-e { border-color: var(--e); color: var(--e); }
@@ -302,6 +320,11 @@ h2 {
     background: transparent;
     border: 1px solid var(--line);
     color: var(--muted);
+}
+
+.action:disabled {
+    cursor: default;
+    opacity: .35;
 }
 
 .units {

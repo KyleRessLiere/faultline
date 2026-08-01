@@ -1,0 +1,672 @@
+@page "/create"
+@layout MainLayout
+@inject GameSession Session
+@inject CustomFightStore Store
+@inject FightFiles Files
+@inject NavigationManager Nav
+
+<PageTitle>Faultline — scenario creator</PageTitle>
+
+<div class="creator">
+    <header class="creator-head">
+        <div>
+            <h1>Faultline <span class="sub">scenario creator</span></h1>
+            <p class="note">
+                Paint the grid, pick each side's classes, watch the validator. Everything below the
+                grid comes straight from the same parser that reads the shipped <code>.fight</code> files.
+            </p>
+        </div>
+        <div class="head-tools">
+            <a class="action secondary link-button" href="battles">← Battles</a>
+            <a class="action secondary link-button" href="play">Board</a>
+        </div>
+    </header>
+
+    <div class="creator-body">
+        <section class="paint">
+            <div class="panel">
+                <h2>Board</h2>
+
+                <div class="row">
+                    <label>
+                        Width
+                        <select value="@_draft.Width" @onchange="OnWidthChanged">
+                            @foreach (int size in Sizes)
+                            {
+                                <option value="@size">@size</option>
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        Height
+                        <select value="@_draft.Height" @onchange="OnHeightChanged">
+                            @foreach (int size in Sizes)
+                            {
+                                <option value="@size">@size</option>
+                            }
+                        </select>
+                    </label>
+                    <button class="action secondary" @onclick="ResetDraft">Reset to blank 7×7</button>
+                </div>
+
+                <h3>Palette</h3>
+                <div class="palette">
+                    @foreach (var (tile, label) in Terrains)
+                    {
+                        var t = tile;
+                        <button type="button"
+                                class="brush @(IsTerrain(t) ? "on" : string.Empty)"
+                                @onclick="() => PickTerrain(t)">
+                            <i class="sw @EventText.TileClass(t)"></i>@label
+                        </button>
+                    }
+
+                    <button type="button"
+                            class="brush @(_mode == BrushMode.ZoneA ? "on" : string.Empty)"
+                            @onclick="() => PickMode(BrushMode.ZoneA)">
+                        <i class="sw slot-a"></i>Deploy A
+                    </button>
+                    <button type="button"
+                            class="brush @(_mode == BrushMode.ZoneB ? "on" : string.Empty)"
+                            @onclick="() => PickMode(BrushMode.ZoneB)">
+                        <i class="sw slot-b"></i>Deploy B
+                    </button>
+
+                    @foreach (var kind in EnemyKinds)
+                    {
+                        var k = kind;
+                        <button type="button"
+                                class="brush @(_mode == BrushMode.Enemy && _enemy == k ? "on" : string.Empty)"
+                                @onclick="() => PickEnemy(k)">
+                            <span class="brush-art team-e"><UnitArt Kind="k" Label="@k.ToString()" /></span>@k
+                        </button>
+                    }
+
+                    <button type="button"
+                            class="brush @(_mode == BrushMode.Erase ? "on" : string.Empty)"
+                            @onclick="() => PickMode(BrushMode.Erase)">
+                        <i class="sw eraser"></i>Eraser
+                    </button>
+                </div>
+
+                <p class="note">
+                    Click or drag to paint. Clicking a tile that already holds that deploy slot or enemy
+                    clears it. A deploy slot or an enemy always sits on Open floor — the format cannot
+                    say otherwise.
+                </p>
+
+                <div class="pgrid"
+                     style="grid-template-columns: repeat(@_draft.Width, 46px);"
+                     @onmouseup="StopPainting"
+                     @onmouseleave="StopPainting">
+                    @foreach (var coord in _draft.AllCoords())
+                    {
+                        var at = coord;
+                        <button type="button"
+                                class="@CellClass(at)"
+                                title="@CellTitle(at)"
+                                @onmousedown="() => StartPainting(at)"
+                                @onmouseover="() => ContinuePainting(at)"
+                                @onclick="() => Tap(at)">
+                            @if (_draft.EnemyAt(at) is { } kind)
+                            {
+                                <span class="cell-art team-e"><UnitArt Kind="kind" Label="@kind.ToString()" /></span>
+                            }
+                            else if (_draft.IsZone(at, Team.PlayerA))
+                            {
+                                <span class="slot a">A</span>
+                            }
+                            else if (_draft.IsZone(at, Team.PlayerB))
+                            {
+                                <span class="slot b">B</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="side">
+            <div class="panel">
+                <h2>Scenario</h2>
+                <label class="field">
+                    id
+                    <input value="@_draft.Id" @onchange="OnIdChanged" />
+                </label>
+                <p class="note">Saved as <code>@(Slug + ".fight")</code>.</p>
+                <label class="field">
+                    name
+                    <input value="@_draft.Name" @onchange="OnNameChanged" />
+                </label>
+                <label class="field">
+                    number
+                    <input type="number" value="@_draft.Number" @onchange="OnNumberChanged" />
+                </label>
+                <label class="field">
+                    description
+                    <textarea rows="3" @onchange="OnDescriptionChanged">@_draft.Description</textarea>
+                </label>
+                <label class="field">
+                    seed
+                    <input type="number" value="@_seed" @onchange="OnSeedChanged" />
+                </label>
+            </div>
+
+            <div class="panel">
+                <h2>Validation</h2>
+
+                @if (_writeError is not null)
+                {
+                    <p class="issues errors">@_writeError</p>
+                }
+                else if (Errors.Count > 0)
+                {
+                    <p class="verdict bad">@Errors.Count error(s) — this cannot be played.</p>
+                    <ul class="issues errors">
+                        @foreach (var issue in Errors)
+                        {
+                            <li><span class="code">@issue.Code</span> @issue.Message</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="verdict good">No errors — playable.</p>
+                }
+
+                @if (Lints.Count > 0)
+                {
+                    <p class="verdict warn">@Lints.Count lint(s) — deliberate deviations, not blockers.</p>
+                    <ul class="issues lints">
+                        @foreach (var issue in Lints)
+                        {
+                            <li><span class="code">@issue.Code</span> @issue.Message</li>
+                        }
+                    </ul>
+                }
+                else if (_writeError is null && Errors.Count == 0)
+                {
+                    <p class="note">No lints — matches the brief's layout guidelines.</p>
+                }
+
+                <button class="action" disabled="@(!CanPlay)" @onclick="Play">Play this scenario</button>
+            </div>
+
+            <div class="panel">
+                <h2>Save</h2>
+                <div class="row">
+                    <button class="action secondary" disabled="@(!CanPlay || !_canSaveToDirectory)" @onclick="SaveToFolder">
+                        Save .fight to a folder…
+                    </button>
+                    <button class="action secondary" disabled="@(!CanPlay)" @onclick="Download">
+                        Download .fight
+                    </button>
+                    <button class="action secondary" disabled="@(!CanPlay)" @onclick="SaveToBrowser">
+                        Save to this browser
+                    </button>
+                </div>
+
+                @if (_status is not null)
+                {
+                    <p class="status-line">@_status</p>
+                }
+
+                <p class="note">
+                    <strong>Save to this browser</strong> puts the scenario in localStorage. It survives a
+                    refresh and appears in the battle list right away.
+                </p>
+                <p class="note">
+                    <strong>Save .fight to a folder</strong> writes a real file — put it in
+                    <code>src/Faultline.Core/Fights/Data/</code> to make it a built-in battle.
+                    That only takes effect <strong>after a rebuild</strong>: fight files are compiled into
+                    the DLL as embedded resources, so the running app cannot pick a new one up on its own.
+                </p>
+                @if (!_canSaveToDirectory)
+                {
+                    <p class="note warn-note">
+                        This browser has no File System Access API (<code>showSaveFilePicker</code>), so the
+                        folder button is disabled. Use <strong>Download .fight</strong> and move the file
+                        yourself.
+                    </p>
+                }
+
+                <details class="filetext">
+                    <summary>Generated .fight file</summary>
+                    <pre>@_text</pre>
+                </details>
+            </div>
+        </section>
+    </div>
+
+    <section class="classes panel">
+        <h2>Classes — pick each side's roster</h2>
+        <p class="note">
+            Two per side is the norm. One to four is allowed; the validator complains if a deploy zone is
+            too small for the roster you chose.
+        </p>
+
+        <div class="rosters">
+            @RenderRoster(Team.PlayerA, _draft.RosterA)
+            @RenderRoster(Team.PlayerB, _draft.RosterB)
+        </div>
+
+        <div class="class-grid">
+            @foreach (var kind in PlayerKinds)
+            {
+                var k = kind;
+                var template = UnitTemplate.For(k);
+                var ability = AbilityDescriptor.ForKind(k);
+
+                <article class="class-card">
+                    <header>
+                        <span class="class-art"><UnitArt Kind="k" Label="@template.Name" /></span>
+                        <span class="class-name">@template.Name</span>
+                    </header>
+
+                    <ul class="stats">
+                        <li><span>HP</span>@template.MaxHp</li>
+                        <li><span>Move</span>@template.Move MP</li>
+                        <li><span>Footing</span>@template.Footing</li>
+                        <li><span>Attack</span>@AttackLine(template)</li>
+                    </ul>
+
+                    @if (ability is not null)
+                    {
+                        <div class="ability">
+                            <p class="ability-head">
+                                @ability.Name
+                                <span class="tag effect">@ability.Effect</span>
+                            </p>
+                            <p class="ability-text">@ability.Summary</p>
+                            @if (ability.Targeting == AbilityTargeting.Passive)
+                            {
+                                <p class="ability-note">
+                                    Passive — always on. There is nothing to aim and it never costs an action.
+                                </p>
+                            }
+                        </div>
+                    }
+
+                    <footer>
+                        <button class="action secondary" disabled="@(_draft.RosterA.Count >= 4)" @onclick="() => AddTo(Team.PlayerA, k)">→ A</button>
+                        <button class="action secondary" disabled="@(_draft.RosterB.Count >= 4)" @onclick="() => AddTo(Team.PlayerB, k)">→ B</button>
+                    </footer>
+                </article>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private static readonly int[] Sizes = { 5, 6, 7, 8, 9 };
+
+    private static readonly (TileType Tile, string Label)[] Terrains =
+    {
+        (TileType.Open, "Open"),
+        (TileType.Wall, "Wall"),
+        (TileType.Pit, "Pit"),
+        (TileType.Spikes, "Spikes"),
+        (TileType.HighGround, "High ground"),
+    };
+
+    private static readonly UnitKind[] EnemyKinds =
+    {
+        UnitKind.Husk, UnitKind.Lobber, UnitKind.Anchor, UnitKind.Grappler, UnitKind.Stalker,
+    };
+
+    private static readonly UnitKind[] PlayerKinds =
+    {
+        UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
+    };
+
+    private enum BrushMode
+    {
+        Terrain,
+        ZoneA,
+        ZoneB,
+        Enemy,
+        Erase,
+    }
+
+    private ScenarioDraft _draft = ScenarioDraft.Blank();
+    private BrushMode _mode = BrushMode.Terrain;
+    private TileType _tile = TileType.Wall;
+    private UnitKind _enemy = UnitKind.Husk;
+    private bool _painting;
+    private bool _handledByMouse;
+    private bool _canSaveToDirectory;
+    private int _seed = GameSession.DefaultSeed;
+
+    private FightParseResult? _result;
+    private string _text = string.Empty;
+    private string? _writeError;
+    private string? _status;
+
+    private IReadOnlyList<FightIssue> Errors => _result?.Errors ?? Array.Empty<FightIssue>();
+
+    private IReadOnlyList<FightIssue> Lints => _result?.Lints ?? Array.Empty<FightIssue>();
+
+    private bool CanPlay => _writeError is null && _result is not null && _result.Ok;
+
+    private string Slug => CustomFightStore.Slug(_draft.Id);
+
+    protected override void OnInitialized() => Revalidate();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _canSaveToDirectory = await Files.CanSaveToDirectoryAsync();
+            await Store.LoadAsync();
+            StateHasChanged();
+        }
+    }
+
+    private void Revalidate()
+    {
+        try
+        {
+            _text = FightWriter.Write(_draft.ToDefinition());
+            _result = FightParser.Parse(_text);
+            _writeError = null;
+        }
+        catch (ArgumentException ex)
+        {
+            _writeError = ex.Message;
+            _result = null;
+            _text = string.Empty;
+        }
+    }
+
+    private bool IsTerrain(TileType tile) => _mode == BrushMode.Terrain && _tile == tile;
+
+    private void PickTerrain(TileType tile)
+    {
+        _mode = BrushMode.Terrain;
+        _tile = tile;
+    }
+
+    private void PickEnemy(UnitKind kind)
+    {
+        _mode = BrushMode.Enemy;
+        _enemy = kind;
+    }
+
+    private void PickMode(BrushMode mode) => _mode = mode;
+
+    private void StartPainting(Coord at)
+    {
+        _painting = true;
+        _handledByMouse = true;
+        Apply(at, toggle: true);
+    }
+
+    private void ContinuePainting(Coord at)
+    {
+        if (_painting)
+        {
+            Apply(at, toggle: false);
+        }
+    }
+
+    // Keyboard and touch activation raises click with no mousedown before it. Without the flag the
+    // mouse path would paint twice per click and a toggling brush would undo itself.
+    private void Tap(Coord at)
+    {
+        if (!_handledByMouse)
+        {
+            Apply(at, toggle: true);
+        }
+
+        _handledByMouse = false;
+        _painting = false;
+    }
+
+    private void StopPainting() => _painting = false;
+
+    private void Apply(Coord at, bool toggle)
+    {
+        switch (_mode)
+        {
+            case BrushMode.Terrain:
+                _draft.PaintTerrain(at, _tile);
+                break;
+
+            case BrushMode.ZoneA:
+                if (toggle || !_draft.IsZone(at, Team.PlayerA))
+                {
+                    _draft.PaintZone(at, Team.PlayerA);
+                }
+
+                break;
+
+            case BrushMode.ZoneB:
+                if (toggle || !_draft.IsZone(at, Team.PlayerB))
+                {
+                    _draft.PaintZone(at, Team.PlayerB);
+                }
+
+                break;
+
+            case BrushMode.Enemy:
+                if (toggle || _draft.EnemyAt(at) is null)
+                {
+                    _draft.PlaceEnemy(at, _enemy);
+                }
+
+                break;
+
+            case BrushMode.Erase:
+                _draft.Erase(at);
+                break;
+        }
+
+        _status = null;
+        Revalidate();
+    }
+
+    private string CellClass(Coord at)
+    {
+        var classes = new List<string> { "pcell", EventText.TileClass(_draft.TileAt(at)) };
+
+        if (_draft.IsZone(at, Team.PlayerA))
+        {
+            classes.Add("zone-a");
+        }
+
+        if (_draft.IsZone(at, Team.PlayerB))
+        {
+            classes.Add("zone-b");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string CellTitle(Coord at)
+    {
+        if (_draft.EnemyAt(at) is { } kind)
+        {
+            return $"{kind} at {at}";
+        }
+
+        if (_draft.IsZone(at, Team.PlayerA))
+        {
+            return $"Player A deploy slot at {at}";
+        }
+
+        if (_draft.IsZone(at, Team.PlayerB))
+        {
+            return $"Player B deploy slot at {at}";
+        }
+
+        return $"{_draft.TileAt(at)} {at}";
+    }
+
+    private static string AttackLine(UnitTemplate template)
+    {
+        if (template.Attack == AttackKind.None)
+        {
+            return "none";
+        }
+
+        string reach = template.Attack == AttackKind.Melee ? "melee" : $"range {template.Range}";
+        string text = $"{reach} · {template.Damage} dmg";
+
+        if (template.AttackPush > 0)
+        {
+            text += $" · push {template.AttackPush}";
+        }
+
+        if (template.CanPullWithBasic)
+        {
+            text += " · may pull 1 instead";
+        }
+
+        return text;
+    }
+
+    private RenderFragment RenderRoster(Team team, List<UnitKind> roster) => __builder =>
+    {
+        <div class="roster">
+            <span class="roster-head team-@(team == Team.PlayerA ? "a" : "b")">
+                Player @(team == Team.PlayerA ? "A" : "B") — @roster.Count unit(s)
+            </span>
+            @if (roster.Count == 0)
+            {
+                <span class="note">empty</span>
+            }
+            else
+            {
+                @foreach (var (kind, index) in roster.Select((k, i) => (k, i)))
+                {
+                    var slot = index;
+                    <button type="button" class="roster-chip" title="Remove" @onclick="() => RemoveFrom(team, slot)">
+                        <span class="chip-art"><UnitArt Kind="kind" Label="@kind.ToString()" /></span>
+                        @kind
+                        <span class="x">×</span>
+                    </button>
+                }
+            }
+        </div>
+    };
+
+    private void AddTo(Team team, UnitKind kind)
+    {
+        var roster = team == Team.PlayerA ? _draft.RosterA : _draft.RosterB;
+        if (roster.Count < 4)
+        {
+            roster.Add(kind);
+            Revalidate();
+        }
+    }
+
+    private void RemoveFrom(Team team, int index)
+    {
+        var roster = team == Team.PlayerA ? _draft.RosterA : _draft.RosterB;
+        if (index >= 0 && index < roster.Count)
+        {
+            roster.RemoveAt(index);
+            Revalidate();
+        }
+    }
+
+    private void OnWidthChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int width))
+        {
+            _draft.Resize(width, _draft.Height);
+            Revalidate();
+        }
+    }
+
+    private void OnHeightChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int height))
+        {
+            _draft.Resize(_draft.Width, height);
+            Revalidate();
+        }
+    }
+
+    private void OnIdChanged(ChangeEventArgs args)
+    {
+        _draft.Id = args.Value?.ToString() ?? string.Empty;
+        Revalidate();
+    }
+
+    private void OnNameChanged(ChangeEventArgs args)
+    {
+        _draft.Name = args.Value?.ToString() ?? string.Empty;
+        Revalidate();
+    }
+
+    private void OnDescriptionChanged(ChangeEventArgs args)
+    {
+        _draft.Description = args.Value?.ToString() ?? string.Empty;
+        Revalidate();
+    }
+
+    private void OnNumberChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int number))
+        {
+            _draft.Number = number;
+            Revalidate();
+        }
+    }
+
+    private void OnSeedChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int seed))
+        {
+            _seed = seed;
+        }
+    }
+
+    private void ResetDraft()
+    {
+        _draft = ScenarioDraft.Blank();
+        _status = null;
+        Revalidate();
+    }
+
+    private void Play()
+    {
+        if (_result?.Fight is null)
+        {
+            return;
+        }
+
+        // Start the parsed fight, not the draft: it went through the same round trip a saved file
+        // will, so what is played and what is saved can never disagree.
+        Session.StartFight(_result.Fight, _seed);
+        Nav.NavigateTo("play");
+    }
+
+    private async Task SaveToFolder()
+    {
+        var outcome = await Files.SaveToDirectoryAsync(Slug + ".fight", _text);
+        _status = outcome switch
+        {
+            "cancelled" => "Save cancelled.",
+            "unsupported" => "This browser cannot open a save dialog. Use Download instead.",
+            _ when outcome.StartsWith("saved:", StringComparison.Ordinal) =>
+                $"Wrote {outcome.Substring(6)}. If you put it in Fights/Data, rebuild to make it a built-in battle.",
+            _ => "Save failed: " + outcome,
+        };
+    }
+
+    private async Task Download()
+    {
+        var outcome = await Files.DownloadAsync(Slug + ".fight", _text);
+        _status = outcome.StartsWith("downloaded:", StringComparison.Ordinal)
+            ? $"Downloaded {outcome.Substring(11)}. Move it into src/Faultline.Core/Fights/Data/ and rebuild to make it built-in."
+            : "Download failed: " + outcome;
+    }
+
+    private async Task SaveToBrowser()
+    {
+        var slug = await Store.SaveAsync(_draft.Id, _text);
+        _status = $"Saved '{slug}' to this browser. It is in the battle list now — no rebuild needed.";
+    }
+}

@@ -1,0 +1,82 @@
+@* Non-interactive miniature of a fight's single grid: terrain, deploy slots and enemies, drawn the
+   same way and in the same colours as the real board so the picker reads as a preview of it. *@
+
+<div class="thumb" style="grid-template-columns: repeat(@Fight.Board.Width, @(Cell)px);">
+    @foreach (var coord in Fight.Board.AllCoords())
+    {
+        var at = coord;
+        <div class="t @EventText.TileClass(Fight.Board.At(at))" title="@Title(at)">
+            @if (_enemies.TryGetValue(at, out var kind))
+            {
+                <span class="pin team-e" style="width:@(Cell - 3)px;height:@(Cell - 3)px;">
+                    <UnitArt Kind="kind" Label="@kind.ToString()" />
+                </span>
+            }
+            else if (_zoneA.Contains(at))
+            {
+                <span class="slot a">A</span>
+            }
+            else if (_zoneB.Contains(at))
+            {
+                <span class="slot b">B</span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private readonly HashSet<Coord> _zoneA = new();
+    private readonly HashSet<Coord> _zoneB = new();
+    private readonly Dictionary<Coord, UnitKind> _enemies = new();
+
+    /// <summary>Fight to preview.</summary>
+    [Parameter]
+    [EditorRequired]
+    public FightDefinition Fight { get; set; } = null!;
+
+    /// <summary>Tile size in pixels.</summary>
+    [Parameter]
+    public int Cell { get; set; } = 16;
+
+    protected override void OnParametersSet()
+    {
+        _zoneA.Clear();
+        _zoneB.Clear();
+        _enemies.Clear();
+
+        foreach (var coord in Fight.DeploymentZoneA)
+        {
+            _zoneA.Add(coord);
+        }
+
+        foreach (var coord in Fight.DeploymentZoneB)
+        {
+            _zoneB.Add(coord);
+        }
+
+        foreach (var spawn in Fight.Enemies)
+        {
+            _enemies[spawn.At] = spawn.Kind;
+        }
+    }
+
+    private string Title(Coord at)
+    {
+        if (_enemies.TryGetValue(at, out var kind))
+        {
+            return $"{kind} at {at}";
+        }
+
+        if (_zoneA.Contains(at))
+        {
+            return $"Player A deploy slot at {at}";
+        }
+
+        if (_zoneB.Contains(at))
+        {
+            return $"Player B deploy slot at {at}";
+        }
+
+        return $"{Fight.Board.At(at)} {at}";
+    }
+}

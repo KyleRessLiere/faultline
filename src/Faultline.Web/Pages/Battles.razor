@@ -1,0 +1,222 @@
+@page "/"
+@page "/battles"
+@layout MainLayout
+@inject GameSession Session
+@inject CustomFightStore Store
+@inject NavigationManager Nav
+
+<PageTitle>Faultline — battles</PageTitle>
+
+<div class="picker">
+    <header class="picker-head">
+        <div>
+            <h1>Faultline <span class="sub">choose a battle</span></h1>
+            <p class="note">
+                Currently loaded: <strong>@Session.Fight.Name</strong> (@Session.Fight.Id), seed @Session.Seed.
+            </p>
+        </div>
+
+        <div class="picker-tools">
+            <label class="seed">
+                Seed
+                <input type="number" value="@_seed" @onchange="OnSeedChanged" />
+            </label>
+            <a class="action secondary" href="play">Back to board</a>
+            <a class="action" href="create">Create a scenario</a>
+        </div>
+    </header>
+
+    <h2>Campaign</h2>
+    <div class="fight-grid">
+        @foreach (var result in Campaign())
+        {
+            @RenderFight(result, null)
+        }
+    </div>
+
+    <h2>Your scenarios</h2>
+    @if (!Store.Loaded)
+    {
+        <p class="note">Reading browser storage…</p>
+    }
+    else if (Store.Items.Count == 0)
+    {
+        <p class="note">
+            None yet. Anything you save in the creator is kept in this browser's localStorage and shows
+            up here immediately — no rebuild needed.
+        </p>
+    }
+    else
+    {
+        <div class="fight-grid">
+            @foreach (var custom in Store.Items)
+            {
+                @RenderFight(custom.Result, custom.Id)
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private int _seed = GameSession.DefaultSeed;
+
+    protected override async Task OnInitializedAsync() => await Store.LoadAsync();
+
+    private IEnumerable<FightParseResult> Campaign()
+    {
+        var results = new List<FightParseResult>(GameSession.Library);
+
+        // Playable fights in run order, then anything that failed to parse, so a broken file stays
+        // visible at the bottom instead of vanishing.
+        results.Sort((a, b) =>
+        {
+            if (a.Ok != b.Ok)
+            {
+                return a.Ok ? -1 : 1;
+            }
+
+            if (a.Fight is null || b.Fight is null)
+            {
+                return 0;
+            }
+
+            return a.Fight.Number != b.Fight.Number
+                ? a.Fight.Number.CompareTo(b.Fight.Number)
+                : string.CompareOrdinal(a.Fight.Id, b.Fight.Id);
+        });
+
+        return results;
+    }
+
+    private RenderFragment RenderFight(FightParseResult result, string? customId) => __builder =>
+    {
+        var fight = result.Fight;
+
+        <article class="fight-card @(result.Ok ? string.Empty : "broken")">
+            <header>
+                <span class="num">@(fight is null ? "—" : "#" + fight.Number)</span>
+                <span class="fight-name">@(fight?.Name ?? customId ?? "Unreadable fight")</span>
+                @if (fight is not null)
+                {
+                    <span class="tag">@fight.Id</span>
+                }
+                @if (customId is not null)
+                {
+                    <span class="tag custom">custom</span>
+                }
+            </header>
+
+            <div class="card-body">
+                @if (fight is not null)
+                {
+                    <BoardThumb Fight="fight" Cell="18" />
+                }
+
+                <div class="meta">
+                    @if (fight is not null)
+                    {
+                        <p class="desc">@(string.IsNullOrWhiteSpace(fight.Description) ? "No description." : fight.Description)</p>
+                        <p class="facts">
+                            <span>@fight.Board.Width×@fight.Board.Height</span>
+                            <span>Enemies: @Composition(fight)</span>
+                        </p>
+                        <p class="facts">
+                            <span class="team-a">A: @Roster(fight.RosterA)</span>
+                            <span class="team-b">B: @Roster(fight.RosterB)</span>
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="desc">This file has parse errors, so it cannot be played.</p>
+                    }
+
+                    @if (result.Errors.Count > 0)
+                    {
+                        <ul class="issues errors">
+                            @foreach (var issue in result.Errors)
+                            {
+                                <li><span class="code">@issue.Code</span> @issue.Message</li>
+                            }
+                        </ul>
+                    }
+
+                    @if (result.Lints.Count > 0)
+                    {
+                        <details class="issues lints">
+                            <summary>@result.Lints.Count deliberate deviation(s) — playable, not errors</summary>
+                            <ul>
+                                @foreach (var issue in result.Lints)
+                                {
+                                    <li><span class="code">@issue.Code</span> @issue.Message</li>
+                                }
+                            </ul>
+                        </details>
+                    }
+                    else if (result.Ok)
+                    {
+                        <p class="issues clean">No lints — matches the brief's layout guidelines.</p>
+                    }
+                </div>
+            </div>
+
+            <footer>
+                <button class="action" disabled="@(fight is null)" @onclick="() => Play(fight)">Play</button>
+                @if (customId is not null)
+                {
+                    <button class="action secondary" @onclick="() => Delete(customId)">Delete</button>
+                }
+            </footer>
+        </article>
+    };
+
+    private static string Composition(FightDefinition fight)
+    {
+        if (fight.Enemies.Count == 0)
+        {
+            return "none";
+        }
+
+        var order = new List<UnitKind>();
+        var counts = new Dictionary<UnitKind, int>();
+        foreach (var spawn in fight.Enemies)
+        {
+            if (!counts.ContainsKey(spawn.Kind))
+            {
+                counts[spawn.Kind] = 0;
+                order.Add(spawn.Kind);
+            }
+
+            counts[spawn.Kind]++;
+        }
+
+        return string.Join(", ", order.Select(kind => $"{counts[kind]}x {kind}"));
+    }
+
+    private static string Roster(IReadOnlyList<UnitKind> roster) =>
+        roster.Count == 0 ? "—" : string.Join(", ", roster);
+
+    private void OnSeedChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int seed))
+        {
+            _seed = seed;
+        }
+    }
+
+    private void Play(FightDefinition? fight)
+    {
+        if (fight is null)
+        {
+            return;
+        }
+
+        Session.StartFight(fight, _seed);
+        Nav.NavigateTo("play");
+    }
+
+    private async Task Delete(string id)
+    {
+        await Store.DeleteAsync(id);
+        StateHasChanged();
+    }
+}

@@ -8,6 +8,9 @@
     <base href="/" />
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="css/app.css" />
+    <!-- Blazor CSS isolation bundle: lets a component own its styles in Component.razor.css
+         instead of everything piling into app.css. -->
+    <link rel="stylesheet" href="Faultline.Web.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <script type="importmap"></script>
 </head>
@@ -22,6 +25,9 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+    <!-- File saving and localStorage for custom scenarios. Plain script, loaded before Blazor so
+         window.faultlineFiles exists by the time any component calls into it. -->
+    <script src="js/fightfiles.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
 

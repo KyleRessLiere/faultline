@@ -126,6 +126,19 @@ their `number:`. Parsing splits its complaints in two: **errors** mean the file 
 fight and it is skipped, **lints** mean it breaks a layout guideline from `AGENT_BRIEF.md` §2 but
 loads and plays exactly as written. A broken file is reported rather than silently absent.
 
+Five fights ship: First Contact, The Teeth, Broken Bridge, High Road and The Maw. Only the first
+matches the brief's layout guidelines cleanly; the other four carry lints on purpose.
+
+### Building a fight without writing one
+
+`/create` paints a board, places enemies and deploy zones, and picks each side's roster from a class
+reference showing every ability. It validates through the same parser the shipped files go through —
+`FightWriter` turns the draft into `.fight` text and `FightParser` reads it straight back — so the
+creator cannot produce a scenario the game would refuse. Errors block play; lints never do.
+
+A scenario saved to the browser is playable immediately. A `.fight` file saved into
+`Fights/Data/` is an embedded resource, so it only becomes a built-in battle **after a rebuild**.
+
 Five fights are authored: **1 First Contact**, **2 The Teeth**, **3 Broken Bridge**, **4 High Road**,
 **5 The Maw**. All five are Kill All — the Protect, Destroy and Boss objectives are M6 — and the
 shell still opens on fight 1 only, so 2–5 are boards the library serves, not a run you can play
