@@ -1,4 +1,3 @@
-# Enemy composition 9 — the Lobbers run backwards on purpose, and something is waiting back there.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
@@ -8,6 +7,7 @@ id: ec-09-undertow
 number: 309
 name: Undertow
 description: Corner a Lobber and it retreats north up a pit column, straight into a Grappler's band. Chasing the ranged unit is the trap; the pull is only the invoice.
+design: Enemy composition 9 — the Lobbers run backwards on purpose, and something is waiting back there.
 
 spawn g = Grappler
 spawn l = Lobber

@@ -1,8 +1,3 @@
-# Fight 1 — the control group.
-# The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic
-# puts the front one into the back one: 2 damage to both, both Staggered, both dead. That
-# is the opener's second discovery, and it is the interaction the rest of the set is built
-# on — unit into unit, not unit into hole.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
@@ -12,6 +7,8 @@ id: first-contact
 number: 1
 name: First Contact
 description: Husks walk straight at you while a lobber lands rocks from the back. Learn that a shove beats a swing.
+design: Fight 1 — the control group.
+design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
 
 spawn h = Husk
 spawn l = Lobber

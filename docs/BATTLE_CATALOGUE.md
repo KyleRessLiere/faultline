@@ -34,6 +34,12 @@ conversation it is meant to force — see the batch write-ups in `docs/scenarios
 Husks walk straight at you while a lobber lands rocks from the back. Learn that a shove beats a swing.
 
 
+Fight 1 — the control group.
+
+
+The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
+
+
 **Asks:** Does a shove beat a swing?
   
 **Verdict:** KEEP — The control group and the only lint-clean 7×7. Nothing else is a teaching board.
@@ -63,6 +69,9 @@ AA..h..
 
 
 A ring of spikes owns the middle, so everything coming for you has to cross the teeth — and a shove into them beats any swing.
+
+
+Fight 2 — the spike seminar.
 
 
 **Asks:** Can you make them cross the spikes?
@@ -96,6 +105,9 @@ AA...h.
 A trench of pits splits the map; a Grappler fishes for people across it, and a pull whose line crosses a pit drops you straight in.
 
 
+Fight 3 — the trench.
+
+
 **Asks:** What does a pull line do when it crosses a pit?
   
 **Verdict:** KEEP — The simplest statement of the trench-and-fisherman shape; the campaign version.
@@ -127,6 +139,9 @@ AA..h..
 A high causeway down the spine of the board is worth contesting — the Archer climbs it for free, and a Grappler is waiting to pull her back off.
 
 
+Fight 4 — the causeway.
+
+
 **Asks:** Is a raised causeway worth contesting?
   
 **Verdict:** KEEP — Teaches all four elevation clauses at once, at tutorial pace.
@@ -150,43 +165,18 @@ A..H.g.
 AA...ln
 ```
 
-### 5 · The Maw
-
-`the-maw`
-
-
-A pit the size of a room takes the whole centre, so every displacement anywhere near the rim is potentially lethal.
-
-
-**Asks:** What happens when the rim is the whole board?
-  
-**Verdict:** KEEP — The one map where a pit is scale rather than a feature.
-
-
-7×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
-
-| A | B |
-|---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
-
-Legend: `g` Grappler, `h` Husk, `l` Lobber, `s` Stalker
-
-```
-h.....B
-..g..BB
-..OOO..
-..OOO..
-..^.^..
-A..s...
-AA.h.l.
-```
-
 ### 5 · The Shrine
 
 `the-shrine`
 
 
 Two Raiders walk two lanes at a six-hit-point shrine and never once look at you. Shove them off it, or lose it.
+
+
+The Raiders do not care about you. They walk at the shrine and claw it, and nothing you do to them personally makes them stop wanting to. That is the whole fantasy: the pressure is the clock of their walk, and displacement is the natural answer to a thing that will not fight back — shove them off the lane, pull them into the pits, collide them into their own escort.
+
+
+The escort DOES hunt you, so you cannot simply stand on the shrine and swing.
 
 
 7×7 board · enemies: 3× Raider, 2× Husk · objective: `protect 3,3` · turn limit: 8
@@ -221,6 +211,15 @@ wave 3 = r@3,0 h@5,0
 An eight-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
 
 
+docs/CURATED_SET.md §1 fight 6 — Destroy. The review's worst opener, reborn.
+
+
+The gate is an 8 HP structure that attacks cannot touch at all. The only thing that hurts it is a collision — 2 per slam, four slams — so to win you have to throw bodies at it, which means the enemy is your ammunition. That is the game's thesis stated as a win condition.
+
+
+The Warden under the gate is the complication: Move 0, so unlike the Anchors it replaced it will still be standing in the gap on round 4. It is push-resistant, but a STAGGERED Warden moves — so collide a Husk from the reinforcement waves into him and he becomes the battering ram.
+
+
 7×7 board · enemies: 2× Husk, 2× Lobber, 1× Warden · objective: `destroy 3,1`
 
 | A | B |
@@ -245,12 +244,52 @@ Reinforcements, published at fight start:
 wave 2 = h@0,3 h@6,3
 ```
 
+### 7 · The Maw
+
+`the-maw`
+
+
+A pit the size of a room takes the whole centre, so every displacement anywhere near the rim is potentially lethal.
+
+
+The hole. Authored as the fifth of the original five boards; it is a trial now, and the-shrine holds campaign slot 5.
+
+
+**Asks:** What happens when the rim is the whole board?
+  
+**Verdict:** KEEP — The one map where a pit is scale rather than a feature.
+
+
+7×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+
+| A | B |
+|---|---|
+| Vanguard, Archer | Threadcaster, Wardbearer |
+
+Legend: `g` Grappler, `h` Husk, `l` Lobber, `s` Stalker
+
+```
+h.....B
+..g..BB
+..OOO..
+..OOO..
+..^.^..
+A..s...
+AA.h.l.
+```
+
 ### 10 · The Quarry King
 
 `quarry-king`
 
 
 Fourteen hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
+
+
+The campaign finale. Everything at once, against one body.
+
+
+He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it. Three tokens no shove can spend, stripped two ways — slam his own escort into him (2 apiece, one token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane east, so a King crawling at you the short way pays a token a round for it. At 7 HP he becomes Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
 
 
 9×7 board · enemies: 6× Husk, 2× Lobber, 1× QuarryKing · objective: `kill-all`
@@ -284,6 +323,9 @@ wave 6 = h@0,1 h@0,5
 
 
 One doorway, four defenders, nine attackers on a published timetable. Keep the gate clear at the end of round 7.
+
+
+A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight is decided by who is standing in it when round 7 ends. The timetable is published at fight start, so every wave is planning information rather than an ambush — same contract as enemy intents.
 
 
 9×7 board · enemies: 6× Husk, 1× Grappler, 1× Lobber, 1× Stalker · objective: `hold 4,3 4,4 for 7` · turn limit: 7
@@ -326,6 +368,12 @@ wave 6 = g@0,6
 A wall with a single gap, corked by the one enemy your basic shove cannot move. Ranged fire crosses the wall; bodies do not.
 
 
+Board topology 1 — two rooms, one door.
+
+
+A solid wall splits the map; the only way through is the single tile at (4,3), and a Warden is standing in it. Move 0: it never advances, so the door stays corked for as long as the Warden is alive.
+
+
 **Asks:** Can you get through a gap corked by the one enemy Push 1 cannot move?
   
 **Verdict:** REWORK — Zero enemy actions for three rounds; the Anchor leaves the door round 1 and the Lobber walks through it.
@@ -360,6 +408,12 @@ BB..#....
 A pit moat with two crossings a full board apart. Concentrate at one bridge and cede the other, or split and fight two fights.
 
 
+Board topology 2 — one moat, two crossings.
+
+
+A pit column cuts the map in half with bridges at (4,1) and (4,5). The two deploy zones sit at opposite ends of the west bank, one per bridge.
+
+
 **Asks:** Concentrate at one crossing, or split and fight two fights?
   
 **Verdict:** KEEP — The only map where the two crossings are far enough apart that concentrating costs real rounds.
@@ -392,6 +446,12 @@ BB..O.h..
 
 
 The centre is three tiles away and eleven steps away. Ranged fire ignores the walls; the Stalker inside the corridor does not.
+
+
+Board topology 3 — concentric rings, offset gates.
+
+
+Outer ring, wall ring, middle ring, wall ring, one centre cell. The two gates are spikes, so every layer costs blood to enter. There is no line of sight in this game: a bow crosses the coils that a body has to walk around.
 
 
 **Asks:** Does a maze mean anything with no line of sight?
@@ -430,6 +490,12 @@ AAA......
 Two halves joined by one tile at the far end, with an Anchor sitting on it. Each pair faces the problem the other pair solves.
 
 
+Board topology 4 — the two players are the ones who get split.
+
+
+A pit column runs the full height except the top tile (5,0), which an Anchor is standing on. Player A owns the west half, Player B the east, and each half holds the enemy the other player was built to answer.
+
+
 **Asks:** Can each pair solve the half built for the other pair?
   
 **Verdict:** RETIRE — Duplicates `as-08-two-fires`; the Anchor on the link is inert and the fight ends in four rounds.
@@ -464,6 +530,12 @@ AA.l.O...BB
 A ridge worth plus one damage and a fall on either side. The whole enemy roster exists to take you off it.
 
 
+Board topology 5 — an elevation spine with a broken pit trough beside it.
+
+
+The high ground column at x=4 is the best firing line on the board and the worst place to be standing: a Grappler prefers HighGround targets, and every other spine tile has a pit one step east.
+
+
 **Asks:** Is elevation worth +1 when two archetypes exist to remove you?
   
 **Verdict:** RETIRE — Duplicates `high-road` with more furniture; its Lobber takes zero actions in eight rounds.
@@ -493,6 +565,12 @@ AAA......
 
 
 Break melee contact by rounding the block, and eat a lobbed rock through it. Hugging the pillar puts a wall at your back for the Stalker.
+
+
+Board topology 6 — a solid block with a corridor around it.
+
+
+The pillar (x1-7, y3-5) blocks bodies but not arrows. The only ways from the south arm to the north arm are the single-file columns at x=0 and x=8, and the middle of each is HighGround, so only the Archer rounds it at full speed.
 
 
 **Asks:** Does kiting round a solid obstacle beat fighting?
@@ -526,6 +604,12 @@ AA..s..BB
 
 
 Pick a lane at deployment and live with it. The middle lane can be shot into and never walked into without going the long way round.
+
+
+Board topology 7 — a comb. Three lanes, joined only at the far end.
+
+
+The wall fingers at x=2 and x=5 run from y=2 to the bottom edge, so the lanes meet only across the top two rows, and the pivot tiles there are HighGround. Deploy commits each player to a lane before the enemy round is declared.
 
 
 **Asks:** Can you commit to a lane before the enemy round is declared?
@@ -564,6 +648,12 @@ AA#.^#BB
 Cover with one exit is a coffin. A Lobber in a nook cannot kite, and neither can you.
 
 
+Board topology 8 — an open field lined with one-tile dead ends.
+
+
+Eight nooks are cut into the north and south wall bands. Each has three walls and one mouth, which is exactly what a Husk is for and exactly what a Stalker wants: a body in the mouth seals you in, a shove rams you into the back wall.
+
+
 **Asks:** Is cover with one exit cover?
   
 **Verdict:** KEEP — The only map about false cover; nothing else teaches that walls are not protection.
@@ -600,6 +690,12 @@ AA...^..h
 The narrow corridor is the only place a Stalker cannot shove you, and it dead-ends into six hit points of Anchor.
 
 
+Board topology 9 — a hazard field with one wall-lined rail through it.
+
+
+A Stalker needs a hazard on one side of you and a tile it can stand on directly opposite. Inside the rail at x=3 both flanks are walls, so no shove exists there at all. The open east field is the fast route and the Stalkers own every tile of it. The rail's north mouth is corked by an Anchor.
+
+
 **Asks:** Is the corridor the one place a Stalker cannot shove you?
   
 **Verdict:** RETIRE — Half the roster (Anchor + one Stalker) takes zero actions in eight rounds; `hz-04` states the same inversion and plays.
@@ -629,6 +725,12 @@ AA...s...
 
 
 One corridor, no cover, no support fire. The Grappler's pull is the fastest transport on the board and it delivers you to the Anchor.
+
+
+Board topology 10 — depth. A room, a five-tile single-file corridor, a room.
+
+
+Nothing in the sanctum can be reached from the west room: range is Manhattan distance and the sanctum is seven tiles away, so support fire is not an option until someone walks the corridor. The corridor mouth at (2,3) has a pit on either side of it and a Stalker living on it.
 
 
 **Asks:** Can distance alone deny ranged support?
@@ -667,6 +769,12 @@ AA.########
 Four pockets, four pits, and every enemy has one Footing token. A shove that only just reaches the hole is refused — you have to overshoot it.
 
 
+Hazard Pressure 1 of 10 — the arithmetic of a pit.
+
+
+This fight grants every enemy one Footing token (D-028: nobody has one unless a fight says so). An enemy spends it only to keep itself out of a pit, and only when giving up a tile actually works. A shove whose effective distance EQUALS the distance to the pit is therefore always refused. You have to overshoot by one.
+
+
 **Asks:** How do you beat a Footing token?
   
 **Verdict:** KEEP — The overshoot rule, and the only map about it. Zero lints.
@@ -696,6 +804,15 @@ AA..h..
 
 
 A belt of spikes with one gap. Cross it and bleed, queue for the gap and lose a round, or leave Player B alone under two lobbers.
+
+
+Hazard Pressure 2 of 10 — the route tax.
+
+
+A spike belt cuts the board in half with exactly one clean gap. Walking spikes costs 1 movement and 1 damage and does not Stagger; being SHOVED onto them costs 3 and does. Player B starts north of the belt, alone with both Lobbers, which is the clock.
+
+
+Crossing IS the win: the far row is row 0, and 0,0 is the corner directly north of Player A up column 0 — five tiles and one belt of spikes away. Player B is already north of the belt but boxed in by the walls at 3,1 and 5,1 with a Lobber sitting on 6,0, so B's route to the same corner runs the length of row 0 past both Lobbers.
 
 
 **Asks:** Bleed across the belt, or queue for the gap?
@@ -732,6 +849,12 @@ AA....h..
 A four-tile ledge no shove can push you onto and the Anchor can never climb — and a Grappler that wants exactly the unit standing on it.
 
 
+Hazard Pressure 3 of 10 — elevation cuts both ways.
+
+
+Nothing can be shoved UP onto the ledge — the lip collides — and the Anchor's Move 1 cannot pay the 2 movement to climb it, so the ledge is genuinely a fortress against it. But a Grappler prefers targets standing on HighGround, a pull off the ledge costs 1 fall damage and KEEPS TRAVELLING, and the pit at (2,1) is one step down from it.
+
+
 **Asks:** Is the fortress tile safe?
   
 **Verdict:** RETIRE — Ledge-versus-Grappler is `high-road` and `cb-03`; the instant-void tile is `hz-08`'s, stated better.
@@ -761,6 +884,12 @@ AA.h...
 
 
 A single-tile bridge over one enormous pit. Nothing can shove you off it — but anything with a pull, on either side, can.
+
+
+Hazard Pressure 4 of 10 — one hole, one bridge.
+
+
+The causeway is one tile wide, so a Stalker can never flank you on it: the tile it would need to stand on is the pit itself. Only a displacement ACROSS the causeway can reach you there, which is what the two Grapplers on the rim are for — and what your Threadcaster does back to anything that steps onto it.
 
 
 **Asks:** What can reach you on a one-tile bridge?
@@ -794,6 +923,12 @@ AA...h...
 A wall splits the board and the only gap is at the top. Three units on one side can pull each other out; the one unit on the other side gets no second chance.
 
 
+Hazard Pressure 5 of 10 — rescue is a distance budget.
+
+
+A unit that falls in clings until the end of the round AFTER the one it fell in, and only an ADJACENT ally spending its whole activation gets it back. The wall runs the full height of the board with one gap at the top, so the two halves are about fourteen steps apart: Player A's three units can afford to lose one to a pit, and Player B's single Threadcaster cannot, because nobody can walk to it in time.
+
+
 **Asks:** Is rescue affordable?
   
 **Verdict:** REWORK — Unique question, but the east half turns on picking one of three deploy slots the format cannot flag.
@@ -823,6 +958,15 @@ AA.h#...^
 
 
 Walls and pits set one tile apart. The first shove only staggers; the Stagger is what makes the second one lethal, and it expires at end of round.
+
+
+Hazard Pressure 6 of 10 — the chain.
+
+
+Three L-shaped cells: a wall on one axis, a pit one tile away on the other. Shove into the wall for 2 and a Stagger; the Stagger makes the NEXT displacement travel one tile further, which is exactly the tile that beats a Footing token. Stagger clears at end of round, so both halves of the chain have to happen inside one round, with two different units.
+
+
+No high ground here on purpose: this fight is entirely about the horizontal.
 
 
 **Asks:** Can you spend a Stagger before end of round clears it?
@@ -856,6 +1000,15 @@ AA.s.h.
 Six enemies, every one of them standing beside the thing that kills it, and exactly one round before they all walk away from it.
 
 
+Hazard Pressure 7 of 10 — six enemies, one round, four activations.
+
+
+Nothing starts ON a hazard — the format forbids it — but everything starts NEXT to one, and on its own activation it walks away from it. Player A pushes away from itself; Player B only pulls toward itself, so A and B are shopping from two different shelves: A wants the hazard on the far side of an enemy, B wants it in between.
+
+
+No high ground here on purpose: the question is what you can convert before they move.
+
+
 **Asks:** Which four of six can you convert before they walk away?
   
 **Verdict:** KEEP — The best "one round matters" board; A and B shop from genuinely different shelves.
@@ -887,6 +1040,15 @@ AAh^.....
 Four pits with room to stand around them. Dropping something in only half kills it — finishing it from the rim is free, and so is what they do to you.
 
 
+Hazard Pressure 8 of 10 — clinging is not dying.
+
+
+A unit shoved into a pit clings, holds its activation slot, and is only Voided at the end of the following round — unless somebody adjacent finishes it, which costs neither half of an activation. Each of the four pits has open tiles on several sides, so the second unit you bring is not wasted: it stands by the rim and takes the free kick.
+
+
+The HighGround at (1,4) is the trap: fall damage lands while the unit is already clinging, and any damage to a clinging unit Voids it outright. Being shoved off there into the pit below is not a rescue problem, it is instant.
+
+
 **Asks:** Is dropping something in a hole a kill?
   
 **Verdict:** KEEP — The only map about cling economics — the free kick, the rescue window, the instant-void ledge.
@@ -916,6 +1078,12 @@ AA.s.h#
 
 
 A trench with two bridges, two Anchors that no shove will move, and a Grappler doing to you exactly what your Threadcaster does to them.
+
+
+Hazard Pressure 9 of 10 — pull, not push.
+
+
+The Anchor shrugs one tile off every Push and moves 1, so it will stand at the trench and refuse to be shoved into it. Pull is not reduced: a Reel from three tiles away drags it two, and the first tile it enters is the pit, which is the one case a Footing token cannot fix. The Grappler on the far bank does the identical thing to you across the same trench.
 
 
 **Asks:** What do you do about something no push can move?
@@ -950,6 +1118,12 @@ AA..h....
 
 
 Two queues of Husks with a pit at the head of each. Bodies are hazards too — a collision hurts both parties and staggers both, and the queue is what turns one shove into two kills.
+
+
+Hazard Pressure 10 of 10 — the other unit is terrain.
+
+
+A displacement that runs into another unit is a collision: 2 damage to BOTH of them and a Stagger on BOTH. Two Husks queued in a column are therefore one shove from being two corpses, and anything bigger comes out of the collision Staggered and travelling one tile further next time — with the pits at the head of each column waiting for it.
 
 
 **Asks:** Is the other unit terrain?
@@ -990,6 +1164,9 @@ AA....#
 An Anchor stands in the only gate and a second in front of it, while two Lobbers land rocks straight through the wall. Break the door, not the Anchors.
 
 
+Enemy composition 1 — the Anchor is the door, the Lobbers are the damage.
+
+
 **Asks:** Can you take the gate instead of the health bar?
   
 **Verdict:** RETIRE — **Four** dead rounds — the worst opener in the set. The gate Anchor takes zero actions.
@@ -1021,6 +1198,9 @@ AA...BB
 Grapplers face each other across the board with a pit at each one's feet, so every tile on the middle row is somebody's pull target. Pick which one you stand next to.
 
 
+Enemy composition 2 — two Grapplers, one on each side, with a pit at each one's feet. Nothing ever starts standing on a hazard; the format writes Open under every spawn letter.
+
+
 **Asks:** Which Grappler do you stand next to?
   
 **Verdict:** KEEP — Standing adjacent switches a Grappler off (D-020) — the cleanest counter in the set.
@@ -1050,6 +1230,9 @@ AA.h...
 
 
 A Grappler yanks somebody up into the pit row and a Stalker, activating later in the same round, walks round and shoves them in. The telegraph you read is not the shove you get.
+
+
+Enemy composition 3 — the Grappler delivers, the Stalker finishes.
 
 
 **Asks:** Is a telegraph that changes still honest?
@@ -1086,6 +1269,9 @@ AA..s..
 A trench with two one-tile bridges, a Husk standing on each, and Lobbers behind who shoot straight over them. The bodies stop your feet; they do not stop the rocks.
 
 
+Enemy composition 4 — Husks own the bridges, Lobbers ignore the bridges entirely.
+
+
 **Asks:** Do bodies stop the rocks?
   
 **Verdict:** RETIRE — Same trench-and-two-bridges board as `ec-08`, which asks the better question on it.
@@ -1115,6 +1301,9 @@ AA...BB
 
 
 Two Lobbers make the floor expensive and two ledges make the Archer lethal, but a Grappler picks whoever is standing on high ground first. Somebody else has to want the view.
+
+
+Enemy composition 5 — the ledge your Archer wants is the tile the Grappler hunts.
 
 
 **Asks:** Can you bait a priority list?
@@ -1151,6 +1340,9 @@ AA..h..
 An Anchor line with two gaps in it, and a Grappler behind you that keeps putting people in the gaps. Push 1 cannot open a gap; splitting the party can.
 
 
+Enemy composition 6 — three Anchors two tiles apart, and something that puts you between them.
+
+
 **Asks:** Is splitting the party ever right?
   
 **Verdict:** KEEP — The only board that rewards the opposite of the standard instinct.
@@ -1183,6 +1375,9 @@ AA...g.
 
 
 A pit runs all the way round the board, a Grappler drags you toward it and two Stalkers throw you over. The only cover on this map is your own bodies.
+
+
+Enemy composition 7 — the whole border is the hazard, so every tile is a Stalker's tile.
 
 
 **Asks:** Can you survive when every edge is a pit?
@@ -1218,6 +1413,9 @@ AA.OOOOOO
 Two crossings over a trench, five enemies covering them, and a round where every intent lands on the same head. Read the whole board and break exactly one link.
 
 
+Enemy composition 8 — five intents, each survivable, one round's worth of them is not.
+
+
 **Asks:** Which one link do you break?
   
 **Verdict:** KEEP — Five survivable intents on one head. The board that justifies the intent panel.
@@ -1247,6 +1445,9 @@ AA..sBB
 
 
 Corner a Lobber and it retreats north up a pit column, straight into a Grappler's band. Chasing the ranged unit is the trap; the pull is only the invoice.
+
+
+Enemy composition 9 — the Lobbers run backwards on purpose, and something is waiting back there.
 
 
 **Asks:** Is the retreat bait?
@@ -1281,6 +1482,9 @@ AA..h..
 
 
 Anchor in the gate, Lobber behind it, Husks on the flanks, a Grappler west and a Stalker east. Every archetype in the game, each one covering the next one's weakness.
+
+
+Enemy composition 10 — one of each, arranged so every one of them covers another's weakness.
 
 
 **Asks:** Can you rank enemies by what they enable?
@@ -1322,6 +1526,12 @@ AA.......
 One Vanguard against a swarm, with a three-body squad behind him. A activates once a round; B activates three times.
 
 
+Asymmetry 1 — one hero, one squad.
+
+
+Player A brings a single Vanguard. Player B brings three bodies.
+
+
 **Asks:** What does one activation against three feel like?
   
 **Verdict:** KEEP — Establishes unequal airtime at the mildest survivable gap.
@@ -1351,6 +1561,12 @@ AAh.lh#
 
 
 A pit chasm splits the board with one bridge across it. A holds the quiet west; B is alone on the east with a Grappler working the rim.
+
+
+Asymmetry 2 — split deployment across a chasm, one bridge, and you must reunite.
+
+
+A starts on the west lip, B on the east lip. Almost every enemy is on B's side.
 
 
 **Asks:** How long can B hold until A crosses?
@@ -1387,6 +1603,12 @@ A...O...B
 A brings two Vanguards, B brings two Archers. Nothing on the field caps displacement, and every Grappler on the board wants an Archer.
 
 
+Asymmetry 3 — duplicate classes on both sides. Two Vanguards versus two Archers.
+
+
+No Wardbearer anywhere, so nothing caps displacement. No Threadcaster, so nothing pulls.
+
+
 **Asks:** Is doubling a class the same as having two?
   
 **Verdict:** RETIRE — Near-identical board and enemy mix to `as-09-glass`, which states the same thesis harder.
@@ -1418,6 +1640,12 @@ AAh.s.h
 A gets a Threadcaster and a Wardbearer and almost no damage; B gets three attackers. A's job is to move the enemy, not to kill it.
 
 
+Asymmetry 4 — one player is pure support.
+
+
+A's whole roster is a rope and a shield: 2 damage a round between them. B's roster is the entire kill order.
+
+
 **Asks:** Can a roster that cannot kill still win the fight?
   
 **Verdict:** KEEP — The only map where one player's whole output is geometry.
@@ -1447,6 +1675,15 @@ AAh.n.h
 
 
 Two units, eight Husks, one raised doorway flanked by spikes. Numbers stop mattering the moment only one of them can reach you.
+
+
+Asymmetry 5 — lopsided numbers. One unit each, eight Husks.
+
+
+Both players deploy inside the same walled room; that is the point, and it is a lint. The doorway is high ground: anything shoved off it takes fall damage on the way out.
+
+
+The tide, not the headcount: the objective is `survive 8`, so anyone still standing at the end of round 8 wins and killing the last Husk stops being the point. The doorway is the tactic, not the win condition — it is where two units can hold off eight. Arrivals land on the two north corners the starting Husks came from — 0,0 and 6,0 — the far side of the room from the door.
 
 
 **Asks:** When do numbers stop mattering?
@@ -1490,6 +1727,12 @@ wave 6 = h@0,0 h@6,0
 Two Anchors plug the only two bridges over the trench and shrug off every Push 1 on the board. Four units, two doors, two different keys.
 
 
+Asymmetry 6 — four player units against two elites and a fisherman.
+
+
+A pit trench spans the board; the only two crossings are the outer columns, and an Anchor is standing in each. Push 1 does nothing to an Anchor, so the doors need a Bull Rush or a Reel — one key each, one per player.
+
+
 **Asks:** Two doors, two keys — which do you use?
   
 **Verdict:** RETIRE — Both bridge Anchors step off their bridges in round 1. Premise dead; `hz-09` owns the question.
@@ -1519,6 +1762,12 @@ AA...BB
 
 
 No Archer on either side, and two ridges nobody can climb cheaply. Two Lobbers plink from the trench between them.
+
+
+Asymmetry 7 — missing tool. There is no Archer in this fight at all.
+
+
+Two high ridges wall off a central trench. Nobody climbs for free, and Bull Rush cannot enter high ground, so the ledge is a wall you shove things into.
 
 
 **Asks:** Is high ground just a wall you resent?
@@ -1552,6 +1801,12 @@ AA.h..#
 Two separate fights on one board, ten tiles apart. A faces things that hurt; B faces a Grappler and a Stalker that cannot deal a point of damage between them.
 
 
+Asymmetry 8 — split deployment where converging is the trap.
+
+
+The board is eleven wide and the two players start ten tiles apart, with a high ridge down the middle between them. West is a damage fight; east is a displacement fight with no damage in it at all.
+
+
 **Asks:** What if converging is the trap?
   
 **Verdict:** KEEP — Split deployment where reuniting is wrong — the deliberate inverse of `as-02`.
@@ -1581,6 +1836,12 @@ A....H....B
 
 
 Two Archers and two Threadcasters, no front line and no Hold. Every unit dies to two hits and the Grappler picks Archers on purpose.
+
+
+Asymmetry 9 — missing tools. No Vanguard and no Wardbearer anywhere.
+
+
+Four units, four HP each, sixteen hit points on the whole board. Nothing caps a displacement, nothing shoves 2, and there is no body to hide behind.
 
 
 **Asks:** Can a party with no front line hold spacing?
@@ -1615,6 +1876,12 @@ AAh...h
 
 
 A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to keep on the board.
+
+
+Asymmetry 10 — the widest roster gap in the batch. Four units against one.
+
+
+Player B has a single Wardbearer whose only contribution is standing in the right place, and Hold only reaches one ally at a time.
 
 
 **Asks:** Can one activation a round carry a player?
@@ -1656,6 +1923,12 @@ AAh.g.h
 Two Lobbers between two deploy corners. Chasing one hands the other a free shot — squeeze instead, until the retreat runs out of board.
 
 
+Combat Manoeuvre 1 — the pincer.
+
+
+No pits, no spikes. The only hard surfaces are walls and the board edge.
+
+
 **Asks:** How do you close on something that runs?
   
 **Verdict:** KEEP — Three enemies, no hazards, and the retreat rule is the entire fight.
@@ -1686,6 +1959,12 @@ AA.h.......
 
 
 Four Husks and a Lobber share one doorway. Shove the unit in the door back into the queue and two of them die at once.
+
+
+Combat Manoeuvre 2 — the doorway.
+
+
+No pits, no spikes. A sealed chamber with one tile of exit.
 
 
 **Asks:** Can you farm a doorway?
@@ -1722,6 +2001,12 @@ AA.......
 The Archer climbs the ridge free and hits for three. Everyone else pays two movement, and the Grappler grabs whoever is standing up there first.
 
 
+Combat Manoeuvre 3 — the ridge.
+
+
+No pits, no spikes. Four tiles of high ground down the middle and one Grappler that wants you off them.
+
+
 **Asks:** Is elevation worth two movement to a non-Archer?
   
 **Verdict:** KEEP — The hazard-free statement of the ridge question — the version `high-road` cannot make.
@@ -1751,6 +2036,12 @@ AA...l.
 
 
 An Anchor in the middle of an empty field. Push does nothing to it and there is nothing to push it into — so stop pushing it and start pushing things at it.
+
+
+Combat Manoeuvre 4 — the bare field.
+
+
+No pits, no spikes, no walls, no high ground. Nothing on this board but units and the edge.
 
 
 **Asks:** Does displacement work on an empty board?
@@ -1787,6 +2078,12 @@ AA..h....
 A Stalker starts one tile from each deploy zone, and your own corner is the wall they mean to use. Deployment is the first decision and Player A moves first.
 
 
+Combat Manoeuvre 5 — the opening.
+
+
+No pits, no spikes. Two Stalkers sitting on top of the deploy corners, where walls and edges are.
+
+
 **Asks:** Is your own corner a weapon against you?
   
 **Verdict:** KEEP — The only map where the first decision is on the deployment screen.
@@ -1816,6 +2113,12 @@ AAs....
 
 
 Six Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
+
+
+Combat Manoeuvre 6 — the nook.
+
+
+No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 
 
 **Asks:** Can you turn a swarm into a queue?
@@ -1849,6 +2152,15 @@ AA.#.#..h
 A wall you can shoot over but not walk through. Three ways past it, four of you, and a shelf behind each segment worth standing on.
 
 
+Combat Manoeuvre 7 — the curtain wall.
+
+
+No pits, no spikes. Two wall segments leave a centre gate and a lane down each flank, with a shelf of high ground behind each segment.
+
+
+There is no line of sight in this game: the wall stops feet, not arrows.
+
+
 **Asks:** Can you hold a firing position with three approaches?
   
 **Verdict:** REWORK — Good question; the wall was re-cut to appease the pre-D-029 planner and can now be restored. Its Stalker never acts.
@@ -1878,6 +2190,12 @@ AA.....BB
 
 
 Stalkers need a wall or an edge to work with, and the middle of this board has neither. The Lobbers' whole job is to make you leave it.
+
+
+Combat Manoeuvre 8 — the parade ground.
+
+
+No pits, no spikes. Four wall tiles, all of them out on the rings, and a middle you can stand in.
 
 
 **Asks:** What happens when you deny the enemy its architecture?
@@ -1913,6 +2231,12 @@ AA.s...s...
 Grapplers deal no damage; the damage is whatever you were standing in front of. Your own line is a collision waiting to happen — so put one of theirs in the lane instead.
 
 
+Combat Manoeuvre 9 — the pull lane.
+
+
+No pits, no spikes. Two Grapplers on opposite edges and two tiles of high ground they both want.
+
+
 **Asks:** Can you aim the enemy's pull at its own escort?
   
 **Verdict:** KEEP — §1's best-value interaction used offensively. The most under-used trick in the game, on a board built for it.
@@ -1945,6 +2269,12 @@ AA..g....
 
 
 An Anchor walks at you one tile a round with Husks behind it. Collide something into it to Stagger it, then spend the Stagger — the pit at its back is four correct decisions away.
+
+
+Combat Manoeuvre 10 — the whole chain.
+
+
+One pit, on the far edge behind the enemy line, and no spikes. It is the last step of a four-step answer, not the first: an Anchor only reaches it while Staggered.
 
 
 **Asks:** Can you chain collision → Stagger → Bull Rush → pit?
@@ -1986,6 +2316,21 @@ AA...h...
 A Warden plugs the only gap in the wall. It never moves, so the door stays shut until you push it, pull it, or pay for it.
 
 
+The question: what do you do about a thing that will not move?
+
+
+Player A is bottled behind a wall with exactly one way out, and a Warden is standing in it. Move 0 means the planner never even looks for a tile to walk to: its intent is Hold in round 1, Hold in round 2, and Hold in round 6. Every other enemy on this board closes; this one does not. Two counterplays are live on row 3 and both use the stat block honestly.
+
+
+Bull Rush is Push 2, and push resistance 1 turns that into exactly 1 tile. The door opens.
+
+
+Reel is a Pull, and push resistance never reads a Pull. Player B can drag it clear from the far side.
+
+
+Paying the toll is the third option: 6 HP and 2 damage a round to whoever stands next to it.
+
+
 7×7 board · enemies: 1× Husk, 1× Lobber, 1× Warden
 
 | A | B |
@@ -2013,6 +2358,12 @@ A#.h.^.
 
 
 A Perch races you for the ridge and fires for 2 once it is up there. Take the high ground first or fight uphill all battle.
+
+
+The question: what is the high ground worth when something else wants it?
+
+
+The Perch spawns one tile from a ledge and nothing is in range 3 of it, so round 1 is the climb: Move 2 pays the +1 entry cost exactly. From round 2 it shoots for 2 instead of 1, and it will not come down while anything is in range — the Archer's favourite tile is now a contested objective. A Lesser Grappler works the other side of the same idea: HighGround outranks even the Archer in its target preference, so whoever climbs gets yanked off — but only from 2 tiles, not 3.
 
 
 7×9 board · enemies: 1× LesserGrappler, 1× Perch
@@ -2046,6 +2397,18 @@ AA.g...
 A Bulwark turns an enemy crowd into a formation — adjacent allies cannot be displaced more than a tile. Kill it first, or stop pushing.
 
 
+The question: what is left of your best trick when they bring the counter to it?
+
+
+A shove into another unit is 2 damage to BOTH and the best value in the game. The two Husks on the north edge are two tiles apart with a Bulwark tucked behind the left one, which caps that Husk's displacement at 1 — so a Bull Rush that would normally slam it into its neighbour for a double stagger stops one tile short and touches nothing. Kill the Bulwark and the same shove works again; that restoration is the whole lesson and it fits inside two rounds.
+
+
+Note that Hold caps distance, not damage: a push of exactly 1 into a body still collides for 2.
+
+
+Two Vanguards on side A so the shove is always available and the denial is always visible.
+
+
 7×7 board · enemies: 3× Husk, 1× Bulwark
 
 | A | B |
@@ -2073,6 +2436,24 @@ AA.h...
 
 
 No pits, no spikes, three shovers. A Harrier pulls your party apart while one Stalker uses the board edge and the other refuses to.
+
+
+The question: can displacement be a threat on a board with no hazards on it at all?
+
+
+No pits. No spikes. Nothing on this map deals damage except the units. Three shovers, and the contrast between them is the battle.
+
+
+The Harrier scores a shove by how much further from its nearest ally the target lands, and it refuses any shove that does not move the target at all. It never uses the wall.
+
+
+The ordinary Stalker has no pit and no spikes, so it falls to the third tier of its ladder and shoves you into the board edge for 2 and a Stagger. Every round. That edge is always available, which is why it is the most reliable damage in the enemy roster on a unit documented as dealing none.
+
+
+The Blunted Stalker has that tier switched off. Same speed, same shove, and on this board it does nothing whatsoever. That is the fix, not a bug.
+
+
+Stand in a block and the Harrier has nothing to gain; spread out and it picks you off one at a time.
 
 
 7×7 board · enemies: 1× BluntedStalker, 1× Harrier, 1× Stalker
@@ -2104,6 +2485,15 @@ AA.st..
 Five Runts at 1 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
 
 
+The question: does the collision-into-another-unit double kill scale, or does a swarm just take longer?
+
+
+Five Runts. 1 HP each, Move 4 — as fast as a Stalker, so a Runt three tiles away is a Runt in your face. Every one of them dies to 2 collision damage, to 3 from spikes, and to the single point of fall damage off the ledge at the bottom right. They spawn in pairs and they close in a clump, which is exactly the shape a shove punishes hardest: one Vanguard basic attack aimed down a line of two is two kills for one action, no ability spent.
+
+
+The Heavy Husk on the south edge is the control: same plan, 3 HP, and it walks out of the collision that kills everything around it. Two Vanguards on side A so there is never an excuse to swing instead of shove.
+
+
 7×7 board · enemies: 5× Runt, 1× HeavyHusk
 
 | A | B |
@@ -2131,6 +2521,15 @@ AA.uk..
 
 
 A Colossus that Push 1 and Push 2 both fail to move. Pull is unaffected — bring the Threadcaster or bring a lot of attacks.
+
+
+The question: what do you do when the board is not a weapon?
+
+
+Push resistance 2. Push 1 does nothing and Push 2 does nothing, so the Vanguard's basic shove and Bull Rush are both dead against it as openers — the two verbs this game normally answers everything with. Only a Stagger unlocks it: staggered, Bull Rush is an effective Push 3 and moves it exactly 1. Pull is untouched, because resistance is a Push rule and not a weight rule. The Threadcaster is therefore the answer, and the pit sitting on row 0 two tiles east of the Colossus is the payoff — Reel resolves every tile on the way, so a pull along that row puts 10 HP over the lip.
+
+
+The Mobile Anchor is the second lesson in the same sentence: the shrug you can ignore at Move 1 arrives at Move 2 while the fight is still on.
 
 
 7×7 board · enemies: 1× Colossus, 1× MobileAnchor

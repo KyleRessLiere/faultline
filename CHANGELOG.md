@@ -1,5 +1,25 @@
 # Changelog
 
+## Battles say why they exist
+
+- **A new repeatable `design:` key**, and a **Design notes** panel on the board that shows it. Every
+  battle's intent — the question it asks, the trap it sets, what goes wrong if you rush it — is now
+  readable while you play it, in deployment or mid-fight, without disturbing an armed action.
+- **All 65 battles annotated.** That prose was already written and stranded in each file's leading
+  comment block, where nothing could read it. It is data now, so it also reaches the generated
+  catalogue a design agent reads.
+- `description:` stays the one sentence a picker shows; `design:` is the longer answer. It repeats
+  because the format has no line continuation — a paragraph is consecutive lines, exactly as a
+  fight's enemies are consecutive `spawn` lines.
+- Moving prose into data exposed six places where a battle's own description disagreed with its
+  board. Three in active battles were corrected — the worst promised a "hold the doorway" win that
+  `objective: survive 8` does not implement. Three are in retired battles and were left visible.
+- Fixed: `the-maw` and `the-shrine` both claimed `number: 5`, so their order was decided
+  alphabetically and both displayed "#5". Now guarded by a test.
+- `FIGHT_FORMAT.md`'s worked example printed a board the real file does not have, and its error
+  table still said "only those eight keys" several keys later. Both corrected, and both now pinned by
+  tests that read the doc — the same bargain the GAMEPLAY hook makes, enforced instead of asked for.
+
 ## Runs — attrition, checkpoints, and a campaign layer in Core
 
 - **The run moved out of the shell and into Core.** `Campaign.ApplyRun(RunState, RunCommand)` is the

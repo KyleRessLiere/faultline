@@ -27,6 +27,14 @@
             <span class="chip fight-chip" title="@Session.Fight.Id">
                 #@Session.Fight.Number @Session.Fight.Name
             </span>
+            @* A view, never a command: this toggles a panel and touches nothing Core can see, so it
+               is offered in every phase and with an action already armed. *@
+            <button type="button"
+                    class="chip design-chip @(Session.DesignOpen ? "on" : string.Empty)"
+                    title="Why this board exists — the designer's notes for this battle"
+                    @onclick="Session.ToggleDesign">
+                @(Session.DesignOpen ? "Hide design notes" : "Design notes")
+            </button>
             @if (ShowBoard)
             {
                 <span class="chip">@PhaseLabel</span>
@@ -140,6 +148,15 @@
     </div>
 
     <div class="side-pane">
+        @if (Session.DesignOpen)
+        {
+            @* Beside the board like the dossier, and mutually exclusive with it: one reference panel
+               at a time keeps the turn panel on screen. *@
+            <div class="panel design-panel">
+                <FightDesign Fight="Session.Fight" OnDismiss="Session.CloseDesign" />
+            </div>
+        }
+
         @if (Session.InspectedBehaviour is { } inspected)
         {
             @* Beside the board, never over it: the fight stays playable with a dossier open. *@

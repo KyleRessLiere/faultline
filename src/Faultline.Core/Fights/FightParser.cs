@@ -195,6 +195,17 @@ namespace Faultline.Core
                 case "id": header.Id = value; header.IdLine = lineNo; break;
                 case "name": header.Name = value; header.NameLine = lineNo; break;
                 case "description": header.Description = value; break;
+                case "design":
+                    // Repeatable, like spawn and wave: the format has no line continuation, so a
+                    // paragraph is written as consecutive design: lines rather than a wrapped value.
+                    // Blank ones are dropped so a stray "design:" cannot pad the panel with nothing.
+                    if (value.Length > 0)
+                    {
+                        header.Design.Add(value);
+                    }
+
+                    header.DesignLine = lineNo;
+                    break;
                 case "retired":
                     // Presence retires the battle; the value is the reason and is required, so the
                     // "why" can never drift away from the board (docs/RETIRING_BATTLES.md).
@@ -241,8 +252,8 @@ namespace Faultline.Core
                 default:
                     issues.Add(new FightIssue(
                         FightIssueCode.UnknownKey,
-                        "Unknown key '" + key + "'. Known keys: id, name, description, retired, number, "
-                        + "roster a, roster b, objective, turn-limit, protected, footing, board.",
+                        "Unknown key '" + key + "'. Known keys: id, name, description, design, retired, "
+                        + "number, roster a, roster b, objective, turn-limit, protected, footing, board.",
                         lineNo));
                     break;
             }
@@ -739,6 +750,7 @@ namespace Faultline.Core
                 Number = header.Number,
                 Name = header.Name,
                 Description = header.Description,
+                DesignNotes = header.Design,
                 RetiredReason = ReadRetired(header, issues),
                 Board = board,
                 RosterA = header.RosterA,
@@ -1302,6 +1314,10 @@ namespace Faultline.Core
             public int NameLine { get; set; }
 
             public string Description { get; set; } = string.Empty;
+
+            public List<string> Design { get; set; } = new List<string>();
+
+            public int DesignLine { get; set; }
 
             public bool HasRetired { get; set; }
 

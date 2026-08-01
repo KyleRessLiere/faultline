@@ -129,11 +129,36 @@ public sealed class GameSession
         if (CanInspect(State.FindUnit(id)))
         {
             Inspected = id;
+            DesignOpen = false;
         }
     }
 
     /// <summary>Closes the dossier.</summary>
     public void ClearInspection() => Inspected = null;
+
+    /// <summary>Whether the fight's design notes are open in the side pane.</summary>
+    /// <remarks>
+    /// The same kind of flag as <see cref="Inspected"/>, and for the same reason: reading why a board
+    /// exists is a view, not a command. It aims nothing, submits nothing, and Core never sees it.
+    /// </remarks>
+    public bool DesignOpen { get; private set; }
+
+    /// <summary>
+    /// Opens or closes the design notes. Opening them closes any open dossier, because the side pane
+    /// holds one reference panel at a time and the turn panel must stay in view.
+    /// </summary>
+    public void ToggleDesign()
+    {
+        DesignOpen = !DesignOpen;
+
+        if (DesignOpen)
+        {
+            Inspected = null;
+        }
+    }
+
+    /// <summary>Closes the design notes.</summary>
+    public void CloseDesign() => DesignOpen = false;
 
     /// <summary>The fight currently loaded, authored or hand-built.</summary>
     public FightDefinition Fight { get; private set; } = null!;
@@ -226,6 +251,7 @@ public sealed class GameSession
         _log.Clear();
         Selected = null;
         Inspected = null;
+        DesignOpen = false;
         Hovered = null;
         Mode = ActionMode.Move;
 

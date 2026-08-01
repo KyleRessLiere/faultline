@@ -1,6 +1,3 @@
-# Asymmetry 5 — lopsided numbers. One unit each, eight Husks.
-# Both players deploy inside the same walled room; that is the point, and it is a lint.
-# The doorway is high ground: anything shoved off it takes fall damage on the way out.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
@@ -9,16 +6,15 @@ id: as-05-the-door
 number: 405
 name: The Door
 description: Two units, eight Husks, one raised doorway flanked by spikes. Numbers stop mattering the moment only one of them can reach you.
+design: Asymmetry 5 — lopsided numbers. One unit each, eight Husks.
+design: Both players deploy inside the same walled room; that is the point, and it is a lint. The doorway is high ground: anything shoved off it takes fall damage on the way out.
+design: The tide, not the headcount: the objective is `survive 8`, so anyone still standing at the end of round 8 wins and killing the last Husk stops being the point. The doorway is the tactic, not the win condition — it is where two units can hold off eight. Arrivals land on the two north corners the starting Husks came from — 0,0 and 6,0 — the far side of the room from the door.
 
 spawn h = Husk
 
 roster a: Vanguard
 roster b: Threadcaster
 
-# The tide, not the headcount: hold the doorway to the end of round 8 and you have won,
-# so killing the last Husk stops being the point. Arrivals land on the two north corners
-# the starting Husks came from — 0,0 and 6,0 — which are the far side of the room from
-# the door.
 objective: survive 8
 
 wave 3 = h@0,0 h@6,0

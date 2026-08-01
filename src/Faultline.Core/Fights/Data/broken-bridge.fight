@@ -1,4 +1,3 @@
-# Fight 3 — the trench.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
@@ -8,6 +7,7 @@ id: broken-bridge
 number: 3
 name: Broken Bridge
 description: A trench of pits splits the map; a Grappler fishes for people across it, and a pull whose line crosses a pit drops you straight in.
+design: Fight 3 — the trench.
 
 spawn h = Husk
 spawn g = Grappler

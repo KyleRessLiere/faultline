@@ -54,6 +54,13 @@ namespace Faultline.Core
             AppendKey(text, "name", fight.Name);
             AppendKey(text, "description", fight.Description);
 
+            // One line each, in order: the reader treats them as paragraphs and the format has no
+            // continuation, so writing them any other way would not parse back.
+            foreach (var note in fight.DesignNotes)
+            {
+                AppendKey(text, "design", note);
+            }
+
             // Only a retired battle writes the key at all, so the active files stay byte-identical.
             if (fight.RetiredReason is not null)
             {

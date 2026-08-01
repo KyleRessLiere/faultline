@@ -1,5 +1,3 @@
-# Combat Manoeuvre 8 — the parade ground.
-# No pits, no spikes. Four wall tiles, all of them out on the rings, and a middle you can stand in.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
@@ -8,6 +6,8 @@ id: cb-08-open-order
 number: 508
 name: Open Order
 description: Stalkers need a wall or an edge to work with, and the middle of this board has neither. The Lobbers' whole job is to make you leave it.
+design: Combat Manoeuvre 8 — the parade ground.
+design: No pits, no spikes. Four wall tiles, all of them out on the rings, and a middle you can stand in.
 
 spawn l = Lobber
 spawn s = Stalker

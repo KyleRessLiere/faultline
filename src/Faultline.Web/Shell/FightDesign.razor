@@ -1,0 +1,52 @@
+@* The idea behind the battle, read straight off the FightDefinition the fight was parsed from —
+   Description is the one sentence a picker shows, DesignNotes are the design: lines in file order,
+   one paragraph each. The shell writes none of it, so the board can never claim an intent the
+   .fight file does not state. Shaped like UnitDossier: a header, a close button, blocks. *@
+
+<article class="design-card" id="@Id">
+    <header>
+        <span class="design-title">
+            <span class="design-name">#@Fight.Number @Fight.Name</span>
+            <span class="design-role">The idea behind this board</span>
+        </span>
+        @if (OnDismiss.HasDelegate)
+        {
+            <button type="button" class="dossier-close" title="Close these design notes" @onclick="OnDismiss">×</button>
+        }
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Fight.Description))
+    {
+        <p class="design-summary">@Fight.Description</p>
+    }
+
+    @if (Fight.DesignNotes.Count > 0)
+    {
+        <div class="block design-notes">
+            <h3>Design notes</h3>
+            @foreach (var note in Fight.DesignNotes)
+            {
+                <p class="design-note">@note</p>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="note">This battle has no design notes yet.</p>
+    }
+</article>
+
+@code {
+    /// <summary>The fight to describe. Every word shown is read out of this.</summary>
+    [Parameter]
+    [EditorRequired]
+    public FightDefinition Fight { get; set; } = null!;
+
+    /// <summary>DOM id for the card, when a page wants to link to it.</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>Raised by the close button. No handler, no button — as with the dossier.</summary>
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+}

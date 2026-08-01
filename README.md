@@ -152,6 +152,12 @@ The `args` string must match the task's `label` exactly.
    counterplay — the same text `/bestiary` carries. Clicking an enemy you can currently attack still
    attacks it; to read that one, click its name in the Units panel or the Intents list instead.
 
+8. **Read why the board exists.** The **Design notes** chip beside the fight's name opens the
+   battle's own notes in the side pane: its one-line description and the designer's paragraphs on
+   what this map is asking you to work out. Reachable at any point — during deployment, or mid-fight
+   with an action already armed — and opening or closing it changes nothing on the board. It shares
+   the side pane with the enemy dossier, so opening one closes the other.
+
 Enemies act from a published priority list, and every enemy declares its intent at the top of the
 round — the fight is about reading those intents and moving the board out from under them.
 

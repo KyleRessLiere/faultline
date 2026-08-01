@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
 
@@ -40,6 +41,26 @@ public class LibrarySoakTests
         var ids = FightLibrary.LoadAll().Where(r => r.Fight is not null).Select(r => r.Fight!.Id).ToList();
 
         Assert.Equal(ids.Count, ids.Distinct().Count());
+    }
+
+
+    [Fact]
+    public void EveryEmbeddedFight_RetiredIncluded_HasAUniqueNumber()
+    {
+        // FightLibrary sorts by number and breaks ties by id, so two battles sharing one number have
+        // their order decided alphabetically rather than by intent — and both display the same "#N".
+        // the-maw and the-shrine both claimed 5 until the design notes made them say so out loud.
+        var byNumber = new Dictionary<int, string>();
+
+        foreach (var result in FightLibrary.LoadAll())
+        {
+            var fight = result.Fight!;
+            Assert.False(
+                byNumber.TryGetValue(fight.Number, out var already),
+                "number " + fight.Number + " is claimed by both " + already + " and " + fight.Id + ".");
+
+            byNumber[fight.Number] = fight.Id;
+        }
     }
 
     /// <summary>

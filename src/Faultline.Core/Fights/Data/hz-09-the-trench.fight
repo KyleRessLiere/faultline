@@ -1,18 +1,14 @@
-# Hazard Pressure 9 of 10 — pull, not push.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
-#
-# The Anchor shrugs one tile off every Push and moves 1, so it will stand at the trench and
-# refuse to be shoved into it. Pull is not reduced: a Reel from three tiles away drags it two,
-# and the first tile it enters is the pit, which is the one case a Footing token cannot fix.
-# The Grappler on the far bank does the identical thing to you across the same trench.
 
 id: hz-09-the-trench
 number: 209
 name: The Trench
 description: A trench with two bridges, two Anchors that no shove will move, and a Grappler doing to you exactly what your Threadcaster does to them.
+design: Hazard Pressure 9 of 10 — pull, not push.
+design: The Anchor shrugs one tile off every Push and moves 1, so it will stand at the trench and refuse to be shoved into it. Pull is not reduced: a Reel from three tiles away drags it two, and the first tile it enters is the pit, which is the one case a Footing token cannot fix. The Grappler on the far bank does the identical thing to you across the same trench.
 
 spawn g = Grappler
 spawn n = Anchor

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -19,6 +20,18 @@ namespace Faultline.Core
 
         /// <summary>One-line description, shown when picking a fight.</summary>
         public string Description { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The design notes: why this battle exists and what it is asking the player to work out.
+        /// One entry per <c>design:</c> line, in file order, each read as its own paragraph.
+        /// </summary>
+        /// <remarks>
+        /// Separate from <see cref="Description"/>, which is the one sentence a picker shows. These are
+        /// the longer "here is the idea" notes, and they are a repeatable key because the format has no
+        /// line continuation — a paragraph is consecutive <c>design:</c> lines, the same way a fight's
+        /// enemies are consecutive <c>spawn</c> lines.
+        /// </remarks>
+        public IReadOnlyList<string> DesignNotes { get; init; } = Array.Empty<string>();
 
         /// <summary>
         /// Why this battle was retired, or <c>null</c> while it is active. Set by the

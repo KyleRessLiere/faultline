@@ -1,17 +1,15 @@
-# Hazard Pressure 2 of 10 — the route tax.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
-#
-# A spike belt cuts the board in half with exactly one clean gap. Walking spikes costs
-# 1 movement and 1 damage and does not Stagger; being SHOVED onto them costs 3 and does.
-# Player B starts north of the belt, alone with both Lobbers, which is the clock.
 
 id: hz-02-the-short-way
 number: 202
 name: The Short Way
 description: A belt of spikes with one gap. Cross it and bleed, queue for the gap and lose a round, or leave Player B alone under two lobbers.
+design: Hazard Pressure 2 of 10 — the route tax.
+design: A spike belt cuts the board in half with exactly one clean gap. Walking spikes costs 1 movement and 1 damage and does not Stagger; being SHOVED onto them costs 3 and does. Player B starts north of the belt, alone with both Lobbers, which is the clock.
+design: Crossing IS the win: the far row is row 0, and 0,0 is the corner directly north of Player A up column 0 — five tiles and one belt of spikes away. Player B is already north of the belt but boxed in by the walls at 3,1 and 5,1 with a Lobber sitting on 6,0, so B's route to the same corner runs the length of row 0 past both Lobbers.
 
 spawn l = Lobber
 spawn s = Stalker
@@ -20,10 +18,6 @@ spawn h = Husk
 roster a: Vanguard, Archer
 roster b: Threadcaster, Wardbearer
 
-# Crossing IS the win: the far row is row 0, and 0,0 is the corner directly north of
-# Player A up column 0 — five tiles and one belt of spikes away. Player B is already
-# north of the belt but boxed in by the walls at 3,1 and 5,1 with a Lobber sitting on
-# 6,0, so B's route to the same corner runs the length of row 0 past both Lobbers.
 objective: reach 0,0
 turn-limit: 8
 

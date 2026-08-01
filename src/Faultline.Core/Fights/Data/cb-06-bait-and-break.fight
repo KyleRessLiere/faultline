@@ -1,5 +1,3 @@
-# Combat Manoeuvre 6 — the nook.
-# No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
@@ -8,6 +6,8 @@ id: cb-06-bait-and-break
 number: 506
 name: Bait and Break
 description: Six Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
+design: Combat Manoeuvre 6 — the nook.
+design: No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 
 spawn h = Husk
 

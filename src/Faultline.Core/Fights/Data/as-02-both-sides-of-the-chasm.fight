@@ -1,5 +1,3 @@
-# Asymmetry 2 — split deployment across a chasm, one bridge, and you must reunite.
-# A starts on the west lip, B on the east lip. Almost every enemy is on B's side.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
@@ -8,6 +6,8 @@ id: as-02-both-sides-of-the-chasm
 number: 402
 name: Both Sides of the Chasm
 description: A pit chasm splits the board with one bridge across it. A holds the quiet west; B is alone on the east with a Grappler working the rim.
+design: Asymmetry 2 — split deployment across a chasm, one bridge, and you must reunite.
+design: A starts on the west lip, B on the east lip. Almost every enemy is on B's side.
 
 spawn h = Husk
 spawn l = Lobber

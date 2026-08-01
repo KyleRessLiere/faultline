@@ -32,7 +32,7 @@ BATCHES = [
 
 def parse_fight(path):
     """Read one .fight file into a dict. Mirrors FightParser's shape, not its validation."""
-    f = {"file": os.path.basename(path), "spawns": {}, "board": [], "waves": []}
+    f = {"file": os.path.basename(path), "spawns": {}, "board": [], "waves": [], "design": []}
     in_board = False
 
     with io.open(path, encoding="utf-8") as handle:
@@ -67,7 +67,16 @@ def parse_fight(path):
 
             if ":" in stripped:
                 key, value = stripped.split(":", 1)
-                f[key.strip().lower()] = value.strip()
+                key = key.strip().lower()
+                value = value.strip()
+
+                # design: repeats — one line per paragraph — so it accumulates where every other
+                # key replaces. A dict assignment here would keep only the last note.
+                if key == "design":
+                    if value:
+                        f.setdefault("design", []).append(value)
+                else:
+                    f[key] = value
 
     return f
 
@@ -151,6 +160,11 @@ def render(fights, verdicts):
             desc = f.get("description")
             if desc:
                 w("\n%s\n" % desc)
+
+            # The design notes, in the author's order. This is the half of the catalogue a design
+            # agent actually reads: what the board is for, rather than what is on it.
+            for note in f.get("design", []):
+                w("\n%s\n" % note)
 
             question, verdict, reason = verdicts.get(fight_id, (None, None, None))
             if question:

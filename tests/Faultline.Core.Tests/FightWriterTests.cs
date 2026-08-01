@@ -166,7 +166,13 @@ public class FightWriterTests
             .Select(l => l.Substring(0, l.IndexOf(':')))
             .ToList();
 
-        Assert.Equal(new[] { "id", "number", "name", "description", "roster a", "roster b", "board" }, keys);
+        // design: repeats — one line per paragraph — so collapse the run. This test is about the
+        // order the keys come out in, not how many notes first-contact happens to carry.
+        var order = keys.Where((k, i) => i == 0 || keys[i - 1] != k).ToList();
+
+        Assert.Equal(
+            new[] { "id", "number", "name", "description", "design", "roster a", "roster b", "board" },
+            order);
     }
 
     [Fact]

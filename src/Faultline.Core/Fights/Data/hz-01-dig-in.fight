@@ -1,18 +1,14 @@
-# Hazard Pressure 1 of 10 — the arithmetic of a pit.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 #   any other letter = an enemy declared by a 'spawn' line below
-#
-# This fight grants every enemy one Footing token (D-028: nobody has one unless a fight says
-# so). An enemy spends it only to keep itself out of a pit, and only when giving up a tile
-# actually works. A shove whose effective distance EQUALS the distance to the pit is therefore
-# always refused. You have to overshoot by one.
 
 id: hz-01-dig-in
 number: 201
 name: Dig In
 description: Four pockets, four pits, and every enemy has one Footing token. A shove that only just reaches the hole is refused — you have to overshoot it.
+design: Hazard Pressure 1 of 10 — the arithmetic of a pit.
+design: This fight grants every enemy one Footing token (D-028: nobody has one unless a fight says so). An enemy spends it only to keep itself out of a pit, and only when giving up a tile actually works. A shove whose effective distance EQUALS the distance to the pit is therefore always refused. You have to overshoot by one.
 
 spawn h = Husk
 spawn l = Lobber

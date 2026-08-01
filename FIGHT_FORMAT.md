@@ -77,6 +77,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `roster b:` | **yes** | Player B's units, same. |
 | `number:` | no | One-based index into the run. Sorts the library. Defaults to `0` if omitted — set it. |
 | `description:` | no | One line, shown when picking a fight. |
+| `design:` | no | **Repeatable.** Why this battle exists and what it asks the player to work out. One paragraph per line, in order; shown on the board while you play it and in the catalogue. |
 | `protected:` | no | Space-separated `x,y` coordinates the M4 collapse clock never cracks. No space inside a pair. |
 | `retired:` | no | Why this battle is out of the playable set. Presence retires it; the value is the reason and is **required**. |
 | `footing:` | no | Footing tokens this fight grants. Space-separated `target=count`; target is a side (`a`, `b`, `enemy`) or a unit kind. Omitted means nobody has any. |
@@ -86,8 +87,11 @@ Everything above (or below) the board block. One `key: value` per line.
 | `spawn <c> = <UnitKind>` | when the board uses enemy letters | Declares one board letter as an enemy kind. |
 | `board:` | **yes** | Starts the board block. |
 
-Unit kind names are case-insensitive and must be one of: `Vanguard`, `Archer`, `Threadcaster`,
-`Wardbearer`, `Husk`, `Lobber`, `Anchor`, `Grappler`, `Stalker`.
+Unit kind names are case-insensitive and must name a member of `UnitKind`. That is the four player
+classes — `Vanguard`, `Archer`, `Threadcaster`, `Wardbearer` — plus every enemy archetype, which now
+runs well past the brief's original five: `Husk`, `Lobber`, `Anchor`, `Grappler`, `Stalker`, `Warden`,
+`Perch`, `Bulwark`, `Harrier`, `Runt`, `Colossus`, `Raider`, `QuarryKing` and the balance variants.
+**`/bestiary` lists every one**, so that page rather than this list is the roster of record.
 
 Note that `roster a` and `roster b` are two-word keys with **exactly one space**. `Roster A:` is fine
 (keys are case-insensitive); `roster  a:` is not.
@@ -224,7 +228,6 @@ is never quietly short an enemy.
 `src/Faultline.Core/Fights/Data/first-contact.fight`, in full:
 
 ```
-# Fight 1 — the control group.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
@@ -234,6 +237,8 @@ id: first-contact
 number: 1
 name: First Contact
 description: Husks walk straight at you while a lobber lands rocks from the back. Learn that a shove beats a swing.
+design: Fight 1 — the control group.
+design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
 
 spawn h = Husk
 spawn l = Lobber
@@ -242,18 +247,37 @@ roster a: Vanguard, Archer
 roster b: Threadcaster, Wardbearer
 
 board:
-  #.hOlBB
-  .H.^.BB
-  O.....#
-  .^...^.
-  #.....O
-  AA...H.
-  AAhOh.#
+  #....lB
+  .^.H..B
+  h.....B
+  hO...O.
+  #.....#
+  A...^..
+  AA..h..
 ```
 
 That is a 7×7 board with 4 walls, 4 pits, 3 spikes, 2 high ground, a clear centre 3×3, four Player A
 slots bottom-left, four Player B slots top-right, and three Husks plus one Lobber split across the
 north and south edges. It parses with zero errors and zero lints.
+
+## `design:` — the idea behind the battle
+
+`description:` is the one sentence a picker shows. `design:` is the longer answer to "why does this
+board exist" — the question it asks, the trap it sets, what goes wrong if you rush it.
+
+It **repeats**, like `spawn` and `wave`, because the format has no line continuation: a wrapped value
+is a parse error, so a paragraph is written as consecutive lines.
+
+```
+design: No pits and no spikes. Four wall tiles make a two-deep slot with one mouth.
+design: Six Husks all walk at whoever is nearest, so a tough body in the slot turns the swarm
+design: into a single file you can break one shove at a time.
+```
+
+Each line is its own paragraph when displayed. Empty `design:` lines are dropped rather than shown as
+blank space. A `#` comment is still a comment and never becomes a design note — capturing comment
+prose would mean guessing which lines are intent and which are the terrain legend, and a wrong guess
+silently eats a sentence.
 
 ## Errors — the file will not load
 
@@ -264,14 +288,14 @@ silently absent.
 | Code | Triggered by | Fix |
 |---|---|---|
 | `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain or a deploy slot. |
-| `UnknownKey` | A key that is not `id`, `name`, `description`, `number`, `roster a`, `roster b`, `protected`, `footing`, `retired`. | Fix the typo. Only those eight keys plus `spawn` and `board:` exist. |
+| `UnknownKey` | A key not in the header-key table above. | Fix the typo. The known keys are `id`, `name`, `description`, `design`, `number`, `roster a`, `roster b`, `objective`, `turn-limit`, `protected`, `footing`, `retired`, plus `spawn`, `wave` and `board:`. |
 | `MissingRequiredField` | `id:` or `name:` absent or blank. | Add it. Reported against line 0 — it is about the file, not a line. |
 | `BoardMissing` | The file is empty, there is no `board:` line, or `board:` is followed by no indented rows. | Add `board:` and indent the rows beneath it. |
 | `BoardRagged` | A board row is a different width from the first row. | Make every row the same length. Watch for a stray trailing character or an indented comment. |
 | `BoardUnknownChar` | A non-letter board character that is not `. # O ^ H`. | Use a legal terrain character. `0` is not `O`. |
 | `SpawnCharUndefined` | A letter on the board with no matching `spawn` line. | Add `spawn <letter> = <UnitKind>` above the board. |
 | `DuplicateSpawnChar` | The same spawn letter declared twice. | Delete one, or use a different letter for the second kind. |
-| `UnknownUnitKind` | A name in a roster or a `spawn` line that is not a `UnitKind`. | Check the spelling against the nine kinds listed above. |
+| `UnknownUnitKind` | A name in a roster or a `spawn` line that is not a `UnitKind`. | Check the spelling against `UnitKind` — the four player classes and every enemy archetype, `/bestiary` lists them all. |
 | `RosterEmpty` | `roster a:` or `roster b:` missing, blank, or containing nothing that parsed. | Give each player at least one unit. |
 | `DeployZoneMissing` | No `A` characters on the board, or no `B` characters. | Mark deploy slots for both players. |
 | `DeployZoneTooSmall` | Fewer deploy slots than units in that player's roster — the fight could never start. | Add slots, or shorten the roster. |

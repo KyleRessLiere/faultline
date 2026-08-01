@@ -1,4 +1,3 @@
-# Enemy composition 8 — five intents, each survivable, one round's worth of them is not.
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
@@ -8,6 +7,7 @@ id: ec-08-triage
 number: 308
 name: Triage
 description: Two crossings over a trench, five enemies covering them, and a round where every intent lands on the same head. Read the whole board and break exactly one link.
+design: Enemy composition 8 — five intents, each survivable, one round's worth of them is not.
 
 spawn l = Lobber
 spawn n = Anchor

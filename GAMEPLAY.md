@@ -270,6 +270,12 @@ creator cannot produce a scenario the game would refuse. Errors block play; lint
 A scenario saved to the browser is playable immediately. A `.fight` file saved into
 `Fights/Data/` is an embedded resource, so it only becomes a built-in battle **after a rebuild**.
 
+**A battle says why it exists.** `description:` is the one sentence a picker shows; `design:` is the
+longer answer — the question the board asks, the trap it sets, what goes wrong if you rush it. It is
+a repeatable key because the format has no line continuation, so a paragraph is consecutive lines,
+exactly as a fight's enemies are consecutive `spawn` lines. Both are shown on the board while you
+play, so the intent behind a map is readable without leaving the fight or opening the file.
+
 **Authoring reference: [FIGHT_FORMAT.md](FIGHT_FORMAT.md)** — every key, every character, and the
 full error and lint tables.
 

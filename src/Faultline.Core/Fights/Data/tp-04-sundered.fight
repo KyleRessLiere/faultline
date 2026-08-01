@@ -1,7 +1,3 @@
-# Board topology 4 — the two players are the ones who get split.
-# A pit column runs the full height except the top tile (5,0), which an Anchor
-# is standing on. Player A owns the west half, Player B the east, and each half
-# holds the enemy the other player was built to answer.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 
@@ -9,6 +5,8 @@ id: tp-04-sundered
 number: 104
 name: Sundered
 description: Two halves joined by one tile at the far end, with an Anchor sitting on it. Each pair faces the problem the other pair solves.
+design: Board topology 4 — the two players are the ones who get split.
+design: A pit column runs the full height except the top tile (5,0), which an Anchor is standing on. Player A owns the west half, Player B the east, and each half holds the enemy the other player was built to answer.
 retired: Duplicates `as-08-two-fires`; the Anchor on the link is inert and the fight ends in four rounds.
 
 spawn n = Anchor
