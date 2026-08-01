@@ -114,11 +114,11 @@
                 <tbody>
                     @foreach (var unit in State.Units)
                     {
-                        <tr class="@(unit.IsOnBoard ? string.Empty : "down") @(Session.Selected == unit.Id ? "sel" : string.Empty)">
+                        <tr class="@(unit.IsAlive ? string.Empty : "down") @(Session.Selected == unit.Id ? "sel" : string.Empty)">
                             <td class="team-@TeamClass(unit.Team)">@EventText.Side(unit.Team)</td>
                             <td>@unit.Name</td>
                             <td>@(unit.IsAlive ? $"{unit.Hp}/{unit.MaxHp}" : "down")</td>
-                            <td>@(unit.IsOnBoard ? unit.Position.ToString() : "—")</td>
+                            <td>@(unit.IsOnBoard ? unit.Position.ToString() : unit.IsAlive ? "—" : string.Empty)</td>
                             <td>@(unit.HasActivated ? "done" : string.Empty)</td>
                         </tr>
                     }
