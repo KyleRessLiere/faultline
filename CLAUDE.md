@@ -35,6 +35,24 @@ A Stop hook (`.claude/hooks/check-gameplay-doc.sh`) blocks the turn when anythin
 changing too. If a change genuinely alters no observable rule — a refactor, a comment — say so
 explicitly and re-run; don't edit the doc just to appease the check, and don't disable the hook.
 
+## Branching
+
+One branch per feature or milestone. Never commit to `main`.
+
+- **Cut new branches from the tip of the current work branch**, not from `main`. Work stacks: while
+  `main` is still behind, the latest branch is the real trunk, and branching off `main` would drop
+  everything already built.
+- **Name it** `m<N>-<slug>` for a milestone from AGENT_BRIEF.md (`m3-enemy-ai`), or
+  `feat|fix|chore|docs|spike/<slug>` for anything else (`feat/battle-files`). Lower-case, hyphenated.
+- **Push on the first commit** (`git push -u origin <branch>`), then keep pushing. Work that exists
+  only on one machine is invisible to review and one disk failure from gone.
+- **Open a PR targeting the branch it was cut from**, so the PR diff is that feature and nothing else.
+  CI runs on `pull_request`.
+- Rebranch rather than pile unrelated work onto a branch that has already outgrown its name.
+
+Two hooks enforce the parts that can be enforced: `guard-branch.sh` refuses a commit on `main` or on
+a branch outside the convention, and `check-unpushed.sh` warns when commits are sitting unpushed.
+
 ## Commits
 
 - Small and atomic: one rule/feature/fix per commit.
