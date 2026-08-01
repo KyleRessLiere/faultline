@@ -45,7 +45,7 @@ namespace Faultline.Core
                 throw new ArgumentNullException(nameof(fight));
             }
 
-            var letters = AssignSpawnLetters(fight.Enemies);
+            var letters = AssignSpawnLetters(fight.Enemies, fight.Waves);
             var grid = BuildGrid(fight, letters);
             var text = new StringBuilder();
 
@@ -54,12 +54,12 @@ namespace Faultline.Core
             AppendKey(text, "name", fight.Name);
             AppendKey(text, "description", fight.Description);
 
-            // A declared letter that never appears on the grid is a SpawnCharUnused error, so declare
-            // only what actually survived onto the board.
+            // A declared letter that never appears on the grid is a SpawnCharUnused error — but a
+            // letter a wave names is used too, so both count as placed.
             bool anySpawnLine = false;
             foreach (var pair in letters)
             {
-                if (!Contains(grid, pair.Letter))
+                if (!Contains(grid, pair.Letter) && !UsedByAWave(fight.Waves, pair.Kind))
                 {
                     continue;
                 }
@@ -73,9 +73,47 @@ namespace Faultline.Core
                 text.Append("spawn ").Append(pair.Letter).Append(" = ").Append(pair.Kind).Append(Newline);
             }
 
+            if (fight.Waves is not null && fight.Waves.Count > 0)
+            {
+                text.Append(Newline);
+                foreach (var wave in fight.Waves)
+                {
+                    text.Append("wave ").Append(wave.Round.ToString(CultureInfo.InvariantCulture)).Append(" =");
+                    foreach (var arrival in wave.Arrivals)
+                    {
+                        text.Append(' ')
+                            .Append(LetterFor(letters, arrival.Kind))
+                            .Append('@')
+                            .Append(arrival.At.X.ToString(CultureInfo.InvariantCulture))
+                            .Append(',')
+                            .Append(arrival.At.Y.ToString(CultureInfo.InvariantCulture));
+                    }
+
+                    text.Append(Newline);
+                }
+            }
+
             text.Append(Newline);
             AppendKey(text, "roster a", Join(fight.RosterA));
             AppendKey(text, "roster b", Join(fight.RosterB));
+
+            // Kill All is the default, so a fight that asks for nothing else writes no key at all and
+            // the 55 fights that predate objectives round-trip byte-identically.
+            if (fight.Objective is not null && fight.Objective.Kind != ObjectiveKind.KillAll)
+            {
+                text.Append(Newline);
+                AppendKey(text, "objective", fight.Objective.ToValueText());
+
+                if (fight.TurnLimit > 0)
+                {
+                    AppendKey(text, "turn-limit", fight.TurnLimit.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+            else if (fight.TurnLimit > 0)
+            {
+                text.Append(Newline);
+                AppendKey(text, "turn-limit", fight.TurnLimit.ToString(CultureInfo.InvariantCulture));
+            }
 
             if (fight.ProtectedZone is not null && fight.ProtectedZone.Count > 0)
             {
@@ -168,7 +206,9 @@ namespace Faultline.Core
         /// are sorted by <see cref="UnitKind"/> value first, so no dictionary or list order leaks into
         /// the choice, and the same definition always yields the same letters.
         /// </summary>
-        private static List<SpawnLetter> AssignSpawnLetters(IReadOnlyList<EnemySpawn> enemies)
+        private static List<SpawnLetter> AssignSpawnLetters(
+            IReadOnlyList<EnemySpawn> enemies,
+            IReadOnlyList<ReinforcementWave> waves)
         {
             var kinds = new List<UnitKind>();
             if (enemies is not null)
@@ -178,6 +218,20 @@ namespace Faultline.Core
                     if (!kinds.Contains(spawn.Kind))
                     {
                         kinds.Add(spawn.Kind);
+                    }
+                }
+            }
+
+            if (waves is not null)
+            {
+                foreach (var wave in waves)
+                {
+                    foreach (var arrival in wave.Arrivals)
+                    {
+                        if (!kinds.Contains(arrival.Kind))
+                        {
+                            kinds.Add(arrival.Kind);
+                        }
                     }
                 }
             }
@@ -216,6 +270,27 @@ namespace Faultline.Core
         }
 
         private static bool IsFree(char c, HashSet<char> taken) => !IsReserved(c) && !taken.Contains(c);
+
+        private static bool UsedByAWave(IReadOnlyList<ReinforcementWave> waves, UnitKind kind)
+        {
+            if (waves is null)
+            {
+                return false;
+            }
+
+            foreach (var wave in waves)
+            {
+                foreach (var arrival in wave.Arrivals)
+                {
+                    if (arrival.Kind == kind)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// The seven characters that already mean something on the board. A spawn letter would win the

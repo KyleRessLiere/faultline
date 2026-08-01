@@ -64,6 +64,13 @@
                             </span>
                         }
                     }
+                    else if (State.StructureAt(cell) is { } structure)
+                    {
+                        <span class="art structure" title="@StructureTitle(structure)">
+                            @(structure.Role == ObjectiveKind.Protect ? "▣" : "▩")
+                        </span>
+                        <span class="hp">@structure.Hp/@structure.MaxHp</span>
+                    }
                     else if (IsDeployTarget(cell))
                     {
                         <span class="marker">+</span>
@@ -755,8 +762,19 @@
             return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}";
         }
 
+        if (State.StructureAt(coord) is { } structure)
+        {
+            return $"{StructureTitle(structure)} — {terrain} {coord}";
+        }
+
         return $"{terrain} {coord}";
     }
+
+    /// <summary>What an objective structure is and how it can be hurt.</summary>
+    private static string StructureTitle(Structure structure) =>
+        structure.Role == ObjectiveKind.Protect
+            ? $"Protect this — {structure.Hp}/{structure.MaxHp} HP. Enemies claw at it from adjacent tiles."
+            : $"Destroy this — {structure.Hp}/{structure.MaxHp} HP. Immune to attacks; only collision damage counts.";
 
     public void Dispose() => _disposed = true;
 }

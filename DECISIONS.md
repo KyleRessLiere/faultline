@@ -226,3 +226,29 @@ band at once, so the band preference now only chooses *within* the band. The Lob
 maximises straight-line distance — a maximisation has no local-minimum failure mode. Target
 *selection* is untouched: "nearest" is still Manhattan, so this changed how an enemy moves and never
 whom it moves toward. Every one of the 580 tests written before this change still passes unmodified.
+
+**D-030 — Push resistance is a number on the stat block, not an archetype check.**
+D-018 gave the Anchor a hardcoded `Kind == Anchor` test. A Colossus subtracting 2 would have been a
+second `if`, and the next one a third. `UnitTemplate.PushResistance` replaces the check entirely:
+subtract the unit's resistance from every Push, before Hold and Footing, never below zero. Behaviour
+for the Anchor is bit-identical. Anchor, Mobile Anchor and Warden are 1; Colossus is 2.
+
+**D-031 — Wardbearer Hold is a hold aura, not a Wardbearer rule.**
+`UnitTemplate.HoldAura` generalises D-019 so the enemy Bulwark is literally the same rule rather than
+a parallel path that would drift. The self-exclusion is unchanged: an aura never protects its own
+carrier. Enemies now get a counter to the player's strongest interaction — collision into another
+unit — which is the point of the Bulwark existing.
+
+**D-032 — The planner dispatches on `EnemyPlan`, not `UnitKind`.**
+A stat-block variant reuses its archetype's priority list by naming the same plan, so adding an enemy
+that differs only in numbers is a template row and a descriptor with no planner change. This is
+structural rather than a convention: a Heavy Husk *cannot* drift from a Husk because there is only
+one melee plan, and a test pins it.
+
+**D-033 — Move 0 is legal, and a Move 0 enemy has no closing branch.**
+The Warden's priority list is two steps and the second is "hold". `Movement.Reachable` returns empty
+at Move 0, so the planner never declares a move it cannot make and the activation ends normally.
+`EveryDocumentedEnemy_HasAPlannerBranch` previously placed every enemy four tiles from a player and
+asserted a non-Hold intent — an assertion that *every enemy chases*, which Move 0 falsifies by
+design. It now starts a Move 0 archetype adjacent instead; a static enemy with no planner branch
+still falls through to `Hold` with a player touching it, so the test keeps its teeth.

@@ -113,6 +113,13 @@ namespace Faultline.Core
             FootingSpent => nameof(FootingSpent),
             FightWon => nameof(FightWon),
             FightLost => nameof(FightLost),
+            ObjectiveDeclared => nameof(ObjectiveDeclared),
+            StructureAttacked => nameof(StructureAttacked),
+            StructureDamaged => nameof(StructureDamaged),
+            StructureDestroyed => nameof(StructureDestroyed),
+            ReinforcementScheduled => nameof(ReinforcementScheduled),
+            ReinforcementArrived => nameof(ReinforcementArrived),
+            ReinforcementDelayed => nameof(ReinforcementDelayed),
             _ => UnknownEvent,
         };
 
@@ -196,6 +203,34 @@ namespace Faultline.Core
 
             FightLost e => "fight " + Number(e.FightNumber) + " lost, " + Clean(e.Reason),
 
+            ObjectiveDeclared e => "objective " + Objective.KeywordFor(e.Kind)
+                + (e.Tiles is not null && e.Tiles.Count > 0 ? " at " + Route(e.Tiles) : string.Empty)
+                + (e.Rounds > 0 ? " on round " + Number(e.Rounds) : string.Empty)
+                + (e.Hp > 0 ? ", structure " + Number(e.Hp) + " hp" : string.Empty)
+                + (e.TurnLimit > 0 ? ", turn limit " + Number(e.TurnLimit) : ", no turn limit"),
+
+            StructureAttacked e => "claws the structure at " + e.At
+                + " from " + e.From
+                + " for " + Number(e.Damage),
+
+            StructureDamaged e => Objective.KeywordFor(e.Role) + " structure at " + e.At
+                + " -" + Number(e.Amount)
+                + " " + e.Source
+                + ", hp " + Number(e.RemainingHp),
+
+            StructureDestroyed e => Objective.KeywordFor(e.Role) + " structure at " + e.At
+                + " is rubble, tile is clear",
+
+            ReinforcementScheduled e => UnitTemplate.For(e.Kind).Name
+                + " due on round " + Number(e.Round) + " at " + e.At,
+
+            ReinforcementArrived e => UnitTemplate.For(e.Kind).Name
+                + " arrives at " + e.At
+                + (e.At == e.Scheduled ? " as scheduled" : ", slid from " + e.Scheduled),
+
+            ReinforcementDelayed e => UnitTemplate.For(e.Kind).Name
+                + " cannot land on " + e.At + ", waits for the next round",
+
             _ => "unhandled event type " + evt.GetType().Name,
         };
 
@@ -241,6 +276,10 @@ namespace Faultline.Core
             Rescued e => e.UnitId,
             Voided e => e.UnitId,
             FootingSpent e => e.UnitId,
+            StructureAttacked e => e.AttackerId,
+            ReinforcementScheduled e => e.UnitId,
+            ReinforcementArrived e => e.UnitId,
+            ReinforcementDelayed e => e.UnitId,
             _ => UnitId.None,
         };
 

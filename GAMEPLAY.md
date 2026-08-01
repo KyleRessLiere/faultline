@@ -59,8 +59,9 @@ computed first, in this exact order:
 ```
 requested distance
   + 1   if the target is Staggered   (and the Stagger is consumed)
-  - 1   if the target is an Anchor and this is a Push   (D-018)
-  → 1   capped, if an allied Wardbearer stands adjacent to the target
+  - N   the target's push resistance, on a Push: 1 for Anchor, Mobile Anchor and Warden;
+        2 for the Colossus   (D-018, D-030)
+  → 1   capped, if an ally with a hold aura stands adjacent — Wardbearer or Bulwark   (D-031)
   - 1   if the target spends a Footing token
   = effective distance   (never below 0)
 ```
@@ -114,6 +115,20 @@ Collision, spike and fall damage ignore mitigation.
 | Anchor | 6 | 1 | melee, 2 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
 | Grappler | 5 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
 | Stalker | 4 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **Wardbearer Hold does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1 |
+| Warden | 6 | **0** | melee, 2 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. Push resistance 1 |
+| Perch | 3 | 2 | range 3, 1 dmg | seeks the nearest reachable HighGround and **hits for 2 from it**; once up, it does not come down |
+| Bulwark | 5 | 2 | melee, 1 dmg | **hold aura** — adjacent allies cannot be displaced more than 1. The Wardbearer's rule exactly; does not protect itself |
+| Harrier | 4 | 4 | **melee, push 1** | no damage. Shoves to **maximise the target's distance from its nearest ally**, and refuses any shove that would not move it — so it never uses walls or the edge |
+| Runt | 1 | 4 | melee, 1 dmg | dies to one collision, one spike tile, or one point of fall damage |
+| Colossus | 10 | 1 | melee, 3 dmg | **push resistance 2.** Push 1 → nothing; Push 2 → nothing; a Staggered Bull Rush moves it 1. **Pull is unaffected** |
+| Lesser Grappler | 5 | 3 | range **2**, pull 2 | Grappler list; must close to 2 where a Grappler already has you at 3 |
+| Blunted Stalker | 4 | 4 | **melee, push 1** | ranks **pit → spikes only.** Will not shove into a wall or the board edge, and does not loiter near them |
+| Heavy Husk | 3 | 3 | melee, 1 dmg | Husk list; survives one collision |
+| Mobile Anchor | 6 | 2 | melee, 2 dmg | Anchor list and shrug, at double the speed |
+
+**A variant shares its archetype's priority list rather than copying it** (D-032). The planner
+dispatches on the plan named by the stat block, not on the archetype, so a stat-block variant and the
+unit it varies cannot drift apart.
 
 Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
 

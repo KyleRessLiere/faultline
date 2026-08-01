@@ -62,6 +62,18 @@ namespace Faultline.Core
         /// <summary>A <c>footing:</c> grant asks for a negative number of tokens.</summary>
         FootingCountNegative = 16,
 
+        /// <summary>An <c>objective:</c> line names an unknown kind or a token that is not a coordinate, <c>for N</c> or <c>hp N</c>.</summary>
+        ObjectiveMalformed = 17,
+
+        /// <summary>An <c>objective:</c> line is missing something its kind needs, or carries something its kind has no use for.</summary>
+        ObjectiveIncomplete = 18,
+
+        /// <summary>A <c>wave</c> line is not <c>wave &lt;round&gt; = &lt;letter&gt;@&lt;x&gt;,&lt;y&gt; ...</c>.</summary>
+        WaveMalformed = 19,
+
+        /// <summary>Two <c>wave</c> lines name the same round.</summary>
+        DuplicateWaveRound = 20,
+
         // ---- Lints: playable, but it breaks a guideline in AGENT_BRIEF §2 -------------------
 
         /// <summary>Brief §2 specifies a 7x7 grid.</summary>
@@ -87,5 +99,14 @@ namespace Faultline.Core
 
         /// <summary>A <c>footing:</c> grant covers nobody in this fight, so it does nothing.</summary>
         FootingGrantUnused = 107,
+
+        /// <summary>The <c>turn-limit:</c> expires before the objective's own deadline, so the fight cannot be won.</summary>
+        TurnLimitBeatsObjective = 108,
+
+        /// <summary>An objective names a tile that is not Open floor, so nothing can stand or be built there.</summary>
+        ObjectiveTileNotOpen = 109,
+
+        /// <summary>A <c>wave</c> arrives after the fight's last round, so it never reaches the board.</summary>
+        WaveAfterLastRound = 110,
     }
 }

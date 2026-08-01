@@ -157,12 +157,20 @@ namespace Faultline.Core
                 return;
             }
 
+            // "wave 3 = h@0,2 h@0,4" schedules arrivals against letters the spawn lines already declared.
+            if (line.StartsWith("wave ", StringComparison.OrdinalIgnoreCase))
+            {
+                ReadWaveLine(line.Substring(5).Trim(), lineNo, header, issues);
+                return;
+            }
+
             int colon = line.IndexOf(':');
             if (colon <= 0)
             {
                 issues.Add(new FightIssue(
                     FightIssueCode.MalformedLine,
-                    "Expected 'key: value', a 'spawn x = Kind' line, a comment, or the board block.",
+                    "Expected 'key: value', a 'spawn x = Kind' line, a 'wave N = ...' line, a comment, "
+                    + "or the board block.",
                     lineNo));
                 return;
             }
@@ -190,14 +198,341 @@ namespace Faultline.Core
                 case "roster b": header.RosterB = ReadRoster(value, lineNo, issues); header.RosterBLine = lineNo; break;
                 case "protected": header.Protected = value; header.ProtectedLine = lineNo; break;
                 case "footing": header.Footing = value; header.FootingLine = lineNo; break;
+                case "objective": header.Objective = value; header.ObjectiveLine = lineNo; break;
+                case "turn-limit":
+                    if (!int.TryParse(value, out int limit))
+                    {
+                        issues.Add(new FightIssue(FightIssueCode.BadValue, "'" + value + "' is not a number.", lineNo));
+                    }
+                    else if (limit < 1)
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.BadValue,
+                            "A turn limit of " + limit + " ends the fight before it starts. Use 1 or more, "
+                            + "or leave the key out for no limit.",
+                            lineNo));
+                    }
+                    else
+                    {
+                        header.TurnLimit = limit;
+                    }
+
+                    header.TurnLimitLine = lineNo;
+                    break;
                 default:
                     issues.Add(new FightIssue(
                         FightIssueCode.UnknownKey,
                         "Unknown key '" + key + "'. Known keys: id, name, description, number, roster a, roster b, "
-                        + "protected, footing, board.",
+                        + "objective, turn-limit, protected, footing, board.",
                         lineNo));
                     break;
             }
+        }
+
+        /// <summary>
+        /// Reads the body of a <c>wave N = h@0,2 h@0,4</c> line. The round and the arrivals are kept
+        /// as written and resolved against the spawn declarations later, so a <c>wave</c> line may sit
+        /// above or below the <c>spawn</c> lines it names.
+        /// </summary>
+        private static void ReadWaveLine(string body, int lineNo, Header header, List<FightIssue> issues)
+        {
+            int eq = body.IndexOf('=');
+            if (eq <= 0)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.WaveMalformed,
+                    "Expected 'wave <round> = <letter>@<x>,<y> ...', for example 'wave 3 = h@0,2 h@0,4'.",
+                    lineNo));
+                return;
+            }
+
+            var roundText = body.Substring(0, eq).Trim();
+            if (!int.TryParse(roundText, out int round) || round < 1)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.WaveMalformed,
+                    "'" + roundText + "' is not a round number. Waves arrive at the start of round 1 or later.",
+                    lineNo));
+                return;
+            }
+
+            foreach (var wave in header.Waves)
+            {
+                if (wave.Round == round)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.DuplicateWaveRound,
+                        "Round " + round + " already has a wave. Put every arrival for a round on one line.",
+                        lineNo));
+                    return;
+                }
+            }
+
+            var tokens = body.Substring(eq + 1)
+                .Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (tokens.Length == 0)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.WaveMalformed,
+                    "Wave for round " + round + " brings nobody. Delete the line or give it arrivals.",
+                    lineNo));
+                return;
+            }
+
+            header.Waves.Add(new RawWave(round, new List<string>(tokens), lineNo));
+        }
+
+        /// <summary>
+        /// Turns the raw <c>wave</c> lines into arrivals, resolving each letter against the
+        /// <c>spawn</c> declarations and marking that letter used so it does not read as a dead
+        /// declaration.
+        /// </summary>
+        private static IReadOnlyList<ReinforcementWave> ReadWaves(
+            Header header,
+            Grid grid,
+            Board board,
+            List<FightIssue> issues)
+        {
+            var waves = new List<ReinforcementWave>();
+
+            var ordered = new List<RawWave>(header.Waves);
+            ordered.Sort((a, b) => a.Round != b.Round ? a.Round.CompareTo(b.Round) : a.Line.CompareTo(b.Line));
+
+            foreach (var raw in ordered)
+            {
+                var arrivals = new List<EnemySpawn>();
+
+                foreach (var token in raw.Tokens)
+                {
+                    int at = token.IndexOf('@');
+                    if (at != 1)
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.WaveMalformed,
+                            "'" + token + "' is not an arrival. Use '<letter>@<x>,<y>' with no spaces, "
+                            + "for example 'h@0,2'.",
+                            raw.Line));
+                        continue;
+                    }
+
+                    char symbol = token[0];
+                    if (!header.Spawns.TryGetValue(symbol, out var kind))
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.SpawnCharUndefined,
+                            "Wave letter '" + symbol + "' has no 'spawn " + symbol + " = <UnitKind>' line.",
+                            raw.Line));
+                        continue;
+                    }
+
+                    var parts = token.Substring(at + 1).Split(',');
+                    if (parts.Length != 2 || !int.TryParse(parts[0], out int x) || !int.TryParse(parts[1], out int y))
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.WaveMalformed,
+                            "'" + token + "' has no 'x,y' tile after the '@'.",
+                            raw.Line));
+                        continue;
+                    }
+
+                    var coord = new Coord(x, y);
+                    if (!board.InBounds(coord))
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.CoordOutOfBounds,
+                            coord + " is outside the " + board.Width + "x" + board.Height + " board.",
+                            raw.Line));
+                        continue;
+                    }
+
+                    grid.UsedSpawnChars.Add(symbol);
+                    arrivals.Add(new EnemySpawn(kind, coord));
+                }
+
+                if (arrivals.Count > 0)
+                {
+                    waves.Add(new ReinforcementWave(raw.Round, arrivals));
+                }
+            }
+
+            return waves;
+        }
+
+        /// <summary>
+        /// Reads <c>objective: hold 4,3 4,4 for 7</c>. One grammar covers all six kinds: the first
+        /// token is the kind, then any number of <c>x,y</c> tiles, <c>for N</c> (or a bare <c>N</c>)
+        /// for the deadline, and <c>hp N</c> for a structure's hit points.
+        /// </summary>
+        private static Objective ReadObjective(string value, int lineNo, Board board, List<FightIssue> issues)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return Objective.KillAll;
+            }
+
+            var tokens = value.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (!Objective.TryParseKind(tokens[0], out var kind))
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveMalformed,
+                    "'" + tokens[0] + "' is not an objective. Use kill-all, survive, hold, reach, protect or destroy.",
+                    lineNo));
+                return Objective.KillAll;
+            }
+
+            var tiles = new List<Coord>();
+            int rounds = 0;
+            int hp = 0;
+            bool hpGiven = false;
+
+            for (int i = 1; i < tokens.Length; i++)
+            {
+                var token = tokens[i];
+
+                if (string.Equals(token, "for", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(token, "hp", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool isHp = token.Length == 2;
+                    if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out int number))
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.ObjectiveMalformed,
+                            "'" + token + "' must be followed by a number.",
+                            lineNo));
+                        return Objective.KillAll;
+                    }
+
+                    if (isHp)
+                    {
+                        hp = number;
+                        hpGiven = true;
+                    }
+                    else
+                    {
+                        rounds = number;
+                    }
+
+                    i++;
+                    continue;
+                }
+
+                if (token.IndexOf(',') >= 0)
+                {
+                    var parts = token.Split(',');
+                    if (parts.Length != 2 || !int.TryParse(parts[0], out int x) || !int.TryParse(parts[1], out int y))
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.ObjectiveMalformed,
+                            "'" + token + "' is not a coordinate. Use 'x,y' with no spaces.",
+                            lineNo));
+                        return Objective.KillAll;
+                    }
+
+                    var coord = new Coord(x, y);
+                    if (!board.InBounds(coord))
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.CoordOutOfBounds,
+                            coord + " is outside the " + board.Width + "x" + board.Height + " board.",
+                            lineNo));
+                        continue;
+                    }
+
+                    tiles.Add(coord);
+                    continue;
+                }
+
+                // A bare number is the deadline, so "survive 6" reads the way it says it.
+                if (int.TryParse(token, out int bare))
+                {
+                    rounds = bare;
+                    continue;
+                }
+
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveMalformed,
+                    "'" + token + "' is not a tile, 'for <n>' or 'hp <n>'.",
+                    lineNo));
+                return Objective.KillAll;
+            }
+
+            var objective = new Objective
+            {
+                Kind = kind,
+                Tiles = tiles,
+                Rounds = rounds,
+                Hp = hpGiven ? hp : Objective.DefaultHpFor(kind),
+            };
+
+            return Validate(objective, hpGiven, lineNo, issues) ? objective : Objective.KillAll;
+        }
+
+        /// <summary>Checks an objective carries what its kind needs and nothing it has no use for.</summary>
+        private static bool Validate(Objective objective, bool hpGiven, int lineNo, List<FightIssue> issues)
+        {
+            string keyword = Objective.KeywordFor(objective.Kind);
+            bool wantsTiles = objective.Kind != ObjectiveKind.KillAll && objective.Kind != ObjectiveKind.Survive;
+            bool wantsRounds = objective.Deadline > 0 || objective.Kind == ObjectiveKind.Survive
+                || objective.Kind == ObjectiveKind.Hold;
+
+            if (wantsTiles && objective.Tiles.Count == 0)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveIncomplete,
+                    "'" + keyword + "' needs at least one 'x,y' tile.",
+                    lineNo));
+                return false;
+            }
+
+            if (!wantsTiles && objective.Tiles.Count > 0)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveIncomplete,
+                    "'" + keyword + "' names no tiles; drop the coordinates.",
+                    lineNo));
+                return false;
+            }
+
+            if (wantsRounds && objective.Rounds < 1)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveIncomplete,
+                    "'" + keyword + "' needs a round to resolve on, for example '"
+                    + (objective.Kind == ObjectiveKind.Survive ? "survive 6" : "hold 3,3 for 6") + "'.",
+                    lineNo));
+                return false;
+            }
+
+            if (!wantsRounds && objective.Rounds != 0)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveIncomplete,
+                    "'" + keyword + "' has no deadline of its own; use 'turn-limit:' for a round cap.",
+                    lineNo));
+                return false;
+            }
+
+            if (!objective.HasStructure && hpGiven)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveIncomplete,
+                    "'" + keyword + "' builds no structure, so 'hp' means nothing here.",
+                    lineNo));
+                return false;
+            }
+
+            if (objective.HasStructure && objective.Hp < 1)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.ObjectiveIncomplete,
+                    "'" + keyword + "' needs at least 1 hit point.",
+                    lineNo));
+                return false;
+            }
+
+            return true;
         }
 
         private static List<UnitKind> ReadRoster(string value, int lineNo, List<FightIssue> issues)
@@ -343,6 +678,10 @@ namespace Faultline.Core
             CheckZone(grid.ZoneA, header.RosterA.Count, "A", boardStartLine, issues);
             CheckZone(grid.ZoneB, header.RosterB.Count, "B", boardStartLine, issues);
 
+            // Waves resolve before the unused-spawn check, because a letter used only by a wave is
+            // used: the enemy is real, it just walks on later.
+            var waves = ReadWaves(header, grid, board, issues);
+
             foreach (var pair in header.Spawns)
             {
                 if (!grid.UsedSpawnChars.Contains(pair.Key))
@@ -356,6 +695,7 @@ namespace Faultline.Core
 
             var protectedZone = ReadCoords(header.Protected, header.ProtectedLine, board, issues);
             var footing = ReadFootingGrants(header.Footing, header.FootingLine, issues);
+            var objective = ReadObjective(header.Objective, header.ObjectiveLine, board, issues);
 
             return new FightDefinition
             {
@@ -371,6 +711,9 @@ namespace Faultline.Core
                 Enemies = grid.Spawns,
                 ProtectedZone = protectedZone,
                 FootingGrants = footing,
+                Objective = objective,
+                TurnLimit = header.TurnLimit,
+                Waves = waves,
             };
         }
 
@@ -614,9 +957,59 @@ namespace Faultline.Core
                     header.FootingLine));
             }
 
+            AddObjectiveLints(fight, board, header, issues);
+
             // A "unit starts on a hazard" lint would be unreachable: deploy slots and spawn letters
             // always write Open terrain underneath, so the format cannot express it. Left out rather
             // than shipped as a check that can never fire.
+        }
+
+        private static void AddObjectiveLints(
+            FightDefinition fight,
+            Board board,
+            Header header,
+            List<FightIssue> issues)
+        {
+            var objective = fight.Objective;
+
+            foreach (var tile in objective.Tiles)
+            {
+                if (board.At(tile) != TileType.Open)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.ObjectiveTileNotOpen,
+                        "Objective tile " + tile + " is " + board.At(tile)
+                        + "; nothing can stand there or be built on it.",
+                        header.ObjectiveLine));
+                }
+            }
+
+            if (fight.TurnLimit > 0 && objective.Deadline > 0 && fight.TurnLimit < objective.Deadline)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.TurnLimitBeatsObjective,
+                    "The turn limit expires on round " + fight.TurnLimit + ", before the objective resolves on round "
+                    + objective.Deadline + " — this fight cannot be won.",
+                    header.TurnLimitLine));
+            }
+
+            int lastRound = fight.LastRound();
+            if (lastRound <= 0)
+            {
+                return;
+            }
+
+            foreach (var wave in fight.Waves)
+            {
+                if (wave.Round > lastRound)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.WaveAfterLastRound,
+                        "The wave for round " + wave.Round + " arrives after the fight ends on round "
+                        + lastRound + ", so it never reaches the board.",
+                        header.ObjectiveLine));
+                }
+            }
         }
 
         /// <summary>True when at least one unit in the fight would receive this grant.</summary>
@@ -784,9 +1177,36 @@ namespace Faultline.Core
 
             public int FootingLine { get; set; }
 
+            public string Objective { get; set; } = string.Empty;
+
+            public int ObjectiveLine { get; set; }
+
+            public int TurnLimit { get; set; }
+
+            public int TurnLimitLine { get; set; }
+
+            public List<RawWave> Waves { get; } = new List<RawWave>();
+
             public Dictionary<char, UnitKind> Spawns { get; } = new Dictionary<char, UnitKind>();
 
             public Dictionary<char, int> SpawnLines { get; } = new Dictionary<char, int>();
+        }
+
+        /// <summary>A <c>wave</c> line as written, before its letters are resolved against the spawns.</summary>
+        private sealed class RawWave
+        {
+            public RawWave(int round, List<string> tokens, int line)
+            {
+                Round = round;
+                Tokens = tokens;
+                Line = line;
+            }
+
+            public int Round { get; }
+
+            public List<string> Tokens { get; }
+
+            public int Line { get; }
         }
 
         private sealed class Grid

@@ -1,0 +1,36 @@
+# Variant proof battle 4 of 6 — the Harrier (docs/ENEMY_ROSTER.md).
+# The question: can displacement be a threat on a board with no hazards on it at all?
+#
+# No pits. No spikes. Nothing on this map deals damage except the units. Three shovers, and the
+# contrast between them is the battle:
+#   - the Harrier scores a shove by how much further from its nearest ally the target lands, and it
+#     refuses any shove that does not move the target at all. It never uses the wall.
+#   - the ordinary Stalker has no pit and no spikes, so it falls to the third tier of its ladder and
+#     shoves you into the board edge for 2 and a Stagger. Every round. That edge is always available,
+#     which is why it is the most reliable damage in the enemy roster on a unit documented as dealing none.
+#   - the Blunted Stalker has that tier switched off. Same speed, same shove, and on this board it
+#     does nothing whatsoever. That is the fix, not a bug.
+# Stand in a block and the Harrier has nothing to gain; spread out and it picks you off one at a time.
+#
+# Deliberate lint: zero spikes, so SpikeCountOutOfRange fires. A hazard-free board is the premise.
+
+id: nv-04-open-order
+number: 704
+name: Open Order
+description: No pits, no spikes, three shovers. A Harrier pulls your party apart while one Stalker uses the board edge and the other refuses to.
+
+spawn r = Harrier
+spawn s = Stalker
+spawn t = BluntedStalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ..r...B
+  ......B
+  .....HB
+  .......
+  .H.....
+  A......
+  AA.st..

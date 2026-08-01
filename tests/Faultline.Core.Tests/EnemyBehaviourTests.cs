@@ -227,20 +227,28 @@ public class EnemyBehaviourTests
     // ---- the bestiary cannot list an enemy the planner ignores ---------------------------------
 
     /// <summary>
-    /// <see cref="Ai.Compute"/> switches on <see cref="UnitKind"/> and falls through to Hold. A new
-    /// enemy with a behaviour but no planner branch would document a unit that stands still forever,
-    /// so every documented enemy is put on a board with a player unit in front of it and must plan
-    /// something.
+    /// <see cref="Ai"/> dispatches on the plan named by the stat block and falls through to Hold. A
+    /// new enemy with a behaviour but no planner branch would document a unit that stands still
+    /// forever, so every documented enemy is put on a board with a player unit in front of it and
+    /// must plan something.
     /// </summary>
+    /// <remarks>
+    /// A Move 0 archetype is started already adjacent. It is not a chaser and has no closing branch
+    /// to assert — asking it to reach a target four tiles away would be asserting that Move 0 does
+    /// not work. The teeth are unchanged: a static enemy with no planner branch still falls through
+    /// to Hold with a player unit touching it, and still fails here.
+    /// </remarks>
     [Fact]
     public void EveryDocumentedEnemy_HasAPlannerBranch()
     {
         foreach (var behaviour in EnemyBehaviour.All())
         {
-            // Spikes at (6,0) give the Stalker a hazard to shove into; everyone else ignores them.
+            int from = behaviour.Template.Move == 0 ? 4 : 1;
+
+            // Spikes at (5,0) give the Stalker a hazard to shove into; everyone else ignores them.
             var state = BoardBuilder.Rows(".....^.")
                 .PlayerA(UnitKind.Vanguard, 5, 0)
-                .Enemy(behaviour.Kind, 1, 0)
+                .Enemy(behaviour.Kind, from, 0)
                 .Active(Team.Enemy)
                 .Build();
 

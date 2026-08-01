@@ -1,5 +1,19 @@
 # Changelog
 
+## Ten enemy variants
+
+- Six new behaviours — **Warden** (Move 0, actually holds a position), **Perch** (contests high
+  ground and hits for 2 from it), **Bulwark** (enemy hold aura), **Harrier** (separates the party
+  instead of executing it), **Runt** (HP 1 swarm), **Colossus** (push resistance 2, but Pull works).
+- Four balance variants — Lesser Grappler, Blunted Stalker, Heavy Husk, Mobile Anchor. The Warden,
+  Mobile Anchor and Perch each fix a gap the 55-battle review found: nothing held a position, the
+  Anchor never arrived at Move 1, and the Lobber's high-ground bonus had never once fired.
+- Generalised rather than special-cased: push resistance is an int, the hold aura is a flag, hazard
+  ranks are an int, and the planner dispatches on a plan rather than an archetype. All four balance
+  variants and three of the six behaviours added **zero lines of planner code**, and a test pins that
+  a variant reuses its archetype's list rather than copying it.
+- Six `nv-` proof battles, one per behaviour, only one of which is a pit map.
+
 ## Bestiary
 
 - `EnemyBehaviour` in Core: each enemy's role, its ordered priority list as structured data, its

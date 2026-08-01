@@ -225,6 +225,13 @@ h2 {
     color: var(--muted);
 }
 
+.art.structure {
+    line-height: 34px;
+    font-size: 1.6rem;
+    color: #d9c37a;
+    text-align: center;
+}
+
 .marker {
     color: rgba(230, 232, 236, .55);
     font-size: 1rem;

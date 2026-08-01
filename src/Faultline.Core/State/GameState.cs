@@ -22,8 +22,20 @@ namespace Faultline.Core
         /// <summary>Live terrain, which the collapse clock edits (M4).</summary>
         public Board Board { get; init; } = Board.Filled(1, 1);
 
-        /// <summary>Every unit in the fight, including downed ones, in stable id order.</summary>
+        /// <summary>Every unit in the fight, including downed ones and ones still due to arrive, in stable id order.</summary>
         public IReadOnlyList<Unit> Units { get; init; } = new Unit[0];
+
+        /// <summary>
+        /// Objective structures on the board, in the order the objective named their tiles. Empty for
+        /// every objective that does not build one.
+        /// </summary>
+        public IReadOnlyList<Structure> Structures { get; init; } = new Structure[0];
+
+        /// <summary>
+        /// Scheduled enemy arrivals that have not landed yet, in round order. Published at fight
+        /// start and queryable at any moment — the timetable is planning information, not a surprise.
+        /// </summary>
+        public IReadOnlyList<PendingReinforcement> Reinforcements { get; init; } = new PendingReinforcement[0];
 
         /// <summary>One-based round number; zero during deployment.</summary>
         public int Round { get; init; }
@@ -114,10 +126,57 @@ namespace Faultline.Core
             return null;
         }
 
-        /// <summary>True when a tile holds an on-board unit.</summary>
+        /// <summary>The standing objective structure on a tile, if any.</summary>
+        /// <param name="c">Tile to inspect.</param>
+        /// <returns>The structure, or <c>null</c> when the tile is clear or the structure is rubble.</returns>
+        public Structure? StructureAt(Coord c)
+        {
+            foreach (var structure in Structures)
+            {
+                if (structure.IsStanding && structure.At == c)
+                {
+                    return structure;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// True when a tile holds an on-board unit or a standing structure. A structure blocks its
+        /// tile exactly as a unit does: nothing walks onto it, and a displacement into it collides.
+        /// </summary>
         /// <param name="c">Tile to inspect.</param>
         /// <returns>Whether the tile is occupied.</returns>
-        public bool IsOccupied(Coord c) => UnitAt(c) is not null;
+        public bool IsOccupied(Coord c) => UnitAt(c) is not null || StructureAt(c) is not null;
+
+        /// <summary>Returns a copy with one structure replaced by its tile.</summary>
+        /// <param name="structure">Replacement structure; its tile selects the slot.</param>
+        /// <returns>A new state.</returns>
+        public GameState WithStructure(Structure structure)
+        {
+            var structures = new Structure[Structures.Count];
+            bool found = false;
+            for (int i = 0; i < Structures.Count; i++)
+            {
+                if (Structures[i].At == structure.At)
+                {
+                    structures[i] = structure;
+                    found = true;
+                }
+                else
+                {
+                    structures[i] = Structures[i];
+                }
+            }
+
+            if (!found)
+            {
+                throw new ArgumentException("No structure at " + structure.At + ".", nameof(structure));
+            }
+
+            return this with { Structures = structures };
+        }
 
         /// <summary>Returns a copy with one unit replaced by id.</summary>
         /// <param name="unit">Replacement unit; its id selects the slot.</param>
@@ -173,7 +232,9 @@ namespace Faultline.Core
                 || Outcome != other.Outcome
                 || !Board.Equals(other.Board)
                 || Units.Count != other.Units.Count
-                || Intents.Count != other.Intents.Count)
+                || Intents.Count != other.Intents.Count
+                || Structures.Count != other.Structures.Count
+                || Reinforcements.Count != other.Reinforcements.Count)
             {
                 return false;
             }
@@ -189,6 +250,22 @@ namespace Faultline.Core
             for (int i = 0; i < Intents.Count; i++)
             {
                 if (!Intents[i].Equals(other.Intents[i]))
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < Structures.Count; i++)
+            {
+                if (!Structures[i].Equals(other.Structures[i]))
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < Reinforcements.Count; i++)
+            {
+                if (!Reinforcements[i].Equals(other.Reinforcements[i]))
                 {
                     return false;
                 }
@@ -220,6 +297,16 @@ namespace Faultline.Core
                 foreach (var intent in Intents)
                 {
                     hash = (hash * 31) + intent.GetHashCode();
+                }
+
+                foreach (var structure in Structures)
+                {
+                    hash = (hash * 31) + structure.GetHashCode();
+                }
+
+                foreach (var pending in Reinforcements)
+                {
+                    hash = (hash * 31) + pending.GetHashCode();
                 }
 
                 return hash;

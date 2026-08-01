@@ -427,10 +427,9 @@
         (TileType.HighGround, "High ground"),
     };
 
-    private static readonly UnitKind[] EnemyKinds =
-    {
-        UnitKind.Husk, UnitKind.Lobber, UnitKind.Anchor, UnitKind.Grappler, UnitKind.Stalker,
-    };
+    // The bestiary decides which enemies exist; the builder must not keep its own shorter list or a
+    // newly added archetype would be unplaceable until someone remembered to edit this file.
+    private static readonly IReadOnlyList<UnitKind> EnemyKinds = EnemyBehaviour.EnemyKinds;
 
     private static readonly UnitKind[] PlayerKinds =
     {

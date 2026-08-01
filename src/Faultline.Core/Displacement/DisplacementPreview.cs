@@ -26,6 +26,8 @@ namespace Faultline.Core
     /// <param name="WouldDown">Whether the damage would take the displaced unit to zero.</param>
     /// <param name="ConsumesStagger">Whether an existing Stagger on the target is spent for +1.</param>
     /// <param name="FootingWouldMatter">Whether spending Footing changes this outcome at all.</param>
+    /// <param name="StructureAt">Objective structure collided with, when the stop was a structure.</param>
+    /// <param name="DamageToStructure">Damage that structure would take.</param>
     public sealed record DisplacementPreview(
         UnitId UnitId,
         DisplacementKind Kind,
@@ -42,7 +44,9 @@ namespace Faultline.Core
         bool WouldCling,
         bool WouldDown,
         bool ConsumesStagger,
-        bool FootingWouldMatter)
+        bool FootingWouldMatter,
+        Coord? StructureAt = null,
+        int DamageToStructure = 0)
     {
         /// <summary>True when the unit does not move at all.</summary>
         public bool IsNoOp => EffectiveDistance <= 0 || Path.Count == 0;

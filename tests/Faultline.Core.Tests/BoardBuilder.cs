@@ -11,8 +11,12 @@ public sealed class BoardBuilder
 {
     private readonly List<string> _rows;
     private readonly List<Placement> _placements = new();
+    private readonly List<ReinforcementWave> _waves = new();
     private Team? _activeTeam;
     private int _seed = 1;
+    private Faultline.Core.Objective _objective = Faultline.Core.Objective.KillAll;
+    private int _turnLimit;
+    private int _round = 1;
 
     private BoardBuilder(IEnumerable<string> rows) => _rows = new List<string>(rows);
 
@@ -64,6 +68,41 @@ public sealed class BoardBuilder
         return this;
     }
 
+    /// <summary>Gives the fight an objective; structures it calls for are built with the state.</summary>
+    public BoardBuilder Objective(ObjectiveKind kind, int rounds = 0, int hp = 0, params Coord[] tiles)
+    {
+        _objective = new Objective
+        {
+            Kind = kind,
+            Rounds = rounds,
+            Hp = hp > 0 ? hp : Faultline.Core.Objective.DefaultHpFor(kind),
+            Tiles = tiles,
+        };
+
+        return this;
+    }
+
+    /// <summary>Caps the fight at a round.</summary>
+    public BoardBuilder TurnLimit(int limit)
+    {
+        _turnLimit = limit;
+        return this;
+    }
+
+    /// <summary>Schedules a wave of arrivals.</summary>
+    public BoardBuilder Wave(int round, params EnemySpawn[] arrivals)
+    {
+        _waves.Add(new ReinforcementWave(round, arrivals));
+        return this;
+    }
+
+    /// <summary>Starts the state on a round other than round 1.</summary>
+    public BoardBuilder Round(int round)
+    {
+        _round = round;
+        return this;
+    }
+
     /// <summary>Produces a round-1 battle state with every unit already deployed.</summary>
     public GameState Build()
     {
@@ -94,14 +133,25 @@ public sealed class BoardBuilder
 
         var active = _activeTeam ?? (_placements.Count > 0 ? _placements[0].Team : Team.PlayerA);
 
+        var fight = new FightDefinition
+        {
+            Number = 1,
+            Name = "Test",
+            Board = board,
+            Objective = _objective,
+            TurnLimit = _turnLimit,
+            Waves = _waves,
+        };
+
         return new GameState
         {
             Seed = _seed,
             RngState = _seed,
-            Fight = new FightDefinition { Number = 1, Name = "Test", Board = board },
+            Fight = fight,
             Board = board,
             Units = units,
-            Round = 1,
+            Structures = Objectives.Build(_objective),
+            Round = _round,
             Phase = Phase.Battle,
             ActiveTeam = active,
             NextPlayerTeam = active.IsPlayer() ? active : Team.PlayerA,

@@ -1,0 +1,39 @@
+# docs/ENCOUNTERS.md #2 — Hold the Gate. No new troops: the whole fight is objective, turn limit
+# and spawn schedule, which is exactly why it was the cheapest of the eight to build.
+#
+# A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight is decided by
+# who is standing in it when round 7 ends. The timetable below is published at fight start, so
+# every wave is planning information rather than an ambush — same contract as enemy intents.
+#
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: hold-the-gate
+number: 601
+name: Hold the Gate
+description: One doorway, four defenders, nine attackers on a published timetable. Keep the gate clear at the end of round 7.
+
+spawn h = Husk
+spawn l = Lobber
+spawn g = Grappler
+spawn s = Stalker
+
+wave 2 = h@0,2 h@0,4
+wave 4 = l@0,1 h@0,5
+wave 5 = s@0,3 h@0,0
+wave 6 = g@0,6
+
+roster a: Vanguard, Wardbearer
+roster b: Archer, Threadcaster
+
+objective: hold 4,3 4,4 for 7
+turn-limit: 7
+
+board:
+  h...#..BB
+  ...^#H.BB
+  ....#....
+  .O.......
+  .O.......
+  ...^#H.AA
+  h...#..AA

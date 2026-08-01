@@ -187,6 +187,13 @@ namespace Faultline.Core
                     break;
                 }
 
+                // An objective structure stops the charge dead, the same way a wall does. The charge
+                // is a run, not a shove, so it does the structure no damage.
+                if (state.StructureAt(next) is not null)
+                {
+                    break;
+                }
+
                 var occupant = state.UnitAt(next);
                 if (occupant is not null)
                 {

@@ -39,6 +39,10 @@ namespace Faultline.Core
 
             var events = new List<GameEvent> { new FightStarted(fight.Number, fight.Name) };
 
+            var objective = fight.Objective ?? Objective.KillAll;
+            events.Add(new ObjectiveDeclared(
+                objective.Kind, objective.Rounds, objective.Hp, fight.TurnLimit, objective.Tiles));
+
             foreach (var spawn in fight.Enemies)
             {
                 var enemy = WithGrantedFooting(Unit.FromTemplate(new UnitId(nextId++), spawn.Kind, Team.Enemy), fight) with
@@ -50,6 +54,24 @@ namespace Faultline.Core
                 events.Add(new UnitDeployed(enemy.Id, enemy.Team, enemy.Kind, enemy.Position));
             }
 
+            // Reinforcements are created here, undeployed, so every unit id in the fight is fixed
+            // before the first command and the schedule cannot shift them (DECISIONS.md D-035).
+            var pending = new List<PendingReinforcement>();
+            foreach (var wave in fight.Waves)
+            {
+                foreach (var arrival in wave.Arrivals)
+                {
+                    var enemy = WithGrantedFooting(
+                        Unit.FromTemplate(new UnitId(nextId++), arrival.Kind, Team.Enemy), fight) with
+                    {
+                        Position = arrival.At,
+                    };
+                    units.Add(enemy);
+                    pending.Add(new PendingReinforcement(enemy.Id, wave.Round, arrival.At));
+                    events.Add(new ReinforcementScheduled(enemy.Id, enemy.Kind, wave.Round, arrival.At));
+                }
+            }
+
             var state = new GameState
             {
                 Seed = seed,
@@ -57,6 +79,8 @@ namespace Faultline.Core
                 Fight = fight,
                 Board = fight.Board,
                 Units = units,
+                Structures = Objectives.Build(objective),
+                Reinforcements = pending,
                 Round = 0,
                 Phase = Phase.Deployment,
                 ActiveTeam = Team.PlayerA,
@@ -373,6 +397,10 @@ namespace Faultline.Core
 
             events.Add(new RoundStarted(state.Round));
 
+            // Arrivals land before intents are declared, so an enemy that walks on this round has its
+            // plan on the table with everyone else's.
+            state = Objectives.Reinforce(state, events);
+
             // Brief §2: the round opens with every enemy's full planned action on the table.
             state = Ai.DeclareAll(state, events);
 
@@ -632,6 +660,16 @@ namespace Faultline.Core
             events.Add(new ActivationEnded(unitId, passed));
 
             state = state with { ActiveUnitId = null };
+
+            // Brief §3 fight 2: the enemy is here for the structure. An enemy that finishes its
+            // activation standing next to one claws at it.
+            state = Objectives.Besiege(state, unitId, events);
+            state = CheckOutcome(state, events);
+            if (state.Outcome != FightOutcome.InProgress)
+            {
+                return state;
+            }
+
             return AdvanceTurn(state, events);
         }
 
@@ -646,7 +684,10 @@ namespace Faultline.Core
 
                 // Brief §2 round end: Clinging resolution, then Stagger clears in BeginRound.
                 state = Pits.ResolveEndOfRound(state, events);
-                state = CheckOutcome(state, events);
+
+                // The round's last act is the objective's clock: a survive or hold deadline resolves
+                // here, and an expired turn limit ends the fight here too.
+                state = Objectives.Check(state, true, events);
                 if (state.Outcome != FightOutcome.InProgress)
                 {
                     return state;
@@ -750,47 +791,12 @@ namespace Faultline.Core
             return false;
         }
 
-        private static GameState CheckOutcome(GameState state, List<GameEvent> events)
-        {
-            if (state.Outcome != FightOutcome.InProgress)
-            {
-                return state;
-            }
-
-            bool anyEnemy = false;
-            bool anyPlayer = false;
-            foreach (var unit in state.Units)
-            {
-                if (!unit.IsAlive)
-                {
-                    continue;
-                }
-
-                if (unit.Team == Team.Enemy)
-                {
-                    anyEnemy = true;
-                }
-                else
-                {
-                    anyPlayer = true;
-                }
-            }
-
-            // Fight 1 is Kill All; Protect and Destroy objectives join this check in M6.
-            if (!anyPlayer)
-            {
-                events.Add(new FightLost(state.Fight.Number, "All player units are down."));
-                return state with { Outcome = FightOutcome.Lost, Phase = Phase.Complete, ActiveUnitId = null };
-            }
-
-            if (!anyEnemy)
-            {
-                events.Add(new FightWon(state.Fight.Number));
-                return state with { Outcome = FightOutcome.Won, Phase = Phase.Complete, ActiveUnitId = null };
-            }
-
-            return state;
-        }
+        /// <summary>
+        /// Asks <see cref="Objectives"/> whether the fight has ended. Every ending in the game is in
+        /// that one file; this is the only place the rules ask.
+        /// </summary>
+        private static GameState CheckOutcome(GameState state, List<GameEvent> events) =>
+            Objectives.Check(state, false, events);
 
         private static bool Contains<T>(IReadOnlyList<T> items, T value)
             where T : struct

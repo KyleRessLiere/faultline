@@ -1,0 +1,30 @@
+# Variant proof battle 5 of 6 — the Runt (docs/ENEMY_ROSTER.md).
+# The question: does the collision-into-another-unit double kill scale, or does a swarm just take longer?
+#
+# Five Runts. 1 HP each, Move 4 — as fast as a Stalker, so a Runt three tiles away is a Runt in your
+# face. Every one of them dies to 2 collision damage, to 3 from spikes, and to the single point of
+# fall damage off the ledge at the bottom right. They spawn in pairs and they close in a clump,
+# which is exactly the shape a shove punishes hardest: one Vanguard basic attack aimed down a line of
+# two is two kills for one action, no ability spent.
+# The Heavy Husk on the south edge is the control: same plan, 3 HP, and it walks out of the collision
+# that kills everything around it. Two Vanguards on side A so there is never an excuse to swing instead of shove.
+
+id: nv-05-numbers
+number: 705
+name: Numbers
+description: Five Runts at 1 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
+
+spawn u = Runt
+spawn k = HeavyHusk
+
+roster a: Vanguard, Vanguard
+roster b: Archer, Threadcaster
+
+board:
+  .uu.uuB
+  ......B
+  .^....B
+  .......
+  .....^.
+  A....H.
+  AA.uk..

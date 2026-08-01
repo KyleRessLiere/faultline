@@ -79,7 +79,9 @@ namespace Faultline.Core
                 sim.Clings,
                 target.Hp - selfDamage <= 0,
                 consumesStagger,
-                footingMatters);
+                footingMatters,
+                sim.StructureHits.Count > 0 ? sim.StructureHits[0].At : (Coord?)null,
+                sim.StructureHits.Count > 0 ? sim.StructureHits[0].Amount : 0);
         }
 
         /// <summary>Applies a displacement and emits everything it caused.</summary>
@@ -152,6 +154,11 @@ namespace Faultline.Core
                     });
                     events.Add(new Clinging(targetId, sim.Destination));
                     break;
+            }
+
+            foreach (var hit in sim.StructureHits)
+            {
+                state = Objectives.Damage(state, hit.At, hit.Amount, DamageSource.Collision, events);
             }
 
             foreach (var hit in sim.Hits)
@@ -263,12 +270,14 @@ namespace Faultline.Core
                 consumesStagger = true;
             }
 
-            // The Anchor shrugs off one tile of every Push. That single rule satisfies all three
-            // clauses in Brief §4 — ignores Push 1, is moved by Push 2, and a Staggered Push 1
-            // becomes effective 2 and therefore moves exactly 1 (DECISIONS.md D-018).
-            if (kind == DisplacementKind.Push && target.Kind == UnitKind.Anchor)
+            // Push resistance is a number on the stat block, not an archetype check. The Anchor's 1
+            // satisfies all three clauses in Brief §4 — ignores Push 1, is moved by Push 2, and a
+            // Staggered Push 1 becomes effective 2 and therefore moves exactly 1 (DECISIONS.md
+            // D-018). A Colossus is the same rule with a 2 in the same slot.
+            int resistance = target.Template.PushResistance;
+            if (kind == DisplacementKind.Push && resistance > 0)
             {
-                distance -= 1;
+                distance -= resistance;
                 if (distance <= 0)
                 {
                     return 0;
@@ -289,8 +298,9 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// True when a living allied Wardbearer stands next to this unit. Brief §2: allies adjacent to
-        /// a Wardbearer cannot be displaced more than 1 tile.
+        /// True when a living ally carrying a hold aura stands next to this unit. Brief §2: allies
+        /// adjacent to a Wardbearer cannot be displaced more than 1 tile — and the aura is a flag on
+        /// the stat block, so the enemy Bulwark is the same rule rather than a second one.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="target">Unit to test.</param>
@@ -299,7 +309,8 @@ namespace Faultline.Core
         {
             foreach (var unit in state.Units)
             {
-                if (unit.Kind != UnitKind.Wardbearer || unit.Id == target.Id)
+                // The aura never protects its own carrier (DECISIONS.md D-019).
+                if (!unit.Template.HoldAura || unit.Id == target.Id)
                 {
                     continue;
                 }
@@ -388,6 +399,18 @@ namespace Faultline.Core
                     break;
                 }
 
+                // An objective structure blocks its tile exactly as a unit does, and takes the same 2
+                // for it. Collision is physics, not a rule about who is attackable: it is the one way
+                // to hurt a Destroy structure, and the reason a Protect structure is dangerous to
+                // fight next to (DECISIONS.md D-033).
+                var structure = state.StructureAt(next);
+                if (structure is not null)
+                {
+                    Collide(sim, target, null);
+                    sim.StructureHits.Add(new StructureHit(next, CollisionDamage));
+                    break;
+                }
+
                 var tile = board.At(next);
 
                 // Brief §2: a unit cannot be pushed up onto HighGround — the ledge acts as a wall.
@@ -468,6 +491,19 @@ namespace Faultline.Core
             return false;
         }
 
+        private readonly struct StructureHit
+        {
+            public StructureHit(Coord at, int amount)
+            {
+                At = at;
+                Amount = amount;
+            }
+
+            public Coord At { get; }
+
+            public int Amount { get; }
+        }
+
         private readonly struct Hit
         {
             public Hit(UnitId unitId, int amount, DamageSource source, bool staggers)
@@ -492,6 +528,8 @@ namespace Faultline.Core
             public List<Coord> Path { get; } = new List<Coord>();
 
             public List<Hit> Hits { get; } = new List<Hit>();
+
+            public List<StructureHit> StructureHits { get; } = new List<StructureHit>();
 
             public Coord Destination { get; set; }
 

@@ -44,8 +44,36 @@ public static class EventText
         FootingSpent e => $"{Name(state, e.UnitId)} digs in ({e.Remaining} Footing left).",
         FightWon e => $"★ Fight {e.FightNumber} won.",
         FightLost e => $"✖ Fight {e.FightNumber} lost — {e.Reason}",
+        ObjectiveDeclared e => $"◈ Objective: {ObjectiveLine(e)}",
+        StructureAttacked e => $"{Name(state, e.AttackerId)} strikes the structure at {e.At} for {e.Damage}.",
+        StructureDamaged e => $"Structure at {e.At} → {e.RemainingHp} HP ({e.Source}).",
+        StructureDestroyed e => $"✖ The structure at {e.At} comes down.",
+        ReinforcementScheduled e => $"⏱ {UnitTemplate.For(e.Kind).Name} due round {e.Round} at {e.At}.",
+        ReinforcementArrived e => e.At == e.Scheduled
+            ? $"⇥ {UnitTemplate.For(e.Kind).Name} arrives at {e.At}."
+            : $"⇥ {UnitTemplate.For(e.Kind).Name} arrives at {e.At} (pushed off {e.Scheduled}).",
+        ReinforcementDelayed e => $"⏸ {UnitTemplate.For(e.Kind).Name} cannot land on {e.At} — it waits.",
         _ => evt.GetType().Name,
     };
+
+    /// <summary>One line describing what this fight asks for.</summary>
+    /// <param name="e">The declaration event.</param>
+    /// <returns>A one-line description.</returns>
+    public static string ObjectiveLine(ObjectiveDeclared e)
+    {
+        string tiles = e.Tiles.Count == 0 ? string.Empty : " " + string.Join(" ", e.Tiles);
+        string limit = e.TurnLimit > 0 ? $" (turn limit {e.TurnLimit})" : string.Empty;
+
+        return e.Kind switch
+        {
+            ObjectiveKind.Survive => $"survive to the end of round {e.Rounds}{limit}",
+            ObjectiveKind.Hold => $"hold{tiles} until the end of round {e.Rounds}{limit}",
+            ObjectiveKind.Reach => $"get a unit onto{tiles}{limit}",
+            ObjectiveKind.Protect => $"keep the {e.Hp} HP structure at{tiles} standing{limit}",
+            ObjectiveKind.Destroy => $"bring down the {e.Hp} HP structure at{tiles} — collisions only{limit}",
+            _ => $"defeat every enemy{limit}",
+        };
+    }
 
     /// <summary>Renders a declared enemy plan as a telegraph line.</summary>
     /// <param name="state">State to resolve unit names against.</param>
@@ -101,6 +129,16 @@ public static class EventText
         UnitKind.Anchor => "an",
         UnitKind.Grappler => "gr",
         UnitKind.Stalker => "st",
+        UnitKind.Warden => "wd",
+        UnitKind.Perch => "pe",
+        UnitKind.Bulwark => "bw",
+        UnitKind.Harrier => "ha",
+        UnitKind.Runt => "ru",
+        UnitKind.Colossus => "CO",
+        UnitKind.LesserGrappler => "g-",
+        UnitKind.BluntedStalker => "s-",
+        UnitKind.HeavyHusk => "h+",
+        UnitKind.MobileAnchor => "a+",
         _ => "??",
     };
 

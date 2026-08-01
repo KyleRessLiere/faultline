@@ -267,20 +267,31 @@ namespace Faultline.Core
                 }
             }
 
-            switch (enemy.Kind)
+            // Dispatch on the plan named by the stat block, not on the archetype: a Heavy Husk and a
+            // Husk are the same priority list with different numbers, so there is only ever one copy
+            // of each list (docs/ENEMY_ROSTER.md).
+            switch (enemy.Template.Plan)
             {
-                case UnitKind.Husk:
-                case UnitKind.Anchor:
+                case EnemyPlan.Melee:
                     return PlanMelee(state, enemy, choices);
 
-                case UnitKind.Lobber:
+                case EnemyPlan.Lobber:
                     return PlanLobber(state, enemy, all, choices);
 
-                case UnitKind.Grappler:
+                case EnemyPlan.Grappler:
                     return PlanGrappler(state, enemy, choices);
 
-                case UnitKind.Stalker:
+                case EnemyPlan.Stalker:
                     return PlanStalker(state, enemy, choices);
+
+                case EnemyPlan.Warden:
+                    return PlanWarden(state, enemy, choices);
+
+                case EnemyPlan.Perch:
+                    return PlanPerch(state, enemy, all, choices);
+
+                case EnemyPlan.Harrier:
+                    return PlanHarrier(state, enemy, choices);
 
                 default:
                     return Hold(enemy);
@@ -320,22 +331,7 @@ namespace Faultline.Core
 
             if (FirstAdjacent(enemy.Position, all) is not null)
             {
-                var away = BestTile(state, enemy, coord => -Spread(coord, all));
-                var moveTo = away == enemy.Position ? (Coord?)null : away;
-
-                if (FirstAdjacent(away, all) is null)
-                {
-                    var opening = NearestWithin(away, choices, range);
-                    if (opening is not null)
-                    {
-                        return Strike(state, enemy, opening, moveTo);
-                    }
-                }
-
-                var fled = FirstAdjacent(enemy.Position, choices) ?? Nearest(enemy.Position, choices);
-                return new EnemyIntent(
-                    enemy.Id, enemy.Kind, enemy.Position, IntentAction.Retreat,
-                    fled?.Id, fled?.Position, moveTo, null, null, 0, null, 0);
+                return BreakContact(state, enemy, all, choices, range);
             }
 
             var shot = NearestWithin(enemy.Position, choices, range);
@@ -365,6 +361,162 @@ namespace Faultline.Core
             }
 
             return Advance(enemy, target, step);
+        }
+
+        // The retreat clause the ranged archetypes share: get out of contact, and shoot after moving
+        // if the retreat actually broke it. Factored out so the Perch runs the identical rule.
+        private static EnemyIntent BreakContact(
+            GameState state, Unit enemy, List<Unit> all, List<Unit> choices, int range)
+        {
+            var away = BestTile(state, enemy, coord => -Spread(coord, all));
+            var moveTo = away == enemy.Position ? (Coord?)null : away;
+
+            if (FirstAdjacent(away, all) is null)
+            {
+                var opening = NearestWithin(away, choices, range);
+                if (opening is not null)
+                {
+                    return Strike(state, enemy, opening, moveTo);
+                }
+            }
+
+            var fled = FirstAdjacent(enemy.Position, choices) ?? Nearest(enemy.Position, choices);
+            return new EnemyIntent(
+                enemy.Id, enemy.Kind, enemy.Position, IntentAction.Retreat,
+                fled?.Id, fled?.Position, moveTo, null, null, 0, null, 0);
+        }
+
+        // docs/ENEMY_ROSTER.md, Warden: "1. Attack anything adjacent. 2. Otherwise nothing — Move 0."
+        // There is deliberately no closing branch: a Warden is a door, and a door does not chase.
+        private static EnemyIntent PlanWarden(GameState state, Unit enemy, List<Unit> choices)
+        {
+            var adjacent = FirstAdjacent(enemy.Position, choices);
+            return adjacent is not null ? Strike(state, enemy, adjacent, null) : Hold(enemy);
+        }
+
+        // docs/ENEMY_ROSTER.md, Perch: "1. Shoot from where it stands. 2. Adjacent → break contact.
+        // 3. Else climb to the nearest HighGround it can reach. 4. On a ledge, hold it; off one,
+        // advance to the Lobber's band." Strike already adds the +1 for a shot fired from HighGround,
+        // so the elevation bonus needs no special case here.
+        private static EnemyIntent PlanPerch(GameState state, Unit enemy, List<Unit> all, List<Unit> choices)
+        {
+            int range = enemy.Template.Range;
+
+            if (FirstAdjacent(enemy.Position, all) is not null)
+            {
+                return BreakContact(state, enemy, all, choices, range);
+            }
+
+            var shot = NearestWithin(enemy.Position, choices, range);
+            if (shot is not null)
+            {
+                return Strike(state, enemy, shot, null);
+            }
+
+            // A Perch that has taken a ledge never comes down of its own accord — holding it is the
+            // whole archetype. Coming off it is something the players have to do to it.
+            if (state.Board.At(enemy.Position) == TileType.HighGround)
+            {
+                return Hold(enemy);
+            }
+
+            var ledges = TilesOfType(state, TileType.HighGround);
+            if (ledges.Count > 0)
+            {
+                var field = PathField.ToAnyOf(state, enemy, ledges);
+                var climb = BestTile(state, enemy, coord => new Score(field.At(coord), 0));
+
+                if (climb != enemy.Position)
+                {
+                    if (FirstAdjacent(climb, all) is null)
+                    {
+                        var arrived = NearestWithin(climb, choices, range);
+                        if (arrived is not null)
+                        {
+                            return Strike(state, enemy, arrived, climb);
+                        }
+                    }
+
+                    var pick = Nearest(enemy.Position, choices);
+                    return pick is null ? Hold(enemy) : Advance(enemy, pick, climb);
+                }
+            }
+
+            return PlanLobber(state, enemy, all, choices);
+        }
+
+        // docs/ENEMY_ROSTER.md, Harrier: the Stalker's flank-and-shove loop with separation in place
+        // of hazards. It scores a shove by how much further from its nearest ally the target lands, so
+        // it pulls a party apart instead of executing anyone. A shove that does not move the target —
+        // a wall, a body, an unclimbable ledge — is worth nothing to it and never chosen, which is
+        // what keeps it off the board edge the Stalker lives on.
+        private static EnemyIntent PlanHarrier(GameState state, Unit enemy, List<Unit> choices)
+        {
+            var reachable = Movement.Reachable(state, enemy);
+            int distance = enemy.Template.BasicPush;
+
+            Unit? best = null;
+            Coord? bestMove = null;
+            int bestGain = 0;
+
+            foreach (var target in choices)
+            {
+                int before = AllyDistance(state, target, target.Position);
+
+                foreach (var direction in Directions.All)
+                {
+                    var flank = target.Position.Step(direction.Opposite());
+                    Coord? moveTo;
+                    if (flank == enemy.Position)
+                    {
+                        moveTo = null;
+                    }
+                    else if (reachable.ContainsKey(flank))
+                    {
+                        moveTo = flank;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    var from = moveTo ?? enemy.Position;
+                    var view = moveTo.HasValue
+                        ? state.WithUnit(enemy with { Position = moveTo.Value })
+                        : state;
+                    var preview = Displacement.PreviewAuto(
+                        view, target.Id, from, DisplacementKind.Push, distance);
+
+                    if (preview.Destination == target.Position)
+                    {
+                        continue;
+                    }
+
+                    // A target with nobody left to be separated from still gets shoved: any tile it
+                    // did not choose is disruption, which is the whole point of the archetype.
+                    int gain = before < 0 ? 1 : AllyDistance(state, target, preview.Destination) - before;
+                    if (gain > bestGain)
+                    {
+                        bestGain = gain;
+                        best = target;
+                        bestMove = moveTo;
+                    }
+                }
+            }
+
+            if (best is not null)
+            {
+                return Displace(state, enemy, best, bestMove, DisplacementKind.Push, distance);
+            }
+
+            var nearest = Nearest(enemy.Position, choices);
+            if (nearest is null)
+            {
+                return Hold(enemy);
+            }
+
+            var closing = ClosingTile(state, enemy, nearest.Position);
+            return Advance(enemy, nearest, closing == enemy.Position ? (Coord?)null : closing);
         }
 
         // Brief §2, Grappler: "1. Player unit within range 3 → Pull 2 toward self, preferring
@@ -402,9 +554,20 @@ namespace Faultline.Core
         {
             var reachable = Movement.Reachable(state, enemy);
 
+            // How far down the ladder this shover is willing to go is a number on the stat block: the
+            // Stalker takes all three tiers, a Blunted Stalker stops at spikes and never trades on the
+            // board edge that is always available (docs/ENEMY_ROSTER.md).
+            int maxRank = enemy.Template.HazardRanks - 1;
+            if (maxRank > HazardRankEdge)
+            {
+                maxRank = HazardRankEdge;
+            }
+
+            bool edgeCounts = maxRank >= HazardRankEdge;
+
             // Hazards are ranked pit, then spikes, then a solid edge — a pit ends the fight for the
             // unit it swallows, so it outranks 3 damage, which outranks 2 (D-024).
-            for (int rank = 0; rank <= HazardRankEdge; rank++)
+            for (int rank = 0; rank <= maxRank; rank++)
             {
                 foreach (var target in choices)
                 {
@@ -441,7 +604,7 @@ namespace Faultline.Core
             int best = int.MaxValue;
             foreach (var candidate in choices)
             {
-                if (HazardDistance(state, candidate.Position) > 2)
+                if (HazardDistance(state, candidate.Position, edgeCounts) > 2)
                 {
                     continue;
                 }
@@ -672,26 +835,68 @@ namespace Faultline.Core
             return terrain == TileType.Spikes ? HazardRankSpikes : int.MaxValue;
         }
 
-        private static int HazardDistance(GameState state, Coord from)
+        private static int HazardDistance(GameState state, Coord from, bool edgeCounts)
         {
             var board = state.Board;
+            int best = int.MaxValue;
 
-            // Off-board is one step past the outermost tile in each direction.
-            int best = from.X + 1;
-            best = Math.Min(best, from.Y + 1);
-            best = Math.Min(best, board.Width - from.X);
-            best = Math.Min(best, board.Height - from.Y);
+            if (edgeCounts)
+            {
+                // Off-board is one step past the outermost tile in each direction.
+                best = from.X + 1;
+                best = Math.Min(best, from.Y + 1);
+                best = Math.Min(best, board.Width - from.X);
+                best = Math.Min(best, board.Height - from.Y);
+            }
 
             foreach (var coord in board.AllCoords())
             {
                 var terrain = board.At(coord);
-                if (terrain != TileType.Pit && terrain != TileType.Spikes && terrain != TileType.Wall)
+                if (terrain != TileType.Pit && terrain != TileType.Spikes
+                    && (terrain != TileType.Wall || !edgeCounts))
                 {
                     continue;
                 }
 
                 int distance = from.DistanceTo(coord);
                 if (distance < best)
+                {
+                    best = distance;
+                }
+            }
+
+            return best;
+        }
+
+        private static List<Coord> TilesOfType(GameState state, TileType terrain)
+        {
+            var tiles = new List<Coord>();
+            foreach (var coord in state.Board.AllCoords())
+            {
+                if (state.Board.At(coord) == terrain)
+                {
+                    tiles.Add(coord);
+                }
+            }
+
+            return tiles;
+        }
+
+        // How isolated a unit would be standing on a tile: the distance to the nearest other unit on
+        // its own side, or -1 when it has none left to be separated from.
+        private static int AllyDistance(GameState state, Unit unit, Coord at)
+        {
+            int best = -1;
+
+            foreach (var other in state.Units)
+            {
+                if (other.Id == unit.Id || other.Team != unit.Team || !other.IsOnBoard || other.Clinging)
+                {
+                    continue;
+                }
+
+                int distance = at.DistanceTo(other.Position);
+                if (best < 0 || distance < best)
                 {
                     best = distance;
                 }

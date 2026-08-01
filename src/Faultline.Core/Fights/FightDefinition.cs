@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Faultline.Core
 {
     /// <summary>
-    /// Authored data for one fight in the run: terrain, where each side starts, and who the enemy is.
-    /// Objectives (Protect / Destroy / Boss) arrive with M6; fight 1 is a plain Kill All.
+    /// Authored data for one fight in the run: terrain, where each side starts, who the enemy is,
+    /// what winning means, and when the rest of the enemy shows up.
     /// </summary>
     public sealed record FightDefinition
     {
@@ -40,6 +40,22 @@ namespace Faultline.Core
 
         /// <summary>The 2x3 zone the collapse clock never cracks (M4).</summary>
         public IReadOnlyList<Coord> ProtectedZone { get; init; } = new Coord[0];
+
+        /// <summary>
+        /// What winning means. Defaults to <see cref="Objective.KillAll"/>, so a file with no
+        /// <c>objective:</c> key plays exactly as it did before objectives existed.
+        /// </summary>
+        public Objective Objective { get; init; } = Objective.KillAll;
+
+        /// <summary>
+        /// Round cap from the <c>turn-limit:</c> key; zero means the fight runs until someone wins.
+        /// Reaching it is a loss unless the objective wins on expiry — which is the whole point of
+        /// <see cref="ObjectiveKind.Survive"/>.
+        /// </summary>
+        public int TurnLimit { get; init; }
+
+        /// <summary>Enemies that arrive mid-fight, sorted by round then by the order the file wrote them.</summary>
+        public IReadOnlyList<ReinforcementWave> Waves { get; init; } = new ReinforcementWave[0];
 
         /// <summary>
         /// Footing tokens this scenario hands out, in the order the <c>footing:</c> key wrote them.
@@ -90,6 +106,22 @@ namespace Faultline.Core
             }
 
             return byKind ?? bySide ?? 0;
+        }
+
+        /// <summary>
+        /// The last round this fight can reach: whichever of the objective's own deadline and the
+        /// turn limit comes first, or zero when neither is set and the fight runs until someone wins.
+        /// </summary>
+        /// <returns>The final round, or zero for no clock.</returns>
+        public int LastRound()
+        {
+            int deadline = Objective.Deadline;
+            if (deadline <= 0)
+            {
+                return TurnLimit;
+            }
+
+            return TurnLimit > 0 && TurnLimit < deadline ? TurnLimit : deadline;
         }
 
         /// <summary>The roster belonging to a player team.</summary>

@@ -1,0 +1,31 @@
+# Variant proof battle 1 of 6 — the Warden (docs/ENEMY_ROSTER.md).
+# The question: what do you do about a thing that will not move?
+#
+# Player A is bottled behind a wall with exactly one way out, and a Warden is standing in it.
+# Move 0 means the planner never even looks for a tile to walk to: its intent is Hold in round 1,
+# Hold in round 2, and Hold in round 6. Every other enemy on this board closes; this one does not.
+# Two counterplays are live on row 3 and both use the stat block honestly:
+#   - Bull Rush is Push 2, and push resistance 1 turns that into exactly 1 tile. The door opens.
+#   - Reel is a Pull, and push resistance never reads a Pull. Player B can drag it clear from the far side.
+# Paying the toll is the third option: 6 HP and 2 damage a round to whoever stands next to it.
+
+id: nv-01-the-toll
+number: 701
+name: The Toll
+description: A Warden plugs the only gap in the wall. It never moves, so the door stays shut until you push it, pull it, or pay for it.
+
+spawn w = Warden
+spawn l = Lobber
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  .#.l..B
+  .#..H.B
+  .#...HB
+  .w.....
+  A#.....
+  A#...^.
+  A#.h.^.
