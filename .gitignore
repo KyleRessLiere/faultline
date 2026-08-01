@@ -23,8 +23,11 @@ publish/
 .idea/
 *.sln.iml
 
-# VS Code
-.vscode/
+# VS Code — personal settings stay out, the project's tasks are committed like .claude/hooks.
+# The directory itself is not excluded: git cannot re-include a file inside an excluded directory,
+# so the contents are ignored instead and tasks.json is named back in.
+.vscode/*
+!.vscode/tasks.json
 
 # Test results
 [Tt]est[Rr]esult*/

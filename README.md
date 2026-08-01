@@ -54,6 +54,7 @@ Serves on http://localhost:5199. The screens:
 | Route | Screen |
 |---|---|
 | `/` | Battle select — every fight with its board, enemies and lints, plus anything you saved in the creator |
+| `/campaign` | The run — twelve nodes, the squad's carried HP, and the two rests. Start a run here; its fights open on `/play` |
 | `/play` | The board, for whichever battle is loaded |
 | `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
 | `/bestiary` | Every unit: stat blocks, each enemy's priority list, its quirks and its counterplay |
@@ -87,6 +88,43 @@ dotnet run --project src/Faultline.Web     # serve
 dotnet test                                # tests
 dotnet build                               # build everything
 ```
+
+### Running it from VS Code
+
+`.vscode/tasks.json` is committed — like `.claude/hooks`, these are the project's tasks rather than
+one machine's. Everything runs in the integrated terminal, so the build output and the server's own
+hosting logs land where you can read them, and build errors are clickable.
+
+`Ctrl-Shift-P → Tasks: Run Task`:
+
+| Task | Does |
+|---|---|
+| **Faultline: run** | `play.ps1` — finds a free port, serves, opens a browser. Ctrl-C in the terminal stops it |
+| **Faultline: run with hot reload** | `dotnet watch` on 5199 — `.razor` edits reload without a restart |
+| **Faultline: build** | `dotnet build`. Already on **Ctrl-Shift-B** as the default build task |
+| **Faultline: test** | `dotnet test`, the whole suite |
+| **Faultline: test Core only** | just `Faultline.Core.Tests`, the fast one |
+| **Faultline: stop servers** | sweeps ports 5199–5210 — the fix for a stale server |
+
+**To bind a key to it**, VS Code keeps keybindings per user rather than per workspace, so this goes in
+your own `keybindings.json` (`Ctrl-Shift-P → Preferences: Open Keyboard Shortcuts (JSON)`):
+
+```json
+[
+  {
+    "key": "ctrl+f5",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Faultline: run"
+  },
+  {
+    "key": "ctrl+shift+f5",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Faultline: stop servers"
+  }
+]
+```
+
+The `args` string must match the task's `label` exactly.
 
 ## How to play
 

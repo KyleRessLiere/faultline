@@ -1,0 +1,120 @@
+{
+    // Committed on purpose, like .claude/hooks — these are the project's tasks, not one machine's.
+    // Everything runs in the integrated terminal, so build output and the server's own logs land
+    // where you can read and click them. See README.md "Running it from VS Code" for keybindings.
+    "version": "2.0.0",
+
+    // Windows PowerShell, named rather than inherited: the default integrated shell varies per
+    // machine, and these all call .ps1 scripts.
+    "windows": {
+        "options": {
+            "shell": {
+                "executable": "powershell.exe",
+                "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"]
+            }
+        }
+    },
+
+    "tasks": [
+        {
+            // The one to bind a key to. play.ps1 finds its own free port, so running this while an
+            // old server is still up gives you a second working server rather than an error.
+            // Ctrl-C in its terminal stops it.
+            "label": "Faultline: run",
+            "detail": "Start the app on the first free port and open a browser at it",
+            "type": "shell",
+            "command": "./play.ps1",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "revealProblems": "onProblem",
+                "panel": "dedicated",
+                "group": "faultline",
+                "clear": true,
+                "focus": false,
+                "showReuseMessage": false
+            }
+        },
+        {
+            "label": "Faultline: run with hot reload",
+            "detail": "dotnet watch on port 5199 — edits to .razor reload without a restart",
+            "type": "shell",
+            "command": "./run.ps1 -Watch -Open",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "faultline",
+                "clear": true,
+                "focus": false,
+                "showReuseMessage": false
+            }
+        },
+        {
+            // Ctrl-Shift-B.
+            "label": "Faultline: build",
+            "detail": "dotnet build — warnings are errors in Core",
+            "type": "shell",
+            "command": "dotnet build",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "faultline",
+                "clear": true,
+                "focus": false,
+                "showReuseMessage": false
+            }
+        },
+        {
+            "label": "Faultline: test",
+            "detail": "dotnet test — the whole suite, Core and Web",
+            "type": "shell",
+            "command": "dotnet test",
+            "group": { "kind": "test", "isDefault": true },
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "faultline",
+                "clear": true,
+                "focus": false,
+                "showReuseMessage": false
+            }
+        },
+        {
+            "label": "Faultline: test Core only",
+            "detail": "dotnet test on Faultline.Core.Tests — the fast one",
+            "type": "shell",
+            "command": "dotnet test tests/Faultline.Core.Tests",
+            "group": "test",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "faultline",
+                "clear": true,
+                "focus": false,
+                "showReuseMessage": false
+            }
+        },
+        {
+            // The fix for README's "unhandled error on a page that worked a minute ago": an orphaned
+            // server still serving its own old build. Sweeps the range play.ps1 walks.
+            "label": "Faultline: stop servers",
+            "detail": "Stop anything left listening on ports 5199-5210",
+            "type": "shell",
+            "command": "5199..5210 | ForEach-Object { ./run.ps1 -Stop -Port $_ }",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "faultline",
+                "clear": true,
+                "focus": false,
+                "showReuseMessage": false
+            }
+        }
+    ]
+}
