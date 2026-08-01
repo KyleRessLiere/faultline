@@ -30,7 +30,7 @@ without creating a single new *situation*. What makes a scenario interesting is 
 and the question comes from what the board demands, not from what you brought. Ranked by how many
 genuinely distinct scenarios each unlocks per unit of work:
 
-### 1. Enemy AI *(in progress)* — the prerequisite
+### 1. Enemy AI *(done)* — the prerequisite
 Nothing below matters while enemies pass their turn. A scenario cannot pose a problem if the
 opposition does not act. Every one of the 50 depends on this.
 
@@ -92,7 +92,6 @@ authorable; the rest unlock as items 3–8 land.
 | Objectives and win/lose conditions | **done** | Six kinds, structures with HP, `turn-limit:` (D-034–D-038). This was ranked the highest-leverage item and it shipped. |
 | Reinforcement waves | **done** | Published timetable, arrivals before intents, blocked arrivals slide or wait. |
 | Teams larger than two | **done** | Needed no engine change — rosters of 1–4 already worked; only the deploy-zone size constrains it. |
-| Teams larger than two | not started | The `.fight` format already parses N-unit rosters; the deployment loop and zone-size checks need to stop assuming 2. |
 | New player classes | not started | Brief §5 forbids these. Each needs a stat block, an ability, and its own acceptance tests. |
 | New class abilities | not started | Includes the shapes idea (Melee/Direct/Arcing/Line2) and Spear Thrust from the design doc — both reverse D-010 and need their own rulings. |
 | Environment effects | not started | Anything beyond the five terrain types is new. Needs a rule for how it interacts with displacement, since displacement is the game. |
