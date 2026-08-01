@@ -3,8 +3,11 @@
 A 2-player hotseat co-op turn-based tactics game where displacement is the primary mechanic and the
 board is the primary weapon.
 
-See [AGENT_BRIEF.md](AGENT_BRIEF.md) for the game design and [CLAUDE.md](CLAUDE.md) for engineering
-practices. Rulings on ambiguous rules live in [DECISIONS.md](DECISIONS.md).
+- [AGENT_BRIEF.md](AGENT_BRIEF.md) — what the game is meant to be. The spec.
+- [GAMEPLAY.md](GAMEPLAY.md) — **what the game is today**, with real numbers. Start here to understand
+  how it actually plays.
+- [DECISIONS.md](DECISIONS.md) — why those two differ, wherever they do.
+- [CLAUDE.md](CLAUDE.md) — engineering practices.
 
 ## Status
 

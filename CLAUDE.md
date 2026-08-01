@@ -14,8 +14,26 @@ Read AGENT_BRIEF.md first. That file defines WHAT to build; this file defines HO
 2. Write or update the failing test first for any rule change. Rules without tests don't exist.
 3. Implement the smallest change that passes.
 4. Run: `dotnet build && dotnet test` — all green before any commit. Never commit red.
-5. Update DECISIONS.md if you resolved an ambiguity; update CHANGELOG.md with one line.
+5. **Update GAMEPLAY.md in the same change as any rule that alters observable behaviour.** Exact
+   numbers, not a summary. Update DECISIONS.md if you resolved an ambiguity; update CHANGELOG.md with one line.
 6. Commit.
+
+## The design docs
+
+Four files, four jobs. Keeping them distinct is what lets design and code disagree *visibly* instead
+of silently.
+
+- **AGENT_BRIEF.md** — what the game is meant to be. The spec. It wins over everything, and is
+  **never edited to match the code**. If the code needs it changed, that is a conversation, not a commit.
+- **GAMEPLAY.md** — what the game *is*, today: the as-built rules with real numbers. This is what a
+  design agent reads instead of the C#. It must never describe behaviour the code does not have.
+- **DECISIONS.md** — why the two differ, wherever they do.
+- **CHANGELOG.md** — when things landed.
+
+A Stop hook (`.claude/hooks/check-gameplay-doc.sh`) blocks the turn when anything under
+`src/Faultline.Core/{Rules,Displacement,Abilities,Fights,Units,Board}` changes without GAMEPLAY.md
+changing too. If a change genuinely alters no observable rule — a refactor, a comment — say so
+explicitly and re-run; don't edit the doc just to appease the check, and don't disable the hook.
 
 ## Commits
 
@@ -70,7 +88,8 @@ Read AGENT_BRIEF.md first. That file defines WHAT to build; this file defines HO
 /src/Faultline.Core
 /src/Faultline.Web
 /tests/Faultline.Core.Tests
-AGENT_BRIEF.md   CLAUDE.md   DECISIONS.md   CHANGELOG.md   IDEAS.md   README.md
+/.claude/hooks             repo-local steering; committed so it applies to everyone
+AGENT_BRIEF.md   CLAUDE.md   GAMEPLAY.md   DECISIONS.md   CHANGELOG.md   IDEAS.md   README.md
 ```
 - CI (GitHub Actions): build + test on push. Add the purity grep as a CI step.
 - No binaries, no generated files committed. .gitignore for VS/Rider/obj/bin from the first commit.
