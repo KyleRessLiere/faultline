@@ -303,6 +303,7 @@ argue. Codes 0–99 are errors; 100 and up are lints.
 | `SpawnsNotOnOppositeEdges` | "Enemies spawn on two opposite edges." | No spawn sits on the north edge with another on the south, nor west with east. Spawns off the edges entirely count for neither. |
 | `NoHighGround` | — | No HighGround anywhere, so the elevation rules never come up in this fight. |
 | `FootingGrantUnused` | — | A `footing:` grant that covers nobody in this fight, such as `Stalker=1` when there is no Stalker. It parses and plays; the grant simply does nothing. |
+| `FootingGrantOnPlayers` | — | A `footing:` grant that reaches a player unit. Player Footing has no spend trigger (D-026), so the token lands and is never used — grant to `enemy` or to an enemy archetype instead. Not raised for a unit whose Footing *negates*, which is never spent and so works on any side. |
 
 Every lint is reported against the `board:` line, not the offending row — they are judgements about
 the layout as a whole.

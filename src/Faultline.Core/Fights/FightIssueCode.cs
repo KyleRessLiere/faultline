@@ -120,5 +120,13 @@ namespace Faultline.Core
 
         /// <summary>A <c>wave</c> arrives after the fight's last round, so it never reaches the board.</summary>
         WaveAfterLastRound = 110,
+
+        /// <summary>
+        /// A <c>footing:</c> grant reaches a player unit that cannot spend it. Player Footing has no
+        /// trigger — the spend is a mid-enemy-turn prompt nobody has built (DECISIONS.md D-026) — so
+        /// the token lands and is never used. Not raised for a unit whose Footing negates, which
+        /// needs no spend at all.
+        /// </summary>
+        FootingGrantOnPlayers = 111,
     }
 }

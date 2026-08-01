@@ -267,7 +267,9 @@
 
         if (Contains(Run.Skipped, id))
         {
-            return new SlotView("missing", "skipped — not yet authored");
+            // Still marked skipped even after the file lands: the run passed it, and rewriting
+            // history when a fight appears would quietly change what this run played.
+            return new SlotView("missing", "skipped — no file when you passed it");
         }
 
         if (fight is null)

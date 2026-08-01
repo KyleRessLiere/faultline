@@ -105,9 +105,26 @@ dotnet build                               # build everything
 5. **Terrain.** Walls block. Pits cannot be walked into voluntarily. Spikes cost 1 to step on. High
    ground costs an extra movement point to climb (free for the Archer), gives ranged attacks +1, and
    cannot be shoved up onto — the ledge counts as a wall.
-6. Kill every enemy to win the fight.
+6. **Win the fight the way that board asks.** Most are Kill All, but a board can also ask you to
+   survive a clock, hold tiles at a deadline, reach a line, protect a structure or break one. The
+   objective is announced at setup and the enemy's plan for the round is on the table before you act.
 
-Enemies do not act yet — their priority-list AI arrives in M3.
+Enemies act from a published priority list, and every enemy declares its intent at the top of the
+round — the fight is about reading those intents and moving the board out from under them.
+
+### Two ways in
+
+**`/campaign` — the run.** The ten campaign fights in order. A win advances, a loss ends the run. A
+unit **voided** — lost down a pit — is gone for the rest of the run and does not appear in later
+fights; a unit merely **downed** comes back next fight at full health. A campaign fight whose
+`.fight` file has not been authored yet is skipped and marked on the screen, and joins the spine on
+its own when the file lands. The run lives in this browser's storage — seed, how far you got, which
+classes are gone — and survives a reload; the half-played board does not, so a reload restarts the
+current fight from deployment.
+
+**`/battles` — the picker.** Every active board, grouped Campaign / Trials / Co-op gauntlet / Other,
+with retired boards and their reasons collapsed at the bottom. Anything here plays as a one-off:
+no run, nothing carried in or out.
 
 ## Adding a battle
 

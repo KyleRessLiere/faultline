@@ -358,3 +358,51 @@ and this list has none. It walks past a clinging player exactly as it walks past
 no standing Protect structure it holds and re-runs the list every activation rather than latching.
 D-036's rule is untouched: the claw is still the siege rule, and what the Raider adds is that it
 chose to be standing there.
+
+**D-046 — A Destroy structure seals its own tile, so `break-the-gate`'s wave comes round the flank.**
+`docs/CURATED_SET.md` §6 lands the Husk wave at the north edge, behind `###D###`, and calls those
+Husks the ammunition you slam into the gate. They cannot be: a structure blocks the tile it stands
+on, so a wall band with the gate in the middle is solid, and everything north of it is sealed away
+for the whole fight. Driven as authored, every enemy freezes against the band from round 3 and the
+fight is an unwinnable stalemate — the exact dead-round failure the curated set exists to remove.
+The wave now arrives at `0,3` and `6,3`, on the players' side, where it can be shoved into the
+Warden and the Warden into the gate. The Lobbers stay north and rain over the wall, which they can
+do because nothing in the game checks line of sight. **The fiction is unchanged — the gate is still
+shut and still the only way through — but the fight now has ammunition on the side that needs it.**
+
+**D-047 — A `footing:` grant that reaches a player unit is a lint.**
+D-026 left player Footing without a trigger: the spend is a mid-enemy-turn prompt nobody has built,
+so a granted token lands on a player unit, is never used, and the unit is voided still holding it.
+That is a scenario asking for something the game does not do, which is what lints are for. It is not
+an error — the file parses and the fight plays — and it is not raised for a unit whose Footing
+negates, because a negating token is never handed over and so needs no prompt to work. All four
+grants in the library, retired files included, were already enemy-side; the lint documents a rule the
+battles were following without it.
+
+**D-048 — A campaign fight with no `.fight` file is skipped and marked, never a blocker.**
+The spine is authored as ten ids before ten files exist. A missing one is stepped over, recorded on
+the run, and shown on the campaign screen as a skipped slot naming the file — so a spine of nothing
+but gaps still completes rather than hanging. The check runs on every advance *and* every load, so a
+fight joins the run the moment its file lands, with no migration. A run that already passed a gap
+keeps it marked skipped: rewriting history when a file appears would change what that run played.
+
+**D-049 — The run carries `UnitKind`s, because that is what fight files roster.**
+A campaign fight names classes, not units, and splits them between the two players however that
+board wants. So a voided unit is remembered as its class and consumed one slot at a time across both
+rosters — `hold-the-gate` fielding Vanguard and Wardbearer on side A works, and a class rostered
+twice loses one slot rather than both. A unit merely downed comes back next fight at full health;
+only voided — lost down a pit — is permanent.
+
+**D-050 — A reload restores the run, not the board.**
+Seed, position in the spine, and which classes are gone survive a reload; the half-played fight does
+not, and restarts from deployment. Restoring mid-board means persisting the command log, which is a
+larger promise than the run needed — and the seed plus the log is exactly the save format Core
+already has, so this is deferred rather than designed around.
+
+**D-051 — A side with no units left ends the run, and the shell is the wrong place for that.**
+`Game.Start` with an empty roster opens deployment on that side, offers no legal commands and never
+calls the objective check — no tiles, no commands, no ending. Voiding both of one player's units is
+reachable, so the shell detects it and ends the run rather than handing the player a locked board.
+**Recorded as a Core gap, not a shell feature:** either deployment should skip a side with nothing to
+place, or `Start` should declare the fight unplayable. Until then the shell's check is a patch over
+a hole in the rules.

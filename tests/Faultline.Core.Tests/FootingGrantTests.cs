@@ -192,9 +192,65 @@ public class FootingGrantTests
     [Fact]
     public void Footing_AGrantSomebodyMatches_IsNotLinted()
     {
-        var result = FightParser.Parse(Fight("footing: enemy=1 Archer=1"));
+        var result = FightParser.Parse(Fight("footing: enemy=1 Husk=1"));
 
         Assert.Empty(result.Issues);
+    }
+
+    [Fact]
+    public void Footing_AGrantOnAPlayerSide_IsLintedBecausePlayerUnitsNeverSpendIt()
+    {
+        // D-026: the auto-spend is the enemy's deterministic pit rule, and the player's version is a
+        // mid-enemy-turn prompt nobody has built. So the token lands, sits there, and the unit is
+        // voided still holding it. The grant is not an error — it parses, and the fight plays — but
+        // it does nothing, which is the same thing FootingGrantUnused says about a grant that
+        // matches nobody.
+        var result = FightParser.Parse(Fight("footing: a=1"));
+
+        Assert.True(result.Ok, result.Describe());
+        Assert.Empty(result.Errors);
+        Assert.Contains(result.Lints, l => l.Code == FightIssueCode.FootingGrantOnPlayers);
+    }
+
+    [Fact]
+    public void Footing_AKindGrantThatReachesAPlayerRoster_IsLintedTheSameWay()
+    {
+        var result = FightParser.Parse(Fight("footing: Archer=1"));
+
+        Assert.Contains(result.Lints, l => l.Code == FightIssueCode.FootingGrantOnPlayers);
+    }
+
+    [Fact]
+    public void Footing_AGrantOnAKindThatNegates_IsNotLintedEvenOnAPlayerSide()
+    {
+        // The lint is about the spend never happening, not about the side. A negating token is never
+        // handed over — it cancels the displacement outright and stays — so it needs no prompt and
+        // would work exactly as written on a player unit. No player archetype negates today, so the
+        // roster has to be rigged to show it; the rule is written against the template rather than
+        // the team precisely so it stays true on the day one does.
+        var negating = Fight("footing: QuarryKing=1").Replace(
+            "roster a: Vanguard, Archer",
+            "roster a: Vanguard, QuarryKing");
+
+        var result = FightParser.Parse(negating);
+
+        Assert.Empty(result.Errors);
+        Assert.DoesNotContain(result.Lints, l => l.Code == FightIssueCode.FootingGrantUnused);
+        Assert.DoesNotContain(result.Lints, l => l.Code == FightIssueCode.FootingGrantOnPlayers);
+    }
+
+    [Fact]
+    public void Footing_NoShippedFightGrantsFootingToAPlayerUnit()
+    {
+        // The reason this lint could be added without rewriting a board: all four grants in the
+        // whole library — retired files included, since LoadAll() reads those too — are enemy-side
+        // already. The lint documents a rule the battles were following without it.
+        foreach (var result in FightLibrary.LoadAll())
+        {
+            Assert.DoesNotContain(
+                result.Lints,
+                l => l.Code == FightIssueCode.FootingGrantOnPlayers);
+        }
     }
 
     // --- Round trip ------------------------------------------------------------------------

@@ -1,5 +1,27 @@
 # Changelog
 
+## The curated set, and a campaign to play it in
+
+- **62 battles cut to 35, then three new ones authored: 65 on disk, 38 active.** The 27 retirements
+  are a flag, not a deletion — the file stays embedded, still has to parse, and still plays if you
+  pick it. Un-retiring is deleting one line.
+- **Campaign mode.** The ten curated fights in order: a win advances, a loss ends the run, and a
+  unit voided along the way stays dead for the rest of it. A fight whose file does not exist yet is
+  skipped and marked, and joins the spine on its own when the file lands.
+- **Three new boards** — The Shrine (Protect), Break the Gate (Destroy) and The Quarry King, the
+  campaign finale. The brief has wanted a boss since §3 and now has one.
+- **The Raider**, an enemy whose target is a tile. Its priority list contains no clause about player
+  units at all: it does not retaliate and it does not take the free finish on a clinging player. An
+  enemy that ignores you is what makes Protect a fantasy rather than a health bar.
+- **Negating Footing** — tokens that cancel a displacement outright instead of shortening it, and
+  are stripped by collisions and by the pit rim rather than spent. The Quarry King's three.
+- **Structures are drawn on the board.** `S` and `D` join `A` and `B`, and the mark is checked
+  against the objective's coordinate rather than one being trusted over the other.
+- Fixed: `break-the-gate` as specified was unwinnable. A Destroy structure blocks its own tile, so
+  the wall band was solid and every enemy — the bodies you are told to use as ammunition — was
+  sealed on the wrong side of the door. Caught by a new no-dead-rounds test, not by a playtest.
+- New lint: a `footing:` grant that reaches a player unit, which cannot spend it.
+
 ## Objectives, clocks and reinforcements
 
 - Six win conditions in the `.fight` format — `kill-all`, `survive`, `hold`, `reach`, `protect`,

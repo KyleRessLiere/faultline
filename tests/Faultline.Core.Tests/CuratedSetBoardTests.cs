@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
 
@@ -160,5 +161,208 @@ public class CuratedSetBoardTests
 
         Assert.True(warden.IsAlive);
         Assert.Equal(new Coord(4, 3), warden.Position);
+    }
+
+    // ---- the two new objective boards: eight rounds with nobody standing around --------------------
+
+    [Fact]
+    public void TheShrine_HasNoDeadRoundInEight()
+    {
+        var drive = DriveEightRounds("the-shrine");
+
+        AssertEveryRoundIsAlive("the-shrine", drive);
+    }
+
+    [Fact]
+    public void BreakTheGate_HasNoDeadRoundInEight()
+    {
+        var drive = DriveEightRounds("break-the-gate");
+
+        AssertEveryRoundIsAlive("break-the-gate", drive);
+    }
+
+    [Fact]
+    public void TheShrine_PutsTheStructureUnderRealPressure()
+    {
+        // The Raiders' whole job. If the shrine is untouched after eight rounds, the Protect
+        // objective is scenery and the fight is a Kill All wearing a costume.
+        var drive = DriveEightRounds("the-shrine");
+
+        Assert.Contains(drive.SiegeRounds, round => round <= 3);
+        Assert.True(
+            drive.End.Structures.Single().Hp < drive.End.Structures.Single().MaxHp,
+            "the shrine took no damage in eight rounds.");
+    }
+
+    [Fact]
+    public void BreakTheGate_LandsItsWaveOnThePlayersSideOfTheWall()
+    {
+        // The defect this board shipped with, pinned: a Destroy structure blocks its own tile, so
+        // `###D###` is solid and a wave north of it is sealed away forever. Every arrival must be
+        // south of the wall band, where it can be shoved into the gate (DECISIONS.md D-046).
+        var fight = FightLibrary.ById("break-the-gate");
+
+        Assert.NotEmpty(fight.Waves);
+        foreach (var arrival in fight.Waves.SelectMany(w => w.Arrivals))
+        {
+            Assert.True(
+                arrival.At.Y > 1,
+                arrival.At + " is on the far side of the sealed wall band and can never reach the fight.");
+            Assert.Equal(TileType.Open, fight.Board.At(arrival.At));
+        }
+    }
+
+    [Fact]
+    public void BreakTheGate_TheGateIgnoresAttacksAndOnlyCollisionsOpenIt()
+    {
+        var start = Game.Start(FightLibrary.ById("break-the-gate"), seed: 4242).NewState;
+        var gate = start.Structures.Single();
+
+        Assert.Equal(ObjectiveKind.Destroy, gate.Role);
+        Assert.Equal(8, gate.MaxHp);
+        Assert.False(gate.IsAttackable);
+    }
+
+    [Fact]
+    public void TheShrine_AndBreakTheGate_LintOnlyOnBoardShape()
+    {
+        // Both are objective boards with the structure in the middle, so centre-clear and the
+        // outer-ring rule cannot hold — the guidelines describe a symmetrical skirmish, and these are
+        // not that. Listed per fight rather than as one union, so a lint appearing on the wrong board
+        // is still a failure.
+        var allowed = new Dictionary<string, FightIssueCode[]>
+        {
+            // No high ground: the shrine fight is about lanes and shoves, not elevation.
+            ["the-shrine"] = new[]
+            {
+                FightIssueCode.HazardOffOuterRings,
+                FightIssueCode.CentreNotClear,
+                FightIssueCode.NoHighGround,
+            },
+
+            // A siege has one front: both players deploy south of the wall, and every enemy is north
+            // of it or arrives on the flank. Opposite corners and opposite edges describe the fight
+            // this deliberately is not.
+            ["break-the-gate"] = new[]
+            {
+                FightIssueCode.HazardOffOuterRings,
+                FightIssueCode.CentreNotClear,
+                FightIssueCode.ZonesNotOppositeCorners,
+                FightIssueCode.SpawnsNotOnOppositeEdges,
+            },
+        };
+
+        foreach (var pair in allowed)
+        {
+            var result = FightLibrary.LoadAll().Single(r => r.Fight?.Id == pair.Key);
+
+            Assert.Empty(result.Errors);
+            Assert.DoesNotContain(
+                result.Lints,
+                l => !pair.Value.Contains(l.Code));
+        }
+    }
+
+    /// <summary>
+    /// docs/CURATED_SET.md's bar for a new board, measured the only way a driver can measure it:
+    /// every round up to eight has an enemy doing something. A dead round is the failure mode that
+    /// retired a third of the library, so the two new boards are held to it by a test.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The task words this as "no enemy taking zero actions before round 6", per enemy. That is not
+    /// measurable: a driver playing the players kills enemies before they ever activate, and a Lobber
+    /// whose targets never walk into its range has nothing to do — both would fail a per-enemy bar for
+    /// reasons that live in the driver, not the board. The per-round bar catches what the wording is
+    /// actually after, and it caught break-the-gate.
+    /// </para>
+    /// <para>
+    /// Ending an activation does not count as doing something — it is the thing being tested for.
+    /// A siege does: an enemy adjacent to an attackable structure claws it as its activation ends
+    /// (D-034), which is a <see cref="StructureAttacked"/> and no command at all, and for the Raiders
+    /// it is the most consequential thing they do all fight.
+    /// </para>
+    /// </remarks>
+    private static void AssertEveryRoundIsAlive(string id, Drive drive)
+    {
+        Assert.Contains(1, drive.Rounds);
+
+        foreach (int round in drive.Rounds)
+        {
+            Assert.True(
+                drive.Active.Contains(round),
+                id + ": round " + round + " passed with no enemy moving, attacking or clawing anything.");
+        }
+    }
+
+    /// <summary>What an eight-round drive saw, which is more than its final state.</summary>
+    private sealed record Drive(
+        GameState End,
+        IReadOnlyList<int> Rounds,
+        ISet<int> Active,
+        IReadOnlyList<int> SiegeRounds);
+
+    /// <summary>
+    /// Plays eight rounds with Core planning the enemy and the players taking their first legal
+    /// command, which is the same driver <see cref="TestPlay.PlayWithAi"/> uses — passive players
+    /// never advance, and a board cannot be judged by enemies who were never approached.
+    /// </summary>
+    /// <param name="id">Fight to drive.</param>
+    /// <returns>The drive.</returns>
+    private static Drive DriveEightRounds(string id)
+    {
+        var state = Game.Start(FightLibrary.ById(id), seed: 4242).NewState;
+        int commands = 0;
+
+        while (state.Phase == Phase.Deployment && commands++ < 6000)
+        {
+            state = Game.Apply(state, Game.LegalCommands(state)[0]).NewState;
+        }
+
+        var rounds = new List<int>();
+        var active = new HashSet<int>();
+        var siegeRounds = new List<int>();
+
+        while (state.Phase == Phase.Battle
+               && state.Outcome == FightOutcome.InProgress
+               && state.Round <= 8
+               && commands++ < 6000)
+        {
+            if (rounds.Count == 0 || rounds[rounds.Count - 1] != state.Round)
+            {
+                rounds.Add(state.Round);
+            }
+
+            int round = state.Round;
+            var command = Game.NextEnemyCommand(state);
+            bool byEnemy = command is not null;
+
+            if (command is null)
+            {
+                var legal = Game.LegalCommands(state);
+                if (legal.Count == 0)
+                {
+                    break;
+                }
+
+                command = legal[0];
+            }
+
+            if (byEnemy && command is not EndActivationCommand)
+            {
+                active.Add(round);
+            }
+
+            var step = Game.Apply(state, command);
+            foreach (var _ in step.Events.OfType<StructureAttacked>())
+            {
+                siegeRounds.Add(round);
+                active.Add(round);
+            }
+
+            state = step.NewState;
+        }
+
+        return new Drive(state, rounds, active, siegeRounds);
     }
 }

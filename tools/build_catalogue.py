@@ -121,15 +121,18 @@ def render(fights, verdicts):
     w("Grids are the board exactly as authored: `.` open, `#` wall, `O` pit, `^` spikes, `H` high")
     w("ground, `A`/`B` the two deployment zones, and any other letter an enemy from that battle's")
     w("legend. A unit never starts on a hazard — the tile under a deploy slot or a spawn is Open.\n")
-    w("Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. **RETIRE** and")
-    w("**REWORK** are proposals, not deletions; nothing has been removed. See")
-    w("`docs/RETIRING_BATTLES.md` for why, and for the reason several retirements are on hold.\n")
+    w("Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were")
+    w("proposals; `docs/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a")
+    w("`retired:` key giving its reason — it is out of the picker's active list but still embedded,")
+    w("still parsed and still playable if chosen, because retiring is a flag and not a deletion")
+    w("(`docs/RETIRING_BATTLES.md`).\n")
     w("For the deeper design notes on any battle — the round-2 moment it is built around, the co-op")
     w("conversation it is meant to force — see the batch write-ups in `docs/scenarios/`.\n")
     w("---\n")
 
     total = sum(len(group) for _, _, group in fights)
-    w("**%d battles.**\n" % total)
+    retired = sum(1 for _, _, group in fights for f in group if f.get("retired"))
+    w("**%d battles — %d active, %d retired.**\n" % (total, total - retired, retired))
 
     for title, blurb, group in fights:
         if not group:
@@ -140,7 +143,10 @@ def render(fights, verdicts):
         for f in group:
             fight_id = f.get("id", "?")
             w("\n### %s · %s\n" % (f.get("number", "?"), f.get("name", fight_id)))
-            w("`%s`\n" % fight_id)
+            w("`%s`%s\n" % (fight_id, " — **RETIRED**" if f.get("retired") else ""))
+
+            if f.get("retired"):
+                w("\n> Retired: %s\n" % f["retired"])
 
             desc = f.get("description")
             if desc:

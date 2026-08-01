@@ -7,21 +7,23 @@ Grids are the board exactly as authored: `.` open, `#` wall, `O` pit, `^` spikes
 ground, `A`/`B` the two deployment zones, and any other letter an enemy from that battle's
 legend. A unit never starts on a hazard — the tile under a deploy slot or a spawn is Open.
 
-Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. **RETIRE** and
-**REWORK** are proposals, not deletions; nothing has been removed. See
-`docs/RETIRING_BATTLES.md` for why, and for the reason several retirements are on hold.
+Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were
+proposals; `docs/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a
+`retired:` key giving its reason — it is out of the picker's active list but still embedded,
+still parsed and still playable if chosen, because retiring is a flag and not a deletion
+(`docs/RETIRING_BATTLES.md`).
 
 For the deeper design notes on any battle — the round-2 moment it is built around, the co-op
 conversation it is meant to force — see the batch write-ups in `docs/scenarios/`.
 
 ---
 
-**62 battles.**
+**65 battles — 38 active, 27 retired.**
 
 
 ## Campaign
 
-*the original run, plus the objective proof* — 6 battles.
+*the original run, plus the objective proof* — 9 battles.
 
 
 ### 1 · First Contact
@@ -46,13 +48,13 @@ Husks walk straight at you while a lobber lands rocks from the back. Learn that 
 Legend: `h` Husk, `l` Lobber
 
 ```
-#.hOlBB
-.H.^.BB
-O.....#
-.^...^.
-#.....O
-AA...H.
-AAhOh.#
+#....lB
+.^.H..B
+h.....B
+hO...O.
+#.....#
+A...^..
+AA..h..
 ```
 
 ### 2 · The Teeth
@@ -179,6 +181,103 @@ A..s...
 AA.h.l.
 ```
 
+### 5 · The Shrine
+
+`the-shrine`
+
+
+Two Raiders walk two lanes at a six-hit-point shrine and never once look at you. Shove them off it, or lose it.
+
+
+7×7 board · enemies: 3× Raider, 2× Husk · objective: `protect 3,3` · turn limit: 8
+
+| A | B |
+|---|---|
+| Vanguard, Archer | Threadcaster, Wardbearer |
+
+Legend: `h` Husk, `r` Raider
+
+```
+r.....B
+..#..BB
+.^...^.
+...S...
+.O...O.
+A..#..r
+AA..h..
+```
+
+Reinforcements, published at fight start:
+
+```
+wave 3 = r@3,0 h@5,0
+```
+
+### 6 · Break the Gate
+
+`break-the-gate`
+
+
+An eight-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
+
+
+7×7 board · enemies: 2× Husk, 2× Lobber, 1× Warden · objective: `destroy 3,1`
+
+| A | B |
+|---|---|
+| Vanguard, Archer | Threadcaster, Wardbearer |
+
+Legend: `h` Husk, `l` Lobber, `w` Warden
+
+```
+.l...l.
+###D###
+..^w^..
+...H...
+.......
+A.....B
+AA...BB
+```
+
+Reinforcements, published at fight start:
+
+```
+wave 2 = h@0,3 h@6,3
+```
+
+### 10 · The Quarry King
+
+`quarry-king`
+
+
+Fourteen hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
+
+
+9×7 board · enemies: 6× Husk, 2× Lobber, 1× QuarryKing · objective: `kill-all`
+
+| A | B |
+|---|---|
+| Vanguard, Wardbearer | Archer, Threadcaster |
+
+Legend: `h` Husk, `l` Lobber, `q` QuarryKing
+
+```
+l.....^BB
+..h....BB
+....O....
+..q......
+....O....
+..h....AA
+l.....^AA
+```
+
+Reinforcements, published at fight start:
+
+```
+wave 3 = h@0,2 h@0,4
+wave 6 = h@0,1 h@0,5
+```
+
 ### 601 · Hold the Gate
 
 `hold-the-gate`
@@ -232,19 +331,19 @@ A wall with a single gap, corked by the one enemy your basic shove cannot move. 
 **Verdict:** REWORK — Zero enemy actions for three rounds; the Anchor leaves the door round 1 and the Lobber walks through it.
 
 
-9×7 board · enemies: 2× Husk, 1× Anchor, 1× Lobber
+9×7 board · enemies: 2× Husk, 1× Lobber, 1× Warden
 
 | A | B |
 |---|---|
 | Vanguard, Archer | Threadcaster, Wardbearer |
 
-Legend: `h` Husk, `l` Lobber, `n` Anchor
+Legend: `h` Husk, `l` Lobber, `w` Warden
 
 ```
 AA..#....
 AAH.#.h^.
 ....#....
-....n...l
+....w...l
 ....#....
 BBH.#.h^.
 BB..#....
@@ -252,7 +351,10 @@ BB..#....
 
 ### 102 · Two Bridges
 
-`tp-02-two-bridges`
+`tp-02-two-bridges` — **RETIRED**
+
+
+> Retired: "concentrate or split" is the gauntlet pair's question, on a worse board
 
 
 A pit moat with two crossings a full board apart. Concentrate at one bridge and cede the other, or split and fight two fights.
@@ -283,7 +385,10 @@ BB..O.h..
 
 ### 103 · The Coil
 
-`tp-03-spiral`
+`tp-03-spiral` — **RETIRED**
+
+
+> Retired: Its central claim — the centre Lobber never leaves — was falsified by D-029. The Stalker never acts.
 
 
 The centre is three tiles away and eleven steps away. Ranged fire ignores the walls; the Stalker inside the corridor does not.
@@ -316,7 +421,10 @@ AAA......
 
 ### 104 · Sundered
 
-`tp-04-sundered`
+`tp-04-sundered` — **RETIRED**
+
+
+> Retired: Duplicates `as-08-two-fires`; the Anchor on the link is inert and the fight ends in four rounds.
 
 
 Two halves joined by one tile at the far end, with an Anchor sitting on it. Each pair faces the problem the other pair solves.
@@ -347,7 +455,10 @@ AA.l.O...BB
 
 ### 105 · The Spine
 
-`tp-05-the-spine`
+`tp-05-the-spine` — **RETIRED**
+
+
+> Retired: Duplicates `high-road` with more furniture; its Lobber takes zero actions in eight rounds.
 
 
 A ridge worth plus one damage and a fall on either side. The whole enemy roster exists to take you off it.
@@ -444,7 +555,10 @@ AA#.^#BB
 
 ### 108 · The Nooks
 
-`tp-08-the-nooks`
+`tp-08-the-nooks` — **RETIRED**
+
+
+> Retired: its question — "is cover with one exit cover?" — is about to change meaning: see shapes, §5. Re-judge after
 
 
 Cover with one exit is a coffin. A Lobber in a nook cannot kite, and neither can you.
@@ -477,7 +591,10 @@ AA...^..h
 
 ### 109 · Back to the Wall
 
-`tp-09-back-to-the-wall`
+`tp-09-back-to-the-wall` — **RETIRED**
+
+
+> Retired: Half the roster (Anchor + one Stalker) takes zero actions in eight rounds; `hz-04` states the same inversion and plays.
 
 
 The narrow corridor is the only place a Stalker cannot shove you, and it dead-ends into six hit points of Anchor.
@@ -586,7 +703,7 @@ A belt of spikes with one gap. Cross it and bleed, queue for the gap and lose a 
 **Verdict:** KEEP — Spikes as a walking cost rather than a shove target — the other half of `the-teeth`.
 
 
-9×7 board · enemies: 2× Lobber, 1× Husk, 1× Stalker
+9×7 board · enemies: 2× Lobber, 1× Husk, 1× Stalker · objective: `reach 0,0` · turn limit: 8
 
 | A | B |
 |---|---|
@@ -606,7 +723,10 @@ AA....h..
 
 ### 203 · The Ledge
 
-`hz-03-the-ledge`
+`hz-03-the-ledge` — **RETIRED**
+
+
+> Retired: Ledge-versus-Grappler is `high-road` and `cb-03`; the instant-void tile is `hz-08`'s, stated better.
 
 
 A four-tile ledge no shove can push you onto and the Anchor can never climb — and a Grappler that wants exactly the unit standing on it.
@@ -823,7 +943,10 @@ AA..h....
 
 ### 210 · Bone Yard
 
-`hz-10-bone-yard`
+`hz-10-bone-yard` — **RETIRED**
+
+
+> Retired: three boards taught unit-into-unit; the queue you build (cb-06) and the pull you aim (cb-09) are the sharper two
 
 
 Two queues of Husks with a pit at the head of each. Bodies are hazards too — a collision hurts both parties and staggers both, and the queue is what turns one shove into two kills.
@@ -954,7 +1077,10 @@ AA..s..
 
 ### 304 · Bodies and Rain
 
-`ec-04-bodies-and-rain`
+`ec-04-bodies-and-rain` — **RETIRED**
+
+
+> Retired: Same trench-and-two-bridges board as `ec-08`, which asks the better question on it.
 
 
 A trench with two one-tile bridges, a Husk standing on each, and Lobbers behind who shoot straight over them. The bodies stop your feet; they do not stop the rocks.
@@ -1016,7 +1142,10 @@ AA..h..
 
 ### 306 · The Vice
 
-`ec-06-the-vice`
+`ec-06-the-vice` — **RETIRED**
+
+
+> Retired: "splitting is right" twice; as-08 makes it a deployment-level truth
 
 
 An Anchor line with two gaps in it, and a Grappler behind you that keeps putting people in the gaps. Push 1 cannot open a gap; splitting the party can.
@@ -1047,7 +1176,10 @@ AA...g.
 
 ### 307 · The Rim
 
-`ec-07-the-rim`
+`ec-07-the-rim` — **RETIRED**
+
+
+> Retired: Its own writeup calls it unfair rather than hard, and blames D-026. It is `the-maw` inverted with more enemies.
 
 
 A pit runs all the way round the board, a Grappler drags you toward it and two Stalkers throw you over. The only cover on this map is your own bodies.
@@ -1142,7 +1274,10 @@ AA..h..
 
 ### 310 · Full Composition
 
-`ec-10-full-composition`
+`ec-10-full-composition` — **RETIRED**
+
+
+> Retired: Six enemies is the §5 failure mode; it takes 20 of 21 player HP in three rounds and its gate Anchor is inert.
 
 
 Anchor in the gate, Lobber behind it, Husks on the flanks, a Grappler west and a Stalker east. Every archetype in the game, each one covering the next one's weakness.
@@ -1178,7 +1313,10 @@ AA.......
 
 ### 401 · Hero and Squad
 
-`as-01-hero-and-squad`
+`as-01-hero-and-squad` — **RETIRED**
+
+
+> Retired: airtime asymmetry is stated harder by both
 
 
 One Vanguard against a swarm, with a three-body squad behind him. A activates once a round; B activates three times.
@@ -1240,7 +1378,10 @@ A...O...B
 
 ### 403 · Fists and Feathers
 
-`as-03-fists-and-feathers`
+`as-03-fists-and-feathers` — **RETIRED**
+
+
+> Retired: Near-identical board and enemy mix to `as-09-glass`, which states the same thesis harder.
 
 
 A brings two Vanguards, B brings two Archers. Nothing on the field caps displacement, and every Grappler on the board wants an Archer.
@@ -1313,7 +1454,7 @@ Two units, eight Husks, one raised doorway flanked by spikes. Numbers stop matte
 **Verdict:** KEEP — A chokepoint you *defend*, and a raised doorway that kills a Husk a round for free.
 
 
-7×7 board · enemies: 8× Husk
+7×7 board · enemies: 12× Husk · objective: `survive 8`
 
 | A | B |
 |---|---|
@@ -1331,9 +1472,19 @@ hh...hh
 AA...BB
 ```
 
+Reinforcements, published at fight start:
+
+```
+wave 3 = h@0,0 h@6,0
+wave 6 = h@0,0 h@6,0
+```
+
 ### 406 · Immovable
 
-`as-06-immovable`
+`as-06-immovable` — **RETIRED**
+
+
+> Retired: Both bridge Anchors step off their bridges in round 1. Premise dead; `hz-09` owns the question.
 
 
 Two Anchors plug the only two bridges over the trench and shrug off every Push 1 on the board. Four units, two doors, two different keys.
@@ -1457,7 +1608,10 @@ AAh...h
 
 ### 410 · Bodyguard
 
-`as-10-bodyguard`
+`as-10-bodyguard` — **RETIRED**
+
+
+> Retired: Its own writeup answers no and points at `as-04`. Four-versus-one is `as-01`'s question with less to do.
 
 
 A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to keep on the board.
@@ -1493,7 +1647,10 @@ AAh.g.h
 
 ### 501 · Kite Line
 
-`cb-01-kite-line`
+`cb-01-kite-line` — **RETIRED**
+
+
+> Retired: retreat-as-fact vs retreat-as-trap; the trap is the better lesson and the campaign meets Lobbers early anyway
 
 
 Two Lobbers between two deploy corners. Chasing one hands the other a free shot — squeeze instead, until the retreat runs out of board.
@@ -1522,7 +1679,10 @@ AA.h.......
 
 ### 502 · Rank and File
 
-`cb-02-rank-and-file`
+`cb-02-rank-and-file` — **RETIRED**
+
+
+> Retired: Three of five Husks take zero actions in eight rounds; `cb-06` teaches the same shove with the player forming the queue.
 
 
 Four Husks and a Lobber share one doorway. Shove the unit in the door back into the queue and two of them die at once.
@@ -1553,7 +1713,10 @@ AA.......
 
 ### 503 · The Shelf
 
-`cb-03-the-shelf`
+`cb-03-the-shelf` — **RETIRED**
+
+
+> Retired: the "is elevation worth 2 movement" question survives inside both
 
 
 The Archer climbs the ridge free and hits for three. Everyone else pays two movement, and the Grappler grabs whoever is standing up there first.
@@ -1615,7 +1778,10 @@ AA..h....
 
 ### 505 · First Blood
 
-`cb-05-first-blood`
+`cb-05-first-blood` — **RETIRED**
+
+
+> Retired: real but minor; deployment pressure now lives in tp-07. Closest cut on the list
 
 
 A Stalker starts one tile from each deploy zone, and your own corner is the wall they mean to use. Deployment is the first decision and Player A moves first.
@@ -1772,7 +1938,10 @@ AA..g....
 
 ### 510 · The Long Answer
 
-`cb-10-the-long-answer`
+`cb-10-the-long-answer` — **RETIRED**
+
+
+> Retired: Duplicates `hz-06` on Stagger and `cb-04` on the Anchor; its pit is explicitly optional, which makes it an easter egg rather than a question.
 
 
 An Anchor walks at you one tile a round with Husks behind it. Collide something into it to Stagger it, then spend the Stagger — the pit at its back is four correct decisions away.
@@ -1808,7 +1977,10 @@ AA...h...
 
 ### 701 · The Toll
 
-`nv-01-the-toll`
+`nv-01-the-toll` — **RETIRED**
+
+
+> Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
 A Warden plugs the only gap in the wall. It never moves, so the door stays shut until you push it, pull it, or pay for it.
@@ -1834,7 +2006,10 @@ A#.h.^.
 
 ### 702 · Contested Ledges
 
-`nv-02-contested-ledges`
+`nv-02-contested-ledges` — **RETIRED**
+
+
+> Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
 A Perch races you for the ridge and fires for 2 once it is up there. Take the high ground first or fight uphill all battle.
@@ -1862,7 +2037,10 @@ AA.g...
 
 ### 703 · Formation
 
-`nv-03-formation`
+`nv-03-formation` — **RETIRED**
+
+
+> Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
 A Bulwark turns an enemy crowd into a formation — adjacent allies cannot be displaced more than a tile. Kill it first, or stop pushing.
@@ -1888,7 +2066,10 @@ AA.h...
 
 ### 704 · Open Order
 
-`nv-04-open-order`
+`nv-04-open-order` — **RETIRED**
+
+
+> Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
 No pits, no spikes, three shovers. A Harrier pulls your party apart while one Stalker uses the board edge and the other refuses to.
@@ -1914,7 +2095,10 @@ AA.st..
 
 ### 705 · Numbers
 
-`nv-05-numbers`
+`nv-05-numbers` — **RETIRED**
+
+
+> Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
 Five Runts at 1 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
@@ -1940,7 +2124,10 @@ AA.uk..
 
 ### 706 · Dead Weight
 
-`nv-06-dead-weight`
+`nv-06-dead-weight` — **RETIRED**
+
+
+> Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
 A Colossus that Push 1 and Push 2 both fail to move. Pull is unaffected — bring the Threadcaster or bring a lot of attacks.

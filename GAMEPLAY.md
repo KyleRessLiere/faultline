@@ -227,14 +227,33 @@ their `number:`. Parsing splits its complaints in two: **errors** mean the file 
 fight and it is skipped, **lints** mean it breaks a layout guideline from `AGENT_BRIEF.md` §2 but
 loads and plays exactly as written. A broken file is reported rather than silently absent.
 
-Five fights ship: First Contact, The Teeth, Broken Bridge, High Road and The Maw. Only the first
-matches the brief's layout guidelines cleanly; the other four carry lints on purpose.
+**Sixty-five battles are authored; 38 are active.** They are grouped, not listed:
+
+| Group | Count | What it is |
+| --- | --- | --- |
+| **Campaign** | 10 | An ordered spine, one lesson each, played as a run. |
+| **Trials** | 15 | One board, one question, no assumed order. |
+| **Co-op gauntlet** | 4 | Boards about the partnership rather than the enemy. |
+| **Other** | 9 | Active boards outside the curated groups. |
+| **Retired** | 27 | Flagged, still embedded, still parsed, still playable if picked. |
+
+The campaign is `first-contact → cb-06-bait-and-break → the-teeth → broken-bridge → the-shrine →
+break-the-gate → high-road → hz-09-the-trench → hold-the-gate → quarry-king`: a shove, a bait, a
+pit, a bridge, then the first objective that is not a kill, then the first structure you have to
+break, then elevation, a trench, a hold, and the boss. Membership and order live in the shell
+(`CampaignPlan`) because Core has no campaign key — **a gap worth closing**, since two copies of an
+ordering drift the day someone reorders the spine.
+
+Only `first-contact` matches the brief's layout guidelines cleanly. Every other board carries lints
+on purpose, and the objective boards carry the most: a fight built around a structure in the middle
+cannot keep the centre clear, and a siege with one front cannot put its deployment zones in opposite
+corners.
 
 **Retired battles.** A `.fight` file with a `retired:` key is out of the playable set:
 `FightLibrary.All()` skips it and `FightLibrary.Retired()` returns it with the reason its key gave.
 The file stays embedded and still has to parse without errors — retiring is a flag, not a deletion,
-and `ById()` still resolves it so it stays playable when selected (D-039). **27 of the 62 authored
-battles are retired; 35 are active.**
+and `ById()` still resolves it so it stays playable when selected (D-039). **27 of the 65 authored
+battles are retired; 38 are active.**
 
 **Structures are drawn on the board.** `S` and `D` mark where a `protect` or `destroy` structure
 stands. The terrain underneath is Open. The mark must agree with the `objective:` line's tile and
@@ -251,10 +270,16 @@ creator cannot produce a scenario the game would refuse. Errors block play; lint
 A scenario saved to the browser is playable immediately. A `.fight` file saved into
 `Fights/Data/` is an embedded resource, so it only becomes a built-in battle **after a rebuild**.
 
-Five fights are authored: **1 First Contact**, **2 The Teeth**, **3 Broken Bridge**, **4 High Road**,
-**5 The Maw**. All five are Kill All — the Protect, Destroy and Boss objectives are M6 — and the
-shell still opens on fight 1 only, so 2–5 are boards the library serves, not a run you can play
-through.
+**Playing a run.** `/campaign` walks the ten campaign fights in order. A win advances, a loss ends
+the run. A unit **voided** — lost down a pit — is gone for the rest of the run and does not appear in
+later fights; a unit merely **downed** comes back next fight at full health (D-049). The run is
+carried as a list of classes rather than of units, because that is what a fight file rosters. A
+campaign fight whose file has not been authored yet is skipped, marked on the screen, and joins the
+spine on its own when the file lands (D-048).
+
+The run survives a reload — seed, position, and which classes are gone — but the half-played board
+does not, and the current fight restarts from deployment (D-050). `/battles` plays any board as a
+one-off, with nothing carried in or out.
 
 **Authoring reference: [FIGHT_FORMAT.md](FIGHT_FORMAT.md)** — every key, every character, and the
 full error and lint tables.
