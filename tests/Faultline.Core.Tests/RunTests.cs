@@ -580,6 +580,56 @@ public class RunTests
         Assert.Equal(run, restored);
     }
 
+
+    [Fact]
+    public void Carrying_ReportsWhatTheUnitWillFieldAtSoNoRendererHasToWorkItOut()
+    {
+        // A renderer computing MaxHp / 2 to draw this event is holding a copy of the half-return
+        // rule. The event carries the number instead.
+        var run = RunFixture.StartedInFirstFight(out var vanguard);
+        run = RunFixture.Deploy(run);
+        run = RunFixture.HurtTo(run, vanguard, 0);
+
+        var step = RunFixture.EndFightInAWin(run);
+        var carried = step.All<UnitCarried>().Single(c => c.RunUnitId.Equals(vanguard));
+
+        Assert.Equal(RunUnitStatus.Downed, carried.Status);
+        Assert.Equal(0, carried.Hp);
+        Assert.Equal(carried.MaxHp / 2, carried.FieldingHp);
+
+        // And it is the truth: that is what actually walks onto the next board.
+        var next = RunFixture.Enter(step.NewState);
+        Assert.Equal(carried.FieldingHp, RunFixture.OnBoard(next, vanguard).Hp);
+    }
+
+    [Fact]
+    public void Carrying_AVoidedUnitFieldsAtNothingBecauseItDoesNotField()
+    {
+        var run = RunFixture.StartedInFirstFight(UnitKind.Archer, out var archer);
+        run = RunFixture.Deploy(run);
+        run = RunFixture.Void(run, archer);
+
+        var step = RunFixture.EndFightInAWin(run);
+        var carried = step.All<UnitCarried>().Single(c => c.RunUnitId.Equals(archer));
+
+        Assert.Equal(RunUnitStatus.Voided, carried.Status);
+        Assert.Equal(0, carried.FieldingHp);
+    }
+
+    [Fact]
+    public void Carrying_ASurvivorFieldsAtExactlyWhatItCarried()
+    {
+        var run = RunFixture.StartedInFirstFight(out var vanguard);
+        run = RunFixture.Deploy(run);
+        run = RunFixture.HurtTo(run, vanguard, 3);
+
+        var step = RunFixture.EndFightInAWin(run);
+        var carried = step.All<UnitCarried>().Single(c => c.RunUnitId.Equals(vanguard));
+
+        Assert.Equal(3, carried.Hp);
+        Assert.Equal(3, carried.FieldingHp);
+    }
+
     private sealed record UnknownNode : CampaignNode
     {
         public override string Describe() => "unknown";

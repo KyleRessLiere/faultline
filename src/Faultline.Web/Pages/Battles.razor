@@ -3,7 +3,7 @@
 @layout MainLayout
 @inject GameSession Session
 @inject CustomFightStore Store
-@inject CampaignStore Runs
+@inject RunSession Runs
 @inject NavigationManager Nav
 
 <PageTitle>Faultline — battles</PageTitle>
@@ -31,16 +31,18 @@
 
     <section class="run-banner">
         <div>
-            <strong>The campaign</strong> — the ten fights of CURATED_SET §1, in order. A win advances,
-            a loss ends the run, and anything voided along the way is gone for good.
-            @if (Runs.Run is { } run && run.InProgress)
+            <strong>The campaign</strong> — the ten fights of CURATED_SET §1 in order, with two rests
+            among them. There is no healing between fights, and anything voided along the way is gone
+            for good.
+            @if (Runs.State is { } run && Runs.InProgress)
             {
                 <span class="run-progress">
-                    In progress: @run.ClearedCount / @CampaignPlan.Length cleared, seed @run.Seed.
+                    In progress: node @(run.NodeIndex + 1) / @run.Campaign.Length, @run.FightsWon fights
+                    won, seed @run.Seed.
                 </span>
             }
         </div>
-        <a class="action" href="campaign">@(Runs.HasRunInProgress ? "Continue the run" : "Start a run")</a>
+        <a class="action" href="campaign">@(Runs.InProgress ? "Continue the run" : "Start a run")</a>
     </section>
 
     @foreach (var section in Sections())
@@ -145,14 +147,15 @@
     }
 
     /// <summary>
-    /// Sorts the library into the curated set's sections. Membership comes from
-    /// <see cref="CampaignPlan"/>'s id lists; whether a battle is active at all comes from Core —
+    /// Sorts the library into the curated set's sections. The campaign section's membership and
+    /// order come from <see cref="CampaignLibrary.Faultline"/> through <see cref="CuratedSet"/>, so
+    /// there is one spine in the codebase; whether a battle is active at all comes from Core —
     /// <c>FightLibrary.All()</c> is the only thing that decides, so a <c>retired:</c> key drops a
     /// board out of here without the shell knowing its name.
     /// </summary>
     private void Group()
     {
-        var active = Runs.Active;
+        var active = CuratedSet.Active();
 
         var campaign = new List<FightParseResult>();
         var trials = new List<FightParseResult>();
@@ -177,7 +180,7 @@
                 continue;
             }
 
-            switch (CampaignPlan.GroupOf(fight.Id))
+            switch (CuratedSet.GroupOf(fight.Id))
             {
                 case FightGroup.Campaign: campaign.Add(result); break;
                 case FightGroup.Trials: trials.Add(result); break;
@@ -188,7 +191,7 @@
 
         // The campaign is the one group with a real order, and it is the spine's order, not the
         // library's — cb-06 is authoring number 506 and campaign slot 2.
-        campaign.Sort((a, b) => CampaignPlan.SlotOf(a.Fight!.Id).CompareTo(CampaignPlan.SlotOf(b.Fight!.Id)));
+        campaign.Sort((a, b) => CuratedSet.SlotOf(a.Fight!.Id).CompareTo(CuratedSet.SlotOf(b.Fight!.Id)));
         ByNumber(trials);
         ByNumber(gauntlet);
         ByNumber(other);
@@ -228,9 +231,9 @@
                 @if (fight is not null)
                 {
                     <span class="tag">@fight.Id</span>
-                    @if (CampaignPlan.SlotOf(fight.Id) >= 0)
+                    @if (CuratedSet.SlotOf(fight.Id) >= 0)
                     {
-                        <span class="tag slot">campaign @(CampaignPlan.SlotOf(fight.Id) + 1) of @CampaignPlan.Length</span>
+                        <span class="tag slot">campaign @(CuratedSet.SlotOf(fight.Id) + 1) of @CuratedSet.SpineLength</span>
                     }
                 }
                 @if (customId is not null)

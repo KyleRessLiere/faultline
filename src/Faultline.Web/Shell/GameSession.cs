@@ -41,11 +41,16 @@ public sealed class GameSession
     /// </summary>
     public bool Untouched { get; private set; }
 
+    // Set while a run owns the board. Non-null means every command leaves through the run layer
+    // instead of Game.Apply, so the run sees its own fight resolve.
+    private IRunBoardDriver? _run;
+
     /// <summary>
-    /// True when this fight is being played as part of a campaign run, so a win advances the run and
-    /// a loss ends it. Set only by <see cref="StartCampaignFight"/>.
+    /// True when the board belongs to a campaign run, so commands travel through
+    /// <see cref="Campaign.ApplyRun(RunState, RunCommand)"/> rather than straight to Core's fight
+    /// layer, and a win advances the run.
     /// </summary>
-    public bool InCampaign { get; private set; }
+    public bool InRun => _run is not null;
 
     /// <summary>Current state.</summary>
     public GameState State { get; private set; } = null!;
@@ -109,36 +114,47 @@ public sealed class GameSession
     /// <summary>Loads a fight and starts it from the beginning, outside any campaign run.</summary>
     /// <param name="fight">Authored or hand-built fight.</param>
     /// <param name="seed">Run seed.</param>
-    public void StartFight(FightDefinition fight, int seed) => StartFight(fight, seed, false);
-
-    /// <summary>
-    /// Loads the campaign's current fight. Identical to <see cref="StartFight(FightDefinition, int)"/>
-    /// except that the shell now knows the result of this fight belongs to a run.
-    /// </summary>
-    /// <param name="fight">The fight, already adapted to the run's surviving squad.</param>
-    /// <param name="seed">Run seed.</param>
-    public void StartCampaignFight(FightDefinition fight, int seed) => StartFight(fight, seed, true);
-
-    private void StartFight(FightDefinition fight, int seed, bool campaign)
+    public void StartFight(FightDefinition fight, int seed)
     {
-        Untouched = false;
-        InCampaign = campaign;
-        Fight = fight;
-        Seed = seed;
-        _log.Clear();
-        Selected = null;
-        Hovered = null;
-        Mode = ActionMode.Move;
+        _run = null;
+        Reset(fight, seed);
 
         var start = Game.Start(fight, seed);
-
-        if (Recording)
-        {
-            _recorder = new CombatRecorder(fight, seed);
-            _recorder.RecordStart(start);
-        }
-
+        _recorder?.RecordStart(start);
         Adopt(start);
+    }
+
+    /// <summary>
+    /// Hands the board to a run. The opening state comes from the run rather than from
+    /// <see cref="Game.Start(FightDefinition, int)"/>, because the run has already started the
+    /// fight with the squad's carried hit points.
+    /// </summary>
+    /// <param name="driver">Who the board's commands go to from now on.</param>
+    /// <param name="fight">The authored fight, for the header, the notes and the log.</param>
+    /// <param name="seed">The run's seed.</param>
+    /// <param name="opening">The board as the run started it.</param>
+    public void AttachRun(IRunBoardDriver driver, FightDefinition fight, int seed, StepResult opening)
+    {
+        _run = driver;
+        Reset(fight, seed);
+        _recorder?.RecordStart(opening);
+        Adopt(opening);
+    }
+
+    /// <summary>Gives the board back, so the next command goes straight to Core's fight layer.</summary>
+    public void DetachRun() => _run = null;
+
+    /// <summary>Folds a step the run resolved on the session's behalf back into the board.</summary>
+    /// <param name="command">The combat command that was played.</param>
+    /// <param name="before">The board it was played against.</param>
+    /// <param name="result">What came back, unwrapped from the run's result.</param>
+    public void AdoptRunStep(Command command, GameState before, StepResult result)
+    {
+        _recorder?.RecordStep(command, before, result);
+
+        Adopt(result);
+        Hovered = null;
+        Mode = DefaultModeFor(SelectedUnit);
     }
 
     /// <summary>Applies a command and folds the result into the session.</summary>
@@ -146,6 +162,14 @@ public sealed class GameSession
     public void Submit(Command command)
     {
         Untouched = false;
+
+        if (_run is not null)
+        {
+            // A run's fight has one command stream and it is the run's. The driver calls back into
+            // AdoptRunStep with what Core produced.
+            _run.Play(command);
+            return;
+        }
 
         var before = State;
         var result = Game.Apply(before, command);
@@ -155,6 +179,22 @@ public sealed class GameSession
         Adopt(result);
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
+    }
+
+    private void Reset(FightDefinition fight, int seed)
+    {
+        Untouched = false;
+        Fight = fight;
+        Seed = seed;
+        _log.Clear();
+        Selected = null;
+        Hovered = null;
+        Mode = ActionMode.Move;
+
+        if (Recording)
+        {
+            _recorder = new CombatRecorder(fight, seed);
+        }
     }
 
     /// <summary>

@@ -3,7 +3,7 @@
 @inject GameSession Session
 @inject FightFiles Files
 @inject PlaytestNotes Notes
-@inject CampaignStore Campaign
+@inject RunSession Runs
 @implements IDisposable
 
 <PageTitle>Faultline</PageTitle>
@@ -17,23 +17,61 @@
             <a class="chip link" href="notes" title="Every playtest note, across every battle">
                 Notes @NoteCountLabel
             </a>
-            @if (Session.InCampaign && Run is not null)
+            @if (Session.InRun && Run is not null)
             {
                 <a class="chip link campaign-chip" href="campaign"
                    title="The campaign run — a win advances, a loss ends it">
-                    Campaign @(Run.Index + 1) / @CampaignPlan.Length
+                    Run @(RunNodeNumber) / @Run.Campaign.Length
                 </a>
             }
             <span class="chip fight-chip" title="@Session.Fight.Id">
                 #@Session.Fight.Number @Session.Fight.Name
             </span>
-            <span class="chip">@PhaseLabel</span>
-            <span class="chip">Round @State.Round</span>
-            <span class="chip team-@TeamClass(State.ActiveTeam)">@ActiveLabel</span>
-            <span class="chip">Momentum @State.Momentum / 6</span>
+            @if (ShowBoard)
+            {
+                <span class="chip">@PhaseLabel</span>
+                <span class="chip">Round @State.Round</span>
+                <span class="chip team-@TeamClass(State.ActiveTeam)">@ActiveLabel</span>
+                <span class="chip">Momentum @State.Momentum / 6</span>
+            }
             <span class="chip">Seed @Session.Seed</span>
         </div>
 
+        @if (Session.InRun && Runs.RestartedByReload)
+        {
+            <p class="reload-note">
+                Reloaded mid-run. The run came back — seed, node and everything the squad is carrying —
+                but the half-played board did not, so this fight restarts from deployment.
+            </p>
+        }
+
+        @if (Session.InRun && FightIsOver && ShowBoard)
+        {
+            <p class="reload-note">
+                The fight is over and the run has already moved on. This is the board it finished on,
+                frozen — nothing on it takes another command.
+            </p>
+        }
+
+        @if (!ShowBoard)
+        {
+            <div class="resolved">
+                <h2>Between nodes</h2>
+                <p class="note">
+                    The run is standing between fights, so there is no board. What just happened is
+                    below, straight off the run's own events.
+                </p>
+                <ul class="run-events">
+                    @foreach (var e in Runs.LastEvents)
+                    {
+                        <li>@RunEventText.Describe(e)</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (ShowBoard)
+        {
         <div class="grid"
              style="grid-template-columns: repeat(@State.Board.Width, var(--cell));"
              @onmouseleave="() => Session.Hover(null)">
@@ -98,54 +136,82 @@
             <span><i class="sw spikes"></i>spikes</span>
             <span><i class="sw high"></i>high ground</span>
         </div>
+        }
     </div>
 
     <div class="side-pane">
         <div class="panel">
             <h2>Turn</h2>
 
-            @if (State.Outcome != FightOutcome.InProgress)
+            @if (Session.InRun && FightIsOver && Run is not null && Resolution is null)
+            {
+                <p>This run is standing between fights.</p>
+                <a class="action link-button" href="campaign">Back to the run</a>
+            }
+            else if (Session.InRun && FightIsOver && Run is not null)
+            {
+                var resolved = Resolution!;
+
+                <p class="outcome @(resolved.Outcome == FightOutcome.Won ? "won" : "lost")">
+                    @(resolved.Outcome == FightOutcome.Won
+                        ? $"Fight won on round {resolved.Round}."
+                        : $"Fight lost on round {resolved.Round}.")
+                </p>
+
+                <h3>Carried out</h3>
+                <ul class="carried">
+                    @foreach (var carried in Runs.LastEvents.OfType<UnitCarried>())
+                    {
+                        <li class="@(carried.Status == RunUnitStatus.Voided ? "voided" : carried.Status == RunUnitStatus.Downed ? "downed" : string.Empty)">
+                            <span class="art inline">
+                                <UnitArt Kind="carried.Kind" Label="@carried.Kind.ToString()" />
+                            </span>
+                            <strong>@carried.Kind</strong>
+                            @if (carried.Status == RunUnitStatus.Voided)
+                            {
+                                <span class="tag voided">voided — gone for the run</span>
+                            }
+                            else if (carried.Status == RunUnitStatus.Downed)
+                            {
+                                <span class="tag downed">downed — returns on @carried.FieldingHp/@carried.MaxHp</span>
+                            }
+                            else
+                            {
+                                <span class="tag">@carried.Hp/@carried.MaxHp carried forward</span>
+                            }
+                        </li>
+                    }
+                </ul>
+
+                @if (Run.Outcome == RunOutcome.Lost)
+                {
+                    <p>@RunEnding</p>
+                }
+                else if (Run.Outcome == RunOutcome.Won)
+                {
+                    <p>Run complete — @Run.FightsWon fights won.</p>
+                }
+                else if (Run.CurrentNode is FightNode nextFight)
+                {
+                    <p>
+                        Next: <strong>@(NameOf(nextFight.FightId))</strong>
+                        <span class="tag">@nextFight.FightId</span>
+                    </p>
+                    <button class="action" @onclick="ContinueRun">Play the next fight</button>
+                }
+                else if (Run.CurrentNode is RestNode)
+                {
+                    <p>Next: <strong>a rest</strong> — it restores everything that can still be fielded.</p>
+                    <a class="action link-button" href="campaign">Take the rest</a>
+                }
+
+                <a class="action secondary link-button" href="campaign">Back to the run</a>
+            }
+            else if (State.Outcome != FightOutcome.InProgress)
             {
                 <p class="outcome @(State.Outcome == FightOutcome.Won ? "won" : "lost")">
                     @(State.Outcome == FightOutcome.Won ? "Fight won." : "Fight lost.")
                 </p>
-
-                @if (Session.InCampaign && _filed && Run is not null)
-                {
-                    @if (VoidedThisFight.Count > 0)
-                    {
-                        <p class="voided-note">
-                            Lost to the run: @string.Join(", ", VoidedThisFight).
-                            @(VoidedThisFight.Count == 1 ? "It does" : "They do") not come back.
-                        </p>
-                    }
-
-                    @if (State.Outcome == FightOutcome.Won && Run.InProgress && NextFight is not null)
-                    {
-                        <p>
-                            Next: <strong>#@(Run.Index + 1) @NextFight.Name</strong>
-                            <span class="tag">@NextFight.Id</span>
-                        </p>
-                        <button class="action" @onclick="ContinueCampaign">Continue the run</button>
-                    }
-                    else if (Run.Status == CampaignStatus.Won)
-                    {
-                        <p>Campaign complete — all @Run.ClearedCount authored fights cleared.</p>
-                    }
-                    else if (Run.Status == CampaignStatus.Wiped)
-                    {
-                        <p>
-                            Run over: one player has no units left, so there is nobody to deploy.
-                            @Run.ClearedCount of @CampaignPlan.Length cleared.
-                        </p>
-                    }
-                    else
-                    {
-                        <p>Run over on fight @(Run.Index + 1) of @CampaignPlan.Length. A campaign ends on its first defeat.</p>
-                    }
-
-                    <a class="action secondary link-button" href="campaign">Back to the campaign</a>
-                }
             }
             else if (State.Phase == Phase.Deployment)
             {
@@ -206,14 +272,15 @@
                 <p>Select one of @ActiveLabel's units to activate.</p>
             }
 
-            @if (Session.InCampaign)
+            @if (Runs.Problem is not null)
             {
-                @* No seed-bumping restart inside a run: the seed is the run's, not this fight's. And
-                   no restart once the fight is decided — the run has already moved on. *@
-                @if (State.Outcome == FightOutcome.InProgress)
-                {
-                    <button class="action secondary" @onclick="RestartCampaignFight">Restart this fight</button>
-                }
+                <p class="warn">@Runs.Problem</p>
+            }
+
+            @if (Session.InRun)
+            {
+                @* No seed-bumping restart inside a run: the seed is the run's, not this fight's, and
+                   nothing here is allowed to restart a fight the run has already resolved. *@
                 <a class="action secondary link-button" href="campaign">Campaign</a>
             }
             else
@@ -223,7 +290,7 @@
             }
         </div>
 
-        @if (State.Intents.Count > 0)
+        @if (ShowBoard && State.Intents.Count > 0)
         {
             <div class="panel">
                 <h2>Enemy intents</h2>
@@ -243,6 +310,8 @@
             </div>
         }
 
+        @if (ShowBoard)
+        {
         <div class="panel">
             <h2>Units</h2>
             <table class="units">
@@ -260,6 +329,7 @@
                 </tbody>
             </table>
         </div>
+        }
 
         <div class="panel">
             <h2>Abilities</h2>
@@ -445,36 +515,39 @@
     private readonly List<string> _noteTags = new();
     private string? _noteStatus;
 
-    // A finished campaign fight is filed with the run exactly once, whatever else re-renders.
-    // _filing guards the call; _filed says the run has actually moved, so the panel never offers a
-    // "next fight" that is still this one. Both reset when the next fight starts.
-    private bool _filing;
-    private bool _filed;
-
     private GameState State => Session.State;
 
-    private CampaignRun? Run => Campaign.Run;
+    private RunState? Run => Runs.State;
 
-    /// <summary>The fight the run moved on to, once this one has been filed as a win.</summary>
-    private FightDefinition? NextFight => Campaign.CurrentFight;
+    /// <summary>Which node of the campaign this fight belongs to, one-based.</summary>
+    private int RunNodeNumber => Run is null
+        ? 0
+        : (Run.NodeIndex < Run.Campaign.Length ? Run.NodeIndex + 1 : Run.Campaign.Length);
 
-    /// <summary>Player units this fight voided — Core's flag, read, never interpreted.</summary>
-    private IReadOnlyList<string> VoidedThisFight
-    {
-        get
-        {
-            var names = new List<string>();
-            foreach (var unit in State.Units)
-            {
-                if (unit.Team.IsPlayer() && unit.Voided)
-                {
-                    names.Add(unit.Name);
-                }
-            }
+    /// <summary>
+    /// True when a run owns the board and its fight has resolved. Core has already carried the squad
+    /// out and moved the run on, so nothing here waits for the shell to file anything.
+    /// </summary>
+    private bool FightIsOver => Session.InRun && !Runs.InFight;
 
-            return names;
-        }
-    }
+    /// <summary>
+    /// Whether there is a board worth drawing. Inside a run that is the board the last command
+    /// finished on — <c>RunStepResult.FinalBoard</c>, so the winning blow is still on screen after
+    /// the run has advanced past it — and nothing at all while the run stands between nodes.
+    /// </summary>
+    private bool ShowBoard => !Session.InRun || Runs.ShowsBoard;
+
+    /// <summary>How the run says the fight ended, read off the event rather than off the board.</summary>
+    private FightResolved? Resolution => Runs.LastEvents.OfType<FightResolved>().FirstOrDefault();
+
+    /// <summary>The display name of a fight the run is about to play.</summary>
+    private static string NameOf(string fightId) =>
+        CuratedSet.Active().TryGetValue(fightId, out var fight) ? fight.Name : fightId;
+
+    /// <summary>Core's one-line reason a run ended, for the loss screen.</summary>
+    private string RunEnding =>
+        Runs.LastEvents.OfType<RunLost>().FirstOrDefault()?.Reason
+        ?? "The run ends here.";
 
     private IReadOnlyList<PlaytestNote> NotesForThisFight => Notes.For(Session.Fight.Id);
 
@@ -563,13 +636,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await Campaign.LoadAsync();
+        await Runs.LoadAsync();
 
         // A reload lands here with a session the constructor built, not one the player chose. If a
-        // run is waiting, put its fight back on the board rather than the placeholder.
-        if (Session.Untouched && Campaign.HasRunInProgress)
+        // run is waiting, put its fight back on the board rather than the placeholder — which, for a
+        // run restored from storage, means entering its node again and starting from deployment.
+        if (Session.Untouched && Runs.InProgress)
         {
-            Campaign.Resume(Session);
+            Runs.ResumeBoard();
         }
 
         await Notes.LoadAsync();
@@ -626,14 +700,6 @@
             _ = DetectDirectorySupportAsync();
         }
 
-        // The run is filed the moment the fight ends, not when the player clicks Continue — closing
-        // the tab on a won fight must not cost the win.
-        if (!_filing && Session.InCampaign && State.Outcome != FightOutcome.InProgress)
-        {
-            _filing = true;
-            _ = FileOutcomeAsync();
-        }
-
         // Enemy slots resolve on a short delay so the hotseat players can watch them tick past.
         if (!_resolvingEnemy && Session.AwaitingEnemy)
         {
@@ -642,35 +708,11 @@
         }
     }
 
-    private async Task FileOutcomeAsync()
+    /// <summary>Enters the run's next node from the board, so a run plays without leaving the screen.</summary>
+    private void ContinueRun()
     {
-        await Campaign.RecordOutcomeAsync(State);
-        _filed = true;
-
-        if (!_disposed)
-        {
-            StateHasChanged();
-        }
-    }
-
-    private void ContinueCampaign()
-    {
-        if (Campaign.Resume(Session))
-        {
-            _filing = false;
-            _filed = false;
-            _noteStatus = null;
-        }
-    }
-
-    private void RestartCampaignFight()
-    {
-        // Same fight, same seed, same survivors — the run's own restart, not a new seed.
-        if (Campaign.Resume(Session))
-        {
-            _filing = false;
-            _filed = false;
-        }
+        Runs.Enter();
+        _noteStatus = null;
     }
 
     private async Task DetectDirectorySupportAsync()

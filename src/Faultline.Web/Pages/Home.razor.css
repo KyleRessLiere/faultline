@@ -96,6 +96,67 @@
     padding-left: .6rem;
 }
 
+/* The run layer: what a reload cost, and what a resolved fight cost. */
+
+.reload-note,
+.warn {
+    border-left: 2px solid #d9b45f;
+    color: #d9b45f;
+    font-size: .8rem;
+    line-height: 1.5;
+    margin: .5rem 0;
+    max-width: 62ch;
+    padding-left: .6rem;
+}
+
+.resolved {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin: .75rem 0;
+    max-width: 62ch;
+    padding: .9rem 1rem;
+}
+
+.resolved h2 {
+    margin-top: 0;
+}
+
+.run-events {
+    font-size: .85rem;
+    line-height: 1.7;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.run-events li {
+    border-left: 2px solid var(--line);
+    padding-left: .6rem;
+}
+
+.carried {
+    font-size: .82rem;
+    list-style: none;
+    margin: 0 0 .7rem;
+    padding: 0;
+}
+
+.carried li {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    padding: .18rem 0;
+}
+
+.carried li.voided {
+    color: var(--muted);
+}
+
+.carried .tag.downed { border-color: #d9b45f; color: #d9b45f; }
+.carried .tag.voided { border-color: var(--e); color: var(--e); }
+
 /* Playtest notes — the panel sits beside the log so a note and the transcript line it refers to
    are visible at the same time. */
 

@@ -146,7 +146,12 @@ namespace Faultline.Core
 
                 squad.Add(carried);
                 context.RunEvents.Add(new UnitCarried(
-                    carried.Id, carried.Kind, carried.Hp, carried.MaxHp, carried.Status));
+                    carried.Id,
+                    carried.Kind,
+                    carried.Hp,
+                    carried.MaxHp,
+                    carried.Status,
+                    carried.IsAvailable ? carried.FieldingHp : 0));
             }
 
             var next = state with { Squad = squad, Fight = finished, Bindings = Array.Empty<RunBinding>() };

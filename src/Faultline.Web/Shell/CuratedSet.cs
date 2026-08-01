@@ -5,39 +5,25 @@ using Faultline.Core;
 namespace Faultline.Web.Shell;
 
 /// <summary>
-/// The curated set's three groups, as lists of fight ids: the ordered campaign spine
-/// (docs/CURATED_SET.md §1), the trials menu (§2) and the co-op gauntlet (§3).
+/// The curated set as the battle picker needs it: which section a board belongs to, and where a
+/// campaign board sits in the spine.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Ids, never indexes. A fight's <see cref="FightDefinition.Number"/> is its authoring number, not
-/// its position in the campaign — cb-06 is number 506 and sits at campaign slot 2 — so anything
-/// that walked the library in order would produce a different game. Resolving by id also means a
-/// campaign fight that has not been authored yet is simply absent, and lights up on its own the
-/// moment the <c>.fight</c> file lands: no code change, no registration.
+/// <strong>The spine is not stored here.</strong> Its order is
+/// <see cref="CampaignLibrary.Faultline"/>'s, read live through
+/// <see cref="CampaignDefinition.FightIds"/>, because the run engine walks that list and a second
+/// copy in a renderer would drift the first time someone reordered it. What the shell still owns is
+/// the two lists Core has no opinion about — the pick-any trials menu (<c>docs/CURATED_SET.md</c>
+/// §2) and the co-op gauntlet (§3) — which are picker sections rather than a campaign.
 /// </para>
 /// <para>
-/// This list is the one piece of curated-set knowledge the shell holds, because Core has no
-/// campaign key to ask. It is membership and order, not rules.
+/// Ids, never indexes. A fight's <see cref="FightDefinition.Number"/> is its authoring number, not
+/// its position in the campaign — cb-06 is number 506 and sits at campaign slot 2.
 /// </para>
 /// </remarks>
-public static class CampaignPlan
+public static class CuratedSet
 {
-    /// <summary>The ten campaign fights, in the order they are played (CURATED_SET §1).</summary>
-    public static IReadOnlyList<string> Order { get; } = new[]
-    {
-        "first-contact",
-        "cb-06-bait-and-break",
-        "the-teeth",
-        "broken-bridge",
-        "the-shrine",
-        "break-the-gate",
-        "high-road",
-        "hz-09-the-trench",
-        "hold-the-gate",
-        "quarry-king",
-    };
-
     /// <summary>The trials library — pick any board, no assumed order (CURATED_SET §2).</summary>
     public static IReadOnlyList<string> Trials { get; } = new[]
     {
@@ -67,8 +53,11 @@ public static class CampaignPlan
         "as-05-the-door",
     };
 
-    /// <summary>How many fights the campaign has, authored or not.</summary>
-    public static int Length => Order.Count;
+    /// <summary>The campaign's fights, in the order the run plays them. Core's list, not a copy.</summary>
+    public static IReadOnlyList<string> Spine => CampaignLibrary.Faultline.FightIds();
+
+    /// <summary>How many fights the campaign has.</summary>
+    public static int SpineLength => Spine.Count;
 
     /// <summary>
     /// Every active fight Core will hand out, keyed by id. Read live from
@@ -92,7 +81,7 @@ public static class CampaignPlan
     /// <returns>The group.</returns>
     public static FightGroup GroupOf(string id)
     {
-        if (Contains(Order, id))
+        if (Contains(Spine, id))
         {
             return FightGroup.Campaign;
         }
@@ -107,12 +96,13 @@ public static class CampaignPlan
 
     /// <summary>Position of a fight in the campaign spine, or -1 when it is not in it.</summary>
     /// <param name="id">Fight id.</param>
-    /// <returns>Zero-based slot.</returns>
+    /// <returns>Zero-based slot among the campaign's fights.</returns>
     public static int SlotOf(string id)
     {
-        for (int i = 0; i < Order.Count; i++)
+        var spine = Spine;
+        for (int i = 0; i < spine.Count; i++)
         {
-            if (string.Equals(Order[i], id, StringComparison.Ordinal))
+            if (string.Equals(spine[i], id, StringComparison.Ordinal))
             {
                 return i;
             }
@@ -138,7 +128,7 @@ public static class CampaignPlan
 /// <summary>Which section of the curated set a battle belongs to.</summary>
 public enum FightGroup
 {
-    /// <summary>The ordered ten (CURATED_SET §1).</summary>
+    /// <summary>The campaign spine (CURATED_SET §1), whose order lives in Core.</summary>
     Campaign,
 
     /// <summary>The pick-any trials library (CURATED_SET §2).</summary>

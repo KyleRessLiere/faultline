@@ -22,6 +22,11 @@
 - **A campaign is data**: an id, a squad, an ordered list of nodes. Exactly two node types — fight and
   rest — behind a handler seam, so a third is a new handler rather than a rework. A test pins the
   count at two.
+- **The shell is a thin renderer over it.** `/campaign` draws `RunState` and `RunEvent`s, combat
+  inside a run travels through `Campaign.ApplyRun` wrapped in a `PlayCommand`, saves come back through
+  `Campaign.Restore`, and the shell's own `CampaignRun`/`CampaignStore`/`CampaignPlan` are gone — the
+  campaign order now has exactly one home. The board a fight ends on comes from
+  `RunStepResult.FinalBoard`, so the winning blow stays on screen after the run has moved on.
 
 ## The curated set, and a campaign to play it in
 

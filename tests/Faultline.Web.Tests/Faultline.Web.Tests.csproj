@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- The shell has one piece of real logic — carrying a campaign run's dead between fights — and
-       it needs the same treatment as a rule: a named test per claim. Referencing the Blazor project
-       is enough; nothing here touches a component or the browser. -->
+  <!-- The run's rules live in Core and are tested there. What is left in the shell is a save format
+       and the picker's grouping, and both need the same treatment as a rule: a named test per claim.
+       Referencing the Blazor project is enough; nothing here touches a component or a real browser
+       — localStorage is faked at the IJSRuntime boundary. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

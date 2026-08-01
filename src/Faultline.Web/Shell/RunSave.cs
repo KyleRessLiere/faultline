@@ -1,0 +1,231 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+using Faultline.Core;
+
+namespace Faultline.Web.Shell;
+
+/// <summary>
+/// A run as it is written to browser storage, and read back: the seed, where it stands, and what
+/// every squad member is carrying.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This is the whole of DECISIONS.md D-050. Seed, node index and the squad's carried hit points
+/// survive a reload; the half-played board does not, and the current fight restarts from
+/// deployment. The honest way to persist a board would be the seed plus the ordered run command
+/// log, which replays everything — and until that is what gets written, a board snapshot would only
+/// be a second save format that has to agree with the first.
+/// </para>
+/// <para>
+/// One <c>key: value</c> line per field, hand-written, the same shape as <see cref="CustomFightStore"/>
+/// and <see cref="PlaytestNotes"/>: nothing here depends on a serialiser surviving trimming, and the
+/// stored shape is visible in one place. Squad members are repeated <c>unit:</c> lines rather than a
+/// nested structure, because a flat file of lines is the only thing this format has ever needed.
+/// </para>
+/// </remarks>
+public sealed record RunSave
+{
+    /// <summary>Storage id; a zero-padded tick count, so runs sort chronologically.</summary>
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>Which campaign was being played.</summary>
+    public string CampaignId { get; init; } = CampaignLibrary.FaultlineId;
+
+    /// <summary>Run seed. Every fight in the run is derived from it.</summary>
+    public int Seed { get; init; }
+
+    /// <summary>Index of the node the run is standing on.</summary>
+    public int NodeIndex { get; init; }
+
+    /// <summary>How many fights had been won when this was written.</summary>
+    public int FightsWon { get; init; }
+
+    /// <summary>Won, lost, or still going.</summary>
+    public RunOutcome Outcome { get; init; } = RunOutcome.InProgress;
+
+    /// <summary>
+    /// True when the run was inside a fight when it was saved. Not restored as such — it is what
+    /// lets the screen say that the reload sent the current fight back to deployment.
+    /// </summary>
+    public bool WasInFight { get; init; }
+
+    /// <summary>The squad, in campaign order: kind, carried hit points and status.</summary>
+    public IReadOnlyList<RunUnit> Squad { get; init; } = Array.Empty<RunUnit>();
+
+    /// <summary>Takes a snapshot of a live run.</summary>
+    /// <param name="id">Storage id.</param>
+    /// <param name="state">The run to write down.</param>
+    /// <returns>The record.</returns>
+    public static RunSave Of(string id, RunState state)
+    {
+        if (state is null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
+        return new RunSave
+        {
+            Id = id,
+            CampaignId = state.Campaign.Id,
+            Seed = state.Seed,
+            NodeIndex = state.NodeIndex,
+            FightsWon = state.FightsWon,
+            Outcome = state.Outcome,
+            WasInFight = state.Phase == RunPhase.InFight,
+            Squad = state.Squad,
+        };
+    }
+
+    /// <summary>
+    /// Rebuilds the run this record describes, standing on its node with the fight not yet entered.
+    /// </summary>
+    /// <returns>The restored run.</returns>
+    /// <exception cref="ArgumentException">
+    /// The campaign id is not one the game ships, or the stored squad does not match the campaign's.
+    /// </exception>
+    public RunState Restore() =>
+        // Core assembles the state. The storage layer's job stops at three facts and a squad; whether
+        // they are a legal run — the squad matching the campaign, a finished run being Complete, a run
+        // past its last node having won — is the rules' business.
+        Campaign.Restore(
+            CampaignLibrary.ById(CampaignId), Seed, NodeIndex, Squad, FightsWon, Outcome);
+
+    /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
+    /// <returns>The stored text.</returns>
+    public string Render()
+    {
+        var text = new StringBuilder();
+        text.Append("id: ").Append(Id).Append('\n');
+        text.Append("campaign: ").Append(CampaignId).Append('\n');
+        text.Append("seed: ").Append(Number(Seed)).Append('\n');
+        text.Append("node: ").Append(Number(NodeIndex)).Append('\n');
+        text.Append("fights-won: ").Append(Number(FightsWon)).Append('\n');
+        text.Append("outcome: ").Append(Outcome.ToString()).Append('\n');
+        text.Append("in-fight: ").Append(WasInFight ? "yes" : "no").Append('\n');
+
+        foreach (var unit in Squad)
+        {
+            // id, kind, carried hp, status — positional, because a squad member is four small
+            // values and a nested shape would be the only nested thing in the format.
+            text.Append("unit: ")
+                .Append(Number(unit.Id.Value)).Append(' ')
+                .Append(unit.Kind).Append(' ')
+                .Append(Number(unit.Hp)).Append(' ')
+                .Append(unit.Status)
+                .Append('\n');
+        }
+
+        return text.ToString();
+    }
+
+    /// <summary>Reads a record back out of storage.</summary>
+    /// <param name="stored">Text produced by <see cref="Render"/>.</param>
+    /// <returns>The record, or <c>null</c> when it is unreadable.</returns>
+    public static RunSave? Parse(string? stored)
+    {
+        if (string.IsNullOrWhiteSpace(stored))
+        {
+            return null;
+        }
+
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        var squad = new List<RunUnit>();
+
+        foreach (var line in stored!.Split('\n'))
+        {
+            int split = line.IndexOf(':');
+            if (split < 0)
+            {
+                continue;
+            }
+
+            var key = line.Substring(0, split).Trim();
+            var value = line.Substring(split + 1).Trim();
+
+            if (string.Equals(key, "unit", StringComparison.Ordinal))
+            {
+                var unit = ParseUnit(value);
+                if (unit is not null)
+                {
+                    squad.Add(unit);
+                }
+
+                continue;
+            }
+
+            fields[key] = value;
+        }
+
+        if (!fields.TryGetValue("id", out var id) || id.Length == 0)
+        {
+            return null;
+        }
+
+        var campaignId = fields.TryGetValue("campaign", out var raw) && raw.Length > 0
+            ? raw
+            : CampaignLibrary.FaultlineId;
+
+        // A record naming a campaign this build does not ship is unreadable rather than a crash on
+        // the next render.
+        if (!Known(campaignId))
+        {
+            return null;
+        }
+
+        return new RunSave
+        {
+            Id = id,
+            CampaignId = campaignId,
+            Seed = Int(fields, "seed"),
+            NodeIndex = Int(fields, "node"),
+            FightsWon = Int(fields, "fights-won"),
+            Outcome = fields.TryGetValue("outcome", out var outcome)
+                && Enum.TryParse(outcome, out RunOutcome parsed)
+                    ? parsed
+                    : RunOutcome.InProgress,
+            WasInFight = fields.TryGetValue("in-fight", out var inFight)
+                && string.Equals(inFight, "yes", StringComparison.Ordinal),
+            Squad = squad,
+        };
+    }
+
+    private static RunUnit? ParseUnit(string value)
+    {
+        var parts = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 4
+            || !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+            || !Enum.TryParse(parts[1], out UnitKind kind)
+            || !int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int hp)
+            || !Enum.TryParse(parts[3], out RunUnitStatus status))
+        {
+            // A line that cannot be read is dropped rather than guessed at: a squad member restored
+            // at the wrong health is worse than one the player can see is missing.
+            return null;
+        }
+
+        return new RunUnit { Id = new RunUnitId(id), Kind = kind, Hp = hp, Status = status };
+    }
+
+    private static bool Known(string campaignId)
+    {
+        foreach (var campaign in CampaignLibrary.All())
+        {
+            if (string.Equals(campaign.Id, campaignId, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int Int(Dictionary<string, string> fields, string key) =>
+        fields.TryGetValue(key, out var raw)
+        && int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+            ? value
+            : 0;
+
+    private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
+}

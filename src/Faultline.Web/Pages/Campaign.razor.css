@@ -81,6 +81,60 @@ h3 {
     text-decoration: none;
 }
 
+.squad-name {
+    min-width: 7.5rem;
+}
+
+.squad-hp {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.squad li.hurt .squad-hp {
+    color: #d9b45f;
+}
+
+.squad li.lost .squad-hp {
+    color: var(--muted);
+}
+
+.tag.downed { color: #d9b45f; border-color: #d9b45f; }
+.tag.voided { color: var(--e); border-color: var(--e); }
+
+/* What the last run command did */
+
+.latest {
+    margin-bottom: 1.5rem;
+}
+
+.run-events {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: .82rem;
+    line-height: 1.6;
+}
+
+.run-events li {
+    border-left: 2px solid var(--line);
+    padding-left: .6rem;
+}
+
+.run-events li.good { border-left-color: var(--b); }
+.run-events li.bad  { border-left-color: var(--e); }
+
+.journal {
+    color: var(--muted);
+    font-size: .78rem;
+    margin-bottom: 1.5rem;
+}
+
+.journal ol {
+    line-height: 1.6;
+    margin: .5rem 0 0;
+    padding-left: 1.4rem;
+}
+
 .seed {
     color: var(--muted);
     display: block;
@@ -183,6 +237,30 @@ h3 {
 
 .slot.idle .slot-mark {
     color: var(--muted);
+}
+
+.slot.failed             { border-left-color: var(--e); background: rgba(190, 80, 80, .08); }
+.slot.failed .slot-mark  { color: var(--e); }
+
+.slot-kind {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: .64rem;
+    letter-spacing: .08em;
+    padding: .05rem .32rem;
+    text-transform: uppercase;
+}
+
+.slot.rest {
+    background: rgba(120, 160, 190, .06);
+    border-style: dashed;
+    border-left-style: solid;
+}
+
+.slot-kind.rest-kind {
+    border-color: var(--b);
+    color: var(--b);
 }
 
 code {
