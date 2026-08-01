@@ -1,5 +1,17 @@
 # Changelog
 
+## Objectives, clocks and reinforcements
+
+- Six win conditions in the `.fight` format — `kill-all`, `survive`, `hold`, `reach`, `protect`,
+  `destroy` — where before there was exactly one, which is why all 55 battles were the same scenario
+  on different boards.
+- Structures with HP as board state rather than units. A Destroy structure can only be hurt by
+  collision, which makes the brief's own fight 4 a test of the game's thesis rather than a damage race.
+- `turn-limit:` and published reinforcement waves. The timetable is emitted at setup and arrivals
+  land before intents are declared, so a newcomer's plan is on the table the round it walks on.
+- `hold-the-gate.fight` (#601) is built from all three and adds no new troops — a deliberate test of
+  the substrate rather than of content.
+
 ## Ten enemy variants
 
 - Six new behaviours — **Warden** (Move 0, actually holds a position), **Perch** (contests high

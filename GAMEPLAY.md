@@ -286,3 +286,40 @@ the export header say the command log will not replay from the seed.
 
 Export offers three routes: save into a folder (File System Access API, Chromium only — the button
 is disabled elsewhere), download (everywhere), and copy to the clipboard.
+
+## Objectives, clocks and reinforcements
+
+A fight's goal is authored. With no `objective:` key it is **Kill All**, which is what all 55 of the
+original battles are.
+
+| Objective | Wins when |
+|---|---|
+| `kill-all` | nothing hostile is left |
+| `survive N` | the end of round N arrives with any player unit standing |
+| `hold <tiles> for N` | no enemy stands on those tiles at the end of round N |
+| `reach <tiles>` | a player unit stands on one, the moment it happens |
+| `protect <tile>` | the fight ends with the structure standing. It falls, you lose |
+| `destroy <tile>` | the structure falls |
+
+Outcomes are checked in a fixed order: every player unit down or voided → loss; a Protect structure
+in rubble → loss; a Destroy structure in rubble or a Reach tile occupied → win; **no enemy left and
+none due → win under every objective** (D-034); then, at end of round only, the objective deadline
+and finally the turn limit.
+
+**Structures** are board state, not units (D-035). A structure blocks its tile like a unit, and when
+it is destroyed the tile clears — which can open a route. Protect defaults to 6 HP and Destroy to 8,
+both authorable. A Protect structure can be attacked; a Destroy structure cannot, and **collision is
+the only thing that hurts it** — 2 per slam, so four slams for a default 8 HP. Because collision is
+universal physics, shoving an enemy into a structure you are guarding damages it too.
+
+Enemies do not yet path toward a Protect structure. Instead an enemy that **ends its activation
+adjacent** to one claws at it for its attack damage (D-036) — a stand-in until the planner learns
+about structures.
+
+**`turn-limit: N`** caps the fight. Reaching it is a loss, except under `survive`, where arriving is
+the whole point.
+
+**Reinforcements** arrive on an authored schedule, `wave 2 = h@0,2 h@0,4`, at the start of their
+round and before intents are declared, so a newcomer's plan is published with everyone else's. The
+entire timetable is published at setup (D-037). A blocked arrival slides to the nearest free tile
+within 2, or waits and retries — never cancelled, so a fight is never quietly short an enemy (D-038).

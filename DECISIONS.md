@@ -252,3 +252,38 @@ at Move 0, so the planner never declares a move it cannot make and the activatio
 asserted a non-Hold intent — an assertion that *every enemy chases*, which Move 0 falsifies by
 design. It now starts a Move 0 archetype adjacent instead; a static enemy with no planner branch
 still falls through to `Hold` with a player touching it, so the test keeps its teeth.
+
+**D-034 — Clearing the board wins under every objective.**
+An empty board cannot stop anything, and without this a Destroy fight that killed its own ammunition
+would deadlock with no way to finish the structure. One universal fallback is simpler than a
+per-objective exception list.
+
+**D-035 — Objective structures are board state, not units with a new Team.**
+A structure never activates, moves, Staggers, Clings or spends Footing. Modelled as a `Unit`, every
+loop over `Units` — activation candidates, pending checks, round reset, AI targeting, deployment,
+outcome counting — would need a "but not this one" clause. As separate state it costs one check in
+`IsOccupied`, and movement, deployment, rescue placement and displacement then treat it correctly for
+free. It occupies its tile and takes ordinary collision damage, because collision is physics and both
+sides obey identical physics (Brief §6 prior 2). Two consequences worth stating: a Protect structure
+is dangerous to fight beside, and collision is the *only* lever on a Destroy structure, which is
+exactly what Brief §3 fight 4 asks for.
+
+**D-036 — Protect pressure is a rule, not an AI priority.**
+Brief §3 fight 2 asks enemies to prefer the structure over units. `Ai.cs` was owned by another agent,
+so instead an enemy that *ends its activation adjacent* to a Protect structure claws at it for its
+attack damage. Deterministic, visible, and answerable by shoving it off the ring. But enemies do not
+yet *path toward* the structure, so a Protect fight currently pressures the objective only where the
+fighting already is. Revisit when `Ai.cs` gains a structure branch — this is a stand-in, not the
+finished rule.
+
+**D-037 — The reinforcement timetable is published, and its units exist from round zero.**
+Every arrival is emitted as an event at setup and readable from `GameState.Reinforcements`. The units
+themselves are created undeployed at `Game.Start`, so unit ids are fixed before the first command and
+no scheduling outcome can renumber a unit a command log already names. A hidden schedule is dread; a
+published one is planning, and this game already chose published intents.
+
+**D-038 — A blocked arrival slides, then waits. It is never cancelled.**
+If the authored tile is taken, the arrival takes the nearest free walkable tile within 2 (ties
+row-major); if there is nowhere, it waits at the gate and retries next round. A cancelled wave would
+silently change the fight, and a pending arrival counts as a live enemy, which is what stops a
+`kill-all` being won in the gap between waves.

@@ -77,6 +77,9 @@ Everything above (or below) the board block. One `key: value` per line.
 | `description:` | no | One line, shown when picking a fight. |
 | `protected:` | no | Space-separated `x,y` coordinates the M4 collapse clock never cracks. No space inside a pair. |
 | `footing:` | no | Footing tokens this fight grants. Space-separated `target=count`; target is a side (`a`, `b`, `enemy`) or a unit kind. Omitted means nobody has any. |
+| `objective:` | no | What winning means. `<kind> [tiles...] [for <n>] [hp <n>]`. Kinds: `kill-all` (default), `survive`, `hold`, `reach`, `protect`, `destroy`. |
+| `turn-limit:` | no | Round cap, 1 or more. Reaching it loses the fight unless the objective wins on expiry. |
+| `wave <n> = <c>@<x>,<y> ...` | no | Enemies arriving at the start of round `n`, one line per round. Letters come from `spawn` lines. |
 | `spawn <c> = <UnitKind>` | when the board uses enemy letters | Declares one board letter as an enemy kind. |
 | `board:` | **yes** | Starts the board block. |
 
@@ -105,6 +108,45 @@ footing: enemy=1 Husk=2   # every enemy gets 1, except Husks, which get 2
   something being hard to move.
 - Enemies spend a granted token only to stay out of a pit, and only when giving up a tile actually
   keeps them out. Players never auto-spend theirs (DECISIONS.md D-026).
+
+## Objectives
+
+`objective:` reads left to right: a token with a comma is a tile, `for <n>` (or a bare number) is the
+round it resolves on, `hp <n>` is a structure's hit points.
+
+```
+objective: kill-all              # win when nothing hostile is left. The default.
+objective: survive 6             # win at the end of round 6 if anyone is still standing
+objective: hold 4,3 4,4 for 7    # win at the end of round 7 if no enemy is on those tiles
+objective: reach 6,0             # win the moment a player unit stands there
+objective: protect 3,3 hp 6      # a 6 HP structure; lose if it falls. hp defaults to 6
+objective: destroy 2,3 hp 8      # an 8 HP structure, immune to attacks. hp defaults to 8
+```
+
+**Clearing the board always wins**, under every objective — an empty board cannot stop anything.
+**Every player unit down or voided always loses.** `hold` has no early loss: an enemy standing on the
+ground in round 2 of a round-7 hold costs nothing, and only the deadline check judges it.
+
+A structure occupies its tile. Nothing walks onto it, and anything displaced into it collides — 2 to
+the unit and 2 to the structure. That is the only way to hurt a `destroy` structure. It also means
+**shoving an enemy into the thing you are guarding damages the thing you are guarding.**
+
+## Reinforcement waves
+
+```
+spawn h = Husk
+wave 2 = h@0,2 h@0,4
+wave 5 = h@0,3
+```
+
+One line per round; two lines for the same round is an error. Arrivals land at the start of the
+round, *before* intents are declared, so a newcomer's plan is published with everyone else's. The
+whole timetable is published at fight start — a hidden schedule is dread, a published one is
+planning.
+
+If the tile is taken the arrival slides to the nearest free tile within 2 (ties row-major). If there
+is nowhere at all it waits at the gate and tries again next round. It is never cancelled, so a fight
+is never quietly short an enemy.
 
 ## Parsing rules that will bite you
 
