@@ -31,6 +31,17 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 
 ## How to run
 
+**The easy way, on Windows — no arguments, no decisions:**
+
+```powershell
+.\play.ps1
+```
+
+It finds a free port itself, starts the server, and opens a browser once the port actually answers.
+Run it twice and you get two working servers rather than an error.
+
+**With options:**
+
 ```bash
 ./run.sh          # Git Bash, macOS, Linux
 .\run.ps1         # PowerShell
