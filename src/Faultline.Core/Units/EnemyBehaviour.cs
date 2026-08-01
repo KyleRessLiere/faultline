@@ -158,6 +158,29 @@ namespace Faultline.Core
             return text;
         }
 
+        /// <summary>
+        /// How this archetype handles high ground, in words, or <c>null</c> when it handles it the
+        /// ordinary way and there is nothing to say.
+        /// </summary>
+        /// <remarks>
+        /// Here rather than in the renderer for the same reason <see cref="Describe(UnitTemplate)"/>
+        /// is: it is a sentence about what a rule does, and a shell that writes its own would go on
+        /// saying it after the rule changed. GAMEPLAY.md "Board and geometry" is the source.
+        /// </remarks>
+        /// <param name="template">Stat block to describe.</param>
+        /// <returns>The sentence, or null.</returns>
+        public static string? DescribeClimb(UnitTemplate template)
+        {
+            if (template is null)
+            {
+                throw new ArgumentNullException(nameof(template));
+            }
+
+            return template.FreeClimb
+                ? "free — climbing onto HighGround costs no extra movement"
+                : null;
+        }
+
         private static BehaviourStep[] Steps(params (string Label, string Detail)[] steps)
         {
             var list = new BehaviourStep[steps.Length];

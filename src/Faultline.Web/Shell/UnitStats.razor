@@ -1,0 +1,20 @@
+@* The stat block, one place. Every figure comes off UnitTemplate; nothing here is retyped. *@
+
+<ul class="stats">
+    <li><span>HP</span>@Template.MaxHp</li>
+    <li><span>Move</span>@Template.Move MP</li>
+    <li><span>Footing</span>@Template.Footing</li>
+    <li><span>Reach</span>@(Template.BasicReach == 0 ? "—" : Template.BasicReach.ToString())</li>
+    <li class="wide"><span>Basic action</span>@EnemyBehaviour.Describe(Template)</li>
+    @if (EnemyBehaviour.DescribeClimb(Template) is { } climb)
+    {
+        <li class="wide"><span>Climb</span>@climb</li>
+    }
+</ul>
+
+@code {
+    /// <summary>Stat block to render.</summary>
+    [Parameter]
+    [EditorRequired]
+    public UnitTemplate Template { get; set; } = null!;
+}

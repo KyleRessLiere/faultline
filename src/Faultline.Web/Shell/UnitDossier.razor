@@ -1,0 +1,157 @@
+@* One enemy card, used by the bestiary and by the board's inspector. Every word of rules text is
+   read out of Core — EnemyBehaviour, UnitTemplate, Ai.IntentFor — so the two can never drift apart.
+   The live half is drawn only when a board is supplied. *@
+
+<article class="beast enemy @(IsLive ? "dossier" : string.Empty)" id="@Id">
+    <header>
+        <span class="beast-art team-e"><UnitArt Kind="Behaviour.Kind" Label="@Behaviour.Name" /></span>
+        <span class="beast-title">
+            <span class="beast-name">@Behaviour.Name</span>
+            <span class="beast-role">@Behaviour.Role</span>
+        </span>
+        @if (OnDismiss.HasDelegate)
+        {
+            <button type="button" class="dossier-close" title="Close this dossier" @onclick="OnDismiss">×</button>
+        }
+    </header>
+
+    @if (IsLive)
+    {
+        var unit = Live!;
+
+        <div class="block live">
+            <h3>This one, right now</h3>
+            <ul class="live-facts">
+                <li><span>HP</span>@unit.Hp/@unit.MaxHp</li>
+                <li><span>Tile</span>@WhereItIs(unit)</li>
+                <li><span>Footing</span>@unit.Footing</li>
+                <li><span>Flags</span>@Flags(unit)</li>
+            </ul>
+            <p class="live-intent">
+                <span class="intent-label">Declared this round</span>
+                <span class="intent-text">@IntentText</span>
+            </p>
+        </div>
+    }
+
+    <p class="beast-summary">@Behaviour.Summary</p>
+
+    <UnitStats Template="Behaviour.Template" />
+
+    <div class="block">
+        <h3>Priority list</h3>
+        <ol class="priority">
+            @foreach (var step in Behaviour.Priorities)
+            {
+                <li>
+                    <span class="step-label">@step.Label</span>
+                    <span class="step-detail">@step.Detail</span>
+                </li>
+            }
+        </ol>
+    </div>
+
+    <div class="block">
+        <h3>Quirks</h3>
+        <ul class="quirks">
+            @foreach (var quirk in Behaviour.Quirks)
+            {
+                <li>@quirk</li>
+            }
+        </ul>
+    </div>
+
+    <div class="block counter">
+        <h3>Counterplay</h3>
+        <ul class="quirks">
+            @foreach (var line in Behaviour.Counterplay)
+            {
+                <li>@line</li>
+            }
+        </ul>
+    </div>
+
+    @if (ShowBestiaryLink)
+    {
+        <a class="dossier-link" href="bestiary#unit-@Behaviour.Kind">Full bestiary entry →</a>
+    }
+</article>
+
+@code {
+    /// <summary>Archetype to describe. Every line of rules text comes from here.</summary>
+    [Parameter]
+    [EditorRequired]
+    public EnemyBehaviour Behaviour { get; set; } = null!;
+
+    /// <summary>DOM id for the card, so the bestiary's anchors keep working.</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>The particular unit on the board, when this card is inspecting one.</summary>
+    [Parameter]
+    public Unit? Live { get; set; }
+
+    /// <summary>The board <see cref="Live"/> stands on, for reading its declared intent.</summary>
+    [Parameter]
+    public GameState? Board { get; set; }
+
+    /// <summary>Whether to offer a link through to the bestiary entry.</summary>
+    [Parameter]
+    public bool ShowBestiaryLink { get; set; }
+
+    /// <summary>Raised by the close button. No handler, no button.</summary>
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+
+    private bool IsLive => Live is not null && Board is not null;
+
+    /// <summary>
+    /// The plan this unit has on record, or the fact that it has none. Core's own telegraph text —
+    /// the shell writes no second version of it.
+    /// </summary>
+    private string IntentText
+    {
+        get
+        {
+            var intent = Ai.IntentFor(Board!, Live!.Id);
+            return intent is null ? "nothing on record" : EventText.Intent(Board!, intent);
+        }
+    }
+
+    private static string WhereItIs(Unit unit)
+    {
+        if (unit.IsOnBoard)
+        {
+            return unit.Position.ToString();
+        }
+
+        return unit.Voided ? "voided" : unit.IsAlive ? "not deployed" : "down";
+    }
+
+    private static string Flags(Unit unit)
+    {
+        var flags = new List<string>();
+
+        if (unit.Clinging)
+        {
+            flags.Add("clinging");
+        }
+
+        if (unit.Staggered)
+        {
+            flags.Add("staggered");
+        }
+
+        if (unit.Enraged)
+        {
+            flags.Add("enraged");
+        }
+
+        if (unit.HasActivated && unit.IsOnBoard)
+        {
+            flags.Add("already activated");
+        }
+
+        return flags.Count == 0 ? "—" : string.Join(", ", flags);
+    }
+}

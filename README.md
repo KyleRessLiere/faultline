@@ -15,9 +15,9 @@ board is the primary weapon.
 
 ## Status
 
-**M2 — Displacement.** Push and pull, collisions, spikes, pits and Clinging, Stagger, Footing and the
-four class abilities are in, with a hover preview of every outcome. Enemies still pass their
-activation slots — their AI is M3.
+**M6 — Runs.** Displacement, six objectives, seventeen enemy archetypes with published priority
+lists, 38 active battles, and a twelve-node campaign that carries damage between fights. The seed
+plus the command log replays a whole run to an identical state, at both the fight and the run level.
 
 ## Layout
 
@@ -54,6 +54,7 @@ Serves on http://localhost:5199. The screens:
 | Route | Screen |
 |---|---|
 | `/` | Battle select — every fight with its board, enemies and lints, plus anything you saved in the creator |
+| `/battles` | The picker — every active board grouped Campaign / Trials / Co-op gauntlet / Other, retired ones collapsed |
 | `/campaign` | The run — twelve nodes, the squad's carried HP, and the two rests. Start a run here; its fights open on `/play` |
 | `/play` | The board, for whichever battle is loaded |
 | `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
@@ -146,6 +147,10 @@ The `args` string must match the task's `label` exactly.
 6. **Win the fight the way that board asks.** Most are Kill All, but a board can also ask you to
    survive a clock, hold tiles at a deadline, reach a line, protect a structure or break one. The
    objective is announced at setup and the enemy's plan for the round is on the table before you act.
+7. **Click an enemy to read it.** The panel beside the board gives that unit's hit points, tile,
+   statuses and the plan it declared this round, then its archetype's whole priority list, quirks and
+   counterplay — the same text `/bestiary` carries. Clicking an enemy you can currently attack still
+   attacks it; to read that one, click its name in the Units panel or the Intents list instead.
 
 Enemies act from a published priority list, and every enemy declares its intent at the top of the
 round — the fight is about reading those intents and moving the board out from under them.

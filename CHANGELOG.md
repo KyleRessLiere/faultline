@@ -22,6 +22,12 @@
 - **A campaign is data**: an id, a squad, an ordered list of nodes. Exactly two node types — fight and
   rest — behind a handler seam, so a third is a new handler rather than a rework. A test pins the
   count at two.
+- **Click an enemy and it tells you what it does.** The board's inspector shows that unit's live hit
+  points, tile, statuses and the plan it declared this round, alongside its archetype's role, stat
+  block, numbered priority list, quirks and counterplay — the same `UnitDossier` card `/bestiary`
+  draws, so the two cannot disagree. Inspection is what a click means when it means nothing else: a
+  targetable enemy is still *attacked* by clicking it, and the Units panel and Intents list stay
+  clickable so a target can be read without disarming the attack.
 - **The shell is a thin renderer over it.** `/campaign` draws `RunState` and `RunEvent`s, combat
   inside a run travels through `Campaign.ApplyRun` wrapped in a `PlayCommand`, saves come back through
   `Campaign.Restore`, and the shell's own `CampaignRun`/`CampaignStore`/`CampaignPlan` are gone — the

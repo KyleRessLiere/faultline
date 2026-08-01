@@ -98,6 +98,43 @@ public sealed class GameSession
     public AbilityDescriptor? SelectedAbility =>
         SelectedUnit is null ? null : AbilityDescriptor.ForKind(SelectedUnit.Kind);
 
+    /// <summary>Enemy the player has opened a dossier on, if any.</summary>
+    /// <remarks>
+    /// Inspection is a view, not a command: it aims nothing, submits nothing and changes no state
+    /// Core can see. It lives here rather than on the page only so it survives a re-render and can
+    /// be dropped when the unit it points at leaves the board.
+    /// </remarks>
+    public UnitId? Inspected { get; private set; }
+
+    /// <summary>The inspected unit, resolved.</summary>
+    public Unit? InspectedUnit => Inspected is null ? null : State.FindUnit(Inspected.Value);
+
+    /// <summary>Core's description of the inspected unit's archetype.</summary>
+    public EnemyBehaviour? InspectedBehaviour =>
+        InspectedUnit is null ? null : EnemyBehaviour.ForKind(InspectedUnit.Kind);
+
+    /// <summary>
+    /// Whether a unit has a dossier to show: an enemy of an archetype Core can describe. Player
+    /// units are served by the action panel and are not inspected here.
+    /// </summary>
+    /// <param name="unit">Unit to test.</param>
+    /// <returns>Whether inspecting it would show anything.</returns>
+    public static bool CanInspect(Unit? unit) =>
+        unit is not null && unit.Team == Team.Enemy && EnemyBehaviour.ForKind(unit.Kind) is not null;
+
+    /// <summary>Opens the dossier on an enemy. Anything else is ignored.</summary>
+    /// <param name="id">Unit to inspect.</param>
+    public void Inspect(UnitId id)
+    {
+        if (CanInspect(State.FindUnit(id)))
+        {
+            Inspected = id;
+        }
+    }
+
+    /// <summary>Closes the dossier.</summary>
+    public void ClearInspection() => Inspected = null;
+
     /// <summary>The fight currently loaded, authored or hand-built.</summary>
     public FightDefinition Fight { get; private set; } = null!;
 
@@ -188,6 +225,7 @@ public sealed class GameSession
         Seed = seed;
         _log.Clear();
         Selected = null;
+        Inspected = null;
         Hovered = null;
         Mode = ActionMode.Move;
 
@@ -627,6 +665,13 @@ public sealed class GameSession
         foreach (var evt in result.Events)
         {
             _log.Add(EventText.Describe(evt, State));
+        }
+
+        // A dossier on something that is no longer on the board is a lie about the live half, so it
+        // closes with the unit rather than freezing its last hit points on screen.
+        if (Inspected.HasValue && !(State.FindUnit(Inspected.Value)?.IsOnBoard ?? false))
+        {
+            Inspected = null;
         }
 
         // Core commits a unit to its activation on that unit's first command; follow it so the

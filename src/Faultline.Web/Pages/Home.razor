@@ -140,6 +140,18 @@
     </div>
 
     <div class="side-pane">
+        @if (Session.InspectedBehaviour is { } inspected)
+        {
+            @* Beside the board, never over it: the fight stays playable with a dossier open. *@
+            <div class="panel dossier-panel">
+                <UnitDossier Behaviour="inspected"
+                             Live="Session.InspectedUnit"
+                             Board="State"
+                             ShowBestiaryLink="true"
+                             OnDismiss="Session.ClearInspection" />
+            </div>
+        }
+
         <div class="panel">
             <h2>Turn</h2>
 
@@ -297,11 +309,22 @@
                 <ul class="intents">
                     @foreach (var intent in State.Intents)
                     {
+                        var planner = State.UnitById(intent.UnitId);
                         <li>
                             <span class="art inline team-e">
                                 <UnitArt Kind="intent.Kind" Label="@intent.Kind.ToString()" />
                             </span>
-                            <strong>@State.UnitById(intent.UnitId).Name</strong>
+                            @if (GameSession.CanInspect(planner))
+                            {
+                                <button type="button"
+                                        class="inspect-link"
+                                        title="What this enemy does"
+                                        @onclick="() => Session.Inspect(planner.Id)">@planner.Name</button>
+                            }
+                            else
+                            {
+                                <strong>@planner.Name</strong>
+                            }
                             <span class="tag">@EventText.Intent(State, intent)</span>
                         </li>
                     }
@@ -318,9 +341,24 @@
                 <tbody>
                     @foreach (var unit in State.Units)
                     {
+                        var row = unit;
                         <tr class="@UnitRowClass(unit)">
                             <td class="team-@TeamClass(unit.Team)">@EventText.Side(unit.Team)</td>
-                            <td>@unit.Name</td>
+                            @* Always available, whatever is armed — this is how you inspect an enemy
+                               whose cell is currently a legal target. *@
+                            <td>
+                                @if (GameSession.CanInspect(row))
+                                {
+                                    <button type="button"
+                                            class="inspect-link"
+                                            title="What this enemy does"
+                                            @onclick="() => Session.Inspect(row.Id)">@row.Name</button>
+                                }
+                                else
+                                {
+                                    @row.Name
+                                }
+                            </td>
                             <td>@UnitHpText(unit)</td>
                             <td>@(unit.IsOnBoard ? unit.Position.ToString() : unit.IsAlive ? "—" : string.Empty)</td>
                             <td class="flags">@UnitFlags(unit)</td>
@@ -800,6 +838,14 @@
         if (unit is not null && Session.Selectable.Contains(unit.Id))
         {
             Session.Select(unit.Id);
+            return;
+        }
+
+        // Last, and only last: a click on an enemy means "inspect" exactly when it means nothing
+        // else. Attacking it always wins.
+        if (unit is not null)
+        {
+            Session.Inspect(unit.Id);
         }
     }
 
@@ -818,7 +864,17 @@
     private bool IsClickable(Coord coord, Unit? unit) =>
         IsDeployTarget(coord)
         || Session.Targets.ContainsKey(coord)
-        || (unit is not null && Session.Selectable.Contains(unit.Id));
+        || (unit is not null && Session.Selectable.Contains(unit.Id))
+        || GameSession.CanInspect(unit);
+
+    /// <summary>
+    /// Whether a click on this cell would open a dossier rather than do something. Inspection is
+    /// last in <see cref="OnCellClick"/>'s ladder, so a targetable enemy is never an inspect cell.
+    /// </summary>
+    private bool IsInspectOnly(Coord coord, Unit? unit) =>
+        GameSession.CanInspect(unit)
+        && !IsDeployTarget(coord)
+        && !Session.Targets.ContainsKey(coord);
 
     private string CellClass(Coord coord, Unit? unit)
     {
@@ -854,6 +910,15 @@
             if (targetable)
             {
                 classes.Add("targetable");
+            }
+            else if (IsInspectOnly(coord, unit))
+            {
+                classes.Add("inspectable");
+            }
+
+            if (Session.Inspected == unit.Id)
+            {
+                classes.Add("inspected");
             }
         }
         else if (IsDeployTarget(coord))
@@ -939,7 +1004,8 @@
         if (unit is not null)
         {
             string extra = unit.Clinging ? ", clinging" : unit.Staggered ? ", staggered" : string.Empty;
-            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}";
+            string inspect = IsInspectOnly(coord, unit) ? " · click to inspect" : string.Empty;
+            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}{inspect}";
         }
 
         if (State.StructureAt(coord) is { } structure)

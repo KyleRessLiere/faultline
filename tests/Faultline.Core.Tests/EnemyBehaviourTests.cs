@@ -291,4 +291,35 @@ public class EnemyBehaviourTests
         parts.AddRange(behaviour.Counterplay);
         return string.Join(" ", parts);
     }
+
+    [Fact]
+    public void DescribeClimb_SaysSomethingOnlyForAnArchetypeThatClimbsFree()
+    {
+        // The sentence lives here rather than in the renderer, so it cannot go on being displayed
+        // after the rule behind it changes.
+        foreach (var kind in System.Enum.GetValues(typeof(UnitKind)).Cast<UnitKind>())
+        {
+            var template = UnitTemplate.For(kind);
+            var climb = EnemyBehaviour.DescribeClimb(template);
+
+            if (template.FreeClimb)
+            {
+                Assert.NotNull(climb);
+                Assert.Contains("HighGround", climb!);
+            }
+            else
+            {
+                Assert.Null(climb);
+            }
+        }
+    }
+
+    [Fact]
+    public void DescribeClimb_IsTrueOfTheArcherAndOfNobodyElseByAccident()
+    {
+        Assert.NotNull(EnemyBehaviour.DescribeClimb(UnitTemplate.For(UnitKind.Archer)));
+        Assert.Null(EnemyBehaviour.DescribeClimb(UnitTemplate.For(UnitKind.Vanguard)));
+        Assert.Null(EnemyBehaviour.DescribeClimb(UnitTemplate.For(UnitKind.Husk)));
+    }
+
 }

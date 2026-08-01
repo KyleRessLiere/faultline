@@ -44,54 +44,7 @@
         <div class="beast-grid">
             @foreach (var behaviour in EnemyBehaviour.All())
             {
-                var template = behaviour.Template;
-
-                <article class="beast enemy" id="unit-@behaviour.Kind">
-                    <header>
-                        <span class="beast-art team-e"><UnitArt Kind="behaviour.Kind" Label="@behaviour.Name" /></span>
-                        <span class="beast-title">
-                            <span class="beast-name">@behaviour.Name</span>
-                            <span class="beast-role">@behaviour.Role</span>
-                        </span>
-                    </header>
-
-                    <p class="beast-summary">@behaviour.Summary</p>
-
-                    @Stats(template)
-
-                    <div class="block">
-                        <h3>Priority list</h3>
-                        <ol class="priority">
-                            @foreach (var step in behaviour.Priorities)
-                            {
-                                <li>
-                                    <span class="step-label">@step.Label</span>
-                                    <span class="step-detail">@step.Detail</span>
-                                </li>
-                            }
-                        </ol>
-                    </div>
-
-                    <div class="block">
-                        <h3>Quirks</h3>
-                        <ul class="quirks">
-                            @foreach (var quirk in behaviour.Quirks)
-                            {
-                                <li>@quirk</li>
-                            }
-                        </ul>
-                    </div>
-
-                    <div class="block counter">
-                        <h3>Counterplay</h3>
-                        <ul class="quirks">
-                            @foreach (var line in behaviour.Counterplay)
-                            {
-                                <li>@line</li>
-                            }
-                        </ul>
-                    </div>
-                </article>
+                <UnitDossier Behaviour="behaviour" Id="@($"unit-{behaviour.Kind}")" />
             }
         </div>
     </section>
@@ -117,7 +70,7 @@
                         </span>
                     </header>
 
-                    @Stats(template)
+                    <UnitStats Template="template" />
 
                     <div class="block">
                         <h3>Ability</h3>
@@ -138,20 +91,3 @@
         </div>
     </section>
 </div>
-
-@code {
-    private RenderFragment Stats(UnitTemplate template) => __builder =>
-    {
-        <ul class="stats">
-            <li><span>HP</span>@template.MaxHp</li>
-            <li><span>Move</span>@template.Move MP</li>
-            <li><span>Footing</span>@template.Footing</li>
-            <li><span>Reach</span>@(template.BasicReach == 0 ? "—" : template.BasicReach.ToString())</li>
-            <li class="wide"><span>Basic action</span>@EnemyBehaviour.Describe(template)</li>
-            @if (template.FreeClimb)
-            {
-                <li class="wide"><span>Climb</span>free — HighGround costs no extra movement</li>
-            }
-        </ul>
-    };
-}
