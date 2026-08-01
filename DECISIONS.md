@@ -77,3 +77,37 @@ real one. `Game.IsEnemyTurn` marks the seam M3 replaces.
 **D-014 — `GameState.Momentum` exists from M1 but nothing writes to it until M5.**
 Momentum is part of the state shape the brief specifies. Carrying the field early avoids churning
 every state transition later; no accounting rule is implemented ahead of its milestone.
+
+---
+
+## M2
+
+**D-015 — Bull Rush spends both halves of the activation.**
+Brief §2 lists it as the Vanguard's Ability, but it moves the Vanguard "up to 3 in a line" — exactly
+its Move. Treating it as action-only would allow Move 3 then charge 3, six tiles in one activation.
+Charging *is* the movement, so it consumes both halves. It stays worth taking because it shoves for 2
+where the basic attack shoves for 1.
+
+**D-016 — A clinging unit is Voided at the end of the round *after* the one it fell in.**
+Brief §2 says a unit "clings for exactly one round" and is Voided when "its activation slot arrives
+un-rescued", but a clinging unit never gets an activation slot — it cannot act. Resolving at end of
+round is what the brief's own round-end sequence lists, and giving it one full round means an ally
+actually has the chance to reach it. Voiding on the first round end would make a shove on the last
+activation of a round an unanswerable kill.
+
+**D-017 — Player Footing is not yet an interactive prompt.**
+Brief §2 lets a displaced unit's owner choose to spend Footing. Enemies follow the deterministic rule
+(spend only to avoid a pit) and that is implemented and tested. The player-facing choice has no
+trigger in M2: the only thing that displaces a player unit is an enemy, and enemies cannot act until
+M3. The rule itself is implemented in `Displacement.EffectiveDistance`; M3 adds the decision point
+when there is finally something to decide against. Flagged rather than faked.
+
+**D-018 — The Anchor has Push resistance 1, not a binary immunity to Push 1.**
+Brief §4 asks for three things at once: "Anchor ignores Push 1; takes Push 2. Push 1 vs Staggered
+Anchor → moves 1." A binary immunity cannot produce the third — Stagger makes it an effective Push 2,
+which would move it 2, not 1. Subtracting one tile from every Push satisfies all three: Push 1 → 0,
+Push 2 → 1, Staggered Push 1 → effective 2 → 1. Pull is untouched, as §2 requires.
+
+**D-019 — Wardbearer Hold protects its allies but not itself.**
+Brief §2 says "allies adjacent to Wardbearer", and a unit is not adjacent to itself. Left as written:
+the anchor that steadies the line is the one thing on it you can still shove.

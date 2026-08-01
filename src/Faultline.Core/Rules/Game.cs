@@ -99,6 +99,15 @@ namespace Faultline.Core
                 case AttackCommand attack:
                     next = ApplyAttack(state, attack, events);
                     break;
+                case AbilityCommand ability:
+                    next = ApplyAbility(state, ability, events);
+                    break;
+                case RescueCommand rescue:
+                    next = ApplyRescue(state, rescue, events);
+                    break;
+                case FinishClingingCommand finish:
+                    next = ApplyFinish(state, finish, events);
+                    break;
                 case EndActivationCommand end:
                     next = ApplyEndActivation(state, end, events);
                     break;
@@ -165,6 +174,46 @@ namespace Faultline.Core
                         {
                             commands.Add(new AttackCommand(unit.Id, target.Id));
                         }
+
+                        if (Combat.CanPull(state, unit, target))
+                        {
+                            commands.Add(new AttackCommand(unit.Id, target.Id, AttackMode.Pull));
+                        }
+                    }
+
+                    var descriptor = Abilities.Of(unit);
+                    if (descriptor is not null && Abilities.IsUsable(unit))
+                    {
+                        foreach (var targetId in Abilities.LegalTargets(state, unit))
+                        {
+                            commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, targetId));
+                        }
+
+                        foreach (var direction in Abilities.LegalDirections(state, unit))
+                        {
+                            commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, null, direction));
+                        }
+                    }
+                }
+
+                // Brief §2: a rescue costs the whole activation, so it needs both halves unspent.
+                if (!unit.HasMoved && !unit.HasActed)
+                {
+                    foreach (var clinging in state.Units)
+                    {
+                        if (Pits.CanRescue(state, unit, clinging))
+                        {
+                            commands.Add(new RescueCommand(unit.Id, clinging.Id));
+                        }
+                    }
+                }
+
+                // Finishing a clinging enemy is free — it costs neither half.
+                foreach (var clinging in state.Units)
+                {
+                    if (Pits.CanFinish(state, unit, clinging))
+                    {
+                        commands.Add(new FinishClingingCommand(unit.Id, clinging.Id));
                     }
                 }
 
@@ -191,7 +240,7 @@ namespace Faultline.Core
             if (state.ActiveUnitId.HasValue)
             {
                 var active = state.FindUnit(state.ActiveUnitId.Value);
-                if (active is not null && active.IsOnBoard && !active.HasActivated)
+                if (active is not null && CanAct(active) && !active.HasActivated)
                 {
                     yield return active;
                 }
@@ -201,12 +250,15 @@ namespace Faultline.Core
 
             foreach (var unit in state.Units)
             {
-                if (unit.Team == state.ActiveTeam && unit.IsOnBoard && !unit.HasActivated)
+                if (unit.Team == state.ActiveTeam && CanAct(unit) && !unit.HasActivated)
                 {
                     yield return unit;
                 }
             }
         }
+
+        // A clinging unit holds an activation slot but cannot spend it — Brief §2.
+        private static bool CanAct(Unit unit) => unit.IsOnBoard && !unit.Clinging;
 
         private static bool CanDeployOnto(GameState state, Coord tile) =>
             state.Board.InBounds(tile)
@@ -338,6 +390,21 @@ namespace Faultline.Core
             Require(!unit.HasActed, "Unit has already acted this activation.");
 
             var target = state.UnitById(command.TargetId);
+
+            if (command.Mode == AttackMode.Pull)
+            {
+                Require(Combat.CanPull(state, unit, target), "Target cannot be pulled.");
+
+                state = CommitActivation(state, unit, events);
+                unit = state.UnitById(unit.Id);
+                state = state.WithUnit(unit with { HasActed = true });
+
+                state = Displacement.ResolveAuto(
+                    state, target.Id, unit.Position, DisplacementKind.Pull, 1, events);
+
+                return AfterAction(state, unit.Id, events);
+            }
+
             Require(Combat.CanAttack(state, unit, target, out int damage), "Target cannot be attacked.");
 
             state = CommitActivation(state, unit, events);
@@ -354,7 +421,90 @@ namespace Faultline.Core
 
             state = Combat.ApplyDamage(state, target.Id, damage, DamageSource.Attack, events);
 
+            // Brief §2: the Vanguard's basic shove rides along with its damage.
+            int push = unit.Template.AttackPush;
+            if (push > 0 && state.UnitById(target.Id).IsOnBoard)
+            {
+                state = Displacement.ResolveAuto(
+                    state, target.Id, unit.Position, DisplacementKind.Push, push, events);
+            }
+
             return AfterAction(state, unit.Id, events);
+        }
+
+        private static GameState ApplyAbility(GameState state, AbilityCommand command, List<GameEvent> events)
+        {
+            var unit = RequireActivatable(state, command.UnitId);
+            Require(!unit.HasActed, "Unit has already acted this activation.");
+
+            var descriptor = Abilities.Of(unit);
+            Require(descriptor is not null && descriptor.Ability == command.Ability, "That unit does not have that ability.");
+            Require(Abilities.IsUsable(unit), "That ability cannot be used.");
+
+            if (descriptor!.Targeting == AbilityTargeting.Enemy)
+            {
+                Require(command.TargetId.HasValue, "That ability needs a target.");
+                Require(
+                    Contains(Abilities.LegalTargets(state, unit), command.TargetId!.Value),
+                    "Target is not legal for that ability.");
+            }
+            else
+            {
+                Require(command.Direction.HasValue, "That ability needs a direction.");
+                Require(
+                    Contains(Abilities.LegalDirections(state, unit), command.Direction!.Value),
+                    "That direction does nothing.");
+            }
+
+            state = CommitActivation(state, unit, events);
+            unit = state.UnitById(unit.Id);
+
+            // Brief §2: Bull Rush is the activation's movement as well as its action, since it is the
+            // Vanguard moving (DECISIONS.md D-015).
+            bool consumesMove = descriptor.Targeting == AbilityTargeting.Direction;
+            state = state.WithUnit(unit with { HasActed = true, HasMoved = unit.HasMoved || consumesMove });
+
+            state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
+
+            return AfterAction(state, unit.Id, events);
+        }
+
+        private static GameState ApplyRescue(GameState state, RescueCommand command, List<GameEvent> events)
+        {
+            var rescuer = RequireActivatable(state, command.UnitId);
+            Require(!rescuer.HasMoved && !rescuer.HasActed, "A rescue costs the entire activation.");
+
+            var clinging = state.UnitById(command.ClingingId);
+            Require(Pits.CanRescue(state, rescuer, clinging), "That unit cannot be rescued from here.");
+
+            var destination = Pits.RescueDestination(state, rescuer)!.Value;
+
+            state = CommitActivation(state, rescuer, events);
+            state = state.WithUnit(state.UnitById(clinging.Id) with
+            {
+                Position = destination,
+                Clinging = false,
+                ClingingSinceRound = 0,
+            });
+            events.Add(new Rescued(clinging.Id, rescuer.Id, destination));
+
+            state = state.WithUnit(state.UnitById(rescuer.Id) with { HasMoved = true, HasActed = true });
+
+            return AfterAction(state, rescuer.Id, events);
+        }
+
+        private static GameState ApplyFinish(GameState state, FinishClingingCommand command, List<GameEvent> events)
+        {
+            var attacker = RequireActivatable(state, command.UnitId);
+            var clinging = state.UnitById(command.ClingingId);
+            Require(Pits.CanFinish(state, attacker, clinging), "That unit cannot be finished from here.");
+
+            state = CommitActivation(state, attacker, events);
+
+            // Free action: neither half of the activation is spent.
+            state = Pits.Void(state, clinging.Id, "kicked off the ledge", events);
+
+            return AfterAction(state, attacker.Id, events);
         }
 
         private static GameState ApplyEndActivation(GameState state, EndActivationCommand command, List<GameEvent> events)
@@ -372,6 +522,7 @@ namespace Faultline.Core
             var unit = state.UnitById(id);
             Require(unit.Team == state.ActiveTeam, "It is not that team's activation.");
             Require(unit.IsOnBoard, "Unit is not on the board.");
+            Require(!unit.Clinging, "A clinging unit cannot act.");
             Require(!unit.HasActivated, "Unit has already activated this round.");
             Require(
                 !state.ActiveUnitId.HasValue || state.ActiveUnitId.Value == id,
@@ -402,7 +553,7 @@ namespace Faultline.Core
 
             // Brief §2: an activation is Move plus one Action in either order — once both halves are
             // spent, or the unit is off the board, there is nothing left to choose.
-            if (!unit.IsOnBoard || (unit.HasMoved && unit.HasActed))
+            if (!CanAct(unit) || (unit.HasMoved && unit.HasActed))
             {
                 return EndActivation(state, unitId, events);
             }
@@ -435,6 +586,15 @@ namespace Faultline.Core
             if (!playersPending && !enemiesPending)
             {
                 events.Add(new RoundEnded(state.Round));
+
+                // Brief §2 round end: Clinging resolution, then Stagger clears in BeginRound.
+                state = Pits.ResolveEndOfRound(state, events);
+                state = CheckOutcome(state, events);
+                if (state.Outcome != FightOutcome.InProgress)
+                {
+                    return state;
+                }
+
                 return BeginRound(state, events);
             }
 
@@ -511,7 +671,7 @@ namespace Faultline.Core
         {
             foreach (var unit in state.Units)
             {
-                if (unit.Team == team && unit.IsOnBoard && !unit.HasActivated)
+                if (unit.Team == team && CanAct(unit) && !unit.HasActivated)
                 {
                     return true;
                 }
@@ -575,11 +735,13 @@ namespace Faultline.Core
             return state;
         }
 
-        private static bool Contains(IReadOnlyList<Coord> zone, Coord tile)
+        private static bool Contains<T>(IReadOnlyList<T> items, T value)
+            where T : struct
         {
-            foreach (var c in zone)
+            var comparer = EqualityComparer<T>.Default;
+            foreach (var item in items)
             {
-                if (c == tile)
+                if (comparer.Equals(item, value))
                 {
                     return true;
                 }

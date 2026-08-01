@@ -44,8 +44,11 @@ namespace Faultline.Core
         /// <summary>Staggered until end of round; the next displacement against it gains +1 (M2).</summary>
         public bool Staggered { get; init; }
 
-        /// <summary>True while clinging to the lip of a pit (M2).</summary>
+        /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
+
+        /// <summary>Round the unit went into the pit, so end-of-round resolution knows how long it has hung on.</summary>
+        public int ClingingSinceRound { get; init; }
 
         /// <summary>Permanently removed from the run — died in a pit (M2).</summary>
         public bool Voided { get; init; }

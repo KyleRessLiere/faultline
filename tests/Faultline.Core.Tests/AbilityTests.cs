@@ -1,0 +1,462 @@
+using System.Linq;
+using Faultline.Core;
+
+namespace Faultline.Core.Tests;
+
+public class AbilityTests
+{
+    // --- Descriptors ------------------------------------------------------------------
+
+    [Fact]
+    public void EveryPlayerClass_HasExactlyOneAbility()
+    {
+        Assert.Equal(4, AbilityDescriptor.All().Count);
+        Assert.Equal(Ability.BullRush, AbilityDescriptor.ForKind(UnitKind.Vanguard)!.Ability);
+        Assert.Equal(Ability.StaggerShot, AbilityDescriptor.ForKind(UnitKind.Archer)!.Ability);
+        Assert.Equal(Ability.Reel, AbilityDescriptor.ForKind(UnitKind.Threadcaster)!.Ability);
+        Assert.Equal(Ability.Hold, AbilityDescriptor.ForKind(UnitKind.Wardbearer)!.Ability);
+    }
+
+    [Fact]
+    public void Enemies_HaveNoAbility()
+    {
+        foreach (var kind in new[] { UnitKind.Husk, UnitKind.Lobber, UnitKind.Anchor, UnitKind.Grappler, UnitKind.Stalker })
+        {
+            Assert.Null(AbilityDescriptor.ForKind(kind));
+        }
+    }
+
+    [Fact]
+    public void Descriptors_CarryRulesTextAndNumbersForTheUi()
+    {
+        foreach (var descriptor in AbilityDescriptor.All())
+        {
+            Assert.False(string.IsNullOrWhiteSpace(descriptor.Name));
+            Assert.False(string.IsNullOrWhiteSpace(descriptor.Summary));
+            Assert.False(string.IsNullOrWhiteSpace(descriptor.Effect));
+        }
+
+        Assert.Equal("1 dmg · push 1", AbilityDescriptor.For(Ability.StaggerShot).Effect);
+        Assert.Equal("push 2", AbilityDescriptor.For(Ability.BullRush).Effect);
+        Assert.Equal("pull to adjacent", AbilityDescriptor.For(Ability.Reel).Effect);
+        Assert.Equal("passive", AbilityDescriptor.For(Ability.Hold).Effect);
+    }
+
+    [Fact]
+    public void Hold_IsPassiveAndNeverOffered()
+    {
+        var state = BoardBuilder.Open(5, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+
+        Assert.False(Abilities.IsUsable(wardbearer));
+        Assert.Empty(Abilities.LegalTargets(state, wardbearer));
+        Assert.DoesNotContain(Game.LegalCommands(state), c => c is AbilityCommand);
+    }
+
+    // --- Stagger Shot ------------------------------------------------------------------
+
+    [Fact]
+    public void StaggerShot_DealsOneAndPushesTheTargetOneAway()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
+
+        Assert.Equal(Ability.StaggerShot, result.Single<AbilityUsed>().Ability);
+        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(new Coord(3, 0), result.NewState.Get(husk.Id).Position);
+    }
+
+    [Fact]
+    public void StaggerShot_IntoAWall_AddsCollisionDamageOnTop()
+    {
+        var state = BoardBuilder.Rows("...#")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
+
+        // 1 from the shot, 2 from slamming into the wall.
+        Assert.Equal(3, result.NewState.Get(husk.Id).Hp);
+        Assert.True(result.NewState.Get(husk.Id).Staggered);
+    }
+
+    [Fact]
+    public void StaggerShot_ThatKillsTheTarget_DoesNotThenPushACorpse()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 1)
+            .Enemy(UnitKind.Anchor, 5, 0)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
+
+        Assert.Single(result.All<UnitDowned>());
+        Assert.Empty(result.All<UnitPushed>());
+    }
+
+    [Fact]
+    public void StaggerShot_BeyondRangeThree_IsNotOffered()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 5, 0)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+
+        Assert.Empty(Abilities.LegalTargets(state, archer));
+        TestPlay.AssertIllegal(state, new AbilityCommand(archer.Id, Ability.StaggerShot, state.Find(UnitKind.Husk).Id));
+    }
+
+    // --- Reel -------------------------------------------------------------------------
+
+    [Fact]
+    public void Reel_PullsTheTargetAllTheWayToAdjacent()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerB(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(caster.Id, Ability.Reel, husk.Id));
+
+        Assert.Equal(new Coord(1, 0), result.NewState.Get(husk.Id).Position);
+        Assert.True(result.NewState.Get(husk.Id).Position.IsAdjacentTo(caster.Position));
+    }
+
+    [Fact]
+    public void Reel_ResolvesEveryTileOnTheWay_SoItCanDropTheTargetInAPit()
+    {
+        var state = BoardBuilder.Rows(".O...")
+            .PlayerB(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, footing: 0)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(caster.Id, Ability.Reel, husk.Id));
+
+        Assert.True(result.NewState.Get(husk.Id).Clinging);
+        Assert.Equal(new Coord(1, 0), result.NewState.Get(husk.Id).Position);
+    }
+
+    [Fact]
+    public void Reel_AnEnemyWithFooting_DigsInShortOfThePit()
+    {
+        var state = BoardBuilder.Rows(".O...")
+            .PlayerB(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(caster.Id, Ability.Reel, husk.Id));
+
+        Assert.False(result.NewState.Get(husk.Id).Clinging);
+        Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
+        Assert.Single(result.All<FootingSpent>());
+    }
+
+    [Fact]
+    public void Reel_IsNotOfferedAgainstAnAlreadyAdjacentTarget()
+    {
+        var state = BoardBuilder.Open(5, 1)
+            .PlayerB(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        Assert.Empty(Abilities.LegalTargets(state, state.Find(UnitKind.Threadcaster)));
+    }
+
+    // --- Bull Rush ---------------------------------------------------------------------
+
+    [Fact]
+    public void BullRush_ChargesUpToThreeAndShovesTheFirstEnemyTwo()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
+
+        Assert.Equal(new Coord(2, 0), result.NewState.Get(vanguard.Id).Position);
+        Assert.Equal(new Coord(5, 0), result.NewState.Get(husk.Id).Position);
+        Assert.True(result.NewState.Get(vanguard.Id).Position.IsAdjacentTo(new Coord(3, 0)));
+    }
+
+    [Fact]
+    public void BullRush_AgainstAnAdjacentEnemy_ShovesWithoutMoving()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
+
+        Assert.Equal(new Coord(0, 0), result.NewState.Get(vanguard.Id).Position);
+        Assert.Equal(new Coord(3, 0), result.NewState.Get(husk.Id).Position);
+    }
+
+    [Fact]
+    public void BullRush_ConsumesBothHalvesOfTheActivation()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
+
+        Assert.True(result.NewState.Get(vanguard.Id).HasActivated);
+        Assert.False(result.Single<ActivationEnded>().Passed);
+    }
+
+    [Fact]
+    public void BullRush_IsBlockedByAnAllyInTheLine()
+    {
+        var state = BoardBuilder.Open(8, 2)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .PlayerB(UnitKind.Wardbearer, 1, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var charge = Abilities.PreviewCharge(state, vanguard, Direction.Right);
+
+        Assert.True(charge.IsNoOp);
+        Assert.DoesNotContain(
+            Game.LegalCommands(state),
+            c => c is AbilityCommand a && a.Direction == Direction.Right);
+    }
+
+    [Fact]
+    public void BullRush_CannotChargeUpOntoHighGround()
+    {
+        var state = BoardBuilder.Rows("..H..")
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 4, 0)
+            .Build();
+
+        var charge = Abilities.PreviewCharge(state, state.Find(UnitKind.Vanguard), Direction.Right);
+
+        Assert.Equal(new Coord(1, 0), charge.Destination);
+        Assert.Null(charge.Contact);
+    }
+
+    [Fact]
+    public void BullRush_ShovingAnEnemyIntoAPit_LeavesItClinging()
+    {
+        var state = BoardBuilder.Rows("....O.")
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, footing: 0)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
+
+        Assert.True(result.NewState.Get(husk.Id).Clinging);
+    }
+
+    // --- Basic attack changes M2 brings ------------------------------------------------
+
+    [Fact]
+    public void VanguardBasicAttack_DealsOneAndPushesOne()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AttackCommand(vanguard.Id, husk.Id));
+
+        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
+    }
+
+    [Fact]
+    public void ThreadcasterBasicAttack_MayPullOneInsteadOfDealingDamage()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerB(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        TestPlay.AssertLegal(state, new AttackCommand(caster.Id, husk.Id, AttackMode.Pull));
+        var result = state.Step(new AttackCommand(caster.Id, husk.Id, AttackMode.Pull));
+
+        Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
+        Assert.Equal(husk.Hp, result.NewState.Get(husk.Id).Hp);
+    }
+
+    [Fact]
+    public void OnlyTheThreadcaster_IsOfferedTheBasicPull()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
+            .Build();
+
+        Assert.DoesNotContain(
+            Game.LegalCommands(state),
+            c => c is AttackCommand a && a.Mode == AttackMode.Pull);
+    }
+
+    // --- Preview fidelity ---------------------------------------------------------------
+
+    [Fact]
+    public void Preview_MatchesWhatResolveActuallyDoes()
+    {
+        var state = BoardBuilder.Rows("...#..")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Build();
+
+        var husk = state.Find(UnitKind.Husk);
+        var preview = Displacement.Preview(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 3);
+
+        var events = new System.Collections.Generic.List<GameEvent>();
+        var after = Displacement.Resolve(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 3, false, events);
+
+        Assert.Equal(preview.Destination, after.Get(husk.Id).Position);
+        Assert.Equal(preview.DamageToUnit, husk.Hp - after.Get(husk.Id).Hp);
+        Assert.Equal(preview.WouldStagger, after.Get(husk.Id).Staggered);
+        Assert.Equal(DisplacementStop.Collision, preview.Stop);
+    }
+
+    [Fact]
+    public void Preview_ReportsAPitOutcomeBeforeItHappens()
+    {
+        var state = BoardBuilder.Rows("...O.")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        var preview = Displacement.Preview(
+            state, state.Find(UnitKind.Husk).Id, new Coord(0, 0), DisplacementKind.Push, 2);
+
+        Assert.Equal(DisplacementStop.Pit, preview.Stop);
+        Assert.True(preview.WouldCling);
+        Assert.True(preview.FootingWouldMatter);
+    }
+
+    [Fact]
+    public void Preview_FlagsWhenADisplacementWouldDownTheTarget()
+    {
+        var state = BoardBuilder.Rows("..#")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 2)
+            .Build();
+
+        var preview = Displacement.Preview(
+            state, state.Find(UnitKind.Husk).Id, new Coord(0, 0), DisplacementKind.Push, 1);
+
+        Assert.True(preview.WouldDown);
+        Assert.Equal(2, preview.DamageToUnit);
+    }
+
+    [Fact]
+    public void Preview_AccountsForTheFootingTheDefenderWillActuallySpend()
+    {
+        // Without modelling the enemy's automatic Footing spend, a preview would promise a pit kill
+        // the rules then refuse to deliver. Found by playing the shell, so it is pinned here.
+        var state = BoardBuilder.Rows("...O.")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        var husk = state.Find(UnitKind.Husk);
+
+        var naive = Displacement.Preview(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 2);
+        var honest = Displacement.PreviewAuto(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 2);
+
+        Assert.Equal(DisplacementStop.Pit, naive.Stop);
+        Assert.NotEqual(DisplacementStop.Pit, honest.Stop);
+
+        var events = new System.Collections.Generic.List<GameEvent>();
+        var after = Displacement.ResolveAuto(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 2, events);
+
+        Assert.Equal(honest.Destination, after.Get(husk.Id).Position);
+        Assert.Equal(honest.WouldCling, after.Get(husk.Id).Clinging);
+    }
+
+    [Theory]
+    [InlineData("...O.")]
+    [InlineData("....#")]
+    [InlineData("...^.")]
+    [InlineData(".....")]
+    public void Preview_AlwaysMatchesResolve_AcrossTerrain(string layout)
+    {
+        var state = BoardBuilder.Rows(layout)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Build();
+
+        var husk = state.Find(UnitKind.Husk);
+        var preview = Displacement.PreviewAuto(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 3);
+
+        var events = new System.Collections.Generic.List<GameEvent>();
+        var after = Displacement.ResolveAuto(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 3, events);
+        var moved = after.Get(husk.Id);
+
+        Assert.Equal(preview.Destination, moved.Position);
+        Assert.Equal(preview.DamageToUnit, husk.Hp - moved.Hp);
+        Assert.Equal(preview.WouldCling, moved.Clinging);
+        Assert.Equal(preview.WouldStagger, moved.Staggered);
+    }
+
+    [Fact]
+    public void RangeTiles_CoverTheAbilityReach()
+    {
+        var state = BoardBuilder.Open(7, 7)
+            .PlayerA(UnitKind.Archer, 3, 3)
+            .Enemy(UnitKind.Husk, 6, 6)
+            .Build();
+
+        var tiles = Abilities.RangeTiles(state, state.Find(UnitKind.Archer));
+
+        Assert.All(tiles, t => Assert.InRange(t.DistanceTo(new Coord(3, 3)), 1, 3));
+        Assert.Contains(new Coord(3, 0), tiles);
+        Assert.DoesNotContain(new Coord(3, 7), tiles);
+    }
+}

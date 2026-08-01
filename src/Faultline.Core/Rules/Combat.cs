@@ -50,6 +50,64 @@ namespace Faultline.Core
             return true;
         }
 
+        /// <summary>
+        /// Whether the attacker may use the pull half of its basic attack instead of the damage half.
+        /// Brief §2 gives only the Threadcaster that choice: "range 3: 1 dmg OR Pull 1".
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="attacker">Attacking unit.</param>
+        /// <param name="target">Target unit.</param>
+        /// <returns>Whether a basic pull is legal.</returns>
+        public static bool CanPull(GameState state, Unit attacker, Unit target)
+        {
+            var template = attacker.Template;
+            if (!template.CanPullWithBasic || !attacker.IsOnBoard || !target.IsOnBoard)
+            {
+                return false;
+            }
+
+            if (!attacker.Team.IsHostileTo(target.Team))
+            {
+                return false;
+            }
+
+            int distance = attacker.Position.DistanceTo(target.Position);
+
+            // Nothing to pull if the target is already touching, and range is the basic profile's.
+            return distance > 1 && distance <= template.Range;
+        }
+
+        /// <summary>
+        /// Every tile the unit's basic attack reaches, so a shell can show its threat range without
+        /// working the geometry out for itself.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="attacker">Unit to measure from.</param>
+        /// <returns>Tiles within basic attack range, excluding the unit's own.</returns>
+        public static IReadOnlyList<Coord> RangeTiles(GameState state, Unit attacker)
+        {
+            var tiles = new List<Coord>();
+            var template = attacker.Template;
+
+            if (template.Attack == AttackKind.None || !attacker.IsOnBoard)
+            {
+                return tiles;
+            }
+
+            int range = template.Attack == AttackKind.Melee ? 1 : template.Range;
+
+            foreach (var coord in state.Board.AllCoords())
+            {
+                int distance = attacker.Position.DistanceTo(coord);
+                if (distance > 0 && distance <= range)
+                {
+                    tiles.Add(coord);
+                }
+            }
+
+            return tiles;
+        }
+
         /// <summary>True when a ranged attacker is standing on HighGround. Brief §2: such shots deal +1.</summary>
         /// <param name="state">Current state.</param>
         /// <param name="attacker">Attacking unit.</param>
@@ -80,6 +138,15 @@ namespace Faultline.Core
             if (amount <= 0 || !target.IsAlive)
             {
                 return state;
+            }
+
+            // Brief §2: any damage to a Clinging unit finishes it — it loses its grip and is gone
+            // for the run, not merely downed.
+            if (target.Clinging)
+            {
+                var lost = target with { Hp = 0, Voided = true, Clinging = false, IsDeployed = false };
+                events.Add(new Voided(targetId, target.Team, target.Position, "took damage while clinging"));
+                return state.WithUnit(lost);
             }
 
             int remaining = target.Hp - amount;

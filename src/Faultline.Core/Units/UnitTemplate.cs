@@ -13,6 +13,8 @@ namespace Faultline.Core
     /// <param name="Damage">Basic attack damage before HighGround bonuses.</param>
     /// <param name="Footing">Footing tokens per fight.</param>
     /// <param name="FreeClimb">True when entering HighGround costs no extra movement.</param>
+    /// <param name="AttackPush">Push distance the basic attack applies on top of its damage.</param>
+    /// <param name="CanPullWithBasic">True when the basic attack may pull 1 instead of dealing damage.</param>
     public sealed record UnitTemplate(
         UnitKind Kind,
         string Name,
@@ -22,7 +24,9 @@ namespace Faultline.Core
         int Range,
         int Damage,
         int Footing,
-        bool FreeClimb)
+        bool FreeClimb,
+        int AttackPush = 0,
+        bool CanPullWithBasic = false)
     {
         private static readonly Dictionary<UnitKind, UnitTemplate> Table = Build();
 
@@ -44,9 +48,10 @@ namespace Faultline.Core
             var all = new[]
             {
                 // Brief §2: Player classes. Move 3 for all player units, 1 Footing per fight.
-                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 7, 3, AttackKind.Melee, 1, 1, 1, false),
+                // The Vanguard's basic shoves; the Threadcaster's may pull instead of hurting.
+                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 7, 3, AttackKind.Melee, 1, 1, 1, false, AttackPush: 1),
                 new UnitTemplate(UnitKind.Archer, "Archer", 4, 3, AttackKind.Ranged, 3, 2, 1, true),
-                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 4, 3, AttackKind.Ranged, 3, 1, 1, false),
+                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 4, 3, AttackKind.Ranged, 3, 1, 1, false, CanPullWithBasic: true),
                 new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 6, 3, AttackKind.Melee, 1, 1, 1, false),
 
                 // Brief §2: Enemies. Grappler and Stalker have no basic attack — they act via displacement (M3).

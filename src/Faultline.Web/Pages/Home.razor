@@ -7,7 +7,7 @@
 
 <div class="shell">
     <div class="board-pane">
-        <h1>Faultline <span class="sub">M1 — move &amp; attack</span></h1>
+        <h1>Faultline <span class="sub">M2 — displacement</span></h1>
 
         <div class="status">
             <span class="chip">@PhaseLabel</span>
@@ -17,7 +17,9 @@
             <span class="chip">Seed @Session.Seed</span>
         </div>
 
-        <div class="grid" style="grid-template-columns: repeat(@State.Board.Width, var(--cell));">
+        <div class="grid"
+             style="grid-template-columns: repeat(@State.Board.Width, var(--cell));"
+             @onmouseleave="() => Session.Hover(null)">
             @foreach (var coord in State.Board.AllCoords())
             {
                 var cell = coord;
@@ -26,17 +28,38 @@
                         class="@CellClass(cell, unit)"
                         disabled="@(!IsClickable(cell, unit))"
                         title="@Tooltip(cell, unit)"
+                        @onmouseover="() => Session.Hover(cell)"
+                        @onfocus="() => Session.Hover(cell)"
                         @onclick="() => OnCellClick(cell, unit)">
                     @if (unit is not null)
                     {
-                        <span class="glyph">@EventText.Glyph(unit.Kind)</span>
+                        <span class="art team-@TeamClass(unit.Team)">
+                            <UnitArt Kind="unit.Kind" Label="@unit.Name" />
+                        </span>
                         <span class="hp">@unit.Hp/@unit.MaxHp</span>
+                        @if (unit.Clinging || unit.Staggered || unit.Footing == 0)
+                        {
+                            <span class="pips">
+                                @if (unit.Clinging)
+                                {
+                                    <i class="pip cling" title="Clinging"></i>
+                                }
+                                @if (unit.Staggered)
+                                {
+                                    <i class="pip stagger" title="Staggered — next shove goes 1 further"></i>
+                                }
+                                @if (unit.Footing == 0)
+                                {
+                                    <i class="pip nofooting" title="No Footing left"></i>
+                                }
+                            </span>
+                        }
                     }
                     else if (IsDeployTarget(cell))
                     {
                         <span class="marker">+</span>
                     }
-                    else if (Session.MoveTargets.ContainsKey(cell))
+                    else if (Session.Targets.ContainsKey(cell))
                     {
                         <span class="marker">•</span>
                     }
@@ -73,28 +96,45 @@
             else if (Session.AwaitingEnemy)
             {
                 <p>Enemy activating…</p>
-                <p class="note">M1 has no AI yet, so enemies pass. The priority-list planner lands in M3.</p>
+                <p class="note">No AI yet — enemies pass. The priority-list planner lands in M3.</p>
             }
-            else if (SelectedUnit is not null)
+            else if (Selected is not null)
             {
-                <p>
-                    <strong>@SelectedUnit.Name</strong> [@EventText.Side(SelectedUnit.Team)] —
-                    @SelectedUnit.Hp/@SelectedUnit.MaxHp HP, Move @SelectedUnit.Move
+                <p class="unit-head">
+                    <span class="art inline team-@TeamClass(Selected.Team)">
+                        <UnitArt Kind="Selected.Kind" Label="@Selected.Name" />
+                    </span>
+                    <strong>@Selected.Name</strong> [@EventText.Side(Selected.Team)] —
+                    @Selected.Hp/@Selected.MaxHp HP, Move @Selected.Move, Footing @Selected.Footing
                 </p>
+
                 <ul class="halves">
-                    <li class="@(SelectedUnit.HasMoved ? "spent" : string.Empty)">Move</li>
-                    <li class="@(SelectedUnit.HasActed ? "spent" : string.Empty)">Action</li>
+                    <li class="@(Selected.HasMoved ? "spent" : string.Empty)">Move</li>
+                    <li class="@(Selected.HasActed ? "spent" : string.Empty)">Action</li>
                 </ul>
-                <p class="note">
-                    @if (Session.MoveTargets.Count > 0)
+
+                <div class="actions">
+                    @foreach (var option in ActionOptions())
                     {
-                        <text>Click a marked tile to move. </text>
+                        <button type="button"
+                                class="mode @(Session.Mode == option.Mode ? "on" : string.Empty)"
+                                disabled="@(!option.Available)"
+                                @onclick="() => Session.SetMode(option.Mode)">
+                            <span class="mode-name">@option.Name</span>
+                            <span class="mode-effect">@option.Effect</span>
+                        </button>
                     }
-                    @if (Session.AttackTargets.Count > 0)
-                    {
-                        <text>Click a ringed enemy to attack.</text>
-                    }
+                </div>
+
+                @if (Session.Mode == ActionMode.Ability && Session.SelectedAbility is not null)
+                {
+                    <p class="rules">@Session.SelectedAbility.Summary</p>
+                }
+
+                <p class="preview @(Session.PreviewText is null ? "idle" : string.Empty)">
+                    @(Session.PreviewText ?? "Hover a highlighted tile to see what it does.")
                 </p>
+
                 @if (Session.EndCommand is not null)
                 {
                     <button class="action" @onclick="EndActivation">End activation</button>
@@ -114,16 +154,34 @@
                 <tbody>
                     @foreach (var unit in State.Units)
                     {
-                        <tr class="@(unit.IsAlive ? string.Empty : "down") @(Session.Selected == unit.Id ? "sel" : string.Empty)">
+                        <tr class="@UnitRowClass(unit)">
                             <td class="team-@TeamClass(unit.Team)">@EventText.Side(unit.Team)</td>
                             <td>@unit.Name</td>
-                            <td>@(unit.IsAlive ? $"{unit.Hp}/{unit.MaxHp}" : "down")</td>
+                            <td>@UnitHpText(unit)</td>
                             <td>@(unit.IsOnBoard ? unit.Position.ToString() : unit.IsAlive ? "—" : string.Empty)</td>
-                            <td>@(unit.HasActivated ? "done" : string.Empty)</td>
+                            <td class="flags">@UnitFlags(unit)</td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="panel">
+            <h2>Abilities</h2>
+            <dl class="ability-list">
+                @foreach (var descriptor in AbilityDescriptor.All())
+                {
+                    <dt>
+                        <span class="art inline">
+                            <UnitArt Kind="descriptor.Kind" Label="@descriptor.Name" />
+                        </span>
+                        @descriptor.Name
+                        <span class="tag">@descriptor.Kind</span>
+                        <span class="tag effect">@descriptor.Effect</span>
+                    </dt>
+                    <dd>@descriptor.Summary</dd>
+                }
+            </dl>
         </div>
 
         <div class="panel log-panel">
@@ -144,7 +202,9 @@
 
     private GameState State => Session.State;
 
-    private Unit? SelectedUnit => Session.Selected is null ? null : State.FindUnit(Session.Selected.Value);
+    private Unit? Selected => Session.SelectedUnit;
+
+    private sealed record ActionOption(ActionMode Mode, string Name, string Effect, bool Available);
 
     private string PhaseLabel => State.Phase switch
     {
@@ -165,13 +225,56 @@
             ? "—"
             : State.UnitById(Session.PendingDeployUnit.Value).Name;
 
-    private IEnumerable<string> RecentLog()
+    private IEnumerable<ActionOption> ActionOptions()
     {
-        var log = Session.Log;
-        int take = log.Count < 60 ? log.Count : 60;
-        for (int i = log.Count - 1; i >= log.Count - take; i--)
+        var unit = Selected;
+        if (unit is null)
         {
-            yield return log[i];
+            yield break;
+        }
+
+        yield return new ActionOption(
+            ActionMode.Move, "Move", $"up to {unit.Move} MP", Session.IsAvailable(ActionMode.Move));
+
+        var template = unit.Template;
+        if (template.Attack != AttackKind.None)
+        {
+            string reach = template.Attack == AttackKind.Melee ? "melee" : $"range {template.Range}";
+            string effect = $"{reach} · {template.Damage} dmg";
+            if (template.AttackPush > 0)
+            {
+                effect += $" · push {template.AttackPush}";
+            }
+
+            yield return new ActionOption(
+                ActionMode.Attack, "Attack", effect, Session.IsAvailable(ActionMode.Attack));
+        }
+
+        if (template.CanPullWithBasic)
+        {
+            yield return new ActionOption(
+                ActionMode.Pull, "Pull", $"range {template.Range} · pull 1", Session.IsAvailable(ActionMode.Pull));
+        }
+
+        var ability = Session.SelectedAbility;
+        if (ability is not null && ability.Targeting != AbilityTargeting.Passive)
+        {
+            yield return new ActionOption(
+                ActionMode.Ability, ability.Name, ability.Effect, Session.IsAvailable(ActionMode.Ability));
+        }
+        else if (ability is not null)
+        {
+            yield return new ActionOption(ActionMode.Ability, ability.Name, ability.Effect, false);
+        }
+
+        if (Session.IsAvailable(ActionMode.Rescue))
+        {
+            yield return new ActionOption(ActionMode.Rescue, "Rescue", "whole activation", true);
+        }
+
+        if (Session.IsAvailable(ActionMode.Finish))
+        {
+            yield return new ActionOption(ActionMode.Finish, "Finish", "free action", true);
         }
     }
 
@@ -210,15 +313,9 @@
             return;
         }
 
-        if (unit is not null && Session.AttackTargets.TryGetValue(unit.Id, out var attack))
+        if (Session.Targets.TryGetValue(coord, out var command))
         {
-            Session.Submit(attack);
-            return;
-        }
-
-        if (Session.MoveTargets.TryGetValue(coord, out var move))
-        {
-            Session.Submit(move);
+            Session.Submit(command);
             return;
         }
 
@@ -242,34 +339,50 @@
 
     private bool IsClickable(Coord coord, Unit? unit) =>
         IsDeployTarget(coord)
-        || Session.MoveTargets.ContainsKey(coord)
-        || (unit is not null && Session.AttackTargets.ContainsKey(unit.Id))
+        || Session.Targets.ContainsKey(coord)
         || (unit is not null && Session.Selectable.Contains(unit.Id));
 
     private string CellClass(Coord coord, Unit? unit)
     {
         var classes = new List<string> { "cell", EventText.TileClass(State.Board.At(coord)) };
 
+        if (Session.RangeTiles.Contains(coord))
+        {
+            classes.Add("in-range");
+        }
+
+        if (Session.ProjectedPath.Contains(coord))
+        {
+            classes.Add("projected");
+        }
+
+        bool targetable = Session.Targets.ContainsKey(coord);
+
         if (unit is not null)
         {
             classes.Add("occupied");
             classes.Add("team-" + TeamClass(unit.Team));
+
+            if (unit.Clinging)
+            {
+                classes.Add("clinging");
+            }
 
             if (Session.Selected == unit.Id)
             {
                 classes.Add("selected");
             }
 
-            if (Session.AttackTargets.ContainsKey(unit.Id))
+            if (targetable)
             {
-                classes.Add("attackable");
+                classes.Add("targetable");
             }
         }
         else if (IsDeployTarget(coord))
         {
             classes.Add("deploy");
         }
-        else if (Session.MoveTargets.ContainsKey(coord))
+        else if (targetable)
         {
             classes.Add("movable");
         }
@@ -284,18 +397,71 @@
         _ => "e",
     };
 
+    private static string UnitRowClass(Unit unit)
+    {
+        var classes = new List<string>();
+        if (!unit.IsAlive)
+        {
+            classes.Add("down");
+        }
+
+        if (unit.Clinging)
+        {
+            classes.Add("cling-row");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private static string UnitHpText(Unit unit)
+    {
+        if (unit.Voided)
+        {
+            return "voided";
+        }
+
+        return unit.IsAlive ? $"{unit.Hp}/{unit.MaxHp}" : "down";
+    }
+
+    private static string UnitFlags(Unit unit)
+    {
+        var flags = new List<string>();
+        if (unit.Clinging)
+        {
+            flags.Add("clinging");
+        }
+
+        if (unit.Staggered)
+        {
+            flags.Add("staggered");
+        }
+
+        if (unit.HasActivated && unit.IsOnBoard)
+        {
+            flags.Add("done");
+        }
+
+        return string.Join(", ", flags);
+    }
+
+    private IEnumerable<string> RecentLog()
+    {
+        var log = Session.Log;
+        int take = log.Count < 60 ? log.Count : 60;
+        for (int i = log.Count - 1; i >= log.Count - take; i--)
+        {
+            yield return log[i];
+        }
+    }
+
     private string Tooltip(Coord coord, Unit? unit)
     {
         var terrain = State.Board.At(coord).ToString();
 
         if (unit is not null)
         {
-            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp} — {terrain} {coord}";
-        }
-
-        if (Session.MoveTargets.ContainsKey(coord))
-        {
-            return $"Move here — {terrain} {coord}";
+            string extra = unit.Clinging ? ", clinging" : unit.Staggered ? ", staggered" : string.Empty;
+            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}";
         }
 
         return $"{terrain} {coord}";

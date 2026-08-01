@@ -84,9 +84,13 @@ public static class TestPlay
     /// <summary>Convenience for building a coordinate.</summary>
     public static Coord At(int x, int y) => new(x, y);
 
-    /// <summary>The next unit on the active team that has not yet activated.</summary>
+    /// <summary>
+    /// The next unit on the active team that can actually spend its activation. Clinging units hold
+    /// a slot but cannot act, so they are skipped here just as Core skips them.
+    /// </summary>
     public static Unit CurrentUnit(this GameState state) =>
-        state.Units.First(u => u.Team == state.ActiveTeam && u.IsOnBoard && !u.HasActivated);
+        state.Units.First(u =>
+            u.Team == state.ActiveTeam && u.IsOnBoard && !u.Clinging && !u.HasActivated);
 
     /// <summary>Ends the activation of the next pending unit on the active team.</summary>
     public static StepResult PassCurrent(this GameState state) =>

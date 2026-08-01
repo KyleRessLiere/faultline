@@ -32,23 +32,23 @@ public sealed class BoardBuilder
     }
 
     /// <summary>Places a unit. Units are given ids in the order they are added.</summary>
-    public BoardBuilder Place(UnitKind kind, Team team, int x, int y, int? hp = null)
+    public BoardBuilder Place(UnitKind kind, Team team, int x, int y, int? hp = null, int? footing = null)
     {
-        _placements.Add(new Placement(kind, team, new Coord(x, y), hp));
+        _placements.Add(new Placement(kind, team, new Coord(x, y), hp, footing));
         return this;
     }
 
     /// <summary>Places a player-A unit.</summary>
-    public BoardBuilder PlayerA(UnitKind kind, int x, int y, int? hp = null) =>
-        Place(kind, Team.PlayerA, x, y, hp);
+    public BoardBuilder PlayerA(UnitKind kind, int x, int y, int? hp = null, int? footing = null) =>
+        Place(kind, Team.PlayerA, x, y, hp, footing);
 
     /// <summary>Places a player-B unit.</summary>
-    public BoardBuilder PlayerB(UnitKind kind, int x, int y, int? hp = null) =>
-        Place(kind, Team.PlayerB, x, y, hp);
+    public BoardBuilder PlayerB(UnitKind kind, int x, int y, int? hp = null, int? footing = null) =>
+        Place(kind, Team.PlayerB, x, y, hp, footing);
 
     /// <summary>Places an enemy unit.</summary>
-    public BoardBuilder Enemy(UnitKind kind, int x, int y, int? hp = null) =>
-        Place(kind, Team.Enemy, x, y, hp);
+    public BoardBuilder Enemy(UnitKind kind, int x, int y, int? hp = null, int? footing = null) =>
+        Place(kind, Team.Enemy, x, y, hp, footing);
 
     /// <summary>Overrides which team holds the first activation slot.</summary>
     public BoardBuilder Active(Team team)
@@ -84,6 +84,11 @@ public sealed class BoardBuilder
                 unit = unit with { Hp = placement.Hp.Value };
             }
 
+            if (placement.Footing.HasValue)
+            {
+                unit = unit with { Footing = placement.Footing.Value };
+            }
+
             units.Add(unit);
         }
 
@@ -106,5 +111,5 @@ public sealed class BoardBuilder
         };
     }
 
-    private readonly record struct Placement(UnitKind Kind, Team Team, Coord At, int? Hp);
+    private readonly record struct Placement(UnitKind Kind, Team Team, Coord At, int? Hp, int? Footing);
 }

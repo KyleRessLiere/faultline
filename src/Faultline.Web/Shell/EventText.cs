@@ -30,6 +30,16 @@ public static class EventText
             : $"{Name(state, e.AttackerId)} hits {Name(state, e.TargetId)} for {e.Damage}.",
         UnitDamaged e => $"{Name(state, e.UnitId)} → {e.RemainingHp} HP ({e.Source}).",
         UnitDowned e => $"{Name(state, e.UnitId)} is down.",
+        AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDescriptor.For(e.Ability).Name}.",
+        UnitPushed e => $"{Name(state, e.UnitId)} {(e.Kind == DisplacementKind.Push ? "shoved" : "pulled")} {e.Distance} → {e.To}.",
+        Collision e => e.ObstacleId is null
+            ? $"{Name(state, e.UnitId)} slams into terrain — {e.Damage} damage."
+            : $"{Name(state, e.UnitId)} slams into {Name(state, e.ObstacleId.Value)} — {e.Damage} damage each.",
+        Staggered e => $"{Name(state, e.UnitId)} is staggered.",
+        Clinging e => $"{Name(state, e.UnitId)} is clinging to the pit at {e.At}!",
+        Rescued e => $"{Name(state, e.RescuerId)} hauls {Name(state, e.UnitId)} out to {e.To}.",
+        Voided e => $"✖ {Name(state, e.UnitId)} is gone — {e.Reason}.",
+        FootingSpent e => $"{Name(state, e.UnitId)} digs in ({e.Remaining} Footing left).",
         FightWon e => $"★ Fight {e.FightNumber} won.",
         FightLost e => $"✖ Fight {e.FightNumber} lost — {e.Reason}",
         _ => evt.GetType().Name,

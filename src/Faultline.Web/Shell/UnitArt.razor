@@ -1,0 +1,83 @@
+@* Hand-drawn placeholder art: one flat geometric silhouette per archetype, inheriting its side's
+   colour via currentColor. Deliberately simple — CLAUDE.md keeps real art until M6. *@
+
+<svg class="unit-art" viewBox="0 0 32 32" role="img" aria-label="@Label" focusable="false">
+    @switch (Kind)
+    {
+        case UnitKind.Vanguard:
+            @* Broad shoulders behind a kite shield. *@
+            <path d="M6 12 L16 7 L26 12 L26 20 Q16 28 6 20 Z" fill="currentColor" opacity="0.9" />
+            <path d="M16 10 L22 13 L22 19 Q16 24 10 19 L10 13 Z" fill="none" stroke="#0d0f13" stroke-width="1.6" />
+            break;
+
+        case UnitKind.Archer:
+            @* Drawn bow with the arrow nocked. *@
+            <path d="M11 5 Q23 16 11 27" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <line x1="11" y1="5" x2="11" y2="27" stroke="currentColor" stroke-width="1.3" opacity="0.75" />
+            <line x1="7" y1="16" x2="25" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M25 16 L21 13 L21 19 Z" fill="currentColor" />
+            break;
+
+        case UnitKind.Threadcaster:
+            @* A line coiling into a hook. *@
+            <path d="M5 7 L14 7 Q24 7 24 15 Q24 22 17 22 Q12 22 12 17.5 Q12 14 15.5 14 Q18 14 18 16.5"
+                  fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <circle cx="5" cy="7" r="2.6" fill="currentColor" />
+            break;
+
+        case UnitKind.Wardbearer:
+            @* Tower shield, planted. *@
+            <path d="M9 5 L23 5 L23 21 Q16 28 9 21 Z" fill="currentColor" opacity="0.9" />
+            <line x1="16" y1="7" x2="16" y2="24" stroke="#0d0f13" stroke-width="1.6" />
+            <line x1="10" y1="13" x2="22" y2="13" stroke="#0d0f13" stroke-width="1.6" />
+            break;
+
+        case UnitKind.Husk:
+            @* Small hunched chaff. *@
+            <path d="M10 26 Q9 14 16 12 Q23 14 22 26 Z" fill="currentColor" opacity="0.85" />
+            <circle cx="16" cy="10" r="4.5" fill="currentColor" />
+            break;
+
+        case UnitKind.Lobber:
+            @* Squat body winding up a lobbed rock. *@
+            <path d="M10 26 Q10 17 16 15 Q22 17 22 26 Z" fill="currentColor" opacity="0.85" />
+            <circle cx="16" cy="12" r="3.4" fill="currentColor" />
+            <circle cx="25" cy="7" r="4" fill="currentColor" opacity="0.65" />
+            break;
+
+        case UnitKind.Anchor:
+            @* A heavy block that plainly does not want to move. *@
+            <rect x="6" y="10" width="20" height="16" rx="2" fill="currentColor" opacity="0.9" />
+            <rect x="10" y="5" width="12" height="6" rx="1.5" fill="currentColor" />
+            <line x1="10" y1="16" x2="22" y2="16" stroke="#0d0f13" stroke-width="1.8" />
+            <line x1="10" y1="21" x2="22" y2="21" stroke="#0d0f13" stroke-width="1.8" />
+            break;
+
+        case UnitKind.Grappler:
+            @* Paired claws. *@
+            <path d="M9 6 Q5 16 11 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M23 6 Q27 16 21 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <circle cx="16" cy="15" r="3.6" fill="currentColor" />
+            break;
+
+        case UnitKind.Stalker:
+            @* Angular and fast. *@
+            <path d="M16 4 L26 16 L20 16 L24 28 L16 19 L8 28 L12 16 L6 16 Z" fill="currentColor" opacity="0.9" />
+            break;
+
+        default:
+            <circle cx="16" cy="16" r="9" fill="currentColor" />
+            break;
+    }
+</svg>
+
+@code {
+    /// <summary>Archetype to draw.</summary>
+    [Parameter]
+    [EditorRequired]
+    public UnitKind Kind { get; set; }
+
+    /// <summary>Accessible label, normally the unit's display name.</summary>
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+}

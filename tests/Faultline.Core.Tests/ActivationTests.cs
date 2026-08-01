@@ -183,6 +183,9 @@ public class ActivationTests
     {
         MoveCommand m => m.UnitId,
         AttackCommand a => a.UnitId,
+        AbilityCommand a => a.UnitId,
+        RescueCommand r => r.UnitId,
+        FinishClingingCommand f => f.UnitId,
         EndActivationCommand e => e.UnitId,
         DeployCommand d => d.UnitId,
         _ => UnitId.None,
