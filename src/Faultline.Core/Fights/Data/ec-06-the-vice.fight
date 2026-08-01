@@ -1,0 +1,26 @@
+# Enemy composition 6 — three Anchors two tiles apart, and something that puts you between them.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: ec-06-the-vice
+number: 306
+name: The Vice
+description: An Anchor line with two gaps in it, and a Grappler behind you that keeps putting people in the gaps. Push 1 cannot open a gap; splitting the party can.
+
+spawn n = Anchor
+spawn g = Grappler
+spawn l = Lobber
+
+roster a: Vanguard, Wardbearer
+roster b: Archer, Threadcaster
+
+board:
+  ..l..BB
+  .....BB
+  .......
+  Hn.n.nH
+  .......
+  A.^.^..
+  AA...g.

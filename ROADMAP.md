@@ -117,6 +117,84 @@ systems that by then actually exist.
 
 ---
 
+## What authoring 50 battles actually revealed
+
+Independent agents authoring different themed batches hit the same three walls without knowing about
+each other. That is evidence about what to build next, not speculation.
+
+### 1. No line of sight is the biggest constraint on interesting maps
+`D-010` means walls block *movement* and nothing else. A chokepoint controls what can be walked
+through, never what can be shot through, so a wall is only ever a detour. Every topology idea that
+wanted cover, firing lanes or "break line of sight behind the pillar" had to be redesigned around
+pure distance instead.
+
+This is exactly what the battle-design doc's **ability shape tags** (`Direct` blocked by the first
+wall or unit, `Arcing` ignoring everything) were proposed to fix. An agent with no knowledge of that
+proposal arrived at the same conclusion from the other direction. **Strong candidate to promote above
+its current position.**
+
+### 2. Enemies cannot be told to hold a position
+The AI is greedy and always advances, so "a guard on the door" is a guard for exactly one round. Any
+map built around a defended chokepoint un-corks itself immediately. Authoring a defensive posture —
+hold, patrol, guard-until-approached — would unlock a whole category of map that is currently
+impossible to express.
+
+### 3. Objectives are the missing vocabulary, confirmed
+Multiple maps wanted to say "reach the centre" or "hold this" and could only say Kill All. This was
+already ranked first for scenario variety; authoring confirms it independently.
+
+### 4. BUG — enemies freeze permanently behind walls
+`Ai.BestTile` scores candidate tiles by Manhattan distance to the target and seeds the comparison
+with the enemy's own tile at cost 0. Ties break on lower cost, so **standing still always wins a
+tie**. When a wall means no reachable tile improves Manhattan distance, the enemy stops moving —
+forever, not for a turn. This is a textbook greedy local minimum.
+
+It is not theoretical: three maps in the combat batch had to be re-cut around it, and the working
+rule an author currently has to obey is *"a wall is only safe if a route past it exists that is
+monotone in distance from wherever the enemy starts"* — which is an absurd thing to ask of a designer.
+
+**Proper fix:** score by real path distance instead of Manhattan. A BFS flow field from the target
+over walkable tiles, ignoring the move budget, then move to the reachable tile that minimises it.
+Cheap on boards this size, fully deterministic, and it removes local minima entirely rather than
+papering over them.
+
+**Do not** simply prefer moving on ties — that trades a freeze for oscillation, which looks just as
+broken and risks a fight that never terminates.
+
+Sequenced after the scenario batches land, then re-verify all 50 boards still play.
+
+### 5. The best interaction in the game is unused
+Collision into **another unit** deals 2 to both. A Husk has 2 HP. So the Vanguard's *basic attack* —
+not its ability — is a double kill against any two Husks in a line. No shipped fight is built around
+this, and it is the strongest thing in the ruleset.
+
+Related correction: the battle-design doc's "one shove staggers three" is **not possible**. A
+collision stops the displacement, so a shove touches the target and the obstacle and nothing beyond.
+Anything designed on that assumption needs rethinking.
+
+### 6. `footing: a=1` parses but does nothing — a silent trap
+Granting Footing to a *player* side is accepted by the parser and then quietly inert: `ResolveAuto`
+only auto-spends for enemies (the deterministic pit rule) and there is no prompt for players, so the
+token can never be used. An author reads the file, sees the grant, and believes their units can dig
+in. They cannot.
+
+Should be a **lint** — "this grant covers player units, which cannot spend Footing yet" — until
+D-026 is resolved. Not an error, because it becomes correct the moment a prompt exists.
+
+### 7. The pit lints fight playable pits
+A pit only works as a weapon when the tile **diametrically opposite the victim is standable** —
+something has to stand there to do the shoving. A pit on ring 0 has the board edge behind it on at
+least one axis, so it is half-dead: unusable from several directions.
+
+`HazardOffOuterRings` pushes pits toward exactly those rings. The lint and the design pull against
+each other, which is another reason to treat that lint as advisory on anything but a 7×7.
+
+### Smaller, already recorded
+- Nothing can start on a hazard or on high ground, so "the enemy holds the ridge" is unauthorable.
+- The layout lints do not scale to boards larger than 7×7 and fire mechanically on any interior
+  terrain. Noise, not signal — see `docs/scenarios/DESIGN_PRINCIPLES.md`.
+- Uneven and larger rosters already work with no engine change. Item removed from Phase 1.
+
 ## Open contradictions nobody has ruled on
 
 These were raised and are still unresolved. They block content that depends on them.

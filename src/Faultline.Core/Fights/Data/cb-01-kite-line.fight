@@ -1,0 +1,23 @@
+# Combat Manoeuvre 1 — the pincer.
+# No pits, no spikes. The only hard surfaces are walls and the board edge.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: cb-01-kite-line
+number: 501
+name: Kite Line
+description: Two Lobbers between two deploy corners. Chasing one hands the other a free shot — squeeze instead, until the retreat runs out of board.
+
+spawn l = Lobber
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Vanguard
+
+board:
+  ...#.l...BB
+  .........BB
+  ..#.....#..
+  AA...l.....
+  AA.h.......

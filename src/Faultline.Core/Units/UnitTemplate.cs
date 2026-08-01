@@ -11,7 +11,10 @@ namespace Faultline.Core
     /// <param name="Attack">How the basic attack reaches.</param>
     /// <param name="Range">Basic attack range in orthogonal steps.</param>
     /// <param name="Damage">Basic attack damage before HighGround bonuses.</param>
-    /// <param name="Footing">Footing tokens per fight.</param>
+    /// <param name="Footing">
+    /// Footing tokens the archetype starts a fight with. Zero for every archetype: Footing is granted
+    /// per scenario by the <c>footing:</c> key in a <c>.fight</c> file, never automatically.
+    /// </param>
     /// <param name="FreeClimb">True when entering HighGround costs no extra movement.</param>
     /// <param name="AttackPush">Push distance the basic attack applies on top of its damage.</param>
     /// <param name="BasicPull">
@@ -88,20 +91,23 @@ namespace Faultline.Core
         {
             var all = new[]
             {
-                // Brief §2: Player classes. Move 3 for all player units, 1 Footing per fight.
+                // Brief §2: Player classes. Move 3 for all player units. Footing is 0 for everyone —
+                // a blanket token on every unit shortens every shove by a tile and makes "resist a
+                // push" the default, which blunts the board. Scenarios grant it instead, through the
+                // 'footing:' key in the .fight file.
                 // The Vanguard's basic shoves; the Threadcaster's may pull instead of hurting.
-                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 7, 3, AttackKind.Melee, 1, 1, 1, false, AttackPush: 1),
-                new UnitTemplate(UnitKind.Archer, "Archer", 4, 3, AttackKind.Ranged, 3, 2, 1, true),
-                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 4, 3, AttackKind.Ranged, 3, 1, 1, false, BasicPull: 1),
-                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 6, 3, AttackKind.Melee, 1, 1, 1, false),
+                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 7, 3, AttackKind.Melee, 1, 1, 0, false, AttackPush: 1),
+                new UnitTemplate(UnitKind.Archer, "Archer", 4, 3, AttackKind.Ranged, 3, 2, 0, true),
+                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 4, 3, AttackKind.Ranged, 3, 1, 0, false, BasicPull: 1),
+                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 6, 3, AttackKind.Melee, 1, 1, 0, false),
 
                 // Brief §2: Enemies. Grappler and Stalker deal no damage at all — their whole action
                 // is the displacement their priority list calls for (Pull 2 at range 3; Push 1 in melee).
-                new UnitTemplate(UnitKind.Husk, "Husk", 2, 3, AttackKind.Melee, 1, 1, 1, false),
-                new UnitTemplate(UnitKind.Lobber, "Lobber", 3, 2, AttackKind.Ranged, 3, 1, 1, false),
-                new UnitTemplate(UnitKind.Anchor, "Anchor", 6, 1, AttackKind.Melee, 1, 2, 1, false),
-                new UnitTemplate(UnitKind.Grappler, "Grappler", 5, 3, AttackKind.None, 3, 0, 1, false, BasicPull: 2),
-                new UnitTemplate(UnitKind.Stalker, "Stalker", 4, 4, AttackKind.None, 1, 0, 1, false, BasicPush: 1),
+                new UnitTemplate(UnitKind.Husk, "Husk", 2, 3, AttackKind.Melee, 1, 1, 0, false),
+                new UnitTemplate(UnitKind.Lobber, "Lobber", 3, 2, AttackKind.Ranged, 3, 1, 0, false),
+                new UnitTemplate(UnitKind.Anchor, "Anchor", 6, 1, AttackKind.Melee, 1, 2, 0, false),
+                new UnitTemplate(UnitKind.Grappler, "Grappler", 5, 3, AttackKind.None, 3, 0, 0, false, BasicPull: 2),
+                new UnitTemplate(UnitKind.Stalker, "Stalker", 4, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1),
             };
 
             var table = new Dictionary<UnitKind, UnitTemplate>(all.Length);

@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject GameSession Session
 @inject FightFiles Files
+@inject PlaytestNotes Notes
 @implements IDisposable
 
 <PageTitle>Faultline</PageTitle>
@@ -12,6 +13,9 @@
 
         <div class="status">
             <a class="chip link" href="battles">← Battles</a>
+            <a class="chip link" href="notes" title="Every playtest note, across every battle">
+                Notes @NoteCountLabel
+            </a>
             <span class="chip fight-chip" title="@Session.Fight.Id">
                 #@Session.Fight.Number @Session.Fight.Name
             </span>
@@ -270,6 +274,92 @@
                 }
             </ol>
         </div>
+
+        <div class="panel notes-panel">
+            <h2>Playtest notes</h2>
+
+            @* No <form> anywhere here: a form would make Enter submit, and a stray Enter on the
+               board screen must never do anything. The keystroke handlers below stop the events
+               travelling further for the same reason. *@
+            <textarea class="note-box"
+                      rows="3"
+                      placeholder="What just happened? Ctrl+Enter adds it."
+                      value="@_noteText"
+                      @oninput="OnNoteInput"
+                      @onkeydown="OnNoteKeyDown"
+                      @onkeydown:stopPropagation="true"
+                      @onkeypress:stopPropagation="true"
+                      @onkeyup:stopPropagation="true"></textarea>
+
+            <div class="note-tags">
+                @foreach (var tag in PlaytestNotes.KnownTags)
+                {
+                    var name = tag;
+                    <button type="button"
+                            class="tag-toggle @(_noteTags.Contains(name) ? "on" : string.Empty)"
+                            @onclick="() => ToggleTag(name)">@name</button>
+                }
+            </div>
+
+            <div class="log-actions">
+                <button type="button"
+                        class="log-button"
+                        disabled="@(_noteText.Trim().Length == 0)"
+                        @onclick="AddNote">
+                    Add note
+                </button>
+                <a class="log-button link-button" href="notes">Review all @NoteCountLabel</a>
+            </div>
+
+            <p class="note">
+                Captured with the note: @Session.Fight.Name (@Session.Fight.Id), seed @Session.Seed,
+                round @State.Round, @PhaseLabel, @ActiveLabel active@(Session.Recording
+                    ? $", log line {Session.RecordedLineCount}"
+                    : string.Empty).
+            </p>
+
+            <p class="note">
+                Notes live in this browser's localStorage. Clearing site data deletes them and nothing
+                is stored on a server — <a href="notes">export them</a> to keep them.
+            </p>
+
+            @if (_noteStatus is not null)
+            {
+                <p class="status-line">@_noteStatus</p>
+            }
+
+            @if (!Notes.Loaded)
+            {
+                <p class="note">Reading browser storage…</p>
+            }
+            else if (NotesForThisFight.Count == 0)
+            {
+                <p class="note">No notes on this battle yet.</p>
+            }
+            else
+            {
+                <ol class="note-list">
+                    @foreach (var note in NotesForThisFight)
+                    {
+                        var id = note.Id;
+                        <li>
+                            <div class="note-head">
+                                <span class="note-context">@PlaytestNotes.Context(note)</span>
+                                @foreach (var tag in note.Tags)
+                                {
+                                    <span class="tag tag-@tag">@tag</span>
+                                }
+                                <button type="button"
+                                        class="note-delete"
+                                        title="Delete this note"
+                                        @onclick="() => DeleteNote(id)">×</button>
+                            </div>
+                            <p class="note-text">@note.Text</p>
+                        </li>
+                    }
+                </ol>
+            }
+        </div>
     </div>
 </div>
 
@@ -284,7 +374,19 @@
     private bool _askedAboutDirectories;
     private string? _logStatus;
 
+    // The note being typed, and the tags ticked for it. Both live on the page rather than in the
+    // store: nothing is written until the playtester says so.
+    private string _noteText = string.Empty;
+    private readonly List<string> _noteTags = new();
+    private string? _noteStatus;
+
     private GameState State => Session.State;
+
+    private IReadOnlyList<PlaytestNote> NotesForThisFight => Notes.For(Session.Fight.Id);
+
+    private string NoteCountLabel => Notes.All.Count == 0
+        ? string.Empty
+        : "(" + Notes.All.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")";
 
     private Unit? Selected => Session.SelectedUnit;
 
@@ -363,6 +465,51 @@
         {
             yield return new ActionOption(ActionMode.Finish, "Finish", "free action", true);
         }
+    }
+
+    protected override async Task OnInitializedAsync() => await Notes.LoadAsync();
+
+    private void OnNoteInput(ChangeEventArgs args)
+    {
+        _noteText = args.Value?.ToString() ?? string.Empty;
+        _noteStatus = null;
+    }
+
+    private async Task OnNoteKeyDown(KeyboardEventArgs args)
+    {
+        // Ctrl+Enter files the note; a bare Enter keeps writing, because a playtester mid-thought
+        // types in paragraphs.
+        if (args.Key == "Enter" && (args.CtrlKey || args.MetaKey))
+        {
+            await AddNote();
+        }
+    }
+
+    private void ToggleTag(string tag)
+    {
+        if (!_noteTags.Remove(tag))
+        {
+            _noteTags.Add(tag);
+        }
+    }
+
+    private async Task AddNote()
+    {
+        var note = await Notes.AddAsync(Session, _noteText, _noteTags);
+        if (note is null)
+        {
+            return;
+        }
+
+        _noteText = string.Empty;
+        _noteTags.Clear();
+        _noteStatus = $"Saved with round {note.Round} of {note.FightName}.";
+    }
+
+    private async Task DeleteNote(string id)
+    {
+        await Notes.DeleteAsync(id);
+        _noteStatus = null;
     }
 
     protected override void OnAfterRender(bool firstRender)

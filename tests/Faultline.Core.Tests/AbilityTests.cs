@@ -166,9 +166,11 @@ public class AbilityTests
     [Fact]
     public void Reel_AnEnemyWithFooting_DigsInShortOfThePit()
     {
+        // Footing is scenario-granted, never automatic, so the Husk only has a token because this
+        // fixture hands it one.
         var state = BoardBuilder.Rows(".O...")
             .PlayerB(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0)
+            .Enemy(UnitKind.Husk, 3, 0, footing: 1)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -367,9 +369,11 @@ public class AbilityTests
     [Fact]
     public void Preview_ReportsAPitOutcomeBeforeItHappens()
     {
+        // FootingWouldMatter is only true for a unit that has a token, and a token is something a
+        // scenario granted — no archetype starts with one.
         var state = BoardBuilder.Rows("...O.")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
         var preview = Displacement.Preview(
@@ -402,7 +406,7 @@ public class AbilityTests
         // the rules then refuse to deliver. Found by playing the shell, so it is pinned here.
         var state = BoardBuilder.Rows("...O.")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);

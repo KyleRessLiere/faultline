@@ -1,0 +1,25 @@
+# Combat Manoeuvre 2 — the doorway.
+# No pits, no spikes. A sealed chamber with one tile of exit.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: cb-02-rank-and-file
+number: 502
+name: Rank and File
+description: Four Husks and a Lobber share one doorway. Shove the unit in the door back into the queue and two of them die at once.
+
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  .hh.#....
+  .hl.#...B
+  ..h.#..BB
+  #.###..BB
+  .........
+  AA.......
+  AA.......

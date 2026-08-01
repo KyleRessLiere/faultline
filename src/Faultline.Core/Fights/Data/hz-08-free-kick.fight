@@ -1,0 +1,34 @@
+# Hazard Pressure 8 of 10 — clinging is not dying.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+#
+# A unit shoved into a pit clings, holds its activation slot, and is only Voided at the end
+# of the following round — unless somebody adjacent finishes it, which costs neither half of
+# an activation. Each of the four pits has open tiles on several sides, so the second unit
+# you bring is not wasted: it stands by the rim and takes the free kick.
+# The HighGround at (1,4) is the trap: fall damage lands while the unit is already clinging,
+# and any damage to a clinging unit Voids it outright. Being shoved off there into the pit
+# below is not a rescue problem, it is instant.
+
+id: hz-free-kick
+number: 208
+name: Free Kick
+description: Four pits with room to stand around them. Dropping something in only half kills it — finishing it from the rim is free, and so is what they do to you.
+
+spawn h = Husk
+spawn g = Grappler
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ..h.h.B
+  .O...OB
+  ^.....B
+  .......
+  .H...g^
+  AO...O.
+  AA.s.h#

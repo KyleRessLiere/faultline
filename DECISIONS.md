@@ -181,3 +181,17 @@ where the file wrote `n`. The fight is identical — same kinds at the same coor
 letter differs. Left as is: the writer's determinism is exactly what makes the round trip checkable,
 and carrying arbitrary author letters through would mean threading them into `FightDefinition`,
 which is a game model, not a file model.
+
+**D-028 — Footing is scenario-granted, not automatic. Every archetype starts on zero.**
+Brief §2 gives each unit "1 per fight". Built that way it made *resisting a shove* the universal
+default: every displacement in the game was quietly a tile shorter than it read, and the first push
+against any unit was the one that got eaten. That fights the brief's own priors — §6 prior 1, "the
+board should out-damage attacks" — because a blanket anti-push token blunts exactly the thing the
+game is built on. Pits stop mattering when everything on the board can decline the first shove.
+The rule is unchanged; only the starting quantity moved. `UnitTemplate.Footing` is 0 for all nine
+archetypes and a scenario grants tokens deliberately with the `footing:` key. `EffectiveDistance`,
+the enemy "spend only to avoid a pit" rule and Wardbearer Hold are untouched — a granted token
+behaves exactly as it always did. This makes "this enemy is hard to move" something a fight *says*,
+next to its terrain, rather than a constant. Consequence: the between-fight "second Footing" upgrade
+becomes "+1 from a base of 0", no shipped fight grants any yet, and the creator cannot author the key
+until ROADMAP Phase 2.

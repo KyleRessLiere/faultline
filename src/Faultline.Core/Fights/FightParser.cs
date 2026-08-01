@@ -189,10 +189,12 @@ namespace Faultline.Core
                 case "roster a": header.RosterA = ReadRoster(value, lineNo, issues); header.RosterALine = lineNo; break;
                 case "roster b": header.RosterB = ReadRoster(value, lineNo, issues); header.RosterBLine = lineNo; break;
                 case "protected": header.Protected = value; header.ProtectedLine = lineNo; break;
+                case "footing": header.Footing = value; header.FootingLine = lineNo; break;
                 default:
                     issues.Add(new FightIssue(
                         FightIssueCode.UnknownKey,
-                        "Unknown key '" + key + "'. Known keys: id, name, description, number, roster a, roster b, protected, board.",
+                        "Unknown key '" + key + "'. Known keys: id, name, description, number, roster a, roster b, "
+                        + "protected, footing, board.",
                         lineNo));
                     break;
             }
@@ -353,6 +355,7 @@ namespace Faultline.Core
             }
 
             var protectedZone = ReadCoords(header.Protected, header.ProtectedLine, board, issues);
+            var footing = ReadFootingGrants(header.Footing, header.FootingLine, issues);
 
             return new FightDefinition
             {
@@ -367,7 +370,80 @@ namespace Faultline.Core
                 DeploymentZoneB = grid.ZoneB,
                 Enemies = grid.Spawns,
                 ProtectedZone = protectedZone,
+                FootingGrants = footing,
             };
+        }
+
+        /// <summary>
+        /// Reads <c>footing: a=1 Anchor=2</c> — space-separated <c>target=count</c> tokens, where a
+        /// target is a side (<c>a</c>, <c>b</c>, <c>enemy</c>) or a unit kind. Footing is granted here
+        /// or not at all; no archetype starts with any.
+        /// </summary>
+        private static IReadOnlyList<FootingGrant> ReadFootingGrants(
+            string value,
+            int lineNo,
+            List<FightIssue> issues)
+        {
+            var grants = new List<FootingGrant>();
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return grants;
+            }
+
+            foreach (var token in value.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                int eq = token.IndexOf('=');
+                if (eq <= 0 || eq == token.Length - 1)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.BadValue,
+                        "'" + token + "' is not a footing grant. Use 'target=count' with no spaces, "
+                        + "for example 'a=1' or 'Anchor=2'.",
+                        lineNo));
+                    continue;
+                }
+
+                var target = token.Substring(0, eq);
+                var countText = token.Substring(eq + 1);
+
+                if (!int.TryParse(countText, out int count))
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.BadValue,
+                        "'" + countText + "' is not a number of footing tokens.",
+                        lineNo));
+                    continue;
+                }
+
+                if (count < 0)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.FootingCountNegative,
+                        "'" + token + "' grants " + count + " footing tokens; a grant cannot be negative. "
+                        + "Leave the target out to give it none.",
+                        lineNo));
+                    continue;
+                }
+
+                if (FootingGrant.TryParseSide(target, out var side))
+                {
+                    grants.Add(FootingGrant.ForSide(side, count));
+                    continue;
+                }
+
+                if (TryParseKind(target, out var kind))
+                {
+                    grants.Add(FootingGrant.ForKind(kind, count));
+                    continue;
+                }
+
+                issues.Add(new FightIssue(
+                    FightIssueCode.UnknownFootingTarget,
+                    "'" + target + "' is neither a side (a, b, enemy) nor a unit kind.",
+                    lineNo));
+            }
+
+            return grants;
         }
 
         private static void CheckZone(
@@ -525,9 +601,52 @@ namespace Faultline.Core
                     boardStartLine));
             }
 
+            foreach (var grant in fight.FootingGrants)
+            {
+                if (CoversAnyone(fight, grant))
+                {
+                    continue;
+                }
+
+                issues.Add(new FightIssue(
+                    FightIssueCode.FootingGrantUnused,
+                    "Footing grant '" + grant.Token + "' covers nobody in this fight, so it does nothing.",
+                    header.FootingLine));
+            }
+
             // A "unit starts on a hazard" lint would be unreachable: deploy slots and spawn letters
             // always write Open terrain underneath, so the format cannot express it. Left out rather
             // than shipped as a check that can never fire.
+        }
+
+        /// <summary>True when at least one unit in the fight would receive this grant.</summary>
+        private static bool CoversAnyone(FightDefinition fight, FootingGrant grant)
+        {
+            foreach (var kind in fight.RosterA)
+            {
+                if (grant.Covers(Team.PlayerA, kind))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var kind in fight.RosterB)
+            {
+                if (grant.Covers(Team.PlayerB, kind))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var spawn in fight.Enemies)
+            {
+                if (grant.Covers(Team.Enemy, spawn.Kind))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool OppositeCorners(Board board, List<Coord> a, List<Coord> b)
@@ -660,6 +779,10 @@ namespace Faultline.Core
             public string Protected { get; set; } = string.Empty;
 
             public int ProtectedLine { get; set; }
+
+            public string Footing { get; set; } = string.Empty;
+
+            public int FootingLine { get; set; }
 
             public Dictionary<char, UnitKind> Spawns { get; } = new Dictionary<char, UnitKind>();
 

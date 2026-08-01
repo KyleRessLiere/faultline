@@ -1,0 +1,31 @@
+# Hazard Pressure 3 of 10 — elevation cuts both ways.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+#
+# Nothing can be shoved UP onto the ledge — the lip collides — and the Anchor's Move 1
+# cannot pay the 2 movement to climb it, so the ledge is genuinely a fortress against it.
+# But a Grappler prefers targets standing on HighGround, a pull off the ledge costs
+# 1 fall damage and KEEPS TRAVELLING, and the pit at (2,1) is one step down from it.
+
+id: hz-the-ledge
+number: 203
+name: The Ledge
+description: A four-tile ledge no shove can push you onto and the Anchor can never climb — and a Grappler that wants exactly the unit standing on it.
+
+spawn g = Grappler
+spawn h = Husk
+spawn n = Anchor
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ..g..hB
+  ..O..BB
+  .HHHH.B
+  .......
+  .^...^.
+  A....n.
+  AA.h...

@@ -1,0 +1,28 @@
+# Board topology 5 — an elevation spine with a broken pit trough beside it.
+# The high ground column at x=4 is the best firing line on the board and the
+# worst place to be standing: a Grappler prefers HighGround targets, and every
+# other spine tile has a pit one step east.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: tp-05-the-spine
+number: 105
+name: The Spine
+description: A ridge worth plus one damage and a fall on either side. The whole enemy roster exists to take you off it.
+
+spawn h = Husk
+spawn g = Grappler
+spawn s = Stalker
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ......BBB
+  ...^HO..g
+  h...H....
+  ...^HO.s.
+  ....H....
+  ..h.HO..l
+  AAA......

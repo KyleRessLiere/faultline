@@ -1,0 +1,26 @@
+# Combat Manoeuvre 3 — the ridge.
+# No pits, no spikes. Four tiles of high ground down the middle and one Grappler that wants you off them.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: cb-03-the-shelf
+number: 503
+name: The Shelf
+description: The Archer climbs the ridge free and hits for three. Everyone else pays two movement, and the Grappler grabs whoever is standing up there first.
+
+spawn h = Husk
+spawn g = Grappler
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Wardbearer, Threadcaster
+
+board:
+  .h...BB
+  ...H.BB
+  ...H...
+  .g.H..l
+  ...H...
+  AA...#.
+  AA...l.

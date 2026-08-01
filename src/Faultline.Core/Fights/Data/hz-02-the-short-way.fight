@@ -1,0 +1,30 @@
+# Hazard Pressure 2 of 10 — the route tax.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+#
+# A spike belt cuts the board in half with exactly one clean gap. Walking spikes costs
+# 1 movement and 1 damage and does not Stagger; being SHOVED onto them costs 3 and does.
+# Player B starts north of the belt, alone with both Lobbers, which is the clock.
+
+id: hz-short-way
+number: 202
+name: The Short Way
+description: A belt of spikes with one gap. Cross it and bleed, queue for the gap and lose a round, or leave Player B alone under two lobbers.
+
+spawn l = Lobber
+spawn s = Stalker
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ..l...l..
+  ...#.#BBB
+  ^^^^.^^^^
+  .........
+  H.......H
+  A...s....
+  AA....h..

@@ -1,0 +1,32 @@
+# Hazard Pressure 7 of 10 — six enemies, one round, four activations.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+#
+# Nothing starts ON a hazard — the format forbids it — but everything starts NEXT to one,
+# and on its own activation it walks away from it. Player A pushes away from itself; Player B
+# only pulls toward itself, so A and B are shopping from two different shelves: A wants the
+# hazard on the far side of an enemy, B wants it in between.
+# No high ground here on purpose: the question is what you can convert before they move.
+
+id: hz-standing-room
+number: 207
+name: Standing Room
+description: Six enemies, every one of them standing beside the thing that kills it, and exactly one round before they all walk away from it.
+
+spawn l = Lobber
+spawn h = Husk
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  .....l.h.
+  .....O.^B
+  ....s...B
+  ^h......B
+  .........
+  A.....h#.
+  AAh^.....

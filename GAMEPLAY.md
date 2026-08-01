@@ -82,11 +82,15 @@ Collision, spike and fall damage ignore mitigation.
 - **Staggered** — from taking collision or spike damage. The *next* displacement against it travels
   **+1 tile**, then the Stagger is spent. Clears at end of round. Fall damage does not Stagger, and
   neither does voluntarily walking onto spikes.
-- **Footing** — 1 token per unit per fight. Spending it shortens a displacement by 1 tile, possibly
-  to zero. Enemies spend it **only when it would keep them out of a pit, and only when that actually
-  works** — deterministic, never a coin flip. *Player units never spend theirs: there is still no
-  prompt, so a player unit can be shoved into a pit while holding an unused token. Open question,
-  not a rule — see D-026.*
+- **Footing** — a token that shortens one displacement against its holder by 1 tile, possibly to
+  zero. **No unit has any by default.** Every archetype, player and enemy, starts a fight on **0**;
+  a scenario hands them out with the `footing:` key in its `.fight` file. A blanket token on
+  everyone made *resisting a shove* the universal default and quietly cost every push a tile, which
+  is the wrong default for a game whose primary weapon is the board — so it is now something a
+  scenario grants on purpose (D-028). Enemies spend a granted token **only when it would keep them
+  out of a pit, and only when that actually works** — deterministic, never a coin flip. *Player
+  units never spend theirs: there is still no prompt, so a player holding a granted token can be
+  shoved into a pit while it goes unused. Open question, not a rule — see D-026.*
 - **Clinging** — in a pit, cannot act, still holds an activation slot.
   - An **adjacent ally** can spend its **entire activation** to haul it out.
   - An **adjacent enemy** can kick it off as a **free action** — costs neither half.
@@ -209,9 +213,9 @@ Win: every enemy down. Lose: every player unit down or voided.
 
 ## Known gaps in what design can evaluate
 
-- **Player Footing has no prompt.** Enemies now shove player units into pits, but the token their
-  owner is supposed to be able to spend sits unused (D-026). This wants a decision before difficulty
-  can be judged fairly.
+- **Player Footing has no prompt.** Player units only hold a token when a scenario grants one, and no
+  shipped fight grants any yet — so the unused-token problem in D-026 is currently unreachable in
+  play rather than fixed. It returns the moment a scenario uses `footing:`.
 - **Momentum is displayed but never changes.** Accounting arrives in M5 with the commander cards.
 - **Only fight 1 is reachable.** Fights 2–5 exist as authored boards, but the shell always starts
   fight 1 and there are no objectives, no boss, and no between-fight upgrades.

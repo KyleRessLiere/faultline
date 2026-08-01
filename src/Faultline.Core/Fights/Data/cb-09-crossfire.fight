@@ -1,0 +1,26 @@
+# Combat Manoeuvre 9 — the pull lane.
+# No pits, no spikes. Two Grapplers on opposite edges and two tiles of high ground they both want.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: cb-09-crossfire
+number: 509
+name: Crossfire
+description: Grapplers deal no damage; the damage is whatever you were standing in front of. Your own line is a collision waiting to happen — so put one of theirs in the lane instead.
+
+spawn g = Grappler
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ..g....BB
+  .......BB
+  ....H....
+  ..h...h.l
+  ....H....
+  AA.......
+  AA..g....

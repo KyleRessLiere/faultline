@@ -1,0 +1,26 @@
+# Board topology 2 — one moat, two crossings.
+# A pit column cuts the map in half with bridges at (4,1) and (4,5). The two
+# deploy zones sit at opposite ends of the west bank, one per bridge.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: tp-02-two-bridges
+number: 102
+name: Two Bridges
+description: A pit moat with two crossings a full board apart. Concentrate at one bridge and cede the other, or split and fight two fights.
+
+spawn h = Husk
+spawn g = Grappler
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  AA..O..l.
+  AA.....g.
+  ....O.^..
+  ..H.O....
+  ....O.^..
+  BB....h..
+  BB..O.h..

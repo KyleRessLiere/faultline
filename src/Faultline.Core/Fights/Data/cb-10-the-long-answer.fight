@@ -1,0 +1,27 @@
+# Combat Manoeuvre 10 — the whole chain.
+# One pit, on the far edge behind the enemy line, and no spikes. It is the last step of a
+# four-step answer, not the first: an Anchor only reaches it while Staggered.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: cb-10-the-long-answer
+number: 510
+name: The Long Answer
+description: An Anchor walks at you one tile a round with Husks behind it. Collide something into it to Stagger it, then spend the Stagger — the pit at its back is four correct decisions away.
+
+spawn n = Anchor
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ...O.h.BB
+  ....h..BB
+  ...n.....
+  .l.....HH
+  .........
+  AA.......
+  AA...h...

@@ -41,6 +41,12 @@ namespace Faultline.Core
         /// <summary>The 2x3 zone the collapse clock never cracks (M4).</summary>
         public IReadOnlyList<Coord> ProtectedZone { get; init; } = new Coord[0];
 
+        /// <summary>
+        /// Footing tokens this scenario hands out, in the order the <c>footing:</c> key wrote them.
+        /// Empty means nobody has any: Footing is scenario-granted, never automatic.
+        /// </summary>
+        public IReadOnlyList<FootingGrant> FootingGrants { get; init; } = new FootingGrant[0];
+
         /// <summary>The deployment zone belonging to a player team.</summary>
         /// <param name="team">Player team.</param>
         /// <returns>That team's legal deployment tiles, or an empty list for the enemy team.</returns>
@@ -52,6 +58,38 @@ namespace Faultline.Core
             }
 
             return team == Team.PlayerB ? DeploymentZoneB : new Coord[0];
+        }
+
+        /// <summary>Footing tokens a unit of this side and archetype starts the fight with.</summary>
+        /// <remarks>
+        /// A grant naming a unit kind beats a grant naming a side, because it is the more specific of
+        /// the two; among grants of equal specificity the last one written wins, which is how the
+        /// format treats a repeated key everywhere else. No grant at all means zero.
+        /// </remarks>
+        /// <param name="team">Unit's side.</param>
+        /// <param name="kind">Unit's archetype.</param>
+        /// <returns>Starting Footing tokens, zero when the scenario granted none.</returns>
+        public int FootingFor(Team team, UnitKind kind)
+        {
+            int? byKind = null;
+            int? bySide = null;
+
+            foreach (var grant in FootingGrants)
+            {
+                if (grant.Kind.HasValue)
+                {
+                    if (grant.Kind.Value == kind)
+                    {
+                        byKind = grant.Count;
+                    }
+                }
+                else if (grant.Side.HasValue && grant.Side.Value == team)
+                {
+                    bySide = grant.Count;
+                }
+            }
+
+            return byKind ?? bySide ?? 0;
         }
 
         /// <summary>The roster belonging to a player team.</summary>

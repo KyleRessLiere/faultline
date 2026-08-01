@@ -1,0 +1,28 @@
+# Combat Manoeuvre 7 — the curtain wall.
+# No pits, no spikes. Two wall segments leave a centre gate and a lane down each flank,
+# with a shelf of high ground behind each segment.
+# There is no line of sight in this game: the wall stops feet, not arrows.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: cb-07-two-gates
+number: 507
+name: Two Gates
+description: A wall you can shoot over but not walk through. Three ways past it, four of you, and a shelf behind each segment worth standing on.
+
+spawn h = Husk
+spawn s = Stalker
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Archer, Wardbearer
+
+board:
+  ..h...h..
+  ....s....
+  ....l....
+  ..##.##..
+  ..H...H..
+  AA.....BB
+  AA.....BB

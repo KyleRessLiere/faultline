@@ -1,5 +1,15 @@
 # Changelog
 
+## Playtest notes
+
+- A note box on the board screen that captures the battle, seed, round, phase, active side and
+  combat-log position with every note — a note without context is useless a week later.
+- One-click `bug` / `balance` / `confusing` / `fun` / `idea` tags, a closed set so filters stay
+  meaningful.
+- `/notes` reviews every note across every battle, grouped and filterable by battle and tag, with
+  counts, delete, clear-all, and Markdown/JSON export (save to folder, download, copy).
+- Notes live in this browser's localStorage only. The UI says so; export is how they are kept.
+
 ## Combat log
 
 - Core renders the event stream as a deterministic tab-separated transcript: five columns

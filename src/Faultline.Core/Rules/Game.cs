@@ -29,19 +29,19 @@ namespace Faultline.Core
 
             foreach (var kind in fight.RosterA)
             {
-                units.Add(Unit.FromTemplate(new UnitId(nextId++), kind, Team.PlayerA));
+                units.Add(WithGrantedFooting(Unit.FromTemplate(new UnitId(nextId++), kind, Team.PlayerA), fight));
             }
 
             foreach (var kind in fight.RosterB)
             {
-                units.Add(Unit.FromTemplate(new UnitId(nextId++), kind, Team.PlayerB));
+                units.Add(WithGrantedFooting(Unit.FromTemplate(new UnitId(nextId++), kind, Team.PlayerB), fight));
             }
 
             var events = new List<GameEvent> { new FightStarted(fight.Number, fight.Name) };
 
             foreach (var spawn in fight.Enemies)
             {
-                var enemy = Unit.FromTemplate(new UnitId(nextId++), spawn.Kind, Team.Enemy) with
+                var enemy = WithGrantedFooting(Unit.FromTemplate(new UnitId(nextId++), spawn.Kind, Team.Enemy), fight) with
                 {
                     Position = spawn.At,
                     IsDeployed = true,
@@ -68,6 +68,13 @@ namespace Faultline.Core
 
             return new StepResult(state, events, LegalCommands(state));
         }
+
+        /// <summary>
+        /// Hands a freshly created unit whatever Footing the scenario granted it. No archetype starts
+        /// with any, so a unit that can shrug off a tile of a shove is one the fight file asked for.
+        /// </summary>
+        private static Unit WithGrantedFooting(Unit unit, FightDefinition fight) =>
+            unit with { Footing = fight.FootingFor(unit.Team, unit.Kind) };
 
         /// <summary>Applies one command. The command must be present in the previous <see cref="StepResult.LegalNext"/>.</summary>
         /// <param name="state">State to advance.</param>

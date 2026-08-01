@@ -53,6 +53,15 @@ namespace Faultline.Core
         /// <summary>A spawn letter declared but never placed on the board.</summary>
         SpawnCharUnused = 14,
 
+        /// <summary>
+        /// A <c>footing:</c> grant names something that is neither a side (<c>a</c>, <c>b</c>,
+        /// <c>enemy</c>) nor a <see cref="UnitKind"/>.
+        /// </summary>
+        UnknownFootingTarget = 15,
+
+        /// <summary>A <c>footing:</c> grant asks for a negative number of tokens.</summary>
+        FootingCountNegative = 16,
+
         // ---- Lints: playable, but it breaks a guideline in AGENT_BRIEF §2 -------------------
 
         /// <summary>Brief §2 specifies a 7x7 grid.</summary>
@@ -75,5 +84,8 @@ namespace Faultline.Core
 
         /// <summary>No HighGround anywhere, so the elevation rules never come up.</summary>
         NoHighGround = 106,
+
+        /// <summary>A <c>footing:</c> grant covers nobody in this fight, so it does nothing.</summary>
+        FootingGrantUnused = 107,
     }
 }

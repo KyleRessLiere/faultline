@@ -1,0 +1,29 @@
+# Board topology 8 — an open field lined with one-tile dead ends.
+# Eight nooks are cut into the north and south wall bands. Each has three walls
+# and one mouth, which is exactly what a Husk is for and exactly what a Stalker
+# wants: a body in the mouth seals you in, a shove rams you into the back wall.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: tp-08-the-nooks
+number: 108
+name: The Nooks
+description: Cover with one exit is a coffin. A Lobber in a nook cannot kite, and neither can you.
+
+spawn l = Lobber
+spawn h = Husk
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  #########
+  #.#.#l#.#
+  h..^...BB
+  ........B
+  H...s...H
+  A........
+  AA...^..h
+  #.#.#.#.#
+  #########

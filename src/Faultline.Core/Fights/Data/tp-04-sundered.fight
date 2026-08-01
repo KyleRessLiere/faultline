@@ -1,0 +1,29 @@
+# Board topology 4 — the two players are the ones who get split.
+# A pit column runs the full height except the top tile (5,0), which an Anchor
+# is standing on. Player A owns the west half, Player B the east, and each half
+# holds the enemy the other player was built to answer.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: tp-04-sundered
+number: 104
+name: Sundered
+description: Two halves joined by one tile at the far end, with an Anchor sitting on it. Each pair faces the problem the other pair solves.
+
+spawn n = Anchor
+spawn h = Husk
+spawn g = Grappler
+spawn l = Lobber
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  .....n.....
+  ..h..O..h..
+  .....O.....
+  .^H..O..H^.
+  ..g..O.....
+  A....O..s.B
+  AA.l.O...BB

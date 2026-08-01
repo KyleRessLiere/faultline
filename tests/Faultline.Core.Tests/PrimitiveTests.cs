@@ -1,3 +1,4 @@
+using System;
 using Faultline.Core;
 
 namespace Faultline.Core.Tests;
@@ -135,11 +136,13 @@ public class PrimitiveTests
     }
 
     [Fact]
-    public void UnitTemplate_EveryPlayerUnitStartsWithOneFooting()
+    public void UnitTemplate_NoArchetypeStartsWithFooting()
     {
-        foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer })
+        // Footing is granted by a scenario's 'footing:' key, never by the archetype. A blanket token
+        // on everyone shortens every shove by a tile and makes resisting a push the default.
+        foreach (UnitKind kind in Enum.GetValues(typeof(UnitKind)))
         {
-            Assert.Equal(1, UnitTemplate.For(kind).Footing);
+            Assert.Equal(0, UnitTemplate.For(kind).Footing);
         }
     }
 

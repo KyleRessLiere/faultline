@@ -1,0 +1,28 @@
+# Asymmetry 8 — split deployment where converging is the trap.
+# Eleven tiles of board and a high ridge sit between the two players. West is a
+# damage fight; east is a displacement fight with no damage in it at all.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-08-two-fires
+number: 408
+name: Two Fires
+description: Two separate fights on one board, ten tiles apart. A faces things that hurt; B faces a Grappler and a Stalker that cannot deal a point of damage between them.
+
+spawn h = Husk
+spawn l = Lobber
+spawn g = Grappler
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  .h...H...g.
+  h....H.....
+  ..O..H..O..
+  A.h..^..s.B
+  A....H....B
+  A....H....B
+  .lO^.H.^O..

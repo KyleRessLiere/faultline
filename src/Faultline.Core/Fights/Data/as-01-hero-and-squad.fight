@@ -1,0 +1,25 @@
+# Asymmetry 1 — one hero, one squad.
+# Player A brings a single Vanguard. Player B brings three bodies.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-01-hero-and-squad
+number: 401
+name: Hero and Squad
+description: One Vanguard against a swarm, with a three-body squad behind him. A activates once a round; B activates three times.
+
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard
+roster b: Archer, Threadcaster, Wardbearer
+
+board:
+  h..h.BB
+  .^h..BB
+  O......
+  .H...H.
+  ......O
+  A....^.
+  AAh.lh#

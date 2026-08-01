@@ -1,0 +1,25 @@
+# Enemy composition 3 — the Grappler delivers, the Stalker finishes.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: ec-03-handoff
+number: 303
+name: Handoff
+description: A Grappler yanks somebody up into the pit row and a Stalker, activating later in the same round, walks round and shoves them in. The telegraph you read is not the shove you get.
+
+spawn g = Grappler
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ...g..B
+  ..O..OB
+  ......B
+  ...H...
+  .......
+  A.^.^..
+  AA..s..

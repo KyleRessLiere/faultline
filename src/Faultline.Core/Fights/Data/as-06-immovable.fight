@@ -1,0 +1,27 @@
+# Asymmetry 6 — four player units against two elites and a fisherman.
+# A pit trench spans the board; the only two crossings are the outer columns, and an
+# Anchor is standing in each. Push 1 does nothing to an Anchor, so the doors need
+# a Bull Rush or a Reel — one key each, one per player.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-06-immovable
+number: 406
+name: Immovable
+description: Two Anchors plug the only two bridges over the trench and shrug off every Push 1 on the board. Four units, two doors, two different keys.
+
+spawn g = Grappler
+spawn n = Anchor
+
+roster a: Vanguard, Wardbearer
+roster b: Archer, Threadcaster
+
+board:
+  ...g...
+  ..^H^..
+  .......
+  nOOOOOn
+  .......
+  A.....B
+  AA...BB

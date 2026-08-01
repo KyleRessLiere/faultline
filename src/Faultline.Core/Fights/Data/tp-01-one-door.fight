@@ -1,0 +1,26 @@
+# Board topology 1 — two rooms, one door.
+# A solid wall splits the map; the only way through is the single tile at (4,3),
+# and an Anchor is standing in it. Push 1 does not move an Anchor.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: tp-01-one-door
+number: 101
+name: One Door
+description: A wall with a single gap, corked by the one enemy your basic shove cannot move. Ranged fire crosses the wall; bodies do not.
+
+spawn n = Anchor
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  AA..#....
+  AAH.#.h^.
+  ....#....
+  ....n...l
+  ....#....
+  BBH.#.h^.
+  BB..#....

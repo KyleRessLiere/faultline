@@ -1,0 +1,27 @@
+# Asymmetry 9 — missing tools. No Vanguard and no Wardbearer anywhere.
+# Four units, four HP each, sixteen hit points on the whole board. Nothing caps a
+# displacement, nothing shoves 2, and there is no body to hide behind.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-09-glass
+number: 409
+name: Glass
+description: Two Archers and two Threadcasters, no front line and no Hold. Every unit dies to two hits and the Grappler picks Archers on purpose.
+
+spawn h = Husk
+spawn g = Grappler
+spawn s = Stalker
+
+roster a: Archer, Archer
+roster b: Threadcaster, Threadcaster
+
+board:
+  ..h..BB
+  .O^g.BB
+  H.....O
+  .......
+  O.....H
+  A..^..s
+  AAh...h

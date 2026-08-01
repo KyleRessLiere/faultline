@@ -83,6 +83,13 @@ namespace Faultline.Core
                 AppendKey(text, "protected", Join(fight.ProtectedZone));
             }
 
+            // Footing is scenario-granted, so no grants at all is the common case and writes no key.
+            if (fight.FootingGrants is not null && fight.FootingGrants.Count > 0)
+            {
+                text.Append(Newline);
+                AppendKey(text, "footing", Join(fight.FootingGrants));
+            }
+
             text.Append(Newline).Append("board:").Append(Newline);
             for (int y = 0; y < fight.Board.Height; y++)
             {
@@ -280,6 +287,26 @@ namespace Faultline.Core
                 }
 
                 text.Append(kinds[i]);
+            }
+
+            return text.ToString();
+        }
+
+        /// <summary>
+        /// Writes the grants in the order the definition holds them, which is the order a file wrote
+        /// them, so the round trip preserves "last one wins" between two grants of equal specificity.
+        /// </summary>
+        private static string Join(IReadOnlyList<FootingGrant> grants)
+        {
+            var text = new StringBuilder();
+            for (int i = 0; i < grants.Count; i++)
+            {
+                if (i > 0)
+                {
+                    text.Append(' ');
+                }
+
+                text.Append(grants[i].Token);
             }
 
             return text.ToString();

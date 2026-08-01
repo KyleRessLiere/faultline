@@ -1,0 +1,29 @@
+# Board topology 6 — a solid block with a corridor around it.
+# The pillar (x1-7, y3-5) blocks bodies but not arrows. The only ways from the
+# south arm to the north arm are the single-file columns at x=0 and x=8, and the
+# middle of each is HighGround, so only the Archer rounds it at full speed.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: tp-06-the-pillar
+number: 106
+name: The Pillar
+description: Break melee contact by rounding the block, and eat a lobbed rock through it. Hugging the pillar puts a wall at your back for the Stalker.
+
+spawn l = Lobber
+spawn h = Husk
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ....l....
+  .........
+  .........
+  .#######.
+  H#######H
+  .#######.
+  ...^.^...
+  A.h...h.B
+  AA..s..BB

@@ -1,0 +1,27 @@
+# Asymmetry 10 — the widest roster gap in the batch. Four units against one.
+# Player B has a single Wardbearer whose only contribution is standing in the right
+# place, and Hold only reaches one ally at a time.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-10-bodyguard
+number: 410
+name: Bodyguard
+description: A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to keep on the board.
+
+spawn h = Husk
+spawn l = Lobber
+spawn g = Grappler
+
+roster a: Vanguard, Archer, Archer, Threadcaster
+roster b: Wardbearer
+
+board:
+  l.h..gB
+  .O..^OB
+  .......
+  H.....H
+  .......
+  AA.^..O
+  AAh.g.h

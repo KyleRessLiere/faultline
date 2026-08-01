@@ -38,7 +38,10 @@ namespace Faultline.Core
         /// <summary>True once this unit has taken its action during the current activation.</summary>
         public bool HasActed { get; init; }
 
-        /// <summary>Remaining Footing tokens for this fight (M2).</summary>
+        /// <summary>
+        /// Remaining Footing tokens for this fight (M2). Zero unless the scenario granted some through
+        /// the <c>footing:</c> key — see <see cref="FightDefinition.FootingFor"/>.
+        /// </summary>
         public int Footing { get; init; }
 
         /// <summary>Staggered until end of round; the next displacement against it gains +1 (M2).</summary>

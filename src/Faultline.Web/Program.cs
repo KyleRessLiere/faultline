@@ -10,5 +10,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddSingleton<GameSession>();
 builder.Services.AddSingleton<FightFiles>();
 builder.Services.AddSingleton<CustomFightStore>();
+builder.Services.AddSingleton<PlaytestNotes>();
 
 await builder.Build().RunAsync();

@@ -378,8 +378,9 @@ public class DisplacementTests
     [Fact]
     public void Hold_AndFooting_StackDownToZero()
     {
+        // The Archer's token is granted by this fixture: Footing is scenario-granted, not automatic.
         var state = BoardBuilder.Open(6, 1)
-            .PlayerA(UnitKind.Archer, 1, 0)
+            .PlayerA(UnitKind.Archer, 1, 0, footing: 1)
             .PlayerB(UnitKind.Wardbearer, 2, 0)
             .Enemy(UnitKind.Husk, 5, 0)
             .Build();
@@ -406,10 +407,11 @@ public class DisplacementTests
     [Fact]
     public void EnemyFooting_IsSpentOnlyWhenTheDisplacementWouldEndInAPit()
     {
-        // Pit two tiles along, so giving up one tile of travel is what keeps the Husk out of it.
+        // Pit two tiles along, so giving up one tile of travel is what keeps the Husk out of it. The
+        // token is granted by the fixture — no archetype starts a fight holding one.
         var pitBoard = BoardBuilder.Rows("...O.")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
         var husk = pitBoard.Find(UnitKind.Husk);
 
@@ -418,7 +420,7 @@ public class DisplacementTests
 
         var openBoard = BoardBuilder.Rows(".....")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
         Assert.False(Displacement.EnemyWouldSpendFooting(
@@ -428,10 +430,11 @@ public class DisplacementTests
     [Fact]
     public void EnemyFooting_IsNotSpentWhenItCannotAvoidThePitAnyway()
     {
-        // Pit immediately adjacent: shortening the shove by one changes nothing, so the token is kept.
+        // Pit immediately adjacent: shortening the shove by one changes nothing, so the token this
+        // fixture granted is kept.
         var state = BoardBuilder.Rows("..O.")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
         Assert.False(Displacement.EnemyWouldSpendFooting(
@@ -443,7 +446,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("...O.")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);

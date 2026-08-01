@@ -1,0 +1,25 @@
+# Asymmetry 5 — lopsided numbers. One unit each, eight Husks.
+# Both players deploy inside the same walled room; that is the point, and it is a lint.
+# The doorway is high ground: anything shoved off it takes fall damage on the way out.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-05-the-door
+number: 405
+name: The Door
+description: Two units, eight Husks, one raised doorway flanked by spikes. Numbers stop mattering the moment only one of them can reach you.
+
+spawn h = Husk
+
+roster a: Vanguard
+roster b: Threadcaster
+
+board:
+  hh...hh
+  .h...h.
+  .......
+  .......
+  ..h.h..
+  ##^H^##
+  AA...BB

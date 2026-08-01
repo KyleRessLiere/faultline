@@ -76,6 +76,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `number:` | no | One-based index into the run. Sorts the library. Defaults to `0` if omitted — set it. |
 | `description:` | no | One line, shown when picking a fight. |
 | `protected:` | no | Space-separated `x,y` coordinates the M4 collapse clock never cracks. No space inside a pair. |
+| `footing:` | no | Footing tokens this fight grants. Space-separated `target=count`; target is a side (`a`, `b`, `enemy`) or a unit kind. Omitted means nobody has any. |
 | `spawn <c> = <UnitKind>` | when the board uses enemy letters | Declares one board letter as an enemy kind. |
 | `board:` | **yes** | Starts the board block. |
 
@@ -84,6 +85,26 @@ Unit kind names are case-insensitive and must be one of: `Vanguard`, `Archer`, `
 
 Note that `roster a` and `roster b` are two-word keys with **exactly one space**. `Roster A:` is fine
 (keys are case-insensitive); `roster  a:` is not.
+
+## Granting Footing
+
+A Footing token lets its holder shorten one displacement against it by a tile, possibly to zero.
+**No archetype starts with one.** A fight that wants a unit to dig in has to say so:
+
+```
+footing: a=1 b=1          # one token to every unit on both player sides
+footing: Anchor=2         # two tokens to every Anchor, whichever side fields it
+footing: enemy=1 Husk=2   # every enemy gets 1, except Husks, which get 2
+```
+
+- A target is a **side** — `a`, `b`, `enemy` — or a **unit kind**. Both are case-insensitive.
+- **No spaces around `=`.** `a = 1` is three broken tokens, not one grant.
+- **A kind grant beats a side grant**, being the more specific of the two. Between two grants of
+  equal specificity the last one written wins, as with any repeated key.
+- **No key means zero**, and that is the normal case. Grant Footing when the scenario is *about*
+  something being hard to move.
+- Enemies spend a granted token only to stay out of a pit, and only when giving up a tile actually
+  keeps them out. Players never auto-spend theirs (DECISIONS.md D-026).
 
 ## Parsing rules that will bite you
 
@@ -153,7 +174,7 @@ silently absent.
 | Code | Triggered by | Fix |
 |---|---|---|
 | `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain or a deploy slot. |
-| `UnknownKey` | A key that is not `id`, `name`, `description`, `number`, `roster a`, `roster b`, `protected`. | Fix the typo. Only those seven keys plus `spawn` and `board:` exist. |
+| `UnknownKey` | A key that is not `id`, `name`, `description`, `number`, `roster a`, `roster b`, `protected`, `footing`. | Fix the typo. Only those eight keys plus `spawn` and `board:` exist. |
 | `MissingRequiredField` | `id:` or `name:` absent or blank. | Add it. Reported against line 0 — it is about the file, not a line. |
 | `BoardMissing` | The file is empty, there is no `board:` line, or `board:` is followed by no indented rows. | Add `board:` and indent the rows beneath it. |
 | `BoardRagged` | A board row is a different width from the first row. | Make every row the same length. Watch for a stray trailing character or an indented comment. |
@@ -165,6 +186,8 @@ silently absent.
 | `DeployZoneMissing` | No `A` characters on the board, or no `B` characters. | Mark deploy slots for both players. |
 | `DeployZoneTooSmall` | Fewer deploy slots than units in that player's roster — the fight could never start. | Add slots, or shorten the roster. |
 | `CoordOutOfBounds` | A `protected:` coordinate outside the board. | Remember `0,0` is top-left and the maximum is `width-1,height-1`. |
+| `UnknownFootingTarget` | A `footing:` grant naming something that is neither a side (`a`, `b`, `enemy`) nor a unit kind. | Check the spelling. Sides are `a`, `b`, `enemy`; kinds are the nine unit names. |
+| `FootingCountNegative` | A `footing:` grant asking for a negative number of tokens. | Use zero or more. To give a target none, leave it out entirely. |
 | `BadValue` | `number:` is not an integer, or a `protected:` token is not `x,y`. | Use a bare integer; use `3,4` with no spaces. |
 | `SpawnCharUnused` | A `spawn` letter declared but never placed on the board. | Place it, or delete the declaration. This is an **error**, not a lint — a dead declaration is always a mistake. |
 
@@ -186,6 +209,7 @@ argue. Codes 0–99 are errors; 100 and up are lints.
 | `ZonesNotOppositeCorners` | "Players deploy in opposite corners." | The two zones' average positions are not on opposite sides of *both* the horizontal and the vertical midline. |
 | `SpawnsNotOnOppositeEdges` | "Enemies spawn on two opposite edges." | No spawn sits on the north edge with another on the south, nor west with east. Spawns off the edges entirely count for neither. |
 | `NoHighGround` | — | No HighGround anywhere, so the elevation rules never come up in this fight. |
+| `FootingGrantUnused` | — | A `footing:` grant that covers nobody in this fight, such as `Stalker=1` when there is no Stalker. It parses and plays; the grant simply does nothing. |
 
 Every lint is reported against the `board:` line, not the offending row — they are judgements about
 the layout as a whole.

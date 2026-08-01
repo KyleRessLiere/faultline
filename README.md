@@ -112,3 +112,17 @@ a `spawn` line.
 
 Copy `first-contact.fight` and edit it. **[FIGHT_FORMAT.md](FIGHT_FORMAT.md)** has every key, the
 full error table, and the lint table.
+
+### Taking playtest notes
+
+While a battle is running, the **Playtest notes** panel beside the log takes a note in one box and
+one click. Every note automatically records the battle, seed, round, phase, which side was active
+and — if combat recording is on — the log line number, so a note still means something a week later.
+Tag it `bug`, `balance`, `confusing`, `fun` or `idea` to make a session's worth of notes sortable.
+
+`/notes` lists every note across every battle, grouped and filterable by battle and tag, with a
+count per battle.
+
+Notes are stored in **this browser's localStorage**. Clearing site data deletes them and nothing is
+kept on a server — export from `/notes` (Markdown to read back, JSON for tooling; save to a folder,
+download, or copy) to keep them.
