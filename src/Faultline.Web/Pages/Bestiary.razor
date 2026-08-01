@@ -124,10 +124,6 @@
                         <p class="ability-head">
                             @ability.Name
                             <span class="tag effect">@ability.Effect</span>
-                            @if (ability.Targeting == AbilityTargeting.Passive)
-                            {
-                                <span class="tag passive">passive</span>
-                            }
                         </p>
                         <p class="ability-text">@ability.Summary</p>
                         @if (ability.Targeting == AbilityTargeting.Passive)

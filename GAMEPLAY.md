@@ -110,10 +110,10 @@ Collision, spike and fall damage ignore mitigation.
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
 | Husk | 2 | 3 | melee, 1 dmg | chaff |
-| Lobber | 3 | 2 | range 3, 1 dmg | — |
+| Lobber | 3 | 2 | range 3, 1 dmg | **hits for 2 from HighGround** — the +1 ranged bonus is not player-only |
 | Anchor | 6 | 1 | melee, 2 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
 | Grappler | 5 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
-| Stalker | 4 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove |
+| Stalker | 4 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **Wardbearer Hold does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1 |
 
 Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
 

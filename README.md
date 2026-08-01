@@ -36,13 +36,15 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 .\run.ps1         # PowerShell
 ```
 
-Serves on http://localhost:5199. Three screens:
+Serves on http://localhost:5199. The screens:
 
 | Route | Screen |
 |---|---|
 | `/` | Battle select — every fight with its board, enemies and lints, plus anything you saved in the creator |
 | `/play` | The board, for whichever battle is loaded |
 | `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
+| `/bestiary` | Every unit: stat blocks, each enemy's priority list, its quirks and its counterplay |
+| `/notes` | Playtest notes across every battle, filterable by battle and tag, with export |
 
 | bash | PowerShell | Does |
 |---|---|---|

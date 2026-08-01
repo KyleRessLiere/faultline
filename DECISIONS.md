@@ -121,9 +121,13 @@ the anchor that steadies the line is the one thing on it you can still shove.
 Brief §2 says "player unit within range 3 → Pull 2 toward self" but a unit at distance 1 has nowhere
 to be pulled to — the next tile toward the Grappler is the Grappler. Core already forbids a 0-tile
 pull for the Threadcaster, and Reel excludes targets already adjacent, so the Grappler follows the
-same rule (prior 2: identical physics). Consequence: a Grappler in melee does nothing but reposition.
-That is the price of a unit with no attack, and it is the reason it opens with a pull rather than
-walking in.
+same rule and falls through to its "advance" step instead.
+
+**Correction (found while writing the bestiary):** the practical consequence is *not* that a
+Grappler in melee does nothing. Falling through to step 2 makes it seek its 2–3 tile band, so it
+**walks back two tiles and then pulls the target two tiles in** on the same activation — displacing
+the target through whatever is on that line. Standing in a Grappler's face buys a shuffle, not a
+stop. Earlier wording here understated that and has been corrected rather than left to mislead.
 
 **D-021 — An intent locks its *target*, not its route.**
 Brief §2 says intents are locked and re-planned "only if its target becomes invalid", but between

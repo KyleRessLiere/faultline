@@ -1,5 +1,16 @@
 # Changelog
 
+## Bestiary
+
+- `EnemyBehaviour` in Core: each enemy's role, its ordered priority list as structured data, its
+  quirks and its counterplay. Every figure is interpolated from `UnitTemplate` at construction, so a
+  stat change moves the text with it rather than leaving the shell lying.
+- `/bestiary` renders all nine units from that data plus `AbilityDescriptor`. The page writes no
+  rules text of its own.
+- A test asserts every `UnitKind` is either a player class with an ability or an enemy with a
+  behaviour, and that every documented enemy actually has a branch in `Ai.Compute` — whose `default`
+  is a silent `Hold`. A new enemy cannot ship undocumented, nor documented-but-unplanned.
+
 ## Enemies path around walls
 
 - Enemies move by real walking distance instead of straight-line distance, so a wall is a detour

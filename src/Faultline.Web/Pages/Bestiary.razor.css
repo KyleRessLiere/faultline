@@ -284,7 +284,3 @@ ul.quirks li:last-child {
     line-height: 1.4;
     margin: .3rem 0 0;
 }
-
-.tag.passive {
-    color: #d9b45f;
-}
