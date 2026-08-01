@@ -1,0 +1,36 @@
+# docs/CURATED_SET.md §1 fight 10 — the campaign finale. Everything at once, against one body.
+#
+# He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it.
+# Three tokens no shove can spend, stripped two ways — slam his own escort into him (2 apiece, one
+# token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane
+# east, so a King crawling at you the short way pays a token a round for it. At 7 HP he becomes
+# Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
+#
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+
+id: quarry-king
+number: 10
+name: The Quarry King
+description: Fourteen hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
+
+spawn q = QuarryKing
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Wardbearer
+roster b: Archer, Threadcaster
+
+objective: kill-all
+
+wave 3 = h@0,2 h@0,4
+wave 6 = h@0,1 h@0,5
+
+board:
+  l.....^BB
+  ..h....BB
+  ....O....
+  ..q......
+  ....O....
+  ..h....AA
+  l.....^AA

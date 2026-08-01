@@ -682,6 +682,11 @@ namespace Faultline.Core
             {
                 events.Add(new RoundEnded(state.Round));
 
+                // Second strip trigger for negating Footing: ending the round next to a pit costs a
+                // token (D-039). It reads off the board as it stood when the round ended, which is
+                // why it runs here rather than at the top of the next one.
+                state = Footing.StripAtRoundEnd(state, events);
+
                 // Brief §2 round end: Clinging resolution, then Stagger clears in BeginRound.
                 state = Pits.ResolveEndOfRound(state, events);
 

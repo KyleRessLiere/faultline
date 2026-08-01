@@ -10,6 +10,7 @@ id: tp-09-back-to-the-wall
 number: 109
 name: Back to the Wall
 description: The narrow corridor is the only place a Stalker cannot shove you, and it dead-ends into six hit points of Anchor.
+retired: Half the roster (Anchor + one Stalker) takes zero actions in eight rounds; `hz-04` states the same inversion and plays.
 
 spawn n = Anchor
 spawn s = Stalker

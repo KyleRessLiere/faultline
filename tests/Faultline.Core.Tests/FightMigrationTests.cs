@@ -4,26 +4,34 @@ namespace Faultline.Core.Tests;
 
 /// <summary>
 /// Fight 1 used to be a hard-coded <c>FightDefinition</c> in C#; it is now authored as
-/// <c>Fights/Data/first-contact.fight</c>. These tests pin the exact values the old constructor
-/// produced, so the move to text is provably a no-op rather than a re-design.
+/// <c>Fights/Data/first-contact.fight</c>. These tests pin every value the file produces, tile for
+/// tile and in order, so the opener can never drift by accident.
 /// </summary>
 /// <remarks>
+/// <para>
+/// The pinned values are the re-cut of CURATED_SET.md §6, which queues two Husks in a line on the
+/// west edge so the round-one double kill is discoverable. They are no longer the values the old
+/// C# constructor produced — that migration is done, and this class now guards the board a designer
+/// chose rather than the one a refactor inherited.
+/// </para>
+/// <para>
 /// Order is asserted, not just membership: deployment slots and enemy spawns are consumed in list
 /// order, that order fixes unit ids, and unit ids decide activation order and every tie-break in the
 /// enemy priority lists. A reordered zone is a different game from the same seed and command log.
+/// </para>
 /// </remarks>
 public class FightMigrationTests
 {
-    /// <summary>The terrain rows the hard-coded fight built, with placement stripped out.</summary>
+    /// <summary>The terrain rows of the authored board, with placement stripped out.</summary>
     private static readonly string[] LegacyRows =
     {
-        "#..O...",
-        ".H.^...",
-        "O.....#",
-        ".^...^.",
-        "#.....O",
-        ".....H.",
-        "...O..#",
+        "#......",
+        ".^.H...",
+        ".......",
+        ".O...O.",
+        "#.....#",
+        "....^..",
+        ".......",
     };
 
     [Fact]
@@ -60,7 +68,7 @@ public class FightMigrationTests
     public void Fight1_DeploymentZoneA_IsUnchangedInOrder()
     {
         Assert.Equal(
-            new[] { new Coord(0, 5), new Coord(1, 5), new Coord(0, 6), new Coord(1, 6) },
+            new[] { new Coord(0, 5), new Coord(0, 6), new Coord(1, 6) },
             FightLibrary.Fight1().DeploymentZoneA);
     }
 
@@ -68,7 +76,7 @@ public class FightMigrationTests
     public void Fight1_DeploymentZoneB_IsUnchangedInOrder()
     {
         Assert.Equal(
-            new[] { new Coord(5, 0), new Coord(6, 0), new Coord(5, 1), new Coord(6, 1) },
+            new[] { new Coord(6, 0), new Coord(6, 1), new Coord(6, 2) },
             FightLibrary.Fight1().DeploymentZoneB);
     }
 
@@ -78,9 +86,11 @@ public class FightMigrationTests
         Assert.Equal(
             new[]
             {
-                new EnemySpawn(UnitKind.Husk, new Coord(2, 0)),
-                new EnemySpawn(UnitKind.Lobber, new Coord(4, 0)),
-                new EnemySpawn(UnitKind.Husk, new Coord(2, 6)),
+                new EnemySpawn(UnitKind.Lobber, new Coord(5, 0)),
+
+                // The queue: two Husks in a line on the west edge, one Push from being one kill.
+                new EnemySpawn(UnitKind.Husk, new Coord(0, 2)),
+                new EnemySpawn(UnitKind.Husk, new Coord(0, 3)),
                 new EnemySpawn(UnitKind.Husk, new Coord(4, 6)),
             },
             FightLibrary.Fight1().Enemies);

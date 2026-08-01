@@ -13,6 +13,7 @@ id: hz-10-bone-yard
 number: 210
 name: Bone Yard
 description: Two queues of Husks with a pit at the head of each. Bodies are hazards too — a collision hurts both parties and staggers both, and the queue is what turns one shove into two kills.
+retired: three boards taught unit-into-unit; the queue you build (cb-06) and the pull you aim (cb-09) are the sharper two
 
 spawn h = Husk
 spawn n = Anchor

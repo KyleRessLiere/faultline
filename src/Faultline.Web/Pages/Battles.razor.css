@@ -165,3 +165,77 @@ ul.issues {
 .tag.custom {
     color: var(--b);
 }
+
+.tag.slot {
+    color: #ffd166;
+}
+
+/* The campaign call-out: the picker is a menu, the run is the game, and the difference should be
+   visible before anything is clicked. */
+
+.run-banner {
+    align-items: center;
+    background: rgba(255, 209, 102, .07);
+    border: 1px solid #6b5a2c;
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    padding: .8rem 1rem;
+}
+
+.run-banner strong {
+    color: #ffd166;
+}
+
+.run-progress {
+    color: var(--muted);
+    display: block;
+    font-size: .78rem;
+    margin-top: .2rem;
+}
+
+.section-note {
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.5;
+    margin: -.25rem 0 .8rem;
+    max-width: 78ch;
+}
+
+.note.empty {
+    margin: 0 0 1.75rem;
+}
+
+code {
+    background: #2b303a;
+    border-radius: 3px;
+    font-size: .72rem;
+    padding: .05rem .3rem;
+}
+
+.retired-note {
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
+    max-width: 90ch;
+}
+
+.retired-note summary {
+    cursor: pointer;
+}
+
+.retired-note ul {
+    list-style: none;
+    margin: .4rem 0 0;
+    padding: 0;
+}
+
+.retired-note li {
+    line-height: 1.5;
+    margin-bottom: .25rem;
+}

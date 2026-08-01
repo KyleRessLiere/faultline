@@ -1,6 +1,7 @@
 # Board topology 1 — two rooms, one door.
 # A solid wall splits the map; the only way through is the single tile at (4,3),
-# and an Anchor is standing in it. Push 1 does not move an Anchor.
+# and a Warden is standing in it. Move 0: it never advances, so the door stays corked
+# for as long as the Warden is alive. The Anchor that used to hold it left in round 1.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot
 
@@ -9,7 +10,7 @@ number: 101
 name: One Door
 description: A wall with a single gap, corked by the one enemy your basic shove cannot move. Ranged fire crosses the wall; bodies do not.
 
-spawn n = Anchor
+spawn w = Warden
 spawn h = Husk
 spawn l = Lobber
 
@@ -20,7 +21,7 @@ board:
   AA..#....
   AAH.#.h^.
   ....#....
-  ....n...l
+  ....w...l
   ....#....
   BBH.#.h^.
   BB..#....

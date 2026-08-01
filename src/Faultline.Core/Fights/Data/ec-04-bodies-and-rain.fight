@@ -8,6 +8,7 @@ id: ec-04-bodies-and-rain
 number: 304
 name: Bodies and Rain
 description: A trench with two one-tile bridges, a Husk standing on each, and Lobbers behind who shoot straight over them. The bodies stop your feet; they do not stop the rocks.
+retired: Same trench-and-two-bridges board as `ec-08`, which asks the better question on it.
 
 spawn h = Husk
 spawn l = Lobber

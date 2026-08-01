@@ -9,6 +9,7 @@ id: tp-05-the-spine
 number: 105
 name: The Spine
 description: A ridge worth plus one damage and a fall on either side. The whole enemy roster exists to take you off it.
+retired: Duplicates `high-road` with more furniture; its Lobber takes zero actions in eight rounds.
 
 spawn h = Husk
 spawn g = Grappler

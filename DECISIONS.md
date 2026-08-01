@@ -291,3 +291,70 @@ If the authored tile is taken, the arrival takes the nearest free walkable tile 
 row-major); if there is nowhere, it waits at the gate and retries next round. A cancelled wave would
 silently change the fight, and a pending arrival counts as a live enemy, which is what stops a
 `kill-all` being won in the gap between waves.
+
+**D-039 — A retired battle is flagged, not moved or deleted.**
+`retired:` in the file, with the reason as its value and the value required. A `Retired/` folder
+would tell you *what* was retired and never *why*, and the two drift the moment someone moves a file
+without updating a list. The file stays embedded and stays in the parse sweep, so a retired board
+that stopped loading is still a test failure. `All()` excludes it, `Retired()` returns it, and
+`ById()` still finds it — hiding it from the playable list is the whole of the behaviour change, and
+un-retiring is deleting one line.
+
+**D-040 — A structure is drawn on the grid, and the grid is checked against the objective.**
+`S` and `D` join `A` and `B` as placement characters over Open terrain. A coordinate in the header
+with nothing on the board was the one thing in the format that was not WYSIWYG, and the format's
+premise is that a tile is what it looks like. The coordinate is now authored twice, deliberately:
+rather than pick a winner, the parser errors when the two disagree, so a structure can never sit
+somewhere the author did not draw it. The mark is optional on input so older files still load;
+`FightWriter` always emits it.
+
+**D-041 — hz-02's reach line is one tile, not the far row's two ends.**
+`docs/CURATED_SET.md` §6 asks for `reach 0,0 0,8` on a 9×7 board. Read as x,y that is off the board;
+read as the far row's two ends it is `(0,0)` and `(8,0)` — and `(8,0)` is one step from Player B's
+deploy slot at `(8,1)`, so the fight would be won on round 1, the exact opposite of "crossing IS the
+win". The objective is `reach 0,0`: five tiles and a belt of spikes straight up column 0 from Player
+A, and the length of row 0 past both Lobbers from Player B. A test asserts every reach tile is more
+than one step from every deploy slot, so the degenerate case cannot come back.
+
+**D-042 — `docs/CURATED_SET.md` §6 writes coordinates as row,col; the format is x,y.**
+Confirmed in four places: first-contact's note cites Husks at "(2,0) and (3,0)" where the board has
+them at `(0,2)`/`(0,3)`; hz-02's `0,8` is off a 9×7 board; as-05's `h@0,6` lands on a Player A deploy
+slot *inside* the room the fight defends; and break-the-gate's `destroy 1,3` disagrees with its own
+`D` mark at `(3,1)`. In every case the **board** is authoritative and the prose coordinate is the
+error, so boards were authored from the grids and the coordinates transposed to match. The new
+structure-mark validation (D-040) catches this class of mistake at parse time for objectives; wave
+coordinates have no such cross-check and were transposed by hand.
+
+**D-043 — Footing that negates is a flag on the stat block, and it is stripped, not spent.**
+`docs/CURATED_SET.md` §5B asks for three tokens that reduce every displacement to 0 while any remain,
+without being consumed. Implemented as `UnitTemplate.FootingNegates`, beside `PushResistance` and
+`HoldAura` — the third time a special case has been generalised into a number on the stat block
+(D-030, D-031), and the third time it cost less than the special case would have.
+`EffectiveDistance` returns 0 above every other modifier, so no Stagger is consumed and no token
+changes hands; `Resolve` refuses a requested spend outright, so `EnemyWouldSpendFooting` can never
+bill one. Removing a token is a listener on two events the engine already emits. This amends D-028:
+ordinary Footing is still scenario-granted and every other archetype still starts on zero, but a
+negating token is not a shrug that a blanket grant would blunt the board with — it is the boss, and
+it belongs on the template so a Quarry King is the same creature on every board.
+
+**D-044 — A stat-block swap is a whole second template, and it re-declares the intent.**
+The alternative was a second `UnitKind`, which would have changed the archetype under a unit id
+mid-fight and put a phantom entry in the bestiary. `UnitTemplate.Enraged` plus `EnrageAt` makes the
+swap a substitution: `Unit.Enraged` flips once at the threshold and `Unit.Template` reads the second
+block from it, so movement, damage and the planner's dispatch all change in the same instant.
+`Unit.Move` became a derived property for the same reason — a stored copy of a stat that can change
+is a stat that can go stale. The swap runs inside `Ai.ReplanInvalidated`, which already fires after
+every command and already exists to reconcile intents with a board that moved underneath them: a
+plan made by a unit with different numbers is invalid for exactly the reason a dead target is, and is
+announced the same way.
+
+**D-045 — The Raider's priority list contains no clause about player units, including the free finish.**
+D-036 expressed Protect pressure as a rule because the planner was not aware of structures. The
+Raider is the honest fix: an enemy whose *target is a tile*. Its intent carries a `TargetPosition`
+and no `TargetId`, and `Ai.Compute` dispatches it before the candidate search runs at all, so an
+empty board of player units cannot silence an archetype that was never listening to them. The free
+finish on a clinging unit (D-025) is switched off for it too — that is a clause about player units,
+and this list has none. It walks past a clinging player exactly as it walks past a standing one. With
+no standing Protect structure it holds and re-runs the list every activation rather than latching.
+D-036's rule is untouched: the claw is still the siege rule, and what the Raider adds is that it
+chose to be standing there.

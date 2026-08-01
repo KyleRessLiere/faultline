@@ -9,6 +9,7 @@ id: tp-03-spiral
 number: 103
 name: The Coil
 description: The centre is three tiles away and eleven steps away. Ranged fire ignores the walls; the Stalker inside the corridor does not.
+retired: Its central claim — the centre Lobber never leaves — was falsified by D-029. The Stalker never acts.
 
 spawn h = Husk
 spawn s = Stalker

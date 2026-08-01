@@ -43,14 +43,50 @@ namespace Faultline.Core
             return results;
         }
 
-        /// <summary>Every fight that parsed cleanly, in run order.</summary>
+        /// <summary>
+        /// Every active fight that parsed cleanly, in run order. Retired battles are left out — that
+        /// is what retiring one does (docs/RETIRING_BATTLES.md).
+        /// </summary>
         /// <returns>The playable fights.</returns>
-        public static IReadOnlyList<FightDefinition> All()
+        public static IReadOnlyList<FightDefinition> All() => Sorted(retired: false);
+
+        /// <summary>
+        /// Every retired battle, in run order, each carrying the reason its <c>retired:</c> key gave.
+        /// Nothing is deleted, so "should we bring that back?" stays a question the library can answer.
+        /// </summary>
+        /// <returns>The retired fights.</returns>
+        public static IReadOnlyList<FightDefinition> Retired() => Sorted(retired: true);
+
+        /// <summary>Looks up one fight by its id, retired or not.</summary>
+        /// <remarks>
+        /// Retiring hides a battle from the playable list; it does not make it unreachable. A picker
+        /// showing its retired section, and any test pinned to a retired board, both still resolve.
+        /// </remarks>
+        /// <param name="id">The fight's <c>id:</c> slug.</param>
+        /// <returns>The fight.</returns>
+        public static FightDefinition ById(string id)
+        {
+            foreach (var result in LoadAll())
+            {
+                if (result.Fight is not null && string.Equals(result.Fight.Id, id, StringComparison.Ordinal))
+                {
+                    return result.Fight;
+                }
+            }
+
+            throw new ArgumentException("No fight with id '" + id + "'.", nameof(id));
+        }
+
+        /// <summary>The fight the run opens on.</summary>
+        /// <returns>Fight 1.</returns>
+        public static FightDefinition Fight1() => ById("first-contact");
+
+        private static IReadOnlyList<FightDefinition> Sorted(bool retired)
         {
             var fights = new List<FightDefinition>();
             foreach (var result in LoadAll())
             {
-                if (result.Fight is not null)
+                if (result.Fight is not null && result.Fight.IsRetired == retired)
                 {
                     fights.Add(result.Fight);
                 }
@@ -62,26 +98,6 @@ namespace Faultline.Core
 
             return fights;
         }
-
-        /// <summary>Looks up one fight by its id.</summary>
-        /// <param name="id">The fight's <c>id:</c> slug.</param>
-        /// <returns>The fight.</returns>
-        public static FightDefinition ById(string id)
-        {
-            foreach (var fight in All())
-            {
-                if (string.Equals(fight.Id, id, StringComparison.Ordinal))
-                {
-                    return fight;
-                }
-            }
-
-            throw new ArgumentException("No fight with id '" + id + "'.", nameof(id));
-        }
-
-        /// <summary>The fight the run opens on.</summary>
-        /// <returns>Fight 1.</returns>
-        public static FightDefinition Fight1() => ById("first-contact");
 
         private static string ReadResource(Assembly assembly, string name)
         {

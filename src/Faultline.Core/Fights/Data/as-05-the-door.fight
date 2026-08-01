@@ -15,6 +15,15 @@ spawn h = Husk
 roster a: Vanguard
 roster b: Threadcaster
 
+# The tide, not the headcount: hold the doorway to the end of round 8 and you have won,
+# so killing the last Husk stops being the point. Arrivals land on the two north corners
+# the starting Husks came from — 0,0 and 6,0 — which are the far side of the room from
+# the door.
+objective: survive 8
+
+wave 3 = h@0,0 h@6,0
+wave 6 = h@0,0 h@6,0
+
 board:
   hh...hh
   .h...h.

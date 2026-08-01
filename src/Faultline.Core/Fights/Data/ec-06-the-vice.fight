@@ -8,6 +8,7 @@ id: ec-06-the-vice
 number: 306
 name: The Vice
 description: An Anchor line with two gaps in it, and a Grappler behind you that keeps putting people in the gaps. Push 1 cannot open a gap; splitting the party can.
+retired: "splitting is right" twice; as-08 makes it a deployment-level truth
 
 spawn n = Anchor
 spawn g = Grappler

@@ -64,7 +64,7 @@ public class DeploymentTests
         state = state.Then(new DeployCommand(first.Id, new Coord(0, 5)));
         state = state.Then(new DeployCommand(
             state.Units.First(u => u.Team == Team.PlayerB).Id,
-            new Coord(5, 0)));
+            new Coord(6, 0)));
 
         TestPlay.AssertIllegal(state, new DeployCommand(second.Id, new Coord(0, 5)));
     }

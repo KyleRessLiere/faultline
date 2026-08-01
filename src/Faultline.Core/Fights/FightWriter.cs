@@ -54,6 +54,12 @@ namespace Faultline.Core
             AppendKey(text, "name", fight.Name);
             AppendKey(text, "description", fight.Description);
 
+            // Only a retired battle writes the key at all, so the active files stay byte-identical.
+            if (fight.RetiredReason is not null)
+            {
+                AppendKey(text, "retired", fight.RetiredReason);
+            }
+
             // A declared letter that never appears on the grid is a SpawnCharUnused error — but a
             // letter a wave names is used too, so both count as placed.
             bool anySpawnLine = false;
@@ -158,6 +164,19 @@ namespace Faultline.Core
             foreach (var spawn in fight.Enemies)
             {
                 grid[Index(board, spawn.At, "enemy spawn")] = LetterFor(letters, spawn.Kind);
+            }
+
+            // A structure is drawn where it stands, so the board says everything the fight does.
+            if (fight.Objective is not null && fight.Objective.HasStructure)
+            {
+                char mark = fight.Objective.Kind == ObjectiveKind.Protect
+                    ? FightParser.StructureProtect
+                    : FightParser.StructureDestroy;
+
+                foreach (var tile in fight.Objective.Tiles)
+                {
+                    grid[Index(board, tile, "objective structure")] = mark;
+                }
             }
 
             // The parser resolves a board character as A, then B, then a spawn letter, then terrain.
@@ -293,12 +312,15 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// The seven characters that already mean something on the board. A spawn letter would win the
-        /// parser's matching race against terrain, so <see cref="FightParser"/> rejects these outright.
+        /// The nine characters that already mean something on the board — five terrain, two deploy
+        /// slots, two structure marks. A spawn letter would win the parser's matching race against
+        /// terrain, so <see cref="FightParser"/> rejects these outright.
         /// </summary>
         private static bool IsReserved(char c) =>
             c == FightParser.DeployA
             || c == FightParser.DeployB
+            || c == FightParser.StructureProtect
+            || c == FightParser.StructureDestroy
             || c == BoardLayout.Open
             || c == BoardLayout.Wall
             || c == BoardLayout.Pit

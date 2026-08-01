@@ -7,14 +7,15 @@ So battles are **retired, not removed**.
 
 ## How it works
 
+**The reason must be one line** — the format has no line continuation, so a wrapped value is a parse error.
+
 A `retired:` key in the `.fight` file. Its presence retires the battle; **its value is the reason,
 and it is required** — you cannot retire something without saying why.
 
 ```
 id: tp-04-sundered
 name: Sundered
-retired: duplicates as-08-two-fires, which asks the same "converge or hold" question on a
-  board where the two halves genuinely differ
+retired: duplicates as-08-two-fires, which asks the same "converge or hold" question on a board where the two halves genuinely differ
 ```
 
 The file stays exactly where it is, still embedded, still parsed, still valid. What changes:

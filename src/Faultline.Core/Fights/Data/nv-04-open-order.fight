@@ -18,6 +18,7 @@ id: nv-04-open-order
 number: 704
 name: Open Order
 description: No pits, no spikes, three shovers. A Harrier pulls your party apart while one Stalker uses the board edge and the other refuses to.
+retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn r = Harrier
 spawn s = Stalker

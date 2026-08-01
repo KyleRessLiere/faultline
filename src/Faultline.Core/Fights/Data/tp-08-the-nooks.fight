@@ -9,6 +9,7 @@ id: tp-08-the-nooks
 number: 108
 name: The Nooks
 description: Cover with one exit is a coffin. A Lobber in a nook cannot kite, and neither can you.
+retired: its question — "is cover with one exit cover?" — is about to change meaning: see shapes, §5. Re-judge after
 
 spawn l = Lobber
 spawn h = Husk

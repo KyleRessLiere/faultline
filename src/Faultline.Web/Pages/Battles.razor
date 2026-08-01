@@ -3,6 +3,7 @@
 @layout MainLayout
 @inject GameSession Session
 @inject CustomFightStore Store
+@inject CampaignStore Runs
 @inject NavigationManager Nav
 
 <PageTitle>Faultline — battles</PageTitle>
@@ -28,13 +29,74 @@
         </div>
     </header>
 
-    <h2>Campaign</h2>
-    <div class="fight-grid">
-        @foreach (var result in Campaign())
+    <section class="run-banner">
+        <div>
+            <strong>The campaign</strong> — the ten fights of CURATED_SET §1, in order. A win advances,
+            a loss ends the run, and anything voided along the way is gone for good.
+            @if (Runs.Run is { } run && run.InProgress)
+            {
+                <span class="run-progress">
+                    In progress: @run.ClearedCount / @CampaignPlan.Length cleared, seed @run.Seed.
+                </span>
+            }
+        </div>
+        <a class="action" href="campaign">@(Runs.HasRunInProgress ? "Continue the run" : "Start a run")</a>
+    </section>
+
+    @foreach (var section in Sections())
+    {
+        <h2>@section.Heading</h2>
+        <p class="section-note">@section.Blurb</p>
+
+        @if (section.Fights.Count == 0)
         {
-            @RenderFight(result, null)
+            <p class="note empty">Nothing here yet.</p>
         }
-    </div>
+        else
+        {
+            <div class="fight-grid">
+                @foreach (var result in section.Fights)
+                {
+                    @RenderFight(result, null)
+                }
+            </div>
+        }
+    }
+
+    @if (Retired.Count > 0)
+    {
+        <details class="retired-note">
+            <summary>
+                @Retired.Count retired board(s), out of the picker (CURATED_SET §4) — reasons below
+            </summary>
+            <p class="note">
+                Retired is not deleted: the files are still embedded and still parse. Core decides which
+                these are, through the <code>retired:</code> key; the picker only shows what
+                <code>FightLibrary.All()</code> hands back.
+            </p>
+            <ul>
+                @foreach (var fight in Retired)
+                {
+                    <li><span class="tag">@fight.Id</span> @fight.RetiredReason</li>
+                }
+            </ul>
+        </details>
+    }
+
+    @if (Unreadable.Count > 0)
+    {
+        <h2>Unreadable files</h2>
+        <p class="section-note">
+            These <code>.fight</code> files failed to parse, so they cannot be played. They are listed
+            rather than hidden, because a file that vanishes silently is worse than one that shouts.
+        </p>
+        <div class="fight-grid">
+            @foreach (var result in Unreadable)
+            {
+                @RenderFight(result, null)
+            }
+        </div>
+    }
 
     <h2>Your scenarios</h2>
     @if (!Store.Loaded)
@@ -62,33 +124,98 @@
 @code {
     private int _seed = GameSession.DefaultSeed;
 
-    protected override async Task OnInitializedAsync() => await Store.LoadAsync();
+    /// <summary>One heading's worth of the picker.</summary>
+    private sealed record Section(string Heading, string Blurb, IReadOnlyList<FightParseResult> Fights);
 
-    private IEnumerable<FightParseResult> Campaign()
+    private readonly List<Section> _sections = new();
+    private readonly List<FightParseResult> _unreadable = new();
+    private IReadOnlyList<FightDefinition> _retired = Array.Empty<FightDefinition>();
+
+    private IReadOnlyList<Section> Sections() => _sections;
+
+    private IReadOnlyList<FightParseResult> Unreadable => _unreadable;
+
+    private IReadOnlyList<FightDefinition> Retired => _retired;
+
+    protected override async Task OnInitializedAsync()
     {
-        var results = new List<FightParseResult>(GameSession.Library);
-
-        // Playable fights in run order, then anything that failed to parse, so a broken file stays
-        // visible at the bottom instead of vanishing.
-        results.Sort((a, b) =>
-        {
-            if (a.Ok != b.Ok)
-            {
-                return a.Ok ? -1 : 1;
-            }
-
-            if (a.Fight is null || b.Fight is null)
-            {
-                return 0;
-            }
-
-            return a.Fight.Number != b.Fight.Number
-                ? a.Fight.Number.CompareTo(b.Fight.Number)
-                : string.CompareOrdinal(a.Fight.Id, b.Fight.Id);
-        });
-
-        return results;
+        await Runs.LoadAsync();
+        Group();
+        await Store.LoadAsync();
     }
+
+    /// <summary>
+    /// Sorts the library into the curated set's sections. Membership comes from
+    /// <see cref="CampaignPlan"/>'s id lists; whether a battle is active at all comes from Core —
+    /// <c>FightLibrary.All()</c> is the only thing that decides, so a <c>retired:</c> key drops a
+    /// board out of here without the shell knowing its name.
+    /// </summary>
+    private void Group()
+    {
+        var active = Runs.Active;
+
+        var campaign = new List<FightParseResult>();
+        var trials = new List<FightParseResult>();
+        var gauntlet = new List<FightParseResult>();
+        var other = new List<FightParseResult>();
+
+        _unreadable.Clear();
+        _retired = FightLibrary.Retired();
+
+        foreach (var result in GameSession.Library)
+        {
+            var fight = result.Fight;
+
+            if (fight is null)
+            {
+                _unreadable.Add(result);
+                continue;
+            }
+
+            if (!active.ContainsKey(fight.Id))
+            {
+                continue;
+            }
+
+            switch (CampaignPlan.GroupOf(fight.Id))
+            {
+                case FightGroup.Campaign: campaign.Add(result); break;
+                case FightGroup.Trials: trials.Add(result); break;
+                case FightGroup.Gauntlet: gauntlet.Add(result); break;
+                default: other.Add(result); break;
+            }
+        }
+
+        // The campaign is the one group with a real order, and it is the spine's order, not the
+        // library's — cb-06 is authoring number 506 and campaign slot 2.
+        campaign.Sort((a, b) => CampaignPlan.SlotOf(a.Fight!.Id).CompareTo(CampaignPlan.SlotOf(b.Fight!.Id)));
+        ByNumber(trials);
+        ByNumber(gauntlet);
+        ByNumber(other);
+
+        _sections.Clear();
+        _sections.Add(new Section(
+            "Campaign — the ordered ten",
+            "Fixed order, each fight building on the last. Playable one-off from here; the run itself lives on the campaign screen.",
+            campaign));
+        _sections.Add(new Section(
+            "Trials — one question each",
+            "A pick-any menu of self-contained boards. No assumed order, nothing carried between them.",
+            trials));
+        _sections.Add(new Section(
+            "Co-op gauntlet — the partnership",
+            "Four boards about the two players rather than the terrain.",
+            gauntlet));
+        _sections.Add(new Section(
+            "Other battles",
+            "Authored and active, but outside the curated groups — variant proofs, annexes and boards waiting on a re-judge.",
+            other));
+    }
+
+    private static void ByNumber(List<FightParseResult> results) =>
+        results.Sort((a, b) => a.Fight!.Number != b.Fight!.Number
+            ? a.Fight!.Number.CompareTo(b.Fight!.Number)
+            : string.CompareOrdinal(a.Fight!.Id, b.Fight!.Id));
 
     private RenderFragment RenderFight(FightParseResult result, string? customId) => __builder =>
     {
@@ -101,6 +228,10 @@
                 @if (fight is not null)
                 {
                     <span class="tag">@fight.Id</span>
+                    @if (CampaignPlan.SlotOf(fight.Id) >= 0)
+                    {
+                        <span class="tag slot">campaign @(CampaignPlan.SlotOf(fight.Id) + 1) of @CampaignPlan.Length</span>
+                    }
                 }
                 @if (customId is not null)
                 {

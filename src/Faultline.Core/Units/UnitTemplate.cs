@@ -41,6 +41,21 @@ namespace Faultline.Core
     /// How many tiers of the pit → spikes → wall/edge ladder a flanking shover will aim for: 3 takes
     /// all three, 2 stops at spikes, 0 means the archetype does not hunt hazards at all (D-024).
     /// </param>
+    /// <param name="FootingNegates">
+    /// True when this archetype's Footing tokens cancel a displacement instead of shortening it by a
+    /// tile: while any remain, every Push and Pull against the unit resolves at distance 0, and the
+    /// token is not spent doing it. Such a token is taken away by a collision or by ending a round on
+    /// the lip of a pit, never by the shove it turned aside (D-039).
+    /// </param>
+    /// <param name="Enraged">
+    /// The second stat block this archetype swaps to at <paramref name="EnrageAt"/> hit points, or
+    /// <c>null</c> for the single-phase majority. It is a whole template, so a phase change is a
+    /// substitution rather than a pile of exceptions (D-040).
+    /// </param>
+    /// <param name="EnrageAt">
+    /// Hit points at or below which <paramref name="Enraged"/> takes over. Meaningless when there is
+    /// no second stat block.
+    /// </param>
     public sealed record UnitTemplate(
         UnitKind Kind,
         string Name,
@@ -57,7 +72,10 @@ namespace Faultline.Core
         EnemyPlan Plan = EnemyPlan.None,
         int PushResistance = 0,
         bool HoldAura = false,
-        int HazardRanks = 0)
+        int HazardRanks = 0,
+        bool FootingNegates = false,
+        UnitTemplate? Enraged = null,
+        int EnrageAt = 0)
     {
         private static readonly Dictionary<UnitKind, UnitTemplate> Table = Build();
 
@@ -109,6 +127,13 @@ namespace Faultline.Core
 
         private static Dictionary<UnitKind, UnitTemplate> Build()
         {
+            // docs/CURATED_SET.md §5B: the Quarry King's second stat block. Move 1 becomes Move 3 and
+            // the priority list gains a Bull Rush, which the planner reads off the standalone shove
+            // rather than off the archetype — the enraged block is the one that carries a BasicPush.
+            var quarryKingEnraged = new UnitTemplate(
+                UnitKind.QuarryKing, "Quarry King", 14, 3, AttackKind.Melee, 1, 3, 3, false,
+                AttackPush: 1, BasicPush: 2, Plan: EnemyPlan.QuarryKing, FootingNegates: true);
+
             var all = new[]
             {
                 // Brief §2: Player classes. Move 3 for all player units. Footing is 0 for everyone —
@@ -144,6 +169,16 @@ namespace Faultline.Core
                 new UnitTemplate(UnitKind.BluntedStalker, "Blunted Stalker", 4, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 2),
                 new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 3, 3, AttackKind.Melee, 1, 1, 0, false, Plan: EnemyPlan.Melee),
                 new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 6, 2, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
+
+                // docs/CURATED_SET.md §5A/§5B: the objective enemies. The Raider is a Husk in every
+                // number and differs only in the list it runs. The Quarry King is the only archetype
+                // that starts a fight holding Footing, because his three tokens are not the ordinary
+                // one-tile shrug — they are the boss (D-039, amending D-028).
+                new UnitTemplate(UnitKind.Raider, "Raider", 2, 3, AttackKind.Melee, 1, 1, 0, false, Plan: EnemyPlan.Raider),
+                new UnitTemplate(
+                    UnitKind.QuarryKing, "Quarry King", 14, 1, AttackKind.Melee, 1, 3, 3, false,
+                    AttackPush: 1, Plan: EnemyPlan.QuarryKing, FootingNegates: true,
+                    Enraged: quarryKingEnraged, EnrageAt: 7),
             };
 
             var table = new Dictionary<UnitKind, UnitTemplate>(all.Length);

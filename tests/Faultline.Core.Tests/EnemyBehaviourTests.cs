@@ -233,10 +233,18 @@ public class EnemyBehaviourTests
     /// must plan something.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// A Move 0 archetype is started already adjacent. It is not a chaser and has no closing branch
     /// to assert — asking it to reach a target four tiles away would be asserting that Move 0 does
     /// not work. The teeth are unchanged: a static enemy with no planner branch still falls through
     /// to Hold with a player unit touching it, and still fails here.
+    /// </para>
+    /// <para>
+    /// An archetype whose priority list has no clause about player units gets the thing its list is
+    /// actually about put in front of it instead — for the Raider, a Protect structure (D-041). The
+    /// player unit stays on the board either way, so "it ignores you and plans anyway" is what is
+    /// being asserted, not "it was given something easier".
+    /// </para>
     /// </remarks>
     [Fact]
     public void EveryDocumentedEnemy_HasAPlannerBranch()
@@ -246,11 +254,17 @@ public class EnemyBehaviourTests
             int from = behaviour.Template.Move == 0 ? 4 : 1;
 
             // Spikes at (5,0) give the Stalker a hazard to shove into; everyone else ignores them.
-            var state = BoardBuilder.Rows(".....^.")
+            var builder = BoardBuilder.Rows(".....^.")
                 .PlayerA(UnitKind.Vanguard, 5, 0)
                 .Enemy(behaviour.Kind, from, 0)
-                .Active(Team.Enemy)
-                .Build();
+                .Active(Team.Enemy);
+
+            if (behaviour.Template.Plan == EnemyPlan.Raider)
+            {
+                builder = builder.Objective(ObjectiveKind.Protect, 0, 6, new Coord(6, 0));
+            }
+
+            var state = builder.Build();
 
             var enemy = state.Find(behaviour.Kind);
             var intent = Ai.Declare(state, enemy);

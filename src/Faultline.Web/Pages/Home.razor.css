@@ -80,6 +80,22 @@
     margin: 0 0 .5rem;
 }
 
+/* Campaign run — the strip that says this fight belongs to a run, and what the run just lost. */
+
+.chip.campaign-chip {
+    border-color: #ffd166;
+    color: #ffd166;
+    font-weight: 600;
+}
+
+.voided-note {
+    border-left: 2px solid var(--e);
+    color: var(--e);
+    font-size: .8rem;
+    line-height: 1.5;
+    padding-left: .6rem;
+}
+
 /* Playtest notes — the panel sits beside the log so a note and the transcript line it refers to
    are visible at the same time. */
 

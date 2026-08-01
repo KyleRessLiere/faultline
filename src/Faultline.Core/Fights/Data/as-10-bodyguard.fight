@@ -9,6 +9,7 @@ id: as-10-bodyguard
 number: 410
 name: Bodyguard
 description: A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to keep on the board.
+retired: Its own writeup answers no and points at `as-04`. Four-versus-one is `as-01`'s question with less to do.
 
 spawn h = Husk
 spawn l = Lobber

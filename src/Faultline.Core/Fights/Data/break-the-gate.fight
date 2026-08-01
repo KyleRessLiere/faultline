@@ -1,0 +1,40 @@
+# docs/CURATED_SET.md §1 fight 6 — Destroy. The review's worst opener, reborn.
+#
+# The gate is an 8 HP structure that attacks cannot touch at all. The only thing that hurts it is a
+# collision — 2 per slam, four slams — so to win you have to throw bodies at it, which means the
+# enemy is your ammunition. That is the game's thesis stated as a win condition.
+#
+# The Warden under the gate is the complication: Move 0, so unlike the Anchors it replaced it will
+# still be standing in the gap on round 4. It is push-resistant, but a STAGGERED Warden moves — so
+# collide a Husk from the reinforcement waves into him and he becomes the battering ram.
+#
+# Coordinates are x,y with 0,0 top-left. §6 authors 'destroy 1,3' but its own D mark sits at 3,1 and
+# the Warden sits directly beneath it — the board is authoritative (DECISIONS.md D-042).
+#
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot       D  the destroy structure
+
+id: break-the-gate
+number: 6
+name: Break the Gate
+description: An eight-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
+
+spawn l = Lobber
+spawn w = Warden
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+objective: destroy 3,1
+
+wave 2 = h@1,0 h@5,0
+
+board:
+  .l...l.
+  ###D###
+  ..^w^..
+  ...H...
+  .......
+  A.....B
+  AA...BB

@@ -13,6 +13,7 @@ id: nv-05-numbers
 number: 705
 name: Numbers
 description: Five Runts at 1 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
+retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn u = Runt
 spawn k = HeavyHusk

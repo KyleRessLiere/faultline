@@ -3,6 +3,7 @@
 @inject GameSession Session
 @inject FightFiles Files
 @inject PlaytestNotes Notes
+@inject CampaignStore Campaign
 @implements IDisposable
 
 <PageTitle>Faultline</PageTitle>
@@ -16,6 +17,13 @@
             <a class="chip link" href="notes" title="Every playtest note, across every battle">
                 Notes @NoteCountLabel
             </a>
+            @if (Session.InCampaign && Run is not null)
+            {
+                <a class="chip link campaign-chip" href="campaign"
+                   title="The campaign run — a win advances, a loss ends it">
+                    Campaign @(Run.Index + 1) / @CampaignPlan.Length
+                </a>
+            }
             <span class="chip fight-chip" title="@Session.Fight.Id">
                 #@Session.Fight.Number @Session.Fight.Name
             </span>
@@ -101,6 +109,43 @@
                 <p class="outcome @(State.Outcome == FightOutcome.Won ? "won" : "lost")">
                     @(State.Outcome == FightOutcome.Won ? "Fight won." : "Fight lost.")
                 </p>
+
+                @if (Session.InCampaign && _filed && Run is not null)
+                {
+                    @if (VoidedThisFight.Count > 0)
+                    {
+                        <p class="voided-note">
+                            Lost to the run: @string.Join(", ", VoidedThisFight).
+                            @(VoidedThisFight.Count == 1 ? "It does" : "They do") not come back.
+                        </p>
+                    }
+
+                    @if (State.Outcome == FightOutcome.Won && Run.InProgress && NextFight is not null)
+                    {
+                        <p>
+                            Next: <strong>#@(Run.Index + 1) @NextFight.Name</strong>
+                            <span class="tag">@NextFight.Id</span>
+                        </p>
+                        <button class="action" @onclick="ContinueCampaign">Continue the run</button>
+                    }
+                    else if (Run.Status == CampaignStatus.Won)
+                    {
+                        <p>Campaign complete — all @Run.ClearedCount authored fights cleared.</p>
+                    }
+                    else if (Run.Status == CampaignStatus.Wiped)
+                    {
+                        <p>
+                            Run over: one player has no units left, so there is nobody to deploy.
+                            @Run.ClearedCount of @CampaignPlan.Length cleared.
+                        </p>
+                    }
+                    else
+                    {
+                        <p>Run over on fight @(Run.Index + 1) of @CampaignPlan.Length. A campaign ends on its first defeat.</p>
+                    }
+
+                    <a class="action secondary link-button" href="campaign">Back to the campaign</a>
+                }
             }
             else if (State.Phase == Phase.Deployment)
             {
@@ -161,8 +206,21 @@
                 <p>Select one of @ActiveLabel's units to activate.</p>
             }
 
-            <button class="action secondary" @onclick="Restart">New run</button>
-            <a class="action secondary link-button" href="battles">Choose battle</a>
+            @if (Session.InCampaign)
+            {
+                @* No seed-bumping restart inside a run: the seed is the run's, not this fight's. And
+                   no restart once the fight is decided — the run has already moved on. *@
+                @if (State.Outcome == FightOutcome.InProgress)
+                {
+                    <button class="action secondary" @onclick="RestartCampaignFight">Restart this fight</button>
+                }
+                <a class="action secondary link-button" href="campaign">Campaign</a>
+            }
+            else
+            {
+                <button class="action secondary" @onclick="Restart">New run</button>
+                <a class="action secondary link-button" href="battles">Choose battle</a>
+            }
         </div>
 
         @if (State.Intents.Count > 0)
@@ -387,7 +445,36 @@
     private readonly List<string> _noteTags = new();
     private string? _noteStatus;
 
+    // A finished campaign fight is filed with the run exactly once, whatever else re-renders.
+    // _filing guards the call; _filed says the run has actually moved, so the panel never offers a
+    // "next fight" that is still this one. Both reset when the next fight starts.
+    private bool _filing;
+    private bool _filed;
+
     private GameState State => Session.State;
+
+    private CampaignRun? Run => Campaign.Run;
+
+    /// <summary>The fight the run moved on to, once this one has been filed as a win.</summary>
+    private FightDefinition? NextFight => Campaign.CurrentFight;
+
+    /// <summary>Player units this fight voided — Core's flag, read, never interpreted.</summary>
+    private IReadOnlyList<string> VoidedThisFight
+    {
+        get
+        {
+            var names = new List<string>();
+            foreach (var unit in State.Units)
+            {
+                if (unit.Team.IsPlayer() && unit.Voided)
+                {
+                    names.Add(unit.Name);
+                }
+            }
+
+            return names;
+        }
+    }
 
     private IReadOnlyList<PlaytestNote> NotesForThisFight => Notes.For(Session.Fight.Id);
 
@@ -474,7 +561,19 @@
         }
     }
 
-    protected override async Task OnInitializedAsync() => await Notes.LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await Campaign.LoadAsync();
+
+        // A reload lands here with a session the constructor built, not one the player chose. If a
+        // run is waiting, put its fight back on the board rather than the placeholder.
+        if (Session.Untouched && Campaign.HasRunInProgress)
+        {
+            Campaign.Resume(Session);
+        }
+
+        await Notes.LoadAsync();
+    }
 
     private void OnNoteInput(ChangeEventArgs args)
     {
@@ -527,11 +626,50 @@
             _ = DetectDirectorySupportAsync();
         }
 
+        // The run is filed the moment the fight ends, not when the player clicks Continue — closing
+        // the tab on a won fight must not cost the win.
+        if (!_filing && Session.InCampaign && State.Outcome != FightOutcome.InProgress)
+        {
+            _filing = true;
+            _ = FileOutcomeAsync();
+        }
+
         // Enemy slots resolve on a short delay so the hotseat players can watch them tick past.
         if (!_resolvingEnemy && Session.AwaitingEnemy)
         {
             _resolvingEnemy = true;
             _ = ResolveEnemyAsync();
+        }
+    }
+
+    private async Task FileOutcomeAsync()
+    {
+        await Campaign.RecordOutcomeAsync(State);
+        _filed = true;
+
+        if (!_disposed)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void ContinueCampaign()
+    {
+        if (Campaign.Resume(Session))
+        {
+            _filing = false;
+            _filed = false;
+            _noteStatus = null;
+        }
+    }
+
+    private void RestartCampaignFight()
+    {
+        // Same fight, same seed, same survivors — the run's own restart, not a new seed.
+        if (Campaign.Resume(Session))
+        {
+            _filing = false;
+            _filed = false;
         }
     }
 

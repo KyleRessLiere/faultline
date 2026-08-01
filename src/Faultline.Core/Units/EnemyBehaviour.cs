@@ -45,6 +45,9 @@ namespace Faultline.Core
             UnitKind.Warden, UnitKind.Perch, UnitKind.Bulwark, UnitKind.Harrier, UnitKind.Runt,
             UnitKind.Colossus,
             UnitKind.LesserGrappler, UnitKind.BluntedStalker, UnitKind.HeavyHusk, UnitKind.MobileAnchor,
+            // The objective enemies, last: they are the two that need something on the board other
+            // than a player unit to have anything to do (docs/CURATED_SET.md §5).
+            UnitKind.Raider, UnitKind.QuarryKing,
         };
 
         private static readonly Dictionary<UnitKind, EnemyBehaviour> ByKind = Build();
@@ -188,6 +191,9 @@ namespace Faultline.Core
             var bluntedStalker = UnitTemplate.For(UnitKind.BluntedStalker);
             var heavyHusk = UnitTemplate.For(UnitKind.HeavyHusk);
             var mobileAnchor = UnitTemplate.For(UnitKind.MobileAnchor);
+            var raider = UnitTemplate.For(UnitKind.Raider);
+            var king = UnitTemplate.For(UnitKind.QuarryKing);
+            var kingEnraged = king.Enraged!;
 
             var table = new Dictionary<UnitKind, EnemyBehaviour>(Order.Length);
 
@@ -702,6 +708,102 @@ namespace Faultline.Core
                     + "this one has to be pulled, killed or gone around.",
                     "Pull it out of the line rather than pushing it back into one — Reel ignores the "
                     + "shrug entirely.",
+                });
+
+            // ---- objective enemies (docs/CURATED_SET.md §5) ------------------------------------
+
+            table[UnitKind.Raider] = new EnemyBehaviour(
+                UnitKind.Raider,
+                "siege chaff — it is not here for you",
+                $"A Husk in every number that walks past you to the shrine and claws it for "
+                + $"{raider.Damage} a round. It has no clause about player units in its list at all.",
+                Steps(
+                    ("Claw the structure it is standing next to",
+                     $"Ends its activation adjacent to a Protect structure → the structure takes "
+                     + $"{raider.Damage}. It does not step to a better tile first and it does not need "
+                     + "to spend its action on it: standing there is the attack."),
+                    ("Otherwise walk at the nearest structure",
+                     $"Spends up to Move {raider.Move} closing on the nearest Protect structure by the "
+                     + "same breadth-first path field every other archetype walks by (D-029) — a wall "
+                     + "is a detour, a body is a toll of 2, and it claws in the same activation if the "
+                     + "walk ends adjacent."),
+                    ("Otherwise stand still",
+                     "With no Protect structure standing anywhere — a shrine already in rubble, or a "
+                     + "board that never had one — its list runs out and it holds. It re-checks every "
+                     + "activation, so a structure appearing puts it back in motion.")),
+                new[]
+                {
+                    "It never attacks a player unit. Not one it walks past, not one standing next to it, "
+                    + "not one clinging to a pit lip beside it — the free finish every other armed enemy "
+                    + "takes is a clause about player units, and this list has none (D-041).",
+                    "It never defends itself either. Hitting a Raider costs you nothing in return, which "
+                    + "is exactly why the clock and not the damage is the threat.",
+                    $"{raider.MaxHp} HP: the same body a Husk has. One collision, one spike tile or one "
+                    + "Archer shot removes it.",
+                    "It targets a tile, not a unit, so its intent carries the structure's coordinate and "
+                    + "no target id. Killing everything else on the board does not change its plan.",
+                },
+                new[]
+                {
+                    "Displace it. A thing that will not fight back is a thing you can spend the whole "
+                    + "fight shoving off its lane — every tile it is pushed sideways is a round the "
+                    + "shrine does not lose hit points.",
+                    "Count its walk, not its damage. Work out the round it arrives and make sure the tile "
+                    + "it wants is occupied by then; a body on the ring is worth more than a kill.",
+                    "Its escorts are the fight. The Raider cannot punish you for standing in the wrong "
+                    + "place — whatever came with it can.",
+                });
+
+            table[UnitKind.QuarryKing] = new EnemyBehaviour(
+                UnitKind.QuarryKing,
+                "boss — the body the board cannot move",
+                $"{king.MaxHp} HP at Move {king.Move}, hitting for {king.Damage} and shoving "
+                + $"{king.AttackPush} with the same swing. Three Footing tokens that do not shorten a "
+                + "displacement but cancel it, and a second stat block waiting at "
+                + $"{king.EnrageAt} HP.",
+                Steps(
+                    ("Bull Rush, once the second block is in force",
+                     $"At {king.EnrageAt} HP or below he charges up to Move {kingEnraged.Move} tiles in "
+                     + $"a straight line, stops adjacent to the first player unit on it and pushes "
+                     + $"{kingEnraged.BasicPush} — the player's own opener, aimed back. He takes it only "
+                     + "when the shove beats the swing: into another body, or over the lip of a pit. On "
+                     + "open ground he punches instead."),
+                    ("Hit what is adjacent",
+                     $"A player unit adjacent when he activates is attacked for {king.Damage}, the "
+                     + $"hardest basic attack in the game, and shoved {king.AttackPush} by the same "
+                     + "swing. He does not reposition first."),
+                    ("Otherwise close on the nearest",
+                     $"Move {king.Move} in his first phase — one tile a round, so the opening half of "
+                     + "the fight happens at whatever range you choose. Attacks if the step lands him "
+                     + "adjacent (D-022).")),
+                new[]
+                {
+                    $"His {king.Footing} Footing tokens are not the ordinary one-tile shrug. While any "
+                    + "remain, every Push and Pull against him resolves at distance 0 — Push 1, Push 2, "
+                    + "Bull Rush and Reel all move him nowhere — and the token is not spent doing it (D-039).",
+                    "A token is stripped by a collision he suffers, or by ending a round orthogonally "
+                    + "next to a pit. He cannot be moved, so the way to strip him is to slam something "
+                    + "else into him: a shoved Husk deals 2 to both and costs him a token.",
+                    $"The swap at {king.EnrageAt} HP is a whole stat block, not a buff: Move {king.Move} "
+                    + $"becomes Move {kingEnraged.Move} and the Bull Rush branch appears. He re-declares "
+                    + "his intent on the spot, so the telegraph never lies about which King you are "
+                    + "facing (D-040).",
+                    "There is no area attack. Everything he does is single-target and fully telegraphed, "
+                    + "which is what keeps him inside the intent system rather than beside it.",
+                    "Voiding him is legal and is still the smart win. With the tokens gone he clings to a "
+                    + "pit lip like anything else, and a finish costs a free action.",
+                },
+                new[]
+                {
+                    "Bring bodies to him. Every Husk you shove into the King is 2 damage to each of them "
+                    + "and one token off the boss — the best-value interaction in the game, pointed at "
+                    + $"the only {king.MaxHp} HP target in it.",
+                    "Fight him on the rim. Ending a round beside a pit costs him a token whether or not "
+                    + "you touched him, so the ground does a third of the stripping for free.",
+                    $"Spend the Move {king.Move} phase. One tile a round is an enormous gift: strip tokens "
+                    + $"and set the geometry before he drops to {king.EnrageAt} and starts charging.",
+                    $"Then void him. Once the tokens are gone he is a {king.MaxHp} HP unit with no push "
+                    + "resistance at all, and the pit does not care how many hit points he has left.",
                 });
 
             return table;

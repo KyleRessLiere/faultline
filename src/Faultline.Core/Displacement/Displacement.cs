@@ -109,6 +109,13 @@ namespace Faultline.Core
                 return state;
             }
 
+            // A negating token turns the shove aside without being handed over, so a caller that asked
+            // for a spend does not get one (D-039). Stripping is a listener on collisions and pits.
+            if (Footing.Negates(before))
+            {
+                spendFooting = false;
+            }
+
             int effective = EffectiveDistance(state, before, kind, distance, spendFooting, out bool consumesStagger);
 
             var updated = before;
@@ -164,6 +171,14 @@ namespace Faultline.Core
             foreach (var hit in sim.Hits)
             {
                 state = Combat.ApplyDamage(state, hit.UnitId, hit.Amount, hit.Source, events);
+
+                // First strip trigger: a negating token is knocked loose by a collision, on whichever
+                // side of it the unit stood. A unit nothing can move is still a unit things can be
+                // slammed into, and that is the way in (D-039).
+                if (hit.Source == DamageSource.Collision)
+                {
+                    state = Footing.Strip(state, hit.UnitId, events);
+                }
 
                 if (!hit.Staggers)
                 {
@@ -258,6 +273,14 @@ namespace Faultline.Core
         {
             consumesStagger = false;
             if (requested <= 0)
+            {
+                return 0;
+            }
+
+            // A negating Footing token does not shorten a displacement, it cancels one — and it is not
+            // spent doing so. It sits above every other modifier because there is nothing left for them
+            // to modify: no Stagger bonus is consumed and no token changes hands (D-039).
+            if (target.Footing > 0 && target.Template.FootingNegates)
             {
                 return 0;
             }

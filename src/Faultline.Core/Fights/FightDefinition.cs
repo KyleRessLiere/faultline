@@ -20,6 +20,21 @@ namespace Faultline.Core
         /// <summary>One-line description, shown when picking a fight.</summary>
         public string Description { get; init; } = string.Empty;
 
+        /// <summary>
+        /// Why this battle was retired, or <c>null</c> while it is active. Set by the
+        /// <c>retired:</c> key, whose value is the reason and is required — a battle cannot be
+        /// retired without saying why (docs/RETIRING_BATTLES.md).
+        /// </summary>
+        /// <remarks>
+        /// Retired is not deleted. The file stays embedded and still has to parse, so a retired
+        /// battle cannot quietly rot; it simply drops out of <see cref="FightLibrary.All"/> and
+        /// turns up in <see cref="FightLibrary.Retired"/> with this reason attached.
+        /// </remarks>
+        public string? RetiredReason { get; init; }
+
+        /// <summary>True when a <c>retired:</c> key took this battle out of the playable set.</summary>
+        public bool IsRetired => RetiredReason is not null;
+
         /// <summary>Terrain.</summary>
         public Board Board { get; init; } = Board.Filled(1, 1);
 

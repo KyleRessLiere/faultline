@@ -14,6 +14,7 @@ id: nv-06-dead-weight
 number: 706
 name: Dead Weight
 description: A Colossus that Push 1 and Push 2 both fail to move. Pull is unaffected — bring the Threadcaster or bring a lot of attacks.
+retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn c = Colossus
 spawn n = MobileAnchor

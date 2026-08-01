@@ -11,5 +11,6 @@ builder.Services.AddSingleton<GameSession>();
 builder.Services.AddSingleton<FightFiles>();
 builder.Services.AddSingleton<CustomFightStore>();
 builder.Services.AddSingleton<PlaytestNotes>();
+builder.Services.AddSingleton<CampaignStore>();
 
 await builder.Build().RunAsync();

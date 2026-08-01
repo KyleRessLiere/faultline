@@ -136,13 +136,23 @@ public class PrimitiveTests
     }
 
     [Fact]
-    public void UnitTemplate_NoArchetypeStartsWithFooting()
+    public void UnitTemplate_NoArchetypeStartsWithOrdinaryFooting()
     {
-        // Footing is granted by a scenario's 'footing:' key, never by the archetype. A blanket token
-        // on everyone shortens every shove by a tile and makes resisting a push the default.
+        // Ordinary Footing is granted by a scenario's 'footing:' key, never by the archetype (D-028).
+        // A blanket token on everyone shortens every shove by a tile and makes resisting a push the
+        // default. The one exception is an archetype whose tokens negate rather than shorten: those
+        // are not a shrug, they are the stat block, and they are stripped rather than spent (D-039).
         foreach (UnitKind kind in Enum.GetValues(typeof(UnitKind)))
         {
-            Assert.Equal(0, UnitTemplate.For(kind).Footing);
+            var template = UnitTemplate.For(kind);
+
+            if (template.FootingNegates)
+            {
+                Assert.True(template.Footing > 0, kind + " negates with no tokens to negate with.");
+                continue;
+            }
+
+            Assert.Equal(0, template.Footing);
         }
     }
 

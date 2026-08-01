@@ -8,6 +8,7 @@ id: cb-02-rank-and-file
 number: 502
 name: Rank and File
 description: Four Husks and a Lobber share one doorway. Shove the unit in the door back into the queue and two of them die at once.
+retired: Three of five Husks take zero actions in eight rounds; `cb-06` teaches the same shove with the player forming the queue.
 
 spawn h = Husk
 spawn l = Lobber

@@ -8,6 +8,7 @@ id: cb-01-kite-line
 number: 501
 name: Kite Line
 description: Two Lobbers between two deploy corners. Chasing one hands the other a free shot — squeeze instead, until the retreat runs out of board.
+retired: retreat-as-fact vs retreat-as-trap; the trap is the better lesson and the campaign meets Lobbers early anyway
 
 spawn l = Lobber
 spawn h = Husk

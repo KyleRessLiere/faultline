@@ -8,6 +8,7 @@ id: as-03-fists-and-feathers
 number: 403
 name: Fists and Feathers
 description: A brings two Vanguards, B brings two Archers. Nothing on the field caps displacement, and every Grappler on the board wants an Archer.
+retired: Near-identical board and enemy mix to `as-09-glass`, which states the same thesis harder.
 
 spawn h = Husk
 spawn g = Grappler

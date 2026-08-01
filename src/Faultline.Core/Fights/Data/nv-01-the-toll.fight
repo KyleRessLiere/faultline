@@ -13,6 +13,7 @@ id: nv-01-the-toll
 number: 701
 name: The Toll
 description: A Warden plugs the only gap in the wall. It never moves, so the door stays shut until you push it, pull it, or pay for it.
+retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn w = Warden
 spawn l = Lobber

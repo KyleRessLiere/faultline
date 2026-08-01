@@ -76,9 +76,10 @@ public class Fight1LayoutTests
     [Fact]
     public void DeploymentZones_SitInOppositeCorners()
     {
-        // A holds the bottom-left corner, B the top-right one.
+        // A holds the bottom-left corner, B the top-right one. B's column runs one tile deeper
+        // than A's block since the CURATED_SET §6 re-cut freed the north-east row for the Lobber.
         Assert.All(Fight.DeploymentZoneA, c => Assert.True(c.X <= 1 && c.Y >= 5));
-        Assert.All(Fight.DeploymentZoneB, c => Assert.True(c.X >= 5 && c.Y <= 1));
+        Assert.All(Fight.DeploymentZoneB, c => Assert.True(c.X >= 5 && c.Y <= 2));
     }
 
     [Fact]
@@ -90,7 +91,12 @@ public class Fight1LayoutTests
         foreach (var spawn in Fight.Enemies)
         {
             Assert.True(Movement.IsWalkable(Fight.Board.At(spawn.At)), spawn.At + " is not walkable.");
-            Assert.True(spawn.At.Y == 0 || spawn.At.Y == Fight.Board.Height - 1);
+
+            // Every enemy walks in off an edge; the west column carries the queued pair.
+            Assert.True(
+                spawn.At.X == 0 || spawn.At.X == Fight.Board.Width - 1
+                || spawn.At.Y == 0 || spawn.At.Y == Fight.Board.Height - 1,
+                spawn.At + " is not on an edge.");
         }
 
         Assert.Contains(Fight.Enemies, e => e.At.Y == 0);

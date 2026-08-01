@@ -1,0 +1,39 @@
+# docs/CURATED_SET.md §1 fight 5 — Protect. The brief's fight-2 objective, finally expressible.
+#
+# The Raiders do not care about you. They walk at the shrine and claw it, and nothing you do to
+# them personally makes them stop wanting to. That is the whole fantasy: the pressure is the clock
+# of their walk, and displacement is the natural answer to a thing that will not fight back — shove
+# them off the lane, pull them into the pits, collide them into their own escort.
+#
+# The escort DOES hunt you, so you cannot simply stand on the shrine and swing.
+#
+# Coordinates are x,y with 0,0 top-left. docs/CURATED_SET.md §6 writes them row,col; the board is
+# authoritative and the coordinates here are transposed to match it (DECISIONS.md D-042).
+#
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot       S  the protect structure
+
+id: the-shrine
+number: 5
+name: The Shrine
+description: Two Raiders walk two lanes at a six-hit-point shrine and never once look at you. Shove them off it, or lose it.
+
+spawn r = Raider
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+objective: protect 3,3
+turn-limit: 8
+
+wave 3 = r@3,0 h@5,0
+
+board:
+  r.....B
+  ..#..BB
+  .^...^.
+  ...S...
+  .O...O.
+  A..#..r
+  AA..h..

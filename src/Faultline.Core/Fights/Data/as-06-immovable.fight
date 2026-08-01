@@ -10,6 +10,7 @@ id: as-06-immovable
 number: 406
 name: Immovable
 description: Two Anchors plug the only two bridges over the trench and shrug off every Push 1 on the board. Four units, two doors, two different keys.
+retired: Both bridge Anchors step off their bridges in round 1. Premise dead; `hz-09` owns the question.
 
 spawn g = Grappler
 spawn n = Anchor

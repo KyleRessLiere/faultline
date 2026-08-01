@@ -20,6 +20,13 @@ spawn h = Husk
 roster a: Vanguard, Archer
 roster b: Threadcaster, Wardbearer
 
+# Crossing IS the win: the far row is row 0, and 0,0 is the corner directly north of
+# Player A up column 0 — five tiles and one belt of spikes away. Player B is already
+# north of the belt but boxed in by the walls at 3,1 and 5,1 with a Lobber sitting on
+# 6,0, so B's route to the same corner runs the length of row 0 past both Lobbers.
+objective: reach 0,0
+turn-limit: 8
+
 board:
   ..l...l..
   ...#.#BBB

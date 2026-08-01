@@ -19,6 +19,18 @@ namespace Faultline.Core
         /// <summary>Deployment slot for Player B. The tile underneath is Open.</summary>
         public const char DeployB = 'B';
 
+        /// <summary>
+        /// The tile an <c>objective: protect</c> structure stands on. The terrain underneath is Open,
+        /// exactly as it is under a deploy slot or a spawn letter.
+        /// </summary>
+        public const char StructureProtect = 'S';
+
+        /// <summary>
+        /// The tile an <c>objective: destroy</c> structure stands on. The terrain underneath is Open,
+        /// exactly as it is under a deploy slot or a spawn letter.
+        /// </summary>
+        public const char StructureDestroy = 'D';
+
         /// <summary>Parses a fight file.</summary>
         /// <param name="text">Whole file contents.</param>
         /// <returns>The fight when it is playable, plus every error and lint found.</returns>
@@ -128,8 +140,8 @@ namespace Faultline.Core
                 {
                     issues.Add(new FightIssue(
                         FightIssueCode.MalformedLine,
-                        "'" + symbol[0] + "' already means something on the board (terrain . # O ^ H, or deploy slot A B). "
-                        + "Pick another letter for this spawn — lower-case reads best.",
+                        "'" + symbol[0] + "' already means something on the board (terrain . # O ^ H, deploy slot A B, "
+                        + "or structure mark S D). Pick another letter for this spawn — lower-case reads best.",
                         lineNo));
                     return;
                 }
@@ -183,6 +195,13 @@ namespace Faultline.Core
                 case "id": header.Id = value; header.IdLine = lineNo; break;
                 case "name": header.Name = value; header.NameLine = lineNo; break;
                 case "description": header.Description = value; break;
+                case "retired":
+                    // Presence retires the battle; the value is the reason and is required, so the
+                    // "why" can never drift away from the board (docs/RETIRING_BATTLES.md).
+                    header.HasRetired = true;
+                    header.Retired = value;
+                    header.RetiredLine = lineNo;
+                    break;
                 case "number":
                     if (!int.TryParse(value, out int number))
                     {
@@ -222,8 +241,8 @@ namespace Faultline.Core
                 default:
                     issues.Add(new FightIssue(
                         FightIssueCode.UnknownKey,
-                        "Unknown key '" + key + "'. Known keys: id, name, description, number, roster a, roster b, "
-                        + "objective, turn-limit, protected, footing, board.",
+                        "Unknown key '" + key + "'. Known keys: id, name, description, retired, number, "
+                        + "roster a, roster b, objective, turn-limit, protected, footing, board.",
                         lineNo));
                     break;
             }
@@ -613,6 +632,20 @@ namespace Faultline.Core
                         continue;
                     }
 
+                    // A structure is the one thing an objective used to place by coordinate alone.
+                    // Marking it on the grid keeps the board WYSIWYG; the mark is checked against
+                    // the objective:' line rather than trusted, so the two can never disagree.
+                    if (c == StructureProtect || c == StructureDestroy)
+                    {
+                        built.StructureMarks.Add(new StructureMark(
+                            c == StructureProtect ? ObjectiveKind.Protect : ObjectiveKind.Destroy,
+                            c,
+                            at,
+                            lineNo));
+                        tiles.Add(TileType.Open);
+                        continue;
+                    }
+
                     if (header.Spawns.TryGetValue(c, out var kind))
                     {
                         built.Spawns.Add(new EnemySpawn(kind, at));
@@ -632,7 +665,8 @@ namespace Faultline.Core
                     issues.Add(new FightIssue(
                         code,
                         "Character '" + c + "' at " + at + " is not terrain (. # O ^ H), a deploy slot (A B), "
-                        + "or a declared spawn. Add 'spawn " + c + " = <UnitKind>' above the board.",
+                        + "a structure mark (S D), or a declared spawn. Add 'spawn " + c
+                        + " = <UnitKind>' above the board.",
                         lineNo));
                     fatal = true;
                     tiles.Add(TileType.Open);
@@ -697,12 +731,15 @@ namespace Faultline.Core
             var footing = ReadFootingGrants(header.Footing, header.FootingLine, issues);
             var objective = ReadObjective(header.Objective, header.ObjectiveLine, board, issues);
 
+            CheckStructureMarks(grid.StructureMarks, objective, issues);
+
             return new FightDefinition
             {
                 Id = header.Id,
                 Number = header.Number,
                 Name = header.Name,
                 Description = header.Description,
+                RetiredReason = ReadRetired(header, issues),
                 Board = board,
                 RosterA = header.RosterA,
                 RosterB = header.RosterB,
@@ -715,6 +752,77 @@ namespace Faultline.Core
                 TurnLimit = header.TurnLimit,
                 Waves = waves,
             };
+        }
+
+        /// <summary>
+        /// Reads the <c>retired:</c> key. Presence retires the battle and the value is the reason,
+        /// which is required: retiring without saying why is the failure mode the key exists to stop.
+        /// </summary>
+        /// <returns>The reason, or <c>null</c> for an active battle.</returns>
+        private static string? ReadRetired(Header header, List<FightIssue> issues)
+        {
+            if (!header.HasRetired)
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(header.Retired))
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.RetiredReasonMissing,
+                    "'retired:' needs a reason after it — you cannot retire a battle without saying why. "
+                    + "Name the battle it duplicates, or what stopped working.",
+                    header.RetiredLine));
+                return null;
+            }
+
+            return header.Retired;
+        }
+
+        /// <summary>
+        /// Checks every <c>S</c> and <c>D</c> written into the grid against the <c>objective:</c>
+        /// line. The mark is the WYSIWYG half of a structure and the objective is the authoritative
+        /// half; when they disagree the file is wrong, not one of them.
+        /// </summary>
+        private static void CheckStructureMarks(
+            List<StructureMark> marks,
+            Objective objective,
+            List<FightIssue> issues)
+        {
+            foreach (var mark in marks)
+            {
+                if (!objective.HasStructure)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.StructureMarkWithoutObjective,
+                        "'" + mark.Symbol + "' at " + mark.At + " marks a structure, but this fight's objective is '"
+                        + Objective.KeywordFor(objective.Kind) + "', which builds none. Add 'objective: "
+                        + Objective.KeywordFor(mark.Role) + " " + mark.At.X + "," + mark.At.Y
+                        + "', or take the mark off the board.",
+                        mark.Line));
+                    continue;
+                }
+
+                if (mark.Role != objective.Kind)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.StructureMarkMismatch,
+                        "'" + mark.Symbol + "' at " + mark.At + " marks a '" + Objective.KeywordFor(mark.Role)
+                        + "' structure, but the objective is '" + Objective.KeywordFor(objective.Kind)
+                        + "'. Use '" + StructureProtect + "' for protect and '" + StructureDestroy + "' for destroy.",
+                        mark.Line));
+                    continue;
+                }
+
+                if (!objective.Names(mark.At))
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.StructureMarkMismatch,
+                        "'" + mark.Symbol + "' at " + mark.At + " is not a tile the objective names ('objective: "
+                        + objective.ToValueText() + "'). The mark and the objective have to name the same tile.",
+                        mark.Line));
+                }
+            }
         }
 
         /// <summary>
@@ -1117,7 +1225,8 @@ namespace Faultline.Core
         }
 
         private static bool IsReserved(char c) =>
-            c == DeployA || c == DeployB || TryParseTile(c, out _);
+            c == DeployA || c == DeployB || c == StructureProtect || c == StructureDestroy
+            || TryParseTile(c, out _);
 
         private static bool TryParseTile(char c, out TileType tile)
         {
@@ -1158,6 +1267,12 @@ namespace Faultline.Core
             public int NameLine { get; set; }
 
             public string Description { get; set; } = string.Empty;
+
+            public bool HasRetired { get; set; }
+
+            public string Retired { get; set; } = string.Empty;
+
+            public int RetiredLine { get; set; }
 
             public int Number { get; set; }
 
@@ -1217,7 +1332,29 @@ namespace Faultline.Core
 
             public List<EnemySpawn> Spawns { get; } = new List<EnemySpawn>();
 
+            public List<StructureMark> StructureMarks { get; } = new List<StructureMark>();
+
             public HashSet<char> UsedSpawnChars { get; } = new HashSet<char>();
+        }
+
+        /// <summary>An <c>S</c> or <c>D</c> written into the grid, before it is checked against the objective.</summary>
+        private sealed class StructureMark
+        {
+            public StructureMark(ObjectiveKind role, char symbol, Coord at, int line)
+            {
+                Role = role;
+                Symbol = symbol;
+                At = at;
+                Line = line;
+            }
+
+            public ObjectiveKind Role { get; }
+
+            public char Symbol { get; }
+
+            public Coord At { get; }
+
+            public int Line { get; }
         }
     }
 }

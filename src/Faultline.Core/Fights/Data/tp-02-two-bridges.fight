@@ -8,6 +8,7 @@ id: tp-02-two-bridges
 number: 102
 name: Two Bridges
 description: A pit moat with two crossings a full board apart. Concentrate at one bridge and cede the other, or split and fight two fights.
+retired: "concentrate or split" is the gauntlet pair's question, on a worse board
 
 spawn h = Husk
 spawn g = Grappler

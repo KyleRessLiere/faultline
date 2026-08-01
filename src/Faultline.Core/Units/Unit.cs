@@ -20,9 +20,6 @@ namespace Faultline.Core
         /// <summary>Hit point ceiling, raised only by between-fight upgrades (M6).</summary>
         public int MaxHp { get; init; }
 
-        /// <summary>Movement points per activation.</summary>
-        public int Move { get; init; }
-
         /// <summary>Board position. Meaningless until <see cref="IsDeployed"/> is true.</summary>
         public Coord Position { get; init; }
 
@@ -56,8 +53,29 @@ namespace Faultline.Core
         /// <summary>Permanently removed from the run — died in a pit (M2).</summary>
         public bool Voided { get; init; }
 
-        /// <summary>Stat block for this unit's archetype.</summary>
-        public UnitTemplate Template => UnitTemplate.For(Kind);
+        /// <summary>
+        /// True once a two-phase archetype has swapped to its second stat block. Set the moment the
+        /// unit drops to its template's <see cref="UnitTemplate.EnrageAt"/> and never cleared; only
+        /// the Quarry King has a second block to swap to (D-040).
+        /// </summary>
+        public bool Enraged { get; init; }
+
+        /// <summary>
+        /// Stat block for this unit right now. A two-phase archetype reads its second block once
+        /// <see cref="Enraged"/> is set, so every rule that asks a unit for its numbers — movement,
+        /// damage, push resistance, the planner's dispatch — sees the swap at the same instant.
+        /// </summary>
+        public UnitTemplate Template
+        {
+            get
+            {
+                var template = UnitTemplate.For(Kind);
+                return Enraged && template.Enraged is not null ? template.Enraged : template;
+            }
+        }
+
+        /// <summary>Movement points per activation, read from the live stat block.</summary>
+        public int Move => Template.Move;
 
         /// <summary>Display name.</summary>
         public string Name => Template.Name;
@@ -83,7 +101,6 @@ namespace Faultline.Core
                 Team = team,
                 Hp = template.MaxHp,
                 MaxHp = template.MaxHp,
-                Move = template.Move,
                 Footing = template.Footing,
                 Position = default,
                 IsDeployed = false,

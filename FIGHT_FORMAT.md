@@ -52,11 +52,13 @@ increases to the right, `y` increases downward. So the first character of the fi
 | `H` | HighGround |
 | `A` | Player A deploy slot (tile underneath is Open) |
 | `B` | Player B deploy slot (tile underneath is Open) |
+| `S` | The tile a `protect` structure stands on (tile underneath is Open) |
+| `D` | The tile a `destroy` structure stands on (tile underneath is Open) |
 | any other letter | an enemy, declared by a `spawn` line above the board |
 
 Each character in the board is checked in this order: `A`, then `B`, then declared spawn letters,
-then terrain. Because a spawn letter would otherwise win that race, **the seven characters that
-already mean something — `.` `#` `O` `^` `H` `A` `B` — cannot be used as spawn symbols.** Declaring
+then terrain. Because a spawn letter would otherwise win that race, **the nine characters that
+already mean something — `.` `#` `O` `^` `H` `A` `B` `S` `D` — cannot be used as spawn symbols.** Declaring
 `spawn H = Husk` is a `MalformedLine` error rather than a board that silently loses its high ground.
 
 Spawn letters are case-sensitive, so `spawn h` declares `h`, not `H`. Lower-case reads best and
@@ -76,6 +78,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `number:` | no | One-based index into the run. Sorts the library. Defaults to `0` if omitted — set it. |
 | `description:` | no | One line, shown when picking a fight. |
 | `protected:` | no | Space-separated `x,y` coordinates the M4 collapse clock never cracks. No space inside a pair. |
+| `retired:` | no | Why this battle is out of the playable set. Presence retires it; the value is the reason and is **required**. |
 | `footing:` | no | Footing tokens this fight grants. Space-separated `target=count`; target is a side (`a`, `b`, `enemy`) or a unit kind. Omitted means nobody has any. |
 | `objective:` | no | What winning means. `<kind> [tiles...] [for <n>] [hp <n>]`. Kinds: `kill-all` (default), `survive`, `hold`, `reach`, `protect`, `destroy`. |
 | `turn-limit:` | no | Round cap, 1 or more. Reaching it loses the fight unless the objective wins on expiry. |
@@ -130,6 +133,51 @@ ground in round 2 of a round-7 hold costs nothing, and only the deadline check j
 A structure occupies its tile. Nothing walks onto it, and anything displaced into it collides — 2 to
 the unit and 2 to the structure. That is the only way to hurt a `destroy` structure. It also means
 **shoving an enemy into the thing you are guarding damages the thing you are guarding.**
+
+### Marking the structure
+
+A `protect` or `destroy` objective names its tile by coordinate. Write the tile on the grid too, so
+the board still says everything the fight does:
+
+```
+objective: protect 3,3
+
+board:
+  r.....B
+  ..#..BB
+  .^...^.
+  ...S...
+  .O...O.
+  A..#..r
+  AA..h..
+```
+
+`S` is the protect structure, `D` is the destroy structure. The terrain underneath is Open, as under
+a deploy slot or a spawn letter.
+
+The mark and the `objective:` line are **checked against each other** rather than one trusted over
+the other: a mark on a tile the objective does not name, a mark whose letter disagrees with the
+objective's kind, or a mark on a fight that builds no structure are all errors. The coordinate is
+authored twice on purpose — the format's job is to notice when the two drift apart.
+
+The mark is optional on input, so files written before it existed still load. `FightWriter` always
+emits it.
+
+### Retiring a battle
+
+```
+retired: duplicates as-08-two-fires, which asks the same question on a better board
+```
+
+The key's presence retires the battle and **its value is the reason, which is required** — a
+`retired:` with nothing after it is an error, because retiring without saying why is exactly the
+failure the key exists to prevent. **Keep the reason on one line; the format has no line
+continuation.**
+
+Nothing is deleted. The file stays embedded, still parsed, still required to be valid — a retired
+battle cannot quietly rot into something that no longer loads. `FightLibrary.All()` skips it,
+`Retired()` returns it with its reason, and `ById()` still finds it so a picker can offer it.
+Un-retiring is deleting one line.
 
 ## Reinforcement waves
 
@@ -216,7 +264,7 @@ silently absent.
 | Code | Triggered by | Fix |
 |---|---|---|
 | `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain or a deploy slot. |
-| `UnknownKey` | A key that is not `id`, `name`, `description`, `number`, `roster a`, `roster b`, `protected`, `footing`. | Fix the typo. Only those eight keys plus `spawn` and `board:` exist. |
+| `UnknownKey` | A key that is not `id`, `name`, `description`, `number`, `roster a`, `roster b`, `protected`, `footing`, `retired`. | Fix the typo. Only those eight keys plus `spawn` and `board:` exist. |
 | `MissingRequiredField` | `id:` or `name:` absent or blank. | Add it. Reported against line 0 — it is about the file, not a line. |
 | `BoardMissing` | The file is empty, there is no `board:` line, or `board:` is followed by no indented rows. | Add `board:` and indent the rows beneath it. |
 | `BoardRagged` | A board row is a different width from the first row. | Make every row the same length. Watch for a stray trailing character or an indented comment. |
@@ -230,6 +278,9 @@ silently absent.
 | `CoordOutOfBounds` | A `protected:` coordinate outside the board. | Remember `0,0` is top-left and the maximum is `width-1,height-1`. |
 | `UnknownFootingTarget` | A `footing:` grant naming something that is neither a side (`a`, `b`, `enemy`) nor a unit kind. | Check the spelling. Sides are `a`, `b`, `enemy`; kinds are the nine unit names. |
 | `FootingCountNegative` | A `footing:` grant asking for a negative number of tokens. | Use zero or more. To give a target none, leave it out entirely. |
+| `StructureMarkWithoutObjective` | An `S` or `D` on a board whose objective builds no structure. | Add `objective: protect x,y` / `destroy x,y`, or take the mark off the board. |
+| `StructureMarkMismatch` | An `S` or `D` on a tile the `objective:` line does not name, or whose letter disagrees with the objective's kind. | Make the mark and the objective name the same tile; `S` for protect, `D` for destroy. |
+| `RetiredReasonMissing` | A `retired:` key with no reason after it. | Say why. Name the battle it duplicates, or what stopped working. |
 | `BadValue` | `number:` is not an integer, or a `protected:` token is not `x,y`. | Use a bare integer; use `3,4` with no spaces. |
 | `SpawnCharUnused` | A `spawn` letter declared but never placed on the board. | Place it, or delete the declaration. This is an **error**, not a lint — a dead declaration is always a mistake. |
 

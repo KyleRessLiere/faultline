@@ -9,6 +9,7 @@ id: tp-04-sundered
 number: 104
 name: Sundered
 description: Two halves joined by one tile at the far end, with an Anchor sitting on it. Each pair faces the problem the other pair solves.
+retired: Duplicates `as-08-two-fires`; the Anchor on the link is inert and the fight ends in four rounds.
 
 spawn n = Anchor
 spawn h = Husk

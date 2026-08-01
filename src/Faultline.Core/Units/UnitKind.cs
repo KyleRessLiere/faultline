@@ -62,6 +62,12 @@ namespace Faultline.Core
 
         /// <summary>Enemy: Anchor with Move 2.</summary>
         MobileAnchor = 18,
+
+        /// <summary>Enemy: HP 2, walks at the Protect structure and never at you.</summary>
+        Raider = 19,
+
+        /// <summary>Enemy: HP 14 boss. Three negating Footing tokens and a second stat block at 7 HP.</summary>
+        QuarryKing = 20,
     }
 
     /// <summary>
@@ -97,6 +103,18 @@ namespace Faultline.Core
 
         /// <summary>Flank and shove players away from their own allies.</summary>
         Harrier = 7,
+
+        /// <summary>
+        /// Claw the Protect structure, else walk to it. The only list with no clause about player
+        /// units in it at all.
+        /// </summary>
+        Raider = 8,
+
+        /// <summary>
+        /// The melee list plus a Bull Rush branch, which exists only while the stat block in force
+        /// carries a standalone shove.
+        /// </summary>
+        QuarryKing = 9,
     }
 
     /// <summary>How a unit's basic attack reaches its target.</summary>

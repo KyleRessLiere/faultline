@@ -314,7 +314,18 @@ public class EveryFightStillPlaysTests
             }
         }
 
-        // Exactly one fight in the library uses the new vocabulary; the other 55 are untouched.
-        Assert.Equal(new[] { "hold-the-gate" }, withObjectives);
+        // Exactly these active fights use the objective vocabulary; every other file has no
+        // objective key and still plays as the Kill All it always was. quarry-king writes
+        // `objective: kill-all` explicitly, which is the same thing said out loud, so it is absent.
+        Assert.Equal(
+            new[]
+            {
+                "hz-02-the-short-way",
+                "as-05-the-door",
+                "the-shrine",
+                "break-the-gate",
+                "hold-the-gate",
+            }.OrderBy(id => id),
+            withObjectives.OrderBy(id => id));
     }
 }

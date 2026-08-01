@@ -8,6 +8,7 @@ id: as-01-hero-and-squad
 number: 401
 name: Hero and Squad
 description: One Vanguard against a swarm, with a three-body squad behind him. A activates once a round; B activates three times.
+retired: airtime asymmetry is stated harder by both
 
 spawn h = Husk
 spawn l = Lobber

@@ -13,6 +13,7 @@ id: nv-03-formation
 number: 703
 name: Formation
 description: A Bulwark turns an enemy crowd into a formation — adjacent allies cannot be displaced more than a tile. Kill it first, or stop pushing.
+retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn b = Bulwark
 spawn h = Husk

@@ -84,6 +84,13 @@ Collision, spike and fall damage ignore mitigation.
 - **Staggered** — from taking collision or spike damage. The *next* displacement against it travels
   **+1 tile**, then the Stagger is spent. Clears at end of round. Fall damage does not Stagger, and
   neither does voluntarily walking onto spikes.
+- **A negating Footing token cancels a displacement instead of shortening it.** One archetype's
+  tokens read differently: while any remain, every Push and Pull against that unit resolves at
+  **distance 0** — Push 1, Push 2, Bull Rush and Reel all move it nowhere — and the token is **not
+  spent** doing it. No Stagger bonus is consumed either. Such a token is taken away two ways, both
+  things the board already does: a **collision the unit suffers** (including one caused by something
+  else being slammed into it) and **ending a round next to a pit**. Only the Quarry King has them,
+  and stripping all three is what makes him an ordinary body again (D-043).
 - **Footing** — a token that shortens one displacement against its holder by 1 tile, possibly to
   zero. **No unit has any by default.** Every archetype, player and enemy, starts a fight on **0**;
   a scenario hands them out with the `footing:` key in its `.fight` file. A blanket token on
@@ -126,6 +133,8 @@ Collision, spike and fall damage ignore mitigation.
 | Blunted Stalker | 4 | 4 | **melee, push 1** | ranks **pit → spikes only.** Will not shove into a wall or the board edge, and does not loiter near them |
 | Heavy Husk | 3 | 3 | melee, 1 dmg | Husk list; survives one collision |
 | Mobile Anchor | 6 | 2 | melee, 2 dmg | Anchor list and shrug, at double the speed |
+| Raider | 2 | 3 | melee, 1 dmg | **never targets a player unit at all.** Walks at the nearest standing Protect structure and takes 1 off it whenever it ends an activation adjacent. No self-defence, and no free finish on a clinging unit. With no Protect structure standing anywhere, it holds (D-045) |
+| Quarry King | 14 | **1** | melee, 3 dmg **+ push 1** | **boss.** Three Footing tokens that *negate*: while any remain, every Push and Pull against him resolves at 0 and no token is spent (D-043). A token is stripped by a collision he suffers, or by ending a round next to a pit. At **7 HP or below** the stat block swaps to Move 3 and the list gains Bull Rush; he re-declares his intent on the spot (D-044) |
 
 **A variant shares its archetype's priority list rather than copying it** (D-032). The planner
 dispatches on the plan named by the stat block, not on the archetype, so a stat-block variant and the
@@ -220,6 +229,17 @@ loads and plays exactly as written. A broken file is reported rather than silent
 
 Five fights ship: First Contact, The Teeth, Broken Bridge, High Road and The Maw. Only the first
 matches the brief's layout guidelines cleanly; the other four carry lints on purpose.
+
+**Retired battles.** A `.fight` file with a `retired:` key is out of the playable set:
+`FightLibrary.All()` skips it and `FightLibrary.Retired()` returns it with the reason its key gave.
+The file stays embedded and still has to parse without errors — retiring is a flag, not a deletion,
+and `ById()` still resolves it so it stays playable when selected (D-039). **27 of the 62 authored
+battles are retired; 35 are active.**
+
+**Structures are drawn on the board.** `S` and `D` mark where a `protect` or `destroy` structure
+stands. The terrain underneath is Open. The mark must agree with the `objective:` line's tile and
+kind, or the file does not load — the coordinate is authored twice so the parser can notice when the
+two drift apart (D-040).
 
 ### Building a fight without writing one
 

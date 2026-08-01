@@ -23,10 +23,29 @@ public sealed class GameSession
     private CombatRecorder? _recorder;
 
     /// <summary>Creates a session already sitting on a fresh fight.</summary>
-    public GameSession() => StartFight(FightLibrary.Fight1(), DefaultSeed);
+    public GameSession()
+    {
+        StartFight(FightLibrary.Fight1(), DefaultSeed);
+
+        // The constructor's fight is a placeholder, not a choice. Saying so lets a page restore a
+        // campaign run after a reload without ever stepping on a battle the player actually picked.
+        Untouched = true;
+    }
 
     /// <summary>Seed used when the shell starts with no explicit choice.</summary>
     public const int DefaultSeed = 1;
+
+    /// <summary>
+    /// True while the loaded fight is the one the constructor picked and nobody has chosen or played
+    /// anything since — the state a fresh page load leaves the session in.
+    /// </summary>
+    public bool Untouched { get; private set; }
+
+    /// <summary>
+    /// True when this fight is being played as part of a campaign run, so a win advances the run and
+    /// a loss ends it. Set only by <see cref="StartCampaignFight"/>.
+    /// </summary>
+    public bool InCampaign { get; private set; }
 
     /// <summary>Current state.</summary>
     public GameState State { get; private set; } = null!;
@@ -87,11 +106,23 @@ public sealed class GameSession
     /// <param name="seed">Run seed.</param>
     public void NewRun(int seed) => StartFight(Fight ?? FightLibrary.Fight1(), seed);
 
-    /// <summary>Loads a fight and starts it from the beginning.</summary>
+    /// <summary>Loads a fight and starts it from the beginning, outside any campaign run.</summary>
     /// <param name="fight">Authored or hand-built fight.</param>
     /// <param name="seed">Run seed.</param>
-    public void StartFight(FightDefinition fight, int seed)
+    public void StartFight(FightDefinition fight, int seed) => StartFight(fight, seed, false);
+
+    /// <summary>
+    /// Loads the campaign's current fight. Identical to <see cref="StartFight(FightDefinition, int)"/>
+    /// except that the shell now knows the result of this fight belongs to a run.
+    /// </summary>
+    /// <param name="fight">The fight, already adapted to the run's surviving squad.</param>
+    /// <param name="seed">Run seed.</param>
+    public void StartCampaignFight(FightDefinition fight, int seed) => StartFight(fight, seed, true);
+
+    private void StartFight(FightDefinition fight, int seed, bool campaign)
     {
+        Untouched = false;
+        InCampaign = campaign;
         Fight = fight;
         Seed = seed;
         _log.Clear();
@@ -114,6 +145,8 @@ public sealed class GameSession
     /// <param name="command">Command drawn from <see cref="Legal"/>.</param>
     public void Submit(Command command)
     {
+        Untouched = false;
+
         var before = State;
         var result = Game.Apply(before, command);
 

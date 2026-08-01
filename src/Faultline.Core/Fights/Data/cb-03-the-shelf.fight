@@ -8,6 +8,7 @@ id: cb-03-the-shelf
 number: 503
 name: The Shelf
 description: The Archer climbs the ridge free and hits for three. Everyone else pays two movement, and the Grappler grabs whoever is standing up there first.
+retired: the "is elevation worth 2 movement" question survives inside both
 
 spawn h = Husk
 spawn g = Grappler

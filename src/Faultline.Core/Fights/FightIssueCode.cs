@@ -74,6 +74,18 @@ namespace Faultline.Core
         /// <summary>Two <c>wave</c> lines name the same round.</summary>
         DuplicateWaveRound = 20,
 
+        /// <summary>A <c>retired:</c> key with no reason after it. Retiring a battle requires saying why.</summary>
+        RetiredReasonMissing = 21,
+
+        /// <summary>
+        /// An <c>S</c> or <c>D</c> structure mark on the board names a tile or a role the
+        /// <c>objective:</c> line does not.
+        /// </summary>
+        StructureMarkMismatch = 22,
+
+        /// <summary>An <c>S</c> or <c>D</c> mark on a board whose objective builds no structure at all.</summary>
+        StructureMarkWithoutObjective = 23,
+
         // ---- Lints: playable, but it breaks a guideline in AGENT_BRIEF §2 -------------------
 
         /// <summary>Brief §2 specifies a 7x7 grid.</summary>

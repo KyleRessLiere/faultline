@@ -15,6 +15,7 @@ id: nv-02-contested-ledges
 number: 702
 name: Contested Ledges
 description: A Perch races you for the ridge and fires for 2 once it is up there. Take the high ground first or fight uphill all battle.
+retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn p = Perch
 spawn g = LesserGrappler

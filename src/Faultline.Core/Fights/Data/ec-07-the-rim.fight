@@ -8,6 +8,7 @@ id: ec-07-the-rim
 number: 307
 name: The Rim
 description: A pit runs all the way round the board, a Grappler drags you toward it and two Stalkers throw you over. The only cover on this map is your own bodies.
+retired: Its own writeup calls it unfair rather than hard, and blames D-026. It is `the-maw` inverted with more enemies.
 
 spawn g = Grappler
 spawn s = Stalker

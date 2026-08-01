@@ -13,6 +13,7 @@ id: hz-03-the-ledge
 number: 203
 name: The Ledge
 description: A four-tile ledge no shove can push you onto and the Anchor can never climb — and a Grappler that wants exactly the unit standing on it.
+retired: Ledge-versus-Grappler is `high-road` and `cb-03`; the instant-void tile is `hz-08`'s, stated better.
 
 spawn g = Grappler
 spawn h = Husk

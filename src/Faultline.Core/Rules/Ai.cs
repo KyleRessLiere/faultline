@@ -44,8 +44,10 @@ namespace Faultline.Core
 
             // Brief §2: an adjacent enemy of a Clinging unit may finish it as a free action, "and
             // enemies with attacks will, per AI". It costs neither half, so it happens before the
-            // priority list rather than instead of it.
-            if (enemy.Template.Attack != AttackKind.None)
+            // priority list rather than instead of it. The free finish is a clause about player units,
+            // and an archetype whose list has no clause about player units does not get one either:
+            // a Raider walks past a clinging player exactly as it walks past a standing one (D-041).
+            if (enemy.Template.Attack != AttackKind.None && !IgnoresUnits(enemy))
             {
                 foreach (var clinging in state.Units)
                 {
@@ -167,12 +169,20 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Re-runs the priority list for any enemy whose declared target has died or been removed,
-        /// and drops the intents of enemies that are no longer on the board.
+        /// Swaps in any second stat block that has just come due, then re-runs the priority list for
+        /// any enemy whose declared target has died or been removed, and drops the intents of enemies
+        /// that are no longer on the board.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Brief §2: an intent is locked and re-planned "only if its target becomes invalid". A target
         /// that merely moved does not trigger this — the enemy still chases the unit it named.
+        /// </para>
+        /// <para>
+        /// A stat-block swap is the second thing that invalidates a plan, and for the same reason: the
+        /// intent on the table was worked out by a unit with different numbers. It is announced as a
+        /// re-declaration, exactly as a dead target is (D-040).
+        /// </para>
         /// </remarks>
         /// <param name="state">State just after a command resolved.</param>
         /// <param name="events">Sink for any re-declaration events.</param>
@@ -188,6 +198,8 @@ namespace Faultline.Core
             {
                 throw new ArgumentNullException(nameof(events));
             }
+
+            state = SwapPhases(state, events);
 
             if (state.Intents.Count == 0)
             {
@@ -227,6 +239,75 @@ namespace Faultline.Core
             return changed ? state with { Intents = updated } : state;
         }
 
+        // ---- phase swaps ------------------------------------------------------------------------
+
+        // A two-phase archetype changes stat block the moment its hit points reach the threshold on
+        // the template. The swap is a flag on the unit rather than a recomputation from hit points so
+        // that it is a single, announced instant — and so a healed unit, if the game ever grows one,
+        // does not un-enrage (D-040).
+        private static GameState SwapPhases(GameState state, List<GameEvent> events)
+        {
+            List<UnitId>? swapping = null;
+
+            foreach (var unit in state.Units)
+            {
+                var template = UnitTemplate.For(unit.Kind);
+                if (template.Enraged is null || unit.Enraged || !unit.IsOnBoard || unit.Hp > template.EnrageAt)
+                {
+                    continue;
+                }
+
+                swapping ??= new List<UnitId>();
+                swapping.Add(unit.Id);
+            }
+
+            if (swapping is null)
+            {
+                return state;
+            }
+
+            bool live = state.Phase == Phase.Battle && state.Outcome == FightOutcome.InProgress;
+
+            foreach (var id in swapping)
+            {
+                state = state.WithUnit(state.UnitById(id) with { Enraged = true });
+
+                var swapped = state.UnitById(id);
+                if (!live || swapped.Team != Team.Enemy || swapped.Clinging || swapped.HasActivated)
+                {
+                    continue;
+                }
+
+                state = Redeclare(state, swapped, events);
+            }
+
+            return state;
+        }
+
+        // Replaces one enemy's intent in place and announces it as a re-plan. Adds nothing when the
+        // enemy has no intent on the table — the round's declaration will read the new block anyway.
+        private static GameState Redeclare(GameState state, Unit enemy, List<GameEvent> events)
+        {
+            var intents = new List<EnemyIntent>(state.Intents.Count);
+            bool replaced = false;
+
+            foreach (var existing in state.Intents)
+            {
+                if (existing.UnitId != enemy.Id)
+                {
+                    intents.Add(existing);
+                    continue;
+                }
+
+                var intent = Compute(state, enemy, null);
+                intents.Add(intent);
+                events.Add(new IntentDeclared(intent, true));
+                replaced = true;
+            }
+
+            return replaced ? state with { Intents = intents } : state;
+        }
+
         // ---- planning -------------------------------------------------------------------------
 
         // The intent locks the target, not the route. Re-deriving the geometry each time keeps the
@@ -248,6 +329,14 @@ namespace Faultline.Core
 
         private static EnemyIntent Compute(GameState state, Unit enemy, UnitId? locked)
         {
+            // The Raider is planned before anybody asks who the player units are, because its list
+            // never mentions them. Running the candidate search first would make an empty board of
+            // players silence an enemy that was never listening to them (D-041).
+            if (enemy.Template.Plan == EnemyPlan.Raider)
+            {
+                return PlanRaider(state, enemy);
+            }
+
             var all = Candidates(state, enemy);
             if (all.Count == 0)
             {
@@ -293,9 +382,164 @@ namespace Faultline.Core
                 case EnemyPlan.Harrier:
                     return PlanHarrier(state, enemy, choices);
 
+                case EnemyPlan.QuarryKing:
+                    return PlanQuarryKing(state, enemy, choices);
+
                 default:
                     return Hold(enemy);
             }
+        }
+
+        // docs/CURATED_SET.md §5A, Raider: "1. Adjacent to the Protect structure → claw it; 2. else
+        // path to it, Husk rules." That is the whole list. There is no third clause, no clause about
+        // player units, and no self-defence clause: an enemy that ignores you is the entire point of
+        // the archetype, and the pressure it applies is the clock of its walk (D-041).
+        private static EnemyIntent PlanRaider(GameState state, Unit enemy)
+        {
+            var shrines = SiegeTiles(state);
+            if (shrines.Count == 0)
+            {
+                // Nothing to besiege — a fallen shrine, or a board that never had one. It stands
+                // still rather than inventing a target, and re-runs this list every activation.
+                return Hold(enemy);
+            }
+
+            var reach = Adjoining(enemy.Position, shrines);
+            if (reach.HasValue)
+            {
+                return Claw(enemy, reach.Value, null);
+            }
+
+            // The same breadth-first field every other archetype walks by, grown from the structure
+            // tiles instead of from a unit (D-029). The structure blocks its own tile, so the tiles
+            // that measure 1 are exactly the ring the Raider is trying to reach.
+            var field = PathField.ToAnyOf(state, enemy, shrines);
+            var destination = BestTile(
+                state, enemy, coord => new Score(field.At(coord), NearestTileDistance(coord, shrines)));
+            var moveTo = destination == enemy.Position ? (Coord?)null : destination;
+
+            var arrival = Adjoining(destination, shrines);
+            if (arrival.HasValue)
+            {
+                return Claw(enemy, arrival.Value, moveTo);
+            }
+
+            return March(enemy, NearestTile(enemy.Position, shrines), moveTo);
+        }
+
+        // docs/CURATED_SET.md §5B, Quarry King: the melee list with a Bull Rush branch on the front of
+        // it — the player's own opener, aimed back. Which branches exist is read off the stat block
+        // rather than off the archetype: the enraged block is the one carrying a standalone shove, so
+        // the phase swap adds the branch without there being two lists to keep in step (D-040).
+        private static EnemyIntent PlanQuarryKing(GameState state, Unit enemy, List<Unit> choices)
+        {
+            if (enemy.Template.BasicPush > 0)
+            {
+                var rush = PlanRush(state, enemy, choices);
+                if (rush is not null)
+                {
+                    return rush;
+                }
+            }
+
+            return PlanMelee(state, enemy, choices);
+        }
+
+        // Bull Rush as the Vanguard has it: a straight run of up to Move tiles that stops adjacent to
+        // the first player unit on the line, then a shove. A run of zero tiles is legal and is exactly
+        // what the ability does against something already adjacent. It is only taken when the shove
+        // beats the swing it replaces — a plain push across open ground is worth less than 3 damage,
+        // so he punches; a push into a body, or over a lip, is worth more, so he charges.
+        private static EnemyIntent? PlanRush(GameState state, Unit enemy, List<Unit> choices)
+        {
+            var reachable = Movement.Reachable(state, enemy);
+            var board = state.Board;
+            int distance = enemy.Template.BasicPush;
+
+            Unit? best = null;
+            Coord? bestMove = null;
+            int bestScore = enemy.Template.Damage;
+
+            foreach (var direction in Directions.All)
+            {
+                var position = enemy.Position;
+
+                for (int step = 0; step <= enemy.Move; step++)
+                {
+                    if (position != enemy.Position && !reachable.ContainsKey(position))
+                    {
+                        break;
+                    }
+
+                    var next = position.Step(direction);
+                    if (!board.InBounds(next) || state.StructureAt(next) is not null)
+                    {
+                        break;
+                    }
+
+                    var occupant = state.UnitAt(next);
+                    if (occupant is not null)
+                    {
+                        if (Holds(choices, occupant.Id))
+                        {
+                            var from = position == enemy.Position ? (Coord?)null : position;
+                            int score = RushScore(state, enemy, occupant, from, distance);
+                            if (score > bestScore)
+                            {
+                                bestScore = score;
+                                best = occupant;
+                                bestMove = from;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    var tile = board.At(next);
+                    if (!Movement.IsWalkable(tile) || tile == TileType.HighGround)
+                    {
+                        break;
+                    }
+
+                    position = next;
+                }
+            }
+
+            return best is null
+                ? null
+                : Displace(state, enemy, best, bestMove, DisplacementKind.Push, distance);
+        }
+
+        // What a charge is worth, in hit points: what the shove deals to the target, what it deals to
+        // whatever it slams the target into, and a large bonus for the two endings a swing cannot
+        // produce. Compared against the archetype's own attack damage, so the branch turns itself off
+        // whenever punching is simply better. Integers only — Core does no float maths (Brief §1).
+        private static int RushScore(
+            GameState state, Unit enemy, Unit target, Coord? moveTo, int distance)
+        {
+            var from = moveTo ?? enemy.Position;
+            var view = moveTo.HasValue ? state.WithUnit(enemy with { Position = moveTo.Value }) : state;
+            var preview = Displacement.PreviewAuto(view, target.Id, from, DisplacementKind.Push, distance);
+
+            // Distance 0 is the only true no-op: anything that travels at all either moves the target
+            // or collides, and a collision that leaves the target where it stood is still 2 apiece.
+            if (preview.EffectiveDistance <= 0)
+            {
+                return 0;
+            }
+
+            int score = preview.DamageToUnit + preview.DamageToObstacle;
+            if (preview.WouldCling)
+            {
+                score += 100;
+            }
+
+            if (preview.WouldDown)
+            {
+                score += 50;
+            }
+
+            return score;
         }
 
         // Brief §2, Husk: "1. Adjacent player unit → attack. 2. Else move toward nearest player unit."
@@ -632,6 +876,18 @@ namespace Faultline.Core
             enemy.Id, enemy.Kind, enemy.Position, IntentAction.Hold,
             null, null, null, null, null, 0, null, 0);
 
+        // A plan aimed at a structure rather than at a unit. The telegraph carries the tile instead of
+        // a target id, which is a shape the intent record already supports — a Lobber that cannot find
+        // anyone to flee from declares a Retreat with no target in exactly the same way.
+        private static EnemyIntent Claw(Unit enemy, Coord structure, Coord? moveTo) => new EnemyIntent(
+            enemy.Id, enemy.Kind, enemy.Position, IntentAction.Attack,
+            null, structure, moveTo, null, null, 0, null, enemy.Template.Damage);
+
+        private static EnemyIntent March(Unit enemy, Coord? structure, Coord? moveTo) => new EnemyIntent(
+            enemy.Id, enemy.Kind, enemy.Position,
+            moveTo.HasValue ? IntentAction.Advance : IntentAction.Hold,
+            null, structure, moveTo, null, null, 0, null, 0);
+
         private static EnemyIntent Advance(Unit enemy, Unit target, Coord? moveTo) => new EnemyIntent(
             enemy.Id, enemy.Kind, enemy.Position, moveTo.HasValue ? IntentAction.Advance : IntentAction.Hold,
             target.Id, target.Position, moveTo, null, null, 0, null, 0);
@@ -698,6 +954,86 @@ namespace Faultline.Core
             }
 
             return list;
+        }
+
+        // True for an archetype whose priority list contains no clause about player units at all.
+        // A flag would be a second way of saying what the plan already says (D-032, D-041).
+        private static bool IgnoresUnits(Unit enemy) => enemy.Template.Plan == EnemyPlan.Raider;
+
+        private static bool Holds(List<Unit> units, UnitId id)
+        {
+            foreach (var unit in units)
+            {
+                if (unit.Id == id)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // The tiles a Raider is here for: standing Protect structures. "Attackable" is the same test
+        // Objectives.Besiege runs, so the thing it walks toward is exactly the thing it can hurt when
+        // it gets there — a Destroy structure takes collision damage only and is not a Raider's business.
+        private static List<Coord> SiegeTiles(GameState state)
+        {
+            var tiles = new List<Coord>();
+            foreach (var structure in state.Structures)
+            {
+                if (structure.IsStanding && structure.IsAttackable)
+                {
+                    tiles.Add(structure.At);
+                }
+            }
+
+            return tiles;
+        }
+
+        private static Coord? Adjoining(Coord from, List<Coord> tiles)
+        {
+            foreach (var tile in tiles)
+            {
+                if (from.IsAdjacentTo(tile))
+                {
+                    return tile;
+                }
+            }
+
+            return null;
+        }
+
+        private static Coord? NearestTile(Coord from, List<Coord> tiles)
+        {
+            Coord? best = null;
+            int bestDistance = int.MaxValue;
+
+            foreach (var tile in tiles)
+            {
+                int distance = from.DistanceTo(tile);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = tile;
+                }
+            }
+
+            return best;
+        }
+
+        private static int NearestTileDistance(Coord from, List<Coord> tiles)
+        {
+            int best = int.MaxValue;
+            foreach (var tile in tiles)
+            {
+                int distance = from.DistanceTo(tile);
+                if (distance < best)
+                {
+                    best = distance;
+                }
+            }
+
+            return best;
         }
 
         private static bool IsValidTarget(GameState state, UnitId id)

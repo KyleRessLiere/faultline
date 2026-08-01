@@ -8,6 +8,7 @@ id: cb-05-first-blood
 number: 505
 name: First Blood
 description: A Stalker starts one tile from each deploy zone, and your own corner is the wall they mean to use. Deployment is the first decision and Player A moves first.
+retired: real but minor; deployment pressure now lives in tp-07. Closest cut on the list
 
 spawn s = Stalker
 spawn h = Husk
