@@ -1,0 +1,133 @@
+@inherits PlaytestPanel
+@* Who is up, what the game is waiting for, and one sentence saying how to give it. When a run's
+   fight has resolved this is also where the run says what it carried out and what comes next —
+   that is the required action at that moment, so it belongs in the same box. *@
+
+<div class="pt-panel">
+    <h2>
+        Turn summary
+        @if (ShowBoard)
+        {
+            <span class="count">Round @State.Round</span>
+        }
+    </h2>
+
+    <div class="pt-body">
+        @if (Session.InRun && FightIsOver && Runs.State is { } run)
+        {
+            @if (Resolution is { } resolved)
+            {
+                <p class="outcome @(resolved.Outcome == FightOutcome.Won ? "won" : "lost")">
+                    @(resolved.Outcome == FightOutcome.Won
+                        ? $"Fight won on round {resolved.Round}."
+                        : $"Fight lost on round {resolved.Round}.")
+                </p>
+
+                <h3>Carried out</h3>
+                <ul class="carried">
+                    @foreach (var carried in Runs.LastEvents.OfType<UnitCarried>())
+                    {
+                        <li class="@(carried.Status == RunUnitStatus.Voided ? "voided" : carried.Status == RunUnitStatus.Downed ? "downed" : string.Empty)">
+                            <span class="art">
+                                <UnitArt Kind="carried.Kind" Label="@carried.Kind.ToString()" />
+                            </span>
+                            <strong>@carried.Kind</strong>
+                            @if (carried.Status == RunUnitStatus.Voided)
+                            {
+                                <span class="badge voided">voided — gone for the run</span>
+                            }
+                            else if (carried.Status == RunUnitStatus.Downed)
+                            {
+                                <span class="badge downed">downed — returns on @carried.FieldingHp/@carried.MaxHp</span>
+                            }
+                            else
+                            {
+                                <span class="badge">@carried.Hp/@carried.MaxHp carried forward</span>
+                            }
+                        </li>
+                    }
+                </ul>
+
+                @if (run.Outcome == RunOutcome.Lost)
+                {
+                    <p class="instruction">@RunEnding</p>
+                }
+                else if (run.Outcome == RunOutcome.Won)
+                {
+                    <p class="instruction">Run complete — @run.FightsWon fights won.</p>
+                }
+                else if (run.CurrentNode is FightNode nextFight)
+                {
+                    <p class="instruction">
+                        Next: <strong>@PlaytestFlow.NameOf(nextFight.FightId)</strong>
+                    </p>
+                    <div class="row">
+                        <button type="button" class="act primary" @onclick="ContinueRun">Play the next fight</button>
+                        <a class="act" href="campaign">Back to the run</a>
+                    </div>
+                }
+                else if (run.CurrentNode is RestNode)
+                {
+                    <p class="instruction">Next: <strong>a rest</strong> — it restores everything that can still be fielded.</p>
+                    <div class="row"><a class="act primary" href="campaign">Take the rest</a></div>
+                }
+            }
+            else
+            {
+                <p class="instruction">This run is standing between fights.</p>
+                <div class="row"><a class="act primary" href="campaign">Back to the run</a></div>
+            }
+        }
+        else if (State.Outcome != FightOutcome.InProgress)
+        {
+            <p class="outcome @(State.Outcome == FightOutcome.Won ? "won" : "lost")">
+                @(State.Outcome == FightOutcome.Won ? "Fight won." : "Fight lost.")
+            </p>
+            <p class="instruction">Restart in the header to play it again on the next seed.</p>
+        }
+        else if (State.Phase == Phase.Deployment)
+        {
+            <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
+                @PlaytestText.Team(State.ActiveTeam) places @PendingDeployName.
+            </p>
+            <p class="instruction">Click a highlighted deployment tile in your corner.</p>
+        }
+        else if (Session.AwaitingEnemy)
+        {
+            <p class="who team-e">Enemy activating…</p>
+            <p class="instruction">Resolving the declared intent from Core's priority-list planner.</p>
+        }
+        else if (Session.SelectedUnit is { } selected)
+        {
+            <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
+                @PlaytestText.Team(State.ActiveTeam) acts with @selected.Name.
+            </p>
+            <p class="instruction">
+                @(Session.Targets.Count > 0
+                    ? "Click a highlighted tile, or pick another action below."
+                    : "Nothing is aimed. Pick an action below, or End Turn.")
+            </p>
+        }
+        else
+        {
+            <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
+                @PlaytestText.Team(State.ActiveTeam) to act.
+            </p>
+            <p class="instruction">Select one of your units on the board.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private FightResolved? Resolution => PlaytestFlow.Resolution(Runs);
+
+    private string RunEnding =>
+        Runs.LastEvents.OfType<RunLost>().FirstOrDefault()?.Reason ?? "The run ends here.";
+
+    private string PendingDeployName =>
+        Session.PendingDeployUnit is null
+            ? "a unit"
+            : State.UnitById(Session.PendingDeployUnit.Value).Name;
+
+    private void ContinueRun() => Runs.Enter();
+}

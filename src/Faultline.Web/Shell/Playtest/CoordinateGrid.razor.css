@@ -1,0 +1,267 @@
+/* The stage is a size container, so the board can be told "as big as fits" in one expression
+   instead of being measured in JavaScript. --fit is the largest square cell that fits both the
+   width and the height once the coordinate gutter is taken off; --zoom multiplies it, and the
+   stage scrolls when that overflows. */
+
+.stage {
+    align-items: center;
+    container-type: size;
+    display: flex;
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 0;
+    overflow: auto;
+}
+
+.board {
+    --gutter: 22px;
+    --fit: min(
+        (100cqw - var(--gutter) - 6px) / var(--cols),
+        (100cqh - var(--gutter) - 6px) / var(--rows));
+    --cell: max(16px, calc(var(--fit) * var(--zoom)));
+
+    background: #10151c;
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: var(--gutter) repeat(var(--cols), var(--cell));
+    grid-template-rows: var(--gutter) repeat(var(--rows), var(--cell));
+    margin: auto;
+}
+
+/* Coordinates */
+
+.axis {
+    align-items: center;
+    color: var(--pt-text-dim);
+    display: flex;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    justify-content: center;
+    letter-spacing: .04em;
+    user-select: none;
+}
+
+.axis.col {
+    border-bottom: 1px solid var(--pt-border-soft);
+}
+
+.axis.row {
+    border-right: 1px solid var(--pt-border-soft);
+}
+
+.axis.corner {
+    border-bottom: 1px solid var(--pt-border-soft);
+    border-right: 1px solid var(--pt-border-soft);
+}
+
+/* Tiles */
+
+.cell {
+    align-items: center;
+    background-color: #242c38;
+    border: 2px solid transparent;
+    color: var(--pt-text);
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    font: inherit;
+    gap: 1px;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+}
+
+.cell:not(:disabled) {
+    cursor: pointer;
+}
+
+.board.lines .cell {
+    box-shadow: inset 0 0 0 1px rgba(8, 11, 16, .8);
+}
+
+/* Terrain. Each one carries a pattern as well as a colour, so the board still reads when the
+   colours do not — a hatch is a wall whether or not you can tell grey from green. */
+
+.cell.open {
+    background-color: #242c38;
+}
+
+.cell.wall {
+    background-color: #59637a;
+    background-image: repeating-linear-gradient(
+        45deg, rgba(0, 0, 0, .34) 0 3px, transparent 3px 7px);
+}
+
+.cell.pit {
+    background-color: #05070b;
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .07), inset 0 0 14px rgba(0, 0, 0, .9);
+}
+
+.board.lines .cell.pit {
+    box-shadow: inset 0 0 0 1px rgba(8, 11, 16, .8),
+                inset 0 0 0 3px rgba(255, 255, 255, .07),
+                inset 0 0 14px rgba(0, 0, 0, .9);
+}
+
+.cell.spikes {
+    background-color: #7c3229;
+    background-image: repeating-linear-gradient(
+        135deg, rgba(255, 220, 200, .22) 0 2px, transparent 2px 6px);
+}
+
+.cell.high {
+    background-color: #3f5a37;
+    background-image: repeating-linear-gradient(
+        0deg, rgba(255, 255, 255, .12) 0 1px, transparent 1px 6px);
+}
+
+.cell.cracked {
+    background-color: #2b3040;
+    background-image: repeating-linear-gradient(
+        20deg, rgba(232, 179, 65, .35) 0 1px, transparent 1px 9px);
+}
+
+/* Overlays. The threat wash is drawn behind the contents so it never eats the hit points. */
+
+.cell::before {
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.cell.in-range::before {
+    background: rgba(37, 131, 255, .16);
+}
+
+.cell.threat::before {
+    background: repeating-linear-gradient(
+        -45deg, rgba(255, 98, 104, .30) 0 4px, transparent 4px 9px);
+}
+
+.cell.in-range.threat::before {
+    background:
+        repeating-linear-gradient(-45deg, rgba(255, 98, 104, .30) 0 4px, transparent 4px 9px),
+        rgba(37, 131, 255, .16);
+}
+
+.cell.projected::before {
+    background: rgba(232, 179, 65, .30);
+}
+
+/* Actionable and selected states. Every one of these is a shape as well as a colour: a dashed ring,
+   a dotted ring, a solid ring, a corner flag. */
+
+.cell.movable {
+    border-color: rgba(37, 131, 255, .85);
+    border-style: dotted;
+}
+
+.cell.deploy {
+    border-color: var(--pt-cyan);
+    border-style: dashed;
+}
+
+.cell.targetable {
+    border-color: var(--pt-red);
+    border-style: solid;
+}
+
+.cell.targetable::after {
+    border: 1px solid var(--pt-red);
+    content: "";
+    inset: 2px;
+    pointer-events: none;
+    position: absolute;
+}
+
+.cell.selected {
+    border-color: var(--pt-yellow);
+    border-style: solid;
+    z-index: 1;
+}
+
+.cell.selected::after {
+    border: 1px dashed rgba(255, 255, 255, .8);
+    box-shadow: 0 0 10px rgba(232, 179, 65, .55);
+    content: "";
+    inset: 1px;
+    pointer-events: none;
+    position: absolute;
+}
+
+.cell.clinging {
+    border-color: var(--pt-red);
+    border-style: dashed;
+}
+
+.cell.inspectable {
+    outline: 1px dotted rgba(242, 245, 248, .34);
+    outline-offset: -5px;
+}
+
+.cell.inspected {
+    outline: 2px solid rgba(242, 245, 248, .85);
+    outline-offset: -5px;
+}
+
+/* Contents */
+
+.art {
+    display: block;
+    height: calc(var(--cell) * .52);
+    line-height: 0;
+    position: relative;
+    width: calc(var(--cell) * .52);
+    z-index: 1;
+}
+
+.art.structure {
+    color: #d9c37a;
+    font-size: calc(var(--cell) * .42);
+    line-height: calc(var(--cell) * .52);
+    text-align: center;
+}
+
+.team-a { color: var(--pt-blue); }
+.team-b { color: var(--pt-cyan); }
+.team-e { color: var(--pt-red); }
+
+.hp {
+    color: rgba(242, 245, 248, .82);
+    font-size: clamp(8px, calc(var(--cell) * .17), 13px);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    position: relative;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .85);
+    z-index: 1;
+}
+
+.pips {
+    display: flex;
+    gap: 2px;
+    position: relative;
+    z-index: 1;
+}
+
+.pip {
+    border-radius: 50%;
+    display: inline-block;
+    height: clamp(3px, calc(var(--cell) * .07), 6px);
+    width: clamp(3px, calc(var(--cell) * .07), 6px);
+}
+
+.pip.cling { background: var(--pt-red); }
+.pip.stagger { background: var(--pt-yellow); }
+.pip.nofooting { background: var(--pt-text-dim); }
+
+.marker {
+    color: rgba(242, 245, 248, .72);
+    font-size: clamp(10px, calc(var(--cell) * .3), 20px);
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+}

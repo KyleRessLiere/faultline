@@ -1,0 +1,85 @@
+.toolbar {
+    align-items: center;
+    border-top: 1px solid var(--pt-border-soft);
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+    padding-top: 6px;
+}
+
+.who {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+}
+
+.side {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.side.team-a { color: var(--pt-blue); }
+.side.team-b { color: var(--pt-cyan); }
+.side.team-e { color: var(--pt-red); }
+
+.phase {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.tools {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tool {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    padding: 3px 8px;
+    white-space: nowrap;
+}
+
+.tool:hover:enabled {
+    border-color: var(--pt-blue);
+    color: var(--pt-text);
+}
+
+.tool:disabled {
+    cursor: default;
+    opacity: .4;
+}
+
+.tool.on {
+    background: rgba(37, 131, 255, .16);
+    border-color: var(--pt-blue);
+    color: var(--pt-blue);
+}
+
+.zoom {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.tool.icon {
+    font-size: 13px;
+    line-height: 1.15;
+    padding: 3px 8px;
+}
+
+.tool.zoom-value {
+    font-variant-numeric: tabular-nums;
+    min-width: 46px;
+    text-align: center;
+}

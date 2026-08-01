@@ -1,0 +1,134 @@
+@inherits PlaytestPanel
+@* The unit under the cursor of the game, and the actions it can aim. Every action offered here is
+   one Core listed as legal — IsAvailable asks the session, which asks StepResult.LegalNext. *@
+
+<div class="pt-panel">
+    <h2>Selected unit</h2>
+
+    <div class="pt-body">
+        @if (Session.SelectedUnit is { } unit)
+        {
+            <div class="head">
+                <span class="art team-@PlaytestText.TeamClass(unit.Team)">
+                    <UnitArt Kind="unit.Kind" Label="@unit.Name" />
+                </span>
+                <span class="ident">
+                    <strong class="name">@unit.Name</strong>
+                    <span class="side team-@PlaytestText.TeamClass(unit.Team)">
+                        @PlaytestText.Team(unit.Team)
+                    </span>
+                </span>
+            </div>
+
+            <dl class="stats">
+                <div><dt>HP</dt><dd>@PlaytestText.Hp(unit)</dd></div>
+                <div><dt>Move</dt><dd>@unit.Move</dd></div>
+                <div><dt>Range</dt><dd>@PlaytestText.Reach(unit)</dd></div>
+                <div><dt>Footing</dt><dd>@unit.Footing</dd></div>
+            </dl>
+
+            <ul class="halves">
+                <li class="@(unit.HasMoved ? "spent" : string.Empty)">Move</li>
+                <li class="@(unit.HasActed ? "spent" : string.Empty)">Action</li>
+            </ul>
+
+            @if (PlaytestText.Flags(unit) is { Length: > 0 } flags)
+            {
+                <p class="status">@flags</p>
+            }
+
+            <div class="actions">
+                @foreach (var option in ActionOptions())
+                {
+                    <button type="button"
+                            class="mode @(Session.Mode == option.Mode ? "on" : string.Empty)"
+                            disabled="@(!option.Available)"
+                            @onclick="() => Session.SetMode(option.Mode)">
+                        <span class="mode-name">@option.Name</span>
+                        <span class="mode-effect">@option.Effect</span>
+                    </button>
+                }
+            </div>
+
+            @if (Session.Mode == ActionMode.Ability && Session.SelectedAbility is not null)
+            {
+                <p class="rules">@Session.SelectedAbility.Summary</p>
+            }
+
+            <p class="preview @(PreviewText is null ? "idle" : string.Empty)">
+                @(PreviewText ?? IdleText)
+            </p>
+        }
+        else
+        {
+            <p class="empty">Select a unit to inspect it.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private sealed record ActionOption(ActionMode Mode, string Name, string Effect, bool Available);
+
+    /// <summary>The outcome sentence, or nothing when the preview is switched off.</summary>
+    private string? PreviewText => View.RangePreview ? Session.PreviewText : null;
+
+    private string IdleText => View.RangePreview
+        ? "Hover a highlighted tile to see what it does."
+        : "Range preview is off — turn it back on under the board.";
+
+    private IEnumerable<ActionOption> ActionOptions()
+    {
+        var unit = Session.SelectedUnit;
+        if (unit is null)
+        {
+            yield break;
+        }
+
+        yield return new ActionOption(
+            ActionMode.Move, "Move", $"up to {unit.Move} MP", Session.IsAvailable(ActionMode.Move));
+
+        var template = unit.Template;
+        if (template.Attack != AttackKind.None)
+        {
+            string reach = template.Attack == AttackKind.Melee ? "melee" : $"range {template.Range}";
+            string effect = $"{reach} · {template.Damage} dmg";
+            if (template.AttackPush > 0)
+            {
+                effect += $" · push {template.AttackPush}";
+            }
+
+            yield return new ActionOption(
+                ActionMode.Attack, "Attack", effect, Session.IsAvailable(ActionMode.Attack));
+        }
+
+        if (template.CanPullWithBasic)
+        {
+            yield return new ActionOption(
+                ActionMode.Pull,
+                "Pull",
+                $"range {template.Range} · pull {template.BasicPull}",
+                Session.IsAvailable(ActionMode.Pull));
+        }
+
+        var ability = Session.SelectedAbility;
+        if (ability is not null && ability.Targeting != AbilityTargeting.Passive)
+        {
+            yield return new ActionOption(
+                ActionMode.Ability, ability.Name, ability.Effect, Session.IsAvailable(ActionMode.Ability));
+        }
+        else if (ability is not null)
+        {
+            yield return new ActionOption(ActionMode.Ability, ability.Name, ability.Effect, false);
+        }
+
+        if (Session.IsAvailable(ActionMode.Rescue))
+        {
+            yield return new ActionOption(ActionMode.Rescue, "Rescue", "whole activation", true);
+        }
+
+        if (Session.IsAvailable(ActionMode.Finish))
+        {
+            yield return new ActionOption(ActionMode.Finish, "Finish", "free action", true);
+        }
+    }
+}

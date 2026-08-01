@@ -1,5 +1,24 @@
 # Changelog
 
+## The playtest screen, rebuilt
+
+- **Three-column dashboard.** Battlefield ~60%, an information column and a testing column at ~20%
+  each, filling the viewport under a single-line header. The page does not scroll at 1440x900; the
+  abilities, units, log and notes panels scroll internally instead.
+- **The board is the screen now** — a coordinate grid sized to its panel with square cells (104px on
+  a 7x7 at 1440x900, 129px at 1920x1080), a terrain legend, and a control bar under it.
+- **Every control on that bar is real.** Grid lines, zoom (50-200%), full board, and a range-preview
+  toggle that actually gates the preview. **Threat view** is composed from Core queries only —
+  `Movement.Reachable` for where each enemy could stand, `Combat.RangeTiles` from each of those tiles
+  — with tests pinning it in both directions.
+- **Undo**, built on the guarantee the project already had: the shell keeps the command log and
+  replays from `Game.Start(fight, seed)` with the tail dropped, so the board, the transcript and the
+  round all come back byte-identical. Inside a run it replays at the run level from `Campaign.Start`.
+  A run restored from localStorage cannot be undone — a save is a state, not a command log — and the
+  button says so rather than pretending.
+- `Pages/Home.razor` went from 1043 lines to a nine-line route wrapper, split into thirteen panel
+  components. No game state moved into a presentation component, and Core is untouched.
+
 ## Battles say why they exist
 
 - **A new repeatable `design:` key**, and a **Design notes** panel on the board that shows it. Every

@@ -1,0 +1,171 @@
+@inherits PlaytestPanel
+@inject FightFiles Files
+
+@* The transcript, newest first. Recording is opt-in because it costs memory that grows with the
+   fight; the export buttons only appear once there is something to export. *@
+
+<div class="pt-panel">
+    <h2>
+        Combat log
+        <span class="count">@(Session.Recording ? $"{Session.RecordedLineCount} recorded" : "not recording")</span>
+    </h2>
+
+    <div class="tools">
+        <label class="record"
+               title="Records every event, tab-separated, for analysis after the fight. Off by default because it costs memory that grows with the fight.">
+            <input type="checkbox" checked="@Session.Recording" @onchange="ToggleRecording" />
+            Record log
+        </label>
+
+        <button type="button"
+                class="tool"
+                disabled="@(Session.Log.Count == 0)"
+                title="Empties the transcript on screen. A running recording is untouched."
+                @onclick="ClearLog">
+            Clear log
+        </button>
+
+        @if (Session.Recording)
+        {
+            <button type="button"
+                    class="tool"
+                    disabled="@(!_canSaveToDirectory || Session.RecordedLineCount == 0)"
+                    title="@(_canSaveToDirectory ? "Write the .log into a folder you pick." : "This browser has no File System Access API. Use Download.")"
+                    @onclick="SaveLogToFolder">
+                Save
+            </button>
+            <button type="button"
+                    class="tool"
+                    disabled="@(Session.RecordedLineCount == 0)"
+                    @onclick="DownloadLog">
+                Download
+            </button>
+            <button type="button"
+                    class="tool"
+                    disabled="@(Session.RecordedLineCount == 0)"
+                    @onclick="CopyLog">
+                Copy
+            </button>
+        }
+    </div>
+
+    @if (Session.Recording && !Session.RecordingIsComplete)
+    {
+        <p class="hint">
+            Recording started mid-fight — the event log is from here on and the command log will not
+            replay from the seed.
+        </p>
+    }
+
+    @if (_logStatus is not null)
+    {
+        <p class="hint status">@_logStatus</p>
+    }
+
+    <div class="pt-body tight">
+        @if (Session.Log.Count == 0)
+        {
+            <p class="empty">Nothing has happened yet.</p>
+        }
+        else
+        {
+            <ol class="log">
+                @foreach (var line in RecentLog())
+                {
+                    <li>@line</li>
+                }
+            </ol>
+        }
+    </div>
+</div>
+
+@code {
+    // The board screen asks once whether this browser can write into a folder, so the button is
+    // never offered when it could only fail.
+    private bool _canSaveToDirectory;
+    private bool _askedAboutDirectories;
+    private bool _disposed;
+    private string? _logStatus;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && !_askedAboutDirectories)
+        {
+            _askedAboutDirectories = true;
+            _ = DetectDirectorySupportAsync();
+        }
+    }
+
+    private async Task DetectDirectorySupportAsync()
+    {
+        bool supported = await Files.CanSaveToDirectoryAsync();
+
+        if (!_disposed && supported != _canSaveToDirectory)
+        {
+            _canSaveToDirectory = supported;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleRecording(ChangeEventArgs args)
+    {
+        Session.SetRecording(args.Value is bool on && on);
+        _logStatus = null;
+    }
+
+    private void ClearLog()
+    {
+        Session.ClearLog();
+        _logStatus = null;
+    }
+
+    private async Task SaveLogToFolder()
+    {
+        var outcome = await Files.SaveToDirectoryAsync(
+            Session.LogFileName, Session.RenderCombatLog(), ".log", "Faultline combat log");
+
+        // A cancelled picker is a normal outcome, not a failure: say nothing and change nothing.
+        _logStatus = outcome switch
+        {
+            "cancelled" => null,
+            "unsupported" => "This browser cannot open a save dialog. Use Download instead.",
+            _ when outcome.StartsWith("saved:", StringComparison.Ordinal) =>
+                $"Saved {outcome.Substring(6)} — {Session.RecordedLineCount} event lines.",
+            _ => "Save failed: " + outcome,
+        };
+    }
+
+    private async Task DownloadLog()
+    {
+        var outcome = await Files.DownloadAsync(Session.LogFileName, Session.RenderCombatLog());
+
+        _logStatus = outcome.StartsWith("downloaded:", StringComparison.Ordinal)
+            ? $"Downloaded {outcome.Substring(11)} — {Session.RecordedLineCount} event lines."
+            : "Download failed: " + outcome;
+    }
+
+    private async Task CopyLog()
+    {
+        var outcome = await Files.CopyAsync(Session.RenderCombatLog());
+
+        _logStatus = outcome == "copied"
+            ? $"Copied {Session.RecordedLineCount} event lines to the clipboard."
+            : "Copy failed: " + outcome;
+    }
+
+    private IEnumerable<string> RecentLog()
+    {
+        var log = Session.Log;
+        int take = log.Count < 80 ? log.Count : 80;
+        for (int i = log.Count - 1; i >= log.Count - take; i--)
+        {
+            yield return log[i];
+        }
+    }
+
+    public override void Dispose()
+    {
+        _disposed = true;
+        base.Dispose();
+    }
+}

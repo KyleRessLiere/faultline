@@ -1,0 +1,127 @@
+@inherits PlaytestPanel
+@inject PlaytestNotes Notes
+
+@* The playtest screen: a header bar, then three columns that between them fill the viewport. This
+   component owns the layout and the enemy-activation tick and nothing else — every panel reads the
+   session for itself, so no piece of game state is copied into a component. *@
+
+<div class="pt-app @(View.BoardOnly ? "board-only" : string.Empty)">
+    <PlaytestHeader OnUndo="Undo" OnRestart="Restart" OnEndTurn="EndActivation" />
+
+    <div class="pt-main">
+        <section class="pt-col pt-col-board">
+            <BattlefieldPanel />
+        </section>
+
+        <section class="pt-col pt-col-mid">
+            @if (Session.DesignOpen)
+            {
+                @* Beside the board like the dossier, and mutually exclusive with it: one reference
+                   panel at a time keeps the turn panel on screen. *@
+                <div class="pt-ref">
+                    <FightDesign Fight="Session.Fight" OnDismiss="CloseDesign" />
+                </div>
+            }
+
+            @if (Session.InspectedBehaviour is { } inspected)
+            {
+                <div class="pt-ref">
+                    <UnitDossier Behaviour="inspected"
+                                 Live="Session.InspectedUnit"
+                                 Board="Session.State"
+                                 ShowBestiaryLink="true"
+                                 OnDismiss="ClearInspection" />
+                </div>
+            }
+
+            <TurnSummaryPanel />
+            <SelectedUnitPanel />
+            <EnemyIntentsPanel />
+            <AbilitiesPanel />
+        </section>
+
+        <section class="pt-col pt-col-right">
+            <UnitsPanel />
+            <CombatLogPanel />
+            <PlaytestNotesPanel />
+        </section>
+    </div>
+</div>
+
+@code {
+    private bool _resolvingEnemy;
+    private bool _disposed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Runs.LoadAsync();
+
+        // A reload lands here with a session the constructor built, not one the player chose. If a
+        // run is waiting, put its fight back on the board rather than the placeholder — which, for a
+        // run restored from storage, means entering its node again and starting from deployment.
+        if (Session.Untouched && Runs.InProgress)
+        {
+            Runs.ResumeBoard();
+        }
+
+        await Notes.LoadAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // Enemy slots resolve on a short delay so the hotseat players can watch them tick past.
+        if (!_resolvingEnemy && Session.AwaitingEnemy)
+        {
+            _resolvingEnemy = true;
+            _ = ResolveEnemyAsync();
+        }
+    }
+
+    private async Task ResolveEnemyAsync()
+    {
+        await Task.Delay(400);
+
+        if (!_disposed && Session.AwaitingEnemy)
+        {
+            Session.ResolveEnemyActivation();
+        }
+
+        _resolvingEnemy = false;
+
+        if (!_disposed)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void CloseDesign() => Session.CloseDesign();
+
+    private void ClearInspection() => Session.ClearInspection();
+
+    private void EndActivation()
+    {
+        if (Session.EndCommand is not null)
+        {
+            Session.Submit(Session.EndCommand);
+        }
+    }
+
+    private void Undo()
+    {
+        if (Session.InRun)
+        {
+            Runs.Undo();
+            return;
+        }
+
+        Session.Undo();
+    }
+
+    private void Restart() => Session.NewRun(Session.Seed + 1);
+
+    public override void Dispose()
+    {
+        _disposed = true;
+        base.Dispose();
+    }
+}

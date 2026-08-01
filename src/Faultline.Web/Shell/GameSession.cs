@@ -18,6 +18,17 @@ public sealed class GameSession
 {
     private readonly List<string> _log = new();
 
+    // Every command applied to this board since it started, and whether a person chose it. Undo is
+    // built on Core's determinism guarantee: seed + command log replays to the same state, so
+    // dropping the tail of the log and replaying is an exact rewind rather than an approximation.
+    private readonly List<Command> _applied = new();
+    private readonly List<bool> _chosen = new();
+
+    // True while Core's planner is having its own command submitted, so the command log can tell an
+    // enemy activation from a player's decision. Undo rewinds to before a decision, never to the
+    // middle of an enemy turn the screen would immediately play forward again.
+    private bool _submittingEnemy;
+
     // docs/COMBAT_LOG.md: the flag belongs in the shell, not in Core. Core always emits its events;
     // it has no idea whether anyone is writing them down. Null means "not recording, retain nothing".
     private CombatRecorder? _recorder;
@@ -61,8 +72,24 @@ public sealed class GameSession
     /// <summary>Seed the current fight was started from.</summary>
     public int Seed { get; private set; }
 
+    /// <summary>
+    /// Raised whenever anything a screen draws has changed. The shell is a store, not a component
+    /// tree: without this, a panel only redraws when its own button was the one pressed.
+    /// </summary>
+    public event Action? Changed;
+
     /// <summary>Human-readable event history, newest last.</summary>
     public IReadOnlyList<string> Log => _log;
+
+    /// <summary>
+    /// Empties the on-screen transcript. The recording, if one is running, is untouched: this
+    /// clears what is being read, not what is being kept.
+    /// </summary>
+    public void ClearLog()
+    {
+        _log.Clear();
+        Changed?.Invoke();
+    }
 
     /// <summary>
     /// Whether the full combat log is being recorded. Off by default: it costs memory that grows
@@ -131,10 +158,16 @@ public sealed class GameSession
             Inspected = id;
             DesignOpen = false;
         }
+
+        Changed?.Invoke();
     }
 
     /// <summary>Closes the dossier.</summary>
-    public void ClearInspection() => Inspected = null;
+    public void ClearInspection()
+    {
+        Inspected = null;
+        Changed?.Invoke();
+    }
 
     /// <summary>Whether the fight's design notes are open in the side pane.</summary>
     /// <remarks>
@@ -155,10 +188,16 @@ public sealed class GameSession
         {
             Inspected = null;
         }
+
+        Changed?.Invoke();
     }
 
     /// <summary>Closes the design notes.</summary>
-    public void CloseDesign() => DesignOpen = false;
+    public void CloseDesign()
+    {
+        DesignOpen = false;
+        Changed?.Invoke();
+    }
 
     /// <summary>The fight currently loaded, authored or hand-built.</summary>
     public FightDefinition Fight { get; private set; } = null!;
@@ -204,7 +243,11 @@ public sealed class GameSession
     }
 
     /// <summary>Gives the board back, so the next command goes straight to Core's fight layer.</summary>
-    public void DetachRun() => _run = null;
+    public void DetachRun()
+    {
+        _run = null;
+        Changed?.Invoke();
+    }
 
     /// <summary>Folds a step the run resolved on the session's behalf back into the board.</summary>
     /// <param name="command">The combat command that was played.</param>
@@ -233,10 +276,83 @@ public sealed class GameSession
             return;
         }
 
+        Play(command, !_submittingEnemy);
+    }
+
+    /// <summary>
+    /// True while <see cref="ResolveEnemyActivation"/> is submitting Core's planned command, so the
+    /// run layer can log it as the planner's rather than a player's.
+    /// </summary>
+    public bool SubmittingEnemyCommand => _submittingEnemy;
+
+    /// <summary>
+    /// Whether there is a decision to take back: a command a person chose, on a board this session
+    /// has played from the start. Always false inside a run — there, the run owns the command
+    /// stream and <see cref="RunSession.CanUndo"/> answers instead.
+    /// </summary>
+    public bool CanUndo => _run is null && LastChosen >= 0;
+
+    /// <summary>
+    /// Rewinds to just before the last command a person chose, by replaying the fight from its seed
+    /// with the tail of the command log dropped. Enemy activations played since that decision go
+    /// with it, because they were consequences of it.
+    /// </summary>
+    /// <returns>Whether anything was undone.</returns>
+    public bool Undo()
+    {
+        int cut = LastChosen;
+        if (_run is not null || cut < 0)
+        {
+            return false;
+        }
+
+        var commands = _applied.GetRange(0, cut);
+        var chosen = _chosen.GetRange(0, cut);
+
+        // The design notes are a view of the fight, not of the position, so a rewind leaves them
+        // where the player put them.
+        bool design = DesignOpen;
+
+        Reset(Fight, Seed);
+
+        var start = Game.Start(Fight, Seed);
+        _recorder?.RecordStart(start);
+        Adopt(start);
+
+        for (int i = 0; i < commands.Count; i++)
+        {
+            Play(commands[i], chosen[i]);
+        }
+
+        DesignOpen = design;
+        Changed?.Invoke();
+        return true;
+    }
+
+    private int LastChosen
+    {
+        get
+        {
+            for (int i = _chosen.Count - 1; i >= 0; i--)
+            {
+                if (_chosen[i])
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    private void Play(Command command, bool chosen)
+    {
         var before = State;
         var result = Game.Apply(before, command);
 
         _recorder?.RecordStep(command, before, result);
+        _applied.Add(command);
+        _chosen.Add(chosen);
 
         Adopt(result);
         Hovered = null;
@@ -249,6 +365,8 @@ public sealed class GameSession
         Fight = fight;
         Seed = seed;
         _log.Clear();
+        _applied.Clear();
+        _chosen.Clear();
         Selected = null;
         Inspected = null;
         DesignOpen = false;
@@ -275,6 +393,7 @@ public sealed class GameSession
         }
 
         _recorder = on ? new CombatRecorder(Fight, Seed) : null;
+        Changed?.Invoke();
     }
 
     /// <summary>
@@ -296,6 +415,7 @@ public sealed class GameSession
         Selected = id;
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
+        Changed?.Invoke();
     }
 
     /// <summary>Switches which action the player is aiming.</summary>
@@ -307,11 +427,17 @@ public sealed class GameSession
             Mode = mode;
             Hovered = null;
         }
+
+        Changed?.Invoke();
     }
 
     /// <summary>Records the tile under the pointer, for previewing.</summary>
     /// <param name="coord">Tile hovered, or <c>null</c> when the pointer leaves the board.</param>
-    public void Hover(Coord? coord) => Hovered = coord;
+    public void Hover(Coord? coord)
+    {
+        Hovered = coord;
+        Changed?.Invoke();
+    }
 
     /// <summary>Units that have at least one legal command right now.</summary>
     public IReadOnlyCollection<UnitId> Selectable =>
@@ -452,9 +578,19 @@ public sealed class GameSession
     public void ResolveEnemyActivation()
     {
         var command = Game.NextEnemyCommand(State);
-        if (command is not null)
+        if (command is null)
+        {
+            return;
+        }
+
+        _submittingEnemy = true;
+        try
         {
             Submit(command);
+        }
+        finally
+        {
+            _submittingEnemy = false;
         }
     }
 
@@ -710,6 +846,8 @@ public sealed class GameSession
         {
             Selected = null;
         }
+
+        Changed?.Invoke();
     }
 
     private static UnitId UnitOf(Command command) => command switch

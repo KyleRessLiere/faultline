@@ -1,0 +1,42 @@
+@inherits PlaytestPanel
+@* Intent telegraphs are rules-critical UI, not polish (CLAUDE.md), so they keep a panel of their
+   own rather than being folded into a tooltip. Every word comes from Core's declared intent. *@
+
+@if (ShowBoard && Session.State.Intents.Count > 0)
+{
+    <div class="pt-panel">
+        <h2>
+            Enemy intents
+            <span class="count">locked for the round</span>
+        </h2>
+
+        <div class="pt-body tight">
+            <ul class="intents">
+                @foreach (var intent in Session.State.Intents)
+                {
+                    var planner = Session.State.UnitById(intent.UnitId);
+                    <li>
+                        <span class="art team-e">
+                            <UnitArt Kind="intent.Kind" Label="@intent.Kind.ToString()" />
+                        </span>
+                        @if (GameSession.CanInspect(planner))
+                        {
+                            <button type="button"
+                                    class="inspect"
+                                    title="What this enemy does"
+                                    @onclick="() => Session.Inspect(planner.Id)">@planner.Name</button>
+                        }
+                        else
+                        {
+                            <strong>@planner.Name</strong>
+                        }
+                        <span class="what">@EventText.Intent(Session.State, intent)</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+}

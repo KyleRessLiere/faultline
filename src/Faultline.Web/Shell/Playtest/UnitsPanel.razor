@@ -1,0 +1,110 @@
+@inherits PlaytestPanel
+@* Every unit on the board at a glance. A row does whatever a click on that unit's tile would do
+   short of an attack: select it when Core says it can act, open its dossier when it is an enemy
+   Core can describe. It never aims or submits anything. *@
+
+<div class="pt-panel">
+    <h2>
+        Units
+        <span class="count">@Session.State.Units.Count</span>
+    </h2>
+
+    <div class="pt-body tight">
+        @if (!ShowBoard)
+        {
+            <p class="empty">No board — the run is standing between fights.</p>
+        }
+        else
+        {
+            <table class="units">
+                <thead>
+                    <tr>
+                        <th class="side">Side</th>
+                        <th>Unit</th>
+                        <th class="num">HP</th>
+                        <th class="num">Move</th>
+                        <th>Special</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var unit in Session.State.Units)
+                    {
+                        var row = unit;
+                        <tr class="@RowClass(row)"
+                            title="@RowTitle(row)"
+                            @onclick="() => Activate(row)">
+                            <td class="side team-@PlaytestText.TeamClass(row.Team)">@EventText.Side(row.Team)</td>
+                            <td class="name">
+                                @row.Name
+                                <span class="at">@Coordinate(row)</span>
+                            </td>
+                            <td class="num">@PlaytestText.Hp(row)</td>
+                            <td class="num">@row.Move</td>
+                            <td class="flags">@PlaytestText.Flags(row)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Does whatever a click on that unit means outside the board: select it when Core will take
+    /// commands for it, otherwise open its dossier. Never a command.
+    /// </summary>
+    private void Activate(Unit unit)
+    {
+        if (Session.Selectable.Contains(unit.Id))
+        {
+            Session.Select(unit.Id);
+            return;
+        }
+
+        if (GameSession.CanInspect(unit))
+        {
+            Session.Inspect(unit.Id);
+        }
+    }
+
+    private string RowClass(Unit unit)
+    {
+        var classes = new List<string>();
+
+        if (!unit.IsAlive)
+        {
+            classes.Add("down");
+        }
+
+        if (unit.Clinging)
+        {
+            classes.Add("cling");
+        }
+
+        if (Session.Selected == unit.Id)
+        {
+            classes.Add("sel");
+        }
+
+        if (Session.Selectable.Contains(unit.Id) || GameSession.CanInspect(unit))
+        {
+            classes.Add("clickable");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string RowTitle(Unit unit)
+    {
+        if (Session.Selectable.Contains(unit.Id))
+        {
+            return "Select this unit.";
+        }
+
+        return GameSession.CanInspect(unit) ? "What this enemy does" : unit.Name;
+    }
+
+    private static string Coordinate(Unit unit) =>
+        unit.IsOnBoard ? unit.Position.ToString() : unit.IsAlive ? "—" : string.Empty;
+}

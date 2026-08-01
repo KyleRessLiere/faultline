@@ -11,6 +11,79 @@
     --a: #5aa9ff;
     --b: #58d0a0;
     --e: #ff6b6b;
+
+    /* The playtest screen's palette. Kept here rather than in a component so every panel of the
+       dashboard reads the same tokens and the screen looks like one thing. */
+    --pt-bg-app: #0f131a;
+    --pt-bg-panel: #171c24;
+    --pt-bg-raised: #1c222c;
+    --pt-border: #303846;
+    --pt-border-soft: #262d38;
+    --pt-text: #f2f5f8;
+    --pt-text-dim: #9eabbc;
+    --pt-blue: #2583ff;
+    --pt-cyan: #42d8c5;
+    --pt-red: #ff6268;
+    --pt-yellow: #e8b341;
+    --pt-green: #79a66a;
+    --pt-radius: 7px;
+    --pt-gap: 8px;
+}
+
+/* A visible focus ring everywhere, not just where a component remembered one. */
+:focus-visible {
+    outline: 2px solid var(--pt-blue);
+    outline-offset: 2px;
+}
+
+/* Panel chrome for the playtest dashboard. Global rather than scoped because eight components draw
+   the same box, and eight copies of it is how they start drifting apart. */
+
+.pt-panel {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.pt-panel > h2 {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border-bottom: 1px solid var(--pt-border-soft);
+    color: var(--pt-text-dim);
+    display: flex;
+    flex: 0 0 auto;
+    font-size: 10.5px;
+    font-weight: 600;
+    gap: 6px;
+    justify-content: space-between;
+    letter-spacing: .1em;
+    margin: 0;
+    padding: 5px 9px;
+    text-transform: uppercase;
+}
+
+.pt-panel > h2 .count {
+    color: var(--pt-text-dim);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+    letter-spacing: .04em;
+    text-transform: none;
+}
+
+.pt-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 9px;
+}
+
+.pt-body.tight {
+    padding: 6px 9px;
 }
 
 * {

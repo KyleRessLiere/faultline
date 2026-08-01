@@ -28,6 +28,19 @@ public sealed class RunSession : IRunBoardDriver
     private readonly GameSession _session;
     private readonly List<string> _journal = new();
 
+    // Every run command this browser has applied since the run was started, and whether a person
+    // chose it. Undo replays the run from its seed with the tail dropped, which is exact for the
+    // same reason the fight-level undo is: Core is deterministic on seed plus command log.
+    private readonly List<RunCommand> _commands = new();
+    private readonly List<bool> _chosen = new();
+
+    // True only when _commands covers the run from Campaign.Start. A run read back out of storage
+    // arrives as a state, not as a log, so there is nothing to replay and undo stays off.
+    private bool _logFromStart;
+
+    // Suppresses storage writes while a replay walks the log back up to where it was.
+    private bool _replaying;
+
     private GameState? _pushed;
 
     // The node a restored run was standing on when it came back out of storage, while it is still
@@ -42,6 +55,12 @@ public sealed class RunSession : IRunBoardDriver
         _store = store;
         _session = session;
     }
+
+    /// <summary>
+    /// Raised whenever the run changed. The board screen's panels are siblings, not a chain, so a
+    /// change has to be announced rather than fall out of whose button was pressed.
+    /// </summary>
+    public event Action? Changed;
 
     /// <summary>The run in this browser, or <c>null</c> when nobody has started one.</summary>
     public RunState? State { get; private set; }
@@ -110,9 +129,13 @@ public sealed class RunSession : IRunBoardDriver
             }
 
             _journal.Clear();
+            _commands.Clear();
+            _chosen.Clear();
+            _logFromStart = false;
         }
 
         Loaded = true;
+        Changed?.Invoke();
     }
 
     /// <summary>Throws away any current run and starts a new one on the shipped campaign.</summary>
@@ -125,6 +148,9 @@ public sealed class RunSession : IRunBoardDriver
         var result = Campaign.Start(CampaignLibrary.Faultline, seed);
 
         _journal.Clear();
+        _commands.Clear();
+        _chosen.Clear();
+        _logFromStart = true;
         _pushed = null;
         _restoredNode = null;
         Problem = null;
@@ -134,6 +160,7 @@ public sealed class RunSession : IRunBoardDriver
         Loaded = true;
 
         await _store.WriteAsync(result.NewState);
+        Changed?.Invoke();
     }
 
     /// <summary>Forgets the run entirely.</summary>
@@ -148,7 +175,11 @@ public sealed class RunSession : IRunBoardDriver
         Problem = null;
         _pushed = null;
         _journal.Clear();
+        _commands.Clear();
+        _chosen.Clear();
+        _logFromStart = false;
         _session.DetachRun();
+        Changed?.Invoke();
     }
 
     /// <summary>Enters the node the run is standing on: begins its fight, or takes its rest.</summary>
@@ -191,7 +222,90 @@ public sealed class RunSession : IRunBoardDriver
         return false;
     }
 
-    private void Apply(RunCommand command)
+    /// <summary>
+    /// Whether the run can be rewound to before the last command a person chose. False for a run
+    /// that came back out of storage: a save is a state, not a command log, so there is nothing to
+    /// replay from and pretending otherwise would land on a different board.
+    /// </summary>
+    public bool CanUndo => _logFromStart && State is not null && LastChosen >= 0;
+
+    /// <summary>
+    /// Why undo is unavailable, for the button's tooltip, or <c>null</c> when it is available.
+    /// </summary>
+    public string? UndoBlockedReason =>
+        CanUndo ? null
+        : State is null ? "There is no run to rewind."
+        : !_logFromStart
+            ? "This run came back out of browser storage as a saved position, not as a command log, "
+              + "so there is nothing to replay from. Undo works again on a run started in this tab."
+            : "Nothing has been played on this run yet.";
+
+    /// <summary>
+    /// Rewinds the run to just before the last command a person chose, by replaying it from its
+    /// seed with the tail of the command log dropped.
+    /// </summary>
+    /// <returns>Whether anything was undone.</returns>
+    public bool Undo()
+    {
+        int cut = LastChosen;
+        if (!CanUndo || cut < 0)
+        {
+            return false;
+        }
+
+        var campaign = State!.Campaign;
+        int seed = State.Seed;
+        var commands = _commands.GetRange(0, cut);
+        var chosen = _chosen.GetRange(0, cut);
+
+        _commands.Clear();
+        _chosen.Clear();
+        _journal.Clear();
+        _pushed = null;
+        Problem = null;
+
+        var start = Campaign.Start(campaign, seed);
+        State = start.NewState;
+        LastEvents = start.Events;
+        Record(start.Events);
+
+        _replaying = true;
+        try
+        {
+            for (int i = 0; i < commands.Count; i++)
+            {
+                Apply(commands[i], chosen[i]);
+            }
+        }
+        finally
+        {
+            _replaying = false;
+        }
+
+        _ = _store.WriteAsync(State!);
+        Changed?.Invoke();
+        return true;
+    }
+
+    private int LastChosen
+    {
+        get
+        {
+            for (int i = _chosen.Count - 1; i >= 0; i--)
+            {
+                if (_chosen[i])
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    private void Apply(RunCommand command) => Apply(command, !_session.SubmittingEnemyCommand);
+
+    private void Apply(RunCommand command, bool chosen)
     {
         var before = State;
         if (before is null || before.Phase == RunPhase.Complete)
@@ -210,6 +324,7 @@ public sealed class RunSession : IRunBoardDriver
         {
             // Core is the only judge of legality; a refusal is shown rather than worked around.
             Problem = "Core refused that: " + ex.Message;
+            Changed?.Invoke();
             return;
         }
 
@@ -217,15 +332,19 @@ public sealed class RunSession : IRunBoardDriver
         State = result.NewState;
         LastEvents = result.Events;
         Record(result.Events);
+        _commands.Add(command);
+        _chosen.Add(chosen);
 
         PushBoard(command, board, result);
 
         // Run events fire only on run-level changes — a node entered, a fight resolved, a rest
         // taken — so an ordinary combat command costs no storage write.
-        if (result.Events.Count > 0)
+        if (result.Events.Count > 0 && !_replaying)
         {
             _ = _store.WriteAsync(result.NewState);
         }
+
+        Changed?.Invoke();
     }
 
     private void PushBoard(RunCommand command, GameState? before, RunStepResult result)

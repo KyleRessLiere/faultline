@@ -1,0 +1,93 @@
+/* The screen fills the window and never scrolls it: every panel that can outgrow its box scrolls
+   inside itself instead. min-height: 0 on the grid and flex children is what makes that work — a
+   flex child defaults to min-height: auto and refuses to shrink below its content. */
+
+.pt-app {
+    background: var(--pt-bg-app);
+    color: var(--pt-text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.pt-main {
+    display: grid;
+    flex: 1 1 auto;
+    gap: var(--pt-gap);
+    grid-template-columns: minmax(0, 60fr) minmax(0, 20fr) minmax(0, 20fr);
+    min-height: 0;
+    padding: var(--pt-gap);
+}
+
+.pt-app.board-only .pt-main {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.pt-app.board-only .pt-col-mid,
+.pt-app.board-only .pt-col-right {
+    display: none;
+}
+
+.pt-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-gap);
+    min-height: 0;
+    min-width: 0;
+}
+
+.pt-col-board {
+    min-width: 0;
+}
+
+/* The dossier and the design notes: reference beside the board, never over it, and never allowed
+   to push the turn panel off the bottom. */
+.pt-ref {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    flex: 0 1 auto;
+    max-height: 42%;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+@media (max-width: 1200px) {
+    .pt-app {
+        --pt-gap: 6px;
+    }
+
+    .pt-main {
+        grid-template-columns: minmax(0, 58fr) minmax(0, 21fr) minmax(0, 21fr);
+    }
+}
+
+/* Battlefield first: the board takes the full width and the panels fall in beneath it in two
+   columns. Below this width the page is allowed to scroll — a dashboard this dense has nowhere
+   left to go. */
+@media (max-width: 950px) {
+    .pt-app {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    .pt-main {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .pt-col-board {
+        grid-column: 1 / -1;
+        height: 68vh;
+    }
+
+    .pt-col-mid,
+    .pt-col-right {
+        min-height: 0;
+    }
+
+    .pt-ref {
+        max-height: none;
+    }
+}

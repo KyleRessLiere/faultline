@@ -1,0 +1,215 @@
+@inherits PlaytestPanel
+@* The board, with its column and row numbers, sized to whatever box the panel gives it. The track
+   count comes off Board.Width and Board.Height, so a 7x7, a 9x7 and an 11x7 all draw correctly
+   without anything here knowing which one it is. *@
+
+<div class="stage">
+    <div class="board @(View.GridLines ? "lines" : string.Empty)"
+         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor;"
+         @onmouseleave="() => Session.Hover(null)">
+        <div class="axis corner" aria-hidden="true"></div>
+
+        @for (int x = 0; x < Width; x++)
+        {
+            <div class="axis col">@x</div>
+        }
+
+        @for (int y = 0; y < Height; y++)
+        {
+            int row = y;
+            <div class="axis row">@row</div>
+
+            @for (int x = 0; x < Width; x++)
+            {
+                var cell = new Coord(x, row);
+                var unit = State.UnitAt(cell);
+
+                <button type="button"
+                        class="@CellClass(cell, unit)"
+                        disabled="@(!IsClickable(cell, unit))"
+                        title="@Tooltip(cell, unit)"
+                        @onmouseover="() => Session.Hover(cell)"
+                        @onfocus="() => Session.Hover(cell)"
+                        @onclick="() => OnCellClick(cell, unit)">
+                    @if (unit is not null)
+                    {
+                        <span class="art team-@PlaytestText.TeamClass(unit.Team)">
+                            <UnitArt Kind="unit.Kind" Label="@unit.Name" />
+                        </span>
+                        <span class="hp">@unit.Hp/@unit.MaxHp</span>
+                        @if (unit.Clinging || unit.Staggered || unit.Footing == 0)
+                        {
+                            <span class="pips">
+                                @if (unit.Clinging)
+                                {
+                                    <i class="pip cling" title="Clinging"></i>
+                                }
+                                @if (unit.Staggered)
+                                {
+                                    <i class="pip stagger" title="Staggered — next shove goes 1 further"></i>
+                                }
+                                @if (unit.Footing == 0)
+                                {
+                                    <i class="pip nofooting" title="No Footing left"></i>
+                                }
+                            </span>
+                        }
+                    }
+                    else if (State.StructureAt(cell) is { } structure)
+                    {
+                        <span class="art structure" title="@PlaytestText.Structure(structure)">
+                            @(structure.Role == ObjectiveKind.Protect ? "▣" : "▩")
+                        </span>
+                        <span class="hp">@structure.Hp/@structure.MaxHp</span>
+                    }
+                    else if (IsDeployTarget(cell))
+                    {
+                        <span class="marker">+</span>
+                    }
+                    else if (Session.Targets.ContainsKey(cell))
+                    {
+                        <span class="marker">•</span>
+                    }
+                </button>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private int Width => State.Board.Width;
+
+    private int Height => State.Board.Height;
+
+    private IReadOnlyCollection<Coord> Threat => View.ThreatTiles(State);
+
+    private void OnCellClick(Coord coord, Unit? unit)
+    {
+        if (IsDeployTarget(coord))
+        {
+            Session.Submit(Session.DeployTargets[coord]);
+            return;
+        }
+
+        if (Session.Targets.TryGetValue(coord, out var command))
+        {
+            Session.Submit(command);
+            return;
+        }
+
+        if (unit is not null && Session.Selectable.Contains(unit.Id))
+        {
+            Session.Select(unit.Id);
+            return;
+        }
+
+        // Last, and only last: a click on an enemy means "inspect" exactly when it means nothing
+        // else. Attacking it always wins.
+        if (unit is not null)
+        {
+            Session.Inspect(unit.Id);
+        }
+    }
+
+    private bool IsDeployTarget(Coord coord) => Session.DeployTargets.ContainsKey(coord);
+
+    private bool IsClickable(Coord coord, Unit? unit) =>
+        IsDeployTarget(coord)
+        || Session.Targets.ContainsKey(coord)
+        || (unit is not null && Session.Selectable.Contains(unit.Id))
+        || GameSession.CanInspect(unit);
+
+    /// <summary>
+    /// Whether a click on this cell would open a dossier rather than do something. Inspection is
+    /// last in <see cref="OnCellClick"/>'s ladder, so a targetable enemy is never an inspect cell.
+    /// </summary>
+    private bool IsInspectOnly(Coord coord, Unit? unit) =>
+        GameSession.CanInspect(unit)
+        && !IsDeployTarget(coord)
+        && !Session.Targets.ContainsKey(coord);
+
+    private string CellClass(Coord coord, Unit? unit)
+    {
+        var classes = new List<string> { "cell", EventText.TileClass(State.Board.At(coord)) };
+
+        // The hover preview is a view, so the toggle that hides it hides only the paint.
+        if (View.RangePreview)
+        {
+            if (Session.RangeTiles.Contains(coord))
+            {
+                classes.Add("in-range");
+            }
+
+            if (Session.ProjectedPath.Contains(coord))
+            {
+                classes.Add("projected");
+            }
+        }
+
+        if (Threat.Contains(coord))
+        {
+            classes.Add("threat");
+        }
+
+        bool targetable = Session.Targets.ContainsKey(coord);
+
+        if (unit is not null)
+        {
+            classes.Add("occupied");
+            classes.Add("team-" + PlaytestText.TeamClass(unit.Team));
+
+            if (unit.Clinging)
+            {
+                classes.Add("clinging");
+            }
+
+            if (Session.Selected == unit.Id)
+            {
+                classes.Add("selected");
+            }
+
+            if (targetable)
+            {
+                classes.Add("targetable");
+            }
+            else if (IsInspectOnly(coord, unit))
+            {
+                classes.Add("inspectable");
+            }
+
+            if (Session.Inspected == unit.Id)
+            {
+                classes.Add("inspected");
+            }
+        }
+        else if (IsDeployTarget(coord))
+        {
+            classes.Add("deploy");
+        }
+        else if (targetable)
+        {
+            classes.Add("movable");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string Tooltip(Coord coord, Unit? unit)
+    {
+        var terrain = State.Board.At(coord).ToString();
+
+        if (unit is not null)
+        {
+            string extra = unit.Clinging ? ", clinging" : unit.Staggered ? ", staggered" : string.Empty;
+            string inspect = IsInspectOnly(coord, unit) ? " · click to inspect" : string.Empty;
+            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}{inspect}";
+        }
+
+        if (State.StructureAt(coord) is { } structure)
+        {
+            return $"{PlaytestText.Structure(structure)} — {terrain} {coord}";
+        }
+
+        return $"{terrain} {coord}";
+    }
+}

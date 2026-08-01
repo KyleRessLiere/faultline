@@ -1,0 +1,53 @@
+@inherits PlaytestPanel
+@* The board and the two strips that belong to it. Everything above the legend is the grid's; the
+   panel's own job is to hand the grid a box to fit itself into. *@
+
+<div class="pt-panel battlefield">
+    @if (Runs.Problem is not null)
+    {
+        <p class="banner warn">@Runs.Problem</p>
+    }
+
+    @if (Session.InRun && Runs.RestartedByReload)
+    {
+        <p class="banner">
+            Reloaded mid-run. The run came back — seed, node and everything the squad is carrying —
+            but the half-played board did not, so this fight restarts from deployment.
+        </p>
+    }
+
+    @if (Session.InRun && FightIsOver && ShowBoard)
+    {
+        <p class="banner">
+            The fight is over and the run has already moved on. This is the board it finished on,
+            frozen — nothing on it takes another command.
+        </p>
+    }
+
+    @if (ShowBoard)
+    {
+        <CoordinateGrid />
+        <TerrainLegend />
+    }
+    else
+    {
+        <div class="between">
+            <h2>Between nodes</h2>
+            <p class="dim">
+                The run is standing between fights, so there is no board. What just happened is
+                below, straight off the run's own events.
+            </p>
+            <ul class="run-events">
+                @foreach (var e in Runs.LastEvents)
+                {
+                    <li>@RunEventText.Describe(e)</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <BattlefieldToolbar />
+</div>
+
+@code {
+}
