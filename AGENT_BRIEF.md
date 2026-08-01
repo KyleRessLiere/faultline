@@ -1,10 +1,23 @@
-# FAULTLINE — Coding Agent Brief
+# FAULTLINE — Brief
 
-You are building **Faultline**, a 2-player hotseat co-op turn-based tactics game where displacement (push/pull) is the primary mechanic and the board (walls, spikes, pits, collapse) is the primary weapon. This document is self-contained: everything you need is here. Where this document and any other file disagree, this document wins; flag the conflict.
+**Faultline** is a 2-player hotseat co-op turn-based tactics game where displacement (push/pull) is
+the primary mechanic and the board is the primary weapon.
+
+This is the spec. It describes the game as it now stands *and* what it is still growing into. Where
+it and any other file disagree, this document wins — flag the conflict rather than resolving it
+silently.
+
+> **This replaced an earlier brief**, archived at [docs/archive/AGENT_BRIEF_v1.md](docs/archive/AGENT_BRIEF_v1.md).
+> That version scoped a tight MVP: four classes, five enemies, five fights, two units a side, and a
+> list of things not to build. The project deliberately grew past it (see [ROADMAP.md](ROADMAP.md)),
+> and the brief stopped describing the game.
+>
+> **`DECISIONS.md` entries D-001 to D-029 cite the v1 brief.** Read them against the archive, not
+> against this file. Their reasoning still stands; only the document they were arguing with moved.
 
 ---
 
-## 1. Architecture (non-negotiable)
+## 1. Architecture — non-negotiable
 
 ```
 /src
@@ -14,121 +27,154 @@ You are building **Faultline**, a 2-player hotseat co-op turn-based tactics game
   Faultline.Core.Tests/ xUnit. Tests reference Core only.
 ```
 
-**Core contract:**
-- The entire game is `Apply(GameState state, Command cmd) → StepResult { GameState NewState, IReadOnlyList<GameEvent> Events, IReadOnlyList<Command> LegalNext }`.
-- `GameState` is immutable (records). No mutation; Apply returns a new state.
-- **Determinism:** all randomness through an injected `IRng` seeded from `GameState.Seed`. Same seed + same command list = identical state, always. No `DateTime`, no static random, no float math in rules (int grid math only).
-- Core emits **events, never visuals**: `UnitPushed`, `Collision`, `SpikeHit`, `Voided`, `Clinging`, `Rescued`, `Staggered`, `TileCracked`, `TileCollapsed`, `MomentumChanged`, `IntentDeclared`, `UnitDowned`, `FightWon`, `FightLost`, `RunWon`, `RunLost`. Renderer decides what they look like.
-- Own primitives only: `readonly record struct Coord(int X, int Y)`. Never Vector2/UnityEngine/System.Drawing in Core.
-- **If a Core file needs `using` anything outside the BCL, the code is in the wrong project.**
-- The Web project may not contain game rules. If the renderer needs to know whether a move is legal, it asks Core (`LegalNext` / a query method). Duplicated rule logic in the shell is a bug.
+- The entire game is `Apply(GameState, Command) → StepResult { NewState, Events, LegalNext }`.
+- `GameState` is immutable. No mutation; `Apply` returns a new state.
+- **Determinism is a test, not a hope.** All randomness through an injected `IRng` seeded from
+  `GameState.Seed`. No `DateTime`, no static random, no float math in rules. Same seed + same command
+  list = identical state, always. Seed + command log **is** the save format.
+- Core emits **events, never visuals**. Every event carries a payload complete enough that a renderer
+  never queries state to draw it — which is also why the combat log needs no extra instrumentation.
+- Core owns its primitives. `readonly record struct Coord(int X, int Y)`. Never Vector2/UnityEngine.
+- **If a Core file needs a `using` outside the BCL, the code is in the wrong project.**
+- The Web project contains no game rules. If the renderer needs to know whether something is legal,
+  it asks Core. Duplicated rule logic in the shell is a bug.
 
-**Why:** the Core DLL is dropped into Unity later unchanged. netstandard2.1 is Unity's ceiling — do not raise the TFM.
+netstandard2.1 is Unity's ceiling. Do not raise the TFM.
 
----
+## 2. The board
 
-## 2. Complete Game Rules (MVP)
+7×7 by default; other sizes are legal and only produce a lint. Everything is **4-way orthogonal** —
+movement, adjacency, range and displacement lines. Distance is Manhattan.
 
-### Board
-- 7×7 grid. Tile types: **Open, Wall, Pit, Spikes, HighGround**.
-- Wall: blocks movement; pushed into = collision.
-- Pit: displaced in = Clinging (below).
-- Spikes: displaced onto = 3 damage, unit stops there and stands on it. Walking on voluntarily = 1 damage. Occupiable.
-- HighGround: ranged attacks FROM it get +1 damage. Cannot be pushed up onto it (edge acts as wall → collision). Pushed down off it: 1 damage, displacement continues if distance remains.
-- Board edge acts as wall (collision), not a pit.
-- Layout: pits/walls on outer two rings; 2–3 spikes on the middle ring; center 3×3 always clear at start. Enemies spawn on two opposite edges. Players deploy in opposite corners, alternating unit placement.
+| Terrain | Walking onto it | Being shoved onto it |
+|---|---|---|
+| Open | free | — |
+| Wall | impossible | collision |
+| Pit | impossible | Clinging |
+| Spikes | 1 movement, **1 damage**, no Stagger | **3 damage**, stops there, Staggers |
+| HighGround | **2** movement (Archer: 1) | **impossible from below** — the ledge collides |
+| HighGround → down | free | **1 damage**, and the shove *continues* |
 
-### Units & stats
-- Player units HP 4–7, enemies HP 2–6 (rosters below). Move 3 for all player units.
-- Attacks deal 1–2. Damage ladder: collision 2 → spikes 3 → pit death. Collision/spike/fall damage ignores any mitigation.
+Ranged attacks fired *from* HighGround deal +1, for both sides. The board edge behaves as a wall.
+There is no line of sight — a wall stops feet, not arrows.
 
-### Round structure
-- Round start: enemy **intents declared** — each enemy's full planned action (move path, target, push direction, destination) as `IntentDeclared` events. Intents are locked; an enemy re-plans (same priority list, immediately, visibly) only if its target becomes invalid (dead/removed).
-- Activations alternate: PlayerA unit → enemy → PlayerB unit → enemy → ... Players choose which of their un-activated units acts. When one side runs out, the other's remaining units activate consecutively.
-- Activation = Move + one Action, either order. Or **Focus**: skip both (reserved hook; MVP: Focus does nothing but pass — implement as Pass).
-- Round end: collapse clock check, Clinging resolution, Stagger clears.
+## 3. Displacement — the core system
 
-### Displacement
-- Verbs: **Push N** (directly away from source along the line), **Pull N** (directly toward source). Displacement moves one tile at a time; resolve each step against the entered tile.
-- **Collision:** next tile is Wall, occupied, board edge, or HighGround-from-below → displacement stops; displaced unit AND the obstacle unit (if any) each take 2.
-- **Spikes:** unit enters spike tile → 3 damage, displacement stops there.
-- **Pit:** unit enters pit tile → Clinging.
-- **Stagger:** any unit that takes collision or spike damage is Staggered until end of round. The next displacement against a Staggered unit gains +1 distance, then Stagger is consumed.
-- **Footing:** each unit has 1 per fight. When displaced, its owner may spend it to reduce that displacement by 1 tile (may reduce to 0). Enemies spend Footing only if the displacement would end in a pit (deterministic rule). Boss exception below.
-- **Clinging:** unit in a pit clings for exactly one round; cannot act. An adjacent ally may spend its entire activation to rescue (unit placed on rescuer-adjacent open tile). Any damage to a Clinging unit, or its activation slot arriving un-rescued → **Voided**: permanently dead for the run. Adjacent enemy of a Clinging unit may finish it as a free action (and enemies with attacks will, per AI). Symmetric: enemies cling too; an adjacent player unit may kick a clinging enemy in as a free action.
+Push and Pull resolve **one tile at a time**, checked against each tile entered. Distance first:
 
-### Collapse clock
-- Round 4: 3 random (seeded RNG) tiles from the center 3×3 (excluding protected tiles) become **Cracked** (event, visible).
-- Round 6 and every 2 rounds after: Cracked → Pit; then 3 new tiles adjacent to any Pit/Cracked become Cracked. A designated 2×3 protected zone (per-fight data) never cracks. Units standing on a tile when it becomes Pit → Clinging.
+```
+requested distance
+  + 1   if the target is Staggered   (consumed)
+  - N   the target's push resistance, on a Push
+  → 1   capped, if an ally with a hold aura stands adjacent
+  - 1   if the target spends a Footing token
+  = effective distance   (never below 0)
+```
 
-### Momentum & commander cards
-- One shared pool, cap 6, starts 0 each fight. +1 when a player displaces an enemy; +2 when that displacement causes collision damage, spike damage, or a pit death (not cumulative with the +1 — a collision shove is +2 total).
-- Each player has the same fixed 4 cards, refreshed each fight, each usable once per fight. Playable during either player's own activation, before or after the unit acts:
-  - **Shove** (1): Push any enemy 1.
-  - **Switch** (2): swap two adjacent units (any allegiance). Ignores collision.
-  - **Line Break** (3): one friendly unit's next Push this round affects every unit in a 3-tile line.
-  - **Full Weight** (4): all collisions deal 3 until end of round.
+Then it travels, stopping at the first of:
 
-### Player classes (each player controls 2)
-| Class | HP | Basic | Ability |
-|---|---|---|---|
-| Vanguard | 7 | melee 1 dmg + Push 1 | Bull Rush: move up to 3 in a line, first enemy contacted is Pushed 2, Vanguard stops adjacent |
-| Archer | 4 | range 3, 2 dmg | Stagger Shot: range 3, 1 dmg + Push 1 away from Archer. Moving onto HighGround costs her no extra movement (others: +1) |
-| Threadcaster | 4 | range 3: 1 dmg OR Pull 1 | Reel: Pull one enemy in range 3 all the way to adjacency (step-resolved like any displacement) |
-| Wardbearer | 6 | melee 1 dmg | Hold (passive): allies adjacent to Wardbearer cannot be displaced more than 1 tile |
+| Enters | Result |
+|---|---|
+| Wall, board edge, or a HighGround ledge from below | **Collision** — 2 damage, Staggered |
+| Another unit **or a structure** | **Collision** — 2 damage **to both**, both Staggered |
+| Spikes | 3 damage, stops, Staggered |
+| Pit | **Clinging** |
+| Open, leaving HighGround | 1 fall damage, keeps travelling |
 
-### Enemies
-| Enemy | HP | Move | Priority list (deterministic; ties broken by lowest unit id) |
-|---|---|---|---|
-| Husk | 2 | 3 | 1. Adjacent player unit → attack (1 dmg). 2. Else move toward nearest player unit |
-| Lobber | 3 | 2 | 1. Player unit in range 3 and no player unit adjacent → ranged attack (1 dmg). 2. Player adjacent → move away (maximize distance). 3. Else advance to range |
-| Anchor | 6 | 1 | Immune to Push 1 (Push 2+ and Pull work; Stagger bonus can turn Push 1 into effective Push 2). 1. Adjacent → attack 2. 2. Else advance |
-| Grappler | 5 | 3 | 1. Player unit within range 3 → Pull 2 toward self, preferring (a) units on HighGround, (b) Archer. 2. Else advance toward the Archer, else nearest |
-| Stalker | 4 | 4 | 1. Player unit adjacent to Pit/Spikes/edge and reachable → move to flank, Push 1 toward the hazard. 2. Else move toward nearest player unit that is within 2 of a hazard; else hold position |
+Collision, spike and fall damage ignore mitigation.
 
-### The run (5 fights)
-1. **Kill All** (Husks + Lobber)
-2. **Protect**: objective structure 6 HP in the protected zone; enemies (Husks, Stalker) prioritize adjacent-attack on it (1 dmg) over units. Lose if it dies.
-3. **Kill All** (adds Anchor, Grappler)
-4. **Destroy**: objective 8 HP, immune to attacks — only collision damage from a unit slammed into it hurts it (2, or 3 under Full Weight). Enemies defend (Anchor parked adjacent, Grapplers pull you away).
-5. **Boss: Quarry King.** HP 14, Move 1, melee slam 3 dmg + Push 1, telegraphed one full round ahead as a 2×2 area. 3 Footing tokens: undisplaceable while any remain; each collision he suffers, or round he ends adjacent to a Pit, removes one (tokens do not regenerate). At ≤7 HP: Move 3, gains Bull Rush (as Vanguard) in his priority list. Pit death legal and skips nothing extra — it's the smart win.
+**Collision into another unit is the strongest interaction in the game** — 2 to both, and a Husk has
+2 HP. Design accordingly: an enemy formation is a resource for the player, not just an obstacle.
 
-Between fights: every surviving unit heals 2 HP (cap at max); each player picks 1 of 2 seeded-random upgrade offers: +1 max HP, +1 Move, +1 ability range (where sensible), or second Footing. Voided units stay dead. Path choice between fights is pick-1-of-2 (affects nothing in MVP but record the choice — hook for later).
+### Statuses
 
-Run ends: win after fight 5, lose when all player units are dead/voided or a Protect objective dies.
+- **Staggered** — from collision or spike damage. The *next* displacement travels +1, then it clears.
+  Also clears at end of round. This is the combo system: a "weak" shove sets up a decisive one.
+- **Footing** — shortens one displacement by 1. **Nobody has any by default**; a scenario grants them
+  with the `footing:` key. Enemies spend a token only to stay out of a pit, deterministically.
+  *Players have no prompt yet — an open question, not a rule.*
+- **Clinging** — in a pit, cannot act, still holds an activation slot. An adjacent ally can spend a
+  whole activation hauling it out; an adjacent enemy can kick it in as a free action; any damage
+  finishes it. Otherwise Voided at the end of the following round.
+- **Voided** — permanently gone for the run. Not the same as downed.
 
----
+## 4. Units
 
-## 3. Milestones (build in order; each ends playable + tested)
+Four player classes. Rosters are 1–4 a side and authored per fight.
 
-1. **M1 Rules skeleton:** GameState, Coord, board gen from fixed layout data, unit placement, alternating activation loop, move + basic attacks. Web shell renders grid + units, click-to-move/attack, hotseat.
-2. **M2 Displacement:** Push/Pull step resolution, collision, spikes, pits, Clinging/rescue/void, Stagger, Footing, HighGround rules. *This is the fun test — stop and flag for human playtest.*
-3. **M3 Enemies:** priority-list AI, intent declaration + rendering, re-plan on invalidation.
-4. **M4 Collapse:** crack/collapse clock, protected zone, seeded randomness proven by replay test.
-5. **M5 Commander layer:** Momentum accounting, the 4 cards, card-play windows.
-6. **M6 Run:** 5 fights, objectives (Protect/Destroy), boss, between-fight healing/upgrades, win/lose screens.
+| Class | HP | Move | Basic | Ability |
+|---|---|---|---|---|
+| Vanguard | 7 | 3 | melee 1 + push 1 | **Bull Rush** — charge up to 3 in a line, first enemy pushed 2. Costs both halves. |
+| Archer | 4 | 3 | range 3, 2 | **Stagger Shot** — 1 damage + push 1. Climbs HighGround free. |
+| Threadcaster | 4 | 3 | range 3, 1 **or** pull 1 | **Reel** — pull an enemy all the way to adjacent. |
+| Wardbearer | 6 | 3 | melee 1 | **Hold** (passive) — adjacent allies cannot be displaced more than 1. Not itself. |
 
-Do not start M(n+1) until M(n)'s acceptance tests pass and the shell exposes the feature.
+Fifteen enemies. The first five are the original roster; the rest exist to fill gaps that authoring
+battles exposed. Full stat blocks and priority lists live in [GAMEPLAY.md](GAMEPLAY.md) and in the
+`/bestiary` screen, which is generated from the same data the rules use.
 
-## 4. Acceptance tests (minimum; write more)
+**Every enemy decision is a pure function of board state.** No dice, no hidden state. Ties break on
+the archetype's own criterion, then lowest unit id, then row-major order. Enemies **declare their
+whole plan at round start** — the players see the entire enemy round before anyone acts.
 
-- Push 2 into wall at distance 1 → target moves 1, Collision event, both units −2, target Staggered.
-- Staggered target + Push 1 → moves 2. Stagger consumed. Stagger gone at round end.
-- Push onto spikes → SpikeHit, −3, stops, Staggered. Voluntary walk onto spikes → −1, no Stagger.
-- Push into pit → Clinging; un-rescued after one round → Voided. Adjacent-ally full activation → Rescued. Damage while Clinging → Voided.
-- Anchor ignores Push 1; takes Push 2. Push 1 vs Staggered Anchor → moves 1.
-- Wardbearer adjacency caps ally displacement at 1; Footing stacks on top (to 0).
-- Enemy Footing: spent only when displacement ends in pit.
-- HighGround: push-up = collision; push-down = 1 dmg + continue; Archer +1 climb-free; ranged +1 from height.
-- Collapse: same seed twice → identical crack sequence (full-run replay determinism test: seed + command log → identical final state hash).
-- Momentum: plain displace +1; collision displace +2 (not +3); cap 6.
-- Full Weight: collisions 3 this round only; Destroy objective takes 3 from a slam under it.
-- Quarry King: 3 collisions strip 3 tokens → next Push moves him; ends-adjacent-to-pit strips a token.
+Enemies move by **real path distance**, so a wall is a detour and never a dead end.
 
-## 5. Out of scope (do not build, do not stub beyond a comment)
+## 5. Fights
 
-Networking, animations beyond simple transitions, sound, meta-progression, additional classes/enemies/cards, elevation beyond one tier, Slide/Swap unit verbs (Switch card is the only swap), difficulty options, save-mid-fight (seed+command-log replay IS the save format), Unity project.
+Fights are **data, not code** — a `.fight` text file, embedded as a resource. Adding a battle is
+adding a file. Terrain and placement share one grid, so a board is what it looks like. The authoring
+reference is [FIGHT_FORMAT.md](FIGHT_FORMAT.md); the design standard is
+[docs/scenarios/DESIGN_PRINCIPLES.md](docs/scenarios/DESIGN_PRINCIPLES.md).
 
-## 6. When rules are ambiguous
+Parsing splits its complaints in two, and the split matters: **errors** mean the file cannot become a
+fight; **lints** mean it breaks a layout guideline deliberately and plays exactly as written.
 
-Resolve with these priors, in order: (1) the board should out-damage attacks; (2) both sides obey identical physics; (3) fully deterministic and visible beats clever; (4) the simpler rule. Record every such ruling in `DECISIONS.md` with one line of reasoning. If a ruling would change game feel materially, stop and ask.
+### Objectives
+
+| Objective | Wins when |
+|---|---|
+| `kill-all` | nothing hostile is left (the default) |
+| `survive N` | round N ends with anyone standing |
+| `hold <tiles> for N` | no enemy on those tiles at the end of round N |
+| `reach <tiles>` | a player unit stands on one |
+| `protect <tile>` | the structure survives the fight |
+| `destroy <tile>` | the structure falls — and **only collision can hurt it** |
+
+Clearing the board wins under every objective. Every player unit down or voided always loses.
+`turn-limit:` caps a fight; reaching it loses, except under `survive`.
+
+**Reinforcements** arrive on an authored schedule, published at setup. A hidden timetable is dread; a
+published one is planning, and this game chose published.
+
+## 6. Still to build
+
+- **Momentum and the four commander cards.** State exists; nothing writes to it.
+- **The collapse clock** — cracked tiles becoming pits on a timer. `TileType.Cracked` exists unused.
+- **Between-fight healing and upgrades**, and the run structure that makes fights a campaign.
+- **A boss.** `UnitKind` cannot currently express one.
+- **Player Footing prompts**, closing D-026.
+- **Structure targeting in the planner** — enemies claw at a Protect structure when adjacent but do
+  not path toward it. See D-036.
+- The encounter designs in [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md), costed and ordered there.
+
+## 7. When rules are ambiguous
+
+Resolve with these priors, in order:
+
+1. **The board should out-damage attacks.**
+2. Both sides obey identical physics.
+3. Fully deterministic and visible beats clever.
+4. The simpler rule.
+
+Record every such ruling in `DECISIONS.md` with its reasoning. If a ruling would materially change
+game feel, stop and ask.
+
+## 8. Out of scope
+
+Networking, sound, animation beyond simple transitions, difficulty options, elevation beyond one
+tier, save-mid-fight (seed + command log **is** the save), and a Unity project — Unity is the
+eventual consumer of the Core DLL, not something built here.
+
+**No longer out of scope**, and worth stating plainly since v1 forbade them: additional classes,
+enemies, objectives and fights. The game grew past its MVP on purpose. New content still needs a
+`DECISIONS.md` entry and a reason to exist beyond filling a quota.

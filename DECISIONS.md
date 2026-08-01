@@ -1,6 +1,10 @@
 # DECISIONS
 
-Every ruling made where AGENT_BRIEF.md was silent or self-contradictory, with one line of reasoning.
+Every ruling made where the brief was silent or self-contradictory, with one line of reasoning.
+
+> **D-001 to D-029 argue with the original brief**, archived at `docs/archive/AGENT_BRIEF_v1.md`.
+> `AGENT_BRIEF.md` was rewritten once the game had grown past that MVP. The reasoning in those
+> entries still stands — read them against the archive, not against the current brief.
 Priors used, in order (Brief §6): (1) the board should out-damage attacks, (2) both sides obey
 identical physics, (3) fully deterministic and visible beats clever, (4) the simpler rule.
 

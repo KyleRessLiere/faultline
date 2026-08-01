@@ -7,7 +7,8 @@ The other docs answer different questions:
 
 | Doc | Answers |
 |---|---|
-| `AGENT_BRIEF.md` | What the game is *meant* to be. The spec. Wins over everything, never edited to match code. |
+| `AGENT_BRIEF.md` | What the game is *meant* to be, and what it is still growing into. The spec; wins over everything. |
+| `docs/archive/AGENT_BRIEF_v1.md` | The original MVP brief. D-001 to D-029 argue with *this*, not the current one. |
 | **`GAMEPLAY.md`** | **What the game *is*, today.** Updated in the same change as the rules it describes. |
 | `DECISIONS.md` | Why the two differ, wherever they do. |
 | `FIGHT_FORMAT.md` | How to author a battle. The `.fight` file reference — characters, keys, errors, lints. |

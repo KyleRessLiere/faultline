@@ -23,8 +23,10 @@ Read AGENT_BRIEF.md first. That file defines WHAT to build; this file defines HO
 Four files, four jobs. Keeping them distinct is what lets design and code disagree *visibly* instead
 of silently.
 
-- **AGENT_BRIEF.md** — what the game is meant to be. The spec. It wins over everything, and is
-  **never edited to match the code**. If the code needs it changed, that is a conversation, not a commit.
+- **AGENT_BRIEF.md** — what the game is meant to be, and what it is still growing into. The spec; it
+  wins over everything. It is **never edited to make a shipped behaviour look intended** — that is
+  what DECISIONS.md is for. It *is* revised when the project's direction genuinely changes, and when
+  it is, the previous version is archived under `docs/archive/` because existing decisions cite it.
 - **GAMEPLAY.md** — what the game *is*, today: the as-built rules with real numbers. This is what a
   design agent reads instead of the C#. It must never describe behaviour the code does not have.
 - **DECISIONS.md** — why the two differ, wherever they do.
@@ -91,7 +93,7 @@ One branch per feature or milestone. Never commit to `main`.
 - **Cut new branches from the tip of the current work branch**, not from `main`. Work stacks: while
   `main` is still behind, the latest branch is the real trunk, and branching off `main` would drop
   everything already built.
-- **Name it** `m<N>-<slug>` for a milestone from AGENT_BRIEF.md (`m3-enemy-ai`), or
+- **Name it** `m<N>-<slug>` for milestone work (`m3-enemy-ai`), or
   `feat|fix|chore|docs|spike/<slug>` for anything else (`feat/battle-files`). Lower-case, hyphenated.
 - **Push on the first commit** (`git push -u origin <branch>`), then keep pushing. Work that exists
   only on one machine is invisible to review and one disk failure from gone.
@@ -111,7 +113,9 @@ a branch outside the convention, and `check-unpushed.sh` warns when commits are 
 ## Testing standards
 
 - Framework: xUnit. Tests live in `Faultline.Core.Tests`, reference Core only.
-- Every acceptance test in AGENT_BRIEF.md §4 exists verbatim as a named test before its milestone is called done.
+- Every rule the brief states has a named test asserting it. The original brief's §4 acceptance
+  list is in `docs/archive/AGENT_BRIEF_v1.md` and every entry on it is implemented and tested —
+  keep it that way for anything new the brief asserts.
 - Test naming: `Push_IntoWall_DealsCollisionAndStaggers`. Arrange with small board fixtures via a `BoardBuilder` test helper — build it early, keep tests readable.
 - Every GameEvent type has at least one test asserting it fires at the right moment with the right payload.
 - Edge cases are first-class: board edges, 0-distance displacement after Footing, simultaneous deaths, pushing a Clinging unit's rescuer, collapse under a Clinging unit. When you find an edge case, write the test even if it passes.
@@ -144,7 +148,7 @@ a branch outside the convention, and `check-unpushed.sh` warns when commits are 
 
 ## When stuck or uncertain
 
-- Ambiguous rule → AGENT_BRIEF §6 priors → record in DECISIONS.md → continue. Material game-feel change → stop and ask.
+- Ambiguous rule → the brief's design priors → record in DECISIONS.md → continue. Material game-feel change → stop and ask.
 - Never invent new mechanics, cards, enemies, or content. Scope is the brief. Ideas go in IDEAS.md, unimplemented.
 - If a milestone reveals the brief is contradictory, the brief wins over prior code; flag the contradiction explicitly in the session summary.
 - End every working session with: what was completed, what's in progress, exact next step. Assume the next session starts with zero memory beyond the repo.
