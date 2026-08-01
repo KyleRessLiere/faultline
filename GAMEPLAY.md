@@ -256,8 +256,13 @@ Win: every enemy down. Lose: every player unit down or voided.
   shipped fight grants any yet — so the unused-token problem in D-026 is currently unreachable in
   play rather than fixed. It returns the moment a scenario uses `footing:`.
 - **Momentum is displayed but never changes.** Accounting arrives in M5 with the commander cards.
-- **Only fight 1 is reachable.** Fights 2–5 exist as authored boards, but the shell always starts
-  fight 1 and there are no objectives, no boss, and no between-fight upgrades.
+- **There is no campaign.** Every battle is reachable from the picker, but they are a menu rather
+  than a run: no fixed order, no state carried between fights, no between-fight upgrades, and no
+  boss. Objectives, turn limits and reinforcements *do* exist — see "Objectives, clocks and
+  reinforcements" above.
+- **`protect` pressure is a stand-in.** Enemies claw at a Protect structure when they end an
+  activation adjacent to it, but nothing paths toward one, so a Protect fight only pressures the
+  objective where the fighting already is (D-036).
 
 ## Combat log
 

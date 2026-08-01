@@ -88,7 +88,10 @@ authorable; the rest unlock as items 3–8 land.
 
 | Item | State | Notes |
 |---|---|---|
-| Enemy AI with declared intents (M3) | **in progress** | Brief §2 priority lists. The keystone: without it enemies pass and no scenario can pose a threat. |
+| Enemy AI with declared intents (M3) | **done** | Brief §2 priority lists, plus ten variants. Enemies path by real distance (D-029). |
+| Objectives and win/lose conditions | **done** | Six kinds, structures with HP, `turn-limit:` (D-034–D-038). This was ranked the highest-leverage item and it shipped. |
+| Reinforcement waves | **done** | Published timetable, arrivals before intents, blocked arrivals slide or wait. |
+| Teams larger than two | **done** | Needed no engine change — rosters of 1–4 already worked; only the deploy-zone size constrains it. |
 | Teams larger than two | not started | The `.fight` format already parses N-unit rosters; the deployment loop and zone-size checks need to stop assuming 2. |
 | New player classes | not started | Brief §5 forbids these. Each needs a stat block, an ability, and its own acceptance tests. |
 | New class abilities | not started | Includes the shapes idea (Melee/Direct/Arcing/Line2) and Spear Thrust from the design doc — both reverse D-010 and need their own rulings. |
@@ -96,17 +99,17 @@ authorable; the rest unlock as items 3–8 land.
 
 ## Phase 2 — Builder
 
-| Item | State |
-|---|---|
-| Edit an existing battle, not just create one | not started |
-| Builder exposes every new class, ability and environment effect | not started |
-| Roster picker allows more than two per side | not started |
+| Item | State | Notes |
+|---|---|---|
+| Edit an existing battle, not just create one | **done** | Edit and Duplicate on every battle, plus paste-in `.fight` import. |
+| Builder exposes every new class, ability and environment effect | partial | The enemy palette reads the live roster, so new enemies appear automatically. `footing:` and objectives are not yet authorable from the UI. |
+| Roster picker allows more than two per side | **done** | 1–4 a side in the creator. |
 
 ## Phase 3 — Tooling
 
 | Item | State | Notes |
 |---|---|---|
-| Combat log written to file | not started | Core already emits a complete event stream. The shell cannot write to disk — same constraint as scenario saving, so this is File System Access API, download, or both. |
+| Combat log written to file | **done** | Core already emits a complete event stream. The shell cannot write to disk — same constraint as scenario saving, so this is File System Access API, download, or both. |
 | Admin panel: step, rewind and replay a battle | not started | Cheap to build correctly, because seed + command log already replays to an identical state hash. The panel is a view over machinery that exists. |
 
 ## Phase 4 — Content
@@ -201,8 +204,9 @@ These were raised and are still unresolved. They block content that depends on t
 
 1. **Fight 5 is the Quarry King** in the brief. `UnitKind` has no boss, so the format cannot express
    that fight at all. The shipped `the-maw.fight` is five ordinary enemies.
-2. **Fights 2 and 4 are objective fights** (Protect, Destroy) in the brief. Objectives do not exist,
-   so both shipped as Kill All.
+2. ~~**Fights 2 and 4 are objective fights** (Protect, Destroy) in the brief.~~ **Resolved** —
+   objectives shipped (D-034–D-038), and `the-shrine` / `break-the-gate` are the Protect and Destroy
+   fights the brief always wanted.
 3. **The brief's run is five fights.** The design doc says six; this file says fifty.
 4. **Ability shapes and Spear Thrust** reverse `DECISIONS.md` D-010 (no line of sight) and add an
    ability the brief does not give the Wardbearer.
