@@ -1,0 +1,25 @@
+# Fight 1 — the control group.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: first-contact
+number: 1
+name: First Contact
+description: Husks walk straight at you while a lobber lands rocks from the back. Learn that a shove beats a swing.
+
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  #.hOlBB
+  .H.^.BB
+  O.....#
+  .^...^.
+  #.....O
+  AA...H.
+  AAhOh.#

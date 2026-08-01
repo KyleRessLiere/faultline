@@ -1,0 +1,26 @@
+# Fight 3 — the trench.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: broken-bridge
+number: 3
+name: Broken Bridge
+description: A trench of pits splits the map; a Grappler fishes for people across it, and a pull whose line crosses a pit drops you straight in.
+
+spawn h = Husk
+spawn g = Grappler
+spawn s = Stalker
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ..g...B
+  .....BB
+  h.#....
+  OO.O.OO
+  ....#..
+  A....s.
+  AA..h..

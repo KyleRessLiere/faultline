@@ -7,6 +7,8 @@ board is the primary weapon.
 - [GAMEPLAY.md](GAMEPLAY.md) — **what the game is today**, with real numbers. Start here to understand
   how it actually plays.
 - [DECISIONS.md](DECISIONS.md) — why those two differ, wherever they do.
+- [FIGHT_FORMAT.md](FIGHT_FORMAT.md) — the authoring reference for battles. Everything a `.fight`
+  file can say, and every error and lint the parser reports.
 - [CLAUDE.md](CLAUDE.md) — engineering practices.
 
 ## Status
@@ -73,3 +75,22 @@ dotnet build                               # build everything
 6. Kill every enemy to win the fight.
 
 Enemies do not act yet — their priority-list AI arrives in M3.
+
+## Adding a battle
+
+Battles are text, not code. Drop a `.fight` file into `src/Faultline.Core/Fights/Data/` and it is
+embedded and loaded automatically — nothing to register.
+
+```
+board:
+  #.hOlBB
+  .H.^.BB
+  O.....#
+```
+
+Terrain and placement share one grid, so the board is what it looks like: `.` open, `#` wall, `O`
+pit, `^` spikes, `H` high ground, `A`/`B` the deployment zones, any other letter an enemy declared by
+a `spawn` line.
+
+Copy `first-contact.fight` and edit it. **[FIGHT_FORMAT.md](FIGHT_FORMAT.md)** has every key, the
+full error table, and the lint table.

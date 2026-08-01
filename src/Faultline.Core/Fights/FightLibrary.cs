@@ -1,68 +1,102 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 
 namespace Faultline.Core
 {
     /// <summary>
-    /// The authored fights of the run. Fights 2-5 land with M6; M1 ships fight 1 only.
+    /// The authored fights, read from the <c>.fight</c> files embedded in this assembly.
     /// </summary>
+    /// <remarks>
+    /// Adding a fight is adding a text file to <c>Fights/Data</c> — no code change, no registration.
+    /// The files are embedded resources rather than files on disk, so Core still performs no file IO
+    /// and the DLL stays self-contained when it is dropped into Unity.
+    /// </remarks>
     public static class FightLibrary
     {
+        private const string ResourcePrefix = "Faultline.Core.Fights.Data.";
+        private const string ResourceSuffix = ".fight";
+
         /// <summary>
-        /// Fight 1 — Kill All against Husks and a Lobber.
+        /// Every embedded fight file, parsed, in filename order — including ones that failed, so a
+        /// broken file is visible rather than silently absent.
         /// </summary>
-        /// <remarks>
-        /// Layout obeys Brief §2 "Board": walls and pits sit on the outer two rings, the centre 3x3
-        /// (x,y in 2..4) is clear at start, and the three spike tiles sit one ring in from the edge.
-        /// See DECISIONS.md D-005 for why the spikes are not on the ring the brief calls "middle".
-        /// Players take opposite corners; the four enemies spawn on the two opposite short edges.
-        /// </remarks>
-        /// <returns>The fight definition.</returns>
-        public static FightDefinition Fight1()
+        /// <returns>One parse result per file.</returns>
+        public static IReadOnlyList<FightParseResult> LoadAll()
         {
-            var board = BoardLayout.Parse(new[]
+            var results = new List<FightParseResult>();
+            var assembly = typeof(FightLibrary).GetTypeInfo().Assembly;
+
+            var names = new List<string>(assembly.GetManifestResourceNames());
+            names.Sort(StringComparer.Ordinal);
+
+            foreach (var name in names)
             {
-                //   x=0123456
-                /* y=0 */ "#..O...",
-                /* y=1 */ ".H.^...",
-                /* y=2 */ "O.....#",
-                /* y=3 */ ".^...^.",
-                /* y=4 */ "#.....O",
-                /* y=5 */ ".....H.",
-                /* y=6 */ "...O..#",
-            });
-
-            return new FightDefinition
-            {
-                Number = 1,
-                Name = "Kill All",
-                Board = board,
-                RosterA = new[] { UnitKind.Vanguard, UnitKind.Archer },
-                RosterB = new[] { UnitKind.Threadcaster, UnitKind.Wardbearer },
-
-                // Opposite corners: A bottom-left, B top-right.
-                DeploymentZoneA = new[]
+                if (name.StartsWith(ResourcePrefix, StringComparison.Ordinal)
+                    && name.EndsWith(ResourceSuffix, StringComparison.Ordinal))
                 {
-                    new Coord(0, 5), new Coord(1, 5), new Coord(0, 6), new Coord(1, 6),
-                },
-                DeploymentZoneB = new[]
-                {
-                    new Coord(5, 0), new Coord(6, 0), new Coord(5, 1), new Coord(6, 1),
-                },
+                    results.Add(FightParser.Parse(ReadResource(assembly, name)));
+                }
+            }
 
-                Enemies = new[]
-                {
-                    new EnemySpawn(UnitKind.Husk, new Coord(2, 0)),
-                    new EnemySpawn(UnitKind.Lobber, new Coord(4, 0)),
-                    new EnemySpawn(UnitKind.Husk, new Coord(2, 6)),
-                    new EnemySpawn(UnitKind.Husk, new Coord(4, 6)),
-                },
-
-                ProtectedZone = new Coord[0],
-            };
+            return results;
         }
 
-        /// <summary>Every fight currently authored, in run order.</summary>
-        /// <returns>The fights of the run.</returns>
-        public static IReadOnlyList<FightDefinition> All() => new[] { Fight1() };
+        /// <summary>Every fight that parsed cleanly, in run order.</summary>
+        /// <returns>The playable fights.</returns>
+        public static IReadOnlyList<FightDefinition> All()
+        {
+            var fights = new List<FightDefinition>();
+            foreach (var result in LoadAll())
+            {
+                if (result.Fight is not null)
+                {
+                    fights.Add(result.Fight);
+                }
+            }
+
+            fights.Sort((a, b) => a.Number != b.Number
+                ? a.Number.CompareTo(b.Number)
+                : string.CompareOrdinal(a.Id, b.Id));
+
+            return fights;
+        }
+
+        /// <summary>Looks up one fight by its id.</summary>
+        /// <param name="id">The fight's <c>id:</c> slug.</param>
+        /// <returns>The fight.</returns>
+        public static FightDefinition ById(string id)
+        {
+            foreach (var fight in All())
+            {
+                if (string.Equals(fight.Id, id, StringComparison.Ordinal))
+                {
+                    return fight;
+                }
+            }
+
+            throw new ArgumentException("No fight with id '" + id + "'.", nameof(id));
+        }
+
+        /// <summary>The fight the run opens on.</summary>
+        /// <returns>Fight 1.</returns>
+        public static FightDefinition Fight1() => ById("first-contact");
+
+        private static string ReadResource(Assembly assembly, string name)
+        {
+            using (var stream = assembly.GetManifestResourceStream(name))
+            {
+                if (stream is null)
+                {
+                    throw new InvalidOperationException("Embedded fight '" + name + "' could not be opened.");
+                }
+
+                using (var reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
     }
 }

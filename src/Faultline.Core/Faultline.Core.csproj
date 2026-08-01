@@ -9,4 +9,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <!-- Fights are authored as text and compiled into the DLL, so Core carries its own content and
+       still does no file IO. Reading them back is Assembly.GetManifestResourceStream, not disk. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Fights\Data\*.fight" />
+  </ItemGroup>
+
 </Project>

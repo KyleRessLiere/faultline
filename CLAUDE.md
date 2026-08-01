@@ -35,6 +35,27 @@ A Stop hook (`.claude/hooks/check-gameplay-doc.sh`) blocks the turn when anythin
 changing too. If a change genuinely alters no observable rule — a refactor, a comment — say so
 explicitly and re-run; don't edit the doc just to appease the check, and don't disable the hook.
 
+## Delegating to subagents
+
+Default to farming work out to subagents. They run in parallel, so the wall-clock cost of being
+thorough drops to roughly the cost of the slowest task.
+
+**Delegate** anything that is independent and self-contained: authoring a batch of `.fight` files,
+writing a test suite for a subsystem that already exists, sweeping the codebase for a pattern,
+drafting docs, researching an API. Give each agent a non-overlapping set of files to write.
+
+**Do it inline** when the work is tightly coupled to what you are already holding — a parser you are
+half-way through, a rule change that ripples across several files, anything where the next decision
+depends on the last one. A subagent does not share your context, so handing it a half-built thing
+costs more than it saves.
+
+**Rules for fan-out:**
+- Assign disjoint files. Two agents editing the same file will clobber each other.
+- Only one agent runs `dotnet build`/`dotnet test` at a time — concurrent builds race on `obj/`.
+  Everyone else reports what they wrote and the parent verifies.
+- Give each agent the acceptance criteria, not just the task. They cannot ask you follow-up questions.
+- The parent owns the commit. Verify the agents' output — build, test, read the diff — before it lands.
+
 ## Branching
 
 One branch per feature or milestone. Never commit to `main`.

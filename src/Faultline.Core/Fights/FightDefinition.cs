@@ -8,11 +8,17 @@ namespace Faultline.Core
     /// </summary>
     public sealed record FightDefinition
     {
-        /// <summary>One-based index into the five-fight run.</summary>
+        /// <summary>Stable slug, used to identify the fight in a command log and on disk.</summary>
+        public string Id { get; init; } = string.Empty;
+
+        /// <summary>One-based index into the run.</summary>
         public int Number { get; init; }
 
         /// <summary>Display name.</summary>
         public string Name { get; init; } = string.Empty;
+
+        /// <summary>One-line description, shown when picking a fight.</summary>
+        public string Description { get; init; } = string.Empty;
 
         /// <summary>Terrain.</summary>
         public Board Board { get; init; } = Board.Filled(1, 1);

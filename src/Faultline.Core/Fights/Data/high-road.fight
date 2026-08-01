@@ -1,0 +1,26 @@
+# Fight 4 — the causeway.
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   A  Player A deploy slot       B  Player B deploy slot
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: high-road
+number: 4
+name: High Road
+description: A high causeway down the spine of the board is worth contesting — the Archer climbs it for free, and a Grappler is waiting to pull her back off.
+
+spawn l = Lobber
+spawn g = Grappler
+spawn n = Anchor
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  .l....B
+  ...H.BB
+  .O.H.O.
+  ...H...
+  .O.H.O.
+  A..H.g.
+  AA...ln

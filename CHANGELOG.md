@@ -1,5 +1,21 @@
 # Changelog
 
+## Battles as data
+
+- `.fight` text format: terrain and placement share one grid, so a board is what it looks like and
+  authors never count coordinates. Documented in FIGHT_FORMAT.md.
+- `FightParser` — string in, `FightParseResult` out. No file IO, so Core stays droppable into Unity
+  and the parser is testable from a literal.
+- Issues split by code range: **errors** (`FightIssueCode` 0–99) mean the file cannot become a fight
+  and it is skipped; **lints** (100+) mean it breaks a layout guideline from Brief §2 but loads and
+  plays exactly as written. Codes are stable so tests never match on prose.
+- `FightLibrary` reads the `.fight` files embedded in Core, in filename order, keeping failures
+  visible; `All()` returns the playable ones sorted by `number:`. Adding a fight is adding a file —
+  no registration, no code change.
+- Fight 1 moved out of hard-coded C# into `Fights/Data/first-contact.fight`, unchanged in content.
+- Fights 2–5 authored as data: The Teeth, Broken Bridge, High Road, The Maw. Kill All only —
+  objectives, the boss and between-fight upgrades are still M6, and the shell still opens on fight 1.
+
 ## M2 — Displacement
 
 - `Displacement`: step-by-step Push and Pull resolved against each tile entered — collision with

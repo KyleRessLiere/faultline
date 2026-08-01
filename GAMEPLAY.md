@@ -10,13 +10,15 @@ The other docs answer different questions:
 | `AGENT_BRIEF.md` | What the game is *meant* to be. The spec. Wins over everything, never edited to match code. |
 | **`GAMEPLAY.md`** | **What the game *is*, today.** Updated in the same change as the rules it describes. |
 | `DECISIONS.md` | Why the two differ, wherever they do. |
+| `FIGHT_FORMAT.md` | How to author a battle. The `.fight` file reference — characters, keys, errors, lints. |
 | `CHANGELOG.md` | When things landed. |
 
 If this file and `AGENT_BRIEF.md` disagree, that is either a bug or a missing `DECISIONS.md` entry —
 flag it, don't quietly pick one.
 
 **Milestones built: M1 (rules skeleton), M2 (displacement).** Enemy AI, the collapse clock, Momentum
-and commander cards, and fights 2–5 are not built.
+and commander cards are not built. Five fight boards are authored, but the objectives, the boss and
+the between-fight upgrades that make them a run are M6.
 
 ---
 
@@ -108,7 +110,33 @@ Collision, spike and fall damage ignore mitigation.
 
 Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
 
+## Fights
+
+Fights are **authored as data, not code**. Each one is a `.fight` text file in
+`src/Faultline.Core/Fights/Data/`, compiled into `Faultline.Core` as an embedded resource. Adding a
+battle is adding a file — there is nothing to register and no C# to change.
+
+Terrain and placement share one grid, so a fight file is the board as it looks: `.` open, `#` wall,
+`O` pit, `^` spikes, `H` high ground, `A` and `B` the two deployment zones, and any other letter an
+enemy declared by a `spawn` line. The tile under a deploy slot or an enemy is always Open, so no unit
+can start a fight standing on a hazard.
+
+`FightLibrary` reads every embedded `.fight`, parses it, and returns the playable ones ordered by
+their `number:`. Parsing splits its complaints in two: **errors** mean the file cannot become a
+fight and it is skipped, **lints** mean it breaks a layout guideline from `AGENT_BRIEF.md` §2 but
+loads and plays exactly as written. A broken file is reported rather than silently absent.
+
+Five fights are authored: **1 First Contact**, **2 The Teeth**, **3 Broken Bridge**, **4 High Road**,
+**5 The Maw**. All five are Kill All — the Protect, Destroy and Boss objectives are M6 — and the
+shell still opens on fight 1 only, so 2–5 are boards the library serves, not a run you can play
+through.
+
+**Authoring reference: [FIGHT_FORMAT.md](FIGHT_FORMAT.md)** — every key, every character, and the
+full error and lint tables.
+
 ## Fight 1 — "Kill All"
+
+Authored in `Fights/Data/first-contact.fight`; it was hard-coded C# until this change.
 
 3 Husks + 1 Lobber. Board carries 4 pits, 4 walls, 3 spikes, 2 high ground; the centre 3×3 starts
 clear. Spikes sit one ring further out than the brief asks, because "middle ring" and "centre 3×3
@@ -122,4 +150,5 @@ Win: every enemy down. Lose: every player unit down or voided.
 - **Enemies do not act.** No AI until M3, so difficulty, tempo, and whether "the board out-damages
   attacks" are all currently unmeasurable.
 - **Momentum is displayed but never changes.** Accounting arrives in M5 with the commander cards.
-- **Only fight 1 exists.** No objectives, no boss, no between-fight upgrades.
+- **Only fight 1 is reachable.** Fights 2–5 exist as authored boards, but the shell always starts
+  fight 1 and there are no objectives, no boss, and no between-fight upgrades.
