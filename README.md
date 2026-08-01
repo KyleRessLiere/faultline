@@ -29,24 +29,28 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 
 ## How to run
 
-Play it in a browser:
-
 ```bash
-dotnet run --project src/Faultline.Web
+./run.sh
 ```
 
-Then open the URL it prints (http://localhost:5199 by default).
+Serves on http://localhost:5199. On Windows, run it from Git Bash.
 
-Run the tests:
+| Flag | Does |
+|---|---|
+| `-w` | hot reload — edits to `.razor`/`.cs` reload the page |
+| `-o` | open a browser once it is listening |
+| `-p 5300` | serve on another port |
+| `-t` | run the tests first, refuse to serve if they are red |
+| `-h` | help |
+
+Flags combine, so `./run.sh -w -o` is the usual loop when iterating on the shell.
+
+The equivalent by hand, if you would rather not use the script:
 
 ```bash
-dotnet test
-```
-
-Build everything:
-
-```bash
-dotnet build
+dotnet run --project src/Faultline.Web     # serve
+dotnet test                                # tests
+dotnet build                               # build everything
 ```
 
 ## How to play
