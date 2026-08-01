@@ -1,0 +1,290 @@
+.bestiary {
+    padding: 1.5rem;
+    max-width: 1600px;
+}
+
+.bestiary-head {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.bestiary-head .note {
+    max-width: 78ch;
+}
+
+.head-tools {
+    display: flex;
+    gap: .4rem;
+}
+
+code {
+    background: #262a33;
+    border-radius: 3px;
+    font-size: .9em;
+    padding: .05rem .3rem;
+}
+
+/* Jump strip — the "check a Stalker mid-playtest" path. */
+
+.jump {
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-bottom: 1.25rem;
+    padding: .5rem .7rem;
+}
+
+.jump-label {
+    color: var(--muted);
+    font-size: .7rem;
+    letter-spacing: .08em;
+    margin-right: .3rem;
+    text-transform: uppercase;
+}
+
+.jump-link {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: .76rem;
+    padding: .12rem .6rem;
+    text-decoration: none;
+}
+
+.jump-link.enemy:hover  { border-color: var(--e); color: var(--e); }
+.jump-link.player:hover { border-color: var(--a); color: var(--a); }
+
+.group {
+    margin-bottom: 1.75rem;
+}
+
+.group .note {
+    margin: 0 0 .8rem;
+    max-width: 90ch;
+}
+
+.beast-grid {
+    align-items: start;
+    display: grid;
+    gap: .9rem;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+}
+
+.beast-grid.players {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* Cards — same shape as the creator's class reference, one per unit. */
+
+.beast {
+    background: #22262e;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    border-top-width: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    padding: .85rem;
+    scroll-margin-top: 1rem;
+}
+
+.beast.enemy  { border-top-color: var(--e); }
+.beast.player { border-top-color: var(--a); }
+
+.beast header {
+    align-items: center;
+    display: flex;
+    gap: .6rem;
+}
+
+.beast-art {
+    display: inline-block;
+    flex: 0 0 auto;
+    height: 34px;
+    line-height: 0;
+    width: 34px;
+}
+
+.beast-title {
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+}
+
+.beast-name {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.beast-role {
+    color: var(--muted);
+    font-size: .74rem;
+    letter-spacing: .04em;
+    text-transform: lowercase;
+}
+
+.beast-summary {
+    font-size: .82rem;
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* Stat block */
+
+ul.stats {
+    display: grid;
+    font-size: .76rem;
+    gap: .2rem .8rem;
+    grid-template-columns: 1fr 1fr;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul.stats li.wide {
+    grid-column: 1 / -1;
+}
+
+ul.stats span {
+    color: var(--muted);
+    display: inline-block;
+    min-width: 5.4rem;
+}
+
+/* Priority list, quirks, counterplay */
+
+.block h3 {
+    color: var(--muted);
+    font-size: .68rem;
+    letter-spacing: .09em;
+    margin: 0 0 .35rem;
+    text-transform: uppercase;
+}
+
+ol.priority {
+    counter-reset: step;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+ol.priority li {
+    counter-increment: step;
+    margin-bottom: .45rem;
+    padding-left: 1.6rem;
+    position: relative;
+}
+
+ol.priority li::before {
+    background: #2b303a;
+    border-radius: 3px;
+    color: var(--e);
+    content: counter(step);
+    font-size: .68rem;
+    font-weight: 700;
+    left: 0;
+    line-height: 1.15rem;
+    position: absolute;
+    text-align: center;
+    top: .05rem;
+    width: 1.15rem;
+}
+
+ol.priority li:last-child {
+    margin-bottom: 0;
+}
+
+.step-label {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    margin-bottom: .1rem;
+}
+
+.step-detail {
+    color: var(--muted);
+    display: block;
+    font-size: .76rem;
+    line-height: 1.45;
+}
+
+ul.quirks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul.quirks li {
+    color: var(--muted);
+    font-size: .76rem;
+    line-height: 1.45;
+    margin-bottom: .3rem;
+    padding-left: .8rem;
+    position: relative;
+}
+
+ul.quirks li::before {
+    color: var(--line);
+    content: "—";
+    left: 0;
+    position: absolute;
+}
+
+ul.quirks li:last-child {
+    margin-bottom: 0;
+}
+
+.block.counter {
+    background: rgba(88, 208, 160, .06);
+    border-left: 2px solid var(--b);
+    border-radius: 0 4px 4px 0;
+    margin-top: auto;
+    padding: .5rem .6rem;
+}
+
+.block.counter h3 {
+    color: var(--b);
+}
+
+.block.counter ul.quirks li::before {
+    color: var(--b);
+}
+
+/* Player ability block */
+
+.ability-head {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: .84rem;
+    font-weight: 600;
+    gap: .35rem;
+    margin: 0 0 .2rem;
+}
+
+.ability-text {
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.ability-note {
+    color: #d9b45f;
+    font-size: .74rem;
+    line-height: 1.4;
+    margin: .3rem 0 0;
+}
+
+.tag.passive {
+    color: #d9b45f;
+}

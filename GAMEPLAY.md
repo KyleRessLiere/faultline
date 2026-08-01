@@ -133,8 +133,31 @@ Two rules apply to every archetype:
   (Grappler, Stalker) do not do this.
 
 Enemies never voluntarily walk onto spikes when any equally good tile avoids it, and never walk into
-a pit at all. Where two tiles are equally good, they take the cheaper one, so an enemy already
-standing where it wants to be does not shuffle.
+a pit at all.
+
+**"Toward" means real walking distance, not straight-line distance** (D-029). An enemy picks the
+reachable tile whose *path* to its destination is shortest, measured by a breadth-first field spread
+out from that destination across walkable tiles, ignoring how far the enemy can actually move this
+activation. A wall is therefore a detour and never a dead end: an enemy behind one walks the long way
+round instead of pressing against it. Where the field ties, straight-line distance decides, then
+fewest spike tiles crossed, then least movement spent, then row-major coordinate order — and standing
+still always wins a tie, so an enemy already where it wants to be does not shuffle.
+
+**Another unit in the way is a toll of 2, not a wall.** A route through an occupied tile measures 3
+instead of 1, so an enemy walks around a body when the detour is 2 tiles or shorter and queues up
+behind it when it is not. Nothing a unit does can make a destination unreachable — only terrain can.
+
+**A destination that is genuinely walled off** leaves every tile tied, straight-line distance takes
+over, and the enemy settles on the nearest tile on its own side of the wall and holds. It never
+bounces between two tiles.
+
+For the **Lobber** and the **Grappler** the destination is not a tile but the 2–3 band they want to
+fight from: the field is spread from every tile in that band at once, so "advance to range" walks
+around a wall the same way, and the band preference only chooses between tiles once the band is
+reachable.
+
+**Which** unit an enemy targets is unchanged: "nearest" in every priority list below is still
+straight-line distance, and attack range still ignores walls (D-010).
 
 | Enemy | Priority list, in order |
 |---|---|

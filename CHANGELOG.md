@@ -1,5 +1,18 @@
 # Changelog
 
+## Enemies path around walls
+
+- Enemies move by real walking distance instead of straight-line distance, so a wall is a detour
+  rather than a permanent freeze (D-029). Five of the fifty shipped fights had an enemy that never
+  moved once.
+- Another unit in the way is a toll of 2, not a wall — an ally in a doorway can never make a
+  destination unreachable, only terrain can.
+- Chosen deliberately over "prefer moving on ties", which would have swapped a freeze for an
+  oscillation. Standing still is seeded at zero cost, so an enemy moves only when strictly better and
+  a chase always terminates.
+- No existing test changed, which is the evidence that this altered how enemies move and not whom
+  they move toward.
+
 ## Playtest notes
 
 - A note box on the board screen that captures the battle, seed, round, phase, active side and

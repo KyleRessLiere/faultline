@@ -352,7 +352,7 @@ namespace Faultline.Core
 
             // "Advance to range" is a band, not a beeline: the Lobber wants to be inside range 3 and
             // outside melee, so it never walks itself into the front line (D-023).
-            var destination = BestTile(state, enemy, coord => Band(coord.DistanceTo(target.Position), 2, range));
+            var destination = ApproachTile(state, enemy, target.Position, 2, range);
             var step = destination == enemy.Position ? (Coord?)null : destination;
 
             if (FirstAdjacent(destination, all) is null)
@@ -386,7 +386,7 @@ namespace Faultline.Core
                 return Hold(enemy);
             }
 
-            var destination = BestTile(state, enemy, coord => Band(coord.DistanceTo(target.Position), 2, range));
+            var destination = ApproachTile(state, enemy, target.Position, 2, range);
             var moveTo = destination == enemy.Position ? (Coord?)null : destination;
 
             var arrived = PickGrab(state, destination, choices, range);
@@ -736,8 +736,46 @@ namespace Faultline.Core
             return high - distance;
         }
 
-        private static Coord ClosingTile(GameState state, Unit enemy, Coord target) =>
-            BestTile(state, enemy, coord => coord.DistanceTo(target));
+        // Real path distance, not Manhattan. Scoring the walk by "how many steps is that tile from the
+        // target" is what stops a wall being a local minimum an enemy can never climb out of (D-029).
+        // Manhattan survives only as the tie-break, which keeps the open-board line identical.
+        private static Coord ClosingTile(GameState state, Unit enemy, Coord target)
+        {
+            var field = PathField.To(state, enemy, target);
+            return BestTile(state, enemy, coord => new Score(field.At(coord), coord.DistanceTo(target)));
+        }
+
+        // The ranged archetypes want a band of distances, not a tile, so the field is grown from every
+        // tile in that band at once: the primary score is "how far to the nearest tile I would be happy
+        // standing on", and the band score only decides between tiles once one has been reached.
+        private static Coord ApproachTile(GameState state, Unit enemy, Coord target, int low, int high)
+        {
+            var field = PathField.ToAnyOf(state, enemy, BandTiles(state, target, low, high));
+            return BestTile(
+                state, enemy, coord => new Score(field.At(coord), Band(coord.DistanceTo(target), low, high)));
+        }
+
+        private static List<Coord> BandTiles(GameState state, Coord target, int low, int high)
+        {
+            var board = state.Board;
+            var tiles = new List<Coord>();
+
+            foreach (var coord in board.AllCoords())
+            {
+                if (!Movement.IsWalkable(board.At(coord)))
+                {
+                    continue;
+                }
+
+                int distance = coord.DistanceTo(target);
+                if (distance >= low && distance <= high)
+                {
+                    tiles.Add(coord);
+                }
+            }
+
+            return tiles;
+        }
 
         /// <summary>
         /// Picks the tile the unit should walk to. Ranked by the caller's score, then by spike tiles
@@ -745,16 +783,19 @@ namespace Faultline.Core
         /// always a candidate and wins every tie on cost, so an enemy that is already where it wants
         /// to be does not shuffle.
         /// </summary>
-        private static Coord BestTile(GameState state, Unit enemy, Func<Coord, int> score)
+        private static Coord BestTile(GameState state, Unit enemy, Func<Coord, int> score) =>
+            BestTile(state, enemy, coord => new Score(0, score(coord)));
+
+        private static Coord BestTile(GameState state, Unit enemy, Func<Coord, Score> score)
         {
             var bestTile = enemy.Position;
-            int bestScore = score(enemy.Position);
+            var bestScore = score(enemy.Position);
             int bestSpikes = 0;
             int bestCost = 0;
 
             foreach (var pair in Movement.Reachable(state, enemy))
             {
-                int candidate = score(pair.Key);
+                var candidate = score(pair.Key);
                 var option = pair.Value;
 
                 if (IsBetterTile(candidate, option.SpikeTiles, option.Cost, pair.Key,
@@ -771,18 +812,23 @@ namespace Faultline.Core
         }
 
         private static bool IsBetterTile(
-            int score,
+            Score score,
             int spikes,
             int cost,
             Coord tile,
-            int bestScore,
+            Score bestScore,
             int bestSpikes,
             int bestCost,
             Coord bestTile)
         {
-            if (score != bestScore)
+            if (score.Primary != bestScore.Primary)
             {
-                return score < bestScore;
+                return score.Primary < bestScore.Primary;
+            }
+
+            if (score.Secondary != bestScore.Secondary)
+            {
+                return score.Secondary < bestScore.Secondary;
             }
 
             if (spikes != bestSpikes)
@@ -796,6 +842,22 @@ namespace Faultline.Core
             }
 
             return tile.Y != bestTile.Y ? tile.Y < bestTile.Y : tile.X < bestTile.X;
+        }
+
+        // How good a tile is, lowest first: how far it is from where the enemy is trying to get to,
+        // then how good a place it is to stand once there. Both are plain integers — Core does no
+        // float maths (Brief §1).
+        private readonly struct Score
+        {
+            public Score(int primary, int secondary)
+            {
+                Primary = primary;
+                Secondary = secondary;
+            }
+
+            public int Primary { get; }
+
+            public int Secondary { get; }
         }
     }
 }

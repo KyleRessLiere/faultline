@@ -195,3 +195,30 @@ behaves exactly as it always did. This makes "this enemy is hard to move" someth
 next to its terrain, rather than a constant. Consequence: the between-fight "second Footing" upgrade
 becomes "+1 from a base of 0", no shipped fight grants any yet, and the creator cannot author the key
 until ROADMAP Phase 2.
+
+**D-029 — Enemies walk by real path distance. Manhattan is the tie-break, not the metric.**
+`Ai.BestTile` used to score candidate tiles by Manhattan distance and seed the comparison with the
+enemy's own tile at cost 0. Standing still wins ties on cost, so wherever a wall meant no reachable
+tile improved Manhattan distance the enemy stopped moving permanently — a textbook greedy local
+minimum. Five of the fifty shipped fights had an enemy that never moved once because of it, and the
+rule an author had to obey to avoid it — "a wall is only safe if a route past it exists that is
+monotone in distance from wherever the enemy starts" — is not something a designer can reasonably
+hold in their head.
+The fix is the metric, not the tie-break: a breadth-first flow field (`PathField`) spread from the
+destination across walkable tiles, ignoring the mover's movement budget, with the enemy moving to the
+reachable tile that minimises it. Deliberately **not** "prefer moving on ties" — that trades a
+permanent freeze for a permanent oscillation, which looks equally broken and risks a fight that never
+ends.
+Walls and pits are impassable in the field. A tile another unit stands on is passable for a toll of
++2, so bodies are routed around when the detour is short and queued behind when it is not, and no
+unit can ever make a destination unreachable — only terrain can. The mover's own tile is exempt from
+the toll, or an enemy would see its own square as worse than its neighbours and wander.
+Because standing still is seeded at cost 0 and any real move costs at least 1, an enemy moves only
+when the new tile is *strictly* better, so its distance to the destination strictly decreases every
+time it moves: it cannot oscillate, and a chase always terminates. A destination behind an unbroken
+wall leaves every tile tied at unreachable, Manhattan takes over as before, and the enemy settles.
+The Lobber's and Grappler's "advance to range" uses the same field grown from every tile in the 2–3
+band at once, so the band preference now only chooses *within* the band. The Lobber's retreat still
+maximises straight-line distance — a maximisation has no local-minimum failure mode. Target
+*selection* is untouched: "nearest" is still Manhattan, so this changed how an enemy moves and never
+whom it moves toward. Every one of the 580 tests written before this change still passes unmodified.

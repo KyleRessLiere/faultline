@@ -1,0 +1,272 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Faultline.Core;
+
+namespace Faultline.Core.Tests;
+
+/// <summary>
+/// M3. <see cref="EnemyBehaviour"/> is the bestiary's only source of rules text, so these tests
+/// exist to make a newly added enemy fail loudly rather than ship undocumented: every enemy kind
+/// must have a behaviour, every behaviour's numbers must come from <see cref="UnitTemplate"/>, and
+/// every kind the bestiary lists must be a kind <see cref="Ai"/> can actually plan for.
+/// </summary>
+public class EnemyBehaviourTests
+{
+    private static readonly UnitKind[] AllKinds =
+        (UnitKind[])Enum.GetValues(typeof(UnitKind));
+
+    private static IReadOnlyList<UnitKind> PlayerKinds =>
+        AbilityDescriptor.All().Select(a => a.Kind).ToList();
+
+    // ---- coverage: a new enemy cannot ship undocumented ---------------------------------------
+
+    [Fact]
+    public void EveryUnitKind_IsEitherAPlayerClassWithAnAbility_OrAnEnemyWithABehaviour()
+    {
+        var players = new HashSet<UnitKind>(PlayerKinds);
+        var enemies = new HashSet<UnitKind>(EnemyBehaviour.EnemyKinds);
+
+        foreach (var kind in AllKinds)
+        {
+            bool isPlayer = players.Contains(kind);
+            bool isEnemy = enemies.Contains(kind);
+
+            Assert.True(
+                isPlayer ^ isEnemy,
+                $"{kind} is neither a documented player class nor a documented enemy, or is both. "
+                + "Add an AbilityDescriptor or an EnemyBehaviour entry.");
+        }
+
+        Assert.Equal(AllKinds.Length, players.Count + enemies.Count);
+    }
+
+    [Fact]
+    public void EveryEnemyKind_HasABehaviour()
+    {
+        foreach (var kind in EnemyBehaviour.EnemyKinds)
+        {
+            var behaviour = EnemyBehaviour.ForKind(kind);
+            Assert.NotNull(behaviour);
+            Assert.Equal(kind, behaviour!.Kind);
+        }
+
+        Assert.Equal(EnemyBehaviour.EnemyKinds.Count, EnemyBehaviour.All().Count);
+    }
+
+    [Fact]
+    public void NoPlayerClass_HasAnEnemyBehaviour()
+    {
+        foreach (var kind in PlayerKinds)
+        {
+            Assert.Null(EnemyBehaviour.ForKind(kind));
+        }
+    }
+
+    [Fact]
+    public void All_ListsEveryEnemyInTheDeclaredOrder()
+    {
+        Assert.Equal(EnemyBehaviour.EnemyKinds, EnemyBehaviour.All().Select(b => b.Kind).ToList());
+    }
+
+    [Fact]
+    public void ForKind_OnAnUndocumentedKind_ThrowsFromTheStrictOverload()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => EnemyBehaviour.For(UnitKind.Archer));
+    }
+
+    // ---- shape: the descriptor is actually usable ---------------------------------------------
+
+    [Fact]
+    public void EveryBehaviour_HasRoleSummaryPrioritiesQuirksAndCounterplay()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            Assert.False(string.IsNullOrWhiteSpace(behaviour.Role), $"{behaviour.Kind} has no role.");
+            Assert.False(string.IsNullOrWhiteSpace(behaviour.Summary), $"{behaviour.Kind} has no summary.");
+
+            Assert.True(
+                behaviour.Priorities.Count >= 2,
+                $"{behaviour.Kind} has {behaviour.Priorities.Count} priority step(s); every archetype in "
+                + "Ai.cs has at least an act branch and a move branch.");
+
+            Assert.NotEmpty(behaviour.Quirks);
+            Assert.NotEmpty(behaviour.Counterplay);
+
+            foreach (var quirk in behaviour.Quirks)
+            {
+                Assert.False(string.IsNullOrWhiteSpace(quirk));
+            }
+
+            foreach (var line in behaviour.Counterplay)
+            {
+                Assert.False(string.IsNullOrWhiteSpace(line));
+            }
+        }
+    }
+
+    [Fact]
+    public void PriorityStepsAreNumberedFromOneWithoutGaps()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            for (int i = 0; i < behaviour.Priorities.Count; i++)
+            {
+                var step = behaviour.Priorities[i];
+                Assert.Equal(i + 1, step.Order);
+                Assert.False(string.IsNullOrWhiteSpace(step.Label), $"{behaviour.Kind} step {i + 1} has no label.");
+                Assert.False(string.IsNullOrWhiteSpace(step.Detail), $"{behaviour.Kind} step {i + 1} has no detail.");
+            }
+        }
+    }
+
+    // ---- the numbers cannot drift from UnitTemplate --------------------------------------------
+
+    [Fact]
+    public void BehaviourReadsItsStatsFromTheTemplate()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            var template = UnitTemplate.For(behaviour.Kind);
+
+            Assert.Same(template, behaviour.Template);
+            Assert.Equal(template.Name, behaviour.Name);
+            Assert.Equal(template.Attack != AttackKind.None, behaviour.HasBasicAttack);
+            Assert.Equal(EnemyBehaviour.Describe(template), behaviour.AttackLine);
+        }
+    }
+
+    /// <summary>
+    /// The prose interpolates its figures from <see cref="UnitTemplate"/> rather than retyping
+    /// them. This asserts the result: change a stat and the text has to move with it, or this fails.
+    /// The attack figures are covered by <see cref="EnemyBehaviour.AttackLine"/>, which is derived;
+    /// HP and Move are only ever stated in prose, so they are checked as whole phrases.
+    /// </summary>
+    [Fact]
+    public void BehaviourTextQuotesTheTemplatesOwnNumbers()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            var template = UnitTemplate.For(behaviour.Kind);
+            string text = Text(behaviour);
+
+            Assert.Contains($"Move {template.Move}", text);
+            Assert.Contains($"{template.MaxHp} HP", text);
+
+            if (template.Attack == AttackKind.Ranged)
+            {
+                Assert.Contains($"range {template.Range}", text);
+                Assert.Contains($"for {template.Damage}", text);
+            }
+
+            if (template.Attack == AttackKind.Melee)
+            {
+                Assert.Contains($"for {template.Damage}", text);
+            }
+
+            if (template.CanPullWithBasic)
+            {
+                Assert.Contains($"pulled {template.BasicPull} tiles", text);
+            }
+
+            if (template.CanPushWithBasic)
+            {
+                Assert.Contains($"pushes {template.BasicPush}", text);
+            }
+        }
+    }
+
+    [Fact]
+    public void ArchetypesWithNoAttack_SayThatTheyDealNoDamage()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            if (behaviour.HasBasicAttack)
+            {
+                continue;
+            }
+
+            Assert.Equal(0, behaviour.Template.Damage);
+            Assert.Contains("no attack", Text(behaviour), StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Theory]
+    [InlineData(UnitKind.Husk, "melee · 1 dmg")]
+    [InlineData(UnitKind.Lobber, "range 3 · 1 dmg")]
+    [InlineData(UnitKind.Anchor, "melee · 2 dmg")]
+    [InlineData(UnitKind.Grappler, "no attack · range 3 · pull 2")]
+    [InlineData(UnitKind.Stalker, "no attack · melee · push 1")]
+    public void AttackLine_ReadsAsTheStatTableDoes(UnitKind kind, string expected)
+    {
+        Assert.Equal(expected, EnemyBehaviour.For(kind).AttackLine);
+    }
+
+    [Fact]
+    public void Describe_CoversThePlayerClassesToo()
+    {
+        Assert.Equal("melee · 1 dmg · push 1", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Vanguard)));
+        Assert.Equal("range 3 · 2 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Archer)));
+        Assert.Equal(
+            "range 3 · 1 dmg · may pull 1 instead",
+            EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Threadcaster)));
+        Assert.Equal("melee · 1 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Wardbearer)));
+    }
+
+    [Fact]
+    public void RoleFor_AnswersForEveryKind()
+    {
+        foreach (var kind in AllKinds)
+        {
+            var role = EnemyBehaviour.RoleFor(kind);
+            Assert.False(string.IsNullOrWhiteSpace(role), $"{kind} has no role.");
+            Assert.NotEqual("unclassified", role);
+        }
+    }
+
+    // ---- the bestiary cannot list an enemy the planner ignores ---------------------------------
+
+    /// <summary>
+    /// <see cref="Ai.Compute"/> switches on <see cref="UnitKind"/> and falls through to Hold. A new
+    /// enemy with a behaviour but no planner branch would document a unit that stands still forever,
+    /// so every documented enemy is put on a board with a player unit in front of it and must plan
+    /// something.
+    /// </summary>
+    [Fact]
+    public void EveryDocumentedEnemy_HasAPlannerBranch()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            // Spikes at (6,0) give the Stalker a hazard to shove into; everyone else ignores them.
+            var state = BoardBuilder.Rows(".....^.")
+                .PlayerA(UnitKind.Vanguard, 5, 0)
+                .Enemy(behaviour.Kind, 1, 0)
+                .Active(Team.Enemy)
+                .Build();
+
+            var enemy = state.Find(behaviour.Kind);
+            var intent = Ai.Declare(state, enemy);
+
+            Assert.True(
+                intent.Action != IntentAction.Hold,
+                $"{behaviour.Kind} is documented in the bestiary but Ai.Compute has no branch for it — "
+                + "it holds position with a player unit in the open in front of it.");
+
+            Assert.NotEqual(new EndActivationCommand(enemy.Id), Ai.Plan(state, enemy));
+        }
+    }
+
+    private static string Text(EnemyBehaviour behaviour)
+    {
+        var parts = new List<string> { behaviour.Role, behaviour.Summary, behaviour.AttackLine };
+        foreach (var step in behaviour.Priorities)
+        {
+            parts.Add(step.Label);
+            parts.Add(step.Detail);
+        }
+
+        parts.AddRange(behaviour.Quirks);
+        parts.AddRange(behaviour.Counterplay);
+        return string.Join(" ", parts);
+    }
+}
