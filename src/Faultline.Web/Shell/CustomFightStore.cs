@@ -61,6 +61,54 @@ public sealed class CustomFightStore
         return result.Length == 0 ? "untitled" : result;
     }
 
+    /// <summary>Finds a stored scenario by slug.</summary>
+    /// <param name="id">Scenario slug; slugged again so a raw id works too.</param>
+    /// <returns>The stored scenario, or <c>null</c> when this browser has never seen it.</returns>
+    public CustomFight? Find(string? id)
+    {
+        var slug = Slug(id);
+        foreach (var item in _items)
+        {
+            if (string.Equals(item.Id, slug, StringComparison.Ordinal))
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Whether saving under this id would replace an existing scenario.</summary>
+    /// <param name="id">Scenario id; slugged before the check.</param>
+    /// <returns>True when something is already stored there.</returns>
+    public bool Exists(string? id) => Find(id) is not null;
+
+    /// <summary>
+    /// The first id near <paramref name="desired"/> that nothing is stored under, so "save a copy"
+    /// can never quietly eat the scenario it was copied from.
+    /// </summary>
+    /// <param name="desired">Preferred slug.</param>
+    /// <returns><paramref name="desired"/> when it is free, otherwise it with <c>-2</c>, <c>-3</c>… appended.</returns>
+    public string FreeId(string? desired)
+    {
+        var slug = Slug(desired);
+        if (!Exists(slug))
+        {
+            return slug;
+        }
+
+        for (int n = 2; n < 1000; n++)
+        {
+            var candidate = slug + "-" + n.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return slug;
+    }
+
     /// <summary>Reads every stored scenario back and re-parses it.</summary>
     /// <returns>A task that completes when the list is current.</returns>
     public async Task LoadAsync()

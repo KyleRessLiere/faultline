@@ -46,6 +46,12 @@ namespace Faultline.Core
         /// <summary>Shared momentum pool, cap 6 (M5).</summary>
         public int Momentum { get; init; }
 
+        /// <summary>
+        /// The enemy plans declared for the current round, in unit id order. Brief §2: declared at
+        /// round start and locked, so they live in state rather than being recomputed on demand.
+        /// </summary>
+        public IReadOnlyList<EnemyIntent> Intents { get; init; } = new EnemyIntent[0];
+
         /// <summary>Result so far.</summary>
         public FightOutcome Outcome { get; init; }
 
@@ -166,7 +172,8 @@ namespace Faultline.Core
                 || Momentum != other.Momentum
                 || Outcome != other.Outcome
                 || !Board.Equals(other.Board)
-                || Units.Count != other.Units.Count)
+                || Units.Count != other.Units.Count
+                || Intents.Count != other.Intents.Count)
             {
                 return false;
             }
@@ -174,6 +181,14 @@ namespace Faultline.Core
             for (int i = 0; i < Units.Count; i++)
             {
                 if (!Units[i].Equals(other.Units[i]))
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < Intents.Count; i++)
+            {
+                if (!Intents[i].Equals(other.Intents[i]))
                 {
                     return false;
                 }
@@ -200,6 +215,11 @@ namespace Faultline.Core
                 foreach (var unit in Units)
                 {
                     hash = (hash * 31) + unit.GetHashCode();
+                }
+
+                foreach (var intent in Intents)
+                {
+                    hash = (hash * 31) + intent.GetHashCode();
                 }
 
                 return hash;

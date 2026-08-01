@@ -37,10 +37,16 @@ public sealed class FightFiles
 
     /// <summary>Opens the save dialog so the file lands in a folder the user picks.</summary>
     /// <param name="fileName">Suggested filename, normally <c>&lt;id&gt;.fight</c>.</param>
-    /// <param name="text">The <c>.fight</c> contents.</param>
+    /// <param name="text">The file contents.</param>
+    /// <param name="extension">File extension to offer, including the dot.</param>
+    /// <param name="description">Label shown in the picker's file-type list.</param>
     /// <returns>A status: <c>saved:&lt;name&gt;</c>, <c>cancelled</c>, <c>unsupported</c>, or <c>error:…</c>.</returns>
-    public Task<string> SaveToDirectoryAsync(string fileName, string text) =>
-        Invoke("faultlineFiles.saveToDirectory", fileName, text);
+    public Task<string> SaveToDirectoryAsync(
+        string fileName,
+        string text,
+        string extension = ".fight",
+        string description = "Faultline fight") =>
+        Invoke("faultlineFiles.saveToDirectory", fileName, text, extension, description);
 
     /// <summary>Downloads the file through a blob, for browsers with no save dialog.</summary>
     /// <param name="fileName">Filename offered to the download.</param>
@@ -48,6 +54,11 @@ public sealed class FightFiles
     /// <returns>A status: <c>downloaded:&lt;name&gt;</c> or <c>error:…</c>.</returns>
     public Task<string> DownloadAsync(string fileName, string text) =>
         Invoke("faultlineFiles.download", fileName, text);
+
+    /// <summary>Copies text to the clipboard, falling back to a hidden textarea.</summary>
+    /// <param name="text">Text to copy.</param>
+    /// <returns>A status: <c>copied</c> or <c>error:…</c>.</returns>
+    public Task<string> CopyAsync(string text) => Invoke("faultlineFiles.copyText", text);
 
     /// <summary>Reads a localStorage key.</summary>
     /// <param name="key">Storage key.</param>
@@ -95,11 +106,11 @@ public sealed class FightFiles
         }
     }
 
-    private async Task<string> Invoke(string identifier, string a, string b)
+    private async Task<string> Invoke(string identifier, params object?[] args)
     {
         try
         {
-            return await _js.InvokeAsync<string>(identifier, a, b);
+            return await _js.InvokeAsync<string>(identifier, args);
         }
         catch (JSException ex)
         {

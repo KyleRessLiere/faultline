@@ -16,9 +16,9 @@ The other docs answer different questions:
 If this file and `AGENT_BRIEF.md` disagree, that is either a bug or a missing `DECISIONS.md` entry —
 flag it, don't quietly pick one.
 
-**Milestones built: M1 (rules skeleton), M2 (displacement).** Enemy AI, the collapse clock, Momentum
-and commander cards are not built. Five fight boards are authored, but the objectives, the boss and
-the between-fight upgrades that make them a run are M6.
+**Milestones built: M1 (rules skeleton), M2 (displacement), M3 (enemy AI).** The collapse clock,
+Momentum and commander cards are not built. Five fight boards are authored, but the objectives, the
+boss and the between-fight upgrades that make them a run are M6.
 
 ---
 
@@ -44,10 +44,12 @@ Ranged attacks fired *from* HighGround deal **+1**. There is no line of sight (D
 ## Round structure
 
 1. **Deployment.** Players alternate placing units into opposite corners — A bottom-left, B top-right.
-2. **Activations alternate** Player A → enemy → Player B → enemy. When one side runs out, the other
+2. **Round start:** every enemy that can act **declares its intent** — see "Enemies" below. The
+   declarations land before anyone activates, so the players see the whole enemy round first.
+3. **Activations alternate** Player A → enemy → Player B → enemy. When one side runs out, the other
    activates consecutively. Player A opens every round (D-006).
-3. An activation is **one move + one action, in either order**. Ending early forfeits the rest.
-4. **Round end:** Clinging resolves, then Stagger clears on everyone.
+4. An activation is **one move + one action, in either order**. Ending early forfeits the rest.
+5. **Round end:** Clinging resolves, then Stagger clears on everyone.
 
 ## Displacement — the core system
 
@@ -82,8 +84,9 @@ Collision, spike and fall damage ignore mitigation.
   neither does voluntarily walking onto spikes.
 - **Footing** — 1 token per unit per fight. Spending it shortens a displacement by 1 tile, possibly
   to zero. Enemies spend it **only when it would keep them out of a pit, and only when that actually
-  works** — deterministic, never a coin flip. *Players cannot yet be asked to spend theirs; nothing
-  can displace a player unit until enemy AI exists (D-017).*
+  works** — deterministic, never a coin flip. *Player units never spend theirs: there is still no
+  prompt, so a player unit can be shoved into a pit while holding an unused token. Open question,
+  not a rule — see D-026.*
 - **Clinging** — in a pit, cannot act, still holds an activation slot.
   - An **adjacent ally** can spend its **entire activation** to haul it out.
   - An **adjacent enemy** can kick it off as a **free action** — costs neither half.
@@ -100,15 +103,61 @@ Collision, spike and fall damage ignore mitigation.
 | Threadcaster | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. |
 | Wardbearer | 6 | 3 | melee, 1 dmg | **Hold** (passive) — adjacent **allies** cannot be displaced more than 1. Does not protect itself (D-019). |
 
-| Enemy | HP | Move | Attack | Notes |
+| Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
-| Husk | 2 | 3 | melee 1 | chaff |
-| Lobber | 3 | 2 | range 3, 1 | — |
-| Anchor | 6 | 1 | melee 2 | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
-| Grappler | 5 | 3 | — | no basic attack; acts through displacement once AI exists |
-| Stalker | 4 | 4 | — | no basic attack; hazard-flanker once AI exists |
+| Husk | 2 | 3 | melee, 1 dmg | chaff |
+| Lobber | 3 | 2 | range 3, 1 dmg | — |
+| Anchor | 6 | 1 | melee, 2 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
+| Grappler | 5 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
+| Stalker | 4 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove |
 
 Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
+
+## Enemies — what they actually do
+
+Every enemy decision is a pure function of the board state. **No dice, no generator, no hidden
+state**: the same board plans the same move every time, which is why a seed plus the command log
+replays a fight exactly. Ties break in a fixed ladder — the criterion the archetype names, then
+**lowest unit id**, then row-major coordinate order (top row first, then left to right).
+
+Two rules apply to every archetype:
+
+- **A walk that ends in reach still spends the action** (D-022). An enemy that starts adjacent
+  attacks *without moving*; an enemy that has to chase moves and then attacks in the same activation.
+- **A clinging player unit next to an enemy that has an attack is finished for free**, before that
+  enemy's plan runs — it costs neither the move nor the action (D-025). Enemies that deal no damage
+  (Grappler, Stalker) do not do this.
+
+Enemies never voluntarily walk onto spikes when any equally good tile avoids it, and never walk into
+a pit at all. Where two tiles are equally good, they take the cheaper one, so an enemy already
+standing where it wants to be does not shuffle.
+
+| Enemy | Priority list, in order |
+|---|---|
+| **Husk** (Move 3) | 1. Player unit adjacent → **attack for 1**, without moving. 2. Else walk toward the nearest player unit, and attack if the walk lands adjacent. |
+| **Lobber** (Move 2, range 3) | 1. No player unit adjacent and one within 3 → **shoot for 1**, without moving. 2. Player unit adjacent → **retreat**, to the reachable tile that maximises the distance to the nearest player (ties: maximise total distance to all of them) — then shoot if the retreat broke contact. 3. Else advance toward the nearest player, aiming for **2–3 tiles away**, not contact (D-023) — then shoot if it arrives in range and out of melee. |
+| **Anchor** (Move 1) | 1. Player unit adjacent → **attack for 2**, without moving. 2. Else advance one tile toward the nearest, and attack if that lands adjacent. |
+| **Grappler** (Move 3, range 3) | 1. Player unit **2–3 tiles away** → **pull 2 toward itself**, choosing (a) a unit standing on HighGround, else (b) the Archer, else lowest id. A unit already adjacent cannot be pulled (D-020). 2. Else advance toward the Archer — or the nearest player if the Archer is gone — aiming for **2–3 tiles**, and pull if it arrives in range. |
+| **Stalker** (Move 4) | 1. A player unit with a hazard on one side and a **reachable** tile on the opposite side → move to that tile and **push 1 into the hazard**. Hazards rank **pit → spikes → wall or board edge** (D-024); a hazard tile with something standing on it does not count. 2. Else walk toward the nearest player unit that is **within 2 of a hazard**. 3. Else hold position. |
+
+The Grappler's pull and the Stalker's shove are ordinary commands Core accepts, resolved by the same
+displacement code a player's push runs through — collisions, spikes, pits, Stagger, Anchor
+resistance, Wardbearer Hold and Footing all apply identically (Brief §6 prior 2).
+
+### Intents
+
+At round start each enemy announces **the whole plan**: what it will do, to whom, which tile it will
+walk to, and — when it displaces — the direction, the effective distance and the tile the target ends
+on. That is enough to draw the telegraph without asking the game anything else.
+
+An intent **locks its target, not its route** (D-021):
+
+- Move a targeted unit out of the way and the enemy **chases it**. No new declaration, no target swap.
+- The enemy re-derives its route and its shove line against the live board when it activates, so the
+  destination it actually walks to can differ from the one declared.
+- Only when the target **dies, is voided, or falls into a pit** does the enemy re-run its priority
+  list — immediately, and visibly as a fresh declaration marked as a re-plan.
+- An enemy that has already activated does not re-plan; its intent is simply dropped.
 
 ## Fights
 
@@ -160,8 +209,38 @@ Win: every enemy down. Lose: every player unit down or voided.
 
 ## Known gaps in what design can evaluate
 
-- **Enemies do not act.** No AI until M3, so difficulty, tempo, and whether "the board out-damages
-  attacks" are all currently unmeasurable.
+- **Player Footing has no prompt.** Enemies now shove player units into pits, but the token their
+  owner is supposed to be able to spend sits unused (D-026). This wants a decision before difficulty
+  can be judged fairly.
 - **Momentum is displayed but never changes.** Accounting arrives in M5 with the commander cards.
 - **Only fight 1 is reachable.** Fights 2–5 exist as authored boards, but the shell always starts
   fight 1 and there are no objectives, no boss, and no between-fight upgrades.
+
+## Combat log
+
+Recording is off by default and toggled on the board screen's Log panel. When on, the session keeps
+every event the fight emits plus the ordered command list; when off it keeps nothing, because the
+cost grows with the length of the fight.
+
+The export is one file with two sections. The **command log** comes first — fight id, seed, and one
+numbered line per command — and re-running those commands against that seed reproduces the fight
+exactly. The **event log** follows: one line per event, tab-separated, five columns, oldest first.
+
+```
+round  slot        actor            event       detail
+3      PlayerA:u0  Vanguard [A] u0  UnitMoved   (0,5) -> (2,5) cost 2 via (1,5),(2,5)
+3      PlayerA:u0  Husk [E] u5      UnitPushed  Push 2 (3,5) -> (5,5) via (4,5),(5,5)
+3      PlayerA:u0  Husk [E] u5      Collision   into terrain at (5,5), 2 damage
+```
+
+Units carry their id (`Husk [E] u5`) because three Husks are otherwise indistinguishable. Damage,
+staggers, Footing spends, clings, voidings and enemy intent declarations each get their own line — a
+shove's tile-by-tile route is in the detail column, not just its outcome. Lines belonging to no
+activation, such as round starts, carry `-` in the slot column.
+
+The same seed and command log always produce a byte-identical event log, so two runs can be diffed
+against each other. Turning recording on mid-fight records from that point, and both the panel and
+the export header say the command log will not replay from the seed.
+
+Export offers three routes: save into a folder (File System Access API, Chromium only — the button
+is disabled elsewhere), download (everywhere), and copy to the clipboard.

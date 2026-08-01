@@ -115,6 +115,9 @@ namespace Faultline.Core
                     throw new ArgumentException("Unsupported command " + command.GetType().Name + ".", nameof(command));
             }
 
+            // Brief §2: an enemy whose target just died re-plans immediately and visibly.
+            next = Ai.ReplanInvalidated(next, events);
+
             return new StepResult(next, events, LegalCommands(next));
         }
 
@@ -179,6 +182,11 @@ namespace Faultline.Core
                         {
                             commands.Add(new AttackCommand(unit.Id, target.Id, AttackMode.Pull));
                         }
+
+                        if (Combat.CanPush(state, unit, target))
+                        {
+                            commands.Add(new AttackCommand(unit.Id, target.Id, AttackMode.Push));
+                        }
                     }
 
                     var descriptor = Abilities.Of(unit);
@@ -224,9 +232,9 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// True when the enemy side holds the current activation slot. M1 has no AI yet, so the shell
-        /// resolves these slots by submitting <see cref="EndActivationCommand"/>; M3 replaces that
-        /// with the priority-list planner.
+        /// True when the enemy side holds the current activation slot. The caller resolves it by
+        /// feeding <see cref="NextEnemyCommand"/> back into <see cref="Apply(GameState, Command)"/>
+        /// until this goes false, which keeps every AI choice in the command log.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <returns>Whether an enemy is due to activate.</returns>
@@ -234,6 +242,32 @@ namespace Faultline.Core
             state.Phase == Phase.Battle
             && state.Outcome == FightOutcome.InProgress
             && state.ActiveTeam == Team.Enemy;
+
+        /// <summary>
+        /// The next command the enemy side will submit, chosen by <see cref="Ai"/> from Brief §2's
+        /// priority lists. Deterministic: no randomness is consulted anywhere in the planner.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <returns>The command to apply, or <c>null</c> when it is not the enemy's slot.</returns>
+        public static Command? NextEnemyCommand(GameState state)
+        {
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            if (!IsEnemyTurn(state))
+            {
+                return null;
+            }
+
+            foreach (var enemy in ActivationCandidates(state))
+            {
+                return Ai.Plan(state, enemy);
+            }
+
+            return null;
+        }
 
         private static IEnumerable<Unit> ActivationCandidates(GameState state)
         {
@@ -332,7 +366,9 @@ namespace Faultline.Core
 
             events.Add(new RoundStarted(state.Round));
 
-            // M3 declares enemy intents here.
+            // Brief §2: the round opens with every enemy's full planned action on the table.
+            state = Ai.DeclareAll(state, events);
+
             return NormalizeActiveTeam(state);
         }
 
@@ -400,7 +436,21 @@ namespace Faultline.Core
                 state = state.WithUnit(unit with { HasActed = true });
 
                 state = Displacement.ResolveAuto(
-                    state, target.Id, unit.Position, DisplacementKind.Pull, 1, events);
+                    state, target.Id, unit.Position, DisplacementKind.Pull, unit.Template.BasicPull, events);
+
+                return AfterAction(state, unit.Id, events);
+            }
+
+            if (command.Mode == AttackMode.Push)
+            {
+                Require(Combat.CanPush(state, unit, target), "Target cannot be pushed.");
+
+                state = CommitActivation(state, unit, events);
+                unit = state.UnitById(unit.Id);
+                state = state.WithUnit(unit with { HasActed = true });
+
+                state = Displacement.ResolveAuto(
+                    state, target.Id, unit.Position, DisplacementKind.Push, unit.Template.BasicPush, events);
 
                 return AfterAction(state, unit.Id, events);
             }

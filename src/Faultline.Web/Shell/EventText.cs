@@ -32,6 +32,8 @@ public static class EventText
         UnitDowned e => $"{Name(state, e.UnitId)} is down.",
         AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDescriptor.For(e.Ability).Name}.",
         UnitPushed e => $"{Name(state, e.UnitId)} {(e.Kind == DisplacementKind.Push ? "shoved" : "pulled")} {e.Distance} → {e.To}.",
+        IntentDeclared e => (e.Replanned ? "↻ " : "▸ ")
+            + $"{Name(state, e.Intent.UnitId)} intends: {Intent(state, e.Intent)}",
         Collision e => e.ObstacleId is null
             ? $"{Name(state, e.UnitId)} slams into terrain — {e.Damage} damage."
             : $"{Name(state, e.UnitId)} slams into {Name(state, e.ObstacleId.Value)} — {e.Damage} damage each.",
@@ -44,6 +46,26 @@ public static class EventText
         FightLost e => $"✖ Fight {e.FightNumber} lost — {e.Reason}",
         _ => evt.GetType().Name,
     };
+
+    /// <summary>Renders a declared enemy plan as a telegraph line.</summary>
+    /// <param name="state">State to resolve unit names against.</param>
+    /// <param name="intent">Plan to describe.</param>
+    /// <returns>A one-line description.</returns>
+    public static string Intent(GameState state, EnemyIntent intent)
+    {
+        string target = intent.TargetId is null ? "—" : Name(state, intent.TargetId.Value);
+        string walk = intent.MoveTo is null ? string.Empty : $"move to {intent.MoveTo.Value}, then ";
+
+        return intent.Action switch
+        {
+            IntentAction.Attack => $"{walk}hit {target} for {intent.Damage}",
+            IntentAction.Pull => $"{walk}pull {target} {intent.DisplacementDistance} → {intent.DisplacementTo}",
+            IntentAction.Push => $"{walk}shove {target} {intent.DisplacementDistance} → {intent.DisplacementTo}",
+            IntentAction.Retreat => $"break away to {intent.MoveTo}",
+            IntentAction.Advance => $"close on {target}, move to {intent.MoveTo}",
+            _ => "hold position",
+        };
+    }
 
     /// <summary>Short label for a unit, including which side it is on.</summary>
     /// <param name="state">State to look the unit up in.</param>

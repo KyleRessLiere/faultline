@@ -9,7 +9,16 @@ namespace Faultline.Core
         /// <summary>Deal the archetype's basic damage, plus any push the profile carries.</summary>
         Damage = 0,
 
-        /// <summary>Pull the target 1 instead of dealing damage. Threadcaster only.</summary>
+        /// <summary>
+        /// Pull the target the profile's distance instead of dealing damage — Threadcaster 1,
+        /// Grappler 2.
+        /// </summary>
         Pull = 1,
+
+        /// <summary>
+        /// Shove the target the profile's distance. The Stalker's entire action, Brief §2: it has no
+        /// attack and works purely through displacement.
+        /// </summary>
+        Push = 2,
     }
 }

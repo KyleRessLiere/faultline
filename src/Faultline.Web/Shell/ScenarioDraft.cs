@@ -17,11 +17,18 @@ namespace Faultline.Web.Shell;
 /// </remarks>
 public sealed class ScenarioDraft
 {
-    /// <summary>Smallest board the creator offers.</summary>
+    /// <summary>Smallest board the creator offers in its size pickers.</summary>
     public const int MinSize = 5;
 
-    /// <summary>Largest board the creator offers.</summary>
+    /// <summary>Largest board the creator offers in its size pickers.</summary>
     public const int MaxSize = 9;
+
+    /// <summary>
+    /// Hard bound on a board the draft will hold. Larger than <see cref="MaxSize"/> because a fight
+    /// loaded from a file or pasted in was authored elsewhere and must round-trip at its own size,
+    /// not be silently cropped to what the size pickers offer.
+    /// </summary>
+    public const int HardMaxSize = 40;
 
     private readonly HashSet<Coord> _zoneA = new();
     private readonly HashSet<Coord> _zoneB = new();
@@ -56,12 +63,100 @@ public sealed class ScenarioDraft
     /// <summary>Player B's classes, in deployment order.</summary>
     public List<UnitKind> RosterB { get; } = new() { UnitKind.Threadcaster, UnitKind.Wardbearer };
 
+    /// <summary>
+    /// Tiles the M4 collapse clock never cracks, carried through unchanged.
+    /// </summary>
+    /// <remarks>
+    /// The creator paints no protected zone of its own, but a loaded or pasted fight may declare one
+    /// and dropping it would make the round trip lossy — the regenerated file would be a different
+    /// battle from the one that was opened.
+    /// </remarks>
+    public List<Coord> Protected { get; } = new();
+
     /// <summary>A blank 7x7 with a 2x2 deploy zone in each of two opposite corners.</summary>
     /// <returns>A draft that is already playable in one click.</returns>
     public static ScenarioDraft Blank()
     {
         var draft = new ScenarioDraft();
         draft.Resize(7, 7);
+        return draft;
+    }
+
+    /// <summary>Loads an existing fight into a paintable draft.</summary>
+    /// <param name="fight">A fight from the library, from browser storage, or freshly pasted.</param>
+    /// <returns>A draft that regenerates <paramref name="fight"/> exactly.</returns>
+    /// <remarks>
+    /// Everything the format can express is copied across, including the protected zone, so
+    /// <see cref="ToDefinition"/> writes back byte-identical text. Deploy slots and enemies force the
+    /// tile beneath them Open, which is what the parser did on the way in — the format cannot say
+    /// otherwise, so this cannot lose terrain that was ever really there.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="fight"/> is <c>null</c>.</exception>
+    public static ScenarioDraft From(FightDefinition fight)
+    {
+        if (fight is null)
+        {
+            throw new ArgumentNullException(nameof(fight));
+        }
+
+        var board = fight.Board;
+        var draft = new ScenarioDraft
+        {
+            Id = fight.Id,
+            Name = fight.Name,
+            Description = fight.Description,
+            Number = fight.Number,
+            Width = Clamp(board.Width),
+            Height = Clamp(board.Height),
+        };
+
+        draft._tiles = new TileType[draft.Width * draft.Height];
+        foreach (var coord in draft.AllCoords())
+        {
+            draft._tiles[(coord.Y * draft.Width) + coord.X] = board.At(coord);
+        }
+
+        // Same precedence the writer paints in and the parser reads back: enemies, then B, then A.
+        foreach (var spawn in fight.Enemies)
+        {
+            if (draft.InBounds(spawn.At))
+            {
+                draft.Clear(spawn.At);
+                draft._enemies[spawn.At] = spawn.Kind;
+            }
+        }
+
+        foreach (var coord in fight.DeploymentZoneB)
+        {
+            if (draft.InBounds(coord))
+            {
+                draft.Clear(coord);
+                draft._zoneB.Add(coord);
+            }
+        }
+
+        foreach (var coord in fight.DeploymentZoneA)
+        {
+            if (draft.InBounds(coord))
+            {
+                draft.Clear(coord);
+                draft._zoneA.Add(coord);
+            }
+        }
+
+        draft.RosterA.Clear();
+        draft.RosterA.AddRange(fight.RosterA);
+        draft.RosterB.Clear();
+        draft.RosterB.AddRange(fight.RosterB);
+
+        foreach (var coord in fight.ProtectedZone)
+        {
+            if (draft.InBounds(coord))
+            {
+                draft.Protected.Add(coord);
+            }
+        }
+
         return draft;
     }
 
@@ -95,7 +190,7 @@ public sealed class ScenarioDraft
     public UnitKind? EnemyAt(Coord at) => _enemies.TryGetValue(at, out var kind) ? kind : null;
 
     /// <summary>Resizes the board, keeping whatever still fits.</summary>
-    /// <param name="width">New column count, clamped to <see cref="MinSize"/>..<see cref="MaxSize"/>.</param>
+    /// <param name="width">New column count, clamped to 1..<see cref="HardMaxSize"/>.</param>
     /// <param name="height">New row count, same clamp.</param>
     public void Resize(int width, int height)
     {
@@ -132,6 +227,8 @@ public sealed class ScenarioDraft
         {
             _enemies.Remove(coord);
         }
+
+        Protected.RemoveAll(coord => !InBounds(coord));
 
         // Shrinking can take every slot of a zone off the board, which is an error the designer did
         // not ask for. Put that zone back in its corner rather than leave the draft unplayable.
@@ -232,10 +329,11 @@ public sealed class ScenarioDraft
             DeploymentZoneA = zoneA,
             DeploymentZoneB = zoneB,
             Enemies = enemies,
+            ProtectedZone = Protected.ToArray(),
         };
     }
 
-    private static int Clamp(int value) => value < MinSize ? MinSize : value > MaxSize ? MaxSize : value;
+    private static int Clamp(int value) => value < 1 ? 1 : value > HardMaxSize ? HardMaxSize : value;
 
     private bool InBounds(Coord at) => at.X >= 0 && at.Y >= 0 && at.X < Width && at.Y < Height;
 

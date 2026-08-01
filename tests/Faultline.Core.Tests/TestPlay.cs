@@ -57,6 +57,42 @@ public static class TestPlay
         return (state, log);
     }
 
+    /// <summary>
+    /// Plays a fight forward with the enemy side driven by Core's planner and the players taking the
+    /// first legal command. Every command — the AI's included — goes through <see cref="Game.Apply"/>
+    /// and lands in the log, so the log alone replays the fight.
+    /// </summary>
+    public static (GameState State, List<Command> Log, int Steps) PlayWithAi(GameState start, int maxSteps)
+    {
+        var state = start;
+        var log = new List<Command>();
+        int steps = 0;
+
+        for (; steps < maxSteps; steps++)
+        {
+            var command = Game.NextEnemyCommand(state);
+            if (command is null)
+            {
+                var legal = Game.LegalCommands(state);
+                if (legal.Count == 0)
+                {
+                    break;
+                }
+
+                command = legal[0];
+            }
+
+            log.Add(command);
+            state = Game.Apply(state, command).NewState;
+        }
+
+        return (state, log, steps);
+    }
+
+    /// <summary>Declares intents for every enemy, as the start of a round would.</summary>
+    public static GameState WithIntents(this GameState state) =>
+        Ai.DeclareAll(state, new List<GameEvent>());
+
     /// <summary>Replays a recorded command log against a fresh state.</summary>
     public static GameState Replay(GameState start, IEnumerable<Command> log)
     {

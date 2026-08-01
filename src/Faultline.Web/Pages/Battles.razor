@@ -159,8 +159,36 @@
                 </div>
             </div>
 
+            @if (customId is null && fight is not null)
+            {
+                <p class="shipped-note">
+                    Compiled into the app, so nothing running in the browser can change it. Edit opens it
+                    in the creator as a <em>new</em> scenario; the original stays as shipped.
+                </p>
+            }
+
             <footer>
                 <button class="action" disabled="@(fight is null)" @onclick="() => Play(fight)">Play</button>
+
+                @{
+                    var lookupId = customId ?? fight?.Id;
+                }
+                @if (lookupId is not null)
+                {
+                    <a class="action secondary link-button"
+                       href="@Editor(lookupId, customId, copy: false)"
+                       title="@(customId is null
+                           ? "Open this campaign battle in the creator as a new scenario"
+                           : "Open this saved scenario in the creator")">Edit</a>
+                }
+
+                @if (lookupId is not null && fight is not null)
+                {
+                    <a class="action secondary link-button"
+                       href="@Editor(lookupId, customId, copy: true)"
+                       title="Start a new scenario from this board">Duplicate</a>
+                }
+
                 @if (customId is not null)
                 {
                     <button class="action secondary" @onclick="() => Delete(customId)">Delete</button>
@@ -168,6 +196,13 @@
             </footer>
         </article>
     };
+
+    /// <summary>Link into the creator for one battle, wherever it lives.</summary>
+    private static string Editor(string id, string? customId, bool copy)
+    {
+        var source = customId is null ? "campaign" : "browser";
+        return $"create?edit={Uri.EscapeDataString(id)}&from={source}" + (copy ? "&copy=1" : string.Empty);
+    }
 
     private static string Composition(FightDefinition fight)
     {

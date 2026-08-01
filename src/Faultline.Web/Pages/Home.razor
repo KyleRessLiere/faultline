@@ -1,13 +1,14 @@
 @page "/play"
 @layout MainLayout
 @inject GameSession Session
+@inject FightFiles Files
 @implements IDisposable
 
 <PageTitle>Faultline</PageTitle>
 
 <div class="shell">
     <div class="board-pane">
-        <h1>Faultline <span class="sub">M2 — displacement</span></h1>
+        <h1>Faultline <span class="sub">M3 — enemy AI</span></h1>
 
         <div class="status">
             <a class="chip link" href="battles">← Battles</a>
@@ -100,7 +101,7 @@
             else if (Session.AwaitingEnemy)
             {
                 <p>Enemy activating…</p>
-                <p class="note">No AI yet — enemies pass. The priority-list planner lands in M3.</p>
+                <p class="note">Resolving the declared intent from Core's priority-list planner.</p>
             }
             else if (Selected is not null)
             {
@@ -153,6 +154,26 @@
             <a class="action secondary link-button" href="battles">Choose battle</a>
         </div>
 
+        @if (State.Intents.Count > 0)
+        {
+            <div class="panel">
+                <h2>Enemy intents</h2>
+                <ul class="intents">
+                    @foreach (var intent in State.Intents)
+                    {
+                        <li>
+                            <span class="art inline team-e">
+                                <UnitArt Kind="intent.Kind" Label="@intent.Kind.ToString()" />
+                            </span>
+                            <strong>@State.UnitById(intent.UnitId).Name</strong>
+                            <span class="tag">@EventText.Intent(State, intent)</span>
+                        </li>
+                    }
+                </ul>
+                <p class="note">Locked for the round. An enemy only re-plans if its target dies.</p>
+            </div>
+        }
+
         <div class="panel">
             <h2>Units</h2>
             <table class="units">
@@ -191,6 +212,57 @@
 
         <div class="panel log-panel">
             <h2>Log</h2>
+
+            <div class="log-tools">
+                <label class="record-toggle" title="Records every event, tab-separated, for analysis after the fight. Off by default because it costs memory that grows with the fight.">
+                    <input type="checkbox" checked="@Session.Recording" @onchange="ToggleRecording" />
+                    Record combat log
+                </label>
+
+                @if (Session.Recording)
+                {
+                    <span class="log-count">@Session.RecordedLineCount lines</span>
+                }
+            </div>
+
+            @if (Session.Recording)
+            {
+                <div class="log-actions">
+                    <button type="button"
+                            class="log-button"
+                            disabled="@(!_canSaveToDirectory || Session.RecordedLineCount == 0)"
+                            title="@(_canSaveToDirectory ? "Write the .log into a folder you pick." : "This browser has no File System Access API. Use Download.")"
+                            @onclick="SaveLogToFolder">
+                        Save to folder
+                    </button>
+                    <button type="button"
+                            class="log-button"
+                            disabled="@(Session.RecordedLineCount == 0)"
+                            @onclick="DownloadLog">
+                        Download
+                    </button>
+                    <button type="button"
+                            class="log-button"
+                            disabled="@(Session.RecordedLineCount == 0)"
+                            @onclick="CopyLog">
+                        Copy
+                    </button>
+                </div>
+
+                @if (!Session.RecordingIsComplete)
+                {
+                    <p class="note">
+                        Recording started mid-fight — the event log is from here on and the command
+                        log will not replay from the seed. Start a new run to record the whole fight.
+                    </p>
+                }
+
+                @if (_logStatus is not null)
+                {
+                    <p class="status-line">@_logStatus</p>
+                }
+            }
+
             <ol class="log">
                 @foreach (var line in RecentLog())
                 {
@@ -204,6 +276,13 @@
 @code {
     private bool _resolvingEnemy;
     private bool _disposed;
+
+    // The board screen asks once whether this browser can write into a folder, so the button is
+    // never offered when it could only fail. docs/COMBAT_LOG.md: the UI has to be honest about which
+    // of the three ways out is which.
+    private bool _canSaveToDirectory;
+    private bool _askedAboutDirectories;
+    private string? _logStatus;
 
     private GameState State => Session.State;
 
@@ -258,7 +337,10 @@
         if (template.CanPullWithBasic)
         {
             yield return new ActionOption(
-                ActionMode.Pull, "Pull", $"range {template.Range} · pull 1", Session.IsAvailable(ActionMode.Pull));
+                ActionMode.Pull,
+                "Pull",
+                $"range {template.Range} · pull {template.BasicPull}",
+                Session.IsAvailable(ActionMode.Pull));
         }
 
         var ability = Session.SelectedAbility;
@@ -285,12 +367,69 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
+        if (firstRender && !_askedAboutDirectories)
+        {
+            _askedAboutDirectories = true;
+            _ = DetectDirectorySupportAsync();
+        }
+
         // Enemy slots resolve on a short delay so the hotseat players can watch them tick past.
         if (!_resolvingEnemy && Session.AwaitingEnemy)
         {
             _resolvingEnemy = true;
             _ = ResolveEnemyAsync();
         }
+    }
+
+    private async Task DetectDirectorySupportAsync()
+    {
+        bool supported = await Files.CanSaveToDirectoryAsync();
+
+        if (!_disposed && supported != _canSaveToDirectory)
+        {
+            _canSaveToDirectory = supported;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleRecording(ChangeEventArgs args)
+    {
+        Session.SetRecording(args.Value is bool on && on);
+        _logStatus = null;
+    }
+
+    private async Task SaveLogToFolder()
+    {
+        var outcome = await Files.SaveToDirectoryAsync(
+            Session.LogFileName, Session.RenderCombatLog(), ".log", "Faultline combat log");
+
+        // A cancelled picker is a normal outcome, not a failure: say nothing and change nothing.
+        _logStatus = outcome switch
+        {
+            "cancelled" => null,
+            "unsupported" => "This browser cannot open a save dialog. Use Download instead.",
+            _ when outcome.StartsWith("saved:", StringComparison.Ordinal) =>
+                $"Saved {outcome.Substring(6)} — {Session.RecordedLineCount} event lines.",
+            _ => "Save failed: " + outcome,
+        };
+    }
+
+    private async Task DownloadLog()
+    {
+        var outcome = await Files.DownloadAsync(Session.LogFileName, Session.RenderCombatLog());
+
+        _logStatus = outcome.StartsWith("downloaded:", StringComparison.Ordinal)
+            ? $"Downloaded {outcome.Substring(11)} — {Session.RecordedLineCount} event lines."
+            : "Download failed: " + outcome;
+    }
+
+    private async Task CopyLog()
+    {
+        var outcome = await Files.CopyAsync(Session.RenderCombatLog());
+
+        _logStatus = outcome == "copied"
+            ? $"Copied {Session.RecordedLineCount} event lines to the clipboard."
+            : "Copy failed: " + outcome;
     }
 
     private async Task ResolveEnemyAsync()

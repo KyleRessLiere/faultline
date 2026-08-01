@@ -111,3 +111,73 @@ Push 2 → 1, Staggered Push 1 → effective 2 → 1. Pull is untouched, as §2 
 **D-019 — Wardbearer Hold protects its allies but not itself.**
 Brief §2 says "allies adjacent to Wardbearer", and a unit is not adjacent to itself. Left as written:
 the anchor that steadies the line is the one thing on it you can still shove.
+
+---
+
+## M3
+
+**D-020 — The Grappler pulls targets 2–3 tiles away; a target already adjacent falls through to
+"advance".**
+Brief §2 says "player unit within range 3 → Pull 2 toward self" but a unit at distance 1 has nowhere
+to be pulled to — the next tile toward the Grappler is the Grappler. Core already forbids a 0-tile
+pull for the Threadcaster, and Reel excludes targets already adjacent, so the Grappler follows the
+same rule (prior 2: identical physics). Consequence: a Grappler in melee does nothing but reposition.
+That is the price of a unit with no attack, and it is the reason it opens with a pull rather than
+walking in.
+
+**D-021 — An intent locks its *target*, not its route.**
+Brief §2 says intents are locked and re-planned "only if its target becomes invalid", but between
+declaration and execution the players move: the tile the enemy meant to walk to may be occupied and
+the shove line may have rotated. Re-deriving the geometry against the live board at execution time —
+with target selection pinned to the declared target — is the only reading where a locked intent is
+still a legal command. A target that merely walks away is chased, not swapped: no new
+`IntentDeclared` fires, and the telegraph the players read still names the unit that is actually in
+danger.
+
+**D-022 — An enemy that walks into reach still spends its action.**
+The priority lists read "1. adjacent → attack. 2. else move toward…", which taken strictly would mean
+a melee enemy only ever swings when it *started* the round adjacent — after a chase it would stand
+there with its action half unspent. An activation is Move plus one Action in either order (Brief §2
+"Round structure"), so a walk that ends in reach is followed by the attack. Priority 1 is still
+honoured literally: an enemy that starts adjacent attacks *without moving*.
+
+**D-023 — Ranged enemies advance to a band (2–3 tiles), not to contact.**
+"Else advance to range" (Lobber) and "else advance toward the Archer" (Grappler) do not say how close.
+Beelining would walk a Lobber into melee on the turn after it arrives, where its own priority list
+then makes it turn round and run — a two-round oscillation with no shots fired. Both archetypes head
+for the band their action works from: at least 2 tiles (so a pull has room, and a shot is not taken
+in melee) and at most their range 3. Ties inside the band prefer the *further* tile.
+
+**D-024 — The Stalker ranks hazards before it ranks targets, and a wall counts as an edge.**
+Brief §2 gives the Stalker "Pit/Spikes/edge" as one undifferentiated set, but shoving someone into a
+pit removes them from the run while an edge deals 2. Candidates are ordered pit, then spikes, then
+solid boundary; lowest unit id breaks ties inside a rank, then the fixed direction order. Walls sit
+with the board edge because Brief §2 itself says "board edge acts as wall" — the two produce the
+identical collision, so ranking them apart would be a distinction the rules do not make.
+
+**D-025 — Clinging units are not priority-list targets; the free finish handles them.**
+A clinging unit is on the board and technically attackable — any damage voids it. Letting the
+priority lists target one would spend a whole activation on something Brief §2 already gives away for
+free ("adjacent enemy … may finish it as a free action"). So the planner skips clinging units when
+choosing targets, and instead takes the free finish *before* running its priority list, for enemies
+that have an attack at all — the brief's own parenthetical, "(and enemies with attacks will, per
+AI)". A target that falls into a pit therefore counts as invalid and triggers a re-plan (D-021).
+
+**D-026 — Player Footing is still not an interactive choice, and player units never auto-spend it.**
+D-017 deferred the prompt to M3 "when there is finally something to decide against". M3 creates the
+trigger — enemies now shove player units into pits — but the choice itself is a mid-enemy-turn
+interrupt, which is a UI and command-shape change, not an AI one. Player units therefore keep their
+token and never spend it; enemies keep the deterministic pit rule.
+
+**Asked and ruled: leave it.** Both fixes — a real mid-enemy-turn prompt, or giving players the same
+deterministic auto-spend enemies have — change game feel, and neither should be chosen before M3 has
+been played. So a player unit can currently be voided while holding an unused Footing token, and that
+is a known, accepted state rather than an oversight. Revisit after playtest; the rule itself is
+already implemented in `Displacement.EffectiveDistance` and only wants a trigger.
+
+**D-027 — Loading a hand-authored fight into the creator does not preserve the author's spawn letters.**
+`FightWriter` reassigns spawn letters deterministically, so `high-road`'s Anchor comes back as `a`
+where the file wrote `n`. The fight is identical — same kinds at the same coordinates — and only the
+letter differs. Left as is: the writer's determinism is exactly what makes the round trip checkable,
+and carrying arbitrary author letters through would mean threading them into `FightDefinition`,
+which is a game model, not a file model.

@@ -18,6 +18,10 @@ public sealed class GameSession
 {
     private readonly List<string> _log = new();
 
+    // docs/COMBAT_LOG.md: the flag belongs in the shell, not in Core. Core always emits its events;
+    // it has no idea whether anyone is writing them down. Null means "not recording, retain nothing".
+    private CombatRecorder? _recorder;
+
     /// <summary>Creates a session already sitting on a fresh fight.</summary>
     public GameSession() => StartFight(FightLibrary.Fight1(), DefaultSeed);
 
@@ -35,6 +39,24 @@ public sealed class GameSession
 
     /// <summary>Human-readable event history, newest last.</summary>
     public IReadOnlyList<string> Log => _log;
+
+    /// <summary>
+    /// Whether the full combat log is being recorded. Off by default: it costs memory that grows
+    /// with the length of a fight, and a player who is not analysing anything should not pay for it.
+    /// </summary>
+    public bool Recording => _recorder is not null;
+
+    /// <summary>Event-log lines recorded so far; zero when recording is off.</summary>
+    public int RecordedLineCount => _recorder?.LineCount ?? 0;
+
+    /// <summary>
+    /// True when recording covers the whole fight. False after switching it on mid-fight, which
+    /// leaves the command log unable to replay from the seed.
+    /// </summary>
+    public bool RecordingIsComplete => _recorder?.FromFightStart ?? false;
+
+    /// <summary>Suggested filename for an export, from the fight's slug.</summary>
+    public string LogFileName => (_recorder ?? new CombatRecorder(Fight, Seed)).FileName;
 
     /// <summary>Unit the player is currently looking at, if any.</summary>
     public UnitId? Selected { get; private set; }
@@ -76,17 +98,54 @@ public sealed class GameSession
         Selected = null;
         Hovered = null;
         Mode = ActionMode.Move;
-        Adopt(Game.Start(fight, seed));
+
+        var start = Game.Start(fight, seed);
+
+        if (Recording)
+        {
+            _recorder = new CombatRecorder(fight, seed);
+            _recorder.RecordStart(start);
+        }
+
+        Adopt(start);
     }
 
     /// <summary>Applies a command and folds the result into the session.</summary>
     /// <param name="command">Command drawn from <see cref="Legal"/>.</param>
     public void Submit(Command command)
     {
-        Adopt(Game.Apply(State, command));
+        var before = State;
+        var result = Game.Apply(before, command);
+
+        _recorder?.RecordStep(command, before, result);
+
+        Adopt(result);
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
     }
+
+    /// <summary>
+    /// Turns combat logging on or off. Switching it on mid-fight records from that point; the export
+    /// says so rather than offering a command log that cannot be replayed. Switching it off drops
+    /// everything recorded.
+    /// </summary>
+    /// <param name="on">Whether to record.</param>
+    public void SetRecording(bool on)
+    {
+        if (on == Recording)
+        {
+            return;
+        }
+
+        _recorder = on ? new CombatRecorder(Fight, Seed) : null;
+    }
+
+    /// <summary>
+    /// The full export — command log first so the file is re-runnable, then the event log. Empty
+    /// when recording is off.
+    /// </summary>
+    /// <returns>The export text.</returns>
+    public string RenderCombatLog() => _recorder?.Export() ?? string.Empty;
 
     /// <summary>Selects a unit to act with, when Core allows it.</summary>
     /// <param name="id">Unit to select.</param>
@@ -245,16 +304,20 @@ public sealed class GameSession
     public UnitId? PendingDeployUnit =>
         Legal.OfType<DeployCommand>().Select(d => (UnitId?)d.UnitId).FirstOrDefault();
 
-    /// <summary>True when the enemy side owes an activation. M3 replaces the pass with real AI.</summary>
+    /// <summary>True when the enemy side owes an activation.</summary>
     public bool AwaitingEnemy => Game.IsEnemyTurn(State) && Legal.Count > 0;
 
-    /// <summary>Resolves one pending enemy activation.</summary>
+    /// <summary>
+    /// Resolves one step of the pending enemy activation by submitting whatever Core's planner
+    /// chose. The command goes through <see cref="Game.Apply"/> like any other, so the log stays a
+    /// complete recording of the fight.
+    /// </summary>
     public void ResolveEnemyActivation()
     {
-        var pass = Legal.OfType<EndActivationCommand>().FirstOrDefault();
-        if (pass is not null)
+        var command = Game.NextEnemyCommand(State);
+        if (command is not null)
         {
-            Submit(pass);
+            Submit(command);
         }
     }
 

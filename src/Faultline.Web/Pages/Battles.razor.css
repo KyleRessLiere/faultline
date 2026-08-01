@@ -143,10 +143,23 @@ ul.issues {
     color: var(--muted);
 }
 
+.shipped-note {
+    color: var(--muted);
+    font-size: .72rem;
+    line-height: 1.45;
+    margin: auto 0 0;
+}
+
 .fight-card footer {
+    align-items: center;
     display: flex;
+    flex-wrap: wrap;
     gap: .4rem;
     margin-top: auto;
+}
+
+.fight-card footer .action {
+    margin-right: 0;
 }
 
 .tag.custom {

@@ -61,7 +61,7 @@ namespace Faultline.Core
         public static bool CanPull(GameState state, Unit attacker, Unit target)
         {
             var template = attacker.Template;
-            if (!template.CanPullWithBasic || !attacker.IsOnBoard || !target.IsOnBoard)
+            if (template.BasicPull <= 0 || !attacker.IsOnBoard || !target.IsOnBoard)
             {
                 return false;
             }
@@ -78,23 +78,48 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Every tile the unit's basic attack reaches, so a shell can show its threat range without
-        /// working the geometry out for itself.
+        /// Whether the attacker may spend its action on a standalone shove. Brief §2 gives only the
+        /// Stalker one: its whole contribution is "Push 1 toward the hazard".
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="attacker">Shoving unit.</param>
+        /// <param name="target">Target unit.</param>
+        /// <returns>Whether a basic push is legal.</returns>
+        public static bool CanPush(GameState state, Unit attacker, Unit target)
+        {
+            var template = attacker.Template;
+            if (template.BasicPush <= 0 || !attacker.IsOnBoard || !target.IsOnBoard)
+            {
+                return false;
+            }
+
+            if (!attacker.Team.IsHostileTo(target.Team))
+            {
+                return false;
+            }
+
+            int range = template.Range < 1 ? 1 : template.Range;
+            int distance = attacker.Position.DistanceTo(target.Position);
+            return distance >= 1 && distance <= range;
+        }
+
+        /// <summary>
+        /// Every tile the unit's basic action reaches, so a shell can show its threat range without
+        /// working the geometry out for itself. Covers the shove-only archetypes too.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="attacker">Unit to measure from.</param>
-        /// <returns>Tiles within basic attack range, excluding the unit's own.</returns>
+        /// <returns>Tiles within basic action range, excluding the unit's own.</returns>
         public static IReadOnlyList<Coord> RangeTiles(GameState state, Unit attacker)
         {
             var tiles = new List<Coord>();
             var template = attacker.Template;
 
-            if (template.Attack == AttackKind.None || !attacker.IsOnBoard)
+            int range = template.BasicReach;
+            if (range <= 0 || !attacker.IsOnBoard)
             {
                 return tiles;
             }
-
-            int range = template.Attack == AttackKind.Melee ? 1 : template.Range;
 
             foreach (var coord in state.Board.AllCoords())
             {

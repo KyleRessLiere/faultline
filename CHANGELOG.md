@@ -1,5 +1,48 @@
 # Changelog
 
+## Combat log
+
+- Core renders the event stream as a deterministic tab-separated transcript: five columns
+  (`round`, `slot`, `actor`, `event`, `detail`), oldest first, no clock and no hash-ordered
+  iteration. The same seed and command log produce a byte-identical log, so two runs can be diffed.
+- Exported as one file in two sections: the command log first, which re-runs the fight exactly, then
+  the event log, which reads without re-running it.
+- Recording is opt-in and off by default, because the cost grows with the length of the fight. The
+  board screen can save it to a folder, download it, or copy it.
+- A reflection-driven test constructs every `GameEvent` type and asserts each produces its own line,
+  so an event added later cannot go silently unlogged.
+
+## M3 — Enemy AI
+
+- `Ai.Plan` implements Brief §2's priority lists verbatim for all five enemy archetypes. Pure
+  function of state, no `IRng` anywhere in the file; ties break on the archetype's own criterion,
+  then lowest unit id, then row-major coordinate order.
+- An activation that walks into reach still spends its action (D-022); a clinging player next to an
+  enemy that has an attack is finished as a free action (D-025).
+- Grappler and Stalker act through displacement: `AttackMode.Pull` now carries the profile's distance
+  (Threadcaster 1, Grappler 2) and a new `AttackMode.Push` carries the Stalker's 1. Both are ordinary
+  legal commands resolved by the same `Displacement` code a player's shove runs through.
+- **Intents.** Every enemy declares its whole plan at round start as `IntentDeclared` — action,
+  target, destination tile and the projected displacement — and the plan lives in
+  `GameState.Intents`. An intent locks its *target*, not its route (D-021): a target that walks away
+  is chased, a target that dies triggers an immediate, visible re-declaration.
+- `Game.NextEnemyCommand` hands the shell the planner's choice; it goes through `Game.Apply` like any
+  other command, so seed + command log still replays a full AI fight to an identical state and hash.
+- Shell: enemy intents panel, telegraph lines in the log, and enemy slots resolved by the planner
+  instead of passing.
+
+## Any battle is editable
+
+- Every card in the picker gains **Edit** and **Duplicate**, campaign battles included.
+- Editing a campaign battle loads it as a **new** scenario under a derived id (`first-contact-edit`),
+  because an embedded resource cannot be written from the running app. The UI says so rather than
+  implying the original changed.
+- Editing a saved scenario writes back over it behind a confirmation, with save-as-a-copy alongside.
+- A paste box imports `.fight` text through `FightParser`, showing the same errors and lints as
+  everything else — the way to get a battle from a file or a teammate into a sandboxed browser app.
+- A round-trip badge shows whether the loaded battle regenerates identically, so a silent corruption
+  in load-then-save would be visible rather than discovered later.
+
 ## Battle select and the scenario creator
 
 - Battle select at `/`, the board moved to `/play`. Every fight from `FightLibrary` with its number,

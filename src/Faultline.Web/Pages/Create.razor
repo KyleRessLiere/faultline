@@ -22,6 +22,43 @@
         </div>
     </header>
 
+    @if (_origin != Origin.Blank)
+    {
+        <section class="loaded-banner @BannerClass">
+            <p class="banner-head">@BannerHead</p>
+            <p class="banner-text">@BannerText</p>
+
+            @if (_roundTrip is not null)
+            {
+                <p class="roundtrip @(_roundTrip.Value ? "ok" : "off")">
+                    @if (_roundTrip.Value)
+                    {
+                        <span>
+                            Round trip verified — regenerating <code>@_sourceId</code> from this draft
+                            reproduces the source file character for character: same board, same terrain,
+                            same deploy zones, same enemies, same rosters.
+                        </span>
+                    }
+                    else
+                    {
+                        <span>
+                            Round trip is <strong>not</strong> exact for <code>@_sourceId</code>: @_roundTripDiff
+                            Compare the two panels below before you save.
+                        </span>
+                    }
+                </p>
+            }
+
+            @if (_sourceText.Length > 0)
+            {
+                <details class="filetext">
+                    <summary>Source .fight as loaded (@_sourceId)</summary>
+                    <pre>@_sourceText</pre>
+                </details>
+            }
+        </section>
+    }
+
     <div class="creator-body">
         <section class="paint">
             <div class="panel">
@@ -123,6 +160,16 @@
                         </button>
                     }
                 </div>
+
+                @if (_draft.Protected.Count > 0)
+                {
+                    <p class="note">
+                        Carried over from the loaded file: <strong>@_draft.Protected.Count protected tile(s)</strong>
+                        (@ProtectedList) the collapse clock never cracks. The creator has no brush for these, but
+                        they are written back unchanged.
+                        <button class="action secondary" @onclick="ClearProtected">Drop them</button>
+                    </p>
+                }
             </div>
         </section>
 
@@ -194,6 +241,23 @@
 
             <div class="panel">
                 <h2>Save</h2>
+
+                @if (_confirming)
+                {
+                    <div class="confirm">
+                        <p class="confirm-head">Replace <code>@Slug</code>?</p>
+                        <p class="note">
+                            This browser already holds a scenario with that id. Replacing it overwrites the
+                            stored file and cannot be undone.
+                        </p>
+                        <div class="row">
+                            <button class="action danger" @onclick="ConfirmOverwrite">Replace it</button>
+                            <button class="action secondary" @onclick="SaveAsCopy">Save as a copy</button>
+                            <button class="action secondary" @onclick="CancelOverwrite">Cancel</button>
+                        </div>
+                    </div>
+                }
+
                 <div class="row">
                     <button class="action secondary" disabled="@(!CanPlay || !_canSaveToDirectory)" @onclick="SaveToFolder">
                         Save .fight to a folder…
@@ -201,8 +265,11 @@
                     <button class="action secondary" disabled="@(!CanPlay)" @onclick="Download">
                         Download .fight
                     </button>
-                    <button class="action secondary" disabled="@(!CanPlay)" @onclick="SaveToBrowser">
-                        Save to this browser
+                    <button class="action" disabled="@(!CanPlay)" @onclick="SaveToBrowser">
+                        @SaveToBrowserLabel
+                    </button>
+                    <button class="action secondary" disabled="@(!CanPlay)" @onclick="SaveAsCopy">
+                        Save as a copy
                     </button>
                 </div>
 
@@ -213,7 +280,8 @@
 
                 <p class="note">
                     <strong>Save to this browser</strong> puts the scenario in localStorage. It survives a
-                    refresh and appears in the battle list right away.
+                    refresh and appears in the battle list right away. Saving over an id that is already
+                    there asks first; <strong>Save as a copy</strong> always takes a fresh id.
                 </p>
                 <p class="note">
                     <strong>Save .fight to a folder</strong> writes a real file — put it in
@@ -230,10 +298,62 @@
                     </p>
                 }
 
-                <details class="filetext">
+                <details class="filetext" open="@(_roundTrip == false)">
                     <summary>Generated .fight file</summary>
                     <pre>@_text</pre>
                 </details>
+            </div>
+
+            <div class="panel">
+                <h2>Import</h2>
+                <p class="note">
+                    Paste the contents of a <code>.fight</code> file — one a teammate sent you, or one
+                    sitting on disk. The browser cannot read a file off your machine on its own, so paste is
+                    the way in. It goes through <code>FightParser</code>, exactly like every other battle.
+                </p>
+
+                <textarea class="paste" rows="8" placeholder="id: … / name: … / roster a: … / board: …"
+                          @bind="_importText" @bind:event="oninput"></textarea>
+
+                <div class="row">
+                    <button class="action" disabled="@(_importText.Trim().Length == 0)" @onclick="Import">
+                        Load pasted .fight
+                    </button>
+                    <button class="action secondary" disabled="@(_importText.Length == 0)" @onclick="ClearImport">
+                        Clear
+                    </button>
+                </div>
+
+                @if (_importResult is not null)
+                {
+                    @if (_importResult.Errors.Count > 0)
+                    {
+                        <p class="verdict bad">
+                            @_importResult.Errors.Count error(s) — nothing was loaded, the editor is untouched.
+                        </p>
+                        <ul class="issues errors">
+                            @foreach (var issue in _importResult.Errors)
+                            {
+                                <li><span class="code">@issue.Code</span> line @issue.Line: @issue.Message</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="verdict good">Parsed — loaded into the editor.</p>
+                    }
+
+                    @if (_importResult.Lints.Count > 0)
+                    {
+                        <p class="verdict warn">@_importResult.Lints.Count lint(s) in the pasted file.</p>
+                        <ul class="issues lints">
+                            @foreach (var issue in _importResult.Lints)
+                            {
+                                <li><span class="code">@issue.Code</span> @issue.Message</li>
+                            }
+                        </ul>
+                    }
+                }
             </div>
         </section>
     </div>
@@ -298,8 +418,6 @@
 </div>
 
 @code {
-    private static readonly int[] Sizes = { 5, 6, 7, 8, 9 };
-
     private static readonly (TileType Tile, string Label)[] Terrains =
     {
         (TileType.Open, "Open"),
@@ -328,6 +446,15 @@
         Erase,
     }
 
+    /// <summary>Where the draft currently in the editor came from.</summary>
+    private enum Origin
+    {
+        Blank,
+        Campaign,
+        Browser,
+        Pasted,
+    }
+
     private ScenarioDraft _draft = ScenarioDraft.Blank();
     private BrushMode _mode = BrushMode.Terrain;
     private TileType _tile = TileType.Wall;
@@ -342,6 +469,35 @@
     private string? _writeError;
     private string? _status;
 
+    private Origin _origin = Origin.Blank;
+    private bool _copying;
+
+    // The stored id this draft replaces when saved, or null when saving always creates something new.
+    private string? _replaces;
+    private string _sourceId = string.Empty;
+    private string _sourceName = string.Empty;
+    private string _sourceText = string.Empty;
+    private bool? _roundTrip;
+    private string? _roundTripDiff;
+
+    private string _importText = string.Empty;
+    private FightParseResult? _importResult;
+
+    private bool _confirming;
+    private string _query = string.Empty;
+
+    /// <summary>Id of a fight to open in the editor, from the query string.</summary>
+    [SupplyParameterFromQuery(Name = "edit")]
+    public string? EditId { get; set; }
+
+    /// <summary>Where to look for it: <c>campaign</c> or <c>browser</c>.</summary>
+    [SupplyParameterFromQuery(Name = "from")]
+    public string? From { get; set; }
+
+    /// <summary>When 1, open it as a duplicate rather than as an edit.</summary>
+    [SupplyParameterFromQuery(Name = "copy")]
+    public int Copy { get; set; }
+
     private IReadOnlyList<FightIssue> Errors => _result?.Errors ?? Array.Empty<FightIssue>();
 
     private IReadOnlyList<FightIssue> Lints => _result?.Lints ?? Array.Empty<FightIssue>();
@@ -350,7 +506,88 @@
 
     private string Slug => CustomFightStore.Slug(_draft.Id);
 
+    // The size pickers offer the creator's own range, plus whatever a loaded file actually is, so a
+    // board authored outside the creator is never silently cropped to fit the dropdown.
+    private IEnumerable<int> Sizes
+    {
+        get
+        {
+            var sizes = new List<int>();
+            for (int size = ScenarioDraft.MinSize; size <= ScenarioDraft.MaxSize; size++)
+            {
+                sizes.Add(size);
+            }
+
+            foreach (int size in new[] { _draft.Width, _draft.Height })
+            {
+                if (!sizes.Contains(size))
+                {
+                    sizes.Add(size);
+                }
+            }
+
+            sizes.Sort();
+            return sizes;
+        }
+    }
+
+    private string ProtectedList => string.Join(" ", _draft.Protected.Select(c => $"{c.X},{c.Y}"));
+
+    private string SaveToBrowserLabel =>
+        _replaces is not null && string.Equals(_replaces, Slug, StringComparison.Ordinal)
+            ? "Save over " + _replaces
+            : "Save to this browser";
+
+    private string BannerClass => _origin == Origin.Campaign ? "warn" : "info";
+
+    private string BannerHead => _origin switch
+    {
+        Origin.Campaign when _copying => $"Duplicated from the campaign battle “{_sourceName}”",
+        Origin.Campaign => $"Editing the campaign battle “{_sourceName}” — as a new scenario",
+        Origin.Browser when _copying => $"Duplicated from your saved scenario “{_sourceName}”",
+        Origin.Browser => $"Editing your saved scenario “{_sourceName}”",
+        Origin.Pasted => $"Loaded pasted .fight “{_sourceName}”",
+        _ => string.Empty,
+    };
+
+    private string BannerText => _origin switch
+    {
+        Origin.Campaign =>
+            $"{_sourceId} is compiled into the app as an embedded resource, so nothing running in this browser "
+            + $"can change it. The draft below has been given a new id ({Slug}) and saves as its own scenario — "
+            + "the original stays exactly as shipped. To actually replace it, save a .fight into "
+            + "src/Faultline.Core/Fights/Data/ and rebuild.",
+        Origin.Browser when _copying =>
+            $"A copy of {_sourceId}, under the new id {Slug}. Saving to this browser adds it alongside the original.",
+        Origin.Browser =>
+            $"Saving to this browser writes back over {_sourceId}, replacing what is stored there. "
+            + "It will ask first, and Save as a copy keeps both.",
+        Origin.Pasted =>
+            "Nothing has been saved yet. Save it to this browser to keep it, or download the .fight.",
+        _ => string.Empty,
+    };
+
     protected override void OnInitialized() => Revalidate();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload only when the query actually changes, so a re-render never throws away an edit.
+        var query = $"{From}|{EditId}|{Copy}";
+        if (string.Equals(query, _query, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _query = query;
+
+        if (string.IsNullOrWhiteSpace(EditId))
+        {
+            return;
+        }
+
+        await Store.LoadAsync();
+        LoadRequested();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -361,6 +598,119 @@
             StateHasChanged();
         }
     }
+
+    private void LoadRequested()
+    {
+        bool copy = Copy == 1;
+
+        if (string.Equals(From, "browser", StringComparison.OrdinalIgnoreCase))
+        {
+            var stored = Store.Find(EditId);
+            if (stored is null)
+            {
+                _status = $"No scenario called '{EditId}' is stored in this browser.";
+                return;
+            }
+
+            if (stored.Result.Fight is null)
+            {
+                // A stored file that no longer parses cannot be painted. Put the text in the import box
+                // with the parser's own verdict so it can be fixed by hand instead of vanishing.
+                _importText = stored.Text;
+                _importResult = stored.Result;
+                _status = $"'{stored.Id}' has parse errors, so it could not be opened in the editor. "
+                    + "Its text is in the Import box below with the errors listed.";
+                return;
+            }
+
+            Adopt(stored.Result.Fight, Origin.Browser, copy);
+            return;
+        }
+
+        foreach (var result in GameSession.Library)
+        {
+            if (result.Fight is not null && string.Equals(result.Fight.Id, EditId, StringComparison.OrdinalIgnoreCase))
+            {
+                Adopt(result.Fight, Origin.Campaign, copy);
+                return;
+            }
+        }
+
+        _status = $"No campaign battle called '{EditId}'.";
+    }
+
+    /// <summary>
+    /// Loads a fight into the editor and proves the load was lossless: the draft is written back out
+    /// and compared, character for character, against the canonical text of what came in.
+    /// </summary>
+    private void Adopt(FightDefinition fight, Origin origin, bool copy)
+    {
+        _draft = ScenarioDraft.From(fight);
+        _origin = origin;
+        _copying = copy;
+        _sourceId = fight.Id;
+        _sourceName = string.IsNullOrWhiteSpace(fight.Name) ? fight.Id : fight.Name;
+        _confirming = false;
+        _status = null;
+
+        try
+        {
+            _sourceText = FightWriter.Write(fight);
+            var regenerated = FightWriter.Write(_draft.ToDefinition());
+            _roundTrip = string.Equals(_sourceText, regenerated, StringComparison.Ordinal);
+            _roundTripDiff = _roundTrip.Value ? null : FirstDifference(_sourceText, regenerated);
+        }
+        catch (ArgumentException ex)
+        {
+            _sourceText = string.Empty;
+            _roundTrip = false;
+            _roundTripDiff = ex.Message;
+        }
+
+        // A campaign battle is an embedded resource; nothing here can write to it. Rename up front so
+        // every save path in this page is honestly creating something new.
+        if (origin == Origin.Campaign || copy)
+        {
+            string suffix = origin == Origin.Campaign && !copy ? "-edit" : "-copy";
+            _draft.Id = Store.FreeId(CustomFightStore.Slug(fight.Id) + suffix);
+            _draft.Name = fight.Name + (origin == Origin.Campaign && !copy ? " (edited)" : " (copy)");
+            _replaces = null;
+        }
+        else
+        {
+            _replaces = origin == Origin.Browser ? CustomFightStore.Slug(fight.Id) : null;
+        }
+
+        Revalidate();
+    }
+
+    private static string FirstDifference(string expected, string actual)
+    {
+        int limit = Math.Min(expected.Length, actual.Length);
+        for (int i = 0; i < limit; i++)
+        {
+            if (expected[i] != actual[i])
+            {
+                int line = 1;
+                for (int j = 0; j < i; j++)
+                {
+                    if (expected[j] == '\n')
+                    {
+                        line++;
+                    }
+                }
+
+                return $"they first differ on line {line} — source has '{Show(expected[i])}', "
+                    + $"the regenerated file has '{Show(actual[i])}'.";
+            }
+        }
+
+        return expected.Length == actual.Length
+            ? "the two texts are the same length but compare unequal."
+            : $"one runs longer than the other ({expected.Length} vs {actual.Length} characters).";
+    }
+
+    private static string Show(char c) => c == '\n' ? "\\n" : c.ToString();
 
     private void Revalidate()
     {
@@ -376,6 +726,31 @@
             _result = null;
             _text = string.Empty;
         }
+    }
+
+    private void Import()
+    {
+        _importResult = FightParser.Parse(_importText);
+        if (_importResult.Fight is null)
+        {
+            _status = null;
+            return;
+        }
+
+        Adopt(_importResult.Fight, Origin.Pasted, copy: false);
+        _status = $"Loaded '{_importResult.Fight.Id}' from the pasted text. Nothing is saved yet.";
+    }
+
+    private void ClearImport()
+    {
+        _importText = string.Empty;
+        _importResult = null;
+    }
+
+    private void ClearProtected()
+    {
+        _draft.Protected.Clear();
+        Revalidate();
     }
 
     private bool IsTerrain(TileType tile) => _mode == BrushMode.Terrain && _tile == tile;
@@ -506,7 +881,14 @@
     {
         if (template.Attack == AttackKind.None)
         {
-            return "none";
+            if (template.CanPullWithBasic)
+            {
+                return $"no attack · range {template.Range} · pull {template.BasicPull}";
+            }
+
+            return template.CanPushWithBasic
+                ? $"no attack · melee · push {template.BasicPush}"
+                : "none";
         }
 
         string reach = template.Attack == AttackKind.Melee ? "melee" : $"range {template.Range}";
@@ -519,7 +901,7 @@
 
         if (template.CanPullWithBasic)
         {
-            text += " · may pull 1 instead";
+            text += $" · may pull {template.BasicPull} instead";
         }
 
         return text;
@@ -591,6 +973,7 @@
     private void OnIdChanged(ChangeEventArgs args)
     {
         _draft.Id = args.Value?.ToString() ?? string.Empty;
+        _confirming = false;
         Revalidate();
     }
 
@@ -626,6 +1009,15 @@
     private void ResetDraft()
     {
         _draft = ScenarioDraft.Blank();
+        _origin = Origin.Blank;
+        _copying = false;
+        _replaces = null;
+        _sourceId = string.Empty;
+        _sourceName = string.Empty;
+        _sourceText = string.Empty;
+        _roundTrip = null;
+        _roundTripDiff = null;
+        _confirming = false;
         _status = null;
         Revalidate();
     }
@@ -666,7 +1058,51 @@
 
     private async Task SaveToBrowser()
     {
-        var slug = await Store.SaveAsync(_draft.Id, _text);
-        _status = $"Saved '{slug}' to this browser. It is in the battle list now — no rebuild needed.";
+        await Store.LoadAsync();
+
+        // Overwriting a stored scenario destroys it. Ask once, unless the user already answered.
+        if (Store.Exists(Slug))
+        {
+            _confirming = true;
+            _status = null;
+            return;
+        }
+
+        await Write(Slug, replaced: false);
+    }
+
+    private Task ConfirmOverwrite()
+    {
+        _confirming = false;
+        return Write(Slug, replaced: true);
+    }
+
+    private void CancelOverwrite()
+    {
+        _confirming = false;
+        _status = "Nothing saved.";
+    }
+
+    private async Task SaveAsCopy()
+    {
+        _confirming = false;
+        await Store.LoadAsync();
+
+        var id = Store.FreeId(Slug.EndsWith("-copy", StringComparison.Ordinal) ? Slug : Slug + "-copy");
+        _draft.Id = id;
+        _copying = true;
+        _replaces = null;
+        Revalidate();
+
+        await Write(id, replaced: false);
+    }
+
+    private async Task Write(string id, bool replaced)
+    {
+        var slug = await Store.SaveAsync(id, _text);
+        _replaces = slug;
+        _status = replaced
+            ? $"Replaced '{slug}' in this browser. The battle list shows the new version."
+            : $"Saved '{slug}' to this browser. It is in the battle list now — no rebuild needed.";
     }
 }
