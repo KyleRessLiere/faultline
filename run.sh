@@ -6,6 +6,7 @@
 #   ./run.sh -p 5300      serve on a different port
 #   ./run.sh -o           open a browser once it is listening
 #   ./run.sh -t           run the test suite first, refuse to serve if it is red
+#   ./run.sh -s           stop whatever is holding the port and exit
 #
 # Flags combine: ./run.sh -w -o
 
@@ -16,6 +17,7 @@ PORT=5199
 WATCH=0
 OPEN=0
 TEST=0
+STOP=0
 
 usage() {
   # Print the header comment block, stopping at the first line that is not a comment.
@@ -29,6 +31,7 @@ while [ $# -gt 0 ]; do
     -w|--watch)  WATCH=1; shift ;;
     -o|--open)   OPEN=1; shift ;;
     -t|--test)   TEST=1; shift ;;
+    -s|--stop)   STOP=1; shift ;;
     -h|--help)   usage ;;
     *)           echo "Unknown option: $1" >&2; echo "Try: $0 --help" >&2; exit 2 ;;
   esac
@@ -48,10 +51,49 @@ fi
 
 url="http://localhost:$PORT"
 
-# A stale server on the same port silently serves old code, which is a confusing way to lose an hour.
+# Find the process listening on a port, on Windows (netstat) or unix (lsof).
+listener_pid() {
+  local p="$1"
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+      netstat -ano 2>/dev/null | awk -v port=":$p" '$0 ~ port && /LISTENING/ { print $NF; exit }'
+      ;;
+    *)
+      lsof -ti "tcp:$p" -sTCP:LISTEN 2>/dev/null | head -1
+      ;;
+  esac
+}
+
+kill_listener() {
+  local p="$1"
+  local target
+  target=$(listener_pid "$p")
+
+  if [ -z "$target" ]; then
+    echo "nothing listening on port $p"
+    return 0
+  fi
+
+  echo "stopping PID $target on port $p"
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) taskkill //PID "$target" //F >/dev/null 2>&1 || true ;;
+    *)                    kill -9 "$target" >/dev/null 2>&1 || true ;;
+  esac
+  sleep 1
+}
+
+if [ "$STOP" -eq 1 ]; then
+  kill_listener "$PORT"
+  exit 0
+fi
+
+# A stale server on the same port keeps serving its own old build output. Because the build writes
+# to that same directory, the assets it serves drift out of sync and the app dies on boot with an
+# unhelpful "unhandled error". Refuse to add a second one.
 if curl -fsS -o /dev/null --max-time 2 "$url" 2>/dev/null; then
   echo "error: something is already serving $url" >&2
-  echo "       stop it, or pick another port:  $0 -p $((PORT + 1))" >&2
+  echo "       stop it:        $0 -s -p $PORT" >&2
+  echo "       or use another: $0 -p $((PORT + 1))" >&2
   exit 1
 fi
 

@@ -22,7 +22,8 @@ param(
     [int]$Port = 5199,
     [switch]$Watch,
     [switch]$Open,
-    [switch]$Test
+    [switch]$Test,
+    [switch]$Stop
 )
 
 $ErrorActionPreference = 'Stop'
@@ -54,9 +55,29 @@ function Test-Listening {
     }
 }
 
-# A stale server on the same port silently serves old code, which is a confusing way to lose an hour.
+function Stop-Listener {
+    param([int]$OnPort)
+    $conn = Get-NetTCPConnection -LocalPort $OnPort -State Listen -ErrorAction SilentlyContinue
+    if (-not $conn) {
+        Write-Host "nothing listening on port $OnPort"
+        return
+    }
+    $procId = ($conn | Select-Object -First 1).OwningProcess
+    Write-Host "stopping PID $procId on port $OnPort"
+    Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+}
+
+if ($Stop) {
+    Stop-Listener -OnPort $Port
+    exit 0
+}
+
+# A stale server on the same port keeps serving its own old build output. Because the build writes
+# to that same directory, the assets it serves drift out of sync and the app dies on boot with an
+# unhelpful "unhandled error". Refuse to add a second one.
 if (Test-Listening -OnPort $Port) {
-    Write-Error "Something is already serving $url. Stop it, or pick another port:  .\run.ps1 -Port $($Port + 1)"
+    Write-Error "Something is already serving $url. Stop it with:  .\run.ps1 -Stop -Port $Port   (or use another port: -Port $($Port + 1))"
     exit 1
 }
 

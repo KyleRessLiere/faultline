@@ -32,20 +32,32 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 ## How to run
 
 ```bash
-./run.sh
+./run.sh          # Git Bash, macOS, Linux
+.\run.ps1         # PowerShell
 ```
 
-Serves on http://localhost:5199. On Windows, run it from Git Bash.
+Serves on http://localhost:5199.
 
-| Flag | Does |
-|---|---|
-| `-w` | hot reload — edits to `.razor`/`.cs` reload the page |
-| `-o` | open a browser once it is listening |
-| `-p 5300` | serve on another port |
-| `-t` | run the tests first, refuse to serve if they are red |
-| `-h` | help |
+| bash | PowerShell | Does |
+|---|---|---|
+| `-w` | `-Watch` | hot reload — edits to `.razor`/`.cs` reload the page |
+| `-o` | `-Open` | open a browser once it is listening |
+| `-p 5300` | `-Port 5300` | serve on another port |
+| `-t` | `-Test` | run the tests first, refuse to serve if they are red |
+| `-s` | `-Stop` | stop whatever is holding the port, and exit |
+| `-h` | `-?` | help |
 
 Flags combine, so `./run.sh -w -o` is the usual loop when iterating on the shell.
+
+**If the page loads to "An unhandled error has occurred", you almost certainly have a stale server.**
+A dev server left running keeps serving its own build output, and a later `dotnet build` rewrites
+that directory underneath it, so the assets it hands the browser stop matching each other. Fix:
+
+```bash
+./run.sh -s && ./run.sh        # or:  .\run.ps1 -Stop ; .\run.ps1
+```
+
+The script refuses to start a second server on an occupied port for exactly this reason.
 
 The equivalent by hand, if you would rather not use the script:
 
