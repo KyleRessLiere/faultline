@@ -9,7 +9,7 @@
 # But a Grappler prefers targets standing on HighGround, a pull off the ledge costs
 # 1 fall damage and KEEPS TRAVELLING, and the pit at (2,1) is one step down from it.
 
-id: hz-the-ledge
+id: hz-03-the-ledge
 number: 203
 name: The Ledge
 description: A four-tile ledge no shove can push you onto and the Anchor can never climb — and a Grappler that wants exactly the unit standing on it.

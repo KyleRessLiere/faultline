@@ -12,7 +12,7 @@
 # and any damage to a clinging unit Voids it outright. Being shoved off there into the pit
 # below is not a rescue problem, it is instant.
 
-id: hz-free-kick
+id: hz-08-free-kick
 number: 208
 name: Free Kick
 description: Four pits with room to stand around them. Dropping something in only half kills it — finishing it from the rim is free, and so is what they do to you.

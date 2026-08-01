@@ -10,7 +10,7 @@
 # hazard on the far side of an enemy, B wants it in between.
 # No high ground here on purpose: the question is what you can convert before they move.
 
-id: hz-standing-room
+id: hz-07-standing-room
 number: 207
 name: Standing Room
 description: Six enemies, every one of them standing beside the thing that kills it, and exactly one round before they all walk away from it.

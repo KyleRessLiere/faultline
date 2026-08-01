@@ -9,7 +9,7 @@
 # there, which is what the two Grapplers on the rim are for — and what your Threadcaster
 # does back to anything that steps onto it.
 
-id: hz-causeway
+id: hz-04-causeway
 number: 204
 name: Causeway
 description: A single-tile bridge over one enormous pit. Nothing can shove you off it — but anything with a pull, on either side, can.

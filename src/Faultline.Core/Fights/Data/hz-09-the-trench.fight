@@ -9,7 +9,7 @@
 # and the first tile it enters is the pit, which is the one case a Footing token cannot fix.
 # The Grappler on the far bank does the identical thing to you across the same trench.
 
-id: hz-trench
+id: hz-09-the-trench
 number: 209
 name: The Trench
 description: A trench with two bridges, two Anchors that no shove will move, and a Grappler doing to you exactly what your Threadcaster does to them.

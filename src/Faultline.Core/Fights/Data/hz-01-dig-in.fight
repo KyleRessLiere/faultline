@@ -9,7 +9,7 @@
 # actually works. A shove whose effective distance EQUALS the distance to the pit is therefore
 # always refused. You have to overshoot by one.
 
-id: hz-dig-in
+id: hz-01-dig-in
 number: 201
 name: Dig In
 description: Four pockets, four pits, and every enemy has one Footing token. A shove that only just reaches the hole is refused — you have to overshoot it.

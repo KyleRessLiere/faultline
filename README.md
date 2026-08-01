@@ -7,6 +7,8 @@ board is the primary weapon.
 - [GAMEPLAY.md](GAMEPLAY.md) — **what the game is today**, with real numbers. Start here to understand
   how it actually plays.
 - [DECISIONS.md](DECISIONS.md) — why those two differ, wherever they do.
+- [docs/BATTLE_CATALOGUE.md](docs/BATTLE_CATALOGUE.md) — **every battle**: board, composition,
+  what it asks the player to overcome, and its review verdict. Generated from the `.fight` files.
 - [FIGHT_FORMAT.md](FIGHT_FORMAT.md) — the authoring reference for battles. Everything a `.fight`
   file can say, and every error and lint the parser reports.
 - [CLAUDE.md](CLAUDE.md) — engineering practices.

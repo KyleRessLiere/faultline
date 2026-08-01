@@ -8,7 +8,7 @@
 # 1 movement and 1 damage and does not Stagger; being SHOVED onto them costs 3 and does.
 # Player B starts north of the belt, alone with both Lobbers, which is the clock.
 
-id: hz-short-way
+id: hz-02-the-short-way
 number: 202
 name: The Short Way
 description: A belt of spikes with one gap. Cross it and bleed, queue for the gap and lose a round, or leave Player B alone under two lobbers.

@@ -9,7 +9,7 @@
 # corpses, and anything bigger comes out of the collision Staggered and travelling one tile
 # further next time — with the pits at the head of each column waiting for it.
 
-id: hz-bone-yard
+id: hz-10-bone-yard
 number: 210
 name: Bone Yard
 description: Two queues of Husks with a pit at the head of each. Bodies are hazards too — a collision hurts both parties and staggers both, and the queue is what turns one shove into two kills.

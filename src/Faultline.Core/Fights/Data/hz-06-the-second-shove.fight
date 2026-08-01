@@ -10,7 +10,7 @@
 # both halves of the chain have to happen inside one round, with two different units.
 # No high ground here on purpose: this fight is entirely about the horizontal.
 
-id: hz-second-shove
+id: hz-06-the-second-shove
 number: 206
 name: The Second Shove
 description: Walls and pits set one tile apart. The first shove only staggers; the Stagger is what makes the second one lethal, and it expires at end of round.

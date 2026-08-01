@@ -10,7 +10,7 @@
 # Player A's three units can afford to lose one to a pit, and Player B's single Threadcaster
 # cannot, because nobody can walk to it in time.
 
-id: hz-long-way-round
+id: hz-05-long-way-round
 number: 205
 name: The Long Way Round
 description: A wall splits the board and the only gap is at the top. Three units on one side can pull each other out; the one unit on the other side gets no second chance.
