@@ -48,7 +48,23 @@ namespace Faultline.Core
         Coord? StructureAt = null,
         int DamageToStructure = 0)
     {
-        /// <summary>True when the unit does not move at all.</summary>
-        public bool IsNoOp => EffectiveDistance <= 0 || Path.Count == 0;
+        /// <summary>
+        /// True when the displacement accomplishes nothing: the unit does not move, and nothing is
+        /// hurt, staggered or dropped by the attempt.
+        /// </summary>
+        /// <remarks>
+        /// A unit standing *against* the wall it is shoved into never enters a tile, and neither does
+        /// one shoved into an ally standing directly behind it — but both are collisions for 2 to
+        /// everyone involved, per GAMEPLAY.md §"Where a displacement stops". Reading an empty
+        /// <see cref="Path"/> as "nothing happened" made the shell describe the game's most basic
+        /// board play — shove the one with its back to something — as "it does not budge".
+        /// </remarks>
+        public bool IsNoOp =>
+            Path.Count == 0
+            && DamageToUnit == 0
+            && DamageToObstacle == 0
+            && DamageToStructure == 0
+            && !WouldStagger
+            && !WouldCling;
     }
 }

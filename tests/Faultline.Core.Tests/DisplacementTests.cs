@@ -11,6 +11,67 @@ public class DisplacementTests
 {
     // --- Collisions -------------------------------------------------------------------
 
+    /// <summary>
+    /// CLAUDE.md makes the push preview rules-critical UI sourced from Core, and the shell prints
+    /// "it does not budge" whenever the preview calls itself a no-op. A unit with its back to a wall
+    /// enters no tile, so reading an empty path as "nothing happened" described a collision for 2 —
+    /// the most basic board play in the game — as an option not worth taking.
+    /// </summary>
+    [Fact]
+    public void Preview_ShoveIntoAnAdjacentWall_IsNotANoOp()
+    {
+        var state = BoardBuilder.Rows("..#")
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Build();
+
+        var husk = state.Find(UnitKind.Husk);
+        var preview = Displacement.Preview(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 1);
+
+        Assert.Empty(preview.Path);
+        Assert.Equal(DisplacementStop.Collision, preview.Stop);
+        Assert.Equal(2, preview.DamageToUnit);
+        Assert.True(preview.WouldStagger);
+        Assert.False(preview.IsNoOp);
+    }
+
+    [Fact]
+    public void Preview_ShoveIntoAUnitStandingDirectlyBehind_IsNotANoOp()
+    {
+        // The double kill this actually produces in first-contact: two Husks back to back, the
+        // second with nowhere to go, both taking 2.
+        var state = BoardBuilder.Open(3, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 2)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 2)
+            .Build();
+
+        var near = state.UnitAt(new Coord(1, 0))!;
+        var preview = Displacement.Preview(state, near.Id, new Coord(0, 0), DisplacementKind.Push, 2);
+
+        Assert.Empty(preview.Path);
+        Assert.Equal(DisplacementStop.Collision, preview.Stop);
+        Assert.Equal(2, preview.DamageToUnit);
+        Assert.Equal(2, preview.DamageToObstacle);
+        Assert.True(preview.WouldDown);
+        Assert.False(preview.IsNoOp);
+    }
+
+    /// <summary>Resistance that eats the shove whole really is nothing, and still reports so.</summary>
+    [Fact]
+    public void Preview_ShoveNegatedOutright_IsStillANoOp()
+    {
+        var state = BoardBuilder.Open(4, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Anchor, 1, 0)
+            .Build();
+
+        var anchor = state.Find(UnitKind.Anchor);
+        var preview = Displacement.Preview(state, anchor.Id, new Coord(0, 0), DisplacementKind.Push, 1);
+
+        Assert.True(preview.IsNoOp);
+    }
+
     [Fact]
     public void Push_IntoWall_MovesOne_DealsCollision_AndStaggers()
     {

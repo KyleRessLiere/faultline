@@ -41,6 +41,18 @@ if (args.Length > 0 && args[0] == "--agency")
     return;
 }
 
+if (args.Length > 0 && args[0] == "--session")
+{
+    Session.Run(args.Skip(1).ToArray());
+    return;
+}
+
+if (args.Length > 0 && args[0] == "--replay")
+{
+    Session.Replay(args.Skip(1).ToArray());
+    return;
+}
+
 if (args.Length > 0 && args[0] == "--probe")
 {
     Faultline.Playtest.Probe.SoftLock(args.Length > 1 && int.TryParse(args[1], out int ps) ? ps : 1);
@@ -65,19 +77,7 @@ for (int i = 0; i < args.Length; i++)
 // Ten runs. The seed is the same for every one of them on purpose — the campaign, the boards and
 // every enemy plan are therefore identical, and the only thing that differs is how the players
 // decide. Anything the runs disagree about is caused by play, not by luck.
-var policies = new Policy[]
-{
-    new FirstLegalPolicy(),
-    new BrawlerPolicy(),
-    new ShoverPolicy(),
-    new CarefulPolicy(),
-    new RandomPolicy("a"),
-    new RandomPolicy("b"),
-    new RandomPolicy("c"),
-    new RandomPolicy("d"),
-    new RandomPolicy("e"),
-    new RandomPolicy("f"),
-};
+var policies = Policies.All();
 
 Directory.CreateDirectory(outDir);
 Console.WriteLine($"Faultline playtest — campaign '{CampaignLibrary.Faultline.Id}', seed {seed}, {policies.Length} runs");

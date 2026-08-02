@@ -372,13 +372,22 @@ public static class View
     /// </summary>
     private static string Outcome(GameState state, AbilityCommand command)
     {
-        if (!command.TargetId.HasValue)
+        var unit = state.FindUnit(command.UnitId);
+        if (unit is null)
         {
             return string.Empty;
         }
 
-        var unit = state.FindUnit(command.UnitId);
-        if (unit is null)
+        // A charge is aimed down a line rather than at a unit, which means Bull Rush — the shove the
+        // whole design is built around — is the one ability that never named a target. Reading only
+        // targeted previews left it as bare text, and a reader choosing between four identical-looking
+        // directions is choosing blind.
+        if (command.Direction.HasValue)
+        {
+            return Charge(state, unit, command.Direction.Value);
+        }
+
+        if (!command.TargetId.HasValue)
         {
             return string.Empty;
         }
@@ -392,6 +401,46 @@ public static class View
         if (preview.IsNoOp)
         {
             return "  => does not move it";
+        }
+
+        return "  => " + Shove(state, preview);
+    }
+
+    /// <summary>What a Bull Rush down a line would do: the run, and the shove at the end of it.</summary>
+    private static string Charge(GameState state, Unit unit, Direction direction)
+    {
+        var preview = Abilities.PreviewCharge(state, unit, direction);
+
+        if (preview.IsNoOp)
+        {
+            return "  => nothing that way";
+        }
+
+        var parts = new List<string>();
+
+        if (preview.Path.Count > 0)
+        {
+            parts.Add($"charges {preview.Path.Count} to {preview.Destination}");
+        }
+
+        if (preview.SelfDamage > 0)
+        {
+            parts.Add($"TAKES {preview.SelfDamage} on the way");
+        }
+
+        parts.Add(preview.Contact is null
+            ? "connects with nothing"
+            : "shoves " + Name(state, preview.Contact.UnitId) + ": " + Shove(state, preview.Contact));
+
+        return "  => " + string.Join(", ", parts);
+    }
+
+    /// <summary>One displacement, in words, straight out of Core's preview.</summary>
+    private static string Shove(GameState state, DisplacementPreview preview)
+    {
+        if (preview.IsNoOp)
+        {
+            return "does not move it";
         }
 
         var parts = new List<string>
@@ -443,7 +492,7 @@ public static class View
             parts.Add("staggers");
         }
 
-        return "  => " + string.Join(", ", parts);
+        return string.Join(", ", parts);
     }
 
     /// <summary>A unit's board token: class letter, cased by side, plus its id.</summary>

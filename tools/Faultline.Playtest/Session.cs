@@ -68,10 +68,15 @@ public static class Session
 
                 var chosen = driver.Legal[index];
                 log.Decisions.Add(new RunLog.Decision(driver.Run.NodeIndex, chosen));
+
+                // Described against the board as it was *before* the command. Describing it after
+                // re-previews the shove from the destination and prints a different move from the
+                // one that was made.
+                var before = driver.Run.Fight!;
                 driver.ClearEvents();
                 driver.Decide(chosen);
 
-                Console.WriteLine("> " + View.Describe(driver.LastBoard ?? driver.Run.Fight!, chosen));
+                Console.WriteLine("> " + View.Describe(before, chosen));
                 foreach (var line in Narrate(driver))
                 {
                     Console.WriteLine("    " + line);

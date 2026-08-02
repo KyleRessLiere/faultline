@@ -1,5 +1,16 @@
 # Changelog
 
+## The push preview stops calling the best shove in the game a no-op
+
+- **A shove into something you are already standing against is no longer described as "it does not
+  budge".** A unit with its back to a wall, or with an ally directly behind it, enters no tile — and
+  `DisplacementPreview.IsNoOp` read that empty path as "nothing happened". It is a collision for 2 to
+  everyone involved, exactly as GAMEPLAY.md has always said. The rule was right; the preview the
+  shell prints from was not, and CLAUDE.md makes that preview rules-critical UI rather than polish.
+- Found by hand-playing `first-contact`, where the shove in question kills **two** Husks at once and
+  charges the Vanguard — while the game says it does nothing. A shove genuinely negated by push
+  resistance still reports as a no-op, which is the case the flag was written for.
+
 ## Command logs record every command again
 
 - **A Pluck spend is written to the command log.** `SpendVerveCommand` had no case in the formatter,
