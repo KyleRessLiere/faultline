@@ -120,6 +120,33 @@ public class EnemyBehaviourTests
         }
     }
 
+    /// <summary>
+    /// The rescue slot is one clause in <see cref="Ai.Compute"/> that every archetype runs, so it is
+    /// step 1 of every documented list — including the Raider's, whose list has no clause about
+    /// player units but plenty about its own side.
+    /// </summary>
+    [Fact]
+    public void EveryPriorityList_OpensWithTheRescueSlot()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            var first = behaviour.Priorities[0];
+
+            Assert.Equal(1, first.Order);
+            Assert.Contains("clinging", first.Detail);
+            Assert.Contains("entire activation", first.Detail);
+            Assert.Contains("lowest unit id", first.Detail);
+
+            // Below a lethal attack on a player unit — and the archetypes for which that clause is
+            // vacuous say so: the ones that deal no damage, and the Raider, which never attacks a
+            // player unit at all (D-045).
+            bool canOutrankIt = behaviour.HasBasicAttack
+                && behaviour.Template.Plan != EnemyPlan.Raider;
+
+            Assert.Contains(canOutrankIt ? "only for a kill" : "Nothing outranks it", first.Detail);
+        }
+    }
+
     // ---- the numbers cannot drift from UnitTemplate --------------------------------------------
 
     [Fact]

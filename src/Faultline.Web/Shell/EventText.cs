@@ -94,7 +94,14 @@ public static class EventText
             IntentAction.Push => $"{walk}shove {target} {intent.DisplacementDistance} → {intent.DisplacementTo}",
             IntentAction.Retreat => $"break away to {intent.MoveTo}",
             IntentAction.Advance => $"close on {target}, move to {intent.MoveTo}",
-            _ => "hold position",
+            IntentAction.Rescue => $"haul {target} out → {intent.DisplacementTo}",
+
+            // Hold is the only remaining action, and it is genuinely "stands still". Anything else
+            // reaching here is a new IntentAction nobody taught this method about — and rendering an
+            // unknown plan as "hold position" is a telegraph that lies, which is the one thing a
+            // telegraph must never do (D-061). Say so instead.
+            IntentAction.Hold => "hold position",
+            _ => intent.Action + " (no telegraph written for this plan)",
         };
     }
 

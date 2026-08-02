@@ -223,6 +223,43 @@ The Grappler's pull and the Stalker's shove are ordinary commands Core accepts, 
 displacement code a player's push runs through — collisions, spikes, pits, Stagger, Anchor
 resistance, Wardbearer Hold and Footing all apply identically (Brief §6 prior 2).
 
+### Enemies pull their own out of pits
+
+**Every enemy priority list has a rescue slot, and it sits above the whole list.** An enemy standing
+next to a clinging **ally** hauls it out — the same rescue the players have always had, on the same
+terms:
+
+- It costs **the entire activation**, both halves. An enemy that has already moved or acted this
+  round cannot rescue.
+- It needs **an empty tile to pull the ally onto**, exactly as a player rescue does.
+- The ally comes out of the pit and stops clinging.
+
+**A lethal attack outranks it.** If the enemy could reduce a player unit to 0 this activation — with
+its own reach, from anywhere it can walk to — it takes the kill and leaves its friend hanging. That
+check counts whoever would *actually* take the blow, so a Guard Stance in front of the target means
+the Wardbearer is who has to be killable for the attack to count as lethal (D-058).
+
+An enemy that deals **no damage at all** — Grappler, Stalker, Harrier — can never have a lethal, so
+it always rescues when it can. The units that cannot hurt you are the ones that pull people out.
+
+**Ties go to the lowest unit id**, so two allies on two lips resolve the same way every replay. An
+enemy that already declared a rescue against one ally **keeps that ally**, even if a lower id starts
+clinging in the meantime — the telegraph stays true (D-061).
+
+**A lethal outranks the rescue, but does not redirect the attack.** The enemy skips the rescue when a
+kill is available, then runs its ordinary priority list — which picks by nearest, not by who is
+killable. So an enemy can decline to help a friend over a kill it then does not take (D-072). Known,
+decided, not a bug.
+
+It is telegraphed like everything else: the intent reads `Rescue`, names the ally, and shows the tile
+it will be pulled onto. The telegraph is corrected mid-round if the slot opens — the usual case being
+the players shoving something into a pit after intents were declared. Nobody can step in front of a rescue, so it is never redirected by a Guard
+Stance.
+
+This is a **planner change, not a rules change**. `Pits.CanRescue` was always team-agnostic and the
+command was always on offer to whoever was activating; the enemy AI simply never chose it. Pits used
+to be a one-way disposal chute, and are now a conversation.
+
 ### Intents
 
 At round start each enemy announces **the whole plan**: what it will do, to whom, which tile it will

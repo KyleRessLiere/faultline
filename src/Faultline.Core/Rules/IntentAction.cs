@@ -23,5 +23,11 @@ namespace Faultline.Core
 
         /// <summary>Shove a target away from the acting unit.</summary>
         Push = 5,
+
+        /// <summary>
+        /// Haul an adjacent ally off a pit lip, spending the whole activation on it. The target is
+        /// the clinging ally, and <see cref="EnemyIntent.DisplacementTo"/> is the tile it lands on.
+        /// </summary>
+        Rescue = 6,
     }
 }

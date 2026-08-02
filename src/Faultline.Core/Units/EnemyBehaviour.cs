@@ -181,6 +181,55 @@ namespace Faultline.Core
                 : null;
         }
 
+        /// <summary>
+        /// The clause every archetype's list now opens with: an enemy hauls its own out of a pit.
+        /// </summary>
+        /// <remarks>
+        /// Added centrally rather than written into each entry, so an archetype cannot be authored
+        /// without it — the slot lives in one place in <see cref="Ai"/> for the same reason.
+        /// </remarks>
+        private static IReadOnlyList<BehaviourStep> WithRescue(EnemyBehaviour behaviour)
+        {
+            var template = behaviour.Template;
+
+            string outranked;
+            if (template.Plan == EnemyPlan.Raider)
+            {
+                outranked = "Nothing outranks it here: this list has no clause about player units at "
+                    + "all (D-045), so there is no killing blow for it to prefer, and a Raider beside "
+                    + "a clinging ally genuinely stops walking at the shrine for a round.";
+            }
+            else if (template.Attack == AttackKind.None)
+            {
+                outranked = $"Nothing outranks it here: with no attack at all ({template.Damage} "
+                    + "damage) it can never have a killing blow to prefer, so it rescues every time.";
+            }
+            else
+            {
+                outranked = $"It passes the rescue over only for a kill — an attack for "
+                    + $"{template.Damage} that would put a player unit on 0 this activation, from "
+                    + "where it stands or from a tile it can still walk to first.";
+            }
+
+            var steps = new List<BehaviourStep>(behaviour.Priorities.Count + 1)
+            {
+                new BehaviourStep(
+                    1,
+                    "Haul an ally off a pit lip",
+                    "An adjacent ally clinging to a pit is pulled out. That spends the entire "
+                    + "activation, move and action both, and places the ally on the first free tile "
+                    + "beside the rescuer in the order up, right, down, left. Two clinging allies "
+                    + "adjacent at once break the tie on lowest unit id. " + outranked),
+            };
+
+            foreach (var step in behaviour.Priorities)
+            {
+                steps.Add(new BehaviourStep(steps.Count + 1, step.Label, step.Detail));
+            }
+
+            return steps;
+        }
+
         private static BehaviourStep[] Steps(params (string Label, string Detail)[] steps)
         {
             var list = new BehaviourStep[steps.Length];
@@ -772,7 +821,8 @@ namespace Faultline.Core
                 {
                     "Displace it. A thing that will not fight back is a thing you can spend the whole "
                     + "fight shoving off its lane — every tile it is pushed sideways is a round the "
-                    + "shrine does not lose hit points.",
+                    + "shrine does not lose hit points. Shoving one of its escorts into a pit beside "
+                    + "it costs it a whole activation of walking, for the same reason.",
                     "Count its walk, not its damage. Work out the round it arrives and make sure the tile "
                     + "it wants is occupied by then; a body on the ring is worth more than a kill.",
                     "Its escorts are the fight. The Raider cannot punish you for standing in the wrong "
@@ -830,6 +880,11 @@ namespace Faultline.Core
                     $"Then void him. Once the tokens are gone he is a {king.MaxHp} HP unit with no push "
                     + "resistance at all, and the pit does not care how many hit points he has left.",
                 });
+
+            foreach (var kind in Order)
+            {
+                table[kind] = table[kind] with { Priorities = WithRescue(table[kind]) };
+            }
 
             return table;
         }

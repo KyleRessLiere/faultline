@@ -75,6 +75,9 @@ namespace Faultline.Core
                 {
                     switch (intent.Action)
                     {
+                        case IntentAction.Rescue when !enemy.HasMoved && Pits.CanRescue(state, enemy, target):
+                            return new RescueCommand(enemy.Id, target.Id);
+
                         case IntentAction.Attack when Combat.CanAttack(state, enemy, target, out _):
                             return new AttackCommand(enemy.Id, target.Id);
 
@@ -215,6 +218,12 @@ namespace Faultline.Core
             // and no intent already redirected, this is exactly the behaviour it always was.
             bool guardsInPlay = Guard.AnyGuarding(state) || AnyRedirected(state);
 
+            // The rescue slot opens and closes without the declared target changing at all: an ally
+            // shoved into a pit during the players' half of the round outranks whatever the enemy
+            // announced at round start. Gated on there being anything hanging off a lip, so a board
+            // with no clinging unit on it plans bit-identically to before.
+            bool lipsInPlay = AnyClinging(state);
+
             foreach (var intent in state.Intents)
             {
                 var enemy = state.FindUnit(intent.UnitId);
@@ -224,16 +233,21 @@ namespace Faultline.Core
                     continue;
                 }
 
-                if (!intent.TargetId.HasValue || IsValidTarget(state, intent.TargetId.Value))
+                if (!intent.TargetId.HasValue || IsValidTarget(state, intent))
                 {
-                    if (!guardsInPlay || !live || enemy.HasActivated || !RedirectMoved(state, intent))
+                    bool replan = live && !enemy.HasActivated
+                        && ((guardsInPlay && RedirectMoved(state, intent))
+                            || (lipsInPlay && RescueChanged(state, intent, enemy)));
+
+                    if (!replan)
                     {
                         updated.Add(intent);
                         continue;
                     }
 
-                    // The target is unchanged; only who eats the blow is. Re-declare with the target
-                    // still locked — a telegraph that lies is worse than no telegraph.
+                    // The target is unchanged; only who eats the blow is, or whether there is now
+                    // somebody to haul out. Re-declare with the target still locked — a telegraph
+                    // that lies is worse than no telegraph.
                     changed = true;
                     var refreshed = Compute(state, enemy, intent.TargetId);
                     updated.Add(refreshed);
@@ -255,11 +269,31 @@ namespace Faultline.Core
             return changed ? state with { Intents = updated } : state;
         }
 
+        // True when the plan's standing on the rescue slot has changed since it was declared: an ally
+        // has started clinging beside this enemy, or the ally it named has been hauled out, finished
+        // off, or outranked by a kill that has walked into reach.
+        private static bool RescueChanged(GameState state, EnemyIntent intent, Unit enemy) =>
+            (intent.Action == IntentAction.Rescue) != (PlanRescue(state, enemy, intent.TargetId) is not null);
+
+        private static bool AnyClinging(GameState state)
+        {
+            foreach (var unit in state.Units)
+            {
+                if (unit.Clinging && unit.IsOnBoard)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // True when the guard that would take this plan is no longer the one the plan was declared
         // against — a stance raised, dropped, or simply walked out of reach since the declaration.
         private static bool RedirectMoved(GameState state, EnemyIntent intent)
         {
-            if (!intent.TargetId.HasValue)
+            // Nobody steps in front of a unit hanging off a lip, so a rescue is never redirected.
+            if (!intent.TargetId.HasValue || intent.Action == IntentAction.Rescue)
             {
                 return false;
             }
@@ -361,7 +395,7 @@ namespace Faultline.Core
 
             if (declared is not null
                 && declared.TargetId.HasValue
-                && IsValidTarget(state, declared.TargetId.Value))
+                && IsValidTarget(state, declared))
             {
                 locked = declared.TargetId.Value;
             }
@@ -371,6 +405,16 @@ namespace Faultline.Core
 
         private static EnemyIntent Compute(GameState state, Unit enemy, UnitId? locked)
         {
+            // One slot on the front of every priority list: below a lethal attack on a player unit,
+            // above everything the archetype would otherwise do. It is here rather than copied into
+            // each Plan* method because it is the same clause for all of them — the Raider included,
+            // whose silence is about players and not about its own side (D-045).
+            var rescue = PlanRescue(state, enemy, locked);
+            if (rescue is not null)
+            {
+                return rescue;
+            }
+
             // The Raider is planned before anybody asks who the player units are, because its list
             // never mentions them. Running the candidate search first would make an empty board of
             // players silence an enemy that was never listening to them (D-041).
@@ -430,6 +474,112 @@ namespace Faultline.Core
                 default:
                     return Hold(enemy);
             }
+        }
+
+        // The clinging ally this enemy would haul out, or null when it would not. Nothing in the
+        // rescue rules is enemy-specific — Pits.CanRescue has always been team-agnostic and the
+        // command has always been on offer — so this is only the choice, never the rule.
+        private static EnemyIntent? PlanRescue(GameState state, Unit enemy, UnitId? locked)
+        {
+            // Brief §2: a rescue is the entire activation, both halves. An enemy that has already
+            // spent either would be declaring a plan Game.Apply is going to refuse.
+            if (enemy.HasMoved || enemy.HasActed)
+            {
+                return null;
+            }
+
+            Unit? pick = null;
+            foreach (var unit in state.Units)
+            {
+                if (!Pits.CanRescue(state, enemy, unit))
+                {
+                    continue;
+                }
+
+                // A plan already declared against one ally keeps it, so the telegraph stays true
+                // even when a lower id starts hanging off a lip in the meantime (D-061).
+                if (locked.HasValue && unit.Id == locked.Value)
+                {
+                    pick = unit;
+                    break;
+                }
+
+                if (pick is null || unit.Id.Value < pick.Id.Value)
+                {
+                    pick = unit;
+                }
+            }
+
+            if (pick is null || Lethal(state, enemy))
+            {
+                return null;
+            }
+
+            return new EnemyIntent(
+                enemy.Id, enemy.Kind, enemy.Position, IntentAction.Rescue,
+                pick.Id, pick.Position, null, null, null, 0,
+                Pits.RescueDestination(state, enemy), 0);
+        }
+
+        // Whether this enemy could put a player unit on 0 with its basic attack this activation —
+        // from where it stands, or from any tile it could still walk to first (D-022). Only the
+        // attack counts: an archetype that deals no damage can never have one, and a shove that
+        // happens to kill is the board's doing rather than a blow the planner is choosing.
+        private static bool Lethal(GameState state, Unit enemy)
+        {
+            var template = enemy.Template;
+            if (template.Attack == AttackKind.None || template.Damage <= 0 || IgnoresUnits(enemy))
+            {
+                return false;
+            }
+
+            var candidates = Candidates(state, enemy);
+            if (candidates.Count == 0)
+            {
+                return false;
+            }
+
+            int reach = template.Attack == AttackKind.Melee ? 1 : template.Range;
+            var reachable = Movement.Reachable(state, enemy);
+
+            foreach (var target in candidates)
+            {
+                // D-058: whoever would actually take the blow is who has to be killed by it.
+                var victim = Guard.Interceptor(state, target) ?? target;
+
+                if (Kills(state, enemy, enemy.Position, target, victim, reach))
+                {
+                    return true;
+                }
+
+                foreach (var pair in reachable)
+                {
+                    if (Kills(state, enemy, pair.Key, target, victim, reach))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool Kills(
+            GameState state, Unit enemy, Coord from, Unit target, Unit victim, int reach)
+        {
+            if (from.DistanceTo(target.Position) > reach)
+            {
+                return false;
+            }
+
+            int damage = enemy.Template.Damage;
+            if (enemy.Template.Attack == AttackKind.Ranged
+                && state.Board.At(from) == TileType.HighGround)
+            {
+                damage += 1;
+            }
+
+            return Guard.Mitigate(state, victim.Id, damage, DamageSource.Attack) >= victim.Hp;
         }
 
         // docs/CURATED_SET.md §5A, Raider: "1. Adjacent to the Protect structure → claw it; 2. else
@@ -1095,6 +1245,23 @@ namespace Faultline.Core
         {
             var unit = state.FindUnit(id);
             return unit is not null && unit.IsOnBoard && !unit.Clinging;
+        }
+
+        // A rescue names a unit that is clinging, which is exactly what an attack plan calls invalid.
+        // The lock is the same idea read the other way round: the plan holds while the ally is still
+        // hanging there and this enemy can still reach it.
+        private static bool IsValidTarget(GameState state, EnemyIntent intent)
+        {
+            var id = intent.TargetId!.Value;
+            if (intent.Action != IntentAction.Rescue)
+            {
+                return IsValidTarget(state, id);
+            }
+
+            var rescuer = state.FindUnit(intent.UnitId);
+            var clinging = state.FindUnit(id);
+            return rescuer is not null && clinging is not null
+                && Pits.CanRescue(state, rescuer, clinging);
         }
 
         private static Unit? FirstAdjacent(Coord from, List<Unit> units)

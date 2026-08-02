@@ -87,10 +87,11 @@ in this file when the question comes back.
 | D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | 2026-08-02 |  |
 | D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | 2026-08-02 |  |
 | D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | 2026-08-02 |  |
-| D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | unreleased |  |
-| D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | unreleased |  |
+| D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | 2026-08-02 |  |
+| D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | 2026-08-02 |  |
+| D-072 | [Every enemy priority list has a rescue slot, above the list and below a lethal.](#d-072-every-enemy-priority-list-has-a-rescue-slot-above-the-list-and-below-a-lethal) | unreleased |  |
 
-**70 rulings.**
+**71 rulings.**
 
 <!-- toc:end -->
 ---
@@ -759,3 +760,50 @@ reason the state types' are.
 **Both were added before debris and multi-tile structures**, deliberately. Those two steps add fields
 to exactly these types, which is precisely when both silent failures would have triggered — and by
 construction, nobody would have been told.
+
+**D-072 — Every enemy priority list has a rescue slot, above the list and below a lethal.**
+Enemies could always *kick* a clinging player off a lip as a free action (D-025), and never pull
+their own out. Pits were a one-way disposal chute. A playtest note asked for the other half.
+
+**A planner change, not a rules change.** `Pits.CanRescue` has always been team-agnostic — it rejects
+only *hostile* rescuer/clinging pairs — and `Game.LegalCommands` has always offered `RescueCommand`
+to whoever was activating, enemies included. The rules were symmetric the whole time; the AI simply
+never looked. Nothing in `Pits` or `ApplyRescue` was touched.
+
+The slot sits in `Ai.Compute`, the single dispatch point before the plan switch, so **every plan gets
+it once** rather than fifteen copies drifting apart in the largest file in Core.
+
+Order: **a lethal attack on a player, then rescue, then the plan's own list.** Lethality is measured
+against whoever would actually take the blow, so a Guard Stance in front of the target means the
+Wardbearer is the one who must be killable (D-058). An enemy with no attack at all can never have a
+lethal, so the Grappler, Stalker and Harrier always rescue when they can — the units that cannot hurt
+you become the ones who pull people out, which is a better accident than anything designed.
+
+**Ties go to the lowest unit id**, and a declared rescue keeps its ally even if a lower id starts
+clinging afterwards. Re-picking would make the telegraph lie about who was being helped (D-061).
+
+**The Raider gets the slot too, and this does not contradict D-045.** That ruling says the Raider's
+list contains no clause about *player units*; a rescue is about an ally. It does mean a Raider will
+stop walking at the shrine for a turn to haul someone out — deliberate, and worth watching in
+playtest, because it is the first thing that has ever interrupted its walk. A pit on a Raider's lane
+is now a delaying tactic.
+
+**The telegraph is corrected the moment the slot opens, not at the activation.** The common way this
+fires is the players shoving an enemy into a pit *after* intents were declared, so
+`Ai.ReplanInvalidated` re-declares an un-activated enemy whose rescue slot opened, closed, or was
+outranked by a kill that walked into reach — the same treatment a dead target and a moved guard
+already get. Gated on something actually clinging, so a board with no pit in play plans
+bit-identically and pays nothing. **Rejected:** leaving it uncorrected, which would have had the
+enemy rescue when it activated while the arrow said "attack" the whole time (D-061).
+
+**"A lethal attack is available" is a gate on the rescue, not a new targeting rule — and there is a
+real gap in that.** The slot is skipped when the enemy could put a player on 0 this activation, from
+where it stands or any tile it can still walk to. But the archetype's own list then runs *unchanged*,
+and those lists pick by nearest or first-adjacent, not by who is killable. **So an enemy can decline
+a rescue on account of a kill it then does not take** — a Husk beside a healthy Vanguard with a 1-HP
+Archer three tiles away skips the rescue and hits the Vanguard.
+
+**Rejected:** hoisting "take the kill" above every priority list. That would silently re-target every
+archetype in every shipped fight — a Lobber would shoot instead of breaking contact — which is a far
+larger behaviour change than this ruling asked for. Recorded here so the gap is a decision somebody
+made rather than a bug nobody noticed.
