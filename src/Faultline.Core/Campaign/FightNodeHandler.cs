@@ -214,8 +214,21 @@ namespace Faultline.Core
             var verveA = new List<int>();
             var verveB = new List<int>();
 
-            BindSide(available, fight.RosterA, Team.PlayerA, bindings, rosterA, hpA, verveA);
-            BindSide(available, fight.RosterB, Team.PlayerB, bindings, rosterB, hpB, verveB);
+            // Campaign boards have their sides resolved here rather than read off the file: every
+            // one of them rosters the same four classes and only disagrees about who holds which,
+            // so the split belongs to the squad (D-092). Everything else keeps what it authored.
+            var wantA = fight.RosterA;
+            var wantB = fight.RosterB;
+
+            if (CampaignLibrary.IsCampaignFight(fight.Id))
+            {
+                var fielded = new List<UnitKind>(fight.RosterA);
+                fielded.AddRange(fight.RosterB);
+                DefaultTeams.Split(fielded, out wantA, out wantB);
+            }
+
+            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, verveA);
+            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, verveB);
 
             adapted = fight with { RosterA = rosterA, RosterB = rosterB };
             loadout = new SquadLoadout { HpA = hpA, HpB = hpB, VerveA = verveA, VerveB = verveB };

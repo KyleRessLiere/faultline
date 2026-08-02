@@ -644,14 +644,18 @@ public class RunTests
     [Fact]
     public void Run_ASideWithNothingLeftToFieldEndsTheRunRatherThanFreezingIt()
     {
-        // Found by tools/Faultline.Playtest on its first sweep: a run whose Vanguard and Archer were
-        // both voided walked into the-shrine, which rosters exactly those two on side A. Deployment
-        // opened on Player A with nothing to place, offered no legal command, and never reached the
-        // objective check — the fight could not start, end, or be left. Frozen is worse than lost.
+        // Found by tools/Faultline.Playtest on its first sweep: a run that had lost both of one
+        // player's classes walked into a board and opened deployment on a side with nothing to
+        // place — no legal command, never reaching the objective check, so the fight could not
+        // start, end, or be left. Frozen is worse than lost.
+        //
+        // Whose two classes those are is read from the default split rather than named here: under
+        // D-092 the Vanguard and the Archer are on opposite sides, and hard-coding them made this
+        // test silently stop testing anything the day that changed.
         var run = RunFixture.Start();
 
         var gutted = run.Squad
-            .Select(u => u.Kind is UnitKind.Vanguard or UnitKind.Archer
+            .Select(u => DefaultTeams.SideFor(u.Kind) == Team.PlayerA
                 ? u with { Hp = 0, Status = RunUnitStatus.Voided }
                 : u)
             .ToList();
