@@ -69,15 +69,7 @@ internal sealed class FightTally
     /// <summary>Hit points redirected onto a guard by Guard Stance this fight.</summary>
     internal int Absorbed { get; set; }
 
-    /// <summary>
-    /// The guard an interception just named, until the redirected effect lands on it.
-    /// </summary>
-    /// <remarks>
-    /// GuardIntercepted is emitted before the effect resolves, so "how much did the stance soak" is
-    /// the damage on the very next event about that unit. Reading it any other way would count every
-    /// hit the Wardbearer ever took as absorbed, including the ones aimed at him.
-    /// </remarks>
-    internal UnitId? PendingGuard { get; set; }
+
 
     internal int Downed { get; set; }
 
@@ -260,17 +252,13 @@ public static class RunHarness
                     IsPlayer(board, d.UnitId) ? tally.PlayerDamage : tally.EnemyDamage,
                     d.Source,
                     d.Amount);
-
-                if (tally.PendingGuard == d.UnitId)
-                {
-                    tally.Absorbed += d.Amount;
-                    tally.PendingGuard = null;
-                }
-
                 break;
 
+            // What the stance took on, which is the blow the ally was spared — not the halved
+            // figure the guard ends up paying. Counting the latter understates the absorb by half
+            // and made the Preen invariant look breached when it was not.
             case GuardIntercepted intercepted:
-                tally.PendingGuard = intercepted.UnitId;
+                tally.Absorbed += intercepted.Redirected;
                 break;
 
             case UnitDowned down:

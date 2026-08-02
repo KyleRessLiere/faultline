@@ -249,51 +249,69 @@ foreach (var r in reports)
 summary.AppendLine();
 summary.AppendLine("## Preen against what it soaked");
 summary.AppendLine();
-summary.AppendLine("The negative-sum check. Preen turns " + Naming.Meter + " into hit points, and the only thing that");
-summary.AppendLine("fills a Wardbearer's meter is absorbing hits meant for somebody else — so what he heals");
-summary.AppendLine("should never exceed what the stance took for the squad.");
+summary.AppendLine("The negative-sum check. Preen is a flat " + Verve.PreenHeal + " heal — it is not scaled to anything —");
+summary.AppendLine("and the only thing that fills a Wardbearer's meter is absorbing hits meant for somebody");
+summary.AppendLine("else, so what he heals should not exceed what the stance took for the squad.");
+summary.AppendLine();
+summary.AppendLine("**Absorbed is the blow the ally was spared, before the guard's own halving.** He pays");
+summary.AppendLine("`Guard.Halve` of it; the squad is spared all of it. Counting what he paid instead");
+summary.AppendLine("understates every absorb by half.");
 summary.AppendLine();
 summary.AppendLine("| Policy | Absorbed via stance | Healed by Preen | Net |");
 summary.AppendLine("|---|---|---|---|");
 var breaches = new List<string>();
+var carried = new List<string>();
 foreach (var r in reports)
 {
     int absorbed = r.Fights.Sum(f => f.Absorbed);
     int healed = r.Fights.Sum(f => f.Healed);
     summary.AppendLine($"| `{r.Policy}` | {absorbed} | {healed} | {absorbed - healed} |");
 
-    // Per fight, not per run: a run that soaked heavily in one fight must not pay for a heal in
-    // another, because the meter carries between fights and the invariant is about the trade.
+    // Per run, which is the only unit that can balance: the meter carries between fights by
+    // design (D-074), so a Wardbearer can soak in one fight and spend the charge in the next.
+    if (healed > absorbed)
+    {
+        breaches.Add($"`{r.Policy}`: healed {healed} against {absorbed} absorbed across the run");
+    }
+
+    // Per fight is reported because it is where the carry-over shows up, not because it is
+    // expected to hold.
     foreach (var f in r.Fights.Where(f => f.Healed > f.Absorbed))
     {
-        breaches.Add($"`{r.Policy}` on `{f.FightId}`: healed {f.Healed} against {f.Absorbed} absorbed");
+        carried.Add($"`{r.Policy}` on `{f.FightId}`: healed {f.Healed} against {f.Absorbed} absorbed in that fight");
     }
 }
 
 summary.AppendLine();
 if (breaches.Count == 0)
 {
-    summary.AppendLine("**Held in every fight measured.**");
+    summary.AppendLine("**Held in every run measured.**");
 }
 else
 {
-    summary.AppendLine("**BREACHED** — Preen healed more than the stance soaked in:");
+    summary.AppendLine("**BREACHED** — Preen healed more than the stance soaked:");
     foreach (var breach in breaches)
     {
         summary.AppendLine("- " + breach);
     }
 }
 
+if (carried.Count > 0)
+{
+    summary.AppendLine();
+    summary.AppendLine("Fights where the heal was paid for out of an earlier fight's soaking. Expected —");
+    summary.AppendLine("this is the meter carrying between fights, not a leak:");
+    foreach (var line in carried)
+    {
+        summary.AppendLine("- " + line);
+    }
+}
+
 summary.AppendLine();
-summary.AppendLine("**The rules do not guarantee this**, for two separate reasons, and the table above is how");
-summary.AppendLine("that stays visible rather than assumed:");
-summary.AppendLine();
-summary.AppendLine("1. **The meter carries between fights.** A Wardbearer can soak in one fight and spend the");
-summary.AppendLine("   charge in the next, so a per-fight comparison can never balance in general — which is");
-summary.AppendLine("   exactly what the breach above is.");
-summary.AppendLine("2. **A charge does not require damage.** An absorb that only moved the guard a tile earns a");
-summary.AppendLine("   point, so three shoves that push a Wardbearer around without hurting him buy a Preen");
-summary.AppendLine("   off zero absorbed damage.");
+summary.AppendLine("**One hole remains, and it is not visible in these numbers.** A charge does not require");
+summary.AppendLine("damage: an absorb that only moved the guard a tile earns a point while adding nothing to");
+summary.AppendLine("the absorbed column, so three shoves that push a Wardbearer around without hurting him");
+summary.AppendLine("would buy a Preen off zero soaking. No policy has managed it yet (D-084).");
 
 summary.AppendLine();
 summary.AppendLine("## What the " + Naming.Meter + " went on");

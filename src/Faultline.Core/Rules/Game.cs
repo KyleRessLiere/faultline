@@ -628,8 +628,10 @@ namespace Faultline.Core
 
             if (guard is not null)
             {
+                // The full blow, not the halved one the guard will pay: this is what the ally was
+                // spared, and it is the only place that figure exists.
                 events.Add(new GuardIntercepted(
-                    guard.Id, target.Id, unit.Id, guard.Position, target.Position));
+                    guard.Id, target.Id, unit.Id, guard.Position, target.Position, damage));
             }
 
             events.Add(new UnitAttacked(
@@ -670,8 +672,10 @@ namespace Faultline.Core
                     state, target.Id, source.Position, kind, distance, events, by: source.Id);
             }
 
+            // A displacement, so nothing was spared in hit points — the guard takes the shove and
+            // whatever the board does to it.
             events.Add(new GuardIntercepted(
-                guard.Id, target.Id, source.Id, guard.Position, target.Position));
+                guard.Id, target.Id, source.Id, guard.Position, target.Position, 0));
 
             return Guard.ResolveAimed(
                 state, source.Position, target, guard.Id, kind, distance, events, by: source.Id);

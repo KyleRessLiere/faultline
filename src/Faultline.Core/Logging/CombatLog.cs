@@ -212,7 +212,10 @@ namespace Faultline.Core
             GuardIntercepted e => "intercepts " + Actor(state, e.AttackerId)
                 + " for " + Actor(state, e.AllyId)
                 + " at " + e.AllyAt
-                + ", it lands on " + e.At + " instead",
+                + ", it lands on " + e.At + " instead"
+                + (e.Redirected > 0
+                    ? " (" + Number(e.Redirected) + " spared, " + Number(Guard.Halve(e.Redirected)) + " taken)"
+                    : string.Empty),
 
             VerveCharged e => (e.Wasted ? "+0 " : "+1 ") + Naming.MeterLower + " at "
                 + e.At

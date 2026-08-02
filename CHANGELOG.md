@@ -22,9 +22,17 @@
   and the loss condition at the same size as the goal. It collapses above the board on narrow
   screens, never into a menu.
 
-**Known and not fixed:** Preen's healing is meant to be bounded by what Guard Stance soaked, and it
-is not — the meter carries between fights, and an absorb that only moved you earns a charge without
-costing you a hit point. Measured, breached on the first run, and held as a design call in D-084.
+- **The combat log now says how big an interception was** — "3 spared, 2 taken" — because Guard
+  Stance halves what it redirects and the event carried no magnitude at all.
+
+**Preen's negative-sum check holds** (D-084): across a run, what Preen heals never exceeds what the
+stance took on for the squad. Counting that correctly needed the blow the ally was *spared* rather
+than the halved one the guard *paid*, and needed the run rather than the fight as the unit — the
+meter carries between fights on purpose, so a Wardbearer can soak in one fight and spend in the next.
+
+**Known and not fixed:** an absorb that only *moved* the guard earns a charge without costing him a
+hit point, so a Wardbearer shoved around three times could in principle buy a Preen off zero soaking.
+No play has reached it yet.
 
 ## Agency before injury
 

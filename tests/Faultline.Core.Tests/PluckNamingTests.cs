@@ -175,7 +175,7 @@ public class GuardAbsorbChargeTests
             events);
 
         events.Insert(0, new GuardIntercepted(
-            wardbearer, archer, guarding.Find(UnitKind.Husk).Id, new Coord(3, 1), new Coord(3, 0)));
+            wardbearer, archer, guarding.Find(UnitKind.Husk).Id, new Coord(3, 1), new Coord(3, 0), 0));
 
         var pushed = events.OfType<UnitPushed>().Single();
         Assert.NotEmpty(pushed.Path);

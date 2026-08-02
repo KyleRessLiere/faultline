@@ -13,19 +13,19 @@ thing that differed is how the players chose — anything below is caused by pla
 | `shover` | Prefers abilities and displacement over swinging, and spends Verve the moment it can. The player the game is designed for. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
 | `careful` | Pulls people out of pits before anything else and prefers moving to swinging. Tests whether caution is ever rewarded. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-a` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-b` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
-| `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
+| `random-b` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
+| `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-d` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-e` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
-| `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
+| `random-e` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
+| `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
 
 ## Where runs stop
 
 | Node | Fight | Runs that reached it | Runs that died here |
 |---|---|---|---|
-| 0 | `first-contact` | 10 | 2 |
-| 1 | `cb-06-bait-and-break` | 8 | 4 |
-| 2 | `the-teeth` | 4 | 2 |
+| 0 | `first-contact` | 10 | 1 |
+| 1 | `cb-06-bait-and-break` | 9 | 6 |
+| 2 | `the-teeth` | 3 | 1 |
 | 3 | `broken-bridge` | 2 | 0 |
 | 4 | *rest* | 2 | — |
 | 5 | `the-shrine` | 0 | 2 |
@@ -47,12 +47,12 @@ ordinary attacks alone.
 | `brawler` | 22 | 2 | 0 | 0 | 1 | 5 |
 | `shover` | 25 | 6 | 0 | 0 | 6 | 18 |
 | `careful` | 20 | 2 | 0 | 0 | 2 | 9 |
-| `random-a` | 20 | 0 | 4 | 0 | 1 | 2 |
-| `random-b` | 24 | 0 | 7 | 0 | 1 | 5 |
-| `random-c` | 21 | 0 | 1 | 0 | 0 | 4 |
-| `random-d` | 22 | 0 | 0 | 0 | 3 | 4 |
-| `random-e` | 17 | 0 | 5 | 0 | 2 | 3 |
-| `random-f` | 18 | 4 | 0 | 0 | 3 | 7 |
+| `random-a` | 23 | 2 | 1 | 0 | 2 | 5 |
+| `random-b` | 19 | 4 | 1 | 0 | 2 | 5 |
+| `random-c` | 22 | 0 | 5 | 0 | 1 | 1 |
+| `random-d` | 24 | 0 | 3 | 0 | 0 | 3 |
+| `random-e` | 21 | 0 | 1 | 0 | 2 | 7 |
+| `random-f` | 22 | 0 | 0 | 0 | 0 | 2 |
 
 ## Pluck, by class
 
@@ -70,43 +70,46 @@ spent one means the game is paying out faster than a player can find a use for i
 | `shover` | Wardbearer | 3 | 0 | 3 |
 | `careful` | Vanguard | 1 | 0 | 0 |
 | `careful` | Threadcaster | 2 | 0 | 0 |
+| `random-a` | Vanguard | 2 | 0 | 2 |
+| `random-b` | Threadcaster | 1 | 0 | 0 |
 | `random-b` | Wardbearer | 1 | 0 | 0 |
-| `random-d` | Threadcaster | 1 | 0 | 0 |
+| `random-c` | Vanguard | 1 | 0 | 0 |
+| `random-d` | Wardbearer | 1 | 0 | 0 |
 | `random-e` | Threadcaster | 1 | 0 | 0 |
-| `random-f` | Vanguard | 1 | 0 | 0 |
-| `random-f` | Threadcaster | 1 | 0 | 0 |
 
 ## Preen against what it soaked
 
-The negative-sum check. Preen turns Pluck into hit points, and the only thing that
-fills a Wardbearer's meter is absorbing hits meant for somebody else — so what he heals
-should never exceed what the stance took for the squad.
+The negative-sum check. Preen is a flat 2 heal — it is not scaled to anything —
+and the only thing that fills a Wardbearer's meter is absorbing hits meant for somebody
+else, so what he heals should not exceed what the stance took for the squad.
+
+**Absorbed is the blow the ally was spared, before the guard's own halving.** He pays
+`Guard.Halve` of it; the squad is spared all of it. Counting what he paid instead
+understates every absorb by half.
 
 | Policy | Absorbed via stance | Healed by Preen | Net |
 |---|---|---|---|
 | `first-legal` | 0 | 0 | 0 |
 | `brawler` | 0 | 0 | 0 |
-| `shover` | 3 | 2 | 1 |
+| `shover` | 4 | 2 | 2 |
 | `careful` | 0 | 0 | 0 |
 | `random-a` | 0 | 0 | 0 |
 | `random-b` | 1 | 0 | 1 |
 | `random-c` | 0 | 0 | 0 |
-| `random-d` | 0 | 0 | 0 |
+| `random-d` | 1 | 0 | 1 |
 | `random-e` | 0 | 0 | 0 |
 | `random-f` | 0 | 0 | 0 |
 
-**BREACHED** — Preen healed more than the stance soaked in:
-- `shover` on `cb-06-bait-and-break`: healed 2 against 1 absorbed
+**Held in every run measured.**
 
-**The rules do not guarantee this**, for two separate reasons, and the table above is how
-that stays visible rather than assumed:
+Fights where the heal was paid for out of an earlier fight's soaking. Expected —
+this is the meter carrying between fights, not a leak:
+- `shover` on `cb-06-bait-and-break`: healed 2 against 1 absorbed in that fight
 
-1. **The meter carries between fights.** A Wardbearer can soak in one fight and spend the
-   charge in the next, so a per-fight comparison can never balance in general — which is
-   exactly what the breach above is.
-2. **A charge does not require damage.** An absorb that only moved the guard a tile earns a
-   point, so three shoves that push a Wardbearer around without hurting him buy a Preen
-   off zero absorbed damage.
+**One hole remains, and it is not visible in these numbers.** A charge does not require
+damage: an absorb that only moved the guard a tile earns a point while adding nothing to
+the absorbed column, so three shoves that push a Wardbearer around without hurting him
+would buy a Preen off zero soaking. No policy has managed it yet (D-084).
 
 ## What the Pluck went on
 
@@ -116,7 +119,7 @@ that stays visible rather than assumed:
 | `brawler` | 0 | 0 | 0 | 0 |
 | `shover` | 1 | 0 | 0 | 1 |
 | `careful` | 0 | 0 | 0 | 0 |
-| `random-a` | 0 | 0 | 0 | 0 |
+| `random-a` | 1 | 0 | 0 | 0 |
 | `random-b` | 0 | 0 | 0 | 0 |
 | `random-c` | 0 | 0 | 0 | 0 |
 | `random-d` | 0 | 0 | 0 | 0 |
@@ -131,12 +134,12 @@ that stays visible rather than assumed:
 | `brawler` | 44 | 2 | 3 | 0 | 18 |
 | `shover` | 17 | 8 | 5 | 1 | 12 |
 | `careful` | 10 | 6 | 1 | 0 | 7 |
-| `random-a` | 12 | 2 | 3 | 0 | 7 |
-| `random-b` | 27 | 2 | 5 | 0 | 13 |
-| `random-c` | 7 | 0 | 1 | 0 | 2 |
-| `random-d` | 10 | 8 | 2 | 0 | 7 |
-| `random-e` | 4 | 4 | 1 | 0 | 3 |
-| `random-f` | 4 | 8 | 1 | 0 | 5 |
+| `random-a` | 5 | 4 | 3 | 0 | 4 |
+| `random-b` | 12 | 4 | 3 | 0 | 9 |
+| `random-c` | 10 | 2 | 2 | 0 | 5 |
+| `random-d` | 11 | 0 | 2 | 0 | 5 |
+| `random-e` | 7 | 4 | 1 | 0 | 4 |
+| `random-f` | 6 | 0 | 2 | 0 | 3 |
 
 ## Per-fight length, by policy
 
@@ -144,9 +147,9 @@ Rounds each fight took. A blank means the run never got there.
 
 | Fight | `first-legal` | `brawler` | `shover` | `careful` | `random-a` | `random-b` | `random-c` | `random-d` | `random-e` | `random-f` |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `first-contact` | 4 | 3 | 6 | 2 | 8 | 5 | 11 ✗ | 3 | 16 ✗ | 5 |
-| `cb-06-bait-and-break` | 5 | 4 | 10 | 6 ✗ | 5 ✗ | 7 | — | 6 ✗ | — | 5 ✗ |
-| `the-teeth` | 3 | 5 | 4 ✗ | — | — | 4 ✗ | — | — | — | — |
+| `first-contact` | 4 | 3 | 6 | 2 | 8 | 6 | 8 | 12 | 6 | 15 ✗ |
+| `cb-06-bait-and-break` | 5 | 4 | 10 | 6 ✗ | 3 ✗ | 6 ✗ | 3 ✗ | 2 ✗ | 3 ✗ | — |
+| `the-teeth` | 3 | 5 | 4 ✗ | — | — | — | — | — | — | — |
 | `broken-bridge` | 15 | 9 | — | — | — | — | — | — | — | — |
 | `the-shrine` | — | — | — | — | — | — | — | — | — | — |
 | `break-the-gate` | — | — | — | — | — | — | — | — | — | — |

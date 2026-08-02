@@ -98,14 +98,14 @@ in this file when the question comes back.
 | D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | 2026-08-02 |  |
 | D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | 2026-08-02 |  |
 | D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | 2026-08-02 |  |
-| D-081 | [A cling nothing can still save resolves the instant it becomes hopeless.](#d-081-a-cling-nothing-can-still-save-resolves-the-instant-it-becomes-hopeless) | unreleased |  |
-| D-082 | [A rescue is an action requiring adjacency, and the rescuer's player chooses where the rescued unit is set down.](#d-082-a-rescue-is-an-action-requiring-adjacency-and-the-rescuers-player-chooses-where-the-rescued-unit-is-set-down) | unreleased |  |
-| D-083 | [What is about to kill you is stated, in words, where you are already looking.](#d-083-what-is-about-to-kill-you-is-stated-in-words-where-you-are-already-looking) | unreleased |  |
-| D-084 | [HELD: whether Preen's healing should be bounded by what Guard Stance actually soaked.](#d-084-held-whether-preens-healing-should-be-bounded-by-what-guard-stance-actually-soaked) | unreleased | *held* |
-| D-085 | [The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.](#d-085-the-meter-is-verve-in-the-code-and-pluck-on-screen-and-one-layer-decides-which) | unreleased |  |
-| D-086 | [Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet spot.](#d-086-spear-thrust-is-1-to-the-adjacent-tile-and-2-to-the-tile-beyond-the-tip-is-the-sweet-spot) | unreleased |  |
-| D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | unreleased |  |
-| D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | unreleased |  |
+| D-081 | [A cling nothing can still save resolves the instant it becomes hopeless.](#d-081-a-cling-nothing-can-still-save-resolves-the-instant-it-becomes-hopeless) | 2026-08-02 |  |
+| D-082 | [A rescue is an action requiring adjacency, and the rescuer's player chooses where the rescued unit is set down.](#d-082-a-rescue-is-an-action-requiring-adjacency-and-the-rescuers-player-chooses-where-the-rescued-unit-is-set-down) | 2026-08-02 |  |
+| D-083 | [What is about to kill you is stated, in words, where you are already looking.](#d-083-what-is-about-to-kill-you-is-stated-in-words-where-you-are-already-looking) | 2026-08-02 |  |
+| D-084 | [The Preen invariant is measured per run, and absorption is counted before the guard's halving. Preen stays a flat 2.](#d-084-the-preen-invariant-is-measured-per-run-and-absorption-is-counted-before-the-guards-halving-preen-stays-a-flat-2) | unreleased |  |
+| D-085 | [The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.](#d-085-the-meter-is-verve-in-the-code-and-pluck-on-screen-and-one-layer-decides-which) | 2026-08-02 |  |
+| D-086 | [Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet spot.](#d-086-spear-thrust-is-1-to-the-adjacent-tile-and-2-to-the-tile-beyond-the-tip-is-the-sweet-spot) | 2026-08-02 |  |
+| D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | 2026-08-02 |  |
+| D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | 2026-08-02 |  |
 
 **87 rulings.**
 
@@ -1123,20 +1123,39 @@ about to decide otherwise.
 **Placement is a ruling, not a preference.** Left of the board, and on a narrow viewport it collapses
 *above* the board — never into a menu. What the fight wants is not a thing to go looking for.
 
-**D-084 — HELD: whether Preen's healing should be bounded by what Guard Stance actually soaked.**
-The Wardbearer spec asks for a negative-sum invariant: across any fight, Preen healing ≤ damage
-absorbed via stance. The harness measures it per fight and **it is breached on the first run** —
-`shover` on `cb-06-bait-and-break` healed 2 against 1 absorbed.
+**D-084 — The Preen invariant is measured per run, and absorption is counted before the guard's
+halving. Preen stays a flat 2.**
+The Wardbearer spec asks that Preen's healing never exceed what Guard Stance absorbed. It does hold —
+but only once two things are counted properly, and the first version of this ruling got both wrong.
 
-**It is not a theorem, for two independent reasons.** The meter *carries between fights* (D-074), so
-a Wardbearer can soak in one fight and spend in the next and no per-fight comparison can balance.
-And a charge does not require damage — an absorb that only moved the guard a tile earns a point, so
-three shoves that push him around without hurting him buy a Preen off zero absorbed damage.
+**Absorption is the blow the ally was spared, not the blow the guard paid.** Guard Stance halves
+attack damage on the way in (`Guard.Halve`, rounded up, minimum 1), so a 2-damage hit redirected onto
+the Wardbearer costs *him* 1 and saves the *squad* 2. The harness was counting the 1. That understates
+every absorb by half and made the invariant look breached when it was not.
+`GuardIntercepted` now carries `Redirected` — the pre-mitigation figure — because that number existed
+nowhere in the event stream and the log could not report the size of an interception either.
 
-**Unblocks on:** a decision about which half to change. Either the invariant becomes per-run rather
-than per-fight, or the Guard charge narrows to damage-only and displacement-absorbs stop counting.
-The second is a real nerf to a Wardbearer facing Stalkers and Grapplers, who deal no damage at all.
-Measured and reported rather than picked, because both are design calls.
+**The unit is the run, not the fight.** The meter carries between fights by design (D-074), so a
+Wardbearer can soak in fight 1, bank the charges, and spend them in fight 2. **That is exactly what
+the one apparent breach was**: `shover` soaked 3 in `first-contact` and spent the Preen in
+`cb-06-bait-and-break`, where it had soaked 1. A per-fight comparison cannot balance in general and
+asking it to would be asking the meter to stop carrying.
+
+**Measured, after both corrections: held in every run.** `shover` 4 absorbed against 2 healed;
+every other policy 0 or 1 against 0. Per-fight is still reported, labelled as carry-over rather than
+as a leak.
+
+**Preen is not coupled to absorption and should not be.** It heals a flat 2. That its *result* is a
+reduction of damage already tanked is an emergent property of what fills the meter, not a scaling
+rule built into the ability — building the coupling in would make the spender's value depend on
+bookkeeping a player cannot see mid-fight.
+
+**One hole is left, and it is real.** A charge does not require damage (D-088 accepts an absorb that
+only *moved* the guard), so a Wardbearer shoved around three times without being hurt could buy a
+Preen off zero soaking. No policy has reached it in play. **Unblocks on:** somebody demonstrating it
+in a real fight, at which point the Guard charge would narrow to damage-only — which is a genuine
+nerf against Stalkers, Grapplers and Harriers, who deal no damage at all, and so is not worth taking
+pre-emptively.
 
 **D-085 — The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.**
 MASTER_DESIGN §15 asks for a stable internal identifier with all display text routed through a
