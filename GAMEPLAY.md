@@ -138,6 +138,15 @@ enemy round that follows, not just the rest of this one — damage and displacem
 - **Impact damage is never mitigated.** Collision, spikes and falls land in full. The board still
   kills it.
 - **Redirects stack.** Two enemies hitting the covered ally in one round both land on the Wardbearer.
+- **It shields an adjacent Protect structure too.** An enemy that would claw at the altar beside it
+  hits the Wardbearer instead (D-096). The structure loses nothing; the Wardbearer takes the
+  **enemy's own attack damage, halved** — not the flat 1 the structure would have lost, because that
+  1 is how fast masonry comes apart and not how hard the thing is swinging. A Colossus clawing at a
+  shielded altar takes the altar to 0 damage and the Wardbearer to **2**.
+- **One activation is one blow.** A Wardbearer covering two tiles of the same structure is in the way
+  of both claws and is hit once. A second enemy clawing is a second blow.
+- **It never shields a `destroy` structure**, whichever side is next to it. Nobody steps in front of
+  the pillar they were sent to bring down.
 - **It can die doing this** — staggered, shoved into a pit, voided. A **clinging** Wardbearer stops
   guarding entirely (D-062), which is what makes *shove the guard into the pit first* the answer.
 
@@ -194,7 +203,7 @@ available, e.g. *needs 2 more move*.
 | Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015). |
 | Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
 | **Fisher** | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
-| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
+| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
@@ -258,7 +267,7 @@ event on the board pays one unit and not another:
 | Vanguard | a collision **he** causes | `Collision` |
 | Fisher | a displacement **she** causes ends in a collision, spikes or a drain — including a Cast landing | `Collision`, `Hazard` |
 | Archer | **she** hits an enemy from HighGround | `HighGround` |
-| Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
+| Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally, taken off the structure beside it, or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
 
 The Fisher is ranged, so a shot of hers from HighGround produces exactly the event the Archer
 charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.
@@ -656,8 +665,12 @@ the only thing that hurts it** — 2 per slam, so four slams for a default 8 HP.
 universal physics, shoving an enemy into a structure you are guarding damages it too.
 
 Enemies do not yet path toward a Protect structure. Instead an enemy that **ends its activation
-adjacent** to one claws at it for its attack damage (D-036) — a stand-in until the planner learns
-about structures.
+adjacent** to one claws at it (D-036) — a stand-in until the planner learns about structures. The
+claw takes **1**, like every attack on a structure, however hard the thing swinging hits (D-060).
+
+A Wardbearer in **Guard Stance** standing next to the structure takes that claw instead, and takes it
+at the enemy's real damage rather than the flat 1 (D-096). One body beside the altar is the answer to
+a siege the planner cannot yet be steered away from.
 
 **`turn-limit: N`** caps the fight. Reaching it is a loss, except under `survive`, where arriving is
 the whole point.

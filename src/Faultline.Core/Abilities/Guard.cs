@@ -4,8 +4,9 @@ namespace Faultline.Core
 {
     /// <summary>
     /// Guard Stance: the bodyguard rule. While a unit is <see cref="Unit.Guarding"/>, an attack or a
-    /// displacement aimed at an adjacent ally is re-aimed onto the guard, and attack damage the guard
-    /// takes is halved.
+    /// displacement aimed at an adjacent ally — or a siege claw aimed at an adjacent structure its
+    /// own side wants standing — is re-aimed onto the guard, and attack damage the guard takes is
+    /// halved.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -56,6 +57,48 @@ namespace Faultline.Core
                 }
 
                 if (unit.Position.IsAdjacentTo(target.Position))
+                {
+                    return unit;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// The guard that would step in front of the structure on <paramref name="at"/>, or
+        /// <c>null</c> when nothing does.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Same shape as <see cref="Interceptor"/> and for the same reason: a body standing next to
+        /// the thing being swung at is in the way of the swing, and the altar the squad was sent to
+        /// hold is no less worth stepping in front of than the archer behind it (D-096).
+        /// </para>
+        /// <para>
+        /// Only a structure the guard's own side wants standing — <see cref="Structure.IsSiegeTarget"/>
+        /// — and never a rubble tile. Nobody shields a pillar they were sent to bring down.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="at">Tile the structure stands on.</param>
+        /// <returns>The shielding guard, or <c>null</c>.</returns>
+        public static Unit? Shield(GameState state, Coord at)
+        {
+            var structure = state?.StructureAt(at);
+            if (structure is null || !structure.IsStanding || !structure.IsSiegeTarget)
+            {
+                return null;
+            }
+
+            foreach (var unit in state!.Units)
+            {
+                if (!unit.Guarding || !unit.IsOnBoard || unit.Clinging || unit.Team == Team.Enemy)
+                {
+                    continue;
+                }
+
+                if (unit.Position.IsAdjacentTo(at))
                 {
                     return unit;
                 }

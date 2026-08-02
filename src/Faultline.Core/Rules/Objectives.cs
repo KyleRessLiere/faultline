@@ -212,12 +212,47 @@ namespace Faultline.Core
                 return state;
             }
 
+            // Guards that have already been mauled stepping in front of this enemy. One activation
+            // is one blow: a guard covering two tiles of the same altar is in the way of both, and
+            // being in the way twice does not mean being hit twice (D-096).
+            var struck = new List<UnitId>();
+
             foreach (var direction in Directions.All)
             {
                 var tile = unit.Position.Step(direction);
                 var structure = state.StructureAt(tile);
                 if (structure is null || !structure.IsSiegeTarget)
                 {
+                    continue;
+                }
+
+                var shield = Guard.Shield(state, tile);
+                if (shield is not null)
+                {
+                    // Announced for every tile it covers, even the second one it is not hit for, so
+                    // the log never leaves a tile silently unclawed.
+                    events.Add(new GuardShielded(
+                        shield.Id, tile, unitId, shield.Position, AttackDamageToStructure));
+
+                    if (struck.Contains(shield.Id))
+                    {
+                        continue;
+                    }
+
+                    struck.Add(shield.Id);
+
+                    // The blow is landing on a body now, so it is worth what the enemy's weapon is
+                    // worth — the flat 1 is a rule about how fast masonry comes apart (D-060), not
+                    // about how hard the thing swinging hits.
+                    events.Add(new UnitAttacked(
+                        unitId,
+                        shield.Id,
+                        unit.Position,
+                        shield.Position,
+                        Guard.Mitigate(state, shield.Id, damage, DamageSource.Attack),
+                        false));
+
+                    state = Combat.ApplyDamage(state, shield.Id, damage, DamageSource.Attack, events);
                     continue;
                 }
 

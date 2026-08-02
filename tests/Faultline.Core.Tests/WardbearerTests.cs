@@ -941,6 +941,147 @@ public class WardbearerTests
     // ---- fixtures ----------------------------------------------------------------------
 
     // A Wardbearer standing guard beside an Archer, with a Husk in reach of the Archer.
+    // ---- Guard Stance: shielding a structure (D-096) ------------------------------------
+
+    [Fact]
+    public void GuardStance_ShieldsAnAdjacentStructure_TakingTheSiegeClawItself()
+    {
+        var state = GuardedAltar();
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = EnemyTurn(state).Step(new EndActivationCommand(husk.Id));
+
+        Assert.Equal(6, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(wardbearer.Hp - 1, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.False(result.Has<StructureAttacked>());
+
+        var shielded = result.Single<GuardShielded>();
+        Assert.Equal(wardbearer.Id, shielded.UnitId);
+        Assert.Equal(new Coord(2, 0), shielded.StructureAt);
+        Assert.Equal(husk.Id, shielded.AttackerId);
+        Assert.Equal(wardbearer.Position, shielded.At);
+        Assert.Equal(1, shielded.Spared);
+
+        Assert.Equal(wardbearer.Id, result.Single<UnitAttacked>().TargetId);
+    }
+
+    // The flat 1 is how fast masonry comes apart (D-060), not how hard the thing swinging hits. Once
+    // a body is in the way the blow is worth the weapon again — halved by the stance, not flattened.
+    [Fact]
+    public void GuardStance_ShieldingAStructure_TakesTheWeaponsDamage_NotTheStructuresFlatOne()
+    {
+        var state = GuardedAltar(UnitKind.Colossus);
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        var colossus = state.Find(UnitKind.Colossus);
+
+        var result = EnemyTurn(state).Step(new EndActivationCommand(colossus.Id));
+
+        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(wardbearer.Hp - 2, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(1, result.Single<GuardShielded>().Spared);
+    }
+
+    [Fact]
+    public void GuardStance_ShieldingAStructure_ChargesPluck()
+    {
+        var state = GuardedAltar();
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = EnemyTurn(state).Step(new EndActivationCommand(husk.Id));
+
+        var charged = result.Single<VerveCharged>();
+        Assert.Equal(wardbearer.Id, charged.UnitId);
+        Assert.Equal(VerveSource.Guard, charged.Source);
+        Assert.Equal(1, result.NewState.Get(wardbearer.Id).Verve);
+    }
+
+    // One activation is one blow. A guard covering two tiles of the same altar is in the way of both
+    // claws, and being in the way twice is not being hit twice.
+    [Fact]
+    public void GuardStance_CoveringTwoTilesOfOneStructure_TakesTheBlowOnce()
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerA(UnitKind.Wardbearer, 2, 1)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new[] { new Coord(2, 0), new Coord(3, 1) })
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true });
+
+        var result = EnemyTurn(state).Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
+
+        Assert.Equal(2, result.All<GuardShielded>().Count);
+        Assert.Single(result.All<UnitAttacked>());
+        Assert.Equal(wardbearer.Hp - 1, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(6, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(6, result.NewState.StructureAt(new Coord(3, 1))!.Hp);
+        Assert.Equal(1, result.NewState.Get(wardbearer.Id).Verve);
+    }
+
+    [Fact]
+    public void GuardStance_AGuardThatIsNotAdjacentToTheStructure_ShieldsNothing()
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerA(UnitKind.Wardbearer, 0, 1)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(2, 0))
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true });
+
+        var result = EnemyTurn(state).Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
+
+        Assert.False(result.Has<GuardShielded>());
+        Assert.Equal(5, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
+    }
+
+    // Nobody steps in front of the pillar they were sent to bring down.
+    [Fact]
+    public void GuardStance_DoesNotShieldAStructureItsOwnSideIsThereToDestroy()
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerA(UnitKind.Wardbearer, 2, 1)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Objective(ObjectiveKind.Destroy, hp: 6, tiles: new Coord(2, 0))
+            .Build();
+
+        state = state.WithUnit(state.Get(state.Find(UnitKind.Wardbearer).Id) with { Guarding = true });
+
+        Assert.Null(Guard.Shield(state, new Coord(2, 0)));
+    }
+
+    [Fact]
+    public void GuardStance_ShieldingIsGoneOnceTheStanceLapses()
+    {
+        var state = GuardedAltar();
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+
+        var lapsed = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = false });
+        var result = EnemyTurn(lapsed).Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
+
+        Assert.False(result.Has<GuardShielded>());
+        Assert.Equal(5, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
+    }
+
+    // A Wardbearer standing beside the altar, in stance, with the named enemy adjacent to the altar.
+    private static GameState GuardedAltar(UnitKind attacker = UnitKind.Husk)
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerA(UnitKind.Wardbearer, 2, 1)
+            .Enemy(attacker, 3, 0)
+            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(2, 0))
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        return state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true });
+    }
+
     private static GameState GuardedArcher()
     {
         var state = BoardBuilder.Open(5, 2)

@@ -1,5 +1,16 @@
 # Changelog
 
+## A body in front of the altar
+
+- **Guard Stance now shields an adjacent `protect` structure.** An enemy that would claw at the altar
+  hits the Wardbearer instead, the structure loses nothing, and he banks Pluck for it (D-096). One
+  body on the doorstep is the answer to a siege the planner cannot yet be steered away from.
+- He pays the enemy's real damage, halved — not the flat 1 the structure would have lost. That 1 is
+  how fast masonry comes apart, not how hard the thing is swinging.
+- A guard covering two tiles of the same structure is hit once and spares both.
+- Nobody shields a `destroy` structure. New `GuardShielded` event; both redirects now read out loud
+  in the shell log, which had been showing neither.
+
 ## The Wardbearer earns for standing there
 
 - **A guard now charges for hits aimed at it, not only for hits it pulls off an ally.** Holding Guard

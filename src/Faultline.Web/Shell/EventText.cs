@@ -46,6 +46,12 @@ public static class EventText
         Collision e => e.ObstacleId is null
             ? $"{Name(state, e.UnitId)} slams into terrain — {e.Damage} damage."
             : $"{Name(state, e.UnitId)} slams into {Name(state, e.ObstacleId.Value)} — {e.Damage} damage each.",
+        // Both redirects read out loud, because a blow landing on somebody who was not aimed at is
+        // the most confusing thing the log can show without saying why (D-096).
+        GuardIntercepted e =>
+            $"🛡 {Name(state, e.UnitId)} steps in for {Name(state, e.AllyId)} — {e.Redirected} redirected onto {e.At}.",
+        GuardShielded e =>
+            $"🛡 {Name(state, e.UnitId)} shields the structure at {e.StructureAt} — the claw lands on {e.At} instead.",
         GuardStanceChanged e => e.Active
             ? $"{Name(state, e.UnitId)} takes up {AbilityDescriptor.For(Ability.GuardStance).Name} at {e.At}."
             : $"{Name(state, e.UnitId)}'s {AbilityDescriptor.For(Ability.GuardStance).Name} lapses.",

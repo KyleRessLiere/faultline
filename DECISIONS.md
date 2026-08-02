@@ -112,9 +112,10 @@ in this file when the question comes back.
 | D-092 | [Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.](#d-092-player-a-fields-the-vanguard-and-the-fisher-player-b-the-wardbearer-and-the-archer) | 2026-08-02 |  |
 | D-093 | [The cast landing is chosen as a side, and drawn as a cone.](#d-093-the-cast-landing-is-chosen-as-a-side-and-drawn-as-a-cone) | 2026-08-02 |  |
 | D-094 | [A hit reports what it was worth, not what there was left to absorb it.](#d-094-a-hit-reports-what-it-was-worth-not-what-there-was-left-to-absorb-it) | 2026-08-02 |  |
-| D-095 | [A guard charges for what it takes, redirected or direct.](#d-095-a-guard-charges-for-what-it-takes-redirected-or-direct) | unreleased |  |
+| D-095 | [A guard charges for what it takes, redirected or direct.](#d-095-a-guard-charges-for-what-it-takes-redirected-or-direct) | 2026-08-02 |  |
+| D-096 | [Guard Stance shields the structure beside it, not only the ally beside it.](#d-096-guard-stance-shields-the-structure-beside-it-not-only-the-ally-beside-it) | unreleased |  |
 
-**94 rulings.**
+**95 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1402,3 +1403,45 @@ impossible rather than merely unlikely.
 **Expected to move the number that D-084 and Finding 7 are both about.** The Wardbearer's earn rate
 was the lowest of the four classes and this was why; it is also the charge condition most under his
 own control, since holding the stance is a decision he makes every activation.
+
+**D-096 — Guard Stance shields the structure beside it, not only the ally beside it.**
+
+**What forced it:** a player asked why a Wardbearer standing on the altar's doorstep watched an enemy
+claw past him at it. Nothing in the stance said he could not step in front of it — the code simply
+only knew how to re-aim at a `Unit`, and a structure deliberately is not one (D-033). An implementation
+boundary was doing the work of a rule again, which is the same fault D-095 corrected a day earlier.
+
+**Only a `protect` structure**, and only for a side that wants it standing. Nobody steps in front of
+the pillar they were sent to bring down, and enemies do not hold Guard Stance in the first place.
+
+**The guard pays the weapon, not the wall.** An attack takes a flat 1 off any structure (D-060) —
+that number is a statement about how fast masonry comes apart, not about how hard the thing is
+swinging. Once a body is in the way the blow is landing on flesh again, so it is worth the enemy's
+own damage, halved by the stance as any attack on a guard is. **Rejected: the guard takes 1 too.**
+That would have made shielding nearly free, and a Protect objective with one Wardbearer parked beside
+it would stop being a fight. The trade is meant to be real — you are spending hit points, which are
+recoverable, to protect a loss condition, which is not.
+
+**One activation is one blow.** A guard adjacent to two tiles of the same structure is in the way of
+both claws; being in the way twice is not being hit twice. Both tiles are spared and both emit
+`GuardShielded`, so the log never leaves a tile silently unclawed, but only one blow lands.
+**Rejected: one blow per covered tile.** A multi-tile altar would then punish exactly the position
+the rule is trying to reward. A *second enemy* clawing is of course a second blow.
+
+**A new event, `GuardShielded`, rather than a nullable `AllyId` on `GuardIntercepted`.** The two
+spare different currencies — an ally is spared hit points off a body, an altar hit points off a wall
+— and the figures are not comparable, so flattening them into one payload would say something untrue
+about at least one of them. It also keeps `GuardIntercepted.AllyId` non-nullable for every reader.
+
+**Scoped to the siege claw.** A Line ability that happens to cross the altar's tile still hits the
+altar: the line went through *that* tile and the guard is not standing on it. Interposing is about
+being between the swing and the thing, and the claw is the only structure attack where that geometry
+holds.
+
+**Charges Pluck, by D-095 and nothing new.** The redirected claw is attack damage landing on a
+guarding Wardbearer, which is already an absorb; per-command charging means the two-tile case banks
+1, not 2. This is the third of the Wardbearer's earn conditions to be widened for the same underlying
+reason (D-084, Finding 7): his meter was starved because the events it was keyed to were narrower
+than the stance they were meant to measure.
+
+**Follows D-095**, which it does not supersede.

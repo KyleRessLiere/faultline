@@ -113,6 +113,7 @@ namespace Faultline.Core
             FootingSpent => nameof(FootingSpent),
             GuardStanceChanged => nameof(GuardStanceChanged),
             GuardIntercepted => nameof(GuardIntercepted),
+            GuardShielded => nameof(GuardShielded),
             VerveCharged => nameof(VerveCharged),
             UnitHealed => nameof(UnitHealed),
             VerveSpent => nameof(VerveSpent),
@@ -210,6 +211,10 @@ namespace Faultline.Core
             GuardStanceChanged e => e.Active
                 ? "takes guard stance at " + e.At + ", covering adjacent allies until its next activation"
                 : "drops guard stance at " + e.At,
+
+            GuardShielded e => "steps in front of the structure at " + e.StructureAt
+                + ", taking " + Actor(state, e.AttackerId) + "'s claw on " + e.At
+                + " — the structure keeps " + e.Spared,
 
             GuardIntercepted e => "intercepts " + Actor(state, e.AttackerId)
                 + " for " + Actor(state, e.AllyId)
@@ -312,6 +317,7 @@ namespace Faultline.Core
             FootingSpent e => e.UnitId,
             GuardStanceChanged e => e.UnitId,
             GuardIntercepted e => e.UnitId,
+            GuardShielded e => e.UnitId,
             VerveCharged e => e.UnitId,
             UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,
