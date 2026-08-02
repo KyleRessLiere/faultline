@@ -471,6 +471,14 @@ namespace Faultline.Core
                     case VerveSpent e:
                         causerId = e.UnitId;
                         return true;
+
+                    // A standalone Push or Pull is an action with no other marker at all: it emits
+                    // no AbilityUsed, because it is not an ability, and no UnitAttacked, because it
+                    // deals no damage. The shove itself names its causer, so it is the actor
+                    // (D-098). A board-caused displacement carries none and the scan walks past it.
+                    case UnitPushed e when e.By.HasValue:
+                        causerId = e.By.Value;
+                        return true;
                 }
             }
 

@@ -178,6 +178,86 @@ public class VerveTests
         Assert.Equal(VerveSource.Hazard, result.Single<VerveCharged>().Source);
     }
 
+    // Found by playing: Reel charged and the basic Pull did not. A standalone shove emits no
+    // AbilityUsed, because it is not an ability, and no UnitAttacked, because it deals no damage —
+    // so nothing in the stream named her and the charge went unpaid (D-098).
+    [Fact]
+    public void Threadcaster_PullingAnEnemyIntoAPitWithHerBasicPull_ChargesJustTheSame()
+    {
+        var state = BoardBuilder.Rows(".O.")
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AttackCommand(caster.Id, husk.Id, AttackMode.Pull));
+
+        Assert.True(result.Has<Clinging>());
+        Assert.False(result.Has<AbilityUsed>());
+        Assert.Equal(1, result.NewState.Get(caster.Id).Verve);
+        Assert.Equal(VerveSource.Hazard, result.Single<VerveCharged>().Source);
+    }
+
+    [Fact]
+    public void Threadcaster_PullingAnEnemyIntoSomethingWithHerBasicPull_ChargesForTheCollision()
+    {
+        var state = BoardBuilder.Open(4, 1)
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Anchor, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AttackCommand(caster.Id, husk.Id, AttackMode.Pull));
+
+        Assert.True(result.Has<Collision>());
+        Assert.Equal(1, result.NewState.Get(caster.Id).Verve);
+        Assert.Equal(VerveSource.Collision, result.Single<VerveCharged>().Source);
+    }
+
+    // The shove names its causer now, which is what makes the charge findable.
+    [Fact]
+    public void ADisplacementSaysWhoCausedIt()
+    {
+        var state = BoardBuilder.Open(4, 1)
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AttackCommand(caster.Id, husk.Id, AttackMode.Pull));
+
+        Assert.Equal(caster.Id, result.Single<UnitPushed>().By);
+    }
+
+    // The attribution reads the shove, so it has to keep reading whose shove it was.
+    [Fact]
+    public void AnEnemyPullingAPlayerIntoAPit_ChargesNobody()
+    {
+        var state = BoardBuilder.Rows(".O..")
+            .PlayerA(UnitKind.Archer, 3, 0)
+            .Enemy(UnitKind.Grappler, 0, 0)
+            .Build();
+
+        var grappler = state.Find(UnitKind.Grappler);
+        var archer = state.Find(UnitKind.Archer);
+
+        var enemyTurn = state.WithUnit(state.Get(archer.Id) with { HasActivated = true })
+            with { ActiveTeam = Team.Enemy, NextPlayerTeam = Team.PlayerA, ActiveUnitId = null };
+
+        var result = enemyTurn.Step(new AttackCommand(grappler.Id, archer.Id, AttackMode.Pull));
+
+        Assert.True(result.Has<Clinging>());
+        Assert.Equal(grappler.Id, result.Single<UnitPushed>().By);
+        Assert.False(result.Has<VerveCharged>());
+    }
+
     // ---- Archer: hits from high ground --------------------------------------------------
 
     [Fact]

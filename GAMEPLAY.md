@@ -298,7 +298,7 @@ event on the board pays one unit and not another:
 | Class | Earns +1 when | Source |
 |---|---|---|
 | Vanguard | a collision **he** causes | `Collision` |
-| Fisher | a displacement **she** causes ends in a collision, spikes or a drain — including a Cast landing | `Collision`, `Hazard` |
+| Fisher | a displacement **she** causes ends in a collision, spikes or a drain — her basic Pull, Reel and a Cast landing alike | `Collision`, `Hazard` |
 | Archer | **she** hits an enemy from HighGround | `HighGround` |
 | Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally, taken off the structure beside it, or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
 

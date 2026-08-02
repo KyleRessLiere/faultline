@@ -177,7 +177,7 @@ namespace Faultline.Core
             // renderer needs to shudder the target, and what a log needs to say "it did not budge"
             // (DECISIONS.md D-057). Distance is the effective distance, so a 0 says why.
             events.Add(new UnitPushed(
-                targetId, before.Position, sim.Destination, sim.Path, kind, effective));
+                targetId, before.Position, sim.Destination, sim.Path, kind, effective, by));
 
             switch (sim.Stop)
             {

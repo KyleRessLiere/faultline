@@ -114,9 +114,10 @@ in this file when the question comes back.
 | D-094 | [A hit reports what it was worth, not what there was left to absorb it.](#d-094-a-hit-reports-what-it-was-worth-not-what-there-was-left-to-absorb-it) | 2026-08-02 |  |
 | D-095 | [A guard charges for what it takes, redirected or direct.](#d-095-a-guard-charges-for-what-it-takes-redirected-or-direct) | 2026-08-02 |  |
 | D-096 | [Guard Stance shields the structure beside it, not only the ally beside it.](#d-096-guard-stance-shields-the-structure-beside-it-not-only-the-ally-beside-it) | 2026-08-02 |  |
-| D-097 | [Movement is a budget spent in clicks, and the router takes the fastest way.](#d-097-movement-is-a-budget-spent-in-clicks-and-the-router-takes-the-fastest-way) | unreleased |  |
+| D-097 | [Movement is a budget spent in clicks, and the router takes the fastest way.](#d-097-movement-is-a-budget-spent-in-clicks-and-the-router-takes-the-fastest-way) | 2026-08-02 |  |
+| D-098 | [A displacement says who caused it.](#d-098-a-displacement-says-who-caused-it) | unreleased |  |
 
-**96 rulings.**
+**97 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1517,3 +1518,39 @@ segment. That moved the-shrine's ending from round 4 to round 6, onto a round th
 before the last enemy was ever asked for a command — which the dead-round bar read as a dead round.
 The bar now only judges rounds in which the enemy actually got its slot. The board was not changed
 and did not need to be: a round the fight *ended* in is not a round nobody did anything in.
+
+**D-098 — A displacement says who caused it.**
+
+**The bug a human found by playing:** the Fisher pulled an enemy into a drain and banked nothing.
+Reel charged; her **basic Pull**, which does the same thing, did not.
+
+**Why.** D-073 reads the causer back out of the event stream, because a board consequence names who
+it happened to and never who caused it. The read-back recognised an `AbilityUsed`, a `UnitAttacked`
+and — since D-091 — a `VerveSpent`. A standalone Push or Pull emits **none of those**: it is not
+an ability, and it deals no damage, so there is no attack event either. The scan walked back to the
+start of the command, found nothing, and dropped the charge. Her own printed condition, unpaid, on
+the most obvious way of meeting it.
+
+**The fix is the payload, not the scan.** `UnitPushed` now carries `By`. A displacement that does not
+say who caused it is an incomplete event by the standard CLAUDE.md already sets — a renderer must
+never have to query state to draw one — and the shove is the *nearest* thing to the consequence
+anyway, so reading it is more direct than reading past it. `Displacement.Resolve` already took the
+causer for Wrecking Weight; it just never wrote it down.
+
+**Null when the board did it.** A collapse shoves nobody on anyone's behalf, and the scan walks past
+a `By`-less shove exactly as before, so nothing starts charging for what terrain does on its own.
+
+**Rejected: emitting a `UnitAttacked` with zero damage for a standalone shove.** It would have made
+the existing scan work untouched, and it would have put a lie in the combat log — a shove is not an
+attack that dealt nothing, and every reader of the stream would have had to learn the exception.
+
+**Rejected: adding a Pull case to the causer scan by looking further back at the command.** The scan
+only sees events. Teaching it to reach outside them is how the causer problem started.
+
+**Only the Fisher was affected**, and only by accident: she is the one player class with a basic
+displacement (`BasicPull: 1`). The Vanguard's shove rides along with his attack, so it has always had
+a `UnitAttacked` in front of it. The enemies with basic shoves — Grappler, Stalker, Harrier —
+earn nothing, so nobody noticed.
+
+**Extends D-073**, which it does not supersede: the read-back stays, with one more thing worth
+reading.

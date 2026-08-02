@@ -174,7 +174,8 @@ namespace Faultline.Core
                 destination,
                 new[] { destination },
                 DisplacementKind.Throw,
-                before.Position.DistanceTo(destination)));
+                before.Position.DistanceTo(destination),
+                throwerId));
 
             return Land(state, targetId, destination, events);
         }

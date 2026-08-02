@@ -1,5 +1,16 @@
 # Changelog
 
+## The Fisher gets paid for her own pull
+
+- **Pulling an enemy into a drain with her basic Pull now charges Pluck.** Reel charged and the basic
+  Pull did not, because a standalone shove emits no `AbilityUsed` and no `UnitAttacked`, so nothing
+  in the event stream named her and the charge was dropped (D-098). Same for a pull that ends in a
+  collision.
+- `UnitPushed` now carries `By`. A displacement that does not say who caused it was an incomplete
+  payload; the board's own shoves still name nobody, so terrain still charges nobody.
+- She was the only class affected — the one player archetype with a basic displacement. The
+  Vanguard's shove rides with his attack and was never in doubt.
+
 ## Movement is a budget you spend in clicks
 
 - **Every click while the move half is open walks one segment.** The unit moves, the highlight
