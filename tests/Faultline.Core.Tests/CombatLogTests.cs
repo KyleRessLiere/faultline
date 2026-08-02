@@ -242,6 +242,17 @@ public class CombatLogTests
             new RescueCommand(new UnitId(0), new UnitId(1), new Coord(2, 2)),
             new FinishClingingCommand(new UnitId(0), new UnitId(7)),
             new EndActivationCommand(new UnitId(4)),
+
+            // A shove-attack read back as an ordinary swing is a different fight from the one that
+            // was recorded, so every mode is round-tripped rather than just Pull.
+            new AttackCommand(new UnitId(2), new UnitId(5), AttackMode.Push),
+
+            // Every Pluck spender. Cast is the one that aims at a unit and a tile at once; the
+            // other three carry neither, and both halves have to survive the round trip.
+            new SpendVerveCommand(new UnitId(0), VerveSpend.WreckingWeight),
+            new SpendVerveCommand(new UnitId(1), VerveSpend.Cast, new UnitId(6), new Coord(4, 3)),
+            new SpendVerveCommand(new UnitId(2), VerveSpend.DoubleNock),
+            new SpendVerveCommand(new UnitId(3), VerveSpend.Preen),
         };
 
         var record = new RunRecord { FightId = "the-maw", FightNumber = 4, Seed = -19, Commands = commands };
@@ -250,6 +261,42 @@ public class CombatLogTests
         Assert.Equal("the-maw", parsed.FightId);
         Assert.Equal(-19, parsed.Seed);
         Assert.Equal(commands, parsed.Commands);
+    }
+
+    /// <summary>
+    /// The command log is the save format, so a <see cref="Command"/> the formatter has not been
+    /// taught about does not degrade — it makes the whole log unreplayable from that line on.
+    /// <see cref="SpendVerveCommand"/> was exactly that for the length of M5: Pluck shipped, and
+    /// every log containing a spend silently became fiction.
+    /// </summary>
+    [Fact]
+    public void EveryCommandType_IsKnownToTheCommandLog()
+    {
+        var types = typeof(Command).Assembly
+            .GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(Command)) && !t.IsAbstract)
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.NotEmpty(types);
+
+        foreach (var type in types)
+        {
+            // Coverage only. Exact equality is asserted by the explicit list in
+            // Record_RoundTripsEveryCommandType, because a reflected sample sets every field at
+            // once — an AbilityCommand aimed at a unit *and* a direction is not a command the game
+            // can produce, and holding the encoding to it would test a fiction.
+            var command = (Command)SampleFor(type)!;
+            string rendered = RunRecord.Format(command);
+
+            Assert.False(
+                rendered.StartsWith("Unknown", StringComparison.Ordinal),
+                type.Name + " has no case in RunRecord.Format, so a log containing one cannot replay.");
+
+            Assert.True(
+                RunRecord.ParseCommand(rendered.Split('\t'), 0) is not null,
+                type.Name + " renders but does not parse back.");
+        }
     }
 
     [Fact]

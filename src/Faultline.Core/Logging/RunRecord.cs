@@ -175,6 +175,7 @@ namespace Faultline.Core
             RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString(), c.To.ToString()),
             FinishClingingCommand c => Join("Finish", c.UnitId.ToString(), c.ClingingId.ToString()),
             EndActivationCommand c => Join("End", c.UnitId.ToString()),
+            SpendVerveCommand c => Join("Spend", c.UnitId.ToString(), c.Spend.ToString(), SpendAim(c)),
             _ => Join("Unknown", command is null ? "?" : command.GetType().Name),
         };
 
@@ -198,10 +199,13 @@ namespace Faultline.Core
                     return new MoveCommand(ParseUnit(Field(fields, offset + 1)), ParseTile(Field(fields, offset + 2)));
 
                 case "Attack":
+                    // Every mode is read back by name. Mapping only Pull and defaulting the rest
+                    // silently turned a logged Push into a Damage on replay, which is a different
+                    // fight from the one that was recorded.
                     return new AttackCommand(
                         ParseUnit(Field(fields, offset + 1)),
                         ParseUnit(Field(fields, offset + 2)),
-                        Field(fields, offset + 3) == AttackMode.Pull.ToString() ? AttackMode.Pull : AttackMode.Damage);
+                        Enum.TryParse(Field(fields, offset + 3), out AttackMode mode) ? mode : AttackMode.Damage);
 
                 case "Ability":
                     return ParseAbility(fields, offset);
@@ -217,6 +221,9 @@ namespace Faultline.Core
 
                 case "End":
                     return new EndActivationCommand(ParseUnit(Field(fields, offset + 1)));
+
+                case "Spend":
+                    return ParseSpend(fields, offset);
 
                 default:
                     return null;
@@ -260,6 +267,52 @@ namespace Faultline.Core
             }
 
             return new AbilityCommand(unitId, ability);
+        }
+
+        /// <summary>
+        /// Reads a Pluck spend back. Cast is the only spender that aims at both a unit and a tile,
+        /// so both halves are optional and either may appear alone.
+        /// </summary>
+        private static Command? ParseSpend(IReadOnlyList<string> fields, int offset)
+        {
+            if (!Enum.TryParse(Field(fields, offset + 2), out VerveSpend spend))
+            {
+                return null;
+            }
+
+            UnitId? target = null;
+            Coord? to = null;
+
+            foreach (var part in Field(fields, offset + 3).Split(';'))
+            {
+                if (part.StartsWith("target=", StringComparison.Ordinal))
+                {
+                    target = ParseUnit(part.Substring(7));
+                }
+                else if (part.StartsWith("to=", StringComparison.Ordinal))
+                {
+                    to = ParseTile(part.Substring(3));
+                }
+            }
+
+            return new SpendVerveCommand(ParseUnit(Field(fields, offset + 1)), spend, target, to);
+        }
+
+        private static string SpendAim(SpendVerveCommand command)
+        {
+            var parts = new List<string>(2);
+
+            if (command.TargetId.HasValue)
+            {
+                parts.Add("target=" + command.TargetId.Value);
+            }
+
+            if (command.To.HasValue)
+            {
+                parts.Add("to=" + command.To.Value);
+            }
+
+            return parts.Count == 0 ? CombatLog.NoActor : string.Join(";", parts);
         }
 
         private static string AbilityAim(AbilityCommand command)

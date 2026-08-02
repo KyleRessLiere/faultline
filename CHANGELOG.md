@@ -1,5 +1,15 @@
 # Changelog
 
+## Command logs record every command again
+
+- **A Pluck spend is written to the command log.** `SpendVerveCommand` had no case in the formatter,
+  so it rendered as `Unknown` and stopped a replay dead at the first Cast, Preen, Double Nock or
+  Wrecking Weight — every log recorded since Pluck shipped was fiction from that line on.
+- **A shove-attack replays as a shove.** `AttackMode.Push` was written by name but read back as
+  `Damage`, so a replayed log quietly played a different fight from the recorded one.
+- A coverage test now fails when any `Command` type has no case in the formatter, which is how both
+  of these went unnoticed through a whole milestone.
+
 ## The Fisher, and Cast
 
 - **The Threadcaster is the Fisher.** Same unit, same rules — the code still calls her
