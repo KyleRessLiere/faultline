@@ -218,3 +218,64 @@ rescue → defend → destroy → elevation → pull → attrition → boss.
 And the standing caveat transfers in full: **none of this has been played.** The cull sharpens
 the set's questions; only humans can confirm the answers are fun. Campaign fights 1–4 are
 playable today and should be played before Raider or boss code is written.
+
+---
+
+# 8 · Post-playtest amendments
+
+Added after the first playtest pass (`docs/PLAYTEST_FINDINGS.md`). These are rulings, not proposals.
+Where one contradicts something earlier in this file, **this section wins** — §6's break-the-gate
+spec in particular is superseded below.
+
+## 8A · Structures
+
+- A structure takes **1 from any attack**, whatever the weapon, and **full damage from any
+  collision**. This supersedes the brief's "immune to attacks" Destroy rule (D-060).
+- Collisions into a structure are **source-blind**: a player unit slammed into it counts.
+- **Multi-tile structures**: N tiles, **one shared HP pool**, every tile is a collision face.
+  A destroyed structure's tiles become open floor.
+- **A Destroy fight has no kill-all win**, and turn-limit expiry is a loss. Clearing the board is not
+  the objective; the objective is the objective.
+
+## 8B · break-the-gate, rebuilt
+
+Supersedes the board in §6.
+
+- **3-tile gate, 12 HP** shared, spanning the wall.
+- **Warden** in the centre arch, flanking **spikes**.
+- **3 debris** pieces.
+- **Husk waves on rounds 2 and 4**, telegraphed as resupply.
+- **turn-limit 10.**
+
+## 8C · Debris — a standing piece, map character `o`
+
+Occupies its tile and blocks movement. **2 HP. Allegiance-less. Never activates.**
+
+- **Attackable** — breaking it clears the tile.
+- **Displaceable** by any push or pull; abilities may target it.
+- A unit shoved **into** debris: **2 to both**.
+- Debris shoved **into a unit**: **2 and a Stagger**.
+- Debris shoved **into a structure**: **full collision damage**.
+- **Swept away in drains** — it does not cling.
+- No statuses, no Footing, no Momentum (the M5 hook is asserted, not implemented).
+- **The AI ignores it.**
+
+## 8D · Inspection parity
+
+One `Inspectable` surface for **units, structures and debris** alike: name, HP, damage-rule lines,
+statuses, objective linkage. Hover cards, intent arrows and bestiary entries all consume it. **No
+special cases** — a structure is inspected the same way a Husk is.
+
+## 8E · The objective strip
+
+A **persistent strip** at the top of the board, always visible, never a menu. It is the objective
+entity's own card, promoted — fed by the same `Inspectable` surface as everything else. It shows
+three things with **equal billing**:
+
+1. the goal in plain words — "Break the gate";
+2. live progress as a number and a bar — "gate 7/12 · turn 4/10", "enemies 3/8", the shrine's HP
+   mirrored from its card, the survive countdown;
+3. **the loss condition** — "out of time = swept back".
+
+**One rule: when progress changes, the strip reacts in the moment.** The gate takes a slam, the bar
+ticks visibly. Progress you feel is progress that steers play.
