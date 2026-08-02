@@ -401,10 +401,15 @@ namespace Faultline.Core
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
         /// <param name="direction">Direction to face.</param>
+        /// <param name="ability">
+        /// Which Line ability is being aimed. Named rather than assumed: this used to hard-code
+        /// Spear Thrust, so a second Line ability would silently have previewed as the first one —
+        /// and a preview that quietly describes a different ability is worse than no preview.
+        /// </param>
         /// <returns>The projected hits, nearest first.</returns>
         public static IReadOnlyList<LineHit> PreviewLine(
-            GameState state, Unit unit, Direction direction) =>
-            LineHits(state, unit, direction, DescriptorFor(unit, Ability.SpearThrust));
+            GameState state, Unit unit, Direction direction, Ability ability) =>
+            LineHits(state, unit, direction, DescriptorFor(unit, ability));
 
         /// <summary>What a charge along a line would do.</summary>
         /// <param name="state">Current state.</param>

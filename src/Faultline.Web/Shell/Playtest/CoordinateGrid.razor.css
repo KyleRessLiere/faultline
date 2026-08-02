@@ -347,6 +347,7 @@
 .pip.cling { background: var(--pt-red); }
 .pip.stagger { background: var(--pt-yellow); }
 .pip.nofooting { background: var(--pt-text-dim); }
+.pip.guard { background: var(--pt-cyan); box-shadow: 0 0 0 1px var(--pt-text); }
 
 .marker {
     color: rgba(242, 245, 248, .72);

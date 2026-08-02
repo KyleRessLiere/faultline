@@ -11,6 +11,15 @@ namespace Faultline.Web.Shell.Playtest;
 /// </summary>
 public static class PlaytestText
 {
+    /// <summary>
+    /// What a guarding unit's stance is called, straight off Core's descriptor so the board, the
+    /// unit panel and the reference never disagree about the name.
+    /// </summary>
+    public static string GuardName => AbilityDescriptor.For(Ability.GuardStance).Name;
+
+    /// <summary>The stance's rules text, for a tooltip.</summary>
+    public static string GuardSummary => AbilityDescriptor.For(Ability.GuardStance).Summary;
+
     /// <summary>The phase, as a person reads it.</summary>
     /// <param name="phase">Phase to name.</param>
     /// <returns>A display label.</returns>
@@ -62,6 +71,13 @@ public static class PlaytestText
         if (unit.Staggered)
         {
             flags.Add("staggered");
+        }
+
+        // A stance is invisible on the board unless something says so, and it is the whole reason the
+        // unit spent its action. The word is Core's ability name, lower-cased to sit in the list.
+        if (unit.Guarding)
+        {
+            flags.Add(GuardName.ToLowerInvariant());
         }
 
         // Footing is not listed: several archetypes start on zero, so a "no footing" on every row

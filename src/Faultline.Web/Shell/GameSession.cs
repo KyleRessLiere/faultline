@@ -130,15 +130,40 @@ public sealed class GameSession
     /// <summary>Which action the player is aiming.</summary>
     public ActionMode Mode { get; private set; } = ActionMode.Move;
 
+    /// <summary>
+    /// Which ability is armed while <see cref="Mode"/> is <see cref="ActionMode.Ability"/>.
+    /// </summary>
+    /// <remarks>
+    /// A unit may bring more than one ability, so "aiming the ability" is not a mode on its own — it
+    /// is a mode plus a choice. The choice is carried here rather than by growing
+    /// <see cref="ActionMode"/> one value per ability, because <see cref="ActionMode"/> enumerates
+    /// kinds of action the shell knows how to aim, and abilities are content Core owns: a mode per
+    /// ability would mean the shell's enum had to be edited every time Core gained one.
+    /// </remarks>
+    public Ability? ArmedAbility { get; private set; }
+
     /// <summary>Tile the pointer is over, if any.</summary>
     public Coord? Hovered { get; private set; }
 
     /// <summary>The selected unit, resolved.</summary>
     public Unit? SelectedUnit => Selected is null ? null : State.FindUnit(Selected.Value);
 
-    /// <summary>The selected unit's class ability, if it has one.</summary>
+    /// <summary>Every ability the selected unit brings, in the order Core offers them.</summary>
+    public IReadOnlyList<AbilityDescriptor> SelectedAbilities =>
+        SelectedUnit is null
+            ? Array.Empty<AbilityDescriptor>()
+            : AbilityDescriptor.AllForKind(SelectedUnit.Kind);
+
+    /// <summary>The armed ability's descriptor, or <c>null</c> when no ability is armed.</summary>
+    public AbilityDescriptor? ArmedDescriptor =>
+        ArmedAbility is null ? null : AbilityDescriptor.For(ArmedAbility.Value);
+
+    /// <summary>
+    /// The rules text to show beside the action row: the armed ability's, or the unit's first when
+    /// nothing is armed yet.
+    /// </summary>
     public AbilityDescriptor? SelectedAbility =>
-        SelectedUnit is null ? null : AbilityDescriptor.ForKind(SelectedUnit.Kind);
+        ArmedDescriptor ?? (SelectedAbilities.Count > 0 ? SelectedAbilities[0] : null);
 
     /// <summary>Enemy the player has opened a dossier on, if any.</summary>
     /// <remarks>
@@ -296,6 +321,7 @@ public sealed class GameSession
 
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
+        ArmedAbility = null;
     }
 
     /// <summary>Applies a command and folds the result into the session.</summary>
@@ -401,6 +427,7 @@ public sealed class GameSession
         Adopt(result);
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
+        ArmedAbility = null;
     }
 
     private void Reset(FightDefinition fight, int seed)
@@ -416,6 +443,7 @@ public sealed class GameSession
         Tab = ReferenceTab.Abilities;
         Hovered = null;
         Mode = ActionMode.Move;
+        ArmedAbility = null;
 
         if (Recording)
         {
@@ -459,16 +487,51 @@ public sealed class GameSession
         Selected = id;
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
+        ArmedAbility = null;
         Changed?.Invoke();
     }
 
     /// <summary>Switches which action the player is aiming.</summary>
     /// <param name="mode">Mode to aim.</param>
+    /// <remarks>
+    /// Asking for <see cref="ActionMode.Ability"/> without naming one arms the first the unit can
+    /// use, so a caller that does not care which ability still gets a coherent mode.
+    /// </remarks>
     public void SetMode(ActionMode mode)
     {
+        if (mode == ActionMode.Ability)
+        {
+            foreach (var descriptor in SelectedAbilities)
+            {
+                if (IsAbilityAvailable(descriptor.Ability))
+                {
+                    SetAbility(descriptor.Ability);
+                    return;
+                }
+            }
+
+            Changed?.Invoke();
+            return;
+        }
+
         if (IsAvailable(mode))
         {
             Mode = mode;
+            ArmedAbility = null;
+            Hovered = null;
+        }
+
+        Changed?.Invoke();
+    }
+
+    /// <summary>Arms one named ability, so the board aims that ability and no other.</summary>
+    /// <param name="ability">Ability to arm.</param>
+    public void SetAbility(Ability ability)
+    {
+        if (IsAbilityAvailable(ability))
+        {
+            Mode = ActionMode.Ability;
+            ArmedAbility = ability;
             Hovered = null;
         }
 
@@ -490,10 +553,42 @@ public sealed class GameSession
     /// <summary>Whether an action mode has any legal target for the selected unit.</summary>
     /// <param name="mode">Mode to test.</param>
     /// <returns>Whether it can be aimed.</returns>
-    public bool IsAvailable(ActionMode mode) => TargetsFor(mode).Count > 0;
+    /// <remarks>
+    /// Availability of an ability is asked of Core's legal list rather than of the tile map, because
+    /// a <see cref="AbilityTargeting.Self"/> ability is perfectly usable while covering no tile.
+    /// </remarks>
+    public bool IsAvailable(ActionMode mode) =>
+        mode == ActionMode.Ability
+            ? AbilityCommands().Any()
+            : TargetsFor(mode, null).Count > 0;
+
+    /// <summary>Whether Core would accept this specific ability from the selected unit right now.</summary>
+    /// <param name="ability">Ability to test.</param>
+    /// <returns>Whether it can be armed.</returns>
+    public bool IsAbilityAvailable(Ability ability) =>
+        AbilityCommands().Any(a => a.Ability == ability);
+
+    /// <summary>
+    /// The command a <see cref="AbilityTargeting.Self"/> ability would submit, when one is armed.
+    /// </summary>
+    /// <remarks>
+    /// A stance aims at nothing, so there is no tile to click and the board can never issue it. The
+    /// action panel shows this as an explicit confirm button instead of firing on the arming click:
+    /// every other action in the shell takes a second, deliberate click to commit, and a button that
+    /// spent the activation's action half the instant it was pressed would be the one exception.
+    /// </remarks>
+    public AbilityCommand? SelfAbilityCommand =>
+        Mode == ActionMode.Ability && ArmedDescriptor is { Targeting: AbilityTargeting.Self }
+            ? AbilityCommands().FirstOrDefault(a => a.Ability == ArmedAbility!.Value)
+            : null;
 
     /// <summary>Clickable tiles for the current mode, each mapped to the command it submits.</summary>
-    public IReadOnlyDictionary<Coord, Command> Targets => TargetsFor(Mode);
+    public IReadOnlyDictionary<Coord, Command> Targets => TargetsFor(Mode, ArmedAbility);
+
+    private IEnumerable<AbilityCommand> AbilityCommands() =>
+        Selected is null
+            ? Array.Empty<AbilityCommand>()
+            : Legal.OfType<AbilityCommand>().Where(a => a.UnitId == Selected.Value);
 
     /// <summary>Tiles to tint as "within reach" for the current mode.</summary>
     public IReadOnlyCollection<Coord> RangeTiles
@@ -512,7 +607,7 @@ public sealed class GameSession
                 case ActionMode.Pull:
                     return Combat.RangeTiles(State, unit).ToList();
                 case ActionMode.Ability:
-                    return Abilities.RangeTiles(State, unit).ToList();
+                    return Abilities.RangeTiles(State, unit, ArmedDescriptor).ToList();
                 default:
                     return Array.Empty<Coord>();
             }
@@ -535,6 +630,15 @@ public sealed class GameSession
             if (Mode == ActionMode.Move && Movement.TryGetMove(State, unit, Hovered.Value, out var option))
             {
                 tiles.AddRange(option.Path);
+                return tiles;
+            }
+
+            // A line is drawn as the whole run it covers, not only the tiles that happen to have
+            // somebody on them, so the shape of the ability is visible before it is fired.
+            var line = HoveredLineDirection();
+            if (line is not null)
+            {
+                tiles.AddRange(Abilities.LineTiles(State, unit, line.Value, ArmedDescriptor));
                 return tiles;
             }
 
@@ -638,7 +742,7 @@ public sealed class GameSession
         }
     }
 
-    private IReadOnlyDictionary<Coord, Command> TargetsFor(ActionMode mode)
+    private IReadOnlyDictionary<Coord, Command> TargetsFor(ActionMode mode, Ability? ability)
     {
         var map = new Dictionary<Coord, Command>();
         if (Selected is null)
@@ -669,8 +773,10 @@ public sealed class GameSession
                     Add(map, attack.TargetId, attack);
                     break;
 
-                case AbilityCommand ability when mode == ActionMode.Ability:
-                    AddAbility(map, ability);
+                // Only the armed ability is aimed. Merging every ability's commands into one map is
+                // what made a two-ability unit unaimable: there was no way to say which one you meant.
+                case AbilityCommand armed when mode == ActionMode.Ability && armed.Ability == ability:
+                    AddAbility(map, armed);
                     break;
 
                 case RescueCommand rescue when mode == ActionMode.Rescue:
@@ -686,28 +792,60 @@ public sealed class GameSession
         return map;
     }
 
+    // Which tiles issue this command is decided by the ability's shape, never by which of the
+    // command's optional fields happens to be set: a Line also carries a Direction, and treating any
+    // Direction as a charge aimed Spear Thrust at a charge destination it does not have.
     private void AddAbility(Dictionary<Coord, Command> map, AbilityCommand ability)
     {
-        if (ability.TargetId.HasValue)
-        {
-            Add(map, ability.TargetId.Value, ability);
-            return;
-        }
-
-        // A charge is aimed by clicking where it lands: the enemy it would hit, or the tile it
-        // would end on when the lane is empty.
         var unit = SelectedUnit;
-        if (unit is null || !ability.Direction.HasValue)
+        if (unit is null)
         {
             return;
         }
 
-        var charge = Abilities.PreviewCharge(State, unit, ability.Direction.Value);
-        var tile = charge.Contact is not null
-            ? State.UnitById(charge.Contact.UnitId).Position
-            : charge.Destination;
+        var descriptor = AbilityDescriptor.For(ability.Ability);
 
-        map[tile] = ability;
+        switch (descriptor.Targeting)
+        {
+            case AbilityTargeting.Enemy when ability.TargetId.HasValue:
+                Add(map, ability.TargetId.Value, ability);
+                break;
+
+            // A charge is aimed by clicking where it lands: the enemy it would hit, or the tile it
+            // would end on when the lane is empty.
+            case AbilityTargeting.Direction when ability.Direction.HasValue:
+                var charge = Abilities.PreviewCharge(State, unit, ability.Direction.Value);
+                var tile = charge.Contact is not null
+                    ? State.UnitById(charge.Contact.UnitId).Position
+                    : charge.Destination;
+                map[tile] = ability;
+                break;
+
+            // A line is aimed by clicking anything it would hit. Each direction is its own command,
+            // and the four directions cover disjoint tiles, so a tile names exactly one of them.
+            case AbilityTargeting.Line when ability.Direction.HasValue:
+                foreach (var hit in Abilities.PreviewLine(State, unit, ability.Direction.Value, ability.Ability))
+                {
+                    map[hit.At] = ability;
+                }
+
+                break;
+
+            // Self aims at nothing and must not be clickable on the board. SelfAbilityCommand offers
+            // it in the action panel instead.
+        }
+    }
+
+    private Direction? HoveredLineDirection()
+    {
+        if (Hovered is null
+            || ArmedDescriptor is not { Targeting: AbilityTargeting.Line }
+            || !Targets.TryGetValue(Hovered.Value, out var command))
+        {
+            return null;
+        }
+
+        return command is AbilityCommand { Direction: { } direction } ? direction : null;
     }
 
     private void Add(Dictionary<Coord, Command> map, UnitId unitId, Command command)
@@ -727,7 +865,8 @@ public sealed class GameSession
             return null;
         }
 
-        return command is AbilityCommand { Direction: { } direction }
+        return command is AbilityCommand { Direction: { } direction } ac
+            && AbilityDescriptor.For(ac.Ability).Targeting == AbilityTargeting.Direction
             ? Abilities.PreviewCharge(State, unit, direction)
             : null;
     }
@@ -801,7 +940,7 @@ public sealed class GameSession
         // not the mere presence of a Direction, which used to render Spear Thrust as "Charge 3 to…".
         if (descriptor.Targeting == AbilityTargeting.Line && command.Direction.HasValue)
         {
-            var hits = Abilities.PreviewLine(State, unit, command.Direction.Value);
+            var hits = Abilities.PreviewLine(State, unit, command.Direction.Value, command.Ability);
             if (hits.Count == 0)
             {
                 return descriptor.Name;

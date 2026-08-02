@@ -41,18 +41,28 @@
                 @foreach (var option in ActionOptions())
                 {
                     <button type="button"
-                            class="mode @(Session.Mode == option.Mode ? "on" : string.Empty)"
+                            class="mode @(IsOn(option) ? "on" : string.Empty)"
                             disabled="@(!option.Available)"
-                            @onclick="() => Session.SetMode(option.Mode)">
+                            @onclick="() => Arm(option)">
                         <span class="mode-name">@option.Name</span>
                         <span class="mode-effect">@option.Effect</span>
                     </button>
                 }
             </div>
 
-            @if (Session.Mode == ActionMode.Ability && Session.SelectedAbility is not null)
+            @if (Session.Mode == ActionMode.Ability && Session.ArmedDescriptor is { } armed)
             {
-                <p class="rules">@Session.SelectedAbility.Summary</p>
+                <p class="rules">@armed.Summary</p>
+
+                @* A stance aims at nothing, so there is no tile to click. It gets its own confirm
+                   button rather than firing off the arming click, so choosing it and spending it stay
+                   two separate decisions like every other action here. *@
+                @if (Session.SelfAbilityCommand is { } stance)
+                {
+                    <button type="button" class="commit" @onclick="() => Session.Submit(stance)">
+                        Use @armed.Name
+                    </button>
+                }
             }
 
             <p class="preview @(PreviewText is null ? "idle" : string.Empty)">
@@ -67,7 +77,26 @@
 </div>
 
 @code {
-    private sealed record ActionOption(ActionMode Mode, string Name, string Effect, bool Available);
+    /// <summary>
+    /// One button in the action row. <paramref name="Ability"/> is set only for an ability, because a
+    /// unit may bring several and the mode alone no longer says which one a button arms.
+    /// </summary>
+    private sealed record ActionOption(
+        ActionMode Mode, string Name, string Effect, bool Available, Ability? Ability = null);
+
+    private bool IsOn(ActionOption option) =>
+        Session.Mode == option.Mode && Session.ArmedAbility == option.Ability;
+
+    private void Arm(ActionOption option)
+    {
+        if (option.Ability is { } ability)
+        {
+            Session.SetAbility(ability);
+            return;
+        }
+
+        Session.SetMode(option.Mode);
+    }
 
     /// <summary>The outcome sentence, or nothing when the preview is switched off.</summary>
     private string? PreviewText => View.RangePreview ? Session.PreviewText : null;
@@ -110,15 +139,15 @@
                 Session.IsAvailable(ActionMode.Pull));
         }
 
-        var ability = Session.SelectedAbility;
-        if (ability is not null && ability.Targeting != AbilityTargeting.Passive)
+        // One button per ability the archetype brings, not one button called "the ability": the
+        // Wardbearer has two and the player has to be able to say which of them is being aimed.
+        foreach (var ability in Session.SelectedAbilities)
         {
+            bool usable = ability.Targeting != AbilityTargeting.Passive
+                && Session.IsAbilityAvailable(ability.Ability);
+
             yield return new ActionOption(
-                ActionMode.Ability, ability.Name, ability.Effect, Session.IsAvailable(ActionMode.Ability));
-        }
-        else if (ability is not null)
-        {
-            yield return new ActionOption(ActionMode.Ability, ability.Name, ability.Effect, false);
+                ActionMode.Ability, ability.Name, ability.Effect, usable, ability.Ability);
         }
 
         if (Session.IsAvailable(ActionMode.Rescue))

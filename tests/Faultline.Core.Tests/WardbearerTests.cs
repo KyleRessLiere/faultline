@@ -372,7 +372,7 @@ public class WardbearerTests
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
 
-        var hits = Abilities.PreviewLine(state, wardbearer, Direction.Right);
+        var hits = Abilities.PreviewLine(state, wardbearer, Direction.Right, Ability.SpearThrust);
         var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
         Assert.Equal(new[] { 2, 1 }, hits.Select(h => h.Damage));
@@ -397,7 +397,7 @@ public class WardbearerTests
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
 
-        var hit = Assert.Single(Abilities.PreviewLine(state, wardbearer, Direction.Right));
+        var hit = Assert.Single(Abilities.PreviewLine(state, wardbearer, Direction.Right, Ability.SpearThrust));
         var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
         Assert.True(hit.HitsStructure);

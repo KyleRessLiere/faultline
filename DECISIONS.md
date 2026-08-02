@@ -85,9 +85,10 @@ in this file when the question comes back.
 | D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | 2026-08-02 |  |
 | D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | 2026-08-02 |  |
 | D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | 2026-08-02 |  |
-| D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | unreleased |  |
+| D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | 2026-08-02 |  |
+| D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | unreleased |  |
 
-**67 rulings.**
+**68 rulings.**
 
 <!-- toc:end -->
 ---
@@ -690,3 +691,32 @@ land on a structure. An attack takes exactly 1 off any structure, Protect or Des
 `Structure.IsAttackable` is gone, replaced by `IsSiegeTarget`, which means only *whose objective the
 thing is*: it is what still stops an enemy clawing the pillar the players were sent to destroy.
 Multi-tile structures and source-blind collisions are still to come.
+
+**D-069 — Aiming is chosen by the ability's shape, and a unit may bring more than one.**
+Found by playing, not by a test: Spear Thrust could not be aimed and Guard Stance could not be
+pressed at all. Core was correct throughout — `Game.LegalCommands` offered all three commands — and
+the shell could not express them.
+
+Two assumptions had been baked into `Faultline.Web` when every class had exactly one ability:
+`ActionMode.Ability` was singular, so two abilities merged into one tile map with no way to choose
+between them; and aiming branched on *which fields happened to be set* rather than on the ability's
+shape, so anything carrying a `Direction` was assumed to be a charge. Spear Thrust is a Line and got
+aimed at a charge destination; Guard Stance targets Self, mapped to no tile, and an ability with no
+tile has no route to being used when abilities are issued by clicking the board.
+
+`ActionMode` now carries an armed `Ability` alongside it rather than growing one value per ability —
+the enum enumerates *kinds of aiming the shell knows how to do*, and abilities are content Core owns,
+so a mode per ability would mean editing the shell's enum every time Core gained one. Aiming switches
+on `AbilityTargeting`: Enemy to the target's tile, Direction to the charge landing, Line to the tiles
+`PreviewLine` says it hits, Self to no tile and a confirm button instead.
+
+**Self is not fire-on-arm.** Every other action here takes a second deliberate click to commit, and
+an ability that spent the action half on what reads as a *select* gesture would be the one exception.
+
+**`Abilities.PreviewLine` now names its ability.** It hard-coded Spear Thrust, so a second Line
+ability would silently have previewed as the first — a preview that quietly describes a different
+ability is worse than no preview at all.
+
+**The general lesson, recorded because it will recur:** the shell inferring a Core concept from
+incidental data is a bug waiting for the second case to exist. No test caught this, and none could
+have — the tests exercise Core, and Core was right.

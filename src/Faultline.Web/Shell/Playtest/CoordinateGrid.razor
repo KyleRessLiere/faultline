@@ -43,12 +43,16 @@
                             <UnitArt Kind="unit.Kind" Label="@unit.Name" />
                         </span>
                         <span class="hp">@unit.Hp/@unit.MaxHp</span>
-                        @if (unit.Clinging || unit.Staggered || unit.Footing == 0)
+                        @if (unit.Clinging || unit.Staggered || unit.Guarding || unit.Footing == 0)
                         {
                             <span class="pips">
                                 @if (unit.Clinging)
                                 {
                                     <i class="pip cling" title="Clinging"></i>
+                                }
+                                @if (unit.Guarding)
+                                {
+                                    <i class="pip guard" title="@(PlaytestText.GuardName + " — " + PlaytestText.GuardSummary)"></i>
                                 }
                                 @if (unit.Staggered)
                                 {

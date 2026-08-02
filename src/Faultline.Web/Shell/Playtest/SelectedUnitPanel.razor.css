@@ -147,6 +147,24 @@
     padding-left: 7px;
 }
 
+.commit {
+    background: rgba(232, 179, 65, .13);
+    border: 1px solid var(--pt-yellow);
+    border-radius: 5px;
+    color: var(--pt-text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    padding: 4px 10px;
+    width: 100%;
+}
+
+.commit:hover {
+    background: rgba(232, 179, 65, .24);
+}
+
 .preview {
     background: var(--pt-bg-raised);
     border: 1px solid var(--pt-border-soft);

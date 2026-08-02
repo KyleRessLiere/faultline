@@ -37,6 +37,9 @@ public static class EventText
         Collision e => e.ObstacleId is null
             ? $"{Name(state, e.UnitId)} slams into terrain — {e.Damage} damage."
             : $"{Name(state, e.UnitId)} slams into {Name(state, e.ObstacleId.Value)} — {e.Damage} damage each.",
+        GuardStanceChanged e => e.Active
+            ? $"{Name(state, e.UnitId)} takes up {AbilityDescriptor.For(Ability.GuardStance).Name} at {e.At}."
+            : $"{Name(state, e.UnitId)}'s {AbilityDescriptor.For(Ability.GuardStance).Name} lapses.",
         Staggered e => $"{Name(state, e.UnitId)} is staggered.",
         Clinging e => $"{Name(state, e.UnitId)} is clinging to the pit at {e.At}!",
         Rescued e => $"{Name(state, e.RescuerId)} hauls {Name(state, e.UnitId)} out to {e.To}.",
