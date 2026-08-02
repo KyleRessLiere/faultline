@@ -27,13 +27,13 @@ in this file when the question comes back.
 | D-006 | [Player A takes the first activation slot of every round.](#d-006-player-a-takes-the-first-activation-slot-of-every-round) | 2026-08-01 |  |
 | D-007 | [Player A fields Vanguard + Archer; Player B fields Threadcaster + Wardbearer.](#d-007-player-a-fields-vanguard--archer-player-b-fields-threadcaster--wardbearer) | 2026-08-01 | **superseded** |
 | D-008 | [Units cannot move through other units, allies included.](#d-008-units-cannot-move-through-other-units-allies-included) | 2026-08-01 |  |
-| D-009 | [Core picks a unit's path by minimising spike tiles entered first, movement cost second, then a fixed coordinate order.](#d-009-core-picks-a-units-path-by-minimising-spike-tiles-entered-first-movement-cost-second-then-a-fixed-coordinate-order) | 2026-08-01 |  |
+| D-009 | [Core picks a unit's path by minimising spike tiles entered first, movement cost second, then a fixed coordinate order.](#d-009-core-picks-a-units-path-by-minimising-spike-tiles-entered-first-movement-cost-second-then-a-fixed-coordinate-order) | 2026-08-01 | **superseded** |
 | D-010 | [There is no line of sight in the MVP.](#d-010-there-is-no-line-of-sight-in-the-mvp) | 2026-08-01 |  |
 | D-011 | [Core exposes collections as `IReadOnlyList<T>`, not `ImmutableArray<T>`.](#d-011-core-exposes-collections-as-ireadonlylistt-not-immutablearrayt) | 2026-08-01 |  |
 | D-012 | [`Board` and `GameState` implement structural equality by hand.](#d-012-board-and-gamestate-implement-structural-equality-by-hand) | 2026-08-01 |  |
 | D-013 | [In M1, enemy activation slots are resolved by the shell submitting `EndActivationCommand`.](#d-013-in-m1-enemy-activation-slots-are-resolved-by-the-shell-submitting-endactivationcommand) | 2026-08-01 |  |
 | D-014 | [`GameState.Momentum` exists from M1 but nothing writes to it until M5.](#d-014-gamestatemomentum-exists-from-m1-but-nothing-writes-to-it-until-m5) | 2026-08-01 | **superseded** |
-| D-015 | [Bull Rush spends both halves of the activation.](#d-015-bull-rush-spends-both-halves-of-the-activation) | 2026-08-01 |  |
+| D-015 | [Bull Rush spends both halves of the activation.](#d-015-bull-rush-spends-both-halves-of-the-activation) | 2026-08-01 | **superseded** |
 | D-016 | [A clinging unit is Voided at the end of the round *after* the one it fell in.](#d-016-a-clinging-unit-is-voided-at-the-end-of-the-round-after-the-one-it-fell-in) | 2026-08-01 |  |
 | D-017 | [Player Footing is not yet an interactive prompt.](#d-017-player-footing-is-not-yet-an-interactive-prompt) | 2026-08-01 |  |
 | D-018 | [The Anchor has Push resistance 1, not a binary immunity to Push 1.](#d-018-the-anchor-has-push-resistance-1-not-a-binary-immunity-to-push-1) | 2026-08-01 |  |
@@ -99,7 +99,7 @@ in this file when the question comes back.
 | D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | 2026-08-02 |  |
 | D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | 2026-08-02 | *partly superseded* |
 | D-081 | [A cling nothing can still save resolves the instant it becomes hopeless.](#d-081-a-cling-nothing-can-still-save-resolves-the-instant-it-becomes-hopeless) | 2026-08-02 |  |
-| D-082 | [A rescue is an action requiring adjacency, and the rescuer's player chooses where the rescued unit is set down.](#d-082-a-rescue-is-an-action-requiring-adjacency-and-the-rescuers-player-chooses-where-the-rescued-unit-is-set-down) | 2026-08-02 |  |
+| D-082 | [A rescue is an action requiring adjacency, and the rescuer's player chooses where the rescued unit is set down.](#d-082-a-rescue-is-an-action-requiring-adjacency-and-the-rescuers-player-chooses-where-the-rescued-unit-is-set-down) | 2026-08-02 | *partly superseded* |
 | D-083 | [What is about to kill you is stated, in words, where you are already looking.](#d-083-what-is-about-to-kill-you-is-stated-in-words-where-you-are-already-looking) | 2026-08-02 |  |
 | D-084 | [The Preen invariant is measured per run, and absorption is counted before the guard's halving. Preen stays a flat 2.](#d-084-the-preen-invariant-is-measured-per-run-and-absorption-is-counted-before-the-guards-halving-preen-stays-a-flat-2) | 2026-08-02 |  |
 | D-085 | [The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.](#d-085-the-meter-is-verve-in-the-code-and-pluck-on-screen-and-one-layer-decides-which) | 2026-08-02 |  |
@@ -113,9 +113,10 @@ in this file when the question comes back.
 | D-093 | [The cast landing is chosen as a side, and drawn as a cone.](#d-093-the-cast-landing-is-chosen-as-a-side-and-drawn-as-a-cone) | 2026-08-02 |  |
 | D-094 | [A hit reports what it was worth, not what there was left to absorb it.](#d-094-a-hit-reports-what-it-was-worth-not-what-there-was-left-to-absorb-it) | 2026-08-02 |  |
 | D-095 | [A guard charges for what it takes, redirected or direct.](#d-095-a-guard-charges-for-what-it-takes-redirected-or-direct) | 2026-08-02 |  |
-| D-096 | [Guard Stance shields the structure beside it, not only the ally beside it.](#d-096-guard-stance-shields-the-structure-beside-it-not-only-the-ally-beside-it) | unreleased |  |
+| D-096 | [Guard Stance shields the structure beside it, not only the ally beside it.](#d-096-guard-stance-shields-the-structure-beside-it-not-only-the-ally-beside-it) | 2026-08-02 |  |
+| D-097 | [Movement is a budget spent in clicks, and the router takes the fastest way.](#d-097-movement-is-a-budget-spent-in-clicks-and-the-router-takes-the-fastest-way) | unreleased |  |
 
-**95 rulings.**
+**96 rulings.**
 
 <!-- toc:end -->
 ---
@@ -169,6 +170,9 @@ then a fixed coordinate order.**
 would charge players spike damage they never opted into; choosing by damage first means a unit only
 eats spikes when there is genuinely no way around. The final coordinate tiebreak makes the chosen
 path reproducible, which the replay test depends on (prior 3).
+**Superseded by D-097**: the router now ranks cost first and damage second. Routing round a hazard by
+default was defensible while a move was a single decision with no way to say otherwise; segmented
+clicks gave the player that way, and Core kept choosing for them anyway.
 
 **D-010 — There is no line of sight in the MVP.**
 Ranged range is plain orthogonal distance. The brief never mentions LoS, walls blocking shots, or
@@ -207,6 +211,9 @@ Brief §2 lists it as the Vanguard's Ability, but it moves the Vanguard "up to 3
 its Move. Treating it as action-only would allow Move 3 then charge 3, six tiles in one activation.
 Charging *is* the movement, so it consumes both halves. It stays worth taking because it shoves for 2
 where the basic attack shoves for 1.
+**Superseded by D-097**, in the sense of being absorbed rather than overturned: every action closes
+the move half now, so Bull Rush consuming the movement stopped being a rule of its own. The reasoning
+above is still why it is the right answer for this ability in particular.
 
 **D-016 — A clinging unit is Voided at the end of the round *after* the one it fell in.**
 Brief §2 says a unit "clings for exactly one round" and is Voided when "its activation slot arrives
@@ -1107,6 +1114,10 @@ the ruling that caused the problem and adds UI to apologise for it.
 **Rejected: letting the rescue also be free like the kick.** A free rescue makes a pit a minor
 inconvenience, and the pit is the finisher the whole displacement system builds toward.
 
+**Partly superseded by D-097**: a rescue is still the action half and not the whole activation, so
+walk-into-reach-then-haul is untouched. What is gone is the other order — every action now closes
+the move half, so hauling first no longer leaves the rescuer able to step away from the lip.
+
 **Note on the AI:** `PlanRescue` still requires both halves unspent, which is now stricter than the
 rules require. Left alone deliberately — that is a planner preference under D-072, not a legality,
 and loosening it would change enemy behaviour on every board with a pit.
@@ -1445,3 +1456,64 @@ reason (D-084, Finding 7): his meter was starved because the events it was keyed
 than the stance they were meant to measure.
 
 **Follows D-095**, which it does not supersede.
+
+**D-097 — Movement is a budget spent in clicks, and the router takes the fastest way.**
+Supersedes D-009. Subsumes D-015. Amends D-082 and the brief's "in either order".
+
+**Two rulings in one, because they only work together.** Either half alone is worse than what was
+there before, which is why they land as one entry.
+
+**1. Segments.** While the move half is open, each click walks the unit to the clicked tile, spends
+what that costs, and recomputes the highlight from the new tile. Clicks chain until the budget is
+gone, an action is taken, or the activation ends. `Unit.HasMoved` stops being a latch a single walk
+set and becomes derived from `MoveSpent` against the stat line — the question every caller was
+really asking was "can this unit still walk", and now that is the question it asks.
+
+**2. Fastest path.** Routes rank by movement points, then damage, then the fixed order N/E/S/W read
+from the first step. **This reverses D-009**, which ranked damage first and sent a unit the long way
+round a spike without being asked. That was defensible when a move was one decision and the player
+had no way to say otherwise. It is indefensible now: the player *does* have a way to say otherwise,
+and it is a second click. Routing around a hazard by default was Core making a tactical choice on
+the player's behalf and charging them movement for it.
+
+**Why they are inseparable.** Fastest-path alone takes away the only protection a player had from
+walking into spikes. Segments alone leave the router still second-guessing them. Together, the rule
+is honest: *the quickest way, unless you say otherwise, and saying otherwise is one more click.*
+
+**No confirms, no route chips, no safety overrides.** Considered and rejected: a "this route costs
+you 1, continue?" dialog, and a per-tile toggle. Both re-introduce the thing being removed — Core
+deciding the player did not mean it — while adding a click to the common case rather than the
+unusual one. The hover preview already states the cost before the click. That is the confirmation.
+
+**Dodging costs two points on a square grid**, so no 3-point unit can walk round a single spike and
+still arrive. That is a genuine consequence and it is left standing rather than patched: hazards are
+supposed to constrain routes, and a unit that must take 1 damage or spend its activation is exactly
+the kind of decision the board is meant to force.
+
+**3. An action closes the move half.** This is what "no segments after acting" means, and it ends
+the brief's "one move and one action **in either order**" — the order is now move, then act.
+Rejected: letting the chain resume after an action. A budget you can dip back into after swinging is
+a positioning free-for-all — step out, shoot, step back behind cover — and the whole displacement
+game assumes where a unit *ends* its activation is a commitment. **This is the one part of the
+ruling that is a real loss**, and it is worth naming: attack-then-reposition is gone, and a unit that
+swings without walking first ends its activation on the spot.
+
+**D-015 is subsumed.** Bull Rush costing both halves was the one ability honest about consuming the
+movement; every action does now, so the special case is gone rather than overturned. **D-082 is
+amended, not reversed** — a rescue is still the action half rather than the whole activation, which
+still means walk-into-reach-then-haul works. What it no longer means is hauling first and walking
+away after.
+
+**Each segment carries the route it walked.** `MoveCommand` gained a `Path`, and the replay format a
+route column, so a log shows *which way* a unit went rather than only where it stopped — two clicks
+round a hazard are legible as two clicks. Core re-derives the route anyway and rejects a command
+whose path is not the one it would have taken: the path travels as a **record**, never as an
+instruction, so nothing can smuggle a route past the rules by writing it into the command. A log
+with no route column — anything written before this — still replays to an identical state.
+
+**A knock-on worth recording.** The `legal[0]` driver in `CuratedSetBoardTests` now walks several
+tiles per activation instead of one, because the legal set re-offers every reachable tile after each
+segment. That moved the-shrine's ending from round 4 to round 6, onto a round the players closed out
+before the last enemy was ever asked for a command — which the dead-round bar read as a dead round.
+The bar now only judges rounds in which the enemy actually got its slot. The board was not changed
+and did not need to be: a round the fight *ended* in is not a round nobody did anything in.

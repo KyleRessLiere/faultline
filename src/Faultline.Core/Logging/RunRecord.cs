@@ -169,7 +169,7 @@ namespace Faultline.Core
         public static string Format(Command command) => command switch
         {
             DeployCommand c => Join("Deploy", c.UnitId.ToString(), c.At.ToString()),
-            MoveCommand c => Join("Move", c.UnitId.ToString(), c.To.ToString()),
+            MoveCommand c => Join("Move", c.UnitId.ToString(), c.To.ToString(), PathText(c.Path)),
             AttackCommand c => Join("Attack", c.UnitId.ToString(), c.TargetId.ToString(), c.Mode.ToString()),
             AbilityCommand c => Join("Ability", c.UnitId.ToString(), c.Ability.ToString(), AbilityAim(c)),
             RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString(), c.To.ToString()),
@@ -196,7 +196,12 @@ namespace Faultline.Core
                     return new DeployCommand(ParseUnit(Field(fields, offset + 1)), ParseTile(Field(fields, offset + 2)));
 
                 case "Move":
-                    return new MoveCommand(ParseUnit(Field(fields, offset + 1)), ParseTile(Field(fields, offset + 2)));
+                    // The route column arrived with D-097. A line without it is an older log and
+                    // still replays: Core re-derives the route, which is the same route it recorded.
+                    return new MoveCommand(
+                        ParseUnit(Field(fields, offset + 1)),
+                        ParseTile(Field(fields, offset + 2)),
+                        ParsePath(Field(fields, offset + 3)));
 
                 case "Attack":
                     // Every mode is read back by name. Mapping only Pull and defaulting the rest
@@ -228,6 +233,51 @@ namespace Faultline.Core
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Renders a walked route as one field: tiles in order, separated by <c>&gt;</c>. Empty for a
+        /// segment whose route Core was left to derive.
+        /// </summary>
+        private static string PathText(IReadOnlyList<Coord> path)
+        {
+            if (path is null || path.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var text = new StringBuilder();
+            for (int i = 0; i < path.Count; i++)
+            {
+                if (i > 0)
+                {
+                    text.Append('>');
+                }
+
+                text.Append(path[i].ToString());
+            }
+
+            return text.ToString();
+        }
+
+        /// <summary>Reads a route column back. An absent or empty column is no recorded route.</summary>
+        private static IReadOnlyList<Coord> ParsePath(string? text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return Array.Empty<Coord>();
+            }
+
+            var tiles = new List<Coord>();
+            foreach (var part in text!.Split('>'))
+            {
+                if (part.Length > 0)
+                {
+                    tiles.Add(ParseTile(part));
+                }
+            }
+
+            return tiles;
         }
 
         /// <summary>Returns a copy with one more command appended.</summary>

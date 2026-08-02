@@ -95,7 +95,9 @@ public class ActivationTests
     }
 
     [Fact]
-    public void Activation_AttackThenMove_IsAllowedInEitherOrder()
+    // D-097 ended "either order". Movement is a chain of clicks while the move half is open, and
+    // an action shuts it - so a unit that swings first has nothing left and its activation is over.
+    public void Activation_ActingClosesTheMoveHalf_SoThereIsNoStepAfterTheSwing()
     {
         var state = BoardBuilder.Open(5, 2)
             .PlayerA(UnitKind.Vanguard, 0, 0)
@@ -105,13 +107,31 @@ public class ActivationTests
         var vanguard = state.Find(UnitKind.Vanguard);
         var anchor = state.Find(UnitKind.Anchor);
 
-        state = state.Then(new AttackCommand(vanguard.Id, anchor.Id));
-        Assert.True(state.Get(vanguard.Id).HasActed);
-        Assert.False(state.Get(vanguard.Id).HasActivated);
+        var result = state.Step(new AttackCommand(vanguard.Id, anchor.Id));
 
-        var result = state.Step(new MoveCommand(vanguard.Id, new Coord(0, 1)));
-        Assert.Equal(new Coord(0, 1), result.NewState.Get(vanguard.Id).Position);
         Assert.True(result.NewState.Get(vanguard.Id).HasActivated);
+        Assert.Equal(new Coord(0, 0), result.NewState.Get(vanguard.Id).Position);
+        TestPlay.AssertIllegal(result.NewState, new MoveCommand(vanguard.Id, new Coord(0, 1)));
+    }
+
+    [Fact]
+    public void Activation_MovingPartWayThenActing_ForfeitsWhatIsLeftOfTheBudget()
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Anchor, 2, 0)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var anchor = state.Find(UnitKind.Anchor);
+
+        var stepped = state.Then(new MoveCommand(vanguard.Id, new Coord(1, 0)));
+        Assert.Equal(2, stepped.Get(vanguard.Id).MoveRemaining);
+
+        var swung = stepped.Then(new AttackCommand(vanguard.Id, anchor.Id));
+
+        Assert.True(swung.Get(vanguard.Id).HasActivated);
+        TestPlay.AssertIllegal(swung, new MoveCommand(vanguard.Id, new Coord(1, 1)));
     }
 
     [Fact]

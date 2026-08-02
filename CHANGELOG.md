@@ -1,5 +1,22 @@
 # Changelog
 
+## Movement is a budget you spend in clicks
+
+- **Every click while the move half is open walks one segment.** The unit moves, the highlight
+  recomputes from where it now stands, and clicks keep chaining until the budget runs out, you take
+  an action, or the activation ends (D-097).
+- **The router now takes the fastest way**, ranked by movement points, then damage, then the fixed
+  order N/E/S/W. A damaging tile on the quickest route is walked over and it hurts. Going round is a
+  second click — which reverses D-009, where Core quietly took the long way for you.
+- **An action closes the move half.** "One move and one action in either order" is over: the order is
+  move, then act. Attack without walking first and your activation ends there. Bull Rush costing both
+  halves stops being a special case, because that is now what every action costs.
+- A rescue is still the action half (D-082) — walk into reach, then haul — but hauling first no
+  longer leaves you able to walk away.
+- Each segment records the route it walked, so a replay log shows which way a unit went rather than
+  only where it stopped. Older logs without the route column still replay identically.
+- The hover preview says what the segment costs and what is left after it.
+
 ## A body in front of the altar
 
 - **Guard Stance now shields an adjacent `protect` structure.** An enemy that would claw at the altar

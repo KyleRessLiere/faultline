@@ -896,7 +896,7 @@ public sealed class GameSession
                 case AbilityCommand ability:
                     return DescribeAbility(unit, ability);
                 case RescueCommand:
-                    return "Haul the clinging ally out. Costs your whole activation.";
+                    return "Haul the clinging ally out. Costs your action — and closes your move.";
                 case FinishClingingCommand:
                     return "Kick it off the ledge — gone for the run. Free action.";
                 default:
@@ -1115,6 +1115,13 @@ public sealed class GameSession
         {
             text += $" · {option.SpikeTiles} damage from spikes";
         }
+
+        // What is left after this click, because since D-097 the click is a segment rather than the
+        // whole move: a player deciding whether to detour needs to know what the detour costs them.
+        int left = unit.MoveRemaining - option.Cost;
+        text += left > 0
+            ? $" · {left} MP left after"
+            : " · ends your move";
 
         return text;
     }

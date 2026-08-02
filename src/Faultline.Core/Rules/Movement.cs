@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -9,13 +10,21 @@ namespace Faultline.Core
     public static class Movement
     {
         /// <summary>
-        /// Every tile the unit can walk to this activation, with the route Core would take.
+        /// Every tile the unit can still walk to this activation, with the route Core would take.
         /// </summary>
         /// <remarks>
-        /// Routes are chosen by minimising spike tiles entered first and movement cost second, so a
-        /// unit never eats avoidable spike damage just because a shorter route ran over them
-        /// (DECISIONS.md D-009). Remaining ties break on a fixed coordinate order, which is what makes
-        /// the chosen path reproducible.
+        /// <para>
+        /// <b>The fastest route wins (D-097).</b> Routes are ranked by movement points first, damage
+        /// taken second, and the fixed direction order N/E/S/W last — so the answer is one route, and
+        /// always the same route. A damaging tile on the fastest way through is walked over and its
+        /// entry effect applies: the player who wants around it says so with a second click, which is
+        /// what segmented movement is for. This supersedes D-009, which routed around spikes first
+        /// and left a unit taking the long way without being asked.
+        /// </para>
+        /// <para>
+        /// Budgeted from <see cref="Unit.MoveRemaining"/>, not the full stat line, so a unit part-way
+        /// through its move gets the tiles it can still reach from where it now stands.
+        /// </para>
         /// </remarks>
         /// <param name="state">Current state.</param>
         /// <param name="unit">Unit that would move.</param>
@@ -23,7 +32,7 @@ namespace Faultline.Core
         public static IReadOnlyDictionary<Coord, MoveOption> Reachable(GameState state, Unit unit)
         {
             var result = new Dictionary<Coord, MoveOption>();
-            if (!unit.IsOnBoard)
+            if (!unit.IsOnBoard || unit.MoveRemaining <= 0)
             {
                 return result;
             }
@@ -31,7 +40,7 @@ namespace Faultline.Core
             var board = state.Board;
             var best = new Dictionary<Coord, Node>();
             var settled = new HashSet<Coord>();
-            best[unit.Position] = new Node(0, 0, null, true);
+            best[unit.Position] = new Node(0, 0, null, Array.Empty<int>(), true);
 
             while (true)
             {
@@ -43,9 +52,12 @@ namespace Faultline.Core
                 settled.Add(current);
                 var node = best[current];
 
-                foreach (var direction in Directions.All)
+                // N/E/S/W, which is the order Directions.All is held in. Iterating it is half the
+                // tie-break: the earlier direction reaches the tile first and the later one has to
+                // beat it outright to take it (D-097).
+                for (int d = 0; d < Directions.All.Count; d++)
                 {
-                    var next = current.Step(direction);
+                    var next = current.Step(Directions.All[d]);
                     if (!board.InBounds(next) || settled.Contains(next))
                     {
                         continue;
@@ -58,13 +70,13 @@ namespace Faultline.Core
                     }
 
                     int cost = node.Cost + StepCost(tile, unit);
-                    if (cost > unit.Move)
+                    if (cost > unit.MoveRemaining)
                     {
                         continue;
                     }
 
                     int spikes = node.Spikes + (tile == TileType.Spikes ? 1 : 0);
-                    var candidate = new Node(spikes, cost, current, false);
+                    var candidate = new Node(spikes, cost, current, Extend(node.Steps, d), false);
 
                     if (!best.TryGetValue(next, out var existing) || IsBetter(candidate, existing))
                     {
@@ -149,26 +161,65 @@ namespace Faultline.Core
             return found;
         }
 
+        // D-097's ranking, in order: movement points, then damage, then the direction the step came
+        // in on. Cost leads because the fastest route is the one the player asked for by clicking;
+        // damage only separates routes that are equally fast, and a hazard on the quickest way
+        // through is entered rather than dodged.
         private static bool IsBetter(Node candidate, Node existing)
         {
-            if (candidate.Spikes != existing.Spikes)
-            {
-                return candidate.Spikes < existing.Spikes;
-            }
-
             if (candidate.Cost != existing.Cost)
             {
                 return candidate.Cost < existing.Cost;
             }
 
-            // Equal cost and equal damage: keep whichever route came from the earlier tile in
-            // row-major order, so the path we hand back is always the same one.
+            if (candidate.Spikes != existing.Spikes)
+            {
+                return candidate.Spikes < existing.Spikes;
+            }
+
+            // Equally fast and equally safe: N/E/S/W decides, compared from the first step rather
+            // than the last, so "north then east" beats "east then north" the way a reader of the
+            // rule would expect. Same route on any machine, in any order, every time.
+            int order = CompareSteps(candidate.Steps, existing.Steps);
+            if (order != 0)
+            {
+                return order < 0;
+            }
+
             if (candidate.Prev.HasValue && existing.Prev.HasValue)
             {
                 return Precedes(candidate.Prev.Value, existing.Prev.Value);
             }
 
             return false;
+        }
+
+        // Lexicographic over the direction sequence walked so far. Shorter wins a prefix tie, which
+        // only arises between routes of equal cost across terrain of differing price.
+        private static int CompareSteps(IReadOnlyList<int> a, IReadOnlyList<int> b)
+        {
+            int shared = a.Count < b.Count ? a.Count : b.Count;
+            for (int i = 0; i < shared; i++)
+            {
+                if (a[i] != b[i])
+                {
+                    return a[i] < b[i] ? -1 : 1;
+                }
+            }
+
+            return a.Count == b.Count ? 0 : (a.Count < b.Count ? -1 : 1);
+        }
+
+        private static IReadOnlyList<int> Extend(IReadOnlyList<int> steps, int direction)
+        {
+            var next = new int[steps.Count + 1];
+            for (int i = 0; i < steps.Count; i++)
+            {
+                next[i] = steps[i];
+            }
+
+            next[steps.Count] = direction;
+            return next;
         }
 
         private static bool Ties(Node a, Node b) => a.Spikes == b.Spikes && a.Cost == b.Cost;
@@ -200,11 +251,12 @@ namespace Faultline.Core
 
         private readonly struct Node
         {
-            public Node(int spikes, int cost, Coord? prev, bool isStart)
+            public Node(int spikes, int cost, Coord? prev, IReadOnlyList<int> steps, bool isStart)
             {
                 Spikes = spikes;
                 Cost = cost;
                 Prev = prev;
+                Steps = steps;
                 IsStart = isStart;
             }
 
@@ -213,6 +265,12 @@ namespace Faultline.Core
             public int Cost { get; }
 
             public Coord? Prev { get; }
+
+            /// <summary>
+            /// Indices into <see cref="Directions.All"/> of every step taken to reach this tile, in
+            /// order. The whole sequence, because the tie-break reads from the first step.
+            /// </summary>
+            public IReadOnlyList<int> Steps { get; }
 
             public bool IsStart { get; }
         }

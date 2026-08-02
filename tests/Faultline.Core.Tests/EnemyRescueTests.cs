@@ -47,11 +47,9 @@ public class EnemyRescueTests
         Assert.False(result.NewState.Get(clinging.Id).Clinging);
         Assert.Equal(new Coord(1, 1), result.NewState.Get(clinging.Id).Position);
 
-        // D-082: an action, not the whole activation. The rescuer has acted and still holds its
-        // move, so the activation is not over and nothing has been logged as ending.
-        Assert.True(result.NewState.Get(rescuer.Id).HasActed);
-        Assert.False(result.NewState.Get(rescuer.Id).HasMoved);
-        Assert.False(result.NewState.Get(rescuer.Id).HasActivated);
+        // D-082 made the rescue an action rather than the whole activation; D-097 then made every
+        // action close the move half, so an enemy that hauls without walking first is done.
+        Assert.True(result.NewState.Get(rescuer.Id).HasActivated);
     }
 
     [Fact]

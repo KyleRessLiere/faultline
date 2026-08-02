@@ -260,13 +260,21 @@ public static class PlaytestText
             throw new ArgumentNullException(nameof(unit));
         }
 
-        return (unit.HasMoved, unit.HasActed) switch
+        // Since D-097 the move half is a budget rather than a latch, and acting shuts what is left
+        // of it — so "action spent, move still to use" is no longer a state a unit can be in.
+        if (unit.HasActed)
         {
-            (false, false) => "Move and action both unspent.",
-            (true, false) => "Move spent — action still to use.",
-            (false, true) => "Action spent — move still to use.",
-            _ => "Move and action both spent.",
-        };
+            return "Move and action both spent.";
+        }
+
+        if (unit.MoveRemaining <= 0)
+        {
+            return "Move spent — action still to use.";
+        }
+
+        return unit.MoveSpent > 0
+            ? "Move part-spent (" + unit.MoveRemaining + " MP left) — action still to use."
+            : "Move and action both unspent.";
     }
 
 }

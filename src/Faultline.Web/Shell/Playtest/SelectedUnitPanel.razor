@@ -28,7 +28,9 @@
             </dl>
 
             <ul class="halves">
-                <li class="@(unit.HasMoved ? "spent" : string.Empty)">Move</li>
+                @* Since D-097 the move half is a budget walked in segments, so the pip reports what
+                   is left rather than a yes or no. *@
+                <li class="@(unit.HasMoved ? "spent" : string.Empty)">Move@(unit.HasMoved ? string.Empty : " " + unit.MoveRemaining + "/" + unit.Move)</li>
                 <li class="@(unit.HasActed ? "spent" : string.Empty)">Action</li>
             </ul>
 

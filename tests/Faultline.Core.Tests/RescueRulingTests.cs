@@ -19,7 +19,7 @@ public class RescueRulingTests
 
         var moved = state.Then(new MoveCommand(vanguard, new Coord(2, 1)));
 
-        Assert.True(moved.Get(vanguard).HasMoved);
+        Assert.Equal(1, moved.Get(vanguard).MoveSpent);
         Assert.True(moved.Get(vanguard).Position.IsAdjacentTo(moved.Get(archer).Position));
 
         var command = moved.Rescue(vanguard, archer);
@@ -45,16 +45,16 @@ public class RescueRulingTests
     }
 
     [Fact]
-    public void ARescueWithTheMoveUnspent_LeavesTheUnitAbleToWalkAway()
+    // D-082 kept the move half alive through a rescue; D-097 took it back, because every action
+    // closes the move half and a rescue is an action. Walk first, then haul.
+    public void ARescueWithTheMoveUnspent_StillForfeitsIt()
     {
         var state = Adjacent(out var vanguard, out var archer);
 
         var after = state.Then(state.Rescue(vanguard, archer));
 
-        Assert.True(after.Get(vanguard).HasActed);
-        Assert.False(after.Get(vanguard).HasMoved);
-        Assert.False(after.Get(vanguard).HasActivated);
-        TestPlay.AssertLegal(after, new MoveCommand(vanguard, new Coord(3, 1)));
+        Assert.True(after.Get(vanguard).HasActivated);
+        TestPlay.AssertIllegal(after, new MoveCommand(vanguard, new Coord(3, 1)));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class RescueRulingTests
     public void Reachability_IsNullOnceTheMoveIsSpentAndItIsNotAdjacent()
     {
         var state = TwoAway(out var vanguard, out var archer);
-        var stuck = state.WithUnit(state.Get(vanguard) with { HasMoved = true });
+        var stuck = state.WithUnit(state.Get(vanguard) with { MoveSpent = state.Get(vanguard).Move });
 
         Assert.Null(Pits.MoveNeededToReach(stuck, stuck.Get(vanguard), stuck.Get(archer)));
     }

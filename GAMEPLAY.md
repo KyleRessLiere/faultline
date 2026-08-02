@@ -39,7 +39,7 @@ superseded it (D-074).
 | Open | free | — |
 | Wall | impossible | collision |
 | Pit | **impossible** (D-004) | Clinging |
-| Spikes | costs 1 movement, **1 damage**, no Stagger | **3 damage**, stops there, Staggers |
+| Spikes | costs 1 movement, **1 damage**, no Stagger — and the router will walk you over them if that is the fastest way (D-097) | **3 damage**, stops there, Staggers |
 | HighGround | costs **2** movement (Archer: 1) | **impossible from below** — the ledge collides |
 | HighGround → down | free | **1 damage**, and the displacement *continues* |
 
@@ -52,8 +52,40 @@ Ranged attacks fired *from* HighGround deal **+1**. There is no line of sight (D
    declarations land before anyone activates, so the players see the whole enemy round first.
 3. **Activations alternate** Player A → enemy → Player B → enemy. When one side runs out, the other
    activates consecutively. Player A opens every round (D-006).
-4. An activation is **one move + one action, in either order**. Ending early forfeits the rest.
+4. An activation is **one move + one action**, and **the move comes first or not at all** (D-097).
+   Ending early forfeits the rest.
 5. **Round end:** Clinging resolves, then Stagger clears on everyone.
+
+### Movement — segmented clicks, fastest path
+
+The move half is a **budget**, not a single decision. While it is open, **every click is a segment**:
+
+- The unit walks to the clicked tile, the movement points it cost come off the budget, and the
+  highlight **recomputes from the tile it now stands on**.
+- Clicks keep chaining until the budget is gone, **an action is taken**, or the activation ends.
+- **An action closes the move half**, whatever is left in it. Attack first and you do not move; move
+  one tile of three and then attack and the other two are forfeit. This is what ended "in either
+  order" — the order is now move, then act.
+- The route is **drawn on hover before every click**, and the preview says what the segment costs and
+  what is left after it.
+
+**Routing picks the fastest way, in this order:**
+
+1. **Fewest movement points.**
+2. Then **least damage taken**.
+3. Then the fixed direction order **N / E / S / W**, compared from the first step — so "north then
+   east" beats "east then north", on any machine, every time.
+
+**A damaging tile on the fastest route is walked over and its entry effect applies.** No confirm, no
+route chip, no safety override: spikes on the quick way through cost 1 and the unit keeps going.
+Going *round* is a second click — put a waypoint on the far side and the router obeys it. Because
+dodging one tile on a square grid costs two extra points, **no 3-point unit can walk round a single
+spike and still arrive**; that is a real cost of the route, not an oversight.
+
+Each segment is its own `MoveCommand` **carrying the route it walked**, so a replay log shows which
+way a unit went and not merely where it stopped. Core re-derives the route regardless and refuses a
+command whose path is not the one it would have taken — the path travels as a record, never as an
+instruction.
 
 ### Agency before injury — the deployment overlay
 
@@ -176,7 +208,8 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
   shoved into a pit while it goes unused. Open question, not a rule — see D-026.*
 - **Clinging** — in a pit, cannot act, still holds an activation slot.
   - An **adjacent ally** hauls it out with its **action half** — so walk into reach and then rescue,
-    the ordinary move-then-act (D-082). **The rescuer's player picks the tile** it is set down on:
+    the ordinary move-then-act (D-082). Being an action, it **closes the move half** like any other,
+    so a rescuer who hauls before walking does not get to walk afterwards (D-097). **The rescuer's player picks the tile** it is set down on:
     open, unoccupied, adjacent to the rescuer, and never another pit. On screen those tiles draw as
     a cone around the rescuer, so the decision reads as which side they come up on (D-093).
   - An **adjacent enemy** can kick it off as a **free action** — costs neither half.
@@ -200,7 +233,7 @@ available, e.g. *needs 2 more move*.
 
 | Class | HP | Move | Basic attack | Ability |
 |---|---|---|---|---|
-| Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015). |
+| Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015) — which since D-097 is what every action costs, so this is no longer a special case. |
 | Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
 | **Fisher** | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |

@@ -47,16 +47,17 @@ public class TurnSummaryTextTests
     }
 
     [Theory]
-    [InlineData(false, false, "Move and action both unspent.")]
-    [InlineData(true, false, "Move spent — action still to use.")]
-    [InlineData(false, true, "Action spent — move still to use.")]
-    [InlineData(true, true, "Move and action both spent.")]
-    public void Halves_SaysWhichHalfIsLeft(bool moved, bool acted, string expected)
+    [InlineData(0, false, "Move and action both unspent.")]
+    [InlineData(1, false, "Move part-spent (2 MP left) — action still to use.")]
+    [InlineData(3, false, "Move spent — action still to use.")]
+    [InlineData(0, true, "Move and action both spent.")]
+    [InlineData(3, true, "Move and action both spent.")]
+    public void Halves_SaysWhichHalfIsLeft(int spent, bool acted, string expected)
     {
-        // An activation is one move plus one action in either order, so all four states are real and
-        // each needs its own sentence.
+        // Since D-097 the move half is a budget, so part-spent is a real state and needs its own
+        // sentence — and acting shuts what is left, so "action spent, move still to use" is not.
         var unit = Unit.FromTemplate(new UnitId(0), UnitKind.Vanguard, Team.PlayerA)
-            with { HasMoved = moved, HasActed = acted };
+            with { MoveSpent = spent, MoveClosed = acted, HasActed = acted };
 
         Assert.Equal(expected, PlaytestText.Halves(unit));
     }

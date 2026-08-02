@@ -304,6 +304,17 @@ public class CuratedSetBoardTests
 
         foreach (int round in drive.Rounds)
         {
+            // A round the fight ended in, before the enemy's slot ever came up, is not a dead round
+            // %s it is a won one. D-097 made this reachable: the move half now stays open until the
+            // budget is gone, so the legal[0] driver walks several tiles per activation instead of
+            // one, and the-shrine's ending moved from round 4 to a round 6 the players closed out
+            // before the last Husk was asked for anything. An enemy that IS asked and only ends its
+            // activation still fails this, which is what caught break-the-gate.
+            if (!drive.Slotted.Contains(round))
+            {
+                continue;
+            }
+
             Assert.True(
                 drive.Active.Contains(round),
                 id + ": round " + round + " passed with no enemy moving, attacking or clawing anything.");
@@ -315,7 +326,8 @@ public class CuratedSetBoardTests
         GameState End,
         IReadOnlyList<int> Rounds,
         ISet<int> Active,
-        IReadOnlyList<int> SiegeRounds);
+        IReadOnlyList<int> SiegeRounds,
+        ISet<int> Slotted);
 
     /// <summary>
     /// Plays eight rounds with Core planning the enemy and the players taking their first legal
@@ -336,6 +348,7 @@ public class CuratedSetBoardTests
 
         var rounds = new List<int>();
         var active = new HashSet<int>();
+        var slotted = new HashSet<int>();
         var siegeRounds = new List<int>();
 
         while (state.Phase == Phase.Battle
@@ -363,9 +376,16 @@ public class CuratedSetBoardTests
                 command = legal[0];
             }
 
-            if (byEnemy && command is not EndActivationCommand)
+            if (byEnemy)
             {
-                active.Add(round);
+                // Recorded before the EndActivation filter: an enemy that gets its slot and passes
+                // has still been asked, and that is exactly what the dead-round bar is for.
+                slotted.Add(round);
+
+                if (command is not EndActivationCommand)
+                {
+                    active.Add(round);
+                }
             }
 
             var step = Game.Apply(state, command);
@@ -378,6 +398,6 @@ public class CuratedSetBoardTests
             state = step.NewState;
         }
 
-        return new Drive(state, rounds, active, siegeRounds);
+        return new Drive(state, rounds, active, siegeRounds, slotted);
     }
 }

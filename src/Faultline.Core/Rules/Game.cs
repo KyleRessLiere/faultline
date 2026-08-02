@@ -273,11 +273,14 @@ namespace Faultline.Core
 
             foreach (var unit in ActivationCandidates(state))
             {
-                if (!unit.HasMoved)
+                if (!unit.MoveClosed)
                 {
                     foreach (var pair in Movement.Reachable(state, unit))
                     {
-                        commands.Add(new MoveCommand(unit.Id, pair.Key));
+                        // Offered with the route already on it, so anything driven off the legal
+                        // list — the AI, the harness, a replay — logs the same segment a player
+                        // clicking the tile would (D-097).
+                        commands.Add(new MoveCommand(unit.Id, pair.Key, pair.Value.Path));
                     }
                 }
 
@@ -508,7 +511,8 @@ namespace Faultline.Core
                 units[i] = state.Units[i] with
                 {
                     HasActivated = false,
-                    HasMoved = false,
+                    MoveSpent = 0,
+                    MoveClosed = false,
                     HasActed = false,
                     Staggered = false,
                 };
@@ -538,8 +542,14 @@ namespace Faultline.Core
         private static GameState ApplyMove(GameState state, MoveCommand command, List<GameEvent> events)
         {
             var unit = RequireActivatable(state, command.UnitId);
-            Require(!unit.HasMoved, "Unit has already moved this activation.");
+            Require(!unit.MoveClosed, "The move half is closed for this activation.");
+            Require(unit.MoveRemaining > 0, "Unit has no movement left this activation.");
             Require(Movement.TryGetMove(state, unit, command.To, out var option), "Destination is not reachable.");
+
+            // A supplied path is a record of the route walked, not a route request: it has to be the
+            // one Core would have taken anyway, or the shell could smuggle a path past the rules
+            // (D-097).
+            Require(SamePath(command.Path, option.Path), "That is not the route Core would take.");
 
             state = CommitActivation(state, unit, events);
             unit = state.UnitById(unit.Id);
@@ -569,7 +579,10 @@ namespace Faultline.Core
                 }
             }
 
-            var moved = unit with { Position = position, HasMoved = true };
+            // The segment's cost goes on the tally rather than latching the half shut: what is left
+            // is what the next click gets to route with (D-097). A unit stopped early by spikes is
+            // charged only for the tiles it actually entered.
+            var moved = unit with { Position = position, MoveSpent = unit.MoveSpent + cost };
             state = state.WithUnit(moved);
             events.Add(new UnitMoved(unit.Id, unit.Position, position, walked, cost));
 
@@ -581,6 +594,31 @@ namespace Faultline.Core
             }
 
             return AfterAction(state, unit.Id, events);
+        }
+
+        // An empty path means the issuer left the routing to Core; anything else has to match the
+        // route Core would have taken, tile for tile.
+        private static bool SamePath(IReadOnlyList<Coord> claimed, IReadOnlyList<Coord> canonical)
+        {
+            if (claimed is null || claimed.Count == 0)
+            {
+                return true;
+            }
+
+            if (claimed.Count != canonical.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < claimed.Count; i++)
+            {
+                if (!claimed[i].Equals(canonical[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static GameState ApplyAttack(GameState state, AttackCommand command, List<GameEvent> events)
@@ -596,7 +634,7 @@ namespace Faultline.Core
 
                 state = CommitActivation(state, unit, events);
                 unit = state.UnitById(unit.Id);
-                state = state.WithUnit(unit with { HasActed = true });
+                state = state.WithUnit(unit with { HasActed = true, MoveClosed = true });
 
                 state = Redirected(
                     state, unit, target, DisplacementKind.Pull, unit.Template.BasicPull, events);
@@ -610,7 +648,7 @@ namespace Faultline.Core
 
                 state = CommitActivation(state, unit, events);
                 unit = state.UnitById(unit.Id);
-                state = state.WithUnit(unit with { HasActed = true });
+                state = state.WithUnit(unit with { HasActed = true, MoveClosed = true });
 
                 state = Redirected(
                     state, unit, target, DisplacementKind.Push, unit.Template.BasicPush, events);
@@ -626,8 +664,8 @@ namespace Faultline.Core
             // Double Nock buys attack actions, not a free one: each shot spends an owed attack
             // before it starts spending the activation's own action half (D-079).
             state = unit.ExtraAttacks > 0
-                ? state.WithUnit(unit with { ExtraAttacks = unit.ExtraAttacks - 1 })
-                : state.WithUnit(unit with { HasActed = true });
+                ? state.WithUnit(unit with { ExtraAttacks = unit.ExtraAttacks - 1, MoveClosed = true })
+                : state.WithUnit(unit with { HasActed = true, MoveClosed = true });
 
             unit = state.UnitById(unit.Id);
 
@@ -735,10 +773,10 @@ namespace Faultline.Core
             state = CommitActivation(state, unit, events);
             unit = state.UnitById(unit.Id);
 
-            // Brief §2: Bull Rush is the activation's movement as well as its action, since it is the
-            // Vanguard moving (DECISIONS.md D-015).
-            bool consumesMove = descriptor.Targeting == AbilityTargeting.Direction;
-            state = state.WithUnit(unit with { HasActed = true, HasMoved = unit.HasMoved || consumesMove });
+            // D-097: an action closes the move half, whatever is left in the budget. This subsumes
+            // D-015's special case for Bull Rush — it is no longer the only ability that costs the
+            // movement, it is simply the one that was honest about it first.
+            state = state.WithUnit(unit with { HasActed = true, MoveClosed = true });
 
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
 
@@ -768,7 +806,7 @@ namespace Faultline.Core
             });
             events.Add(new Rescued(clinging.Id, rescuer.Id, command.To));
 
-            state = state.WithUnit(state.UnitById(rescuer.Id) with { HasActed = true });
+            state = state.WithUnit(state.UnitById(rescuer.Id) with { HasActed = true, MoveClosed = true });
 
             return AfterAction(state, rescuer.Id, events);
         }
@@ -916,7 +954,8 @@ namespace Faultline.Core
             state = state.WithUnit(unit with
             {
                 HasActivated = true,
-                HasMoved = false,
+                MoveSpent = 0,
+                MoveClosed = false,
                 HasActed = false,
                 HasSpentVerve = false,
                 WreckingWeightArmed = false,

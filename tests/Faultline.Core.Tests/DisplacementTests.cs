@@ -313,11 +313,9 @@ public class DisplacementTests
         Assert.False(result.NewState.Get(archer.Id).Clinging);
         Assert.True(result.NewState.Get(archer.Id).Position.IsAdjacentTo(vanguard.Position));
 
-        // D-082: the action half and nothing else. The move is still there — a rescuer who walked
-        // into reach has already spent it, and one who did not can still step away from the lip.
-        Assert.True(result.NewState.Get(vanguard.Id).HasActed);
-        Assert.False(result.NewState.Get(vanguard.Id).HasMoved);
-        Assert.False(result.NewState.Get(vanguard.Id).HasActivated);
+        // D-082 made a rescue the action half rather than the whole activation, and D-097 then
+        // made every action close the move half — so a rescuer who had not walked yet does not get to.
+        Assert.True(result.NewState.Get(vanguard.Id).HasActivated);
     }
 
     [Fact]

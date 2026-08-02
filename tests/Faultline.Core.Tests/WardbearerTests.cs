@@ -342,10 +342,10 @@ public class WardbearerTests
     }
 
     [Fact]
-    public void SpearThrust_CostsTheActionOnly_SoTheWardbearerMayStillMove()
+    // Since D-097 an action closes the move half, so a thrust taken before walking spends the
+    // whole activation. Thrusting after walking is still the ordinary move-then-act.
+    public void SpearThrust_ClosesTheMoveHalf_LikeEveryOtherAction()
     {
-        // Two rows, because the thrust no longer shoves the Husk out of the way and a one-row board
-        // would leave the Wardbearer walled in by the enemy it just hit.
         var state = BoardBuilder.Open(8, 2)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 1, 0, hp: 6)
@@ -355,10 +355,10 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.False(result.Has<ActivationEnded>());
-        Assert.False(result.NewState.Get(wardbearer.Id).HasMoved);
-        Assert.True(result.NewState.Get(wardbearer.Id).HasActed);
-        Assert.Contains(Game.LegalCommands(result.NewState), c => c is MoveCommand);
+        Assert.True(result.Has<ActivationEnded>());
+        Assert.True(result.NewState.Get(wardbearer.Id).HasActivated);
+        Assert.DoesNotContain(
+            Game.LegalCommands(result.NewState), c => c is MoveCommand m && m.UnitId == wardbearer.Id);
     }
 
     [Fact]
@@ -424,19 +424,23 @@ public class WardbearerTests
         Assert.Contains(opening, c => c is AbilityCommand a && a.Ability == Ability.SpearThrust);
         Assert.Contains(opening, c => c is AbilityCommand a && a.Ability == Ability.GuardStance);
 
-        // Spending the action on one of them takes the other two off the table.
+        // Spending the action on one of them takes the other two off the table - and since D-097
+        // closes the move half with it, the whole activation goes.
         var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.GuardStance));
         var left = Game.LegalCommands(after);
 
-        Assert.DoesNotContain(left, c => c is AbilityCommand);
-        Assert.DoesNotContain(left, c => c is AttackCommand);
+        Assert.True(after.Get(wardbearer.Id).HasActivated);
+        Assert.DoesNotContain(left, c => c is AbilityCommand a && a.UnitId == wardbearer.Id);
+        Assert.DoesNotContain(left, c => c is AttackCommand a && a.UnitId == wardbearer.Id);
         TestPlay.AssertIllegal(after, new AttackCommand(wardbearer.Id, husk.Id));
     }
 
     // ---- Guard Stance: the stance itself ------------------------------------------------
 
     [Fact]
-    public void GuardStance_CostsTheActionHalfOnly_UnlikeBullRush()
+    // D-097 subsumed D-015: Bull Rush is no longer the one ability that costs the movement, it is
+    // simply the one that was honest about it first. Guarding before walking now costs the walk.
+    public void GuardStance_ClosesTheMoveHalf_LikeEveryOtherAction()
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -447,10 +451,29 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.GuardStance));
 
-        Assert.False(result.Has<ActivationEnded>());
-        Assert.False(result.NewState.Get(wardbearer.Id).HasMoved);
-        Assert.True(result.NewState.Get(wardbearer.Id).HasActed);
-        Assert.Contains(Game.LegalCommands(result.NewState), c => c is MoveCommand);
+        Assert.True(result.NewState.Get(wardbearer.Id).Guarding);
+        Assert.True(result.NewState.Get(wardbearer.Id).HasActivated);
+        Assert.DoesNotContain(
+            Game.LegalCommands(result.NewState), c => c is MoveCommand m && m.UnitId == wardbearer.Id);
+    }
+
+    [Fact]
+    public void GuardStance_TakenAfterWalking_IsTheOrdinaryMoveThenAct()
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 5, 0)
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+
+        var after = state
+            .Then(new MoveCommand(wardbearer.Id, new Coord(1, 0)))
+            .Then(new AbilityCommand(wardbearer.Id, Ability.GuardStance));
+
+        Assert.True(after.Get(wardbearer.Id).Guarding);
+        Assert.Equal(new Coord(1, 0), after.Get(wardbearer.Id).Position);
+        Assert.True(after.Get(wardbearer.Id).HasActivated);
     }
 
     [Fact]
@@ -484,11 +507,10 @@ public class WardbearerTests
         var wardbearer = state.Find(UnitKind.Wardbearer);
         var warden = state.Find(UnitKind.Warden);
 
+        // The stance is the action, and since D-097 the action ends the activation on its own.
         state = state.Then(new AbilityCommand(wardbearer.Id, Ability.GuardStance));
         Assert.True(state.Get(wardbearer.Id).Guarding);
-
-        state = state.Then(new EndActivationCommand(wardbearer.Id));
-        Assert.True(state.Get(wardbearer.Id).Guarding);
+        Assert.True(state.Get(wardbearer.Id).HasActivated);
 
         // The round turns over and it is still standing guard: the stance covers the enemy round it
         // was declared to cover, which is the point of it not clearing at end of round.
@@ -620,8 +642,8 @@ public class WardbearerTests
 
         state = EnemyTurn(state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true }));
 
+        // Each swing ends its own enemy activation now (D-097), so no EndActivation between them.
         state = state.Then(new AttackCommand(first.Id, archer.Id));
-        state = state.Then(new EndActivationCommand(first.Id));
         var result = state.Step(new AttackCommand(second.Id, archer.Id));
 
         Assert.Equal(archer.Hp, result.NewState.Get(archer.Id).Hp);
@@ -758,7 +780,10 @@ public class WardbearerTests
 
         Assert.Equal(new Coord(3, 1), result.NewState.Get(wardbearer.Id).Position);
         Assert.Equal(5, result.NewState.Get(wardbearer.Id).Hp);
-        Assert.True(result.NewState.Get(wardbearer.Id).Staggered);
+
+        // Asserted on the event rather than the surviving flag: the Grappler's swing now ends its
+        // own activation (D-097), which can turn the round over and clear the Stagger with it.
+        Assert.True(result.Has<Staggered>());
         Assert.Equal(Displacement.CollisionDamage, result.Single<Collision>().Damage);
     }
 
@@ -863,8 +888,8 @@ public class WardbearerTests
         var archer = state.Find(UnitKind.Archer);
         var anchor = state.Find(UnitKind.Anchor);
 
+        // Taking the stance is the whole activation since D-097 - no EndActivation needed.
         state = state.Then(new AbilityCommand(wardbearer.Id, Ability.GuardStance));
-        state = state.Then(new EndActivationCommand(wardbearer.Id));
 
         var intent = Ai.IntentFor(state, anchor.Id)!;
         Assert.Equal(wardbearer.Id, intent.RedirectedTo);

@@ -1,14 +1,14 @@
 policy	seed	outcome	fights_won	ended_at_node	commands	reason
-first-legal	1	Lost	2	2	185	Fight lost: the-teeth.
-brawler	1	InProgress	3	3	489	stalled: broken-bridge reached round 61 with neither side able to finish it
-shover	1	Lost	2	2	156	Fight lost: the-teeth.
-careful	1	Lost	2	2	194	Fight lost: the-teeth.
-board-first	1	InProgress	3	3	312	stalled: broken-bridge reached round 61 with neither side able to finish it
-blade-first	1	InProgress	3	3	312	stalled: broken-bridge reached round 61 with neither side able to finish it
-preserver	1	InProgress	3	3	312	stalled: broken-bridge reached round 61 with neither side able to finish it
-random-a	1	Lost	1	1	158	Fight lost: cb-06-bait-and-break.
-random-b	1	Lost	1	1	155	Fight lost: cb-06-bait-and-break.
-random-c	1	Lost	1	1	121	Fight lost: cb-06-bait-and-break.
-random-d	1	Lost	1	1	122	Fight lost: cb-06-bait-and-break.
-random-e	1	Lost	1	1	170	Fight lost: cb-06-bait-and-break.
-random-f	1	Lost	0	0	116	Fight lost: first-contact.
+first-legal	1	Lost	2	2	270	Fight lost: the-teeth.
+brawler	1	Lost	6	7	451	Fight lost: high-road.
+shover	1	Lost	2	2	138	Fight lost: the-teeth.
+careful	1	Lost	1	1	210	Fight lost: cb-06-bait-and-break.
+board-first	1	Lost	6	7	212	Fight lost: high-road.
+blade-first	1	Lost	6	7	212	Fight lost: high-road.
+preserver	1	Lost	6	7	212	Fight lost: high-road.
+random-a	1	Lost	1	1	109	Fight lost: cb-06-bait-and-break.
+random-b	1	Lost	1	1	142	Fight lost: cb-06-bait-and-break.
+random-c	1	Lost	1	1	132	Fight lost: cb-06-bait-and-break.
+random-d	1	Lost	0	0	77	Fight lost: first-contact.
+random-e	1	Lost	1	1	136	Fight lost: cb-06-bait-and-break.
+random-f	1	Lost	1	1	173	Fight lost: cb-06-bait-and-break.

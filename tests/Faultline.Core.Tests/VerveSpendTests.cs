@@ -233,11 +233,14 @@ public class VerveSpendTests
 
         // The action half is still unspent, because the first shot spent an owed attack instead.
         Assert.False(once.Get(archer).HasActed);
+        Assert.False(once.Get(archer).HasActivated);
         TestPlay.AssertLegal(once, new AttackCommand(archer, far));
 
+        // The second shot spends the action half, which since D-097 closes the move half with it -
+        // so the activation ends and the halves are reset behind it.
         var twice = once.Then(new AttackCommand(archer, far));
 
-        Assert.True(twice.Get(archer).HasActed);
+        Assert.True(twice.Get(archer).HasActivated);
         Assert.Equal(0, twice.Get(archer).ExtraAttacks);
     }
 
@@ -248,7 +251,7 @@ public class VerveSpendTests
 
         var once = state.Then(new AttackCommand(archer, near));
 
-        Assert.True(once.Get(archer).HasActed);
+        Assert.True(once.Get(archer).HasActivated);
         TestPlay.AssertNotLegal(once, new AttackCommand(archer, far));
     }
 

@@ -29,8 +29,21 @@ namespace Faultline.Core
         /// <summary>True once this unit has taken its activation this round.</summary>
         public bool HasActivated { get; init; }
 
-        /// <summary>True once this unit has moved during the current activation.</summary>
-        public bool HasMoved { get; init; }
+        /// <summary>
+        /// Movement points already spent this activation, across every segment walked so far (D-097).
+        /// </summary>
+        /// <remarks>
+        /// Movement is not one decision any more. Each click while the move half is open walks one
+        /// segment and adds its cost here; the next segment is routed from the new tile on what is
+        /// left. Reset by <see cref="Faultline.Core.Game"/> when the activation ends.
+        /// </remarks>
+        public int MoveSpent { get; init; }
+
+        /// <summary>
+        /// True once the move half has been shut for this activation regardless of what is left in
+        /// the budget — which is what taking an action does (D-097).
+        /// </summary>
+        public bool MoveClosed { get; init; }
 
         /// <summary>True once this unit has taken its action during the current activation.</summary>
         public bool HasActed { get; init; }
@@ -111,6 +124,34 @@ namespace Faultline.Core
 
         /// <summary>Movement points per activation, read from the live stat block.</summary>
         public int Move => Template.Move;
+
+        /// <summary>
+        /// Movement points still available this activation. Zero once the move half is closed.
+        /// </summary>
+        public int MoveRemaining
+        {
+            get
+            {
+                if (MoveClosed)
+                {
+                    return 0;
+                }
+
+                int left = Move - MoveSpent;
+                return left < 0 ? 0 : left;
+            }
+        }
+
+        /// <summary>
+        /// True when the move half is finished — the budget is gone, or an action closed it.
+        /// </summary>
+        /// <remarks>
+        /// Derived rather than stored since D-097 made movement segmented: "has moved" used to be a
+        /// latch a single walk set, and the question every caller was really asking is whether the
+        /// unit can still walk. A unit two tiles into a three-point budget answers <c>false</c>, and
+        /// so can still spend the rest of it — including to walk into reach of a rescue.
+        /// </remarks>
+        public bool HasMoved => MoveRemaining <= 0;
 
         /// <summary>Display name.</summary>
         public string Name => Template.Name;

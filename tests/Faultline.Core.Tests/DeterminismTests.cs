@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
 
@@ -62,6 +64,65 @@ public class DeterminismTests
             Assert.Equal(pair.Value.Path, secondRun[pair.Key].Path);
             Assert.Equal(pair.Value.Cost, secondRun[pair.Key].Cost);
         }
+    }
+
+    // ---- D-097: the route travels with the segment -----------------------------------------
+
+    [Fact]
+    public void Replay_RecordsTheRouteOfEverySegment_NotJustItsDestination()
+    {
+        var state = BoardBuilder.Open(6, 3)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 5, 2)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+
+        var log = new List<Command>();
+        foreach (var destination in new[] { new Coord(1, 0), new Coord(2, 1) })
+        {
+            Assert.True(Movement.TryGetMove(state, state.Get(vanguard.Id), destination, out var option));
+            var command = new MoveCommand(vanguard.Id, destination, option!.Path);
+            log.Add(command);
+            state = Game.Apply(state, command).NewState;
+        }
+
+        var record = new RunRecord { FightId = "probe", FightNumber = 0, Seed = 1, Commands = log };
+
+        // Each segment prints its own route, so the log says which way the unit went and not merely
+        // where it stopped — two clicks round a hazard are legible as two clicks.
+        Assert.Contains("(1,0)", RunRecord.Format(log[0]), StringComparison.Ordinal);
+        Assert.Contains("(2,0)>(2,1)", RunRecord.Format(log[1]), StringComparison.Ordinal);
+
+        Assert.True(RunRecord.TryParse(record.Render(), out var parsed));
+        Assert.Equal(log, parsed.Commands);
+
+        var reparsed = parsed.Commands.OfType<MoveCommand>().ToList();
+        Assert.Equal(2, reparsed.Count);
+        Assert.Equal(new[] { new Coord(2, 0), new Coord(2, 1) }, reparsed[1].Path);
+    }
+
+    // The route column is new. A log written before it, or by anything that leaves routing to Core,
+    // has to replay to the same state — otherwise the migration silently rewrites saved fights.
+    [Fact]
+    public void Replay_ALogWithNoRouteColumn_ReachesTheIdenticalState()
+    {
+        var fight = FightLibrary.Fight1();
+        var start = Game.Start(fight, seed: 4242).NewState;
+        var (played, log) = TestPlay.PlayFirstLegal(start, maxSteps: 400);
+
+        Assert.Contains(log, c => c is MoveCommand m && m.Path.Count > 0);
+
+        var stripped = new List<Command>(log.Count);
+        foreach (var command in log)
+        {
+            stripped.Add(command is MoveCommand move ? new MoveCommand(move.UnitId, move.To) : command);
+        }
+
+        var replayed = TestPlay.Replay(Game.Start(fight, seed: 4242).NewState, stripped);
+
+        Assert.Equal(played, replayed);
+        Assert.Equal(played.GetHashCode(), replayed.GetHashCode());
     }
 
     [Fact]
