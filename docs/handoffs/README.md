@@ -23,15 +23,44 @@ confident wrong guess costs more than the task saved.
 
 ## Naming
 
+Every export gets **its own dated folder**:
+
 ```
-docs/handoffs/YYYY-MM-DD-<slug>.md
+docs/handoffs/YYYY-MM-DD[-<slug>]/
+    HANDOFF.md    written by a person
+    SNAPSHOT.md   generated, never edited
 ```
+
+Open one with:
+
+```
+python tools/export_handoff.py --tests "1291 Core + 222 Web green" --since <last-handoff-sha>
+```
+
+The date is US Eastern, matching the folders the note log writes, so a session's notes and its
+handoff agree about which day they happened on. Two exports on one day land in `<date>` and
+`<date>-b` rather than overwriting — the earlier one is a record of what was believed earlier,
+which is the whole reason this directory is dated.
 
 Dated, because a handoff is a snapshot and goes stale by design. **Do not edit an old handoff to keep
 it current** — write a new one. The old one is a record of what was believed at the time, which is
-occasionally the most useful thing in the directory when something turns out to have been wrong.
+occasionally the most useful thing in the directory when something turns out to have been wrong. The
+same goes for `SNAPSHOT.md`: it is regenerable, so if it looks wrong, re-run the tool rather than
+correcting the file.
 
-`TEMPLATE.md` is the skeleton. Start from it.
+Handoffs written before this convention are flat files, `YYYY-MM-DD-<slug>.md`, and are left where
+they are. Moving them would change paths that other documents may cite, to no benefit.
+
+### The two halves
+
+`SNAPSHOT.md` holds only what cannot be typed wrong: the commit, the branch, what was uncommitted,
+the commit list, the ruling index and its superseded flags, the harness table. It is generated for
+the same reason `docs/BATTLE_CATALOGUE.md` and the `DECISIONS.md` contents table are — a
+hand-maintained index drifts from what it indexes, and an index you cannot trust is worse than none.
+
+`HANDOFF.md` is the part no tool can write, and the part that is actually worth reading: what is
+half-finished and how half, which trap bit this week, the exact next step. `TEMPLATE.md` is its
+skeleton and the tool copies it in for you.
 
 ## What a handoff must contain
 
