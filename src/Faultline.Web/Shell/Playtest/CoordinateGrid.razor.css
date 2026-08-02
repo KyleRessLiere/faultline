@@ -397,24 +397,15 @@
     .verve.ticking { animation: none; }
 }
 
-/* Agency before injury (D-080): during deployment, every tile something can damage on round 1 is
-   hatched. Not a toggle — this is the one moment a player commits without being able to see the
-   cost. */
-.cell.unsafe-deploy::after {
-    background: repeating-linear-gradient(
-        135deg,
-        rgba(255, 98, 104, .30) 0 3px,
-        transparent 3px 7px);
+/* One enemy's reach, while you hover it (D-089). A flat wash with a ring, deliberately not a
+   diagonal hatch: spikes terrain is already a 135deg hatch and the two were indistinguishable. */
+.cell.threat-from::after {
+    background: rgba(255, 98, 104, .34);
+    box-shadow: inset 0 0 0 1px rgba(255, 98, 104, .65);
     content: "";
     inset: 0;
     pointer-events: none;
     position: absolute;
-}
-
-/* Hovering one enemy narrows it to that enemy's own reach. */
-.cell.threat-from::after {
-    background: rgba(255, 98, 104, .34);
-    box-shadow: inset 0 0 0 1px rgba(255, 98, 104, .65);
 }
 
 /* Somebody who could get to the ledge this activation. A ring rather than a fill: the tile still

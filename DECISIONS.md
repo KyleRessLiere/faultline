@@ -97,17 +97,18 @@ in this file when the question comes back.
 | D-077 | [Retort is legal only as the first thing in an activation, because that is the only moment Guard Stance is still standing.](#d-077-retort-is-legal-only-as-the-first-thing-in-an-activation-because-that-is-the-only-moment-guard-stance-is-still-standing) | 2026-08-02 |  |
 | D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | 2026-08-02 |  |
 | D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | 2026-08-02 |  |
-| D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | 2026-08-02 |  |
+| D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | 2026-08-02 | *partly superseded* |
 | D-081 | [A cling nothing can still save resolves the instant it becomes hopeless.](#d-081-a-cling-nothing-can-still-save-resolves-the-instant-it-becomes-hopeless) | 2026-08-02 |  |
 | D-082 | [A rescue is an action requiring adjacency, and the rescuer's player chooses where the rescued unit is set down.](#d-082-a-rescue-is-an-action-requiring-adjacency-and-the-rescuers-player-chooses-where-the-rescued-unit-is-set-down) | 2026-08-02 |  |
 | D-083 | [What is about to kill you is stated, in words, where you are already looking.](#d-083-what-is-about-to-kill-you-is-stated-in-words-where-you-are-already-looking) | 2026-08-02 |  |
-| D-084 | [The Preen invariant is measured per run, and absorption is counted before the guard's halving. Preen stays a flat 2.](#d-084-the-preen-invariant-is-measured-per-run-and-absorption-is-counted-before-the-guards-halving-preen-stays-a-flat-2) | unreleased |  |
+| D-084 | [The Preen invariant is measured per run, and absorption is counted before the guard's halving. Preen stays a flat 2.](#d-084-the-preen-invariant-is-measured-per-run-and-absorption-is-counted-before-the-guards-halving-preen-stays-a-flat-2) | 2026-08-02 |  |
 | D-085 | [The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.](#d-085-the-meter-is-verve-in-the-code-and-pluck-on-screen-and-one-layer-decides-which) | 2026-08-02 |  |
 | D-086 | [Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet spot.](#d-086-spear-thrust-is-1-to-the-adjacent-tile-and-2-to-the-tile-beyond-the-tip-is-the-sweet-spot) | 2026-08-02 |  |
 | D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | 2026-08-02 |  |
 | D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | 2026-08-02 |  |
+| D-089 | [The deployment threat overlay is per-enemy on hover, never the union painted over the board.](#d-089-the-deployment-threat-overlay-is-per-enemy-on-hover-never-the-union-painted-over-the-board) | unreleased |  |
 
-**87 rulings.**
+**88 rulings.**
 
 <!-- toc:end -->
 ---
@@ -975,9 +976,10 @@ game a hit is the consequence of a move they chose.
 
 **Three parts, and they are not equally strong.**
 
-1. **The board shows the cost.** During deployment every tile any enemy could damage on round 1 is
-   shaded, and hovering one enemy narrows it to that enemy's reach. Computed by `Threat` in Core, not
-   by the renderer.
+1. **The board shows the cost.** ~~During deployment every tile any enemy could damage on round 1 is
+   shaded~~ — **partly superseded by D-089**: the union covered 47 of 49 tiles and told a player nothing.
+   Hovering one enemy shades that enemy's reach, which is what survived. Computed by `Threat` in
+   Core, not by the renderer.
 2. **Campaign boards are linted.** A campaign board where some side cannot field its roster on safe
    tiles raises `UnsafeRound1Deployment`.
 3. **`first-contact` is held to the strict form.** Not "a safe deployment exists" but "every
@@ -1207,3 +1209,37 @@ anywhere.
 **Implemented by looking forward in the event stream**, because `GuardIntercepted` is emitted before
 the redirected effect resolves — so "did anything land" is a question about what came after it, and
 the charge pass already has the finished list (D-073).
+
+**D-089 — The deployment threat overlay is per-enemy on hover, never the union painted over the
+board.**
+Partly supersedes D-080 — its display clause only. The law itself is untouched — campaign boards must still
+offer every side a deployment slot nothing can reach, and that validation is unchanged.
+
+**What forced it: looking at it.** D-080 shaded every tile any enemy could damage on round 1, always,
+on the grounds that deployment is the one moment a player commits blind. The number was in the
+ruling the whole time and I did not read it as a UI fact: **47 of 49 tiles on `first-contact`**. A
+board painted almost entirely red says "somewhere is dangerous", which is not something anybody can
+place a unit with. It was noise wearing the costume of information.
+
+**It was also ambiguous.** The hatch was a 135° repeating gradient in red — and `.cell.spikes` is a
+135° repeating gradient. The overlay and a terrain type were drawn the same way, so a shaded tile and
+a spiked tile were not reliably distinguishable.
+
+**What replaces it:** hovering one enemy shades exactly what that enemy could reach, as a flat wash
+with a ring rather than a hatch. One enemy's diamond is a fraction of the board and answers a
+question a player is actually asking — *what can that thing get to?* — instead of the one they are
+not: *is anywhere safe?*
+
+**A one-line hint during deployment says the tool exists**, because an overlay that only appears on
+hover is an overlay nobody finds.
+
+**The law's guarantee now rests on the board validation, which was always the durable half.** An
+overlay tells one player about one board once; a lint stops the board shipping. `Threat.DamageRound1`
+stays in Core unchanged — the lint and the tests read it, and only the always-on rendering is gone.
+
+**Rejected: keeping the union but drawing it more faintly.** The problem is not the opacity, it is
+that 96% of the tiles are in the set.
+
+**Rejected: shading only the deployment zone.** Truer to the law and still nearly useless — on the
+boards that fail it, most of the zone is threatened, so it collapses to "your corner is bad" without
+saying by what.

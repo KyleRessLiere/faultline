@@ -146,3 +146,12 @@ h3 {
     font-size: 11px;
     margin: 0;
 }
+
+/* Quieter than an instruction: it tells you a tool exists, it is not a step. */
+.hint {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    font-style: italic;
+    margin: 4px 0 0;
+    opacity: .8;
+}

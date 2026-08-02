@@ -60,9 +60,12 @@ Ranged attacks fired *from* HighGround deal **+1**. There is no line of sight (D
 **A player should never lose hit points to a decision they were not allowed to make** (D-080).
 Deployment is the one moment they commit blind, so it is the one moment the game shows its hand:
 
-- **Every tile any enemy could damage on round 1 is shaded during placement** — each enemy's walk plus
-  its reach from anywhere it can walk to. **Hovering one enemy narrows the shading to that enemy
-  alone.** Shown whether or not the in-fight threat overlay is switched on.
+- **Hovering an enemy during placement shades everywhere it could reach on round 1** — its walk plus
+  its reach from anywhere it can walk to. One enemy at a time, on demand.
+- **The union is deliberately never painted** (D-089). It covers 47 of 49 tiles on `first-contact`,
+  and a board shaded almost end to end says "somewhere is dangerous", which nobody can place a unit
+  with. The guarantee lives in the board validation below instead, which is the half that cannot be
+  ignored.
 - The set is an **over-approximation on purpose**: what an enemy *could* do, not what its priority
   list *will* do, computed with the board empty of players. Bodies only ever block, so a real
   deployment can shrink it and never grow it.

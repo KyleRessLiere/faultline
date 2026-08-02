@@ -332,7 +332,7 @@ public sealed class VerveUiTests
 }
 
 /// <summary>
-/// The deployment threat overlay (D-080). The shell shows it; Core decides what is in it.
+/// The deployment threat overlay after D-089: one enemy at a time, on hover, and never the union.
 /// </summary>
 public sealed class DeploymentThreatTests
 {
@@ -343,49 +343,32 @@ public sealed class DeploymentThreatTests
     }
 
     [Fact]
-    public void DuringDeployment_TheOverlayIsWhatCoreSays()
-    {
-        var (view, state) = Deploying("the-teeth");
-
-        Assert.Equal(
-            Threat.DamageRound1(state).OrderBy(c => c.X).ThenBy(c => c.Y),
-            view.DeploymentThreat(state).OrderBy(c => c.X).ThenBy(c => c.Y));
-    }
-
-    [Fact]
-    public void TheOverlayIsShownEvenWithTheThreatToggleOff()
-    {
-        // Deliberate. Turning the in-fight overlay off is a choice about clutter; there is no reading
-        // of it that means "hide what can hit me while I am placing my squad".
-        var (view, state) = Deploying("the-teeth");
-
-        Assert.False(view.ThreatView);
-        Assert.NotEmpty(view.DeploymentThreat(state));
-    }
-
-    [Fact]
-    public void OnceTheBattleStarts_TheDeploymentOverlayGoesAway()
-    {
-        var (view, state) = Deploying("the-teeth");
-
-        Assert.Empty(view.DeploymentThreat(state with { Phase = Phase.Battle }));
-    }
-
-    [Fact]
-    public void HoveringOneEnemy_NarrowsItToThatEnemyAlone()
+    public void HoveringOneEnemy_ShowsThatEnemysReach_FromCore()
     {
         var (view, state) = Deploying("the-teeth");
         var enemy = state.Units.First(u => u.Team == Team.Enemy && u.IsOnBoard);
 
-        var mine = view.ThreatFrom(state, enemy.Id);
+        var shown = view.ThreatFrom(state, enemy.Id);
 
-        Assert.NotEmpty(mine);
-        Assert.Equal(Threat.ForUnit(state, enemy).Count, mine.Count);
-        Assert.True(mine.Count < view.DeploymentThreat(state).Count);
+        Assert.NotEmpty(shown);
+        Assert.Equal(
+            Threat.ForUnit(state, enemy).OrderBy(c => c.X).ThenBy(c => c.Y),
+            shown.OrderBy(c => c.X).ThenBy(c => c.Y));
     }
 
     [Fact]
-    public void HoveringAPlayerUnitOrNothing_NarrowsToNothing()
+    public void OneEnemysReach_IsAFractionOfTheUnion()
+    {
+        // The reason the union was dropped: on a 7x7 it is nearly the whole board, and a board
+        // painted almost entirely red says only "somewhere is dangerous".
+        var (view, state) = Deploying("the-teeth");
+        var enemy = state.Units.First(u => u.Team == Team.Enemy && u.IsOnBoard);
+
+        Assert.True(view.ThreatFrom(state, enemy.Id).Count < Threat.DamageRound1(state).Count);
+    }
+
+    [Fact]
+    public void HoveringNothingOrAPlayerUnit_ShowsNothing()
     {
         var (view, state) = Deploying("the-teeth");
         var player = state.Units.First(u => u.Team.IsPlayer());
@@ -395,16 +378,13 @@ public sealed class DeploymentThreatTests
     }
 
     [Fact]
-    public void FirstContact_ShadesNoDeploymentTileAtAll()
+    public void CoreStillKnowsTheUnion_BecauseTheBoardLintNeedsIt()
     {
-        // The strict board. If this ever shades one, fight 1 has stopped being the fight where
-        // nothing can hurt you before you have moved.
-        var (view, state) = Deploying("first-contact");
-        var shaded = view.DeploymentThreat(state).ToHashSet();
+        // D-080's law did not go away with its overlay: the validation that campaign boards must
+        // offer a safe deployment is the durable half, and it reads exactly this.
+        var (_, state) = Deploying("the-teeth");
 
-        foreach (var tile in state.Fight.DeploymentZoneA.Concat(state.Fight.DeploymentZoneB))
-        {
-            Assert.DoesNotContain(tile, shaded);
-        }
+        Assert.NotEmpty(Threat.DamageRound1(state));
+        Assert.NotEmpty(Threat.UnsafeSides(FightLibrary.ById("the-teeth")));
     }
 }

@@ -84,6 +84,11 @@ def status_of(title, body):
     lowered = body.lower()
     if title.lower().startswith("held:"):
         return "held"
+
+    # Checked first: a ruling whose *clause* was overtaken is still standing, and marking the whole
+    # thing superseded would tell a reader the opposite of the truth.
+    if "partly superseded by" in lowered:
+        return "partial"
     if "superseded by" in lowered or "supersedes this" in lowered:
         return "superseded"
     return "active"
@@ -121,7 +126,12 @@ def main():
 
     for ruling, title, date, status in rows:
         anchor = re.sub(r"[^a-z0-9 -]", "", (ruling + " " + title).lower()).replace(" ", "-")
-        mark = {"active": "", "superseded": "**superseded**", "held": "*held*"}[status]
+        mark = {
+            "active": "",
+            "superseded": "**superseded**",
+            "partial": "*partly superseded*",
+            "held": "*held*",
+        }[status]
         toc.append("| {0} | [{1}](#{2}) | {3} | {4} |".format(ruling, title, anchor, date, mark))
 
     toc.append("")

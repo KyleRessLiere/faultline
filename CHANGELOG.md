@@ -22,6 +22,11 @@
   and the loss condition at the same size as the goal. It collapses above the board on narrow
   screens, never into a menu.
 
+- **The deployment danger overlay is per-enemy on hover, not painted over the whole board.** Shading
+  every threatened tile meant shading 47 of 49 of them, and it used the same red diagonal hatch as
+  spikes terrain, so it was ambiguous as well as useless. Hover an enemy and you get that enemy's
+  reach; a line during deployment says the tool is there. The board-validation half of the law is
+  untouched (D-089).
 - **The combat log now says how big an interception was** — "3 spared, 2 taken" — because Guard
   Stance halves what it redirects and the event carried no magnitude at all.
 

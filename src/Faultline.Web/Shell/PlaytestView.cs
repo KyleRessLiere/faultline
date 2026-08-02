@@ -35,8 +35,6 @@ public sealed class PlaytestView
 
     private GameState? _threatFor;
     private IReadOnlyCollection<Coord> _threat = Array.Empty<Coord>();
-    private GameState? _deployThreatFor;
-    private IReadOnlyCollection<Coord> _deployThreat = Array.Empty<Coord>();
 
     /// <summary>Raised whenever something on this view changed, so the screen can redraw.</summary>
     public event Action? Changed;
@@ -151,35 +149,6 @@ public sealed class PlaytestView
         _threatFor = state;
         _threat = tiles;
         return tiles;
-    }
-
-    /// <summary>
-    /// Every tile the enemy side can put damage on before the players have had a turn, for the
-    /// deployment overlay. Independent of the threat toggle: this one is not an option.
-    /// </summary>
-    /// <param name="state">Board to measure.</param>
-    /// <returns>The threatened tiles, empty once the fight has left deployment.</returns>
-    /// <remarks>
-    /// Deployment is the only moment a player commits without being able to see what it costs, so
-    /// this is shown whether or not the threat overlay is switched on. Turning it off is a choice
-    /// about clutter during a fight; there is no reading of it that means "hide this from me while I
-    /// place my squad".
-    /// </remarks>
-    public IReadOnlyCollection<Coord> DeploymentThreat(GameState? state)
-    {
-        if (state is null || state.Phase != Phase.Deployment)
-        {
-            return Array.Empty<Coord>();
-        }
-
-        if (ReferenceEquals(state, _deployThreatFor))
-        {
-            return _deployThreat;
-        }
-
-        _deployThreatFor = state;
-        _deployThreat = Threat.DamageRound1(state);
-        return _deployThreat;
     }
 
     /// <summary>

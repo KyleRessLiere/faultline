@@ -107,6 +107,10 @@
                 @PlaytestText.Team(State.ActiveTeam) places @PendingDeployName.
             </p>
             <p class="instruction">Click a highlighted deployment tile in your corner.</p>
+
+            @* The threat overlay is per-enemy on hover rather than painted over the board (D-089),
+               which makes it worth one line to say it is there at all. *@
+            <p class="hint">Hover an enemy to see everywhere it could reach on round 1.</p>
         }
         else if (Session.AwaitingEnemy)
         {
