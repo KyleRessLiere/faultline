@@ -1335,3 +1335,9 @@ down*. The wedge says that; a square does not.
 
 **Each wedge still carries its own outcome** — drain, spikes 3, open — because the side is only half
 the decision and the ground is the other half.
+
+**Rescue uses the same cone, and needed it more.** D-082 made the rescued unit's destination the
+rescuer's choice, and the shell was throwing that choice away: every destination for one ally was
+keyed to the *ally's* tile in the target map, so all but one were overwritten and clicking picked
+whichever survived. The ruling had shipped with no way to exercise it. Aiming a rescue now arms the
+same cone of the rescuer's own neighbours, in green rather than cyan.

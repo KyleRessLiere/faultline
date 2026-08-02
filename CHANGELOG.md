@@ -28,6 +28,10 @@
   as a cone fanning off her — a wedge per direction, each still labelled with what that ground does.
   Four highlighted squares read as four unrelated options; a cone reads as the decision you are
   actually making.
+- **Rescue picks a side the same way, and this fixed a real bug.** Choosing where a rescued ally
+  comes up has been the rescuer's decision since D-082, but the board keyed every destination to the
+  *ally's* tile, so all but one were discarded and clicking took whichever happened to survive. The
+  cone gives every side its own wedge, so the choice is finally a choice.
 - **Default teams are now Vanguard + Fisher against Wardbearer + Archer** (D-092) — the two
   displacement classes against the two that hold a line and shoot. A campaign run re-splits whatever
   a board rosters instead of reading the split off ten files. Free draft is unchanged.

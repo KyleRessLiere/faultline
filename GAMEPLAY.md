@@ -168,7 +168,8 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
 - **Clinging** — in a pit, cannot act, still holds an activation slot.
   - An **adjacent ally** hauls it out with its **action half** — so walk into reach and then rescue,
     the ordinary move-then-act (D-082). **The rescuer's player picks the tile** it is set down on:
-    open, unoccupied, adjacent to the rescuer, and never another pit.
+    open, unoccupied, adjacent to the rescuer, and never another pit. On screen those tiles draw as
+    a cone around the rescuer, so the decision reads as which side they come up on (D-093).
   - An **adjacent enemy** can kick it off as a **free action** — costs neither half.
   - **Any damage** while clinging kills it outright.
   - Otherwise it is **Voided at the end of the round after the one it fell in** (D-016).

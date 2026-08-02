@@ -330,6 +330,7 @@ public sealed class GameSession
     {
         Untouched = false;
         ClearCast();
+        ClearRescue();
 
         if (_run is not null)
         {
@@ -716,6 +717,77 @@ public sealed class GameSession
         AimingCast = false;
         CastTarget = null;
     }
+
+    // ---- Rescue: haul them out, then choose which side they come up on -----------------------
+
+    /// <summary>The clinging ally a rescue is currently aimed at, if one has been chosen.</summary>
+    public UnitId? RescueTarget { get; private set; }
+
+    /// <summary>True while a rescue is choosing its destination.</summary>
+    public bool AimingRescue => RescueTarget is not null;
+
+    /// <summary>
+    /// Where the rescued ally could be set down, keyed to the command each tile would submit.
+    /// </summary>
+    /// <remarks>
+    /// D-082 made the destination the rescuer's choice, and the shell was quietly throwing that away:
+    /// every destination for a given ally was keyed to the <em>ally's</em> tile, so all but one were
+    /// overwritten and clicking picked whichever survived. The tiles are the rescuer's own
+    /// neighbours, so this is a side rather than a square — drawn as a cone, like Cast (D-093).
+    /// </remarks>
+    public IReadOnlyDictionary<Coord, Command> RescueDestinations
+    {
+        get
+        {
+            var tiles = new Dictionary<Coord, Command>();
+            if (RescueTarget is null || Selected is null)
+            {
+                return tiles;
+            }
+
+            foreach (var command in Legal.OfType<RescueCommand>())
+            {
+                if (command.UnitId == Selected.Value && command.ClingingId == RescueTarget.Value)
+                {
+                    tiles[command.To] = command;
+                }
+            }
+
+            return tiles;
+        }
+    }
+
+    /// <summary>Which way a rescue destination lies from the rescuer.</summary>
+    /// <param name="destination">A tile from <see cref="RescueDestinations"/>.</param>
+    /// <returns>The direction, or null when the tile is not one of the rescuer's neighbours.</returns>
+    public Direction? RescueSide(Coord destination)
+    {
+        if (SelectedUnit is not { } rescuer)
+        {
+            return null;
+        }
+
+        foreach (var direction in Directions.All)
+        {
+            if (rescuer.Position.Step(direction) == destination)
+            {
+                return direction;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Aims a rescue at one clinging ally, or puts it away if it was already aimed there.</summary>
+    /// <param name="clingingId">The ally on the ledge.</param>
+    public void ToggleRescue(UnitId clingingId)
+    {
+        RescueTarget = RescueTarget == clingingId ? null : clingingId;
+        Changed?.Invoke();
+    }
+
+    /// <summary>Stops aiming a rescue, whether one was made or abandoned.</summary>
+    public void ClearRescue() => RescueTarget = null;
 
     /// <summary>Clickable tiles for the current mode, each mapped to the command it submits.</summary>
     public IReadOnlyDictionary<Coord, Command> Targets => TargetsFor(Mode, ArmedAbility);

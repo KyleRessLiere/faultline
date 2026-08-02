@@ -98,7 +98,12 @@
                        "drain" is the difference between a spend and a kill. *@
                     @if (Session.CastLandings.ContainsKey(cell))
                     {
-                        <span class="cast-cone" aria-hidden="true"></span>
+                        <span class="cone" aria-hidden="true"></span>
+                        <span class="cast-outcome">@PlaytestText.CastOutcome(State, cell)</span>
+                    }
+                    else if (Session.RescueDestinations.ContainsKey(cell))
+                    {
+                        <span class="cone" aria-hidden="true"></span>
                         <span class="cast-outcome">@PlaytestText.CastOutcome(State, cell)</span>
                     }
                 </button>
@@ -191,6 +196,15 @@
 
     private void Redraw() => _ = InvokeAsync(StateHasChanged);
 
+    /// <summary>Tags a tile with which side of the acting unit it lies on, for the cone.</summary>
+    private static void AddSide(List<string> classes, Direction? side)
+    {
+        if (side is { } direction)
+        {
+            classes.Add("side-" + direction.ToString().ToLowerInvariant());
+        }
+    }
+
     private void OnCellClick(Coord coord, Unit? unit)
     {
         // Clicks are ignored while a sequence plays rather than queued: the position on screen is
@@ -204,6 +218,13 @@
         if (IsDeployTarget(coord))
         {
             Session.Submit(Session.DeployTargets[coord]);
+            return;
+        }
+
+        // A rescue in flight owns the click: the ally is already chosen, only the side is left.
+        if (Session.RescueDestinations.TryGetValue(coord, out var rescue))
+        {
+            Session.Submit(rescue);
             return;
         }
 
@@ -251,6 +272,7 @@
             || Session.Targets.ContainsKey(coord)
             || Session.CastLandings.ContainsKey(coord)
             || Session.CastGrabTiles.Contains(coord)
+            || Session.RescueDestinations.ContainsKey(coord)
             || (unit is not null && Session.Selectable.Contains(unit.Id))
             || GameSession.CanInspect(unit));
 
@@ -300,16 +322,18 @@
             classes.Add("cast-grab");
         }
 
+        // Cast and Rescue both end in "which side of me do they end up on", so both draw the same
+        // cone and differ only in colour (D-093).
         if (Session.CastLandings.ContainsKey(coord))
         {
             classes.Add("cast-land");
+            AddSide(classes, Session.CastLandingSide(coord));
+        }
 
-            // Which side of her this tile is. The four together fan out as a cone, so the choice
-            // reads as a direction rather than as four unrelated squares (D-093).
-            if (Session.CastLandingSide(coord) is { } side)
-            {
-                classes.Add("side-" + side.ToString().ToLowerInvariant());
-            }
+        if (Session.RescueDestinations.ContainsKey(coord))
+        {
+            classes.Add("rescue-land");
+            AddSide(classes, Session.RescueSide(coord));
         }
 
         // D-083: while an ally is over the edge, the units that could actually get to it this

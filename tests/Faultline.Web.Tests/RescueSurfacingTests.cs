@@ -496,3 +496,141 @@ public sealed class CastAimingTests
         Assert.Equal(before, session.State.UnitById(husk).Position);
     }
 }
+
+/// <summary>
+/// A rescue picks a side too (D-093), and until it did the destination D-082 gave the player was
+/// unreachable: every destination was keyed to the ally's tile, so all but one were overwritten.
+/// </summary>
+public sealed class RescueConeTests
+{
+    private static GameSession Rescuer(out UnitId vanguard, out UnitId archer)
+    {
+        var rows = new List<string> { ".........", ".O.......", ".........", "........." };
+        var board = BoardLayout.Parse(rows);
+
+        var units = new List<Unit>
+        {
+            Unit.FromTemplate(new UnitId(0), UnitKind.Vanguard, Team.PlayerA) with
+            {
+                Position = new Coord(2, 1), IsDeployed = true,
+            },
+            Unit.FromTemplate(new UnitId(1), UnitKind.Archer, Team.PlayerA) with
+            {
+                Position = new Coord(1, 1),
+                IsDeployed = true,
+                Clinging = true,
+                ClingingSinceRound = 1,
+            },
+            Unit.FromTemplate(new UnitId(2), UnitKind.Husk, Team.Enemy) with
+            {
+                Position = new Coord(8, 0), IsDeployed = true,
+            },
+        };
+
+        vanguard = new UnitId(0);
+        archer = new UnitId(1);
+
+        var state = new GameState
+        {
+            Seed = 1,
+            RngState = 1,
+            Fight = new FightDefinition { Number = 1, Name = "Ledge", Board = board },
+            Board = board,
+            Units = units,
+            Round = 1,
+            Phase = Phase.Battle,
+            ActiveTeam = Team.PlayerA,
+            NextPlayerTeam = Team.PlayerA,
+            Outcome = FightOutcome.InProgress,
+        };
+
+        var session = new GameSession();
+        session.AdoptRunStep(
+            new EndActivationCommand(new UnitId(0)),
+            state,
+            new StepResult(state, Array.Empty<GameEvent>(), Game.LegalCommands(state)));
+
+        session.Select(vanguard);
+        return session;
+    }
+
+    [Fact]
+    public void NothingIsOfferedUntilARescueIsAimed()
+    {
+        var session = Rescuer(out _, out _);
+
+        Assert.False(session.AimingRescue);
+        Assert.Empty(session.RescueDestinations);
+    }
+
+    [Fact]
+    public void AimingAtTheAlly_OffersEveryDestinationSeparately()
+    {
+        // The bug this fixes: Core offers one command per destination, and the shell used to key
+        // them all to the ally's tile so only one survived.
+        var session = Rescuer(out var vanguard, out var archer);
+        session.ToggleRescue(archer);
+
+        Assert.True(session.AimingRescue);
+
+        var expected = Pits.RescueDestinations(session.State, session.State.UnitById(vanguard));
+        Assert.True(expected.Count > 1, "the board should offer a choice worth making");
+        Assert.Equal(
+            expected.OrderBy(c => c.X).ThenBy(c => c.Y),
+            session.RescueDestinations.Keys.OrderBy(c => c.X).ThenBy(c => c.Y));
+    }
+
+    [Fact]
+    public void EveryDestinationKnowsWhichSideOfTheRescuerItIs()
+    {
+        var session = Rescuer(out var vanguard, out var archer);
+        session.ToggleRescue(archer);
+
+        var him = session.State.UnitById(vanguard).Position;
+
+        foreach (var tile in session.RescueDestinations.Keys)
+        {
+            var side = session.RescueSide(tile);
+            Assert.NotNull(side);
+            Assert.Equal(tile, him.Step(side!.Value));
+        }
+    }
+
+    [Fact]
+    public void ThePickedSideIsWhereTheyComeUp()
+    {
+        var session = Rescuer(out _, out var archer);
+        session.ToggleRescue(archer);
+
+        var chosen = session.RescueDestinations.Keys.OrderBy(c => c.X).ThenBy(c => c.Y).Last();
+        session.Submit(session.RescueDestinations[chosen]);
+
+        Assert.Equal(chosen, session.State.UnitById(archer).Position);
+        Assert.False(session.State.UnitById(archer).Clinging);
+        Assert.False(session.AimingRescue);
+    }
+
+    [Fact]
+    public void AimingTheSameAllyTwice_PutsItAway()
+    {
+        var session = Rescuer(out _, out var archer);
+
+        session.ToggleRescue(archer);
+        session.ToggleRescue(archer);
+
+        Assert.False(session.AimingRescue);
+        Assert.Empty(session.RescueDestinations);
+    }
+
+    [Fact]
+    public void ARescuedAllyIsNeverSetBackIntoTheDrain()
+    {
+        var session = Rescuer(out _, out var archer);
+        session.ToggleRescue(archer);
+
+        foreach (var tile in session.RescueDestinations.Keys)
+        {
+            Assert.NotEqual(TileType.Pit, session.State.Board.At(tile));
+        }
+    }
+}

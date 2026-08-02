@@ -97,6 +97,11 @@
                 }
             </div>
 
+            @if (Session.AimingRescue)
+            {
+                <p class="rules">Pick a side to set them down on — any open tile beside you.</p>
+            }
+
             @if (Session.Mode == ActionMode.Ability && Session.ArmedDescriptor is { } armed)
             {
                 <p class="rules">@armed.Summary</p>
@@ -129,13 +134,28 @@
     /// unit may bring several and the mode alone no longer says which one a button arms.
     /// </summary>
     private sealed record ActionOption(
-        ActionMode Mode, string Name, string Effect, bool Available, Ability? Ability = null);
+        ActionMode Mode,
+        string Name,
+        string Effect,
+        bool Available,
+        Ability? Ability = null,
+        UnitId? Clinging = null);
 
     private bool IsOn(ActionOption option) =>
-        Session.Mode == option.Mode && Session.ArmedAbility == option.Ability;
+        option.Clinging is { } clinging
+            ? Session.RescueTarget == clinging
+            : Session.Mode == option.Mode && Session.ArmedAbility == option.Ability;
 
     private void Arm(ActionOption option)
     {
+        // A rescue picks a side afterwards, so its button arms rather than fires — the board draws
+        // the cone and the click on it commits (D-093).
+        if (option.Clinging is { } clinging)
+        {
+            Session.ToggleRescue(clinging);
+            return;
+        }
+
         if (option.Ability is { } ability)
         {
             Session.SetAbility(ability);
@@ -213,8 +233,9 @@
             yield return new ActionOption(
                 ActionMode.Rescue,
                 "Rescue " + clinging.Name,
-                blocked.Length > 0 ? blocked : "action · pick where they land",
-                blocked.Length == 0 && Session.IsAvailable(ActionMode.Rescue));
+                blocked.Length > 0 ? blocked : "action · then pick a side",
+                blocked.Length == 0 && Session.IsAvailable(ActionMode.Rescue),
+                Clinging: clinging.Id);
         }
 
         // Same treatment for the free kick: an adjacent enemy on a ledge is a whole activation of
