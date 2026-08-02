@@ -398,10 +398,12 @@ public class VerveTests
         Assert.Equal(nameof(VerveCharged), CombatLog.EventName(earned));
         Assert.Equal(vanguard.Id, CombatLog.ActorOf(earned));
 
-        Assert.Contains("+1 verve", CombatLog.Detail(earned, state));
-        Assert.Contains("a collision", CombatLog.Detail(earned, state));
+        // Read through the naming layer, never spelled here: a test that hard-codes the display
+        // name is a second place the name lives (MASTER_DESIGN §15).
+        Assert.Contains("+1 " + Naming.MeterLower, CombatLog.Detail(earned, state));
+        Assert.Contains(Naming.Of(VerveSource.Collision), CombatLog.Detail(earned, state));
 
-        Assert.Contains("+0 verve", CombatLog.Detail(wasted, state));
+        Assert.Contains("+0 " + Naming.MeterLower, CombatLog.Detail(wasted, state));
         Assert.Contains("discarded", CombatLog.Detail(wasted, state));
     }
 

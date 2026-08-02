@@ -252,7 +252,7 @@ public sealed class AbilityAimingTests
     }
 
     [Fact]
-    public void SpearThrust_Fired_Deals2ToTheNearEnemyAnd1ToTheOneBeyond()
+    public void SpearThrust_Fired_Deals1ToTheNearEnemyAnd2ToTheOneBeyond()
     {
         var session = Wardbearer(out _, (UnitKind.Husk, 4, 2), (UnitKind.Lobber, 5, 2));
         var husk = Find(session, UnitKind.Husk);
@@ -261,8 +261,8 @@ public sealed class AbilityAimingTests
 
         session.Submit(session.Targets[new Coord(4, 2)]);
 
-        Assert.Equal(husk.Hp - 2, session.State.UnitById(husk.Id).Hp);
-        Assert.Equal(lobber.Hp - 1, session.State.UnitById(lobber.Id).Hp);
+        Assert.Equal(husk.Hp - 1, session.State.UnitById(husk.Id).Hp);
+        Assert.Equal(lobber.Hp - 2, session.State.UnitById(lobber.Id).Hp);
     }
 
     [Fact]
@@ -288,8 +288,8 @@ public sealed class AbilityAimingTests
 
         string text = session.PreviewText!;
 
-        Assert.Contains("2 to " + Find(session, UnitKind.Husk).Name, text);
-        Assert.Contains("1 to " + Find(session, UnitKind.Lobber).Name, text);
+        Assert.Contains("1 to " + Find(session, UnitKind.Husk).Name, text);
+        Assert.Contains("2 to " + Find(session, UnitKind.Lobber).Name, text);
         Assert.Contains(new Coord(4, 2), session.Targets.Keys);
         Assert.Contains(new Coord(5, 2), session.Targets.Keys);
     }

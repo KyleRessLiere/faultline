@@ -14,8 +14,7 @@ namespace Faultline.Web.Tests;
 /// The point of most of these is that the shell reads legality off Core's list rather than working it
 /// out again. Twice already this project has shipped a bug from the shell inferring a Core concept
 /// from data that happened to be lying around (D-069) — and Verve is a rich seam for it, because half
-/// its legality is invisible on the unit: Slingshot needs a Reel to have just landed, and Retort
-/// needs a stance that only exists before the activation slot is taken.
+/// its legality is invisible on the unit: Slingshot needs a Reel to have just landed.
 /// </remarks>
 public sealed class VerveUiTests
 {
@@ -32,14 +31,17 @@ public sealed class VerveUiTests
             _height = height;
         }
 
-        public Fixture Place(UnitKind kind, Team team, int x, int y, int verve = 0, bool guarding = false)
+        public Fixture Place(
+            UnitKind kind, Team team, int x, int y, int verve = 0, bool guarding = false, int? hp = null)
         {
-            _units.Add(Unit.FromTemplate(new UnitId(_units.Count), kind, team) with
+            var unit = Unit.FromTemplate(new UnitId(_units.Count), kind, team);
+            _units.Add(unit with
             {
                 Position = new Coord(x, y),
                 IsDeployed = true,
                 Verve = verve,
                 Guarding = guarding,
+                Hp = hp ?? unit.Hp,
             });
 
             return this;
@@ -135,8 +137,9 @@ public sealed class VerveUiTests
     }
 
     [Fact]
-    public void AWardbearerWithAFullMeter_IsNotOfferedRetortWithoutGuardStance()
+    public void AWardbearerAtFullHealth_IsNotOfferedPreen()
     {
+        // Nothing to patch up, so nothing to spend on.
         var session = new Fixture(7, 3)
             .Place(UnitKind.Wardbearer, Team.PlayerB, 1, 1, verve: Verve.Cap)
             .Place(UnitKind.Husk, Team.Enemy, 2, 1)
@@ -149,10 +152,10 @@ public sealed class VerveUiTests
     }
 
     [Fact]
-    public void AGuardingWardbearer_IsOfferedRetort()
+    public void AHurtWardbearer_IsOfferedPreen()
     {
         var session = new Fixture(7, 3)
-            .Place(UnitKind.Wardbearer, Team.PlayerB, 1, 1, verve: Verve.Cap, guarding: true)
+            .Place(UnitKind.Wardbearer, Team.PlayerB, 1, 1, verve: Verve.Cap, hp: 3)
             .Place(UnitKind.Husk, Team.Enemy, 2, 1)
             .Active(Team.PlayerB)
             .Session();
@@ -160,7 +163,7 @@ public sealed class VerveUiTests
         session.Select(Find(session, UnitKind.Wardbearer).Id);
 
         Assert.True(session.CanSpendVerve);
-        Assert.Equal(VerveSpend.Retort, session.VerveSpendCommand!.Spend);
+        Assert.Equal(VerveSpend.Preen, session.VerveSpendCommand!.Spend);
     }
 
     [Fact]
@@ -210,7 +213,7 @@ public sealed class VerveUiTests
         var vanguard = Find(session, UnitKind.Vanguard);
         string title = PlaytestText.VerveTitle(vanguard);
 
-        Assert.Contains("Verve 2/" + Verve.Cap, title);
+        Assert.Contains(Naming.Meter + " 2/" + Verve.Cap, title);
         Assert.Contains(Verve.NameOf(VerveSpend.WreckingWeight), title);
         Assert.Contains(Verve.ConditionFor(UnitKind.Vanguard), title);
     }
@@ -252,10 +255,10 @@ public sealed class VerveUiTests
             new VerveCharged(vanguard, VerveSource.Guard, new Coord(1, 1), Verve.Cap, true),
             session.State);
 
-        Assert.Contains("+1 verve", earned);
+        Assert.Contains("+1 " + Naming.MeterLower, earned);
         Assert.Contains("a collision", earned);
 
-        Assert.Contains("+0 verve", wasted);
+        Assert.Contains("+0 " + Naming.MeterLower, wasted);
         Assert.Contains("full", wasted);
         Assert.DoesNotContain("+1", wasted);
     }

@@ -314,7 +314,14 @@ public class RunTests
         var (run, _) = RunFixture.PlayWholeRun(seed: 4242);
 
         Assert.True(run.FightsWon > 0, "the run ended without clearing a single node");
-        Assert.Equal(run.FightsWon, run.NodeIndex);
+
+        // Not FightsWon == NodeIndex: a rest advances the index without winning anything, and this
+        // used to hold only because the run never got as far as the first one.
+        int rests = CampaignLibrary.Faultline.Nodes
+            .Take(run.NodeIndex)
+            .Count(n => n is RestNode);
+
+        Assert.Equal(run.FightsWon, run.NodeIndex - rests);
     }
 
     [Fact]

@@ -194,12 +194,12 @@ namespace Faultline.Core
                         Ability.SpearThrust,
                         UnitKind.Wardbearer,
                         "Spear Thrust",
-                        "The two tiles directly ahead. An enemy in the adjacent tile takes 2 damage, "
-                        + "one in the tile beyond it takes 1. Nothing is displaced.",
+                        "The two tiles directly ahead. An enemy in the adjacent tile takes 1 damage; "
+                        + "one in the tile beyond takes 2 — the tip is the sweet spot. Nothing is displaced.",
                         AbilityTargeting.Line,
                         2, 0, 0, false)
                     {
-                        TileDamage = new[] { 2, 1 },
+                        TileDamage = new[] { 1, 2 },
                     },
 
                     new AbilityDescriptor(

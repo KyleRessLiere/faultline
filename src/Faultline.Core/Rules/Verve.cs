@@ -35,8 +35,8 @@ namespace Faultline.Core
         /// <summary>Extra tiles a Wrecking Weight push asks for, before Stagger, resistance and Footing.</summary>
         public const int ContactDistanceBonus = 1;
 
-        /// <summary>How far Retort shoves each adjacent enemy.</summary>
-        public const int RetortPush = 1;
+        /// <summary>Hit points Preen puts back, never past the unit's maximum.</summary>
+        public const int PreenHeal = 2;
 
         /// <summary>What a spend costs.</summary>
         /// <param name="spend">The spend.</param>
@@ -46,7 +46,7 @@ namespace Faultline.Core
             VerveSpend.WreckingWeight => 2,
             VerveSpend.Slingshot => 2,
             VerveSpend.DoubleNock => 4,
-            VerveSpend.Retort => 3,
+            VerveSpend.Preen => 3,
             _ => 0,
         };
 
@@ -61,21 +61,14 @@ namespace Faultline.Core
             UnitKind.Vanguard => VerveSpend.WreckingWeight,
             UnitKind.Threadcaster => VerveSpend.Slingshot,
             UnitKind.Archer => VerveSpend.DoubleNock,
-            UnitKind.Wardbearer => VerveSpend.Retort,
+            UnitKind.Wardbearer => VerveSpend.Preen,
             _ => (VerveSpend?)null,
         };
 
         /// <summary>The spend's name, for a card or a button.</summary>
         /// <param name="spend">The spend.</param>
         /// <returns>Its display name.</returns>
-        public static string NameOf(VerveSpend spend) => spend switch
-        {
-            VerveSpend.WreckingWeight => "Wrecking Weight",
-            VerveSpend.Slingshot => "Slingshot",
-            VerveSpend.DoubleNock => "Double Nock",
-            VerveSpend.Retort => "Retort",
-            _ => spend.ToString(),
-        };
+        public static string NameOf(VerveSpend spend) => Naming.Of(spend);
 
         /// <summary>
         /// What the spend does, in plain words. Sourced from Core so the card and the rule cannot
@@ -92,8 +85,8 @@ namespace Faultline.Core
                 "Immediately after your Reel leaves an enemy adjacent, trade places with it.",
             VerveSpend.DoubleNock =>
                 "Attack twice this activation. Two separate targets, each resolved in full.",
-            VerveSpend.Retort =>
-                "End Guard Stance and shove every adjacent enemy 1 tile directly away.",
+            VerveSpend.Preen =>
+                "Patch yourself up for " + PreenHeal + ", never past your maximum.",
             _ => string.Empty,
         };
 
@@ -219,7 +212,10 @@ namespace Faultline.Core
                 VerveSpend.WreckingWeight => !unit.HasActed,
                 VerveSpend.DoubleNock => !unit.HasActed,
                 VerveSpend.Slingshot => SlingshotPartner(state, unit) is not null,
-                VerveSpend.Retort => unit.Guarding,
+
+                // Nothing to patch up at full health. Offering it would be offering a unit the
+                // chance to burn three points on nothing.
+                VerveSpend.Preen => unit.Hp < unit.MaxHp,
                 _ => false,
             };
         }
@@ -253,8 +249,8 @@ namespace Faultline.Core
                 case VerveSpend.Slingshot:
                     return Swap(state, unitId, events);
 
-                case VerveSpend.Retort:
-                    return Retort(state, unitId, events);
+                case VerveSpend.Preen:
+                    return Preen(state, unitId, events);
 
                 default:
                     return state;
@@ -286,35 +282,31 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Shoves every adjacent enemy one tile directly away, clockwise from north so that two
-        /// enemies who would land on the same tile always resolve in the same order.
+        /// Puts hit points back on the spender, never past its maximum.
         /// </summary>
-        private static GameState Retort(GameState state, UnitId unitId, List<GameEvent> events)
+        /// <remarks>
+        /// Healing is otherwise not a thing this game does — a run carries its damage and only a rest
+        /// gives any of it back. Preen is the exception, and it is priced as one: three points is the
+        /// most expensive spend a class has after Double Nock, and the meter that pays for it only
+        /// fills when the Wardbearer takes hits meant for somebody else. What he heals is bounded by
+        /// what he soaked, which the harness asserts rather than assumes.
+        /// </remarks>
+        private static GameState Preen(GameState state, UnitId unitId, List<GameEvent> events)
         {
-            var directions = new[] { Direction.Up, Direction.Right, Direction.Down, Direction.Left };
-
-            foreach (var direction in directions)
+            var unit = state.UnitById(unitId);
+            int healed = unit.MaxHp - unit.Hp;
+            if (healed > PreenHeal)
             {
-                var unit = state.UnitById(unitId);
-                if (!unit.IsOnBoard)
-                {
-                    return state;
-                }
-
-                var tile = unit.Position.Step(direction);
-                var occupant = state.UnitAt(tile);
-                if (occupant is null || occupant.Team != Team.Enemy || !occupant.IsOnBoard)
-                {
-                    continue;
-                }
-
-                // The full pipeline, so collisions, spikes, pits, resistance and Footing all apply.
-                // Deliberately not passed as the pusher: Retort's collisions charge nothing, because
-                // collisions are the Vanguard's condition and absorption is the Wardbearer's.
-                state = Displacement.ResolveAuto(
-                    state, occupant.Id, unit.Position, DisplacementKind.Push, RetortPush, events);
+                healed = PreenHeal;
             }
 
+            if (healed <= 0)
+            {
+                return state;
+            }
+
+            state = state.WithUnit(unit with { Hp = unit.Hp + healed });
+            events.Add(new UnitHealed(unitId, healed, unit.Hp + healed, unit.Position));
             return state;
         }
 
@@ -368,6 +360,14 @@ namespace Faultline.Core
                     break;
 
                 case GuardIntercepted e:
+                    // An interception that landed on nothing is not an absorb. GuardIntercepted is
+                    // emitted before the redirected effect resolves, so whether anything actually
+                    // reached the guard is a question about what came after it in the stream.
+                    if (!AbsorbLanded(events, index, e.UnitId))
+                    {
+                        return false;
+                    }
+
                     earnerId = e.UnitId;
                     affectedId = e.AttackerId;
                     source = VerveSource.Guard;
@@ -411,6 +411,42 @@ namespace Faultline.Core
                 || (alsoAffectedId.HasValue && IsEnemy(state, alsoAffectedId.Value, earnerId));
 
             return hitAnEnemy && Charges(state, earnerId, source);
+        }
+
+        /// <summary>
+        /// Whether a redirected effect actually reached the guard: hit points off it, or at least one
+        /// tile of movement.
+        /// </summary>
+        /// <remarks>
+        /// The anti-farm half of the Wardbearer's condition. A Wardbearer with push resistance 2
+        /// standing in front of a Stalker absorbs a shove that moves him nowhere and costs him
+        /// nothing, and doing that every round would be a meter filled by standing still. Charging is
+        /// for taking something, not for being aimed at.
+        ///
+        /// Movement is read off <see cref="UnitPushed.Path"/> rather than <c>Distance</c>: a shove
+        /// reduced to nothing still reports a distance, deliberately (D-057), and the path is the
+        /// only field that says whether the unit went anywhere.
+        /// </remarks>
+        private static bool AbsorbLanded(IReadOnlyList<GameEvent> events, int index, UnitId guardId)
+        {
+            for (int i = index + 1; i < events.Count; i++)
+            {
+                // A second interception in the same command starts a different absorb.
+                if (events[i] is GuardIntercepted)
+                {
+                    return false;
+                }
+
+                switch (events[i])
+                {
+                    case UnitDamaged d when d.UnitId == guardId && d.Amount > 0:
+                        return true;
+                    case UnitPushed p when p.UnitId == guardId && p.Path.Count > 0:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

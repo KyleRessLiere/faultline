@@ -37,7 +37,7 @@
             @if (Verve.SpendFor(unit.Kind) is { } spender)
             {
                 <div class="verve-row" title="@PlaytestText.VerveTitle(unit)">
-                    <span class="verve-label">Verve</span>
+                    <span class="verve-label">@Naming.Meter</span>
                     <span class="verve @(unit.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty)">
                         @for (int v = 0; v < Verve.Cap; v++)
                         {
@@ -65,7 +65,8 @@
                         title="@Verve.DescriptionOf(spend)"
                         @onclick="Session.SpendVerve">
                     <span class="spend-name">@Verve.NameOf(spend)</span>
-                    <span class="cost @(unit.Verve >= Verve.CostOf(spend) ? "afford" : string.Empty)">
+                    <span class="cost @(unit.Verve >= Verve.CostOf(spend) ? "afford" : string.Empty)"
+                          title="@(Verve.CostOf(spend) + " " + Naming.Meter)">
                         @Verve.CostOf(spend)
                     </span>
                     <span class="spend-effect">@Verve.DescriptionOf(spend)</span>

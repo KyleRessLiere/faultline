@@ -19,6 +19,8 @@ namespace Faultline.Playtest;
 /// <param name="VerveWasted">Charges that arrived at a full meter and were discarded, by class.</param>
 /// <param name="VerveSpent">Verve spent, by class.</param>
 /// <param name="Spends">How many times each spender was used.</param>
+/// <param name="Healed">Hit points Preen put back.</param>
+/// <param name="Absorbed">Hit points Guard Stance redirected onto a guard.</param>
 public sealed record FightReport(
     int NodeIndex,
     string FightId,
@@ -35,7 +37,9 @@ public sealed record FightReport(
     Dictionary<UnitKind, int> VerveEarned,
     Dictionary<UnitKind, int> VerveWasted,
     Dictionary<UnitKind, int> VerveSpent,
-    Dictionary<VerveSpend, int> Spends);
+    Dictionary<VerveSpend, int> Spends,
+    int Healed,
+    int Absorbed);
 
 /// <summary>
 /// Running totals for the fight in progress.
@@ -58,6 +62,22 @@ internal sealed class FightTally
     internal Dictionary<UnitKind, int> VerveSpent { get; } = new();
 
     internal Dictionary<VerveSpend, int> Spends { get; } = new();
+
+    /// <summary>Hit points Preen put back this fight.</summary>
+    internal int Healed { get; set; }
+
+    /// <summary>Hit points redirected onto a guard by Guard Stance this fight.</summary>
+    internal int Absorbed { get; set; }
+
+    /// <summary>
+    /// The guard an interception just named, until the redirected effect lands on it.
+    /// </summary>
+    /// <remarks>
+    /// GuardIntercepted is emitted before the effect resolves, so "how much did the stance soak" is
+    /// the damage on the very next event about that unit. Reading it any other way would count every
+    /// hit the Wardbearer ever took as absorbed, including the ones aimed at him.
+    /// </remarks>
+    internal UnitId? PendingGuard { get; set; }
 
     internal int Downed { get; set; }
 
@@ -197,7 +217,9 @@ public static class RunHarness
                         new Dictionary<UnitKind, int>(tally.VerveEarned),
                         new Dictionary<UnitKind, int>(tally.VerveWasted),
                         new Dictionary<UnitKind, int>(tally.VerveSpent),
-                        new Dictionary<VerveSpend, int>(tally.Spends)));
+                        new Dictionary<VerveSpend, int>(tally.Spends),
+                        tally.Healed,
+                        tally.Absorbed));
                 }
                 else if (e is RunLost lost)
                 {
@@ -238,6 +260,17 @@ public static class RunHarness
                     IsPlayer(board, d.UnitId) ? tally.PlayerDamage : tally.EnemyDamage,
                     d.Source,
                     d.Amount);
+
+                if (tally.PendingGuard == d.UnitId)
+                {
+                    tally.Absorbed += d.Amount;
+                    tally.PendingGuard = null;
+                }
+
+                break;
+
+            case GuardIntercepted intercepted:
+                tally.PendingGuard = intercepted.UnitId;
                 break;
 
             case UnitDowned down:
@@ -285,6 +318,10 @@ public static class RunHarness
             case VerveSpent spent:
                 FightTally.Bump(tally.VerveSpent, KindOf(board, spent.UnitId), spent.Cost);
                 FightTally.Bump(tally.Spends, spent.Spend, 1);
+                break;
+
+            case UnitHealed healed:
+                tally.Healed += healed.Amount;
                 break;
         }
     }

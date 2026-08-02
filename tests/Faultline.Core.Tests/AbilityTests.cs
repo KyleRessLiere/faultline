@@ -58,8 +58,8 @@ public class AbilityTests
         Assert.Equal("push 2", AbilityDescriptor.For(Ability.BullRush).Effect);
         Assert.Equal("pull to adjacent", AbilityDescriptor.For(Ability.Reel).Effect);
         // Per-tile damage prints per tile, nearest first: the ability no longer has one number.
-        Assert.Equal("line 2 · 2/1 dmg", AbilityDescriptor.For(Ability.SpearThrust).Effect);
-        Assert.Equal(new[] { 2, 1 }, AbilityDescriptor.For(Ability.SpearThrust).TileDamage);
+        Assert.Equal("line 2 · 1/2 dmg", AbilityDescriptor.For(Ability.SpearThrust).Effect);
+        Assert.Equal(new[] { 1, 2 }, AbilityDescriptor.For(Ability.SpearThrust).TileDamage);
         Assert.Equal(0, AbilityDescriptor.For(Ability.SpearThrust).Push);
         Assert.Equal("stance", AbilityDescriptor.For(Ability.GuardStance).Effect);
     }

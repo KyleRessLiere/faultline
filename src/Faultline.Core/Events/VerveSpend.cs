@@ -15,7 +15,7 @@ namespace Faultline.Core
         /// <summary>Archer, 4: her attack action this activation fires twice.</summary>
         DoubleNock = 2,
 
-        /// <summary>Wardbearer, 3: end Guard Stance and shove every adjacent enemy a tile away.</summary>
-        Retort = 3,
+        /// <summary>Wardbearer, 3: patch himself up for 2, capped at his maximum.</summary>
+        Preen = 3,
     }
 }

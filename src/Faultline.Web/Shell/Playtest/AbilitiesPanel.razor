@@ -24,7 +24,7 @@
 @* Verve is not an ability and so is absent from Core's descriptors, which would leave the one
    resource in the game undocumented in the one panel that documents things. Every figure and phrase
    below comes from Core. *@
-<h3 class="verve-head">Verve</h3>
+<h3 class="verve-head">@Naming.Meter</h3>
 <p class="verve-intro">
     Earned per unit, capped at @Verve.Cap, carried between fights. Spent once per activation, costing
     neither the move nor the action.
@@ -40,7 +40,7 @@
                 </span>
                 <strong class="name">@Verve.NameOf(spend)</strong>
                 <span class="badge kind">@kind</span>
-                <span class="badge effect">@Verve.CostOf(spend) verve</span>
+                <span class="badge effect">@Verve.CostOf(spend) @Naming.MeterLower</span>
             </div>
             <p class="summary">@Verve.DescriptionOf(spend)</p>
             <p class="earns">Charges from @Verve.ConditionFor(kind).</p>

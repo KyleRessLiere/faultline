@@ -91,10 +91,10 @@ public class WardbearerTests
 
     // ---- Spear Thrust ------------------------------------------------------------------
 
-    // The amendment: front-loaded damage and nothing else. 2 to the adjacent tile, 1 to the tile
-    // beyond it, no displacement anywhere.
+    // The tip is the sweet spot: 1 to the adjacent tile, 2 to the tile beyond, no displacement
+    // anywhere. Reversed from the first amendment — reaching out is what the spear is for.
     [Fact]
-    public void SpearThrust_HitsBothTilesAhead_ForTwoThenOne()
+    public void SpearThrust_HitsBothTilesAhead_ForOneThenTwo()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -108,12 +108,12 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(4, result.NewState.Get(near.Id).Hp);
-        Assert.Equal(5, result.NewState.Get(far.Id).Hp);
+        Assert.Equal(5, result.NewState.Get(near.Id).Hp);
+        Assert.Equal(4, result.NewState.Get(far.Id).Hp);
     }
 
     [Fact]
-    public void SpearThrust_WithOnlyTheAdjacentTileOccupied_DealsTwo()
+    public void SpearThrust_WithOnlyTheAdjacentTileOccupied_DealsOne()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -125,12 +125,12 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
-        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(1, result.Single<UnitAttacked>().Damage);
     }
 
     [Fact]
-    public void SpearThrust_WithOnlyTheFarTileOccupied_DealsOne()
+    public void SpearThrust_WithOnlyTheFarTileOccupied_DealsTwo()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -142,8 +142,8 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
-        Assert.Equal(1, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
     }
 
     // The withdrawn design pushed both targets and made the far one resolve first so the near one
@@ -187,8 +187,8 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(4, result.NewState.Get(near.Id).Hp);
-        Assert.Equal(5, result.NewState.Get(far.Id).Hp);
+        Assert.Equal(5, result.NewState.Get(near.Id).Hp);
+        Assert.Equal(4, result.NewState.Get(far.Id).Hp);
         Assert.False(result.Has<Collision>());
         Assert.False(result.NewState.Get(near.Id).Staggered);
         Assert.False(result.NewState.Get(far.Id).Staggered);
@@ -213,9 +213,9 @@ public class WardbearerTests
         var attacks = result.All<UnitAttacked>();
         Assert.Equal(2, attacks.Count);
         Assert.Equal(near.Id, attacks[0].TargetId);
-        Assert.Equal(2, attacks[0].Damage);
+        Assert.Equal(1, attacks[0].Damage);
         Assert.Equal(far.Id, attacks[1].TargetId);
-        Assert.Equal(1, attacks[1].Damage);
+        Assert.Equal(2, attacks[1].Damage);
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class WardbearerTests
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
         Assert.False(result.NewState.Get(runt.Id).IsOnBoard);
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
     }
 
     // D-060: an attack chips a structure for 1, whatever the weapon — so the 2 the adjacent tile
@@ -303,7 +303,7 @@ public class WardbearerTests
 
         Assert.Equal(archer.Hp, result.NewState.Get(archer.Id).Hp);
         Assert.Equal(new Coord(1, 0), result.NewState.Get(archer.Id).Position);
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
     }
 
     // D-010: there is no line of sight in this game, and Spear Thrust is a fixed shape rather than a
@@ -321,7 +321,7 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
         Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
     }
 
@@ -375,7 +375,7 @@ public class WardbearerTests
         var hits = Abilities.PreviewLine(state, wardbearer, Direction.Right, Ability.SpearThrust);
         var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(new[] { 2, 1 }, hits.Select(h => h.Damage));
+        Assert.Equal(new[] { 1, 2 }, hits.Select(h => h.Damage));
         Assert.Equal(new[] { new Coord(1, 0), new Coord(2, 0) }, hits.Select(h => h.At));
 
         foreach (var hit in hits)

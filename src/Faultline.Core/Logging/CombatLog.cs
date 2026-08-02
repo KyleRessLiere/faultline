@@ -114,6 +114,7 @@ namespace Faultline.Core
             GuardStanceChanged => nameof(GuardStanceChanged),
             GuardIntercepted => nameof(GuardIntercepted),
             VerveCharged => nameof(VerveCharged),
+            UnitHealed => nameof(UnitHealed),
             VerveSpent => nameof(VerveSpent),
             UnitsSwapped => nameof(UnitsSwapped),
             FightWon => nameof(FightWon),
@@ -213,15 +214,19 @@ namespace Faultline.Core
                 + " at " + e.AllyAt
                 + ", it lands on " + e.At + " instead",
 
-            VerveCharged e => (e.Wasted ? "+0 verve at " : "+1 verve at ")
+            VerveCharged e => (e.Wasted ? "+0 " : "+1 ") + Naming.MeterLower + " at "
                 + e.At
-                + " from " + VerveText(e.Source)
+                + " from " + Naming.Of(e.Source)
                 + ", " + Number(e.NewTotal) + "/" + Number(Verve.Cap)
                 + (e.Wasted ? ", full, discarded" : string.Empty),
 
-            VerveSpent e => "spends " + Number(e.Cost) + " verve on " + Verve.NameOf(e.Spend)
+            VerveSpent e => "spends " + Number(e.Cost) + " " + Naming.MeterLower
+                + " on " + Naming.Of(e.Spend)
                 + " at " + e.At
                 + ", " + Number(e.Remaining) + " left",
+
+            UnitHealed e => "patched up +" + Number(e.Amount) + " at " + e.At
+                + ", hp " + Number(e.RemainingHp),
 
             UnitsSwapped e => "trades places with " + Actor(state, e.OtherId)
                 + ", " + e.From + " <-> " + e.OtherFrom,
@@ -306,6 +311,7 @@ namespace Faultline.Core
             GuardStanceChanged e => e.UnitId,
             GuardIntercepted e => e.UnitId,
             VerveCharged e => e.UnitId,
+            UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,
             UnitsSwapped e => e.UnitId,
             StructureAttacked e => e.AttackerId,
@@ -313,18 +319,6 @@ namespace Faultline.Core
             ReinforcementArrived e => e.UnitId,
             ReinforcementDelayed e => e.UnitId,
             _ => UnitId.None,
-        };
-
-        /// <summary>What a Verve source reads as in the log.</summary>
-        /// <param name="source">Source to describe.</param>
-        /// <returns>A short phrase.</returns>
-        public static string VerveText(VerveSource source) => source switch
-        {
-            VerveSource.Collision => "a collision",
-            VerveSource.Hazard => "a hazard",
-            VerveSource.HighGround => "high ground",
-            VerveSource.Guard => "guard stance",
-            _ => source.ToString(),
         };
 
         /// <summary>The slot column: which activation the line belongs to, e.g. <c>PlayerA:u0</c>.</summary>

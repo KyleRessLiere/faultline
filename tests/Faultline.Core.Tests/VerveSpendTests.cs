@@ -105,7 +105,7 @@ public class VerveSpendTests
     [InlineData(VerveSpend.WreckingWeight, 2)]
     [InlineData(VerveSpend.Slingshot, 2)]
     [InlineData(VerveSpend.DoubleNock, 4)]
-    [InlineData(VerveSpend.Retort, 3)]
+    [InlineData(VerveSpend.Preen, 3)]
     public void TheCosts(VerveSpend spend, int cost)
     {
         Assert.Equal(cost, Verve.CostOf(spend));
@@ -356,92 +356,66 @@ public class VerveSpendTests
         Assert.Equal(before - 2, after.Get(archer).Verve);
     }
 
-    // ---- Retort --------------------------------------------------------------------------
+    // ---- Preen ---------------------------------------------------------------------------
 
     [Fact]
-    public void Retort_ShovesEveryAdjacentEnemyATileAway()
+    public void Preen_PutsTwoHitPointsBack()
     {
-        var state = GuardingWardbearer(out var wardbearer);
+        var state = HurtWardbearer(out var wardbearer, hp: 3);
 
-        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Preen));
 
-        var pushes = result.All<UnitPushed>();
-        Assert.Equal(4, pushes.Count);
-        Assert.All(pushes, p => Assert.Equal(DisplacementKind.Push, p.Kind));
+        Assert.Equal(3 + Verve.PreenHeal, result.NewState.Get(wardbearer).Hp);
 
-        var centre = state.Get(wardbearer).Position;
-        foreach (var push in pushes)
-        {
-            Assert.Equal(1, push.From.DistanceTo(centre));
-            Assert.Equal(2, push.To.DistanceTo(centre));
-        }
+        var healed = result.Single<UnitHealed>();
+        Assert.Equal(wardbearer, healed.UnitId);
+        Assert.Equal(Verve.PreenHeal, healed.Amount);
+        Assert.Equal(3 + Verve.PreenHeal, healed.RemainingHp);
     }
 
     [Fact]
-    public void Retort_ResolvesClockwiseFromNorth()
+    public void Preen_NeverHealsPastTheMaximum()
     {
-        var state = GuardingWardbearer(out var wardbearer);
-        var centre = state.Get(wardbearer).Position;
+        var max = UnitTemplate.For(UnitKind.Wardbearer).MaxHp;
+        var state = HurtWardbearer(out var wardbearer, hp: max - 1);
 
-        var pushed = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort))
-            .All<UnitPushed>()
-            .Select(p => p.From)
-            .ToList();
+        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Preen));
 
-        Assert.Equal(
-            new[]
-            {
-                centre + new Coord(0, -1),
-                centre + new Coord(1, 0),
-                centre + new Coord(0, 1),
-                centre + new Coord(-1, 0),
-            },
-            pushed);
+        Assert.Equal(max, result.NewState.Get(wardbearer).Hp);
+        Assert.Equal(1, result.Single<UnitHealed>().Amount);
     }
 
     [Fact]
-    public void Retort_NeedsGuardStance()
+    public void Preen_IsNotOfferedAtFullHealth()
     {
-        var state = GuardingWardbearer(out var wardbearer);
-        var unguarded = state.WithUnit(state.Get(wardbearer) with { Guarding = false });
+        // Three points for nothing is not a decision, it is a trap.
+        var max = UnitTemplate.For(UnitKind.Wardbearer).MaxHp;
+        var state = HurtWardbearer(out var wardbearer, hp: max);
 
-        TestPlay.AssertNotLegal(unguarded, new SpendVerveCommand(wardbearer, VerveSpend.Retort));
-        TestPlay.AssertIllegal(unguarded, new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+        TestPlay.AssertNotLegal(state, new SpendVerveCommand(wardbearer, VerveSpend.Preen));
+        TestPlay.AssertIllegal(state, new SpendVerveCommand(wardbearer, VerveSpend.Preen));
     }
 
     [Fact]
-    public void Retort_EndsTheStance()
+    public void Preen_DoesNotNeedGuardStance()
     {
-        var state = GuardingWardbearer(out var wardbearer);
+        // Unlike the parked Retort, which read the stance. Preen is spendable on any activation the
+        // Wardbearer has hit points missing.
+        var state = HurtWardbearer(out var wardbearer, hp: 3);
 
-        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort));
-
-        Assert.False(result.NewState.Get(wardbearer).Guarding);
-        Assert.False(result.All<GuardStanceChanged>().Last().Active);
+        Assert.False(state.Get(wardbearer).Guarding);
+        TestPlay.AssertLegal(state, new SpendVerveCommand(wardbearer, VerveSpend.Preen));
     }
 
     [Fact]
-    public void Retort_ChargesNothing_EvenWhenItsShovesCollide()
+    public void Preen_CostsNeitherHalfOfTheActivation()
     {
-        // Charges are class-bound: collisions are the Vanguard's condition, and the Wardbearer's is
-        // absorption. Boxed in on all four sides so every shove hits a wall.
-        var state = BoardBuilder.Rows("#####", "#...#", "#...#", "#...#", "#####")
-            .PlayerB(UnitKind.Wardbearer, 2, 2)
-            .Enemy(UnitKind.Husk, 2, 1, hp: 6)
-            .Enemy(UnitKind.Husk, 3, 2, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 3, hp: 6)
-            .Enemy(UnitKind.Husk, 1, 2, hp: 6)
-            .Active(Team.PlayerB)
-            .Build();
+        var state = HurtWardbearer(out var wardbearer, hp: 3);
 
-        var wardbearer = state.Find(UnitKind.Wardbearer).Id;
-        state = state.WithUnit(state.Get(wardbearer) with { Verve = Verve.Cap, Guarding = true });
+        var after = state.Then(new SpendVerveCommand(wardbearer, VerveSpend.Preen));
 
-        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort));
-
-        Assert.True(result.Has<Collision>());
-        Assert.False(result.Has<VerveCharged>());
-        Assert.Equal(Verve.Cap - 3, result.NewState.Get(wardbearer).Verve);
+        Assert.False(after.Get(wardbearer).HasMoved);
+        Assert.False(after.Get(wardbearer).HasActed);
     }
 
     // ---- the log --------------------------------------------------------------------------
@@ -451,7 +425,7 @@ public class VerveSpendTests
     {
         var state = ArmedVanguard(out var vanguard);
 
-        var spent = new VerveSpent(vanguard, VerveSpend.Retort, new Coord(1, 1), 3, 2);
+        var spent = new VerveSpent(vanguard, VerveSpend.Preen, new Coord(1, 1), 3, 2);
         var swapped = new UnitsSwapped(vanguard, new Coord(1, 1), new UnitId(1), new Coord(2, 1));
 
         Assert.Equal(nameof(VerveSpent), CombatLog.EventName(spent));
@@ -459,7 +433,7 @@ public class VerveSpendTests
         Assert.Equal(vanguard, CombatLog.ActorOf(spent));
         Assert.Equal(vanguard, CombatLog.ActorOf(swapped));
 
-        Assert.Contains("Retort", CombatLog.Detail(spent, state));
+        Assert.Contains(Naming.Of(VerveSpend.Preen), CombatLog.Detail(spent, state));
         Assert.Contains("trades places", CombatLog.Detail(swapped, state));
     }
 
@@ -524,6 +498,19 @@ public class VerveSpendTests
 
         var id = archer;
         return state.WithUnit(state.Get(id) with { Verve = Verve.Cap });
+    }
+
+    private static GameState HurtWardbearer(out UnitId wardbearer, int hp)
+    {
+        var state = BoardBuilder.Open(7, 3)
+            .PlayerB(UnitKind.Wardbearer, 1, 1)
+            .Enemy(UnitKind.Husk, 5, 1)
+            .Active(Team.PlayerB)
+            .Build();
+
+        wardbearer = state.Find(UnitKind.Wardbearer).Id;
+        var id = wardbearer;
+        return state.WithUnit(state.Get(id) with { Verve = Verve.Cap, Hp = hp });
     }
 
     private static GameState GuardingWardbearer(out UnitId wardbearer)

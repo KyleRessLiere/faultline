@@ -76,7 +76,7 @@ public static class PlaytestText
             ? $"{Verve.NameOf(spender.Value)} ready"
             : $"{cost - unit.Verve} more for {Verve.NameOf(spender.Value)}";
 
-        return $"Verve {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.";
+        return $"{Naming.Meter} {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.";
     }
 
     /// <summary>The status flags worth showing beside a unit.</summary>

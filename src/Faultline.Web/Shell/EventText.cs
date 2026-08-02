@@ -43,10 +43,11 @@ public static class EventText
         // A charge that arrives at a full meter is shown, not swallowed — a player sitting at the cap
         // should be able to see their earnings evaporating and go and spend.
         VerveCharged e => e.Wasted
-            ? $"{Name(state, e.UnitId)} +0 verve (full) — {e.NewTotal}/{Verve.Cap}, discarded."
-            : $"{Name(state, e.UnitId)} +1 verve ({e.NewTotal}/{Verve.Cap}) — {VerveSourceText(e.Source)}.",
+            ? $"{Name(state, e.UnitId)} +0 {Naming.MeterLower} (full) — {e.NewTotal}/{Verve.Cap}, discarded."
+            : $"{Name(state, e.UnitId)} +1 {Naming.MeterLower} ({e.NewTotal}/{Verve.Cap}) — {VerveSourceText(e.Source)}.",
         VerveSpent e =>
-            $"{Name(state, e.UnitId)} spends {e.Cost} verve on {Verve.NameOf(e.Spend)} ({e.Remaining} left).",
+            $"{Name(state, e.UnitId)} spends {e.Cost} {Naming.MeterLower} on {Naming.Of(e.Spend)} ({e.Remaining} left).",
+        UnitHealed e => $"{Name(state, e.UnitId)} patches up +{e.Amount} → {e.RemainingHp} HP.",
         UnitsSwapped e =>
             $"{Name(state, e.UnitId)} trades places with {Name(state, e.OtherId)} — {e.From} ⇄ {e.OtherFrom}.",
         Staggered e => $"{Name(state, e.UnitId)} is staggered.",
@@ -127,17 +128,8 @@ public static class EventText
     /// <summary>What earned a charge, in a few words for the log line.</summary>
     /// <param name="source">The charge source.</param>
     /// <returns>A short phrase.</returns>
-    public static string VerveSourceText(VerveSource source) => source switch
-    {
-        VerveSource.Collision => "a collision",
-        VerveSource.Hazard => "a hazard",
-        VerveSource.HighGround => "high ground",
-        VerveSource.Guard => "guard stance",
-        // Not a default case with a guess in it. A source nobody has written a phrase for should say
-        // so out loud — this shell has already shipped two bugs where a fallthrough quietly invented
-        // a plausible sentence for something it did not understand (D-069).
-        _ => source + " (no wording written for this source)",
-    };
+    // Straight through to the naming layer. The shell writes no nouns of its own (MASTER_DESIGN §15).
+    public static string VerveSourceText(VerveSource source) => Naming.Of(source);
 
     /// <summary>Single-letter label for a team.</summary>
     /// <param name="team">Team to label.</param>
