@@ -286,8 +286,11 @@ public class RunTests
     {
         // Driven for real rather than rigged. A board emptied of players between commands would be a
         // state no command can leave — the outcome is only checked when something is applied — and a
-        // loss the engine reaches on its own is the only one worth asserting on.
-        var (run, _) = RunFixture.PlayWholeRun(seed: 4242);
+        // loss the engine reaches on its own is the only one worth asserting on. The squad opens on
+        // one hit point each so the loss is certain without being arranged; it used to rely on the
+        // first-legal driver dying at a particular seed, which is a fact about board tuning rather
+        // than about the run layer, and it stopped being true when fight 1 was made survivable.
+        var (run, _) = RunFixture.PlayForward(RunFixture.CrippledInFirstFight());
 
         Assert.Equal(RunOutcome.Lost, run.Outcome);
         Assert.Equal(RunPhase.Complete, run.Phase);
@@ -299,7 +302,7 @@ public class RunTests
     {
         // The squad is read off the finished board before the run is declared over, so a loss records
         // who was downed and who was lost rather than throwing the fight away.
-        var (run, _) = RunFixture.PlayWholeRun(seed: 4242);
+        var (run, _) = RunFixture.PlayForward(RunFixture.CrippledInFirstFight());
 
         Assert.Equal(RunOutcome.Lost, run.Outcome);
         Assert.All(run.Squad, u => Assert.NotEqual(RunUnitStatus.Ready, u.Status));

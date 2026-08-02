@@ -25,7 +25,7 @@ public class FightMigrationTests
     /// <summary>The terrain rows of the authored board, with placement stripped out.</summary>
     private static readonly string[] LegacyRows =
     {
-        "#......",
+        "#.#....",
         ".^.H...",
         ".......",
         ".O...O.",
@@ -86,12 +86,16 @@ public class FightMigrationTests
         Assert.Equal(
             new[]
             {
-                new EnemySpawn(UnitKind.Lobber, new Coord(5, 0)),
+                // Emplaced in the north-west, boxed between the corner wall and a new one at
+                // (2,0) so its two movement points buy it almost nothing. D-080: with no line of
+                // sight in this game, a Lobber that can walk threatens a diamond of radius 5, and
+                // there is nowhere on a 7x7 to stand one where it does not cover a deploy slot.
+                new EnemySpawn(UnitKind.Lobber, new Coord(1, 0)),
 
                 // The queue: two Husks in a line on the west edge, one Push from being one kill.
                 new EnemySpawn(UnitKind.Husk, new Coord(0, 2)),
                 new EnemySpawn(UnitKind.Husk, new Coord(0, 3)),
-                new EnemySpawn(UnitKind.Husk, new Coord(4, 6)),
+                new EnemySpawn(UnitKind.Husk, new Coord(6, 6)),
             },
             FightLibrary.Fight1().Enemies);
     }

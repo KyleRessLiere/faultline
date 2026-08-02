@@ -1087,10 +1087,41 @@ namespace Faultline.Core
             }
 
             AddObjectiveLints(fight, board, header, issues);
+            AddAgencyLints(fight, issues);
 
             // A "unit starts on a hazard" lint would be unreachable: deploy slots and spawn letters
             // always write Open terrain underneath, so the format cannot express it. Left out rather
             // than shipped as a check that can never fire.
+        }
+
+        /// <summary>
+        /// D-080, agency before injury: a player should not lose hit points to a decision they were
+        /// not allowed to make, and deployment is the one moment they commit blind.
+        /// </summary>
+        /// <remarks>
+        /// Measured rather than eyeballed. <see cref="Threat"/> walks every tile each enemy could
+        /// reach and everything it could hit from there, with the board empty of players — bodies
+        /// only block, so a real deployment can shrink that set but never grow it.
+        /// </remarks>
+        private static void AddAgencyLints(FightDefinition fight, List<FightIssue> issues)
+        {
+            // Campaign boards only, as the law is scoped. A run is where a player meets a board with
+            // no warning and no way back; the trial and gauntlet sets are chosen from a menu that
+            // shows what is on them before you commit.
+            if (!CampaignLibrary.IsCampaignFight(fight.Id))
+            {
+                return;
+            }
+
+            foreach (var side in Threat.UnsafeSides(fight))
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.UnsafeRound1Deployment,
+                    side.Team + " fields " + side.Needed + " unit(s) but only " + side.Safe + " of its "
+                    + side.ZoneSize + " deployment tile(s) are out of every enemy's round-1 reach, so "
+                    + "at least one unit can be hit before it has had a turn.",
+                    0));
+            }
         }
 
         private static void AddObjectiveLints(

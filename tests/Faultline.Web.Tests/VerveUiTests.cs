@@ -327,3 +327,81 @@ public sealed class VerveUiTests
         Assert.Equal(BoardBeatKind.Charge, Assert.Single(beats).Kind);
     }
 }
+
+/// <summary>
+/// The deployment threat overlay (D-080). The shell shows it; Core decides what is in it.
+/// </summary>
+public sealed class DeploymentThreatTests
+{
+    private static (PlaytestView View, GameState State) Deploying(string fightId)
+    {
+        var state = Game.Start(FightLibrary.ById(fightId), seed: 0).NewState;
+        return (new PlaytestView(), state);
+    }
+
+    [Fact]
+    public void DuringDeployment_TheOverlayIsWhatCoreSays()
+    {
+        var (view, state) = Deploying("the-teeth");
+
+        Assert.Equal(
+            Threat.DamageRound1(state).OrderBy(c => c.X).ThenBy(c => c.Y),
+            view.DeploymentThreat(state).OrderBy(c => c.X).ThenBy(c => c.Y));
+    }
+
+    [Fact]
+    public void TheOverlayIsShownEvenWithTheThreatToggleOff()
+    {
+        // Deliberate. Turning the in-fight overlay off is a choice about clutter; there is no reading
+        // of it that means "hide what can hit me while I am placing my squad".
+        var (view, state) = Deploying("the-teeth");
+
+        Assert.False(view.ThreatView);
+        Assert.NotEmpty(view.DeploymentThreat(state));
+    }
+
+    [Fact]
+    public void OnceTheBattleStarts_TheDeploymentOverlayGoesAway()
+    {
+        var (view, state) = Deploying("the-teeth");
+
+        Assert.Empty(view.DeploymentThreat(state with { Phase = Phase.Battle }));
+    }
+
+    [Fact]
+    public void HoveringOneEnemy_NarrowsItToThatEnemyAlone()
+    {
+        var (view, state) = Deploying("the-teeth");
+        var enemy = state.Units.First(u => u.Team == Team.Enemy && u.IsOnBoard);
+
+        var mine = view.ThreatFrom(state, enemy.Id);
+
+        Assert.NotEmpty(mine);
+        Assert.Equal(Threat.ForUnit(state, enemy).Count, mine.Count);
+        Assert.True(mine.Count < view.DeploymentThreat(state).Count);
+    }
+
+    [Fact]
+    public void HoveringAPlayerUnitOrNothing_NarrowsToNothing()
+    {
+        var (view, state) = Deploying("the-teeth");
+        var player = state.Units.First(u => u.Team.IsPlayer());
+
+        Assert.Empty(view.ThreatFrom(state, player.Id));
+        Assert.Empty(view.ThreatFrom(state, null));
+    }
+
+    [Fact]
+    public void FirstContact_ShadesNoDeploymentTileAtAll()
+    {
+        // The strict board. If this ever shades one, fight 1 has stopped being the fight where
+        // nothing can hurt you before you have moved.
+        var (view, state) = Deploying("first-contact");
+        var shaded = view.DeploymentThreat(state).ToHashSet();
+
+        foreach (var tile in state.Fight.DeploymentZoneA.Concat(state.Fight.DeploymentZoneB))
+        {
+            Assert.DoesNotContain(tile, shaded);
+        }
+    }
+}

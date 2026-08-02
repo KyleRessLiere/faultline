@@ -239,8 +239,9 @@ is never quietly short an enemy.
 id: first-contact
 number: 1
 name: First Contact
-description: Husks walk straight at you while a lobber lands rocks from the back. Learn that a shove beats a swing.
+description: Husks walk at you while an emplaced lobber drops rocks from the north-west. Learn that a shove beats a swing.
 design: Fight 1 — the control group.
+design: Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
 design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
 
 spawn h = Husk
@@ -250,13 +251,13 @@ roster a: Vanguard, Archer
 roster b: Threadcaster, Wardbearer
 
 board:
-  #....lB
+  #l#...B
   .^.H..B
   h.....B
   hO...O.
   #.....#
   A...^..
-  AA..h..
+  AA....h
 ```
 
 That is a 7×7 board with 4 walls, 4 pits, 3 spikes, 2 high ground, a clear centre 3×3, four Player A

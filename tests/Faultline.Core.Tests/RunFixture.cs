@@ -201,9 +201,34 @@ internal static class RunFixture
     /// exactly that loss on exactly that fight.
     /// </para>
     /// </remarks>
-    internal static (RunState State, List<RunCommand> Log) PlayWholeRun(int seed, int maxCommands = 40000)
+    internal static (RunState State, List<RunCommand> Log) PlayWholeRun(int seed, int maxCommands = 40000) =>
+        PlayForward(Start(seed), maxCommands);
+
+    /// <summary>
+    /// A run standing in its first fight with every fielded unit on one hit point, so that playing
+    /// forward reaches a loss the engine decided on rather than one a test arranged.
+    /// </summary>
+    /// <remarks>
+    /// The loss tests used to rely on the first-legal driver dying somewhere in the spine at a known
+    /// seed. That is a fact about board tuning, not about the run layer, and it broke the moment
+    /// fight 1 stopped being able to kill anybody (D-080). Which fight the run loses is now
+    /// irrelevant to what those tests assert.
+    /// </remarks>
+    internal static RunState CrippledInFirstFight(int seed = Seed)
     {
-        var run = Start(seed);
+        var run = Enter(Start(seed));
+
+        foreach (var binding in run.Bindings)
+        {
+            run = HurtTo(run, binding.RunUnitId, 1);
+        }
+
+        return run;
+    }
+
+    /// <summary>Plays a run on from wherever it stands, first legal command each time.</summary>
+    internal static (RunState State, List<RunCommand> Log) PlayForward(RunState run, int maxCommands = 40000)
+    {
         var log = new List<RunCommand>();
 
         while (run.Phase != RunPhase.Complete && log.Count < maxCommands)

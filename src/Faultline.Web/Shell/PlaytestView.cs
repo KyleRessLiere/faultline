@@ -35,6 +35,8 @@ public sealed class PlaytestView
 
     private GameState? _threatFor;
     private IReadOnlyCollection<Coord> _threat = Array.Empty<Coord>();
+    private GameState? _deployThreatFor;
+    private IReadOnlyCollection<Coord> _deployThreat = Array.Empty<Coord>();
 
     /// <summary>Raised whenever something on this view changed, so the screen can redraw.</summary>
     public event Action? Changed;
@@ -140,33 +142,63 @@ public sealed class PlaytestView
             return _threat;
         }
 
-        var tiles = new HashSet<Coord>();
-
-        foreach (var enemy in state.Units)
-        {
-            if (enemy.Team != Team.Enemy || !enemy.IsOnBoard)
-            {
-                continue;
-            }
-
-            var stands = new List<Coord> { enemy.Position };
-            foreach (var reached in Movement.Reachable(state, enemy).Keys)
-            {
-                stands.Add(reached);
-            }
-
-            foreach (var stand in stands)
-            {
-                foreach (var tile in Combat.RangeTiles(state, enemy with { Position = stand }))
-                {
-                    tiles.Add(tile);
-                }
-            }
-        }
+        // Core owns the geometry. This used to compose Movement.Reachable and Combat.RangeTiles
+        // here, which was a second copy of a rule living in the renderer — and once the same set had
+        // to drive a board lint and a Core test, the copy became a liability rather than a shortcut
+        // (D-080).
+        var tiles = Threat.All(state);
 
         _threatFor = state;
         _threat = tiles;
         return tiles;
+    }
+
+    /// <summary>
+    /// Every tile the enemy side can put damage on before the players have had a turn, for the
+    /// deployment overlay. Independent of the threat toggle: this one is not an option.
+    /// </summary>
+    /// <param name="state">Board to measure.</param>
+    /// <returns>The threatened tiles, empty once the fight has left deployment.</returns>
+    /// <remarks>
+    /// Deployment is the only moment a player commits without being able to see what it costs, so
+    /// this is shown whether or not the threat overlay is switched on. Turning it off is a choice
+    /// about clutter during a fight; there is no reading of it that means "hide this from me while I
+    /// place my squad".
+    /// </remarks>
+    public IReadOnlyCollection<Coord> DeploymentThreat(GameState? state)
+    {
+        if (state is null || state.Phase != Phase.Deployment)
+        {
+            return Array.Empty<Coord>();
+        }
+
+        if (ReferenceEquals(state, _deployThreatFor))
+        {
+            return _deployThreat;
+        }
+
+        _deployThreatFor = state;
+        _deployThreat = Threat.DamageRound1(state);
+        return _deployThreat;
+    }
+
+    /// <summary>
+    /// What one enemy alone could reach, for hovering it during deployment.
+    /// </summary>
+    /// <param name="state">Board to measure.</param>
+    /// <param name="unitId">Enemy to isolate, or null for none.</param>
+    /// <returns>That enemy's threatened tiles.</returns>
+    public IReadOnlyCollection<Coord> ThreatFrom(GameState? state, UnitId? unitId)
+    {
+        if (state is null || unitId is null)
+        {
+            return Array.Empty<Coord>();
+        }
+
+        var unit = state.FindUnit(unitId.Value);
+        return unit is null || unit.Team != Team.Enemy
+            ? Array.Empty<Coord>()
+            : Threat.ForUnit(state, unit);
     }
 
     /// <summary>Tells the screen to redraw.</summary>

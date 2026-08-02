@@ -1,5 +1,27 @@
 # Changelog
 
+## Agency before injury
+
+A new design law: **you should never lose hit points to a decision you were not allowed to make**
+(D-080). Deployment is the one moment you commit blind, so it is the one moment the game shows you
+what it is about to do.
+
+- **The board shades every tile an enemy can damage on round 1 while you place your squad** — each
+  enemy's walk plus its reach from anywhere it can get to. **Hover one enemy and the shading narrows
+  to that enemy.** It is shown whether or not the threat overlay is switched on; there is no reading
+  of that toggle that means "hide this from me while I deploy".
+- **Fight 1 is now strictly safe.** All six deployment tiles are out of every enemy's round-1 reach.
+  The lobber is emplaced in the north-west behind a new wall — every legal tile was searched, and a
+  lobber that can walk covers a deploy slot from anywhere on a 7×7.
+- **Campaign boards are linted** when a side cannot field its roster out of harm's way. Six still
+  fail and are pinned by name; the lint becomes an error when that list empties.
+- The renderer stopped computing threat itself and asks Core, which is what let the same set drive
+  the overlay, the lint and the tests without three versions of it drifting apart.
+
+**Known and not fixed:** enemies that deal no damage at all — Grappler, Stalker, Harrier — sit outside
+the law as worded, even though a round-1 shove into a pit costs you the whole unit. Counted and
+reported; widening the law is a design call nobody has made.
+
 ## Units bank Verve for playing the board
 
 - **Every player class now earns a per-unit meter, capped at 5**, on its own condition: collisions the

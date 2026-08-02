@@ -128,5 +128,17 @@ namespace Faultline.Core
         /// needs no spend at all.
         /// </summary>
         FootingGrantOnPlayers = 111,
+
+        /// <summary>
+        /// A side cannot field its roster on tiles the enemy is unable to damage before the players
+        /// have had a turn — the agency-before-injury law (D-080).
+        /// </summary>
+        /// <remarks>
+        /// A lint rather than an error <em>for now</em>. The law is right and most of the shipped set
+        /// breaks it, so making it fatal today would take the library down with it. It moves into the
+        /// error range in the same change that fixes the last offending board; the list of boards
+        /// still failing is pinned by a test so the number cannot quietly grow.
+        /// </remarks>
+        UnsafeRound1Deployment = 112,
     }
 }

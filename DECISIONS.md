@@ -93,12 +93,13 @@ in this file when the question comes back.
 | D-073 | [Verve charges by listening to the finished event stream, and the causer is read back out of that stream rather than added to the events.](#d-073-verve-charges-by-listening-to-the-finished-event-stream-and-the-causer-is-read-back-out-of-that-stream-rather-than-added-to-the-events) | 2026-08-02 |  |
 | D-074 | [Verve supersedes Momentum, and `GameState.Momentum` is left standing until the Verve UI replaces it.](#d-074-verve-supersedes-momentum-and-gamestatemomentum-is-left-standing-until-the-verve-ui-replaces-it) | 2026-08-02 |  |
 | D-075 | [HELD: a shared pool returns only if a reward is ever wanted for something that is not a displacement, a hazard, high ground or absorption.](#d-075-held-a-shared-pool-returns-only-if-a-reward-is-ever-wanted-for-something-that-is-not-a-displacement-a-hazard-high-ground-or-absorption) | 2026-08-02 | *held* |
-| D-076 | [Wrecking Weight adds its tile to the requested distance, not to the result.](#d-076-wrecking-weight-adds-its-tile-to-the-requested-distance-not-to-the-result) | unreleased |  |
-| D-077 | [Retort is legal only as the first thing in an activation, because that is the only moment Guard Stance is still standing.](#d-077-retort-is-legal-only-as-the-first-thing-in-an-activation-because-that-is-the-only-moment-guard-stance-is-still-standing) | unreleased |  |
-| D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | unreleased |  |
-| D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | unreleased |  |
+| D-076 | [Wrecking Weight adds its tile to the requested distance, not to the result.](#d-076-wrecking-weight-adds-its-tile-to-the-requested-distance-not-to-the-result) | 2026-08-02 |  |
+| D-077 | [Retort is legal only as the first thing in an activation, because that is the only moment Guard Stance is still standing.](#d-077-retort-is-legal-only-as-the-first-thing-in-an-activation-because-that-is-the-only-moment-guard-stance-is-still-standing) | 2026-08-02 |  |
+| D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | 2026-08-02 |  |
+| D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | 2026-08-02 |  |
+| D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | unreleased |  |
 
-**78 rulings.**
+**79 rulings.**
 
 <!-- toc:end -->
 ---
@@ -955,3 +956,78 @@ would be a second, larger ability nobody specified.
 **Everything a spend arms expires at the end of the activation, and the Verve does not come back.**
 An armed Wrecking Weight that never found a push is two points gone. Deliberate — a spend that
 refunds itself when unused is a spend with no decision in it.
+
+**D-080 — Agency before injury: a player never loses hit points to a decision they were not allowed
+to make, and deployment is the decision they make blind.**
+A new design law, and the first one this project has written that is about *fairness* rather than
+about the board being a weapon. Deployment is the single moment a player commits with no information
+and no way back: they place a squad, and then the enemy round happens to them. Everywhere else in the
+game a hit is the consequence of a move they chose.
+
+**Three parts, and they are not equally strong.**
+
+1. **The board shows the cost.** During deployment every tile any enemy could damage on round 1 is
+   shaded, and hovering one enemy narrows it to that enemy's reach. Computed by `Threat` in Core, not
+   by the renderer.
+2. **Campaign boards are linted.** A campaign board where some side cannot field its roster on safe
+   tiles raises `UnsafeRound1Deployment`.
+3. **`first-contact` is held to the strict form.** Not "a safe deployment exists" but "every
+   deployment tile is safe". Fight 1 is where a player learns what the game does to them.
+
+**Scoped to the campaign, deliberately.** A run is where a board is met with no warning; the trial
+and gauntlet sets are chosen from a menu that shows what is on them first. Extending the law to all
+65 boards would be a different, larger claim.
+
+**The threat set is an over-approximation and has to be.** It asks what an enemy *could* do, not what
+its priority list *will* do, and it computes reach with the board empty of player units — bodies only
+ever block, so a real deployment can shrink the set but never grow it. An overlay that under-reported
+would be worse than no overlay, because it would be believed.
+
+**The load-bearing fact nobody had written down: there is no line of sight in this game.**
+`Combat.RangeTiles` is pure step distance. A wall stops a Lobber walking and does nothing at all to
+stop it shooting. So a ranged enemy threatens a diamond of radius (walk + range) — for a Lobber, 5 —
+and on a 7x7 board that is most of the board. This is why the law is hard rather than fiddly, and it
+is now pinned by a test so it is a decision rather than an accident.
+
+**`first-contact` was re-cut, and the Lobber was walled in rather than nerfed.** Every legal tile was
+searched: with Move 2 there are **zero** placements on that board that threaten no deployment slot,
+and the best possible leaves one. Three routes were measured.
+
+**Rejected: cutting the Lobber's Move to 1** — the route first proposed. Measured: it buys exactly
+one extra campaign board (`high-road`), does not fix `first-contact` on its own, and costs a great
+deal. `UnitTemplate_MatchesTheBriefStatTables` fails, because **Move 2 is in the brief's stat table**;
+four behavioural tests fail, because breaking contact is the Lobber's own priority list and Move 1
+cannot kite; and 42 of 65 boards field one. A global stat change to fix one board's geometry.
+
+**Rejected: dropping the Lobber from fight 1.** Clean, and it changes what the tutorial fields.
+
+**Rejected: shrinking Player B's zone to the two safe tiles.** It satisfies the law's letter and
+leaves B with exactly as many tiles as units — no deployment choice at all, on the board whose law is
+named for agency.
+
+**Chosen: terrain.** The Lobber moves to `(1,0)` and a wall goes in at `(2,0)`, so the corner wall,
+the new wall and the spikes at `(1,1)` leave its two movement points buying it almost nothing. Its
+threat becomes range 3 from where it stands, which clears every deployment slot on both sides. The
+board pays for the board's problem: no stat moves, no other fight changes, and the brief is not
+contradicted. The third Husk moves from `(4,6)` to `(6,6)` — still an edge, still opposite the west
+pair, and out of round-1 reach of Player A's corner. **The two Husks the fight exists to teach, at
+`(0,2)` and `(0,3)`, were already safe and did not move**; a test now pins that they stay adjacent.
+
+**A lint, not an error — for now.** 7 of the 10 campaign boards broke this law when it was written,
+so making it fatal on the day would have taken the library down with it. The six that still break it
+are pinned by name in `AgencyTests.KnownUnsafe`, in **both** directions: a board that starts failing
+fails the test, and a board that is fixed without being struck off fails it too. When that list
+empties, `UnsafeRound1Deployment` moves into the error range, which is the point of it.
+
+**Displacement is reported but is not part of the law.** The Grappler, Stalker and Harrier deal no
+damage at all, so a law worded as damage does not see them — and a Stalker that shoves a player into
+a pit on round 1 has taken the whole unit without dealing a point. `Threat.DisplacementRound1` counts
+them separately and the harness prints it. **Widening the law to cover it is a design call that has
+not been made**, and recording it here is the alternative to widening it quietly.
+
+**A consequence worth knowing about:** making fight 1 survivable meant the first-legal driver stopped
+losing runs, which broke two run tests that had been relying on it dying at a particular seed. They
+now cripple the squad to one hit point and play forward, so what they assert — that a lost fight ends
+the run and carries its casualties out — no longer depends on board tuning at all. Every seed tried
+now stalls on node 3 (`broken-bridge`) rather than losing, which is the stalemate class D-067 already
+describes and is **not investigated**.

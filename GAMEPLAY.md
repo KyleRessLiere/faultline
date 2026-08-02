@@ -55,6 +55,38 @@ Ranged attacks fired *from* HighGround deal **+1**. There is no line of sight (D
 4. An activation is **one move + one action, in either order**. Ending early forfeits the rest.
 5. **Round end:** Clinging resolves, then Stagger clears on everyone.
 
+### Agency before injury — the deployment overlay
+
+**A player should never lose hit points to a decision they were not allowed to make** (D-080).
+Deployment is the one moment they commit blind, so it is the one moment the game shows its hand:
+
+- **Every tile any enemy could damage on round 1 is shaded during placement** — each enemy's walk plus
+  its reach from anywhere it can walk to. **Hovering one enemy narrows the shading to that enemy
+  alone.** Shown whether or not the in-fight threat overlay is switched on.
+- The set is an **over-approximation on purpose**: what an enemy *could* do, not what its priority
+  list *will* do, computed with the board empty of players. Bodies only ever block, so a real
+  deployment can shrink it and never grow it.
+- **There is no line of sight in this game.** Range is pure step distance, so a wall stops a ranged
+  enemy walking and does nothing to stop it shooting. A Lobber (move 2, range 3) therefore threatens
+  a diamond of radius 5, which on a 7×7 is most of the board. The only way to shrink one is to box in
+  where it can stand.
+
+**Campaign boards are held to the law**; trial and gauntlet boards are not, because those are chosen
+from a menu that shows what is on them. A campaign board where some side cannot field its whole
+roster on unthreatened tiles raises the `UnsafeRound1Deployment` lint.
+
+**`first-contact` is held to the strict form** — not "a safe deployment exists" but *every* one of its
+six deployment tiles is out of round-1 reach. Fight 1 is where a player learns what the game does to
+them. The lobber is emplaced at (1,0) behind a wall at (2,0) to make that possible.
+
+**Six campaign boards still break the law** and are pinned by name in `AgencyTests`:
+`cb-06-bait-and-break`, `the-teeth`, `broken-bridge`, `the-shrine`, `high-road`, `hz-09-the-trench`.
+The lint becomes an error when that list empties.
+
+**Displacement-only enemies are outside the law.** The Grappler, Stalker and Harrier deal no damage,
+so a rule worded as damage does not see them — even though a round-1 shove into a pit takes the whole
+unit. Counted and reported separately; whether to widen the law is undecided.
+
 ## Displacement — the core system
 
 Push and Pull resolve **one tile at a time**, checking each tile as it is entered. Distance is

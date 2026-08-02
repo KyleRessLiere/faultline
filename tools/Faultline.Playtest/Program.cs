@@ -15,6 +15,32 @@ if (args.Length > 0 && args[0] == "--stranded")
     return;
 }
 
+if (args.Length > 0 && args[0] == "--losing-seeds")
+{
+    Faultline.Playtest.Agency.LosingSeeds(args.Length > 1 && int.TryParse(args[1], out int lt) ? lt : 12);
+    return;
+}
+
+if (args.Length > 0 && args[0] == "--sweep" && args.Length > 2)
+{
+    Faultline.Playtest.Agency.Sweep(args[1], Enum.Parse<UnitKind>(args[2]));
+    return;
+}
+
+if (args.Length > 0 && args[0] == "--agency")
+{
+    if (args.Length > 1)
+    {
+        Faultline.Playtest.Agency.Placements(args[1]);
+    }
+    else
+    {
+        Faultline.Playtest.Agency.Report();
+    }
+
+    return;
+}
+
 if (args.Length > 0 && args[0] == "--probe")
 {
     Faultline.Playtest.Probe.SoftLock(args.Length > 1 && int.TryParse(args[1], out int ps) ? ps : 1);

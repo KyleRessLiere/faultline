@@ -246,6 +246,13 @@ public class CuratedSetBoardTests
                 FightIssueCode.HazardOffOuterRings,
                 FightIssueCode.CentreNotClear,
                 FightIssueCode.NoHighGround,
+
+                // Listed under protest. D-080 says a campaign board must offer every side a
+                // deployment slot nothing can reach on round 1, and this one offers Player A a
+                // single safe tile for two units. It is not a shape exemption like the others here
+                // and it is not intended to stay — AgencyTests pins the full list of boards still
+                // breaking the law, and this entry comes out with that one.
+                FightIssueCode.UnsafeRound1Deployment,
             },
 
             // A siege has one front: both players deploy south of the wall, and every enemy is north

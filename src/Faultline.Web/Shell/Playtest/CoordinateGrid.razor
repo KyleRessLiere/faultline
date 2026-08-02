@@ -118,6 +118,17 @@
 
     private IReadOnlyCollection<Coord> Threat => View.ThreatTiles(State);
 
+    /// <summary>What can damage a deployment slot on round 1. Empty once the battle starts.</summary>
+    private IReadOnlyCollection<Coord> DeployThreat => View.DeploymentThreat(State);
+
+    /// <summary>
+    /// The tiles the hovered enemy alone threatens, while the squad is being placed.
+    /// </summary>
+    private IReadOnlyCollection<Coord> HoveredThreat =>
+        State.Phase == Phase.Deployment && Session.Hovered is { } at
+            ? View.ThreatFrom(State, State.UnitAt(at)?.Id)
+            : Array.Empty<Coord>();
+
     /// <summary>The unit being drawn as a sliding sprite, if there is one.</summary>
     private Unit? Sliding => Animator.Mover is { } id ? State.FindUnit(id) : null;
 
@@ -221,6 +232,20 @@
         if (Threat.Contains(coord))
         {
             classes.Add("threat");
+        }
+
+        // Deployment: what can hit you before you have had a turn (D-080). Shown whether or not the
+        // in-fight threat overlay is on, because this is the one moment a player commits blind.
+        if (DeployThreat.Contains(coord))
+        {
+            classes.Add("unsafe-deploy");
+        }
+
+        // Hovering one enemy narrows the shading to that enemy alone, so "who is threatening this
+        // slot" has an answer rather than a wall of colour.
+        if (HoveredThreat.Contains(coord))
+        {
+            classes.Add("threat-from");
         }
 
         // The tiles under the unit that is moving right now, and the ones it has already crossed.

@@ -34,6 +34,35 @@ namespace Faultline.Core
         /// <returns>The campaigns.</returns>
         public static IReadOnlyList<CampaignDefinition> All() => new[] { FaultlineCampaign };
 
+        /// <summary>Whether any shipped campaign fields this fight.</summary>
+        /// <remarks>
+        /// The agency-before-injury law (D-080) is scoped to the campaign: a run is where a player
+        /// meets a board with no warning and no way back, and the trial and gauntlet sets are picked
+        /// deliberately from a menu that shows what is on them.
+        /// </remarks>
+        /// <param name="fightId">Fight identifier.</param>
+        /// <returns>Whether it appears as a node in a campaign.</returns>
+        public static bool IsCampaignFight(string fightId)
+        {
+            if (string.IsNullOrEmpty(fightId))
+            {
+                return false;
+            }
+
+            foreach (var campaign in All())
+            {
+                foreach (var node in campaign.Nodes)
+                {
+                    if (node is FightNode fight && fight.FightId == fightId)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>Finds a campaign by id.</summary>
         /// <param name="id">Campaign id.</param>
         /// <returns>The campaign.</returns>
