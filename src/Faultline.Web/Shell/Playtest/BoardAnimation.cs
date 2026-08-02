@@ -21,6 +21,15 @@ public enum BoardBeatKind
 
     /// <summary>Shudder the sliding sprite where it stands, before it travels.</summary>
     Shake,
+
+    /// <summary>
+    /// Light a tile red because a unit was hit standing on it. Costs no time: every mark of one
+    /// instant is laid down together, and the <see cref="Blink"/> that follows is what holds.
+    /// </summary>
+    Mark,
+
+    /// <summary>Hold while every tile marked since the last blink pulses, then clear them.</summary>
+    Blink,
 }
 
 /// <summary>One instruction in an animation script: what to do, to whom, and where.</summary>
@@ -49,16 +58,23 @@ public readonly record struct BoardBeat(BoardBeatKind Kind, UnitId UnitId, Coord
 public static class BoardAnimation
 {
     /// <summary>How long a unit takes to cross one tile, at full speed.</summary>
-    public const int TileMs = 170;
+    public const int TileMs = 290;
 
     /// <summary>How long one flash of an attacker lasts. A hit plays two of them.</summary>
-    public const int FlashMs = 130;
+    public const int FlashMs = 220;
 
     /// <summary>
     /// How long a shoved unit shudders before it travels. Shorter than a tile, so the impact reads as
     /// the thing that started the slide rather than as a pause in front of it.
     /// </summary>
-    public const int ShakeMs = 150;
+    public const int ShakeMs = 250;
+
+    /// <summary>
+    /// How long a hit tile stays lit: red first, marking where the damage landed, then two pulses.
+    /// The mark and the pulses are one CSS keyframe, so this is the whole thing rather than one beat
+    /// of it. Longer than a tile because it has three phases to get through, not because it is slower.
+    /// </summary>
+    public const int BlinkMs = 400;
 
     /// <summary>
     /// How long the sprite sits on its starting tile before the first slide. One paint, so the
@@ -71,10 +87,21 @@ public static class BoardAnimation
     /// round arrives as one activation after another, and the beats have to fit inside a wait a
     /// player will sit through.
     /// </summary>
-    public const int BurstBudgetMs = 900;
+    /// <remarks>
+    /// This is a clock budget spent by beats that are now roughly 1.7x longer than they were, so the
+    /// figure came down with them: 900ms used to buy a whole activation and would now buy about half
+    /// of one, which would leave the compression starting a round later than it should. What it
+    /// never touches is the player's own command — that always starts a fresh burst at full speed.
+    /// </remarks>
+    public const int BurstBudgetMs = 650;
 
     /// <summary>Floor on the tempo, as a percentage. A long round hurries; it never turns into a cut.</summary>
-    public const int FastestTempo = 30;
+    /// <remarks>
+    /// A percentage of a longer beat is a longer beat: at the old 30% a tile took 51ms, and 30% of
+    /// the new tile would be 87ms. 25% lands the fourth enemy at 72ms a tile — still slower than the
+    /// old floor, and it keeps a four-unit round inside the same few seconds it used to take.
+    /// </remarks>
+    public const int FastestTempo = 25;
 
     /// <summary>Shortest a scaled beat may be, so compressing never rounds a beat away entirely.</summary>
     public const int MinBeatMs = 16;
