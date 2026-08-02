@@ -368,8 +368,11 @@ public class QuarryKingTests
 
         var result = state.Step(Game.NextEnemyCommand(state)!);
 
+        // The cling is the point; the sweep behind it is D-081 finding the Vanguard alone on its
+        // side with nothing that could come for it.
         Assert.True(result.Has<Clinging>());
-        Assert.True(result.NewState.UnitById(vanguardId).Clinging);
+        Assert.Equal(vanguardId, result.Single<Clinging>().UnitId);
+        Assert.True(result.NewState.UnitById(vanguardId).Voided);
     }
 
     // ---- voiding him is still the smart win -----------------------------------------------------
@@ -389,6 +392,10 @@ public class QuarryKingTests
     [Fact]
     public void QuarryKing_StrippedOfEveryToken_IsVoidedByAPitLikeAnythingElse()
     {
+        // Fourteen hit points do not matter to a pit. He is the whole enemy side, so once he is
+        // hanging there is nobody left to haul him out and no wave still to land — D-081 sweeps him
+        // where he hangs and the fight is over in the same command. The free finish that used to be
+        // needed here is covered on its own in DisplacementTests.
         var state = BoardBuilder.Rows("..O....")
             .PlayerA(UnitKind.Vanguard, 0, 0)
             .PlayerA(UnitKind.Archer, 3, 0)
@@ -398,18 +405,16 @@ public class QuarryKingTests
         var kingId = state.Find(UnitKind.QuarryKing).Id;
         var vanguardId = state.Find(UnitKind.Vanguard).Id;
 
-        var clung = state.Step(new AttackCommand(vanguardId, kingId));
-        Assert.True(clung.Has<Clinging>());
-        Assert.True(clung.NewState.UnitById(kingId).Clinging);
+        var result = state.Step(new AttackCommand(vanguardId, kingId));
 
-        // 14 hit points do not matter to a pit: the free finish takes him out of the run entirely.
-        var voided = clung.NewState
-            .Then(new EndActivationCommand(vanguardId))
-            .Step(new FinishClingingCommand(state.Find(UnitKind.Archer).Id, kingId));
+        // Charge fires at hazard entry; the sweep follows it in the same stream.
+        Assert.True(result.Has<Clinging>());
+        Assert.Equal(kingId, result.Single<Clinging>().UnitId);
 
-        Assert.True(voided.Has<Voided>());
-        Assert.True(voided.NewState.UnitById(kingId).Voided);
-        Assert.Equal(FightOutcome.Won, voided.NewState.Outcome);
+        Assert.True(result.Has<Voided>());
+        Assert.Equal(Pits.SweptReason, result.Single<Voided>().Reason);
+        Assert.True(result.NewState.UnitById(kingId).Voided);
+        Assert.Equal(FightOutcome.Won, result.NewState.Outcome);
     }
 
     // ---- helpers --------------------------------------------------------------------------------

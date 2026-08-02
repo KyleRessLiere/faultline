@@ -182,6 +182,7 @@ public class AbilityTests
         var state = BoardBuilder.Rows(".O...")
             .PlayerB(UnitKind.Threadcaster, 0, 0)
             .Enemy(UnitKind.Husk, 3, 0, footing: 0)
+            .Enemy(UnitKind.Husk, 4, 0)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -314,6 +315,7 @@ public class AbilityTests
         var state = BoardBuilder.Rows("....O.")
             .PlayerA(UnitKind.Vanguard, 0, 0)
             .Enemy(UnitKind.Husk, 2, 0, footing: 0)
+            .Enemy(UnitKind.Husk, 5, 0)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard);

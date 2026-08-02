@@ -1036,8 +1036,13 @@ namespace Faultline.Core
         /// Asks <see cref="Objectives"/> whether the fight has ended. Every ending in the game is in
         /// that one file; this is the only place the rules ask.
         /// </summary>
+        /// <summary>
+        /// Sweeps anything clinging that nothing can save, then asks whether the fight is over. In
+        /// that order: a doomed clinger is not a live unit, and the outcome must not be decided
+        /// against a board holding one (D-081).
+        /// </summary>
         private static GameState CheckOutcome(GameState state, List<GameEvent> events) =>
-            Objectives.Check(state, false, events);
+            Objectives.Check(Pits.ResolveDoomed(state, events), false, events);
 
         private static bool Contains<T>(IReadOnlyList<T> items, T value)
             where T : struct

@@ -323,8 +323,13 @@ public class AiTests
 
         var result = state.Step(Ai.Plan(state, state.Get(stalker.Id)));
 
+        // Clinging fires at hazard entry, which is the shove landing. The Vanguard is the only
+        // player unit on this board, so nobody could ever have hauled it out and D-081 sweeps it in
+        // the same breath — both halves are asserted rather than only the one that used to happen.
         Assert.True(result.Has<Clinging>());
-        Assert.True(result.NewState.Get(vanguard.Id).Clinging);
+        Assert.Equal(vanguard.Id, result.Single<Clinging>().UnitId);
+        Assert.True(result.Has<Voided>());
+        Assert.True(result.NewState.Get(vanguard.Id).Voided);
     }
 
     [Fact]

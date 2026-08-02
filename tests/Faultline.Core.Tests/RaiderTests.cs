@@ -227,16 +227,19 @@ public class RaiderTests
     [Fact]
     public void Raider_ShovedIntoAPit_ClingsLikeAnythingElse()
     {
+        // The second Raider is not decoration: with nothing else of its side standing, a clinging
+        // enemy is swept where it hangs (D-081), and this test is about the cling rather than that.
         var state = Shrined(new Coord(0, 0), ".....O.")
             .PlayerA(UnitKind.Vanguard, 3, 0)
             .Enemy(UnitKind.Raider, 4, 0)
+            .Enemy(UnitKind.Raider, 0, 1)
             .Build();
 
         var result = state.Step(new AttackCommand(
             state.Find(UnitKind.Vanguard).Id, state.Find(UnitKind.Raider).Id));
 
         Assert.True(result.Has<Clinging>());
-        Assert.True(result.NewState.Find(UnitKind.Raider).Clinging);
+        Assert.True(result.NewState.UnitById(result.Single<Clinging>().UnitId).Clinging);
     }
 
     // ---- helpers --------------------------------------------------------------------------------

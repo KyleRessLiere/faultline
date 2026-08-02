@@ -95,6 +95,86 @@ namespace Faultline.Core
             });
         }
 
+        /// <summary>Reason a clinging unit is recorded as lost. One string, so every sweep reads alike.</summary>
+        public const string SweptReason = "clung un-rescued";
+
+        /// <summary>
+        /// Sweeps clinging units that nothing can still save, without waiting for the end of the
+        /// round they would have lost anyway.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A clinging unit is a question the board is asking: will somebody come? When the answer is
+        /// already no, holding the fight open until end of round is dead time — the players go on
+        /// taking activations against an enemy side that consists of one pair of hands on a ledge.
+        /// The sweep resolves it the instant it becomes hopeless (D-081).
+        /// </para>
+        /// <para>
+        /// Hopeless means different things per side. An <b>enemy</b> can be hauled out by another
+        /// enemy (D-072) or by a reinforcement that has not landed yet, so it is doomed only when
+        /// neither exists. A <b>player</b> has no reinforcements at all, and the only unit that can
+        /// rescue one is another player unit — so a player side that is nothing but hands on ledges
+        /// has no future either.
+        /// </para>
+        /// <para>
+        /// The event chain is deliberately identical to a natural end-of-round sweep: the same
+        /// <see cref="Void"/>, the same reason, in unit-id order. An auto-sweep that logged
+        /// differently would be a second kind of death for a renderer and a log reader to learn.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="events">Sink for the resulting events.</param>
+        /// <returns>The state after any doomed clingers were swept.</returns>
+        public static GameState ResolveDoomed(GameState state, List<GameEvent> events)
+        {
+            if (state is null || state.Outcome != FightOutcome.InProgress)
+            {
+                return state!;
+            }
+
+            bool enemiesDoomed = !AnyStanding(state, enemy: true) && !AnyPendingArrival(state);
+            bool playersDoomed = !AnyStanding(state, enemy: false);
+
+            if (!enemiesDoomed && !playersDoomed)
+            {
+                return state;
+            }
+
+            foreach (var unit in state.Units)
+            {
+                if (!unit.Clinging || !unit.IsAlive)
+                {
+                    continue;
+                }
+
+                bool doomed = unit.Team == Team.Enemy ? enemiesDoomed : playersDoomed;
+                if (doomed)
+                {
+                    state = Void(state, unit.Id, SweptReason, events);
+                }
+            }
+
+            return state;
+        }
+
+        /// <summary>A unit on this side that is alive, on the board and not itself on a ledge.</summary>
+        private static bool AnyStanding(GameState state, bool enemy)
+        {
+            foreach (var unit in state.Units)
+            {
+                bool side = enemy ? unit.Team == Team.Enemy : unit.Team.IsPlayer();
+                if (side && unit.IsOnBoard && !unit.Clinging)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>A reinforcement still due to land, which could pull a clinging enemy out later.</summary>
+        private static bool AnyPendingArrival(GameState state) => state.Reinforcements.Count > 0;
+
         /// <summary>
         /// End-of-round Clinging resolution. A unit that has hung on through a full round without
         /// being pulled out loses its grip (DECISIONS.md D-016).
@@ -108,7 +188,7 @@ namespace Faultline.Core
             {
                 if (unit.Clinging && unit.IsAlive && state.Round > unit.ClingingSinceRound)
                 {
-                    state = Void(state, unit.Id, "clung un-rescued", events);
+                    state = Void(state, unit.Id, SweptReason, events);
                 }
             }
 
