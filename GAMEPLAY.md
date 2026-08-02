@@ -177,7 +177,7 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
     the players it means a side that is nothing but hands on ledges, since only a player unit can
     rescue a player unit. The sweep emits exactly the events an end-of-round sweep does, and the
     outcome check runs straight after it.
-  - **Pluck charges on the way in, never on the way out.** A Threadcaster who drops the last enemy
+  - **Pluck charges on the way in, never on the way out.** A Fisher who drops the last enemy
     into a pit banks her point for the drop, not for the disposal.
 
 **On screen** (D-083): while any ally is clinging, a banner names the round it ends on and lists who
@@ -192,7 +192,7 @@ available, e.g. *needs 2 more move*.
 |---|---|---|---|---|
 | Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015). |
 | Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
-| Threadcaster | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. |
+| **Fisher** | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
 
 | Enemy | HP | Move | Action | Notes |
@@ -219,7 +219,9 @@ available, e.g. *needs 2 more move*.
 dispatches on the plan named by the stat block, not on the archetype, so a stat-block variant and the
 unit it varies cannot drift apart.
 
-Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
+Player rosters, by default: **A = Vanguard + Fisher**, **B = Wardbearer + Archer** (D-092). The two
+displacement classes against the two that hold a line and shoot. A free draft overrides it, and a
+campaign run re-splits whatever a board rosters rather than reading the split off the file.
 
 ### Pluck — the per-unit meter
 
@@ -253,11 +255,11 @@ event on the board pays one unit and not another:
 | Class | Earns +1 when | Source |
 |---|---|---|
 | Vanguard | a collision **he** causes | `Collision` |
-| Threadcaster | a displacement **she** causes ends in a collision, spikes or a pit | `Collision`, `Hazard` |
+| Fisher | a displacement **she** causes ends in a collision, spikes or a drain — including a Cast landing | `Collision`, `Hazard` |
 | Archer | **she** hits an enemy from HighGround | `HighGround` |
 | Wardbearer | **it** absorbs something in Guard Stance **that dealt damage or moved it a tile** | `Guard` |
 
-The Threadcaster is ranged, so a shot of hers from HighGround produces exactly the event the Archer
+The Fisher is ranged, so a shot of hers from HighGround produces exactly the event the Archer
 charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.
 
 **A charge requires an enemy to have been affected.** A collision that touched only your own side
@@ -283,7 +285,7 @@ the Verve does not come back.**
 | Class | Spender | Cost | What it does |
 |---|---|---|---|
 | Vanguard | **Wrecking Weight** | 2 | The next push this activation is **+1 distance** and deals **1 damage on contact**. |
-| Threadcaster | **Slingshot** | 2 | Immediately after her Reel leaves an enemy adjacent, **trade tiles with it**. |
+| Fisher | **Cast** | 3 | Pluck an enemy from **up to 3 tiles**, over anything between, and set it down on **one of her four tiles**. The landing does its worst. |
 | Archer | **Double Nock** | 4 | Her attack action **fires twice**. Separate targets; each resolved in full. |
 | Wardbearer | **Preen** | 3 | Heals himself **2**, never past his maximum. Not offered at full health. |
 
@@ -293,10 +295,18 @@ plain push 1 becomes 0 and his charged push 2 becomes 1. The contact damage land
 and stacks with everything after it: a charged basic attack into a wall is **1 attack + 1 contact + 2
 collision = 4**. A target killed by the first two never travels.
 
-**Slingshot** is legal only while a Reel has *just* left an enemy in contact — a reel that stopped
-short records nothing, and anything else she does shuts the window (D-078). The trade is not a
-displacement and not a walk: the two are adjacent, so there is no ground between them, nothing on
-either tile resolves and no collision is possible. It emits `UnitsSwapped`.
+**Cast** is a third displacement verb, `Throw` (D-091). **The grab is a lob**: she reaches up to 3
+tiles and nothing in between is consulted — not walls, not bodies, not hazards — so a Lobber hiding
+behind its own screen is not hiding. **The landing is the only tile that resolves**, and it resolves
+in full: spikes for 3 and a Stagger, a drain for a cling, either of which charges her Pluck.
+
+**Push resistance does not apply to a throw.** An Anchor braces against the ground and has nothing to
+brace against in the air, which makes Cast the answer to the units nothing else can move. **Footing
+still does something**: a token shortens the throw by one tile, landing them short of where she aimed
+— which is how somebody scrabbles clear of a drain.
+
+**She can only post somebody into a drain she is standing beside.** The landing is one of her four
+orthogonal tiles, so the reach is all in the grab and the payoff is all in where she chose to stand.
 
 **Double Nock** buys attack actions rather than suspending the action half (D-079). It covers the
 basic attack, not the abilities. The high-ground bonus applies **per shot**, and each qualifying shot
@@ -514,7 +524,7 @@ going into the boss.
 - **A downed unit returns at half its maximum, rounded down.** Dropping to zero without being voided
   leaves a unit **Downed**, and between fights it reads as exactly that: down, on nothing. When the
   next fight begins it walks on at `MaxHp / 2` and is standing again. Vanguard 7 → **3**, Wardbearer
-  6 → **3**, Archer 4 → **2**, Threadcaster 4 → **2**.
+  6 → **3**, Archer 4 → **2**, Fisher 4 → **2**.
 - **A rest restores every living unit to full**, and clears the downed mark with it — "living" means
   everything but voided (D-053). It clears nothing else; a rest is not a phase with choices in it.
 

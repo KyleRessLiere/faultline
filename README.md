@@ -22,7 +22,7 @@ lists, 38 active battles, and a twelve-node campaign that carries damage between
 plus the command log replays a whole run to an identical state, at both the fight and the run level.
 
 **M5 — Pluck**, built after M6 and out of order. A per-unit meter, capped at 5, that each player
-class earns on its own condition — collisions the Vanguard causes, the Threadcaster's displacements
+class earns on its own condition — collisions the Vanguard causes, the Fisher's displacements
 that end badly, the Archer's shots from high ground, what the Wardbearer absorbs — and spends on one
 class-bound ability. It carries between fights and it replaced Momentum, which was carried unwritten
 for eleven milestones ([D-074](DECISIONS.md)). *Pluck is the display name; the code calls it `Verve`

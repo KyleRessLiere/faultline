@@ -1,5 +1,27 @@
 # Changelog
 
+## The Fisher, and Cast
+
+- **The Threadcaster is the Fisher.** Same unit, same rules — the code still calls her
+  `Threadcaster` so no command log or `.fight` roster had to change, and one naming layer decides
+  what you read (D-090).
+- **Her spender is Cast (3), replacing Slingshot.** Pluck an enemy from **up to three tiles away** —
+  over walls, over bodies, over hazards, because the grab is a lob and never touches the ground —
+  and set it down on **one of your four tiles**. The landing does its worst: spikes for 3 and a
+  Stagger, a drain for a cling, either of which charges her.
+- **Nothing braces against a throw.** Push resistance does not apply, so Cast moves the Anchor and
+  the Colossus, which nothing else in the game can. Footing still helps: a token lands them one tile
+  short of where you aimed, which is how somebody scrabbles clear of a drain.
+- **She can only post somebody into a drain she is standing beside.** The reach is in the grab; the
+  payoff is in where you chose to stand.
+- **Default teams are now Vanguard + Fisher against Wardbearer + Archer** (D-092) — the two
+  displacement classes against the two that hold a line and shoot. A campaign run re-splits whatever
+  a board rosters instead of reading the split off ten files. Free draft is unchanged.
+
+**Measured, and it is the finding of the session: nobody cast, once, in ten campaign runs.** She
+earns 1–2 Pluck a run and Cast costs 3, so the ability that would charge her is the one she can never
+afford — a bootstrap she cannot start. See the session notes and `docs/playtest/summary.md`.
+
 ## Pluck, a spear with a point, and a ledge you cannot miss
 
 - **The meter is called Pluck.** Same meter, same rules — the code still calls it `Verve` internally

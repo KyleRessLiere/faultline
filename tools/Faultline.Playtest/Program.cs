@@ -242,7 +242,7 @@ foreach (var r in reports)
             continue;
         }
 
-        summary.AppendLine($"| `{r.Policy}` | {kind} | {earned} | {wasted} | {spent} |");
+        summary.AppendLine($"| `{r.Policy}` | {Naming.Of(kind)} | {earned} | {wasted} | {spent} |");
     }
 }
 
@@ -312,6 +312,35 @@ summary.AppendLine("**One hole remains, and it is not visible in these numbers.*
 summary.AppendLine("damage: an absorb that only moved the guard a tile earns a point while adding nothing to");
 summary.AppendLine("the absorbed column, so three shoves that push a Wardbearer around without hurting him");
 summary.AppendLine("would buy a Preen off zero soaking. No policy has managed it yet (D-084).");
+
+summary.AppendLine();
+summary.AppendLine("## Cast — where she put them, and how close the hazards were");
+summary.AppendLine();
+summary.AppendLine("Cast lands within one tile of the Fisher, so the landing distribution is bounded by");
+summary.AppendLine("where she is standing rather than by how well she aims. The last column is the whole");
+summary.AppendLine("story: her step distance to the nearest drain or spikes at the moment she cast.");
+summary.AppendLine();
+summary.AppendLine("| Policy | Casts | → open | → spikes | → drain | Avg. hazard distance at cast |");
+summary.AppendLine("|---|---|---|---|---|---|");
+foreach (var r in reports)
+{
+    int casts = r.Fights.Sum(f => Get(f.Spends, VerveSpend.Cast));
+    if (casts == 0)
+    {
+        continue;
+    }
+
+    int open = r.Fights.Sum(f => Get(f.CastLandings, TileType.Open) + Get(f.CastLandings, TileType.HighGround));
+    int spikes = r.Fights.Sum(f => Get(f.CastLandings, TileType.Spikes));
+    int drain = r.Fights.Sum(f => Get(f.CastLandings, TileType.Pit));
+
+    var distances = r.Fights.SelectMany(f => f.HazardDistanceAtCast).Where(d => d >= 0).ToList();
+    string average = distances.Count == 0
+        ? "—"
+        : (distances.Sum() / (double)distances.Count).ToString("0.0", CultureInfo.InvariantCulture);
+
+    summary.AppendLine($"| `{r.Policy}` | {casts} | {open} | {spikes} | {drain} | {average} |");
+}
 
 summary.AppendLine();
 summary.AppendLine("## What the " + Naming.Meter + " went on");

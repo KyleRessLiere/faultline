@@ -126,7 +126,8 @@ Reproduce: `dotnet run --project tools/Faultline.Playtest -- --stranded`
 **Verified in code, twice over.**
 
 1. **It is the only class with no active ability.** Vanguard `Direction` (Bull Rush), Archer `Enemy`
-   (Stagger Shot), Threadcaster `Enemy` (Reel), Wardbearer **`Passive`**. Its activation is always
+   (Stagger Shot), Threadcaster `Enemy` (Reel — she is the Fisher now, D-090), Wardbearer
+   **`Passive`**. Its activation is always
    *move, then hit for 1*. There is never a choice to make.
 2. **Nothing reports the aura working.** `Displacement.cs` caps a shove at 1 when a hold aura is
    adjacent — and emits **no event**. No `HoldAura` event type exists. The combat log cannot mention

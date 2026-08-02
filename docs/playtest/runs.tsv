@@ -1,11 +1,11 @@
 policy	seed	outcome	fights_won	ended_at_node	commands	reason
-first-legal	1	Lost	4	5	265	Player A has no units left to field in the-shrine.
-brawler	1	Lost	4	5	214	Player A has no units left to field in the-shrine.
-shover	1	Lost	2	2	191	Fight lost: the-teeth.
-careful	1	Lost	1	1	119	Fight lost: cb-06-bait-and-break.
-random-a	1	Lost	1	1	147	Fight lost: cb-06-bait-and-break.
-random-b	1	Lost	1	1	142	Fight lost: cb-06-bait-and-break.
-random-c	1	Lost	1	1	126	Fight lost: cb-06-bait-and-break.
-random-d	1	Lost	1	1	144	Fight lost: cb-06-bait-and-break.
-random-e	1	Lost	1	1	124	Fight lost: cb-06-bait-and-break.
-random-f	1	Lost	0	0	112	Fight lost: first-contact.
+first-legal	1	Lost	2	2	173	Fight lost: the-teeth.
+brawler	1	InProgress	3	3	200000	command budget exhausted
+shover	1	Lost	2	2	149	Fight lost: the-teeth.
+careful	1	InProgress	2	2	200000	command budget exhausted
+random-a	1	Lost	1	1	130	Fight lost: cb-06-bait-and-break.
+random-b	1	Lost	1	1	130	Fight lost: cb-06-bait-and-break.
+random-c	1	Lost	1	1	158	Fight lost: cb-06-bait-and-break.
+random-d	1	Lost	1	1	126	Fight lost: cb-06-bait-and-break.
+random-e	1	Lost	1	1	172	Fight lost: cb-06-bait-and-break.
+random-f	1	Lost	1	1	149	Fight lost: cb-06-bait-and-break.

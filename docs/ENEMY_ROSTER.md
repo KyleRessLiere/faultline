@@ -82,7 +82,7 @@ that goes.
 `HP 10 · Move 1 · melee 3 · Push resistance 2`
 Push 1 and Push 2 both do nothing; only Bull Rush plus a Stagger sets up any movement at all.
 *Explores:* an enemy the board cannot be used against, forcing straight combat.
-*Counterplay:* Pull is unaffected — the Threadcaster is the answer, which is a nice inversion.
+*Counterplay:* Pull is unaffected — the Fisher is the answer, which is a nice inversion. Her Cast ignores push resistance outright, so she can also simply pick it up (D-091).
 
 ---
 

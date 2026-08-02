@@ -21,6 +21,11 @@ namespace Faultline.Playtest;
 /// <param name="Spends">How many times each spender was used.</param>
 /// <param name="Healed">Hit points Preen put back.</param>
 /// <param name="Absorbed">Hit points Guard Stance redirected onto a guard.</param>
+/// <param name="CastLandings">Where cast units came down, by tile type.</param>
+/// <param name="HazardDistanceAtCast">
+/// The Fisher's step distance to the nearest hazard each time she cast, one entry per cast. She can
+/// only post somebody into a drain she is standing beside, so this is what bounds the whole ability.
+/// </param>
 public sealed record FightReport(
     int NodeIndex,
     string FightId,
@@ -39,7 +44,9 @@ public sealed record FightReport(
     Dictionary<UnitKind, int> VerveSpent,
     Dictionary<VerveSpend, int> Spends,
     int Healed,
-    int Absorbed);
+    int Absorbed,
+    Dictionary<TileType, int> CastLandings,
+    List<int> HazardDistanceAtCast);
 
 /// <summary>
 /// Running totals for the fight in progress.
@@ -68,6 +75,10 @@ internal sealed class FightTally
 
     /// <summary>Hit points redirected onto a guard by Guard Stance this fight.</summary>
     internal int Absorbed { get; set; }
+
+    internal Dictionary<TileType, int> CastLandings { get; } = new();
+
+    internal List<int> HazardDistanceAtCast { get; } = new();
 
 
 
@@ -211,7 +222,9 @@ public static class RunHarness
                         new Dictionary<UnitKind, int>(tally.VerveSpent),
                         new Dictionary<VerveSpend, int>(tally.Spends),
                         tally.Healed,
-                        tally.Absorbed));
+                        tally.Absorbed,
+                        new Dictionary<TileType, int>(tally.CastLandings),
+                        new List<int>(tally.HazardDistanceAtCast)));
                 }
                 else if (e is RunLost lost)
                 {
@@ -289,8 +302,16 @@ public static class RunHarness
                 tally.Collisions++;
                 break;
 
-            case UnitPushed:
+            case UnitPushed pushed:
                 tally.Pushes++;
+
+                // A throw is the only displacement whose landing tile is a choice, so it is the only
+                // one worth classifying.
+                if (pushed.Kind == DisplacementKind.Throw && board is not null)
+                {
+                    FightTally.Bump(tally.CastLandings, board.Board.At(pushed.To), 1);
+                }
+
                 break;
 
             // Earned and wasted are counted apart on purpose. A squad charging hard into a meter
@@ -306,7 +327,17 @@ public static class RunHarness
             case VerveSpent spent:
                 FightTally.Bump(tally.VerveSpent, KindOf(board, spent.UnitId), spent.Cost);
                 FightTally.Bump(tally.Spends, spent.Spend, 1);
+
+                // How far she was from anything worth throwing somebody into, at the moment she
+                // threw. Cast lands within one tile of her, so this is the ceiling on the ability.
+                if (spent.Spend == VerveSpend.Cast && board is not null)
+                {
+                    tally.HazardDistanceAtCast.Add(NearestHazard(board, spent.At));
+                }
+
                 break;
+
+
 
             case UnitHealed healed:
                 tally.Healed += healed.Amount;
@@ -316,6 +347,29 @@ public static class RunHarness
 
     private static UnitKind KindOf(GameState? board, UnitId id) =>
         board?.FindUnit(id)?.Kind ?? UnitKind.Husk;
+
+    /// <summary>Step distance from a tile to the nearest drain or spikes, or -1 when there are none.</summary>
+    private static int NearestHazard(GameState board, Coord from)
+    {
+        int best = -1;
+
+        foreach (var tile in board.Board.AllCoords())
+        {
+            var type = board.Board.At(tile);
+            if (type != TileType.Pit && type != TileType.Spikes)
+            {
+                continue;
+            }
+
+            int distance = from.DistanceTo(tile);
+            if (best < 0 || distance < best)
+            {
+                best = distance;
+            }
+        }
+
+        return best;
+    }
 
     private static bool IsPlayer(GameState? board, UnitId id)
     {

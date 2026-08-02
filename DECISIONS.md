@@ -25,7 +25,7 @@ in this file when the question comes back.
 | D-004 | [Pits cannot be entered voluntarily.](#d-004-pits-cannot-be-entered-voluntarily) | 2026-08-01 |  |
 | D-005 | [Fight 1's spikes sit on the ring one tile in from the edge, not the ring the brief calls "middle".](#d-005-fight-1s-spikes-sit-on-the-ring-one-tile-in-from-the-edge-not-the-ring-the-brief-calls-middle) | 2026-08-01 |  |
 | D-006 | [Player A takes the first activation slot of every round.](#d-006-player-a-takes-the-first-activation-slot-of-every-round) | 2026-08-01 |  |
-| D-007 | [Player A fields Vanguard + Archer; Player B fields Threadcaster + Wardbearer.](#d-007-player-a-fields-vanguard--archer-player-b-fields-threadcaster--wardbearer) | 2026-08-01 |  |
+| D-007 | [Player A fields Vanguard + Archer; Player B fields Threadcaster + Wardbearer.](#d-007-player-a-fields-vanguard--archer-player-b-fields-threadcaster--wardbearer) | 2026-08-01 | **superseded** |
 | D-008 | [Units cannot move through other units, allies included.](#d-008-units-cannot-move-through-other-units-allies-included) | 2026-08-01 |  |
 | D-009 | [Core picks a unit's path by minimising spike tiles entered first, movement cost second, then a fixed coordinate order.](#d-009-core-picks-a-units-path-by-minimising-spike-tiles-entered-first-movement-cost-second-then-a-fixed-coordinate-order) | 2026-08-01 |  |
 | D-010 | [There is no line of sight in the MVP.](#d-010-there-is-no-line-of-sight-in-the-mvp) | 2026-08-01 |  |
@@ -95,7 +95,7 @@ in this file when the question comes back.
 | D-075 | [HELD: a shared pool returns only if a reward is ever wanted for something that is not a displacement, a hazard, high ground or absorption.](#d-075-held-a-shared-pool-returns-only-if-a-reward-is-ever-wanted-for-something-that-is-not-a-displacement-a-hazard-high-ground-or-absorption) | 2026-08-02 | *held* |
 | D-076 | [Wrecking Weight adds its tile to the requested distance, not to the result.](#d-076-wrecking-weight-adds-its-tile-to-the-requested-distance-not-to-the-result) | 2026-08-02 |  |
 | D-077 | [Retort is legal only as the first thing in an activation, because that is the only moment Guard Stance is still standing.](#d-077-retort-is-legal-only-as-the-first-thing-in-an-activation-because-that-is-the-only-moment-guard-stance-is-still-standing) | 2026-08-02 |  |
-| D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | 2026-08-02 |  |
+| D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | 2026-08-02 | **superseded** |
 | D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | 2026-08-02 |  |
 | D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | 2026-08-02 | *partly superseded* |
 | D-081 | [A cling nothing can still save resolves the instant it becomes hopeless.](#d-081-a-cling-nothing-can-still-save-resolves-the-instant-it-becomes-hopeless) | 2026-08-02 |  |
@@ -106,9 +106,12 @@ in this file when the question comes back.
 | D-086 | [Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet spot.](#d-086-spear-thrust-is-1-to-the-adjacent-tile-and-2-to-the-tile-beyond-the-tip-is-the-sweet-spot) | 2026-08-02 |  |
 | D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | 2026-08-02 |  |
 | D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | 2026-08-02 |  |
-| D-089 | [The deployment threat overlay is per-enemy on hover, never the union painted over the board.](#d-089-the-deployment-threat-overlay-is-per-enemy-on-hover-never-the-union-painted-over-the-board) | unreleased |  |
+| D-089 | [The deployment threat overlay is per-enemy on hover, never the union painted over the board.](#d-089-the-deployment-threat-overlay-is-per-enemy-on-hover-never-the-union-painted-over-the-board) | 2026-08-02 |  |
+| D-090 | [The Threadcaster is the Fisher on screen, and stays `Threadcaster` in the code.](#d-090-the-threadcaster-is-the-fisher-on-screen-and-stays-threadcaster-in-the-code) | unreleased |  |
+| D-091 | [Cast: pluck an enemy from three tiles away, over anything, and set it down beside you.](#d-091-cast-pluck-an-enemy-from-three-tiles-away-over-anything-and-set-it-down-beside-you) | unreleased |  |
+| D-092 | [Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.](#d-092-player-a-fields-the-vanguard-and-the-fisher-player-b-the-wardbearer-and-the-archer) | unreleased |  |
 
-**88 rulings.**
+**91 rulings.**
 
 <!-- toc:end -->
 ---
@@ -147,6 +150,7 @@ same side in a co-op hotseat game, so there is no competitive edge to protect; a
 simpler rule (prior 4).
 
 **D-007 — Player A fields Vanguard + Archer; Player B fields Threadcaster + Wardbearer.**
+**Superseded by D-092**, which pairs the two displacement classes against the two that hold and shoot.
 Brief §2 says each player controls 2 of the 4 classes but does not say which. This split gives each
 player one melee/bruiser and one ranged/utility unit. Upgrade and draft choices are M6's problem.
 
@@ -938,6 +942,9 @@ she just took. Legal, costs 3, and buys a shove instead of a turn of cover. Left
 choice, and forbidding it would need a rule that says why.
 
 **D-078 — Slingshot's window is opened by the Reel itself and shut by the next thing she does.**
+**Superseded by D-091.** Slingshot is gone and Cast replaces it, so the window, the swap semantics
+this ruling invented and the `UnitsSwapped` event are all deleted. The reasoning is kept because the
+question — how do you scope "immediately after" to one command — will come back.
 `VERVE.md`: "Immediately after her Reel ends with the enemy adjacent, swap places with it. Illegal if
 the Reel ended non-adjacent." Both halves need a window, because "illegal" cannot be checked at all
 if the spend is armed before the Reel is thrown.
@@ -1243,3 +1250,74 @@ that 96% of the tiles are in the set.
 **Rejected: shading only the deployment zone.** Truer to the law and still nearly useless — on the
 boards that fail it, most of the zone is threatened, so it collapses to "your corner is bad" without
 saying by what.
+
+**D-090 — The Threadcaster is the Fisher on screen, and stays `Threadcaster` in the code.**
+MASTER_DESIGN §15's split, applied a second time (D-085 did it for the meter). `UnitTemplate.Name`
+now resolves through `Naming`, so every display site gets it without being found and edited, and the
+table's own label is `RawName`. A test walks the log for events about her and fails on any line that
+spells the identifier.
+
+**Nothing serialised moved.** `UnitKind.Threadcaster` is in every command log, every `.fight` roster
+line and every earlier ruling; renaming the enum member would have invalidated all three to change a
+word on a card.
+
+**D-091 — Cast: pluck an enemy from three tiles away, over anything, and set it down beside you.**
+Cost 3. Replaces Slingshot, which is deleted rather than kept — a class has one spender, and the
+swap semantics D-078 invented for it go with it.
+
+**The grab is a lob and the landing is the only tile consulted.** She can take a Lobber out from
+behind its own screen, which is the point: the archetype that exists to be hard to reach stops being
+hard to reach. Nothing between her and it resolves — no collision, no spikes, no cling.
+
+**THROW is a third displacement verb rather than a long push**, because push resistance must not
+apply. An Anchor shrugs off a shove by bracing against the ground and has nothing to brace against in
+the air, so Cast is the answer to the units the rest of the system cannot move. Modelling it as a
+push with an exception would have put that exception inside the one function every displacement in
+the game goes through.
+
+**Landing radius 1, and orthogonal.** Her four tiles, not a Manhattan radius: the game is 4-way
+everywhere else (D-002) and a diagonal landing would have been its only exception. The consequence
+worth stating is that **she can only post somebody into a drain she is already standing next to** —
+the ability's reach is in the grab, and its payoff is in where she chose to stand.
+
+**Two things the spec could not have anticipated, resolved here rather than guessed at silently.**
+
+*Footing "shortens the throw one tile toward the Fisher".* That wording held when she threw people
+away from herself. Under the corrected geometry she grabs at range and lands them on her own
+doorstep, so the flight travels **toward** her and one more tile toward her is the tile she is
+standing on. Implemented as the literal reading — the throw is shortened, so it stops a tile early,
+back toward where the target was grabbed. It tries both axes, because on most diagonal throws the
+preferred candidate is the Fisher herself and a single-axis rule would leave the token doing nothing.
+
+*A landing had to stop testing walkability.* A drain is not somewhere a unit may walk (D-004) and is
+emphatically somewhere it may be put. The rule is the spec's own words — unoccupied and non-wall —
+which is looser than walkable on purpose.
+
+**The Guard Stance interaction is unreachable, and the test says so rather than omitting it.** Cast
+grabs an enemy; Guard Stance covers allies; `Guard.Interceptor` skips any guard hostile to the
+target. A player Wardbearer can never stand in for a Husk being thrown. The earlier prompt's
+redirect test was dropped as inapplicable, and this paragraph is what remains of it.
+
+**A spend is now a causer.** `Verve.Charge` reads the actor of the nearest preceding `AbilityUsed` or
+`UnitAttacked` to decide who a board consequence belongs to (D-073). A cast produces neither, so a
+Fisher who dropped somebody in a drain charged nobody — including herself, whose whole condition that
+is. `VerveSpent` joins the two events that name an actor.
+
+**D-092 — Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.**
+Supersedes D-007, which split them Vanguard + Archer against Threadcaster + Wardbearer on the grounds
+that each player should hold one bruiser and one ranged unit. The new split pairs the two
+displacement classes against the two that hold a line and shoot, which is a sharper division of
+labour than "one of each".
+
+**Resolved at run start, not per board.** All ten campaign fights roster the same four classes and
+disagree only about who holds which, so the split is a property of the squad. Reading it off ten
+`.fight` files meant ten places to change and ten chances to disagree; a campaign board's rosters are
+now re-split by `DefaultTeams` when the run enters it. **Boards outside the campaign keep what they
+authored** — a trial that hands one player three units is making a point with that.
+
+**A free draft overrides it entirely.** This is the dock's suggested loadout, not a rule about who may
+hold what.
+
+**It made the run more robust by accident, and a test noticed.** `Run_ASideWithNothingLeftToField...`
+voided the Vanguard and the Archer to empty one side; under the new split those two are on opposite
+sides, so it stopped testing anything. It reads the pair out of `DefaultTeams` now.

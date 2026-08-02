@@ -103,9 +103,14 @@ public sealed class ShoverPolicy : Policy
     public override Command Choose(GameState state, IReadOnlyList<Command> legal, DeterministicRng rng) =>
         Best(legal, c => c switch
         {
-            // Spends the instant it can afford to, which is naive on purpose. A policy that held
-            // Verve for the right moment would be measuring the policy's judgement; this one
-            // measures how much the game hands out and how much of it a player can actually use.
+            // Cast is the one spend with a choice worth scoring: the same grab lands somebody in a
+            // drain or on open floor depending only on which tile is picked, and a policy that took
+            // the first tile offered would measure the enumeration order rather than the ability.
+            SpendVerveCommand { Spend: VerveSpend.Cast, To: { } to } => 120 + Landing.Worth(state, to),
+
+            // Everything else spends the instant it can afford to, which is naive on purpose. A
+            // policy that held Verve for the right moment would be measuring the policy's judgement;
+            // this one measures how much the game hands out and how much of it a player can use.
             SpendVerveCommand => 110,
             AbilityCommand => 100,
             FinishClingingCommand => 95,
@@ -115,6 +120,20 @@ public sealed class ShoverPolicy : Policy
             RescueCommand => 35,
             _ => 0,
         });
+}
+
+/// <summary>
+/// How much a shove-scoring policy likes putting somebody on a given tile: a drain takes the unit
+/// out of the run, spikes take three, open floor takes nothing.
+/// </summary>
+internal static class Landing
+{
+    internal static int Worth(GameState state, Coord tile) => state.Board.At(tile) switch
+    {
+        TileType.Pit => 30,
+        TileType.Spikes => 15,
+        _ => 0,
+    };
 }
 
 /// <summary>Rescues its own, and would rather reposition than trade hits.</summary>

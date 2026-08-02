@@ -34,7 +34,7 @@ The spine teaches the game in order. Each fight's lesson, and the enhancement th
 | 5 | **the-shrine** *(NEW — Protect)* | defend a structure from things that ignore you | The brief's fight-2 objective, finally expressible. Needs the **Raider** enemy (see §5). Board below. |
 | 6 | **break-the-gate** *(resurrected ec-01 — Destroy)* | the enemy is your ammunition | The review's worst opener reborn as the Destroy showcase: the gate becomes an 8 HP structure only collision damages; the two Anchors in front of it stop being inert furniture and become the hammers you swing at it. A **Warden** holds the gap so the door fights back. Board below. |
 | 7 | **high-road** | all four elevation clauses | Unchanged. |
-| 8 | **hz-09 the-trench** | pull, not push — the Anchor lesson with Footing | Promote to campaign. Its `Anchor=1` footing grant makes Push literally Immovable; the Threadcaster's fight. Unchanged. |
+| 8 | **hz-09 the-trench** | pull, not push — the Anchor lesson with Footing | Promote to campaign. Its `Anchor=1` footing grant makes Push literally Immovable; the Fisher's fight. Unchanged. |
 | 9 | **hold-the-gate** | attrition against a published timetable | Already the objective proof. Unchanged — it's the model the others should have been. |
 | 10 | **quarry-king** *(NEW — Boss)* | everything at once, against one body | Needs boss mechanics (§5). Spec below. |
 
