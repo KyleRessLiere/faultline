@@ -56,6 +56,29 @@ public static class PlaytestText
     public static string Hp(Unit unit) =>
         unit.Voided ? "voided" : unit.IsAlive ? $"{unit.Hp}/{unit.MaxHp}" : "down";
 
+    /// <summary>
+    /// The tooltip behind a unit's Verve dots: what it holds, what earns more, and what it is saving
+    /// for. Every word of it comes from Core, so the meter on the board and the rule behind it cannot
+    /// drift apart.
+    /// </summary>
+    /// <param name="unit">Unit to describe.</param>
+    /// <returns>A one-line tooltip, empty for a class with no meter.</returns>
+    public static string VerveTitle(Unit unit)
+    {
+        var spender = Verve.SpendFor(unit.Kind);
+        if (spender is null)
+        {
+            return string.Empty;
+        }
+
+        int cost = Verve.CostOf(spender.Value);
+        string state = unit.Verve >= cost
+            ? $"{Verve.NameOf(spender.Value)} ready"
+            : $"{cost - unit.Verve} more for {Verve.NameOf(spender.Value)}";
+
+        return $"Verve {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.";
+    }
+
     /// <summary>The status flags worth showing beside a unit.</summary>
     /// <param name="unit">Unit to describe.</param>
     /// <returns>A comma-separated list, possibly empty.</returns>

@@ -582,6 +582,32 @@ public sealed class GameSession
             ? AbilityCommands().FirstOrDefault(a => a.Ability == ArmedAbility!.Value)
             : null;
 
+    /// <summary>
+    /// The Verve spend the selected unit could make right now, or <c>null</c>.
+    /// </summary>
+    /// <remarks>
+    /// Read off <see cref="StepResult.LegalNext"/> rather than worked out from the unit's class and
+    /// meter. Half of Verve's legality is not visible on the unit at all — Slingshot needs a Reel to
+    /// have just landed, Retort needs a stance that only exists before the activation slot is
+    /// taken — and a shell that re-derived it would be a second, disagreeing copy of the rule.
+    /// </remarks>
+    public SpendVerveCommand? VerveSpendCommand =>
+        Selected is null
+            ? null
+            : Legal.OfType<SpendVerveCommand>().FirstOrDefault(s => s.UnitId == Selected.Value);
+
+    /// <summary>Whether the selected unit has a Verve spend available this instant.</summary>
+    public bool CanSpendVerve => VerveSpendCommand is not null;
+
+    /// <summary>Submits the selected unit's Verve spend, if Core is offering one.</summary>
+    public void SpendVerve()
+    {
+        if (VerveSpendCommand is { } command)
+        {
+            Submit(command);
+        }
+    }
+
     /// <summary>Clickable tiles for the current mode, each mapped to the command it submits.</summary>
     public IReadOnlyDictionary<Coord, Command> Targets => TargetsFor(Mode, ArmedAbility);
 

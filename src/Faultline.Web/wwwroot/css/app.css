@@ -26,6 +26,8 @@
     --pt-red: #ff6268;
     --pt-yellow: #e8b341;
     --pt-green: #79a66a;
+    /* Verve. Distinct from --pt-yellow, which already means Staggered on the board. */
+    --pt-amber: #e0873a;
     --pt-radius: 7px;
     --pt-gap: 8px;
 }

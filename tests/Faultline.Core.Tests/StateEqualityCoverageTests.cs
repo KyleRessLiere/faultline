@@ -188,7 +188,6 @@ public class StateEqualityCoverageTests
                 ["ActiveTeam"] = s => s with { ActiveTeam = Team.Enemy },
                 ["NextPlayerTeam"] = s => s with { NextPlayerTeam = Team.PlayerB },
                 ["ActiveUnitId"] = s => s with { ActiveUnitId = new UnitId(3) },
-                ["Momentum"] = s => s with { Momentum = s.Momentum + 1 },
                 ["Intents"] = s => s with { Intents = Array.Empty<EnemyIntent>() },
                 ["Outcome"] = s => s with { Outcome = FightOutcome.Won },
             };

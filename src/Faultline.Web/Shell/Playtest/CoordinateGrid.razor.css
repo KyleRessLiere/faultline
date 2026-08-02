@@ -356,3 +356,43 @@
     position: relative;
     z-index: 1;
 }
+
+/* Verve, on the token itself. One dot per point so the meter reads at a glance without selecting
+   anybody — the number is in the tooltip for when the exact figure matters. */
+.verve {
+    display: flex;
+    gap: 1px;
+    position: relative;
+    z-index: 1;
+}
+
+.vp {
+    background: rgba(242, 245, 248, .18);
+    border-radius: 1px;
+    display: inline-block;
+    height: clamp(2px, calc(var(--cell) * .05), 4px);
+    width: clamp(3px, calc(var(--cell) * .08), 7px);
+}
+
+.vp.on { background: var(--pt-amber, #e0a34a); }
+
+/* Enough banked to afford this class's spender. The point of the meter is knowing when to use it. */
+.verve.ready .vp.on {
+    box-shadow: 0 0 3px var(--pt-amber, #e0a34a);
+}
+
+/* The tick as it charges. Deliberately on the meter and not the whole token — the point is to draw
+   the eye to the thing that changed. */
+.verve.ticking {
+    animation: verve-tick var(--charge, 180ms) ease-out 1;
+}
+
+@keyframes verve-tick {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.45); filter: brightness(1.9); }
+    100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .verve.ticking { animation: none; }
+}

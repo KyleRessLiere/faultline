@@ -55,9 +55,6 @@ namespace Faultline.Core
         /// </summary>
         public UnitId? ActiveUnitId { get; init; }
 
-        /// <summary>Shared momentum pool, cap 6 (M5).</summary>
-        public int Momentum { get; init; }
-
         /// <summary>
         /// The enemy plans declared for the current round, in unit id order. Brief §2: declared at
         /// round start and locked, so they live in state rather than being recomputed on demand.
@@ -229,7 +226,6 @@ namespace Faultline.Core
                 || ActiveTeam != other.ActiveTeam
                 || NextPlayerTeam != other.NextPlayerTeam
                 || ActiveUnitId != other.ActiveUnitId
-                || Momentum != other.Momentum
                 || Outcome != other.Outcome
                 || !Board.Equals(other.Board)
                 || Units.Count != other.Units.Count
@@ -288,7 +284,6 @@ namespace Faultline.Core
                 hash = (hash * 31) + (int)ActiveTeam;
                 hash = (hash * 31) + (int)NextPlayerTeam;
                 hash = (hash * 31) + (ActiveUnitId?.Value ?? -1);
-                hash = (hash * 31) + Momentum;
                 hash = (hash * 31) + (int)Outcome;
                 hash = (hash * 31) + Board.GetHashCode();
                 foreach (var unit in Units)

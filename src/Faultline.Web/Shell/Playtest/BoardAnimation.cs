@@ -30,6 +30,12 @@ public enum BoardBeatKind
 
     /// <summary>Hold while every tile marked since the last blink pulses, then clear them.</summary>
     Blink,
+
+    /// <summary>
+    /// Pulse a unit's Verve meter as it charges. Charging you cannot feel is charging you will not
+    /// aim for, and the whole point of the meter is that its conditions teach the game.
+    /// </summary>
+    Charge,
 }
 
 /// <summary>One instruction in an animation script: what to do, to whom, and where.</summary>
@@ -106,6 +112,9 @@ public static class BoardAnimation
     /// <summary>Shortest a scaled beat may be, so compressing never rounds a beat away entirely.</summary>
     public const int MinBeatMs = 16;
 
+    /// <summary>How long a Verve meter pulses for. Shorter than a flash: it is a tick, not an event.</summary>
+    public const int ChargeMs = 180;
+
     /// <summary>
     /// Reads a step's events into the beats that show them: a slide per tile of every
     /// <see cref="UnitMoved.Path"/>, two flashes per <see cref="UnitAttacked"/>, and a shudder
@@ -141,6 +150,12 @@ public static class BoardAnimation
                     beats.Add(new BoardBeat(BoardBeatKind.Flash, attack.AttackerId, attack.From));
                     break;
 
+                // Wasted charges tick too. A player sitting at the cap losing points should see it
+                // happen, not read about it afterwards.
+                case VerveCharged charged:
+                    beats.Add(new BoardBeat(BoardBeatKind.Charge, charged.UnitId, charged.At));
+                    break;
+
                 case UnitPushed pushed:
                     // Shove, then travel: the shudder is the hit landing, the slide is where it put
                     // the unit. Both play on the sprite rather than on a tile, because by the time a
@@ -173,6 +188,7 @@ public static class BoardAnimation
         BoardBeatKind.Step => Scale(TileMs, tempo),
         BoardBeatKind.Flash => Scale(FlashMs, tempo) * 2,
         BoardBeatKind.Shake => Scale(ShakeMs, tempo),
+        BoardBeatKind.Charge => Scale(ChargeMs, tempo),
         _ => 0,
     };
 

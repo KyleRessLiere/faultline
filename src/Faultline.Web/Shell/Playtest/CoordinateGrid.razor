@@ -11,7 +11,7 @@
 
 <div class="stage">
     <div class="board @(View.GridLines ? "lines" : string.Empty)"
-         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor; --step: @(Animator.StepMs)ms; --flash: @(Animator.FlashMs)ms; --shake: @(Animator.ShakeMs)ms;"
+         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor; --step: @(Animator.StepMs)ms; --flash: @(Animator.FlashMs)ms; --shake: @(Animator.ShakeMs)ms; --charge: @(Animator.ChargeMs)ms;"
          @onmouseleave="() => Session.Hover(null)">
         <div class="axis corner" aria-hidden="true"></div>
 
@@ -43,6 +43,19 @@
                             <UnitArt Kind="unit.Kind" Label="@unit.Name" />
                         </span>
                         <span class="hp">@unit.Hp/@unit.MaxHp</span>
+                        @* Charges are readable without selecting anybody: one dot per point, filled
+                           up to what the unit holds. Drawn for every class that can earn, so an
+                           empty meter still says the class has one. *@
+                        @if (Verve.SpendFor(unit.Kind) is { } spender)
+                        {
+                            <span class="verve @(unit.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty) @(Animator.IsCharging(unit.Id) ? "ticking" : string.Empty)"
+                                  title="@PlaytestText.VerveTitle(unit)">
+                                @for (int v = 0; v < Verve.Cap; v++)
+                                {
+                                    <i class="vp @(v < unit.Verve ? "on" : string.Empty)"></i>
+                                }
+                            </span>
+                        }
                         @if (unit.Clinging || unit.Staggered || unit.Guarding || unit.Footing == 0)
                         {
                             <span class="pips">

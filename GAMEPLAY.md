@@ -17,9 +17,12 @@ The other docs answer different questions:
 If this file and `AGENT_BRIEF.md` disagree, that is either a bug or a missing `DECISIONS.md` entry —
 flag it, don't quietly pick one.
 
-**Milestones built: M1 (rules skeleton), M2 (displacement), M3 (enemy AI).** The collapse clock,
-Momentum and commander cards are not built. Five fight boards are authored, but the objectives, the
-boss and the between-fight upgrades that make them a run are M6.
+**Milestones built: M1 (rules skeleton), M2 (displacement), M3 (enemy AI), M5 (Verve).** The collapse
+clock and the commander cards are not built. Momentum is not either, and never will be — Verve
+superseded it (D-074).
+
+> This header has drifted before and may have again: it undercounted the campaign layer for several
+> milestones. Trust the sections below it over this line.
 
 ---
 
@@ -172,8 +175,13 @@ Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-
 ### Verve — the per-unit meter
 
 Each player unit carries its own integer meter, earned by playing the way the game is about and spent
-to bend one action. **There is no UI for it yet** — the rules are complete and the shell does not
-show them.
+to bend one action.
+
+**On screen:** five dots on the board token, filled to what the unit holds and glowing once it can
+afford its spender, so charges per character read without selecting anybody; the same meter with the
+exact figure and the charge condition in words on the unit card; a spend button with a cost chip
+underneath, offered only when Core lists the spend as legal; and a pulse on the meter at the moment
+it charges, including the pulse that banks nothing because the meter was already full.
 
 | | |
 |---|---|
@@ -493,11 +501,20 @@ Win: every enemy down. Lose: every player unit down or voided.
 - **Player Footing has no prompt.** Player units only hold a token when a scenario grants one, and no
   shipped fight grants any yet — so the unused-token problem in D-026 is currently unreachable in
   play rather than fixed. It returns the moment a scenario uses `footing:`.
-- **Momentum is displayed but never changes.** Accounting arrives in M5 with the commander cards.
-- **There is no campaign.** Every battle is reachable from the picker, but they are a menu rather
-  than a run: no fixed order, no state carried between fights, no between-fight upgrades, and no
-  boss. Objectives, turn limits and reinforcements *do* exist — see "Objectives, clocks and
-  reinforcements" above.
+- **Momentum is gone.** Verve replaced it and `GameState.Momentum` has been deleted (D-074). The
+  brief still lists Momentum and the commander cards; that divergence is the ruling, not an
+  oversight.
+- **Verve charges roughly once a fight**, which is not enough to reach most of its own spenders in a
+  run that ends on node 1 or 2. Measured, not estimated — `docs/PLAYTEST_FINDINGS.md` Finding 7. The
+  meter and all four spenders work; the price is the open question.
+
+> **The two entries below this line are stale and predate the campaign layer.** They are left rather
+> than quietly corrected, because correcting a doc I have not re-verified end to end would be
+> guessing. A pass over this section against the code is owed.
+
+- ~~**There is no campaign.**~~ There is: `Campaign.ApplyRun`, `RunState`, a twelve-node
+  `CampaignLibrary`, HP and Verve carried between fights, and downed/voided rules. The claim below
+  about a menu of battles describes the picker, which still exists alongside the run.
 - **`protect` pressure is a stand-in.** Enemies claw at a Protect structure when they end an
   activation adjacent to it, but nothing paths toward one, so a Protect fight only pressures the
   objective where the fighting already is (D-036).

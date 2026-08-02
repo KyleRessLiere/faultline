@@ -87,6 +87,12 @@ public sealed class BoardAnimator : IDisposable
     /// <summary>The shoved unit shuddering right now, if any. Always the unit on the sprite.</summary>
     public UnitId? Shaking { get; private set; }
 
+    /// <summary>How long a Verve tick holds, in milliseconds.</summary>
+    public int ChargeMs { get; private set; } = BoardAnimation.ChargeMs;
+
+    /// <summary>The unit whose Verve meter is ticking right now, if any.</summary>
+    public UnitId? Charging { get; private set; }
+
     /// <summary>Tiles the sliding unit is standing on or has crossed on this move.</summary>
     public IReadOnlyCollection<Coord> Trail => _trail;
 
@@ -104,6 +110,11 @@ public sealed class BoardAnimator : IDisposable
     /// <param name="id">Unit to test.</param>
     /// <returns>Whether the unit's sprite should be shuddering.</returns>
     public bool IsShaking(UnitId id) => Shaking == id;
+
+    /// <summary>True when this unit's Verve meter is ticking.</summary>
+    /// <param name="id">Unit to test.</param>
+    /// <returns>Whether the meter should be pulsing.</returns>
+    public bool IsCharging(UnitId id) => Charging == id;
 
     /// <summary>
     /// Drops everything queued and puts the board back to plain rendering. Called when the position
@@ -197,6 +208,7 @@ public sealed class BoardAnimator : IDisposable
             StepMs = BoardAnimation.Scale(BoardAnimation.TileMs, tempo);
             FlashMs = BoardAnimation.Scale(BoardAnimation.FlashMs, tempo);
             ShakeMs = BoardAnimation.Scale(BoardAnimation.ShakeMs, tempo);
+            ChargeMs = BoardAnimation.Scale(BoardAnimation.ChargeMs, tempo);
 
             foreach (var beat in beats)
             {
@@ -264,6 +276,14 @@ public sealed class BoardAnimator : IDisposable
                 Shaking = null;
                 Changed?.Invoke();
                 break;
+
+            case BoardBeatKind.Charge:
+                Charging = beat.UnitId;
+                Changed?.Invoke();
+                await Task.Delay(ChargeMs);
+                Charging = null;
+                Changed?.Invoke();
+                break;
         }
     }
 
@@ -272,6 +292,7 @@ public sealed class BoardAnimator : IDisposable
         Mover = null;
         Flashing = null;
         Shaking = null;
+        Charging = null;
         Placing = false;
         _trail.Clear();
     }

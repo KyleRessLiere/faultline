@@ -40,6 +40,15 @@ public static class EventText
         GuardStanceChanged e => e.Active
             ? $"{Name(state, e.UnitId)} takes up {AbilityDescriptor.For(Ability.GuardStance).Name} at {e.At}."
             : $"{Name(state, e.UnitId)}'s {AbilityDescriptor.For(Ability.GuardStance).Name} lapses.",
+        // A charge that arrives at a full meter is shown, not swallowed — a player sitting at the cap
+        // should be able to see their earnings evaporating and go and spend.
+        VerveCharged e => e.Wasted
+            ? $"{Name(state, e.UnitId)} +0 verve (full) — {e.NewTotal}/{Verve.Cap}, discarded."
+            : $"{Name(state, e.UnitId)} +1 verve ({e.NewTotal}/{Verve.Cap}) — {VerveSourceText(e.Source)}.",
+        VerveSpent e =>
+            $"{Name(state, e.UnitId)} spends {e.Cost} verve on {Verve.NameOf(e.Spend)} ({e.Remaining} left).",
+        UnitsSwapped e =>
+            $"{Name(state, e.UnitId)} trades places with {Name(state, e.OtherId)} — {e.From} ⇄ {e.OtherFrom}.",
         Staggered e => $"{Name(state, e.UnitId)} is staggered.",
         Clinging e => $"{Name(state, e.UnitId)} is clinging to the pit at {e.At}!",
         Rescued e => $"{Name(state, e.RescuerId)} hauls {Name(state, e.UnitId)} out to {e.To}.",
@@ -114,6 +123,21 @@ public static class EventText
         var unit = state.FindUnit(id);
         return unit is null ? id.ToString() : $"{unit.Name} [{Side(unit.Team)}]";
     }
+
+    /// <summary>What earned a charge, in a few words for the log line.</summary>
+    /// <param name="source">The charge source.</param>
+    /// <returns>A short phrase.</returns>
+    public static string VerveSourceText(VerveSource source) => source switch
+    {
+        VerveSource.Collision => "a collision",
+        VerveSource.Hazard => "a hazard",
+        VerveSource.HighGround => "high ground",
+        VerveSource.Guard => "guard stance",
+        // Not a default case with a guess in it. A source nobody has written a phrase for should say
+        // so out loud — this shell has already shipped two bugs where a fallthrough quietly invented
+        // a plausible sentence for something it did not understand (D-069).
+        _ => source + " (no wording written for this source)",
+    };
 
     /// <summary>Single-letter label for a team.</summary>
     /// <param name="team">Team to label.</param>

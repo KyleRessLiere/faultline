@@ -26,7 +26,18 @@ Once per activation, costing neither the move nor the action:
   from north. Legal only as the opening move of an activation, which is the last instant the stance
   you held through the enemy round is still standing.
 
-**Still no UI.** The rules are complete; the shell does not show them yet.
+### And a meter you can actually see
+
+- **Five dots on every player token**, filled to what the unit holds and glowing once its spender is
+  affordable — so you can read the whole squad's charges without clicking anybody.
+- **The unit card** gives the exact figure, the charge condition in Core's own words, and a spend
+  button with a cost chip. The button appears only when Core says the spend is legal, which matters:
+  half of Verve's legality is invisible on the unit, since Slingshot needs a Reel to have just landed
+  and Retort needs a stance that is gone the instant the activation starts.
+- **The meter pulses as it charges**, including when it charges nothing because you are already full.
+  Seeing that happen is what tells you to go and spend.
+- **Momentum is gone from the header** and from the state. It was displayed for eleven milestones and
+  never once changed.
 
 ## Shoves land
 

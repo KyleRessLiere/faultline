@@ -113,7 +113,6 @@ namespace Faultline.Core
                 ActiveTeam = Team.PlayerA,
                 NextPlayerTeam = Team.PlayerA,
                 ActiveUnitId = null,
-                Momentum = 0,
                 Outcome = FightOutcome.InProgress,
             };
 

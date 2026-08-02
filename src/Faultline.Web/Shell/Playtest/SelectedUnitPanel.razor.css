@@ -192,3 +192,93 @@
         max-height: none;
     }
 }
+
+/* Verve on the card: the same dots as the board token, plus the exact figure and the condition that
+   fills it. */
+.verve-row {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.verve-label {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.verve {
+    display: flex;
+    gap: 2px;
+}
+
+.vp {
+    background: rgba(242, 245, 248, .16);
+    border-radius: 2px;
+    height: 10px;
+    width: 14px;
+}
+
+.vp.on { background: var(--pt-amber); }
+
+.verve.ready .vp.on { box-shadow: 0 0 5px var(--pt-amber); }
+
+.verve-count {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin-left: auto;
+}
+
+.verve-earn {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 2px 0 0;
+}
+
+/* The spend sits apart from the action row because it costs neither half of the activation. */
+.spend {
+    background: transparent;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    color: var(--pt-text);
+    cursor: pointer;
+    display: grid;
+    gap: 2px 8px;
+    grid-template-columns: 1fr auto;
+    margin-top: 10px;
+    padding: 7px 9px;
+    text-align: left;
+    width: 100%;
+}
+
+.spend:not(:disabled):hover { border-color: var(--pt-amber); }
+
+.spend:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+.spend-name {
+    font-weight: 600;
+}
+
+.spend-effect {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    grid-column: 1 / -1;
+}
+
+.cost {
+    background: rgba(242, 245, 248, .1);
+    border-radius: 999px;
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    padding: 1px 8px;
+}
+
+.cost.afford {
+    background: var(--pt-amber);
+    color: #14171c;
+}

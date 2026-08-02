@@ -156,7 +156,6 @@ public sealed class BoardBuilder
             ActiveTeam = active,
             NextPlayerTeam = active.IsPlayer() ? active : Team.PlayerA,
             ActiveUnitId = null,
-            Momentum = 0,
             Outcome = FightOutcome.InProgress,
         };
     }
