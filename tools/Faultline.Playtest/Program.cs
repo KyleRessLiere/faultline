@@ -41,6 +41,32 @@ if (args.Length > 0 && args[0] == "--agency")
     return;
 }
 
+if (args.Length > 0 && args[0] == "--levels")
+{
+    int levelSeed = 1;
+    string levelOut = Path.Combine("docs", "playtest");
+    for (int i = 1; i < args.Length; i++)
+    {
+        if (args[i] == "--seed" && i + 1 < args.Length && int.TryParse(args[i + 1], out int ls))
+        {
+            levelSeed = ls;
+        }
+        else if (args[i] == "--out" && i + 1 < args.Length)
+        {
+            levelOut = args[i + 1];
+        }
+    }
+
+    Faultline.Playtest.Levels.Report(levelSeed, levelOut);
+    return;
+}
+
+if (args.Length > 0 && args[0] == "--connectivity")
+{
+    Faultline.Playtest.Connectivity.Report();
+    return;
+}
+
 if (args.Length > 0 && args[0] == "--session")
 {
     Session.Run(args.Skip(1).ToArray());
@@ -94,7 +120,11 @@ var allSpends = Enum.GetValues<VerveSpend>();
 var reports = new List<RunReport>();
 foreach (var policy in policies)
 {
-    var report = RunHarness.Play(policy, seed);
+    // Every run is recorded, so any of them can be watched back with
+    //   dotnet run --project tools/Faultline.Playtest -- --replay <log> --boards
+    var log = new RunLog();
+    var report = RunHarness.Play(policy, seed, log);
+    log.Save(Path.Combine(outDir, "logs", policy.Name + ".log"));
     reports.Add(report);
     Console.WriteLine(
         $"  {policy.Name,-12} {report.Outcome,-10} cleared {report.FightsWon,2}/10  " +

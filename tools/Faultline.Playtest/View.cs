@@ -451,9 +451,21 @@ public static class View
         switch (preview.Stop)
         {
             case DisplacementStop.Collision:
-                parts.Add($"COLLIDES with {Name(state, preview.ObstacleId ?? UnitId.None)} "
-                    + $"({preview.DamageToUnit} to it, {preview.DamageToObstacle} to them)");
+            {
+                // Whether the unit on the *other* end of the collision dies is half the decision and
+                // the preview does not carry it — WouldDown speaks only for the unit being shoved.
+                var obstacle = preview.ObstacleId.HasValue ? state.FindUnit(preview.ObstacleId.Value) : null;
+                string fatal = obstacle is not null && preview.DamageToObstacle >= obstacle.Hp
+                    ? " AND KILLS IT"
+                    : string.Empty;
+
+                parts.Add(obstacle is null
+                    ? $"INTO THE WALL for {preview.DamageToUnit}"
+                    : $"COLLIDES with {Name(state, obstacle.Id)} "
+                        + $"({preview.DamageToUnit} to it, {preview.DamageToObstacle} to them{fatal})");
                 break;
+            }
+
             case DisplacementStop.Pit:
                 parts.Add("INTO THE DRAIN");
                 break;

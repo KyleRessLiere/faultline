@@ -7,6 +7,8 @@ board is the primary weapon.
 - [GAMEPLAY.md](GAMEPLAY.md) — **what the game is today**, with real numbers. Start here to understand
   how it actually plays.
 - [DECISIONS.md](DECISIONS.md) — why those two differ, wherever they do.
+- [docs/LEVEL_ANALYSIS.md](docs/LEVEL_ANALYSIS.md) — **what each campaign board asks and how hard
+  it measures**, played rather than read. Also where the campaign is currently unfinishable.
 - [docs/PLAYTEST_FINDINGS.md](docs/PLAYTEST_FINDINGS.md) — **what playtesting has shown so far**, what
   is measured versus merely reported, and the design decisions it leaves open.
 - [docs/BATTLE_CATALOGUE.md](docs/BATTLE_CATALOGUE.md) — **every battle**: board, composition,

@@ -1,0 +1,57 @@
+# faultline run log - campaign, seed and these player decisions replay the run exactly
+# enemy commands and node entries are omitted: they are functions of the state
+campaign	faultline
+seed	1
+player	random-f
+1	0	Vanguard	Deploy	u0	(0,5)
+2	0	Wardbearer	Deploy	u2	(6,0)
+3	0	Threadcaster	Deploy	u1	(1,6)
+4	0	Archer	Deploy	u3	(6,2)
+5	0	Threadcaster	Move	u1	(3,5)
+6	0	Threadcaster	End	u1
+7	0	Archer	Move	u3	(3,2)
+8	0	Archer	Attack	u3	u5	Damage
+9	0	Vanguard	Move	u0	(1,5)
+10	0	Vanguard	Ability	u0	BullRush	dir=Left
+11	0	Wardbearer	Move	u2	(5,0)
+12	0	Wardbearer	End	u2
+13	0	Threadcaster	Move	u1	(4,5)
+14	0	Threadcaster	Ability	u1	Reel	target=u7
+15	0	Wardbearer	Move	u2	(4,0)
+16	0	Wardbearer	End	u2
+17	0	Vanguard	Move	u0	(2,6)
+18	0	Vanguard	Ability	u0	BullRush	dir=Right
+19	0	Archer	End	u3
+20	0	Vanguard	Move	u0	(3,6)
+21	0	Vanguard	Ability	u0	BullRush	dir=Left
+22	0	Archer	Move	u3	(3,5)
+23	0	Archer	Ability	u3	StaggerShot	target=u7
+24	0	Threadcaster	Move	u1	(6,6)
+25	0	Threadcaster	End	u1
+26	0	Wardbearer	Ability	u2	GuardStance	-
+27	0	Wardbearer	Move	u2	(5,2)
+28	0	Threadcaster	Move	u1	(4,5)
+29	0	Wardbearer	Move	u2	(6,1)
+30	0	Wardbearer	End	u2
+31	0	Vanguard	Move	u0	(0,5)
+32	0	Vanguard	Ability	u0	BullRush	dir=Down
+33	0	Vanguard	End	u0
+34	0	Wardbearer	Move	u2	(4,0)
+35	0	Wardbearer	End	u2
+36	0	Vanguard	Move	u0	(1,6)
+37	0	Vanguard	End	u0
+38	0	Wardbearer	End	u2
+39	0	Vanguard	End	u0
+40	0	Wardbearer	Ability	u2	SpearThrust	dir=Down
+41	0	Wardbearer	Move	u2	(5,2)
+42	0	Vanguard	Move	u0	(3,5)
+43	0	Vanguard	Ability	u0	BullRush	dir=Up
+44	0	Vanguard	Move	u0	(1,4)
+45	0	Vanguard	Ability	u0	BullRush	dir=Down
+46	0	Vanguard	Ability	u0	BullRush	dir=Left
+47	0	Vanguard	Move	u0	(1,6)
+48	0	Vanguard	Ability	u0	BullRush	dir=Up
+49	0	Vanguard	Move	u0	(2,3)
+50	0	Vanguard	Ability	u0	BullRush	dir=Right
+51	0	Vanguard	Move	u0	(5,2)
+52	0	Vanguard	End	u0

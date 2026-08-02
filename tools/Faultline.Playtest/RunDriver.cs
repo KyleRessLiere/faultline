@@ -94,14 +94,30 @@ public sealed class RunDriver
     /// <summary>
     /// Replays a recorded sequence of decisions, then advances to the next open decision.
     /// </summary>
-    /// <param name="commands">Decisions in the order they were made.</param>
-    /// <returns>How many were consumed before the run ended or a command turned out to be illegal.</returns>
-    public int Replay(IReadOnlyList<Command> commands)
+    /// <param name="decisions">Decisions in the order they were made.</param>
+    /// <returns>How many were consumed before the run ended.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// A decision names a unit of a different class from the one recorded, which means the log was
+    /// recorded against different content and every id in it has shifted.
+    /// </exception>
+    public int Replay(IReadOnlyList<RunLog.Decision> decisions)
     {
         int i = 0;
-        for (; i < commands.Count && AtDecision; i++)
+        for (; i < decisions.Count && AtDecision; i++)
         {
-            Decide(commands[i]);
+            var decision = decisions[i];
+            var actorId = RunLog.ActorOf(decision.Command);
+            var actor = Run.Fight?.FindUnit(actorId);
+
+            if (actor is not null && actor.Kind != decision.Actor)
+            {
+                throw new InvalidOperationException(
+                    $"Decision {i + 1} was recorded as a {decision.Actor} but {actorId} is a "
+                    + $"{actor.Kind} in this build. The log was recorded against different content — "
+                    + "a roster edit renumbers every unit — so it cannot be replayed here.");
+            }
+
+            Decide(decision.Command);
         }
 
         return i;
@@ -121,6 +137,13 @@ public sealed class RunDriver
             if (Applied >= maxCommands)
             {
                 Reason = "command budget exhausted";
+                return;
+            }
+
+            if (Run.Fight is { Round: > RunHarness.StallRound })
+            {
+                Reason = $"stalled: {Run.Fight.Fight.Id} reached round {Run.Fight.Round} "
+                    + "with neither side able to finish it";
                 return;
             }
 

@@ -38,12 +38,12 @@ public static class Session
         }
 
         var driver = RunDriver.Start(CampaignLibrary.ById(log.CampaignId), log.Seed);
-        int consumed = driver.Replay(log.Commands);
+        int consumed = driver.Replay(log.Decisions);
 
-        if (consumed < log.Commands.Count)
+        if (consumed < log.Decisions.Count)
         {
             Console.WriteLine(
-                $"warning: the log has {log.Commands.Count} decisions but the run only accepted "
+                $"warning: the log has {log.Decisions.Count} decisions but the run only accepted "
                 + $"{consumed}. The run ended early, or the log is out of sync with the rules.");
         }
 
@@ -67,7 +67,8 @@ public static class Session
                 }
 
                 var chosen = driver.Legal[index];
-                log.Decisions.Add(new RunLog.Decision(driver.Run.NodeIndex, chosen));
+                log.Decisions.Add(new RunLog.Decision(
+                    driver.Run.NodeIndex, KindOf(driver, chosen), chosen));
 
                 // Described against the board as it was *before* the command. Describing it after
                 // re-previews the shove from the destination and prints a different move from the
@@ -97,7 +98,8 @@ public static class Session
             for (int i = 0; i < count && driver.AtDecision; i++)
             {
                 var chosen = policy.Choose(driver.Run.Fight!, driver.Legal, rng);
-                log.Decisions.Add(new RunLog.Decision(driver.Run.NodeIndex, chosen));
+                log.Decisions.Add(new RunLog.Decision(
+                    driver.Run.NodeIndex, KindOf(driver, chosen), chosen));
                 driver.Decide(chosen);
             }
 
@@ -228,6 +230,10 @@ public static class Session
             }
         }
     }
+
+    /// <summary>The class of the unit a command acts as, for the log's desync guard.</summary>
+    private static UnitKind KindOf(RunDriver driver, Command command) =>
+        driver.Run.Fight?.FindUnit(RunLog.ActorOf(command))?.Kind ?? UnitKind.Husk;
 
     private static bool Has(string[] args, string flag) =>
         args.Any(a => string.Equals(a, flag, StringComparison.Ordinal));

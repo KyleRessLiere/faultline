@@ -135,15 +135,36 @@ public sealed record RunReport(
 /// </remarks>
 public static class RunHarness
 {
+    /// <summary>
+    /// Rounds a single fight may run before it is called stalled.
+    /// </summary>
+    /// <remarks>
+    /// A KillAll fight with no turn limit on a board whose halves cannot reach each other never ends.
+    /// Left to the command budget it costs 200,000 commands and reports "budget exhausted", which
+    /// reads like a harness limit rather than what it is — a fight nobody can finish. Every campaign
+    /// board is decided inside 20 rounds when it is decidable at all.
+    /// </remarks>
+    public const int StallRound = 60;
+
     /// <summary>Plays one campaign to its end.</summary>
     /// <param name="policy">How the players decide.</param>
     /// <param name="seed">Run seed.</param>
+    /// <param name="log">
+    /// Filled with every player decision, when supplied. The seed plus this log replays the run, so
+    /// a policy's run can be watched back exactly like a hand-played one.
+    /// </param>
     /// <param name="maxCommands">Safety stop.</param>
     /// <returns>The report.</returns>
-    public static RunReport Play(Policy policy, int seed, int maxCommands = 200000)
+    public static RunReport Play(Policy policy, int seed, RunLog? log = null, int maxCommands = 200000)
     {
         var rng = new DeterministicRng(seed ^ policy.Name.GetHashCode());
         var run = Campaign.Start(CampaignLibrary.Faultline, seed).NewState;
+
+        if (log is not null)
+        {
+            log.Seed = seed;
+            log.Label = policy.Name;
+        }
 
         var fights = new List<FightReport>();
         int commands = 0;
@@ -155,6 +176,13 @@ public static class RunHarness
         while (run.Phase != RunPhase.Complete && commands < maxCommands)
         {
             RunCommand command;
+
+            if (run.Fight is { Round: > StallRound })
+            {
+                reason = $"stalled: {run.Fight.Fight.Id} reached round {run.Fight.Round} "
+                    + "with neither side able to finish it";
+                break;
+            }
 
             if (run.Phase == RunPhase.AtNode)
             {
@@ -177,7 +205,13 @@ public static class RunHarness
                         break;
                     }
 
-                    command = new PlayCommand(policy.Choose(run.Fight!, legal, rng));
+                    var chosen = policy.Choose(run.Fight!, legal, rng);
+                    log?.Decisions.Add(new RunLog.Decision(
+                        run.NodeIndex,
+                        run.Fight!.FindUnit(RunLog.ActorOf(chosen))?.Kind ?? UnitKind.Husk,
+                        chosen));
+
+                    command = new PlayCommand(chosen);
                 }
             }
 

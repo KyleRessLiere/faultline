@@ -1,5 +1,27 @@
 # Changelog
 
+## The campaign, played by a reader and measured level by level
+
+- **`docs/LEVEL_ANALYSIS.md`** — what each of the ten campaign boards asks, how hard it measures, and
+  where the spine is broken. Produced by playing them rather than by reading them.
+- **`--session`** plays the campaign one decision at a time, printing the board, the intents and every
+  legal option annotated with what Core's previews say it would actually do. Stateless: the command
+  log is the save file.
+- **`--levels`** plays every campaign board standalone with every policy, so a board sitting behind an
+  unfinishable one can still be measured.
+- **`--connectivity`** flood-fills every board and reports the ones whose halves cannot reach each
+  other. It finds exactly one, and it is a campaign node.
+- **Three policies that price outcomes rather than verbs** — `board-first`, `blade-first`,
+  `preserver`. They are the only policies that clear `hz-09-the-trench`.
+- **Every run is recorded and can be watched back**: `docs/playtest/logs/*.log`, replayed with
+  `--replay <log> --boards`. Run logs now carry the acting unit's class so a log recorded against
+  different content fails loudly instead of replaying as the wrong unit.
+
+**Two findings stop the campaign dead.** `broken-bridge` (node 3) is two boards that cannot see each
+other — a wall seals the north side of one trench crossing and another seals the south side of the
+other — so with kill-all and no turn limit the fight freezes rather than ends. And `quarry-king` is
+unbeaten by all thirteen policies. Neither is fixed here; both are map and design calls.
+
 ## The push preview stops calling the best shove in the game a no-op
 
 - **A shove into something you are already standing against is no longer described as "it does not

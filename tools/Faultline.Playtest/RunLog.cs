@@ -47,8 +47,31 @@ public sealed class RunLog
 
     /// <summary>One player decision.</summary>
     /// <param name="Node">Campaign node it was made on.</param>
+    /// <param name="Actor">
+    /// Class of the unit that acted. Redundant with the command's unit id, and recorded precisely
+    /// because it is: a unit id is an index into a roster, so editing a <c>.fight</c> file's roster
+    /// order renumbers every unit and silently turns a logged Archer command into a Wardbearer one.
+    /// Replaying a log against the content it was recorded against is the only thing that is
+    /// guaranteed, and this is what makes the other case fail loudly instead of quietly.
+    /// </param>
     /// <param name="Command">What the player chose.</param>
-    public sealed record Decision(int Node, Command Command);
+    public sealed record Decision(int Node, UnitKind Actor, Command Command);
+
+    /// <summary>The unit a command acts as, which every command names.</summary>
+    /// <param name="command">Command to read.</param>
+    /// <returns>The acting unit's id.</returns>
+    public static UnitId ActorOf(Command command) => command switch
+    {
+        DeployCommand c => c.UnitId,
+        MoveCommand c => c.UnitId,
+        AttackCommand c => c.UnitId,
+        AbilityCommand c => c.UnitId,
+        RescueCommand c => c.UnitId,
+        FinishClingingCommand c => c.UnitId,
+        EndActivationCommand c => c.UnitId,
+        SpendVerveCommand c => c.UnitId,
+        _ => UnitId.None,
+    };
 
     /// <summary>Renders the log: metadata, then one numbered line per decision.</summary>
     /// <returns>Log text, LF-terminated per line.</returns>
@@ -66,6 +89,8 @@ public sealed class RunLog
             text.Append((i + 1).ToString(CultureInfo.InvariantCulture))
                 .Append('\t')
                 .Append(Decisions[i].Node.ToString(CultureInfo.InvariantCulture))
+                .Append('\t')
+                .Append(Decisions[i].Actor.ToString())
                 .Append('\t')
                 .Append(RunRecord.Format(Decisions[i].Command))
                 .Append('\n');
@@ -109,14 +134,19 @@ public sealed class RunLog
                     continue;
             }
 
-            // index, node, then the command's own fields.
-            var command = RunRecord.ParseCommand(fields, 2);
+            // index, node, actor, then the command's own fields.
+            var command = RunRecord.ParseCommand(fields, 3);
             if (command is null)
             {
                 return false;
             }
 
-            log.Decisions.Add(new Decision(ParseInt(Field(fields, 1)), command));
+            if (!Enum.TryParse(Field(fields, 2), out UnitKind actor))
+            {
+                return false;
+            }
+
+            log.Decisions.Add(new Decision(ParseInt(Field(fields, 1)), actor, command));
         }
 
         return true;

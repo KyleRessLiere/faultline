@@ -1,0 +1,105 @@
+# faultline run log - campaign, seed and these player decisions replay the run exactly
+# enemy commands and node entries are omitted: they are functions of the state
+campaign	faultline
+seed	1
+player	random-e
+1	0	Vanguard	Deploy	u0	(0,5)
+2	0	Wardbearer	Deploy	u2	(6,2)
+3	0	Threadcaster	Deploy	u1	(0,6)
+4	0	Archer	Deploy	u3	(6,1)
+5	0	Threadcaster	End	u1
+6	0	Wardbearer	End	u2
+7	0	Vanguard	Move	u0	(1,4)
+8	0	Vanguard	Ability	u0	BullRush	dir=Right
+9	0	Archer	Move	u3	(5,2)
+10	0	Archer	Ability	u3	StaggerShot	target=u6
+11	0	Vanguard	Ability	u0	BullRush	dir=Right
+12	0	Archer	Move	u3	(3,1)
+13	0	Archer	Ability	u3	StaggerShot	target=u5
+14	0	Threadcaster	Move	u1	(1,4)
+15	0	Threadcaster	Attack	u1	u5	Damage
+16	0	Wardbearer	Move	u2	(5,0)
+17	0	Wardbearer	End	u2
+18	0	Vanguard	Ability	u0	BullRush	dir=Up
+19	0	Wardbearer	Move	u2	(4,2)
+20	0	Wardbearer	End	u2
+21	0	Threadcaster	Move	u1	(3,4)
+22	0	Threadcaster	End	u1
+23	0	Archer	Move	u3	(3,3)
+24	0	Archer	Attack	u3	u6	Damage
+25	0	Vanguard	Move	u0	(5,2)
+26	0	Vanguard	End	u0
+27	0	Wardbearer	Move	u2	(2,2)
+28	0	Wardbearer	End	u2
+29	0	Threadcaster	Move	u1	(1,5)
+30	0	Threadcaster	End	u1
+31	0	Archer	Move	u3	(4,1)
+32	0	Archer	End	u3
+33	0	Vanguard	Move	u0	(5,0)
+34	0	Vanguard	End	u0
+35	0	Wardbearer	Move	u2	(2,5)
+36	0	Wardbearer	End	u2
+37	0	Threadcaster	Move	u1	(0,5)
+38	0	Threadcaster	Attack	u1	u4	Damage
+39	0	Archer	Move	u3	(3,0)
+40	0	Archer	End	u3
+41	0	Vanguard	Move	u0	(4,0)
+42	0	Vanguard	End	u0
+43	0	Wardbearer	Ability	u2	GuardStance	-
+44	0	Wardbearer	Move	u2	(1,5)
+45	0	Archer	Move	u3	(2,1)
+46	0	Archer	Attack	u3	u4	Damage
+47	1	Vanguard	Deploy	u0	(0,5)
+48	1	Archer	Deploy	u3	(8,0)
+49	1	Threadcaster	Deploy	u1	(1,6)
+50	1	Wardbearer	Deploy	u2	(7,1)
+51	1	Vanguard	Move	u0	(2,4)
+52	1	Vanguard	Ability	u0	BullRush	dir=Right
+53	1	Archer	Attack	u3	u5	Damage
+54	1	Archer	Move	u3	(8,1)
+55	1	Threadcaster	Move	u1	(2,5)
+56	1	Threadcaster	End	u1
+57	1	Wardbearer	Move	u2	(5,0)
+58	1	Wardbearer	Attack	u2	u4	Damage
+59	1	Threadcaster	Move	u1	(2,2)
+60	1	Threadcaster	End	u1
+61	1	Archer	Ability	u3	StaggerShot	target=u7
+62	1	Archer	Move	u3	(6,1)
+63	1	Vanguard	Move	u0	(3,2)
+64	1	Vanguard	End	u0
+65	1	Wardbearer	Move	u2	(3,1)
+66	1	Wardbearer	Ability	u2	GuardStance	-
+67	1	Vanguard	Move	u0	(1,3)
+68	1	Vanguard	Ability	u0	BullRush	dir=Right
+69	1	Wardbearer	Move	u2	(4,1)
+70	1	Wardbearer	Ability	u2	GuardStance	-
+71	1	Threadcaster	Move	u1	(4,2)
+72	1	Threadcaster	Ability	u1	Reel	target=u4
+73	1	Threadcaster	Attack	u1	u4	Damage
+74	1	Threadcaster	Move	u1	(2,1)
+75	1	Wardbearer	Move	u2	(3,0)
+76	1	Wardbearer	Ability	u2	GuardStance	-
+77	1	Vanguard	Move	u0	(5,2)
+78	1	Vanguard	End	u0
+79	1	Vanguard	Move	u0	(7,3)
+80	1	Vanguard	Ability	u0	BullRush	dir=Down
+81	1	Wardbearer	Ability	u2	GuardStance	-
+82	1	Wardbearer	Move	u2	(1,0)
+83	1	Threadcaster	Move	u1	(4,0)
+84	1	Threadcaster	Ability	u1	Reel	target=u9
+85	1	Threadcaster	Move	u1	(5,0)
+86	1	Threadcaster	Attack	u1	u9	Damage
+87	1	Wardbearer	Move	u2	(1,3)
+88	1	Wardbearer	Ability	u2	GuardStance	-
+89	1	Vanguard	Ability	u0	BullRush	dir=Right
+90	1	Threadcaster	Move	u1	(6,1)
+91	1	Threadcaster	Attack	u1	u9	Pull
+92	1	Wardbearer	Move	u2	(2,3)
+93	1	Wardbearer	Ability	u2	GuardStance	-
+94	1	Vanguard	Ability	u0	BullRush	dir=Up
+95	1	Vanguard	Move	u0	(8,4)
+96	1	Vanguard	Ability	u0	BullRush	dir=Left
+97	1	Wardbearer	Move	u2	(2,2)
+98	1	Wardbearer	Ability	u2	GuardStance	-
+99	1	Wardbearer	Move	u2	(3,2)
+100	1	Wardbearer	Ability	u2	GuardStance	-
