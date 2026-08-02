@@ -86,9 +86,11 @@ in this file when the question comes back.
 | D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | 2026-08-02 |  |
 | D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | 2026-08-02 |  |
 | D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | 2026-08-02 |  |
-| D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | unreleased |  |
+| D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | 2026-08-02 |  |
+| D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | unreleased |  |
+| D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | unreleased |  |
 
-**68 rulings.**
+**70 rulings.**
 
 <!-- toc:end -->
 ---
@@ -720,3 +722,40 @@ ability is worse than no preview at all.
 **The general lesson, recorded because it will recur:** the shell inferring a Core concept from
 incidental data is a bug waiting for the second case to exist. No test caught this, and none could
 have — the tests exercise Core, and Core was right.
+
+**D-070 — Equality coverage is enforced by reflection; a state field nothing compares is a false green.**
+`GameState`, `RunState` and now `FightDefinition` hand-write `Equals`, because a record's generated
+equality compares list members by reference and would call a replayed state unequal to the state it
+replayed. Hand-written means hand-maintained, and the failure mode is **silent**: add a field, forget
+to compare it, and every replay test keeps passing *because both sides ignore it*. A false green on
+the prime directive, and nothing structural prevented it.
+
+`StateEqualityCoverageTests` enumerates every settable property by reflection and requires a
+registered mutation for each. A new property with no mutation fails by name — the prompt to decide
+whether `Equals` should see it — and registering one then proves that it does. Coverage by
+reflection, correctness by hand: a purely reflective mutator cannot know what a *different* value
+means for an arbitrary type, and a purely hand-written list is the checklist that got us here.
+
+**It found a real one immediately.** `GameState.Equals` never compared `Fight`, so two states of
+different battles compared as identical. That was not laziness — it could not be fixed while
+`FightDefinition` had no structural equality, since two identical definitions parsed separately were
+unequal by reference. Giving the definition real equality (D-071) unblocked it, and `GameState` now
+compares its own fight.
+
+**D-071 — `FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.**
+The creator screen builds a definition, the writer turns it into `.fight` text and the parser reads it
+back — so anything the writer cannot express is data the creator **silently drops when you save**.
+
+Round-trip coverage was a hand-listed checklist spread across several tests: the objective in one,
+footing in another, design notes in a third. Nothing asserted the *whole* definition, so a new field
+would have been lost without a single test failing. `FightRoundTripTests` now asserts
+`parse(write(fight)) == fight` over all 65 shipped boards, retired ones included, plus a definition
+assembled in memory that exercises fields no single shipped board uses together, plus stability —
+writing twice gives identical text, so a save is never a spurious diff.
+
+This required structural `Equals` and `GetHashCode` on `FightDefinition`, hand-written for the same
+reason the state types' are.
+
+**Both were added before debris and multi-tile structures**, deliberately. Those two steps add fields
+to exactly these types, which is precisely when both silent failures would have triggered — and by
+construction, nobody would have been told.

@@ -164,5 +164,132 @@ namespace Faultline.Core
 
             return team == Team.PlayerB ? RosterB : new UnitKind[0];
         }
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Hand-written for the same reason <see cref="GameState"/>'s is: a record's generated
+        /// equality compares list members by <em>reference</em>, so two identical fights parsed from
+        /// the same text would come back unequal. That made the definition impossible to compare at
+        /// all, which is why <see cref="GameState"/> could not include its own <c>Fight</c> and why
+        /// nothing could assert that <see cref="FightWriter"/> round-trips a whole battle.
+        /// </remarks>
+        public bool Equals(FightDefinition? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return string.Equals(Id, other.Id, StringComparison.Ordinal)
+                && Number == other.Number
+                && string.Equals(Name, other.Name, StringComparison.Ordinal)
+                && string.Equals(Description, other.Description, StringComparison.Ordinal)
+                && string.Equals(RetiredReason, other.RetiredReason, StringComparison.Ordinal)
+                && TurnLimit == other.TurnLimit
+                && Board.Equals(other.Board)
+                && Objective.Equals(other.Objective)
+                && Same(DesignNotes, other.DesignNotes)
+                && Same(DeploymentZoneA, other.DeploymentZoneA)
+                && Same(DeploymentZoneB, other.DeploymentZoneB)
+                && Same(RosterA, other.RosterA)
+                && Same(RosterB, other.RosterB)
+                && Same(Enemies, other.Enemies)
+                && Same(ProtectedZone, other.ProtectedZone)
+                && Same(FootingGrants, other.FootingGrants)
+                && SameWaves(Waves, other.Waves);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = StringComparer.Ordinal.GetHashCode(Id ?? string.Empty);
+                hash = (hash * 31) + Number;
+                hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Name ?? string.Empty);
+                hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Description ?? string.Empty);
+                hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(RetiredReason ?? string.Empty);
+                hash = (hash * 31) + TurnLimit;
+                hash = (hash * 31) + Board.GetHashCode();
+                hash = (hash * 31) + Objective.GetHashCode();
+                hash = Fold(hash, DesignNotes);
+                hash = Fold(hash, DeploymentZoneA);
+                hash = Fold(hash, DeploymentZoneB);
+                hash = Fold(hash, RosterA);
+                hash = Fold(hash, RosterB);
+                hash = Fold(hash, Enemies);
+                hash = Fold(hash, ProtectedZone);
+                hash = Fold(hash, FootingGrants);
+
+                foreach (var wave in Waves)
+                {
+                    hash = (hash * 31) + wave.Round;
+                    hash = Fold(hash, wave.Arrivals);
+                }
+
+                return hash;
+            }
+        }
+
+        private static bool Same<T>(IReadOnlyList<T> a, IReadOnlyList<T> b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (a is null || b is null || a.Count != b.Count)
+            {
+                return false;
+            }
+
+            var comparer = EqualityComparer<T>.Default;
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (!comparer.Equals(a[i], b[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Waves hold their own list, so the generic comparison would compare those by reference.
+        private static bool SameWaves(IReadOnlyList<ReinforcementWave> a, IReadOnlyList<ReinforcementWave> b)
+        {
+            if (a is null || b is null || a.Count != b.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (a[i].Round != b[i].Round || !Same(a[i].Arrivals, b[i].Arrivals))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static int Fold<T>(int hash, IReadOnlyList<T> items)
+        {
+            unchecked
+            {
+                foreach (var item in items)
+                {
+                    hash = (hash * 31) + (item?.GetHashCode() ?? 0);
+                }
+
+                return hash;
+            }
+        }
     }
 }

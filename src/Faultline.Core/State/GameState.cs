@@ -223,6 +223,7 @@ namespace Faultline.Core
 
             if (Seed != other.Seed
                 || RngState != other.RngState
+                || !Fight.Equals(other.Fight)
                 || Round != other.Round
                 || Phase != other.Phase
                 || ActiveTeam != other.ActiveTeam
@@ -281,6 +282,7 @@ namespace Faultline.Core
             {
                 int hash = Seed;
                 hash = (hash * 31) + RngState;
+                hash = (hash * 31) + Fight.GetHashCode();
                 hash = (hash * 31) + Round;
                 hash = (hash * 31) + (int)Phase;
                 hash = (hash * 31) + (int)ActiveTeam;
