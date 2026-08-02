@@ -22,6 +22,12 @@ public sealed class BoardAnimationTests
     private static UnitAttacked Attack(Coord from, Coord to) =>
         new UnitAttacked(Walker, Target, from, to, 2, false);
 
+    private static UnitPushed Shove(Coord from, Coord to, params Coord[] path) =>
+        new UnitPushed(Target, from, to, path, DisplacementKind.Push, path.Length);
+
+    private static UnitPushed Pull(Coord from, Coord to, params Coord[] path) =>
+        new UnitPushed(Target, from, to, path, DisplacementKind.Pull, path.Length);
+
     [Fact]
     public void Plan_AMove_StepsOneTileAtATimeAlongThePath()
     {
@@ -110,6 +116,211 @@ public sealed class BoardAnimationTests
 
         Assert.Equal(BoardBeatKind.Land, beats[^2].Kind);
         Assert.Equal(BoardBeatKind.Flash, beats[^1].Kind);
+    }
+
+    [Fact]
+    public void Plan_AShove_ShakesTheTargetBeforeItTravels()
+    {
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Shove(new Coord(1, 1), new Coord(3, 1), new Coord(2, 1), new Coord(3, 1)),
+        });
+
+        Assert.Equal(
+            new[]
+            {
+                BoardBeatKind.Enter,
+                BoardBeatKind.Shake,
+                BoardBeatKind.Step,
+                BoardBeatKind.Step,
+                BoardBeatKind.Land,
+            },
+            beats.Select(b => b.Kind));
+    }
+
+    [Fact]
+    public void Plan_AShove_ShakesTheUnitThatWasShovedOnTheTileItWasStandingOn()
+    {
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Shove(new Coord(1, 1), new Coord(2, 1), new Coord(2, 1)),
+        });
+
+        var shake = Assert.Single(beats, b => b.Kind == BoardBeatKind.Shake);
+        Assert.Equal(Target, shake.UnitId);
+        Assert.Equal(new Coord(1, 1), shake.Tile);
+        Assert.All(beats, b => Assert.Equal(Target, b.UnitId));
+    }
+
+    [Fact]
+    public void Plan_AShove_TravelsTheTilesCoreReported()
+    {
+        var path = new[] { new Coord(2, 1), new Coord(3, 1), new Coord(4, 1) };
+
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Shove(new Coord(1, 1), new Coord(4, 1), path),
+        });
+
+        Assert.Equal(path, beats.Where(b => b.Kind == BoardBeatKind.Step).Select(b => b.Tile));
+        Assert.Equal(new Coord(1, 1), beats[0].Tile);
+        Assert.Equal(new Coord(4, 1), beats[^1].Tile);
+    }
+
+    [Fact]
+    public void Plan_APull_TravelsTowardThePullerWithoutBeingToldTo()
+    {
+        // Kind is never read: the path already runs the other way, and following it is the whole
+        // handling a Pull needs.
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Pull(new Coord(5, 2), new Coord(3, 2), new Coord(4, 2), new Coord(3, 2)),
+        });
+
+        Assert.Equal(
+            new[] { BoardBeatKind.Enter, BoardBeatKind.Shake, BoardBeatKind.Step, BoardBeatKind.Step, BoardBeatKind.Land },
+            beats.Select(b => b.Kind));
+        Assert.Equal(
+            new[] { new Coord(4, 2), new Coord(3, 2) },
+            beats.Where(b => b.Kind == BoardBeatKind.Step).Select(b => b.Tile));
+    }
+
+    [Fact]
+    public void Plan_AShoveReducedToNothing_ShakesAndGoesNowhere()
+    {
+        // Footing, an Anchor, a Wardbearer's hold or a negating token. Something hit the unit and it
+        // did not move: that is the outcome worth watching, not a beat worth dropping.
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            new UnitPushed(
+                Target, new Coord(2, 2), new Coord(2, 2), new List<Coord>(), DisplacementKind.Push, 0),
+        });
+
+        Assert.Equal(
+            new[] { BoardBeatKind.Enter, BoardBeatKind.Shake, BoardBeatKind.Land },
+            beats.Select(b => b.Kind));
+        Assert.DoesNotContain(beats, b => b.Kind == BoardBeatKind.Step);
+        Assert.All(beats, b => Assert.Equal(new Coord(2, 2), b.Tile));
+    }
+
+    [Fact]
+    public void Plan_AShoveThatCollides_KeepsBothUnitsInEventOrder()
+    {
+        // A collision damages both parties, and one command can displace more than one unit. The
+        // beats stay in the order Core emitted them, one unit's sequence finishing before the next
+        // one starts.
+        var other = new UnitId(3);
+
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Attack(new Coord(1, 1), new Coord(2, 1)),
+            Shove(new Coord(2, 1), new Coord(3, 1), new Coord(3, 1)),
+            new UnitDamaged(Target, 2, 3, DamageSource.Collision, new Coord(3, 1)),
+            new UnitPushed(other, new Coord(3, 1), new Coord(4, 1), new[] { new Coord(4, 1) }, DisplacementKind.Push, 1),
+            new UnitDamaged(other, 2, 4, DamageSource.Collision, new Coord(4, 1)),
+        });
+
+        Assert.Equal(
+            new[]
+            {
+                BoardBeatKind.Flash,
+                BoardBeatKind.Enter, BoardBeatKind.Shake, BoardBeatKind.Step, BoardBeatKind.Land,
+                BoardBeatKind.Enter, BoardBeatKind.Shake, BoardBeatKind.Step, BoardBeatKind.Land,
+            },
+            beats.Select(b => b.Kind));
+        Assert.Equal(Walker, beats[0].UnitId);
+        Assert.All(beats.Skip(1).Take(4), b => Assert.Equal(Target, b.UnitId));
+        Assert.All(beats.Skip(5), b => Assert.Equal(other, b.UnitId));
+    }
+
+    [Fact]
+    public void Plan_AnActivationThatMovesThenShoves_PlaysTheWalkBeforeTheShove()
+    {
+        // A Vanguard's Bull Rush emits its own move before the push. The pusher walks, then the
+        // target shakes, then the target slides.
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Move(new Coord(1, 1), new Coord(2, 1), new Coord(2, 1)),
+            Attack(new Coord(2, 1), new Coord(3, 1)),
+            Shove(new Coord(3, 1), new Coord(5, 1), new Coord(4, 1), new Coord(5, 1)),
+        });
+
+        Assert.Equal(
+            new[]
+            {
+                BoardBeatKind.Enter, BoardBeatKind.Step, BoardBeatKind.Land,
+                BoardBeatKind.Flash,
+                BoardBeatKind.Enter, BoardBeatKind.Shake, BoardBeatKind.Step, BoardBeatKind.Step,
+                BoardBeatKind.Land,
+            },
+            beats.Select(b => b.Kind));
+        Assert.Equal(Walker, beats[0].UnitId);
+        Assert.Equal(Target, beats[4].UnitId);
+    }
+
+    [Fact]
+    public void Plan_AShake_IsShorterThanCrossingATile()
+    {
+        // The shudder is the thing that starts the slide, not a pause in front of it.
+        Assert.Equal(BoardAnimation.ShakeMs, BoardAnimation.BeatMs(BoardBeatKind.Shake, 100));
+        Assert.True(BoardAnimation.ShakeMs < BoardAnimation.TileMs);
+    }
+
+    [Fact]
+    public void Duration_OfAShove_IsTheShakePlusThePath()
+    {
+        var beats = BoardAnimation.Plan(new GameEvent[]
+        {
+            Shove(new Coord(1, 1), new Coord(3, 1), new Coord(2, 1), new Coord(3, 1)),
+        });
+
+        Assert.Equal(
+            BoardAnimation.PlaceMs + BoardAnimation.ShakeMs + (2 * BoardAnimation.TileMs),
+            BoardAnimation.Duration(beats, 100));
+    }
+
+    [Fact]
+    public void AShake_CompressesWithEverythingElseWhenABurstRunsLong()
+    {
+        Assert.True(
+            BoardAnimation.BeatMs(BoardBeatKind.Shake, 50)
+            < BoardAnimation.BeatMs(BoardBeatKind.Shake, 100));
+        Assert.True(BoardAnimation.BeatMs(BoardBeatKind.Shake, BoardAnimation.FastestTempo) > 0);
+    }
+
+    [Fact]
+    public void AShoveHeavyRound_StillFinishesPromptly()
+    {
+        // Four enemies, each walking three tiles, hitting, and shoving what it hit two more. That is
+        // about as much as a round can contain, and the tempo curve has to keep it watchable.
+        var events = new GameEvent[]
+        {
+            Move(new Coord(0, 0), new Coord(3, 0), new Coord(1, 0), new Coord(2, 0), new Coord(3, 0)),
+            Attack(new Coord(3, 0), new Coord(4, 0)),
+            Shove(new Coord(4, 0), new Coord(6, 0), new Coord(5, 0), new Coord(6, 0)),
+        };
+
+        int Round(IReadOnlyList<BoardBeat> activation)
+        {
+            int spent = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                spent += BoardAnimation.Duration(activation, BoardAnimation.Tempo(spent));
+            }
+
+            return spent;
+        }
+
+        int withShoves = Round(BoardAnimation.Plan(events));
+        int withoutShoves = Round(BoardAnimation.Plan(events.Take(2).ToArray()));
+
+        Assert.True(withShoves < 3_500, $"A shove-heavy enemy round animated for {withShoves}ms.");
+
+        // The shoves cost something — they are the point — but the compression keeps that something
+        // proportionate rather than doubling the wait.
+        Assert.True(
+            withShoves < withoutShoves * 2,
+            $"Shoves took a round from {withoutShoves}ms to {withShoves}ms.");
     }
 
     [Fact]

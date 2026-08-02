@@ -5,12 +5,13 @@
    without anything here knowing which one it is.
 
    A unit that is mid-move is left out of its tile and drawn as the sprite at the bottom instead, so
-   it can slide along the path Core reported rather than appear at the far end of it. Nothing here
+   it can slide along the path Core reported rather than appear at the far end of it. A shoved unit
+   rides the same sprite: it shudders on the tile it was standing on, then travels. Nothing here
    decides anything: the animator says which unit and which tile, the board draws it. *@
 
 <div class="stage">
     <div class="board @(View.GridLines ? "lines" : string.Empty)"
-         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor; --step: @(Animator.StepMs)ms; --flash: @(Animator.FlashMs)ms;"
+         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor; --step: @(Animator.StepMs)ms; --flash: @(Animator.FlashMs)ms; --shake: @(Animator.ShakeMs)ms;"
          @onmouseleave="() => Session.Hover(null)">
         <div class="axis corner" aria-hidden="true"></div>
 
@@ -81,7 +82,7 @@
 
         @if (Sliding is { } sliding)
         {
-            <div class="mover @(Animator.Placing ? "placing" : string.Empty) team-@PlaytestText.TeamClass(sliding.Team)"
+            <div class="mover @(Animator.Placing ? "placing" : string.Empty) @(Animator.IsShaking(sliding.Id) ? "shaking" : string.Empty) team-@PlaytestText.TeamClass(sliding.Team)"
                  style="--mx: @Animator.MoverTile.X; --my: @Animator.MoverTile.Y;"
                  aria-hidden="true">
                 <span class="art">

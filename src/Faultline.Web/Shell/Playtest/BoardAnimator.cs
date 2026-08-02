@@ -8,7 +8,8 @@ namespace Faultline.Web.Shell.Playtest;
 
 /// <summary>
 /// Plays the beats <see cref="BoardAnimation"/> reads out of a step's events: which unit is sliding,
-/// which tile it is on, which tiles it has crossed, and which unit is flashing.
+/// which tile it is on, which tiles it has crossed, which unit is flashing, and which shoved unit is
+/// shuddering.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -77,8 +78,14 @@ public sealed class BoardAnimator : IDisposable
     /// <summary>How long one flash lasts, in milliseconds. An attacker plays two.</summary>
     public int FlashMs { get; private set; } = BoardAnimation.FlashMs;
 
+    /// <summary>How long a shoved unit's shudder lasts, in milliseconds.</summary>
+    public int ShakeMs { get; private set; } = BoardAnimation.ShakeMs;
+
     /// <summary>The attacker flashing right now, if any.</summary>
     public UnitId? Flashing { get; private set; }
+
+    /// <summary>The shoved unit shuddering right now, if any. Always the unit on the sprite.</summary>
+    public UnitId? Shaking { get; private set; }
 
     /// <summary>Tiles the sliding unit is standing on or has crossed on this move.</summary>
     public IReadOnlyCollection<Coord> Trail => _trail;
@@ -92,6 +99,11 @@ public sealed class BoardAnimator : IDisposable
     /// <param name="id">Unit to test.</param>
     /// <returns>Whether the unit should be flashing.</returns>
     public bool IsFlashing(UnitId id) => Flashing == id;
+
+    /// <summary>True when this unit is mid-shudder from a shove.</summary>
+    /// <param name="id">Unit to test.</param>
+    /// <returns>Whether the unit's sprite should be shuddering.</returns>
+    public bool IsShaking(UnitId id) => Shaking == id;
 
     /// <summary>
     /// Drops everything queued and puts the board back to plain rendering. Called when the position
@@ -184,6 +196,7 @@ public sealed class BoardAnimator : IDisposable
             _spentMs += BoardAnimation.Duration(beats, tempo);
             StepMs = BoardAnimation.Scale(BoardAnimation.TileMs, tempo);
             FlashMs = BoardAnimation.Scale(BoardAnimation.FlashMs, tempo);
+            ShakeMs = BoardAnimation.Scale(BoardAnimation.ShakeMs, tempo);
 
             foreach (var beat in beats)
             {
@@ -241,6 +254,16 @@ public sealed class BoardAnimator : IDisposable
                 Flashing = null;
                 Changed?.Invoke();
                 break;
+
+            case BoardBeatKind.Shake:
+                // Placing is left on: the sprite must not transition anywhere while it shudders.
+                MoverTile = beat.Tile;
+                Shaking = beat.UnitId;
+                Changed?.Invoke();
+                await Task.Delay(ShakeMs);
+                Shaking = null;
+                Changed?.Invoke();
+                break;
         }
     }
 
@@ -248,6 +271,7 @@ public sealed class BoardAnimator : IDisposable
     {
         Mover = null;
         Flashing = null;
+        Shaking = null;
         Placing = false;
         _trail.Clear();
     }

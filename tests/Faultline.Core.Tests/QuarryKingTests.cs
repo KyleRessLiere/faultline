@@ -91,7 +91,12 @@ public class QuarryKingTests
 
         Assert.Equal(new Coord(1, 0), king.Position);
         Assert.Equal(3, king.Footing);
-        Assert.False(result.Has<UnitPushed>());
+
+        // The shove is reported and went nowhere: a negating token cancels the displacement rather
+        // than shortening it, and is not spent doing so (D-043, D-057).
+        var shove = result.Single<UnitPushed>();
+        Assert.Empty(shove.Path);
+        Assert.Equal(new Coord(1, 0), shove.To);
         Assert.False(result.Has<FootingSpent>());
         Assert.Equal(King.MaxHp - 1, king.Hp);
     }

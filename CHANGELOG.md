@@ -1,5 +1,15 @@
 # Changelog
 
+## Shoves land
+
+- **A shoved unit shudders where it stood, then slides** the path Core reported — the hit and where it
+  put you, in that order. Pulls travel toward the puller off the same path. A shove ending in a
+  collision, on spikes or in a pit still plays its own events after.
+- **Fixed a hole this uncovered:** a shove that moved nothing emitted no event at all, so being
+  immovable was invisible to the renderer and to the combat log. `first-contact`'s signature
+  interaction — a push that does not budge and collides for 2 each — animated as nothing happening.
+  Displacement is now always reported, with distance 0 saying why.
+
 ## One reference panel, and a turn summary that names names
 
 - **Abilities, battle design notes and enemy character sheets now share one tabbed panel.** Clicking

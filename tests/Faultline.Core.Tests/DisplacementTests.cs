@@ -314,7 +314,12 @@ public class DisplacementTests
         var after = Displacement.Resolve(state, anchor.Id, new Coord(0, 0), DisplacementKind.Push, 1, false, events);
 
         Assert.Equal(anchor.Position, after.Get(anchor.Id).Position);
-        Assert.Empty(events.OfType<UnitPushed>());
+
+        // Push 1 minus the Anchor's resistance of 1 is nothing. The event still fires and its
+        // distance is 0, which is what lets a renderer shudder it and a log say it did not budge.
+        var reported = Assert.Single(events.OfType<UnitPushed>());
+        Assert.Empty(reported.Path);
+        Assert.Equal(0, reported.Distance);
     }
 
     [Fact]
@@ -531,7 +536,13 @@ public class DisplacementTests
         var after = Displacement.Resolve(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 0, false, events);
 
         Assert.Equal(husk.Position, after.Get(husk.Id).Position);
-        Assert.Empty(events);
+
+        // The shove is reported even though it moved nothing, with the effective distance saying
+        // why (D-057). Nothing moved is the rule; silence was only ever how it was implemented.
+        var reported = Assert.Single(events.OfType<UnitPushed>());
+        Assert.Empty(reported.Path);
+        Assert.Equal(0, reported.Distance);
+        Assert.Equal(husk.Position, reported.To);
     }
 
     [Fact]
@@ -573,4 +584,50 @@ public class DisplacementTests
             .PlayerA(UnitKind.Archer, 0, 0)
             .Enemy(UnitKind.Anchor, 2, 0)
             .Build();
+
+    [Fact]
+    public void Displacement_ThatMovesNothing_IsStillReportedWithTheReasonInItsDistance()
+    {
+        // A shove turned aside is a result, not a non-event. It is what a renderer shudders on and
+        // what a combat log needs to say "it did not budge" — and it was invisible until D-057,
+        // which is why first-contact's marquee shove read as nothing happening at all.
+        var state = BoardBuilder.Open(4, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Anchor, 1, 0)
+            .Build();
+
+        var anchor = state.Find(UnitKind.Anchor);
+        var events = new System.Collections.Generic.List<GameEvent>();
+
+        Displacement.Resolve(state, anchor.Id, new Coord(0, 0), DisplacementKind.Push, 1, false, events);
+
+        var shove = Assert.Single(events.OfType<UnitPushed>());
+        Assert.Equal(anchor.Position, shove.From);
+        Assert.Equal(anchor.Position, shove.To);
+        Assert.Empty(shove.Path);
+        Assert.Equal(0, shove.Distance);
+        Assert.Equal(DisplacementKind.Push, shove.Kind);
+    }
+
+    [Fact]
+    public void Displacement_ThatMoves_StillReportsItsPathAndDistance()
+    {
+        // The other half: reporting the nothing case must not have blurred the ordinary one.
+        var state = BoardBuilder.Open(4, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        var husk = state.Find(UnitKind.Husk);
+        var events = new System.Collections.Generic.List<GameEvent>();
+
+        Displacement.Resolve(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 2, false, events);
+
+        var shove = Assert.Single(events.OfType<UnitPushed>());
+        Assert.Equal(new Coord(1, 0), shove.From);
+        Assert.Equal(new Coord(3, 0), shove.To);
+        Assert.Equal(2, shove.Path.Count);
+        Assert.Equal(2, shove.Distance);
+    }
+
 }

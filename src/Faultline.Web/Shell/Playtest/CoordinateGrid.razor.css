@@ -17,6 +17,7 @@
     --gutter: 22px;
     --step: 170ms;
     --flash: 130ms;
+    --shake: 150ms;
     --fit: min(
         (100cqw - var(--gutter) - 6px) / var(--cols),
         (100cqh - var(--gutter) - 6px) / var(--rows));
@@ -264,13 +265,35 @@
     animation: pt-strike var(--flash) linear 2;
 }
 
+/* A shoved unit shudders on the tile it was standing on, then slides. Deliberately not the
+   attacker's flash: a flash is "I hit", a shudder is "I was hit". It runs on the sprite's contents
+   rather than on the sprite itself, because the sprite's own transform is its position on the
+   grid — the two would fight. Offsets are cell-relative so the shudder is the same size at any
+   zoom, and a shove reduced to distance 0 plays this and nothing else. */
+
+@keyframes pt-shudder {
+    0% { transform: translateX(0); }
+    16% { transform: translateX(calc(var(--cell) * -.17)); }
+    36% { transform: translateX(calc(var(--cell) * .15)); }
+    56% { transform: translateX(calc(var(--cell) * -.10)); }
+    78% { transform: translateX(calc(var(--cell) * .06)); }
+    100% { transform: translateX(0); }
+}
+
+.mover.shaking .art,
+.mover.shaking .hp {
+    animation: pt-shudder var(--shake) linear 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .mover {
         transition: none;
     }
 
     .cell.flash .art,
-    .cell.flash .hp {
+    .cell.flash .hp,
+    .mover.shaking .art,
+    .mover.shaking .hp {
         animation: none;
     }
 }

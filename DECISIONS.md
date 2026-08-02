@@ -450,3 +450,25 @@ anyone.
 clears it. A run standing on a rest while holding the last fight's corpse is a state nothing can ask a
 sensible question about. A run that *ended* keeps its board, because that board is the ending and the
 loss screen is drawn from it.
+
+**D-057 — A displacement that moves nothing is still reported.**
+`UnitPushed` used to be emitted inside `if (sim.Path.Count > 0)`, so a shove reduced to nothing left
+no trace in the event stream at all — not by Footing, not by an Anchor's push resistance, not by a
+hold aura, not by the Quarry King's negating token, and not by a wall or a body already against the
+target. The unit not moving was the whole point of those rules, and it was the one thing the stream
+did not say.
+
+Found by building the shove animation: first-contact's marquee interaction — Stagger Shot at a Husk
+whose preview literally reads *"1 damage, push — it does not budge"*, which then slams into the Husk
+behind it for 2 each and kills both — animated as nothing but the attacker's flash. The opener's
+signature moment rendered as though no shove had happened.
+
+The event now fires whenever a displacement resolves, with `Path` empty and `Distance` carrying the
+effective distance, so 0 says why. Only the position update stays behind the guard. Three tests
+changed: each already asserted the real rule (the position is unchanged) and additionally asserted
+silence, which was the old implementation rather than the rule. They now assert the stronger thing —
+that the shove is reported and went nowhere.
+
+**Deliberately not done in the renderer.** The shell could have shuddered off `Collision` instead.
+That would be a renderer inferring a rule, which CLAUDE.md forbids, and it would double up on a shove
+that travels *and then* collides.

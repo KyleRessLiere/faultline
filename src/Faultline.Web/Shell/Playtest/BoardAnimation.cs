@@ -18,6 +18,9 @@ public enum BoardBeatKind
 
     /// <summary>Flash a unit twice where it stands.</summary>
     Flash,
+
+    /// <summary>Shudder the sliding sprite where it stands, before it travels.</summary>
+    Shake,
 }
 
 /// <summary>One instruction in an animation script: what to do, to whom, and where.</summary>
@@ -52,6 +55,12 @@ public static class BoardAnimation
     public const int FlashMs = 130;
 
     /// <summary>
+    /// How long a shoved unit shudders before it travels. Shorter than a tile, so the impact reads as
+    /// the thing that started the slide rather than as a pause in front of it.
+    /// </summary>
+    public const int ShakeMs = 150;
+
+    /// <summary>
     /// How long the sprite sits on its starting tile before the first slide. One paint, so the
     /// browser has a position to transition away from rather than one to appear at.
     /// </summary>
@@ -72,7 +81,8 @@ public static class BoardAnimation
 
     /// <summary>
     /// Reads a step's events into the beats that show them: a slide per tile of every
-    /// <see cref="UnitMoved.Path"/>, and two flashes per <see cref="UnitAttacked"/>.
+    /// <see cref="UnitMoved.Path"/>, two flashes per <see cref="UnitAttacked"/>, and a shudder
+    /// followed by a slide per <see cref="UnitPushed"/>.
     /// </summary>
     /// <param name="events">The step's events, in the order Core emitted them.</param>
     /// <returns>The script, in the same order. Empty when there is nothing to watch.</returns>
@@ -103,6 +113,23 @@ public static class BoardAnimation
                 case UnitAttacked attack:
                     beats.Add(new BoardBeat(BoardBeatKind.Flash, attack.AttackerId, attack.From));
                     break;
+
+                case UnitPushed pushed:
+                    // Shove, then travel: the shudder is the hit landing, the slide is where it put
+                    // the unit. Both play on the sprite rather than on a tile, because by the time a
+                    // beat runs the session has already adopted the state that has the unit at To.
+                    // Kind is not read: a Pull's Path already runs toward the puller.
+                    beats.Add(new BoardBeat(BoardBeatKind.Enter, pushed.UnitId, pushed.From));
+                    beats.Add(new BoardBeat(BoardBeatKind.Shake, pushed.UnitId, pushed.From));
+                    foreach (var tile in pushed.Path)
+                    {
+                        beats.Add(new BoardBeat(BoardBeatKind.Step, pushed.UnitId, tile));
+                    }
+
+                    // A shove Footing, Hold, Anchor or a token reduced to nothing still shudders —
+                    // "it hit and moved you nowhere" is the interesting outcome, not a missing beat.
+                    beats.Add(new BoardBeat(BoardBeatKind.Land, pushed.UnitId, pushed.To));
+                    break;
             }
         }
 
@@ -118,6 +145,7 @@ public static class BoardAnimation
         BoardBeatKind.Enter => PlaceMs,
         BoardBeatKind.Step => Scale(TileMs, tempo),
         BoardBeatKind.Flash => Scale(FlashMs, tempo) * 2,
+        BoardBeatKind.Shake => Scale(ShakeMs, tempo),
         _ => 0,
     };
 

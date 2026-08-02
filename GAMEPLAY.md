@@ -79,6 +79,12 @@ Then it travels, stopping the moment any of these happen:
 
 Collision, spike and fall damage ignore mitigation.
 
+**A displacement that moves nothing is still a displacement.** When Footing, push resistance, a hold
+aura or a negating token reduces a shove to zero — or a wall or a body is already against the target
+— the unit stays put and the game still reports the shove, at distance 0 (D-057). Being immovable is
+a result, and often the interesting one: it is what turns the Archer's push into a collision that
+kills two Husks instead of moving one.
+
 ### Statuses
 
 - **Staggered** — from taking collision or spike damage. The *next* displacement against it travels

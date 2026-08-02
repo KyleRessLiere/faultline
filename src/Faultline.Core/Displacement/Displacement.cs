@@ -141,9 +141,15 @@ namespace Faultline.Core
             if (sim.Path.Count > 0)
             {
                 state = state.WithUnit(state.UnitById(targetId) with { Position = sim.Destination });
-                events.Add(new UnitPushed(
-                    targetId, before.Position, sim.Destination, sim.Path, kind, effective));
             }
+
+            // Reported even when the path is empty. A shove that moved nothing still happened: Footing,
+            // push resistance, a hold aura or a negating token turned it aside, or a wall or a body was
+            // already against it. That is a result, and often the interesting one — it is what a
+            // renderer needs to shudder the target, and what a log needs to say "it did not budge"
+            // (DECISIONS.md D-057). Distance is the effective distance, so a 0 says why.
+            events.Add(new UnitPushed(
+                targetId, before.Position, sim.Destination, sim.Path, kind, effective));
 
             switch (sim.Stop)
             {
