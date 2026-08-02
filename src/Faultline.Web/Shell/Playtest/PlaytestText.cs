@@ -145,6 +145,20 @@ public static class PlaytestText
             : string.Empty;
     }
 
+    /// <summary>
+    /// What a cast landing does to whoever is put on it — the per-tile preview (D-091).
+    /// </summary>
+    /// <param name="state">Current state.</param>
+    /// <param name="tile">Landing tile.</param>
+    /// <returns>A short outcome, e.g. "spikes 3" or "drain".</returns>
+    public static string CastOutcome(GameState state, Coord tile) => state.Board.At(tile) switch
+    {
+        TileType.Spikes => "spikes " + Displacement.SpikeDamage,
+        TileType.Pit => "drain",
+        TileType.HighGround => "high ground",
+        _ => "open",
+    };
+
     /// <summary>The status flags worth showing beside a unit.</summary>
     /// <param name="unit">Unit to describe.</param>
     /// <returns>A comma-separated list, possibly empty.</returns>

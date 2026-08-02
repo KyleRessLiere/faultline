@@ -414,3 +414,26 @@
     border-color: var(--pt-cyan);
     box-shadow: 0 0 0 1px var(--pt-cyan), 0 0 8px rgba(66, 216, 197, .5);
 }
+
+/* Cast, stage one: who she could pluck, at range 3 and through anything. */
+.cell.cast-grab {
+    border-color: var(--pt-amber);
+    box-shadow: 0 0 0 1px var(--pt-amber);
+}
+
+/* Stage two: where they would land. The label on the tile is the preview. */
+.cell.cast-land {
+    border-color: var(--pt-cyan);
+    box-shadow: inset 0 0 12px rgba(66, 216, 197, .35);
+}
+
+.cast-outcome {
+    background: rgba(8, 11, 16, .72);
+    border-radius: 3px;
+    color: var(--pt-cyan);
+    font-size: clamp(7px, calc(var(--cell) * .16), 11px);
+    line-height: 1.1;
+    padding: 1px 3px;
+    position: relative;
+    z-index: 2;
+}

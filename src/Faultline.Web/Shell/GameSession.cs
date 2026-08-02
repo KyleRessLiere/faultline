@@ -329,6 +329,7 @@ public sealed class GameSession
     public void Submit(Command command)
     {
         Untouched = false;
+        ClearCast();
 
         if (_run is not null)
         {
@@ -600,12 +601,92 @@ public sealed class GameSession
     public bool CanSpendVerve => VerveSpendCommand is not null;
 
     /// <summary>Submits the selected unit's Verve spend, if Core is offering one.</summary>
+    /// <remarks>
+    /// Cast is not submitted this way — it aims twice, so it has its own arming flow below.
+    /// </remarks>
     public void SpendVerve()
     {
-        if (VerveSpendCommand is { } command)
+        if (VerveSpendCommand is { Spend: not VerveSpend.Cast } command)
         {
             Submit(command);
         }
+    }
+
+    // ---- Cast: grab somebody, then choose where they land ------------------------------------
+
+    /// <summary>The enemy a cast is currently aimed at, once one has been picked.</summary>
+    public UnitId? CastTarget { get; private set; }
+
+    /// <summary>True while a cast is being aimed, at either stage.</summary>
+    public bool AimingCast { get; private set; }
+
+    /// <summary>
+    /// Every cast Core is offering the selected unit, which is one command per grab-and-place pair.
+    /// </summary>
+    private IEnumerable<SpendVerveCommand> CastCommands =>
+        Selected is null
+            ? Array.Empty<SpendVerveCommand>()
+            : Legal.OfType<SpendVerveCommand>()
+                .Where(c => c.UnitId == Selected.Value && c.Spend == VerveSpend.Cast);
+
+    /// <summary>Enemies the selected Fisher could pluck, for the first stage of aiming.</summary>
+    public IReadOnlyCollection<Coord> CastGrabTiles =>
+        !AimingCast || CastTarget is not null
+            ? Array.Empty<Coord>()
+            : CastCommands
+                .Select(c => State.FindUnit(c.TargetId!.Value)?.Position)
+                .Where(p => p is not null)
+                .Select(p => p!.Value)
+                .Distinct()
+                .ToList();
+
+    /// <summary>
+    /// Landing tiles for the grabbed enemy, keyed to the command each would submit. The second
+    /// stage of aiming.
+    /// </summary>
+    public IReadOnlyDictionary<Coord, Command> CastLandings
+    {
+        get
+        {
+            var tiles = new Dictionary<Coord, Command>();
+            if (!AimingCast || CastTarget is null)
+            {
+                return tiles;
+            }
+
+            foreach (var command in CastCommands)
+            {
+                if (command.TargetId == CastTarget.Value && command.To is { } to)
+                {
+                    tiles[to] = command;
+                }
+            }
+
+            return tiles;
+        }
+    }
+
+    /// <summary>Starts aiming a cast, or puts it away again.</summary>
+    public void ToggleCast()
+    {
+        AimingCast = !AimingCast;
+        CastTarget = null;
+        Changed?.Invoke();
+    }
+
+    /// <summary>Picks the enemy to pluck, moving aiming on to the landing stage.</summary>
+    /// <param name="targetId">Enemy to grab.</param>
+    public void AimCastAt(UnitId targetId)
+    {
+        CastTarget = targetId;
+        Changed?.Invoke();
+    }
+
+    /// <summary>Stops aiming, whether a cast was thrown or abandoned.</summary>
+    public void ClearCast()
+    {
+        AimingCast = false;
+        CastTarget = null;
     }
 
     /// <summary>Clickable tiles for the current mode, each mapped to the command it submits.</summary>

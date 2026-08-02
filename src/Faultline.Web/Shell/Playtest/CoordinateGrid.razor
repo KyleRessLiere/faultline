@@ -93,6 +93,13 @@
                     {
                         <span class="marker">•</span>
                     }
+
+                    @* Every landing says what it does to whoever arrives on it, on the tile itself —
+                       "drain" is the difference between a spend and a kill. *@
+                    @if (Session.CastLandings.ContainsKey(cell))
+                    {
+                        <span class="cast-outcome">@PlaytestText.CastOutcome(State, cell)</span>
+                    }
                 </button>
             }
         }
@@ -199,6 +206,22 @@
             return;
         }
 
+        // Aiming a cast takes the click first, in the order it aims: pick the enemy, then the tile.
+        if (Session.AimingCast)
+        {
+            if (Session.CastLandings.TryGetValue(coord, out var cast))
+            {
+                Session.Submit(cast);
+                return;
+            }
+
+            if (unit is not null && Session.CastGrabTiles.Contains(coord))
+            {
+                Session.AimCastAt(unit.Id);
+                return;
+            }
+        }
+
         if (Session.Targets.TryGetValue(coord, out var command))
         {
             Session.Submit(command);
@@ -225,6 +248,8 @@
         !Animator.Busy
         && (IsDeployTarget(coord)
             || Session.Targets.ContainsKey(coord)
+            || Session.CastLandings.ContainsKey(coord)
+            || Session.CastGrabTiles.Contains(coord)
             || (unit is not null && Session.Selectable.Contains(unit.Id))
             || GameSession.CanInspect(unit));
 
@@ -266,6 +291,17 @@
         if (HoveredThreat.Contains(coord))
         {
             classes.Add("threat-from");
+        }
+
+        // Cast aims twice: who to pluck, then where to put them (D-091).
+        if (Session.CastGrabTiles.Contains(coord))
+        {
+            classes.Add("cast-grab");
+        }
+
+        if (Session.CastLandings.ContainsKey(coord))
+        {
+            classes.Add("cast-land");
         }
 
         // D-083: while an ally is over the edge, the units that could actually get to it this

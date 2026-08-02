@@ -325,3 +325,140 @@ public sealed class ObjectivePanelTests
         Assert.Equal(1, status.Fraction);
     }
 }
+
+/// <summary>
+/// Cast aims twice, so the shell arms rather than fires (D-091): pick the enemy, then the tile.
+/// </summary>
+public sealed class CastAimingTests
+{
+    private static GameSession Fisher(out UnitId fisher, out UnitId husk)
+    {
+        var rows = new List<string> { ".........", ".O.^.....", "........." };
+        var board = BoardLayout.Parse(rows);
+
+        var units = new List<Unit>
+        {
+            Unit.FromTemplate(new UnitId(0), UnitKind.Threadcaster, Team.PlayerA) with
+            {
+                Position = new Coord(2, 1), IsDeployed = true, Verve = Verve.Cap,
+            },
+            Unit.FromTemplate(new UnitId(1), UnitKind.Husk, Team.Enemy) with
+            {
+                Position = new Coord(2, 0), IsDeployed = true,
+            },
+            Unit.FromTemplate(new UnitId(2), UnitKind.Husk, Team.Enemy) with
+            {
+                Position = new Coord(8, 2), IsDeployed = true,
+            },
+        };
+
+        fisher = new UnitId(0);
+        husk = new UnitId(1);
+
+        var state = new GameState
+        {
+            Seed = 1,
+            RngState = 1,
+            Fight = new FightDefinition { Number = 1, Name = "Cast", Board = board },
+            Board = board,
+            Units = units,
+            Round = 1,
+            Phase = Phase.Battle,
+            ActiveTeam = Team.PlayerA,
+            NextPlayerTeam = Team.PlayerA,
+            Outcome = FightOutcome.InProgress,
+        };
+
+        var session = new GameSession();
+        session.AdoptRunStep(
+            new EndActivationCommand(new UnitId(0)),
+            state,
+            new StepResult(state, Array.Empty<GameEvent>(), Game.LegalCommands(state)));
+
+        session.Select(fisher);
+        return session;
+    }
+
+    [Fact]
+    public void NothingIsHighlightedUntilCastIsArmed()
+    {
+        var session = Fisher(out _, out _);
+
+        Assert.False(session.AimingCast);
+        Assert.Empty(session.CastGrabTiles);
+        Assert.Empty(session.CastLandings);
+    }
+
+    [Fact]
+    public void ArmingShowsTheGrabTargets_AndNoLandingsYet()
+    {
+        var session = Fisher(out var fisher, out var husk);
+        session.ToggleCast();
+
+        Assert.True(session.AimingCast);
+        Assert.Contains(session.State.UnitById(husk).Position, session.CastGrabTiles);
+        Assert.Empty(session.CastLandings);
+
+        // The far Husk is out of grab range, so it is not offered.
+        Assert.DoesNotContain(new Coord(8, 2), session.CastGrabTiles);
+    }
+
+    [Fact]
+    public void PickingTheTarget_SwapsToTheLandingTiles()
+    {
+        var session = Fisher(out var fisher, out var husk);
+        session.ToggleCast();
+        session.AimCastAt(husk);
+
+        Assert.Empty(session.CastGrabTiles);
+        Assert.NotEmpty(session.CastLandings);
+
+        // Her four orthogonal tiles, minus the one the Husk is standing on being fine to reuse.
+        Assert.All(
+            session.CastLandings.Keys,
+            tile => Assert.Equal(1, session.State.UnitById(fisher).Position.DistanceTo(tile)));
+    }
+
+    [Fact]
+    public void EveryLandingSaysWhatItDoes()
+    {
+        var session = Fisher(out _, out var husk);
+        session.ToggleCast();
+        session.AimCastAt(husk);
+
+        Assert.Equal("drain", PlaytestText.CastOutcome(session.State, new Coord(1, 1)));
+        Assert.Equal(
+            "spikes " + Displacement.SpikeDamage,
+            PlaytestText.CastOutcome(session.State, new Coord(3, 1)));
+        Assert.Equal("open", PlaytestText.CastOutcome(session.State, new Coord(2, 2)));
+    }
+
+    [Fact]
+    public void SubmittingALanding_ThrowsAndPutsTheAimingAway()
+    {
+        var session = Fisher(out _, out var husk);
+        session.ToggleCast();
+        session.AimCastAt(husk);
+
+        session.Submit(session.CastLandings[new Coord(1, 1)]);
+
+        Assert.True(session.State.UnitById(husk).Clinging);
+        Assert.False(session.AimingCast);
+        Assert.Null(session.CastTarget);
+    }
+
+    [Fact]
+    public void DisarmingPutsItAwayWithoutThrowing()
+    {
+        var session = Fisher(out _, out var husk);
+        var before = session.State.UnitById(husk).Position;
+
+        session.ToggleCast();
+        session.AimCastAt(husk);
+        session.ToggleCast();
+
+        Assert.False(session.AimingCast);
+        Assert.Null(session.CastTarget);
+        Assert.Equal(before, session.State.UnitById(husk).Position);
+    }
+}

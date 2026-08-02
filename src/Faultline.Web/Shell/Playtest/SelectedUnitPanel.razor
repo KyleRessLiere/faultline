@@ -59,11 +59,13 @@
                spend the rules would refuse. *@
             @if (Verve.SpendFor(unit.Kind) is { } spend)
             {
+                @* Cast aims — at an enemy, then at a tile — so its button arms rather than fires,
+                   like an ability. Every other spend commits on the press. *@
                 <button type="button"
-                        class="spend"
+                        class="spend @(Session.AimingCast ? "on" : string.Empty)"
                         disabled="@(!Session.CanSpendVerve)"
                         title="@Verve.DescriptionOf(spend)"
-                        @onclick="Session.SpendVerve">
+                        @onclick="@(spend == VerveSpend.Cast ? Session.ToggleCast : Session.SpendVerve)">
                     <span class="spend-name">@Verve.NameOf(spend)</span>
                     <span class="cost @(unit.Verve >= Verve.CostOf(spend) ? "afford" : string.Empty)"
                           title="@(Verve.CostOf(spend) + " " + Naming.Meter)">
@@ -71,6 +73,15 @@
                     </span>
                     <span class="spend-effect">@Verve.DescriptionOf(spend)</span>
                 </button>
+
+                @if (Session.AimingCast)
+                {
+                    <p class="rules">
+                        @(Session.CastTarget is null
+                            ? "Click an enemy within " + Throw.GrabRange + " tiles to pluck it."
+                            : "Click a tile beside you to set it down. Each says what it does.")
+                    </p>
+                }
             }
 
             <div class="actions">
