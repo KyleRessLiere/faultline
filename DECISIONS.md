@@ -78,15 +78,16 @@ in this file when the question comes back.
 | D-058 | [The Wardbearer's Hold aura is deleted, and the class gets two active abilities.](#d-058-the-wardbearers-hold-aura-is-deleted-and-the-class-gets-two-active-abilities) | 2026-08-02 |  |
 | D-059 | [Guard Stance is the bodyguard-intercept step, built early.](#d-059-guard-stance-is-the-bodyguard-intercept-step-built-early) | 2026-08-02 |  |
 | D-060 | [A structure takes 1 from any attack, full damage from any collision, and collisions into it are source-blind.](#d-060-a-structure-takes-1-from-any-attack-full-damage-from-any-collision-and-collisions-into-it-are-source-blind) | 2026-08-02 |  |
-| D-061 | [Guard Stance re-aims the blow, not the plan.](#d-061-guard-stance-re-aims-the-blow-not-the-plan) | unreleased |  |
-| D-062 | [A clinging guard guards nobody.](#d-062-a-clinging-guard-guards-nobody) | unreleased |  |
-| D-063 | [Spear Thrust is a shape, not a ray-cast.](#d-063-spear-thrust-is-a-shape-not-a-ray-cast) | unreleased |  |
-| D-064 | [`AbilityDescriptor` is one-to-many per class, and the Wardbearer is why.](#d-064-abilitydescriptor-is-one-to-many-per-class-and-the-wardbearer-is-why) | unreleased |  |
-| D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | unreleased |  |
-| D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | unreleased |  |
-| D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | unreleased |  |
+| D-061 | [Guard Stance re-aims the blow, not the plan.](#d-061-guard-stance-re-aims-the-blow-not-the-plan) | 2026-08-02 |  |
+| D-062 | [A clinging guard guards nobody.](#d-062-a-clinging-guard-guards-nobody) | 2026-08-02 |  |
+| D-063 | [Spear Thrust is a shape, not a ray-cast.](#d-063-spear-thrust-is-a-shape-not-a-ray-cast) | 2026-08-02 |  |
+| D-064 | [`AbilityDescriptor` is one-to-many per class, and the Wardbearer is why.](#d-064-abilitydescriptor-is-one-to-many-per-class-and-the-wardbearer-is-why) | 2026-08-02 |  |
+| D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | 2026-08-02 |  |
+| D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | 2026-08-02 |  |
+| D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | 2026-08-02 |  |
+| D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | unreleased |  |
 
-**66 rulings.**
+**67 rulings.**
 
 <!-- toc:end -->
 ---
@@ -658,3 +659,34 @@ The clause was widened to "every enemy left is holding **or** has no attack". Th
 unchanged — nothing left alive can end this fight — but the second shape is new and this is a
 weakening, recorded as one rather than slipped in. **The honest fix is a turn limit on hz-08**, which
 is a board change; it is queued with the dead-round board work.
+
+**D-068 — Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no
+displacement at all.**
+Supersedes D-058's Spear Thrust clause in full — Line 2, 1 damage and Push 1 to each, far target
+resolved first. **D-058's Guard Stance half is untouched.**
+
+What forced it: the far-first ordering rule existed to make exactly one interaction work — the near
+target following into the tile the far one vacated — and paid for it with a rule that had to be
+stated, telegraphed, previewed and tested everywhere the ability appeared. Two shoves a turn also
+handed the best displacement in the game to the class built around *holding a line*, which is the
+Vanguard's job. Front-loaded damage says the same thing about reach with no ordering rule at all:
+the tile you are standing next to is the dangerous one.
+
+**Rejected:** keeping the push and dropping only the ordering — near-first with both targets shoved
+turns every double hit into a collision chain the player did not ask for, making the ability *more*
+violent rather than less. And keeping the ordering as a tiebreak "in case it matters later": with no
+displacement it cannot matter, and a rule kept for a hypothetical is one nobody can delete
+afterwards. Resolution runs near tile then far because that is how the ability reads, and the code
+says in a comment that the order is not load-bearing.
+
+`AbilityDescriptor` gains `TileDamage`, an explicit per-tile list, rather than a falloff derived from
+`Damage` — a line that deals 2 then 1 is a pair of numbers, not a formula. D-063 stands unchanged: a
+Line is still a shape and not a ray-cast, so nothing occludes it. This ruling changes what the shape
+delivers, not what it covers.
+
+**The attack clause of D-060 is implemented here**, because the line was the first attack that could
+land on a structure. An attack takes exactly 1 off any structure, Protect or Destroy, applied in
+`Objectives.Damage` where a structure's hit points are subtracted — so no weapon routes around it.
+`Structure.IsAttackable` is gone, replaced by `IsSiegeTarget`, which means only *whose objective the
+thing is*: it is what still stops an enemy clawing the pillar the players were sent to destroy.
+Multi-tile structures and source-blind collisions are still to come.

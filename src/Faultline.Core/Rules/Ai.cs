@@ -1028,15 +1028,15 @@ namespace Faultline.Core
             return false;
         }
 
-        // The tiles a Raider is here for: standing Protect structures. "Attackable" is the same test
-        // Objectives.Besiege runs, so the thing it walks toward is exactly the thing it can hurt when
-        // it gets there — a Destroy structure takes collision damage only and is not a Raider's business.
+        // The tiles a Raider is here for: standing Protect structures. The same test Objectives.Besiege
+        // runs, so the thing it walks toward is exactly the thing it claws when it gets there — a
+        // Destroy structure is the players' problem to bring down and is not a Raider's business.
         private static List<Coord> SiegeTiles(GameState state)
         {
             var tiles = new List<Coord>();
             foreach (var structure in state.Structures)
             {
-                if (structure.IsStanding && structure.IsAttackable)
+                if (structure.IsStanding && structure.IsSiegeTarget)
                 {
                     tiles.Add(structure.At);
                 }

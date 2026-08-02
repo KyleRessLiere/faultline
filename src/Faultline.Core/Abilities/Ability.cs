@@ -13,8 +13,8 @@ namespace Faultline.Core
         Reel = 2,
 
         /// <summary>
-        /// Wardbearer: a two-tile line ahead, 1 damage and Push 1 to every enemy on it, far target
-        /// first (D-058).
+        /// Wardbearer: a two-tile line ahead, 2 damage to the adjacent tile and 1 to the tile beyond
+        /// it. Damage only — it displaces nothing (D-068).
         /// </summary>
         SpearThrust = 3,
 

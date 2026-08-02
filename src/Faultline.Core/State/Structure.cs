@@ -35,9 +35,15 @@ namespace Faultline.Core
         public bool IsStanding => Hp > 0;
 
         /// <summary>
-        /// True when an ordinary attack can hurt it. Brief §3, fight 4: a Destroy objective is
-        /// "immune to attacks — only collision damage from a unit slammed into it hurts it".
+        /// True when enemies claw at it: the altar a Protect objective told the players to hold.
         /// </summary>
-        public bool IsAttackable => Role == ObjectiveKind.Protect;
+        /// <remarks>
+        /// This is not an attackability rule. D-060 made every structure attackable — an attack takes
+        /// 1 off any of them, whatever the weapon and whoever swung — and superseded the brief's
+        /// "immune to attacks" clause along with the <c>IsAttackable</c> property that implemented it.
+        /// What is left is whose objective the thing is: the enemy besieges what the players defend,
+        /// and has no reason to help them bring down a structure they were sent to destroy.
+        /// </remarks>
+        public bool IsSiegeTarget => Role == ObjectiveKind.Protect;
     }
 }

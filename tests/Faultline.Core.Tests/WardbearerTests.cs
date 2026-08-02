@@ -91,8 +91,10 @@ public class WardbearerTests
 
     // ---- Spear Thrust ------------------------------------------------------------------
 
+    // The amendment: front-loaded damage and nothing else. 2 to the adjacent tile, 1 to the tile
+    // beyond it, no displacement anywhere.
     [Fact]
-    public void SpearThrust_HitsBothTilesAhead_ForOneDamageAndPushOneEach()
+    public void SpearThrust_HitsBothTilesAhead_ForTwoThenOne()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -106,16 +108,49 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(5, result.NewState.Get(near.Id).Hp);
+        Assert.Equal(4, result.NewState.Get(near.Id).Hp);
         Assert.Equal(5, result.NewState.Get(far.Id).Hp);
-        Assert.Equal(new Coord(2, 0), result.NewState.Get(near.Id).Position);
-        Assert.Equal(new Coord(3, 0), result.NewState.Get(far.Id).Position);
     }
 
-    // The rule the resolution order exists for: the far target vacates its tile before the near one
-    // is shoved, so the near one walks into it instead of slamming into it.
     [Fact]
-    public void SpearThrust_ResolvesTheFarTargetFirst_SoTheNearOneFollowsIntoTheTileItLeft()
+    public void SpearThrust_WithOnlyTheAdjacentTileOccupied_DealsTwo()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
+
+        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
+    }
+
+    [Fact]
+    public void SpearThrust_WithOnlyTheFarTileOccupied_DealsOne()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
+
+        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(1, result.Single<UnitAttacked>().Damage);
+    }
+
+    // The withdrawn design pushed both targets and made the far one resolve first so the near one
+    // could follow it. None of that exists: the thrust moves nobody, so there is no order to get
+    // wrong and no collision to chain.
+    [Fact]
+    public void SpearThrust_DisplacesNobody_BothTargetsStandWhereTheyStood()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -124,23 +159,21 @@ public class WardbearerTests
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
+        var near = state.Units[1];
         var far = state.Units[2];
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        // Near-first would have shoved the near Husk into the far one for 2 apiece.
+        Assert.Empty(result.All<UnitPushed>());
         Assert.False(result.Has<Collision>());
-
-        // And the far target's shove is reported before the near target's.
-        var pushes = result.All<UnitPushed>();
-        Assert.Equal(2, pushes.Count);
-        Assert.Equal(far.Id, pushes[0].UnitId);
+        Assert.False(result.Has<Staggered>());
+        Assert.Equal(new Coord(1, 0), result.NewState.Get(near.Id).Position);
+        Assert.Equal(new Coord(2, 0), result.NewState.Get(far.Id).Position);
     }
 
-    // The other half of the same rule: a far target that could not move is the wall the near one
-    // collides with.
+    // A wall behind the far target used to be the second collision in a chain. Now it is furniture.
     [Fact]
-    public void SpearThrust_WhenTheFarTargetIsBlocked_TheNearOneCollidesIntoIt()
+    public void SpearThrust_WithNowhereForTheTargetsToGo_StillJustDealsItsDamage()
     {
         var state = BoardBuilder.Rows("...#")
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -154,34 +187,103 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        // Far: 1 from the thrust, 2 into the wall. Near: 1 from the thrust, 2 into the far Husk,
-        // which takes another 2 for being collided with.
-        Assert.Equal(new Coord(2, 0), result.NewState.Get(far.Id).Position);
-        Assert.Equal(new Coord(1, 0), result.NewState.Get(near.Id).Position);
-        Assert.Equal(1, result.NewState.Get(far.Id).Hp);
-        Assert.Equal(3, result.NewState.Get(near.Id).Hp);
-        Assert.Equal(2, result.All<Collision>().Count);
-        Assert.True(result.NewState.Get(near.Id).Staggered);
-        Assert.True(result.NewState.Get(far.Id).Staggered);
+        Assert.Equal(4, result.NewState.Get(near.Id).Hp);
+        Assert.Equal(5, result.NewState.Get(far.Id).Hp);
+        Assert.False(result.Has<Collision>());
+        Assert.False(result.NewState.Get(near.Id).Staggered);
+        Assert.False(result.NewState.Get(far.Id).Staggered);
     }
 
+    // Near tile first, far tile second — the order it reads in, and nothing hangs on it.
     [Fact]
-    public void SpearThrust_KillsTheFarTarget_AndTheNearOneTakesItsTile()
+    public void SpearThrust_ReportsTheNearTileFirst_WithThePerTileAmounts()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Runt, 2, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
         var near = state.Units[1];
+        var far = state.Units[2];
+
+        var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
+
+        var attacks = result.All<UnitAttacked>();
+        Assert.Equal(2, attacks.Count);
+        Assert.Equal(near.Id, attacks[0].TargetId);
+        Assert.Equal(2, attacks[0].Damage);
+        Assert.Equal(far.Id, attacks[1].TargetId);
+        Assert.Equal(1, attacks[1].Damage);
+    }
+
+    [Fact]
+    public void SpearThrust_ThatKillsTheAdjacentTarget_StillHitsTheTileBeyond()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Runt, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
         var runt = state.Find(UnitKind.Runt);
+        var husk = state.Find(UnitKind.Husk);
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
         Assert.False(result.NewState.Get(runt.Id).IsOnBoard);
-        Assert.Equal(new Coord(2, 0), result.NewState.Get(near.Id).Position);
+        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+    }
+
+    // D-060: an attack chips a structure for 1, whatever the weapon — so the 2 the adjacent tile
+    // would deal a body lands on a structure as 1, through the shared structure-damage path.
+    [Fact]
+    public void SpearThrust_AgainstAProtectStructure_ChipsItForOne()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 6, 0)
+            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(1, 0))
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+
+        // A line with only a structure on it still does something, so it is still offered.
+        Assert.Contains(
+            Direction.Right,
+            Abilities.LegalLines(state, wardbearer, Abilities.DescriptorFor(wardbearer, Ability.SpearThrust)));
+
+        var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
+
+        var attacked = result.Single<StructureAttacked>();
+        Assert.Equal(wardbearer.Id, attacked.AttackerId);
+        Assert.Equal(new Coord(1, 0), attacked.At);
+        Assert.Equal(1, attacked.Damage);
+
+        var damaged = result.Single<StructureDamaged>();
+        Assert.Equal(1, damaged.Amount);
+        Assert.Equal(DamageSource.Attack, damaged.Source);
+        Assert.Equal(5, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
+    }
+
+    // D-060 supersedes the brief's "immune to attacks" clause: a Destroy structure chips for 1 too.
+    [Fact]
+    public void SpearThrust_AgainstADestroyStructure_ChipsItForOneToo()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 6, 0)
+            .Objective(ObjectiveKind.Destroy, hp: 8, tiles: new Coord(1, 0))
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+
+        var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
+
+        Assert.Equal(1, result.Single<StructureDamaged>().Amount);
+        Assert.Equal(7, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
     }
 
     [Fact]
@@ -220,7 +322,7 @@ public class WardbearerTests
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
         Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
-        Assert.Equal(new Coord(3, 0), result.NewState.Get(husk.Id).Position);
+        Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
     }
 
     [Fact]
@@ -242,7 +344,9 @@ public class WardbearerTests
     [Fact]
     public void SpearThrust_CostsTheActionOnly_SoTheWardbearerMayStillMove()
     {
-        var state = BoardBuilder.Open(8, 1)
+        // Two rows, because the thrust no longer shoves the Husk out of the way and a one-row board
+        // would leave the Wardbearer walled in by the enemy it just hit.
+        var state = BoardBuilder.Open(8, 2)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 1, 0, hp: 6)
             .Build();
@@ -260,7 +364,7 @@ public class WardbearerTests
     [Fact]
     public void SpearThrust_Preview_MatchesWhatResolveActuallyDoes()
     {
-        var state = BoardBuilder.Rows("...#")
+        var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 1, 0, hp: 6)
             .Enemy(UnitKind.Husk, 2, 0, hp: 6)
@@ -268,14 +372,38 @@ public class WardbearerTests
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
 
-        var previews = Abilities.PreviewLine(state, wardbearer, Direction.Right);
+        var hits = Abilities.PreviewLine(state, wardbearer, Direction.Right);
         var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(2, previews.Count);
-        foreach (var preview in previews)
+        Assert.Equal(new[] { 2, 1 }, hits.Select(h => h.Damage));
+        Assert.Equal(new[] { new Coord(1, 0), new Coord(2, 0) }, hits.Select(h => h.At));
+
+        foreach (var hit in hits)
         {
-            Assert.Equal(preview.Destination, after.Get(preview.UnitId).Position);
+            var target = state.Get(hit.UnitId!.Value);
+            Assert.Equal(hit.Damage, target.Hp - after.Get(target.Id).Hp);
+            Assert.Equal(target.Position, after.Get(target.Id).Position);
         }
+    }
+
+    [Fact]
+    public void SpearThrust_Preview_ReportsAStructureAtTheOneItWillActuallyTake()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 6, 0)
+            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(1, 0))
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer);
+
+        var hit = Assert.Single(Abilities.PreviewLine(state, wardbearer, Direction.Right));
+        var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
+
+        Assert.True(hit.HitsStructure);
+        Assert.Null(hit.UnitId);
+        Assert.Equal(1, hit.Damage);
+        Assert.Equal(6 - hit.Damage, after.StructureAt(new Coord(1, 0))!.Hp);
     }
 
     // ---- activation economy ------------------------------------------------------------

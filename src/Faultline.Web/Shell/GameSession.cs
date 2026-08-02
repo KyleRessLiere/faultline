@@ -797,6 +797,30 @@ public sealed class GameSession
     {
         var descriptor = AbilityDescriptor.For(command.Ability);
 
+        // Two abilities are aimed by direction and they are nothing alike, so the shape decides —
+        // not the mere presence of a Direction, which used to render Spear Thrust as "Charge 3 to…".
+        if (descriptor.Targeting == AbilityTargeting.Line && command.Direction.HasValue)
+        {
+            var hits = Abilities.PreviewLine(State, unit, command.Direction.Value);
+            if (hits.Count == 0)
+            {
+                return descriptor.Name;
+            }
+
+            var parts = new List<string>(hits.Count);
+            foreach (var hit in hits)
+            {
+                var struck = hit.UnitId is null ? null : State.FindUnit(hit.UnitId.Value);
+                string who = struck is not null
+                    ? struck.Name
+                    : hit.HitsStructure ? "the structure" : hit.At.ToString();
+
+                parts.Add($"{hit.Damage} to {who}");
+            }
+
+            return string.Join(", ", parts);
+        }
+
         if (command.Direction.HasValue)
         {
             var charge = Abilities.PreviewCharge(State, unit, command.Direction.Value);

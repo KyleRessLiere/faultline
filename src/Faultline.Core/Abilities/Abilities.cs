@@ -151,8 +151,9 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Directions a Line ability would hit at least one enemy in. A line with nothing on it does
-        /// nothing, so it is never offered — the same rule Bull Rush follows.
+        /// Directions a Line ability would hit something in. A line with nothing on it does nothing,
+        /// so it is never offered — the same rule Bull Rush follows. A structure counts as something:
+        /// an attack chips it (D-060), so a line covering only a structure is still worth aiming.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
@@ -172,7 +173,7 @@ namespace Faultline.Core
 
             foreach (var direction in Directions.All)
             {
-                if (LineTargets(state, unit, direction, descriptor).Count > 0)
+                if (LineHits(state, unit, direction, descriptor).Count > 0)
                 {
                     directions.Add(direction);
                 }
@@ -216,31 +217,80 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// The enemies a Line ability would hit, <em>in resolution order — furthest first</em>. That
-        /// order is the rule: the far target moves before the near one, so the near one can follow it
-        /// into the tile it vacated, or collide into it when it did not move (D-058).
+        /// The enemies a Line ability would hit, nearest first. Order is presentation only — a Line
+        /// displaces nothing, so no target can affect another (D-068).
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
         /// <param name="direction">Direction to face.</param>
         /// <param name="descriptor">Ability being aimed.</param>
-        /// <returns>Target ids, furthest first.</returns>
+        /// <returns>Target ids, nearest first.</returns>
         public static IReadOnlyList<UnitId> LineTargets(
             GameState state, Unit unit, Direction direction, AbilityDescriptor? descriptor)
         {
-            var tiles = LineTiles(state, unit, direction, descriptor);
-            var targets = new List<UnitId>(tiles.Count);
+            var targets = new List<UnitId>();
 
-            for (int i = tiles.Count - 1; i >= 0; i--)
+            foreach (var hit in LineHits(state, unit, direction, descriptor))
             {
-                var occupant = state.UnitAt(tiles[i]);
-                if (occupant is not null && unit.Team.IsHostileTo(occupant.Team))
+                if (hit.UnitId is not null)
                 {
-                    targets.Add(occupant.Id);
+                    targets.Add(hit.UnitId.Value);
                 }
             }
 
             return targets;
+        }
+
+        /// <summary>
+        /// Everything a Line ability would hit and for how much, nearest tile first: the enemies on
+        /// its tiles and any objective structure standing on one.
+        /// </summary>
+        /// <remarks>
+        /// This is the whole ability. Resolution walks exactly this list, so a preview and a
+        /// resolution are the same projection read twice rather than two implementations of one rule.
+        /// A tile the line delivers nothing to produces no hit, and so does an empty or allied tile.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Acting unit.</param>
+        /// <param name="direction">Direction to face.</param>
+        /// <param name="descriptor">Ability being aimed.</param>
+        /// <returns>The projected hits, nearest first.</returns>
+        public static IReadOnlyList<LineHit> LineHits(
+            GameState state, Unit unit, Direction direction, AbilityDescriptor? descriptor)
+        {
+            var hits = new List<LineHit>();
+            if (descriptor is null || descriptor.Targeting != AbilityTargeting.Line)
+            {
+                return hits;
+            }
+
+            var tiles = LineTiles(state, unit, direction, descriptor);
+
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                int damage = descriptor.DamageOnTile(i);
+                if (damage <= 0)
+                {
+                    continue;
+                }
+
+                var occupant = state.UnitAt(tiles[i]);
+                if (occupant is not null && unit.Team.IsHostileTo(occupant.Team))
+                {
+                    hits.Add(new LineHit(tiles[i], damage, occupant.Id, false));
+                    continue;
+                }
+
+                // D-060: an attack takes 1 off a structure whatever the weapon, so the line reports
+                // the 1 it will actually deliver rather than the number it deals a body.
+                var structure = state.StructureAt(tiles[i]);
+                if (structure is not null && structure.IsStanding)
+                {
+                    hits.Add(new LineHit(tiles[i], Objectives.AttackDamageToStructure, null, true));
+                }
+            }
+
+            return hits;
         }
 
         /// <summary>
@@ -345,34 +395,16 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// What a Line ability would do, one projection per enemy hit, in resolution order. Each
-        /// projection is taken against the board as it will stand when that target's shove resolves,
-        /// so the near target's preview already accounts for the far one having moved or not.
+        /// What a Line ability would do: one hit per tile it damages, nearest first. Nothing moves,
+        /// so nothing needs projecting against a board that has already changed.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
         /// <param name="direction">Direction to face.</param>
-        /// <returns>The projected displacements, furthest target first.</returns>
-        public static IReadOnlyList<DisplacementPreview> PreviewLine(
-            GameState state, Unit unit, Direction direction)
-        {
-            var previews = new List<DisplacementPreview>();
-            var descriptor = DescriptorFor(unit, Ability.SpearThrust);
-            if (descriptor is null)
-            {
-                return previews;
-            }
-
-            var scratch = state;
-            var discarded = new List<GameEvent>();
-
-            foreach (var targetId in LineTargets(state, unit, direction, descriptor))
-            {
-                scratch = StepLineTarget(scratch, unit, targetId, descriptor, discarded, previews);
-            }
-
-            return previews;
-        }
+        /// <returns>The projected hits, nearest first.</returns>
+        public static IReadOnlyList<LineHit> PreviewLine(
+            GameState state, Unit unit, Direction direction) =>
+            LineHits(state, unit, direction, DescriptorFor(unit, Ability.SpearThrust));
 
         /// <summary>What a charge along a line would do.</summary>
         /// <param name="state">Current state.</param>
@@ -516,9 +548,10 @@ namespace Faultline.Core
             return state.WithUnit(guarding);
         }
 
-        // D-058: the far target resolves completely — damage, then shove — before the near one is
-        // touched at all. That is what lets the near target walk into the tile the far one left, and
-        // what turns a far target that could not move into the wall the near one collides with.
+        // D-068: a Line is damage and nothing else — it displaces nobody, so the far-first ordering
+        // rule the ability shipped with is gone rather than reversed. The near tile resolves first
+        // because that is how the ability reads; with nothing moving, the order is not load-bearing
+        // and no hit can change what another hit finds.
         private static GameState ResolveLine(
             GameState state,
             Unit unit,
@@ -526,62 +559,46 @@ namespace Faultline.Core
             AbilityDescriptor descriptor,
             List<GameEvent> events)
         {
-            foreach (var targetId in LineTargets(state, unit, direction, descriptor))
+            foreach (var hit in LineHits(state, unit, direction, descriptor))
             {
-                state = StepLineTarget(state, unit, targetId, descriptor, events, null);
+                state = StepLineHit(state, unit, hit, events);
             }
 
             return state;
         }
 
-        // One target of a Line ability: the damage, then the shove, from the user's own tile so the
-        // shove runs along the line. Shared by Resolve and Preview so the projection cannot drift
-        // from what actually happens.
-        private static GameState StepLineTarget(
-            GameState state,
-            Unit unit,
-            UnitId targetId,
-            AbilityDescriptor descriptor,
-            List<GameEvent> events,
-            List<DisplacementPreview>? previews)
+        // One tile of a Line ability. Everything on the tile goes through the shared damage path for
+        // its kind — Combat for a unit, Objectives for a structure — so a rule about what an attack
+        // does to a thing lives with that thing rather than being restated here.
+        private static GameState StepLineHit(
+            GameState state, Unit unit, LineHit hit, List<GameEvent> events)
         {
-            var target = state.FindUnit(targetId);
-            if (target is null || !target.IsOnBoard)
+            if (hit.UnitId is { } targetId)
             {
-                return state;
-            }
+                var target = state.FindUnit(targetId);
+                if (target is null || !target.IsOnBoard)
+                {
+                    return state;
+                }
 
-            if (descriptor.Damage > 0)
-            {
                 events.Add(new UnitAttacked(
                     unit.Id,
                     targetId,
                     unit.Position,
                     target.Position,
-                    Guard.Mitigate(state, targetId, descriptor.Damage, DamageSource.Attack),
+                    Guard.Mitigate(state, targetId, hit.Damage, DamageSource.Attack),
                     false));
 
-                state = Combat.ApplyDamage(state, targetId, descriptor.Damage, DamageSource.Attack, events);
-
-                if (!state.UnitById(targetId).IsOnBoard)
-                {
-                    return state;
-                }
+                return Combat.ApplyDamage(state, targetId, hit.Damage, DamageSource.Attack, events);
             }
 
-            if (descriptor.Push <= 0)
+            if (hit.HitsStructure)
             {
-                return state;
+                events.Add(new StructureAttacked(unit.Id, unit.Position, hit.At, hit.Damage));
+                return Objectives.Damage(state, hit.At, hit.Damage, DamageSource.Attack, events);
             }
 
-            if (previews is not null)
-            {
-                previews.Add(Displacement.PreviewAuto(
-                    state, targetId, unit.Position, DisplacementKind.Push, descriptor.Push));
-            }
-
-            return Displacement.ResolveAuto(
-                state, targetId, unit.Position, DisplacementKind.Push, descriptor.Push, events);
+            return state;
         }
 
         private static GameState ResolveCharge(

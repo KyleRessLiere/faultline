@@ -212,15 +212,23 @@ public class CuratedSetBoardTests
         }
     }
 
+    // D-060 replaced the gate's immunity with a chip: an attack takes 1 off it, a collision takes
+    // the full 2, so the board is the best answer to the gate rather than the only one.
     [Fact]
-    public void BreakTheGate_TheGateIgnoresAttacksAndOnlyCollisionsOpenIt()
+    public void BreakTheGate_TakesOneFromAnAttackAndTwoFromACollision()
     {
         var start = Game.Start(FightLibrary.ById("break-the-gate"), seed: 4242).NewState;
         var gate = start.Structures.Single();
 
         Assert.Equal(ObjectiveKind.Destroy, gate.Role);
         Assert.Equal(8, gate.MaxHp);
-        Assert.False(gate.IsAttackable);
+        Assert.False(gate.IsSiegeTarget);
+
+        var chipped = Objectives.Damage(start, gate.At, 2, DamageSource.Attack, new List<GameEvent>());
+        var slammed = Objectives.Damage(start, gate.At, 2, DamageSource.Collision, new List<GameEvent>());
+
+        Assert.Equal(gate.Hp - 1, chipped.StructureAt(gate.At)!.Hp);
+        Assert.Equal(gate.Hp - 2, slammed.StructureAt(gate.At)!.Hp);
     }
 
     [Fact]

@@ -14,6 +14,12 @@ namespace Faultline.Core
     public static class Objectives
     {
         /// <summary>
+        /// What an attack takes off a structure, whatever the weapon swung it (D-060). A collision is
+        /// unaffected and still lands in full, which is what keeps the board the better answer.
+        /// </summary>
+        public const int AttackDamageToStructure = 1;
+
+        /// <summary>
         /// Evaluates every ending the fight can currently reach and returns the state, completed when
         /// one fired.
         /// </summary>
@@ -151,6 +157,14 @@ namespace Faultline.Core
                 return state;
             }
 
+            // D-060: any attack chips a structure for exactly 1, whoever swung and with what. Applied
+            // here rather than at each call site because this is the one place a structure loses hit
+            // points, so no weapon can route around it — and no structure is immune to it either.
+            if (source == DamageSource.Attack)
+            {
+                amount = AttackDamageToStructure;
+            }
+
             int remaining = structure.Hp - amount;
             if (remaining < 0)
             {
@@ -202,13 +216,15 @@ namespace Faultline.Core
             {
                 var tile = unit.Position.Step(direction);
                 var structure = state.StructureAt(tile);
-                if (structure is null || !structure.IsAttackable)
+                if (structure is null || !structure.IsSiegeTarget)
                 {
                     continue;
                 }
 
-                events.Add(new StructureAttacked(unitId, unit.Position, tile, damage));
-                state = Damage(state, tile, damage, DamageSource.Attack, events);
+                // The claw is an attack, so it lands for 1 however hard the thing swinging hits
+                // (D-060). Reported at the amount it actually takes off, not the template's number.
+                events.Add(new StructureAttacked(unitId, unit.Position, tile, AttackDamageToStructure));
+                state = Damage(state, tile, AttackDamageToStructure, DamageSource.Attack, events);
             }
 
             return state;

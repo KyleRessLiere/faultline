@@ -141,7 +141,7 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
 | Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015). |
 | Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
 | Threadcaster | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. |
-| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2: 1 damage and Push 1 to each enemy in the two tiles ahead, **far target first** so the near one can follow into the vacated tile. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
+| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **1** to one in the tile beyond. Displaces nothing. Chips a structure on the line for 1 (D-068). **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|

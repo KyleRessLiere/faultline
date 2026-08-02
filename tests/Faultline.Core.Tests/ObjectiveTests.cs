@@ -233,7 +233,7 @@ public class ObjectiveTests
         Assert.Equal(6, structure.Hp);
         Assert.Equal(6, structure.MaxHp);
         Assert.Equal(ObjectiveKind.Protect, structure.Role);
-        Assert.True(structure.IsAttackable);
+        Assert.True(structure.IsSiegeTarget);
     }
 
     [Fact]
@@ -332,16 +332,46 @@ public class ObjectiveTests
 
     // ---- destroy <coords> -------------------------------------------------------------------
 
+    // Replaces Destroy_StructureIsNotAttackable, which asserted the immunity D-060 deleted. An
+    // attack chips any structure for exactly 1; what a Destroy structure is not is a siege target,
+    // which is about whose objective it is rather than about what can hurt it.
     [Fact]
-    public void Destroy_StructureIsNotAttackable()
+    public void Destroy_StructureTakesOneFromAnAttack_AndIsNoEnemysSiegeTarget()
     {
         var state = DestroyBoard();
 
         var structure = Assert.Single(state.Structures);
         Assert.Equal(ObjectiveKind.Destroy, structure.Role);
-        Assert.False(structure.IsAttackable);
+        Assert.False(structure.IsSiegeTarget);
+
+        var events = new List<GameEvent>();
+        var after = Objectives.Damage(state, structure.At, 3, DamageSource.Attack, events);
+
+        Assert.Equal(structure.Hp - 1, after.StructureAt(structure.At)!.Hp);
+        Assert.Equal(1, events.OfType<StructureDamaged>().Single().Amount);
     }
 
+    // D-060: whatever the weapon, an attack takes exactly 1 off a structure — the Anchor's 2 and the
+    // Husk's 1 chip it identically. Collisions are untouched by the rule and still do full damage.
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(5)]
+    public void Structure_TakesExactlyOneFromAnyAttack_AndFullDamageFromACollision(int dealt)
+    {
+        var state = ProtectBoard();
+        var at = new Coord(2, 0);
+        int hp = state.StructureAt(at)!.Hp;
+
+        var attacked = Objectives.Damage(state, at, dealt, DamageSource.Attack, new List<GameEvent>());
+        var slammed = Objectives.Damage(state, at, dealt, DamageSource.Collision, new List<GameEvent>());
+
+        Assert.Equal(hp - 1, attacked.StructureAt(at)!.Hp);
+        Assert.Equal(hp - dealt, slammed.StructureAt(at)!.Hp);
+    }
+
+    // Enemies claw at the thing the players are defending, and only at that. Not an immunity — see
+    // Destroy_StructureTakesOneFromAnAttack — but a statement about whose objective it is.
     [Fact]
     public void Destroy_AnEnemyStandingNextToItDoesNothingToIt()
     {

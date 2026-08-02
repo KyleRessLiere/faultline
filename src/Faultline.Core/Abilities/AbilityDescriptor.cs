@@ -32,12 +32,22 @@ namespace Faultline.Core
     {
         private static readonly AbilityDescriptor[] Empty = new AbilityDescriptor[0];
 
+        private static readonly int[] NoTileDamage = new int[0];
+
         private static readonly Dictionary<UnitKind, AbilityDescriptor[]> ByKind = Build();
 
         private static readonly UnitKind[] PlayerOrder =
         {
             UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
         };
+
+        /// <summary>
+        /// Damage per tile of a <see cref="AbilityTargeting.Line"/>, nearest tile first: index 0 is
+        /// the adjacent tile, index 1 the tile beyond it. Every value is authored explicitly — there
+        /// is no falloff rule derived from <see cref="Damage"/>, because a line that deals 2 then 1
+        /// is a pair of numbers and not a formula. Empty for every ability that is not a Line.
+        /// </summary>
+        public IReadOnlyList<int> TileDamage { get; init; } = NoTileDamage;
 
         /// <summary>Short effect line, e.g. "1 dmg · push 1".</summary>
         public string Effect
@@ -54,6 +64,11 @@ namespace Faultline.Core
                 if (Targeting == AbilityTargeting.Self)
                 {
                     parts.Add("stance");
+                }
+
+                if (TileDamage.Count > 0)
+                {
+                    parts.Add(string.Join("/", TileDamage) + " dmg");
                 }
 
                 if (Damage > 0)
@@ -79,6 +94,15 @@ namespace Faultline.Core
                 return parts.Count == 0 ? "—" : string.Join(" · ", parts);
             }
         }
+
+        /// <summary>
+        /// What this ability deals to one tile of its line, counted from the tile directly ahead of
+        /// the user. Zero for any tile the line does not damage.
+        /// </summary>
+        /// <param name="index">Tile index along the line, 0 for the adjacent tile.</param>
+        /// <returns>Hit points this ability delivers to that tile.</returns>
+        public int DamageOnTile(int index) =>
+            index >= 0 && index < TileDamage.Count ? TileDamage[index] : 0;
 
         /// <summary>
         /// The archetype's first ability, or <c>null</c> for enemies. An archetype may bring more than
@@ -170,10 +194,13 @@ namespace Faultline.Core
                         Ability.SpearThrust,
                         UnitKind.Wardbearer,
                         "Spear Thrust",
-                        "The two tiles directly ahead. Every enemy on them takes 1 damage and is pushed 1. "
-                        + "The far one resolves first, so the near one can follow into the tile it left.",
+                        "The two tiles directly ahead. An enemy in the adjacent tile takes 2 damage, "
+                        + "one in the tile beyond it takes 1. Nothing is displaced.",
                         AbilityTargeting.Line,
-                        2, 1, 1, false),
+                        2, 0, 0, false)
+                    {
+                        TileDamage = new[] { 2, 1 },
+                    },
 
                     new AbilityDescriptor(
                         Ability.GuardStance,
