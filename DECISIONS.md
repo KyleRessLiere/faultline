@@ -89,7 +89,7 @@ in this file when the question comes back.
 | D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | 2026-08-02 |  |
 | D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | 2026-08-02 |  |
 | D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | 2026-08-02 |  |
-| D-072 | [Every enemy priority list has a rescue slot, above the list and below a lethal.](#d-072-every-enemy-priority-list-has-a-rescue-slot-above-the-list-and-below-a-lethal) | unreleased |  |
+| D-072 | [Every enemy priority list has a rescue slot, above the list and below a lethal.](#d-072-every-enemy-priority-list-has-a-rescue-slot-above-the-list-and-below-a-lethal) | 2026-08-02 |  |
 
 **71 rulings.**
 
