@@ -75,11 +75,18 @@ in this file when the question comes back.
 | D-054 | [A run carries whole-unit identity, and binds it to roster slots by archetype.](#d-054-a-run-carries-whole-unit-identity-and-binds-it-to-roster-slots-by-archetype) | 2026-08-01 |  |
 | D-055 | [A finished board does not follow the run to the next node.](#d-055-a-finished-board-does-not-follow-the-run-to-the-next-node) | 2026-08-01 |  |
 | D-057 | [A displacement that moves nothing is still reported.](#d-057-a-displacement-that-moves-nothing-is-still-reported) | 2026-08-02 |  |
-| D-058 | [The Wardbearer's Hold aura is deleted, and the class gets two active abilities.](#d-058-the-wardbearers-hold-aura-is-deleted-and-the-class-gets-two-active-abilities) | unreleased |  |
-| D-059 | [Guard Stance is the bodyguard-intercept step, built early.](#d-059-guard-stance-is-the-bodyguard-intercept-step-built-early) | unreleased |  |
-| D-060 | [A structure takes 1 from any attack, full damage from any collision, and collisions into it are source-blind.](#d-060-a-structure-takes-1-from-any-attack-full-damage-from-any-collision-and-collisions-into-it-are-source-blind) | unreleased |  |
+| D-058 | [The Wardbearer's Hold aura is deleted, and the class gets two active abilities.](#d-058-the-wardbearers-hold-aura-is-deleted-and-the-class-gets-two-active-abilities) | 2026-08-02 |  |
+| D-059 | [Guard Stance is the bodyguard-intercept step, built early.](#d-059-guard-stance-is-the-bodyguard-intercept-step-built-early) | 2026-08-02 |  |
+| D-060 | [A structure takes 1 from any attack, full damage from any collision, and collisions into it are source-blind.](#d-060-a-structure-takes-1-from-any-attack-full-damage-from-any-collision-and-collisions-into-it-are-source-blind) | 2026-08-02 |  |
+| D-061 | [Guard Stance re-aims the blow, not the plan.](#d-061-guard-stance-re-aims-the-blow-not-the-plan) | unreleased |  |
+| D-062 | [A clinging guard guards nobody.](#d-062-a-clinging-guard-guards-nobody) | unreleased |  |
+| D-063 | [Spear Thrust is a shape, not a ray-cast.](#d-063-spear-thrust-is-a-shape-not-a-ray-cast) | unreleased |  |
+| D-064 | [`AbilityDescriptor` is one-to-many per class, and the Wardbearer is why.](#d-064-abilitydescriptor-is-one-to-many-per-class-and-the-wardbearer-is-why) | unreleased |  |
+| D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | unreleased |  |
+| D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | unreleased |  |
+| D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | unreleased |  |
 
-**59 rulings.**
+**66 rulings.**
 
 <!-- toc:end -->
 ---
@@ -591,3 +598,63 @@ is the *best* answer rather than the *only* one.
 Displacement has never asked whose unit it was moving (collision is 2 to both parties, whoever they
 belong to), and a structure that could tell friend from foe would be the first rule in the game that
 could.
+
+**D-061 — Guard Stance re-aims the blow, not the plan.**
+An enemy intent keeps naming the ally it targeted; `EnemyIntent.RedirectedTo` names the guard that
+will actually take it, and the intent's damage, direction, distance and destination all describe the
+guard. Changing `TargetId` instead would hand the target lock to the guard, and the enemy would then
+chase and try to reach a unit it may not be able to reach — the command it submits has to stay legal
+against the ally it is standing next to. `Ai.ReplanInvalidated` re-declares any un-activated enemy
+whose interceptor changed since it declared, gated behind an "is anything guarding at all" check so a
+board with no stance on it plans bit-identically to before.
+
+**Rejected:** swapping the target outright, for the reason above; and leaving the telegraph naming
+the ally with no hint of the redirect, which would make the arrow a lie — the one thing a telegraph
+must never be.
+
+**D-062 — A clinging guard guards nobody.**
+`Guard.Interceptor` skips a clinging unit. A unit hanging off a pit lip is not standing in front of
+anyone, and damage would void it rather than be absorbed by it. Not specified by the ruling; decided
+here because it is what makes **shove the guard into the pit first** a real answer to the stance
+rather than a cosmetic one. The counterplay to a bodyguard should be positional, and this is the
+rule that makes it so.
+
+**D-063 — Spear Thrust is a shape, not a ray-cast.**
+`AbilityTargeting.Line` covers the fixed run of tiles ahead and nothing occludes it: a wall or a body
+on the near tile does not shield the far one. This follows D-010 (there is no line of sight) rather
+than contradicting it, and it is why no general Direct/Arcing system was built — a Line is two
+`Coord.Step` calls, and a shape that cannot be blocked needs no visibility model. Tested explicitly
+so the ruling is visible rather than an accident of implementation.
+
+**D-064 — `AbilityDescriptor` is one-to-many per class, and the Wardbearer is why.**
+The descriptor table was keyed one per `UnitKind`, which stopped being true the moment a class had
+two abilities. `ForKind` still returns the headline descriptor so nothing downstream broke; `AllForKind`
+is the new honest query. A class with one ability reads exactly as before.
+
+**D-065 — HELD: the Archer drops to 1 base damage and 2 from high ground.**
+Playtest reported the bow as *"very high damage while low risk of being hit"*, and
+`docs/PLAYTEST_FINDINGS.md` finding 5 confirms it is true **as the campaign is composed** — the only
+early ranged enemy is the Lobber at 1 damage, while the Perch (2 from high ground) exists and is not
+fielded.
+
+**Held, not implemented.** The unblocking condition is written down: field the Perch, then have a
+human play it. If the bow still dominates with a real counter on the board, the stat change is the
+answer; if it does not, the composition was the bug and changing the stat would have been a fix
+aimed at the wrong thing.
+
+**D-066 — HELD: the gate fallback — attacks in full, collisions doubled.**
+Plan B for D-060 if chipping structures for 1 makes `break-the-gate` a damage race after all.
+Unblocking condition: the rebuilt gate is played and the shove-scoring harness policy shows attacks
+alone clearing it comfortably faster than the turn limit, rather than measurably slower and bloodier
+than shoving.
+
+**D-067 — `hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.**
+`EveryFight_RunsToAConclusion` allowed a non-terminating fight only when every surviving enemy was
+holding. Giving the Wardbearer active abilities changed what the harness's "first legal command"
+player does, and hz-08 now ends with a lone Grappler — which deals no damage at all — facing a
+Vanguard that walks and charges at nothing, on a board with no turn limit.
+
+The clause was widened to "every enemy left is holding **or** has no attack". The invariant is
+unchanged — nothing left alive can end this fight — but the second shape is new and this is a
+weakening, recorded as one rather than slipped in. **The honest fix is a turn limit on hz-08**, which
+is a board change; it is queued with the dead-round board work.

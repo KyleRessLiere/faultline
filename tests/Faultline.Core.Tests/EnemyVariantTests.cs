@@ -964,13 +964,17 @@ public class EnemyVariantTests
         Assert.Equal(expected, UnitTemplate.For(kind).PushResistance);
     }
 
+    // Changed by D-058. It used to assert the Wardbearer and the Bulwark shared the flag; the
+    // Wardbearer's aura is deleted and the Bulwark's is not, so the flag now belongs to exactly one
+    // archetype in the whole game. The mechanism is still a number on the stat block (D-031) — that
+    // is what is being pinned, not the aura's popularity.
     [Fact]
-    public void HoldAura_IsAFlagOnTheStatBlock_SharedByTheWardbearerAndTheBulwark()
+    public void HoldAura_IsAFlagOnTheStatBlock_AndOnlyTheBulwarkCarriesItNow()
     {
-        Assert.True(UnitTemplate.For(UnitKind.Wardbearer).HoldAura);
+        Assert.False(UnitTemplate.For(UnitKind.Wardbearer).HoldAura);
         Assert.True(UnitTemplate.For(UnitKind.Bulwark).HoldAura);
 
-        foreach (var kind in EnemyBehaviour.EnemyKinds)
+        foreach (UnitKind kind in Enum.GetValues(typeof(UnitKind)))
         {
             if (kind == UnitKind.Bulwark)
             {

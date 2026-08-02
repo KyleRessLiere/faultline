@@ -85,6 +85,27 @@ aura or a negating token reduces a shove to zero — or a wall or a body is alre
 a result, and often the interesting one: it is what turns the Archer's push into a collision that
 kills two Husks instead of moving one.
 
+### Guard Stance — standing in front of someone
+
+The Wardbearer spends its **action half** to guard. Until its **next activation** — so it covers the
+enemy round that follows, not just the rest of this one — damage and displacement aimed at an
+**adjacent ally** land on the Wardbearer instead.
+
+- **The vector is preserved and re-aimed from the Wardbearer's own tile.** A Pull 2 east on an ally
+  one row away drags the *Wardbearer* two east along *its* row. It is a re-aim, not a copy.
+- **Its own push resistance 2 applies**, and its own Stagger, terrain and physics. A Push 1 at a
+  guarding Wardbearer moves it nowhere and is reported at distance 0 (D-057).
+- **Attack damage it takes — redirected or direct — is halved, rounded up, minimum 1.** Integer
+  arithmetic: 1→1, 2→1, 3→2, 4→2, 5→3, 6→3.
+- **Impact damage is never mitigated.** Collision, spikes and falls land in full. The board still
+  kills it.
+- **Redirects stack.** Two enemies hitting the covered ally in one round both land on the Wardbearer.
+- **It can die doing this** — staggered, shoved into a pit, voided. A **clinging** Wardbearer stops
+  guarding entirely (D-062), which is what makes *shove the guard into the pit first* the answer.
+
+Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage and travel the
+**Wardbearer** will take, while still naming the ally it targeted (D-061). The arrow never lies.
+
 ### Statuses
 
 - **Staggered** — from taking collision or spike damage. The *next* displacement against it travels
@@ -120,7 +141,7 @@ kills two Husks instead of moving one.
 | Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015). |
 | Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
 | Threadcaster | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. |
-| Wardbearer | 6 | 3 | melee, 1 dmg | **Hold** (passive) — adjacent **allies** cannot be displaced more than 1. Does not protect itself (D-019). |
+| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2: 1 damage and Push 1 to each enemy in the two tiles ahead, **far target first** so the near one can follow into the vacated tile. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|

@@ -111,6 +111,8 @@ namespace Faultline.Core
             Rescued => nameof(Rescued),
             Voided => nameof(Voided),
             FootingSpent => nameof(FootingSpent),
+            GuardStanceChanged => nameof(GuardStanceChanged),
+            GuardIntercepted => nameof(GuardIntercepted),
             FightWon => nameof(FightWon),
             FightLost => nameof(FightLost),
             ObjectiveDeclared => nameof(ObjectiveDeclared),
@@ -199,6 +201,15 @@ namespace Faultline.Core
 
             FootingSpent e => "digs in, " + Number(e.Remaining) + " footing left",
 
+            GuardStanceChanged e => e.Active
+                ? "takes guard stance at " + e.At + ", covering adjacent allies until its next activation"
+                : "drops guard stance at " + e.At,
+
+            GuardIntercepted e => "intercepts " + Actor(state, e.AttackerId)
+                + " for " + Actor(state, e.AllyId)
+                + " at " + e.AllyAt
+                + ", it lands on " + e.At + " instead",
+
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
             FightLost e => "fight " + Number(e.FightNumber) + " lost, " + Clean(e.Reason),
@@ -276,6 +287,8 @@ namespace Faultline.Core
             Rescued e => e.UnitId,
             Voided e => e.UnitId,
             FootingSpent e => e.UnitId,
+            GuardStanceChanged e => e.UnitId,
+            GuardIntercepted e => e.UnitId,
             StructureAttacked e => e.AttackerId,
             ReinforcementScheduled e => e.UnitId,
             ReinforcementArrived e => e.UnitId,
@@ -378,6 +391,11 @@ namespace Faultline.Core
                 {
                     text.Append(" to ").Append(intent.DisplacementTo.Value);
                 }
+            }
+
+            if (intent.RedirectedTo.HasValue)
+            {
+                text.Append(", intercepted by ").Append(Actor(state, intent.RedirectedTo.Value));
             }
 
             text.Append(", damage ").Append(Number(intent.Damage));

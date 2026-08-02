@@ -127,7 +127,7 @@ objective: survive 6             # win at the end of round 6 if anyone is still 
 objective: hold 4,3 4,4 for 7    # win at the end of round 7 if no enemy is on those tiles
 objective: reach 6,0             # win the moment a player unit stands there
 objective: protect 3,3 hp 6      # a 6 HP structure; lose if it falls. hp defaults to 6
-objective: destroy 2,3 hp 8      # an 8 HP structure, immune to attacks. hp defaults to 8
+objective: destroy 2,3 hp 8      # an 8 HP structure. Attacks chip it for 1; collisions hurt properly
 ```
 
 **Clearing the board always wins**, under every objective — an empty board cannot stop anything.
@@ -135,7 +135,10 @@ objective: destroy 2,3 hp 8      # an 8 HP structure, immune to attacks. hp defa
 ground in round 2 of a round-7 hold costs nothing, and only the deadline check judges it.
 
 A structure occupies its tile. Nothing walks onto it, and anything displaced into it collides — 2 to
-the unit and 2 to the structure. That is the only way to hurt a `destroy` structure. It also means
+the unit and 2 to the structure. **An ordinary attack chips a structure for 1 whatever the weapon;
+a collision does full damage** (D-060), so the board is the best answer rather than the only one. A
+collision into a structure is **source-blind** — a player unit slammed into it damages it exactly as
+an enemy does. It also means
 **shoving an enemy into the thing you are guarding damages the thing you are guarding.**
 
 ### Marking the structure

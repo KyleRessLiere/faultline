@@ -1600,13 +1600,13 @@ A...O...B
 > Retired: Near-identical board and enemy mix to `as-09-glass`, which states the same thesis harder.
 
 
-A brings two Vanguards, B brings two Archers. Nothing on the field caps displacement, and every Grappler on the board wants an Archer.
+A brings two Vanguards, B brings two Archers. Nothing on the field can stand in front of anyone, and every Grappler on the board wants an Archer.
 
 
 Asymmetry 3 — duplicate classes on both sides. Two Vanguards versus two Archers.
 
 
-No Wardbearer anywhere, so nothing caps displacement. No Threadcaster, so nothing pulls.
+No Wardbearer anywhere, so nobody can Guard Stance in front of an Archer. No Threadcaster, so nothing pulls.
 
 
 **Asks:** Is doubling a class the same as having two?
@@ -1637,13 +1637,13 @@ AAh.s.h
 `as-04-rope-and-shield`
 
 
-A gets a Threadcaster and a Wardbearer and almost no damage; B gets three attackers. A's job is to move the enemy, not to kill it.
+A gets a Threadcaster and a Wardbearer; B gets three attackers. A's job is to move the enemy and to stand in front of it, not to out-damage it.
 
 
 Asymmetry 4 — one player is pure support.
 
 
-A's whole roster is a rope and a shield: 2 damage a round between them. B's roster is the entire kill order.
+A's whole roster is a rope and a shield. The shield is now an action rather than an aura, so every round A chooses between Spear Thrust's 2 damage across two tiles and Guard Stance's cover — it cannot do both. B's roster is the entire kill order.
 
 
 **Asks:** Can a roster that cannot kill still win the fight?
@@ -1835,13 +1835,13 @@ A....H....B
 `as-09-glass`
 
 
-Two Archers and two Threadcasters, no front line and no Hold. Every unit dies to two hits and the Grappler picks Archers on purpose.
+Two Archers and two Threadcasters, and nobody who can stand in front of anyone. Every unit dies to two hits and the Grappler picks Archers on purpose.
 
 
 Asymmetry 9 — missing tools. No Vanguard and no Wardbearer anywhere.
 
 
-Four units, four HP each, sixteen hit points on the whole board. Nothing caps a displacement, nothing shoves 2, and there is no body to hide behind.
+Four units, four HP each, sixteen hit points on the whole board. Nothing shoves 2, and with no Wardbearer there is no Guard Stance and so no body to hide behind.
 
 
 **Asks:** Can a party with no front line hold spacing?
@@ -1875,13 +1875,13 @@ AAh...h
 > Retired: Its own writeup answers no and points at `as-04`. Four-versus-one is `as-01`'s question with less to do.
 
 
-A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to keep on the board.
+A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to stand in front of.
 
 
 Asymmetry 10 — the widest roster gap in the batch. Four units against one.
 
 
-Player B has a single Wardbearer whose only contribution is standing in the right place, and Hold only reaches one ally at a time.
+Player B has a single Wardbearer whose whole turn is choosing who to cover. Guard Stance reaches the adjacent ally only, so the choice is which one — and unlike the aura it replaced, the Wardbearer takes the blow itself, so it can be staggered, shoved into a pit and killed doing the job.
 
 
 **Asks:** Can one activation a round carry a player?

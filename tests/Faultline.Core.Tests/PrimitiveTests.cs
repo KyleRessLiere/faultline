@@ -121,7 +121,7 @@ public class PrimitiveTests
     [InlineData(UnitKind.Vanguard, 7, 3)]
     [InlineData(UnitKind.Archer, 4, 3)]
     [InlineData(UnitKind.Threadcaster, 4, 3)]
-    [InlineData(UnitKind.Wardbearer, 6, 3)]
+    [InlineData(UnitKind.Wardbearer, 7, 3)]
     [InlineData(UnitKind.Husk, 2, 3)]
     [InlineData(UnitKind.Lobber, 3, 2)]
     [InlineData(UnitKind.Anchor, 6, 1)]

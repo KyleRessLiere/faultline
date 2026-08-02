@@ -5,9 +5,9 @@
 id: as-04-rope-and-shield
 number: 404
 name: Rope and Shield
-description: A gets a Threadcaster and a Wardbearer and almost no damage; B gets three attackers. A's job is to move the enemy, not to kill it.
+description: A gets a Threadcaster and a Wardbearer; B gets three attackers. A's job is to move the enemy and to stand in front of it, not to out-damage it.
 design: Asymmetry 4 — one player is pure support.
-design: A's whole roster is a rope and a shield: 2 damage a round between them. B's roster is the entire kill order.
+design: A's whole roster is a rope and a shield. The shield is now an action rather than an aura, so every round A chooses between Spear Thrust's 2 damage across two tiles and Guard Stance's cover — it cannot do both. B's roster is the entire kill order.
 
 spawn h = Husk
 spawn l = Lobber

@@ -5,9 +5,9 @@
 id: as-09-glass
 number: 409
 name: Glass
-description: Two Archers and two Threadcasters, no front line and no Hold. Every unit dies to two hits and the Grappler picks Archers on purpose.
+description: Two Archers and two Threadcasters, and nobody who can stand in front of anyone. Every unit dies to two hits and the Grappler picks Archers on purpose.
 design: Asymmetry 9 — missing tools. No Vanguard and no Wardbearer anywhere.
-design: Four units, four HP each, sixteen hit points on the whole board. Nothing caps a displacement, nothing shoves 2, and there is no body to hide behind.
+design: Four units, four HP each, sixteen hit points on the whole board. Nothing shoves 2, and with no Wardbearer there is no Guard Stance and so no body to hide behind.
 
 spawn h = Husk
 spawn g = Grappler

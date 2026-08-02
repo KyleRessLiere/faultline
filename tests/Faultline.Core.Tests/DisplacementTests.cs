@@ -360,22 +360,26 @@ public class DisplacementTests
         Assert.Equal(new Coord(1, 0), after.Get(anchor.Id).Position);
     }
 
-    // --- Wardbearer Hold and Footing ---------------------------------------------------
+    // --- Hold auras and Footing ---------------------------------------------------------
+    //
+    // These three used to be arranged around a Wardbearer. D-058 deleted its aura, so the fixtures
+    // are now built around the Bulwark, which keeps it. The rules being asserted are unchanged: the
+    // cap is still 1, it still stacks with Footing down to 0, and it still only covers allies.
 
     [Fact]
     public void Hold_CapsAdjacentAllyDisplacementAtOne()
     {
         var state = BoardBuilder.Open(6, 1)
-            .PlayerA(UnitKind.Archer, 1, 0)
-            .PlayerB(UnitKind.Wardbearer, 2, 0)
-            .Enemy(UnitKind.Husk, 5, 0)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Bulwark, 2, 0)
             .Build();
 
-        var archer = state.Find(UnitKind.Archer);
-        Assert.True(Displacement.HasHold(state, state.Get(archer.Id)));
+        var husk = state.Find(UnitKind.Husk);
+        Assert.True(Displacement.HasHold(state, state.Get(husk.Id)));
 
         int distance = Displacement.EffectiveDistance(
-            state, state.Get(archer.Id), DisplacementKind.Push, 3, false, out _);
+            state, state.Get(husk.Id), DisplacementKind.Push, 3, false, out _);
 
         Assert.Equal(1, distance);
     }
@@ -383,30 +387,49 @@ public class DisplacementTests
     [Fact]
     public void Hold_AndFooting_StackDownToZero()
     {
-        // The Archer's token is granted by this fixture: Footing is scenario-granted, not automatic.
+        // The Husk's token is granted by this fixture: Footing is scenario-granted, not automatic.
         var state = BoardBuilder.Open(6, 1)
-            .PlayerA(UnitKind.Archer, 1, 0, footing: 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 1)
+            .Enemy(UnitKind.Bulwark, 2, 0)
+            .Build();
+
+        var husk = state.Get(state.Find(UnitKind.Husk).Id);
+
+        int distance = Displacement.EffectiveDistance(
+            state, husk, DisplacementKind.Push, 3, true, out _);
+
+        Assert.Equal(0, distance);
+    }
+
+    [Fact]
+    public void Hold_DoesNotProtectTheOtherSide()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Archer, 2, 0)
+            .Enemy(UnitKind.Bulwark, 3, 0)
+            .Build();
+
+        Assert.False(Displacement.HasHold(state, state.Find(UnitKind.Archer)));
+    }
+
+    // D-058: the Wardbearer used to carry the identical aura and no longer does. Standing next to
+    // one is now worth nothing at all to a shove — the protection it offers has to be declared.
+    [Fact]
+    public void Hold_TheWardbearerNoLongerConfersIt()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Archer, 1, 0)
             .PlayerB(UnitKind.Wardbearer, 2, 0)
             .Enemy(UnitKind.Husk, 5, 0)
             .Build();
 
         var archer = state.Get(state.Find(UnitKind.Archer).Id);
 
-        int distance = Displacement.EffectiveDistance(
-            state, archer, DisplacementKind.Push, 3, true, out _);
-
-        Assert.Equal(0, distance);
-    }
-
-    [Fact]
-    public void Hold_DoesNotProtectEnemies()
-    {
-        var state = BoardBuilder.Open(6, 1)
-            .PlayerB(UnitKind.Wardbearer, 2, 0)
-            .Enemy(UnitKind.Husk, 3, 0)
-            .Build();
-
-        Assert.False(Displacement.HasHold(state, state.Find(UnitKind.Husk)));
+        Assert.False(UnitTemplate.For(UnitKind.Wardbearer).HoldAura);
+        Assert.False(Displacement.HasHold(state, archer));
+        Assert.Equal(
+            3, Displacement.EffectiveDistance(state, archer, DisplacementKind.Push, 3, false, out _));
     }
 
     [Fact]

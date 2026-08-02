@@ -5,9 +5,9 @@
 id: as-10-bodyguard
 number: 410
 name: Bodyguard
-description: A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to keep on the board.
+description: A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to stand in front of.
 design: Asymmetry 10 — the widest roster gap in the batch. Four units against one.
-design: Player B has a single Wardbearer whose only contribution is standing in the right place, and Hold only reaches one ally at a time.
+design: Player B has a single Wardbearer whose whole turn is choosing who to cover. Guard Stance reaches the adjacent ally only, so the choice is which one — and unlike the aura it replaced, the Wardbearer takes the blow itself, so it can be staggered, shoved into a pit and killed doing the job.
 retired: Its own writeup answers no and points at `as-04`. Four-versus-one is `as-01`'s question with less to do.
 
 spawn h = Husk

@@ -12,7 +12,10 @@ namespace Faultline.Core
     /// <param name="Name">Display name.</param>
     /// <param name="Summary">One-line rules text.</param>
     /// <param name="Targeting">What the player must pick.</param>
-    /// <param name="Range">Reach in orthogonal steps; for Bull Rush, how far it charges.</param>
+    /// <param name="Range">
+    /// Reach in orthogonal steps; for Bull Rush, how far it charges; for a Line ability, how many
+    /// tiles ahead the line covers.
+    /// </param>
     /// <param name="Damage">Direct damage, before any collision or hazard the displacement causes.</param>
     /// <param name="Push">Push distance applied to the target, zero when it does not push.</param>
     /// <param name="PullsToAdjacent">True when it pulls the target all the way in.</param>
@@ -27,7 +30,14 @@ namespace Faultline.Core
         int Push,
         bool PullsToAdjacent)
     {
-        private static readonly Dictionary<UnitKind, AbilityDescriptor> ByKind = Build();
+        private static readonly AbilityDescriptor[] Empty = new AbilityDescriptor[0];
+
+        private static readonly Dictionary<UnitKind, AbilityDescriptor[]> ByKind = Build();
+
+        private static readonly UnitKind[] PlayerOrder =
+        {
+            UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
+        };
 
         /// <summary>Short effect line, e.g. "1 dmg · push 1".</summary>
         public string Effect
@@ -35,6 +45,17 @@ namespace Faultline.Core
             get
             {
                 var parts = new List<string>();
+
+                if (Targeting == AbilityTargeting.Line)
+                {
+                    parts.Add("line " + Range);
+                }
+
+                if (Targeting == AbilityTargeting.Self)
+                {
+                    parts.Add("stance");
+                }
+
                 if (Damage > 0)
                 {
                     parts.Add(Damage + " dmg");
@@ -59,22 +80,35 @@ namespace Faultline.Core
             }
         }
 
-        /// <summary>The ability belonging to an archetype, or <c>null</c> for enemies.</summary>
+        /// <summary>
+        /// The archetype's first ability, or <c>null</c> for enemies. An archetype may bring more than
+        /// one — see <see cref="AllForKind"/>; this is the one a shell reaches for when it wants a
+        /// single headline.
+        /// </summary>
         /// <param name="kind">Archetype to look up.</param>
-        /// <returns>Its ability descriptor, or <c>null</c>.</returns>
+        /// <returns>Its first ability descriptor, or <c>null</c>.</returns>
         public static AbilityDescriptor? ForKind(UnitKind kind) =>
-            ByKind.TryGetValue(kind, out var descriptor) ? descriptor : null;
+            ByKind.TryGetValue(kind, out var descriptors) && descriptors.Length > 0 ? descriptors[0] : null;
+
+        /// <summary>Every ability an archetype brings, in the order it should be offered.</summary>
+        /// <param name="kind">Archetype to look up.</param>
+        /// <returns>Its abilities; empty for enemies.</returns>
+        public static IReadOnlyList<AbilityDescriptor> AllForKind(UnitKind kind) =>
+            ByKind.TryGetValue(kind, out var descriptors) ? descriptors : Empty;
 
         /// <summary>Looks up a descriptor by ability.</summary>
         /// <param name="ability">Ability to look up.</param>
         /// <returns>Its descriptor.</returns>
         public static AbilityDescriptor For(Ability ability)
         {
-            foreach (var descriptor in ByKind.Values)
+            foreach (var kind in PlayerOrder)
             {
-                if (descriptor.Ability == ability)
+                foreach (var descriptor in ByKind[kind])
                 {
-                    return descriptor;
+                    if (descriptor.Ability == ability)
+                    {
+                        return descriptor;
+                    }
                 }
             }
 
@@ -85,49 +119,72 @@ namespace Faultline.Core
         /// <returns>All descriptors.</returns>
         public static IReadOnlyList<AbilityDescriptor> All()
         {
-            var all = new List<AbilityDescriptor>(ByKind.Count);
-            foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer })
+            var all = new List<AbilityDescriptor>();
+            foreach (var kind in PlayerOrder)
             {
-                all.Add(ByKind[kind]);
+                all.AddRange(ByKind[kind]);
             }
 
             return all;
         }
 
-        private static Dictionary<UnitKind, AbilityDescriptor> Build() =>
-            new Dictionary<UnitKind, AbilityDescriptor>
+        private static Dictionary<UnitKind, AbilityDescriptor[]> Build() =>
+            new Dictionary<UnitKind, AbilityDescriptor[]>
             {
-                [UnitKind.Vanguard] = new AbilityDescriptor(
-                    Ability.BullRush,
-                    UnitKind.Vanguard,
-                    "Bull Rush",
-                    "Charge up to 3 tiles in a straight line. The first enemy you reach is pushed 2 and you stop adjacent to it.",
-                    AbilityTargeting.Direction,
-                    3, 0, 2, false),
+                [UnitKind.Vanguard] = new[]
+                {
+                    new AbilityDescriptor(
+                        Ability.BullRush,
+                        UnitKind.Vanguard,
+                        "Bull Rush",
+                        "Charge up to 3 tiles in a straight line. The first enemy you reach is pushed 2 and you stop adjacent to it.",
+                        AbilityTargeting.Direction,
+                        3, 0, 2, false),
+                },
 
-                [UnitKind.Archer] = new AbilityDescriptor(
-                    Ability.StaggerShot,
-                    UnitKind.Archer,
-                    "Stagger Shot",
-                    "Range 3. Deals 1 damage and pushes the target 1 tile directly away from you.",
-                    AbilityTargeting.Enemy,
-                    3, 1, 1, false),
+                [UnitKind.Archer] = new[]
+                {
+                    new AbilityDescriptor(
+                        Ability.StaggerShot,
+                        UnitKind.Archer,
+                        "Stagger Shot",
+                        "Range 3. Deals 1 damage and pushes the target 1 tile directly away from you.",
+                        AbilityTargeting.Enemy,
+                        3, 1, 1, false),
+                },
 
-                [UnitKind.Threadcaster] = new AbilityDescriptor(
-                    Ability.Reel,
-                    UnitKind.Threadcaster,
-                    "Reel",
-                    "Range 3. Pulls one enemy all the way in until it is adjacent to you, resolving every tile on the way.",
-                    AbilityTargeting.Enemy,
-                    3, 0, 0, true),
+                [UnitKind.Threadcaster] = new[]
+                {
+                    new AbilityDescriptor(
+                        Ability.Reel,
+                        UnitKind.Threadcaster,
+                        "Reel",
+                        "Range 3. Pulls one enemy all the way in until it is adjacent to you, resolving every tile on the way.",
+                        AbilityTargeting.Enemy,
+                        3, 0, 0, true),
+                },
 
-                [UnitKind.Wardbearer] = new AbilityDescriptor(
-                    Ability.Hold,
-                    UnitKind.Wardbearer,
-                    "Hold",
-                    "Always on. Allies standing next to you cannot be displaced more than 1 tile.",
-                    AbilityTargeting.Passive,
-                    1, 0, 0, false),
+                [UnitKind.Wardbearer] = new[]
+                {
+                    new AbilityDescriptor(
+                        Ability.SpearThrust,
+                        UnitKind.Wardbearer,
+                        "Spear Thrust",
+                        "The two tiles directly ahead. Every enemy on them takes 1 damage and is pushed 1. "
+                        + "The far one resolves first, so the near one can follow into the tile it left.",
+                        AbilityTargeting.Line,
+                        2, 1, 1, false),
+
+                    new AbilityDescriptor(
+                        Ability.GuardStance,
+                        UnitKind.Wardbearer,
+                        "Guard Stance",
+                        "Costs the action only. Until your next activation, damage and displacement aimed at "
+                        + "adjacent allies land on you instead — same damage, same direction, from your tile — "
+                        + "and attack damage you take is halved, rounded up, minimum 1. Impact damage is never reduced.",
+                        AbilityTargeting.Self,
+                        1, 0, 0, false),
+                },
             };
     }
 }

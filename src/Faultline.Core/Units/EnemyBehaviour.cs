@@ -115,7 +115,7 @@ namespace Faultline.Core
                 UnitKind.Vanguard => "front line — closes and shoves",
                 UnitKind.Archer => "ranged damage, free climber",
                 UnitKind.Threadcaster => "hook — pulls the enemy line apart",
-                UnitKind.Wardbearer => "walking anchor for the units beside it",
+                UnitKind.Wardbearer => "bodyguard — steps in front of the units beside it",
                 _ => "unclassified",
             };
         }
@@ -370,8 +370,9 @@ namespace Faultline.Core
                     + "collision, not a hazard, so the Stalker looks elsewhere entirely.",
                     "Its step-2 search counts walls and the off-board edge as hazards, so on a walled board it "
                     + "nearly always has somewhere to be — even when no pit is in play.",
-                    $"Wardbearer Hold does not stop it. Hold caps displacement at 1 tile, and the Stalker's "
-                    + $"shove is exactly {stalker.BasicPush}.",
+                    $"A hold aura does not stop it. The aura caps displacement at 1 tile, and the Stalker's "
+                    + $"shove is exactly {stalker.BasicPush}. A {wardbearer.Name} in Guard Stance does stop "
+                    + "it — the shove lands on the guard's tile instead, and its push resistance eats it.",
                     $"{stalker.MaxHp} HP, and it never trades: it has no attack to retaliate with, so the only "
                     + "cost of ignoring it is the tile you are standing on.",
                 },
@@ -463,7 +464,7 @@ namespace Faultline.Core
 
             table[UnitKind.Bulwark] = new EnemyBehaviour(
                 UnitKind.Bulwark,
-                "the enemy Wardbearer",
+                "the hold aura, and the only thing that still carries one",
                 $"Hits for {bulwark.Damage} and is not worth killing for that. It is worth killing "
                 + "because every enemy standing next to it cannot be displaced more than 1 tile.",
                 Steps(
@@ -477,8 +478,9 @@ namespace Faultline.Core
                      + "protects, it tends to arrive as the anchor of a formation rather than ahead of one.")),
                 new[]
                 {
-                    $"The aura is the identical rule the {wardbearer.Name} carries: adjacent allies cap "
-                    + "at 1 tile of displacement, and it does not protect itself (D-019).",
+                    "Adjacent allies cap at 1 tile of displacement, and it does not protect itself "
+                    + $"(D-019). The {wardbearer.Name} used to carry the identical rule and no longer "
+                    + "does (D-058), so this is the only hold aura left in the game.",
                     "It reads as a direct answer to the best interaction in the game. A shove into "
                     + "another unit is 2 damage to both; next to a Bulwark, that shove travels 1 tile "
                     + "and often reaches nothing at all.",
@@ -663,8 +665,8 @@ namespace Faultline.Core
                     + "an oversight.",
                     "A hazard tile with a unit standing on it still does not count — that is an "
                     + "ordinary collision, and collisions are exactly what this variant gave up.",
-                    $"{wardbearer.Name} Hold still does not blunt it: Hold caps displacement above 1 "
-                    + $"tile and its shove is exactly {bluntedStalker.BasicPush}.",
+                    $"A hold aura still does not blunt it: the aura caps displacement above 1 tile and "
+                    + $"its shove is exactly {bluntedStalker.BasicPush}.",
                 },
                 new[]
                 {

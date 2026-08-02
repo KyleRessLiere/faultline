@@ -269,17 +269,33 @@ namespace Faultline.Core
                         }
                     }
 
-                    var descriptor = Abilities.Of(unit);
-                    if (descriptor is not null && Abilities.IsUsable(unit))
+                    // A unit may bring more than one ability and picks one per activation (D-058),
+                    // so every ability it has is offered, not just its headline.
+                    foreach (var descriptor in Abilities.AllOf(unit))
                     {
-                        foreach (var targetId in Abilities.LegalTargets(state, unit))
+                        if (!Abilities.IsUsable(unit, descriptor))
+                        {
+                            continue;
+                        }
+
+                        foreach (var targetId in Abilities.LegalTargets(state, unit, descriptor))
                         {
                             commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, targetId));
                         }
 
-                        foreach (var direction in Abilities.LegalDirections(state, unit))
+                        foreach (var direction in Abilities.LegalDirections(state, unit, descriptor))
                         {
                             commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, null, direction));
+                        }
+
+                        foreach (var direction in Abilities.LegalLines(state, unit, descriptor))
+                        {
+                            commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, null, direction));
+                        }
+
+                        if (descriptor.Targeting == AbilityTargeting.Self)
+                        {
+                            commands.Add(new AbilityCommand(unit.Id, descriptor.Ability));
                         }
                     }
                 }
@@ -519,8 +535,8 @@ namespace Faultline.Core
                 unit = state.UnitById(unit.Id);
                 state = state.WithUnit(unit with { HasActed = true });
 
-                state = Displacement.ResolveAuto(
-                    state, target.Id, unit.Position, DisplacementKind.Pull, unit.Template.BasicPull, events);
+                state = Redirected(
+                    state, unit, target, DisplacementKind.Pull, unit.Template.BasicPull, events);
 
                 return AfterAction(state, unit.Id, events);
             }
@@ -533,8 +549,8 @@ namespace Faultline.Core
                 unit = state.UnitById(unit.Id);
                 state = state.WithUnit(unit with { HasActed = true });
 
-                state = Displacement.ResolveAuto(
-                    state, target.Id, unit.Position, DisplacementKind.Push, unit.Template.BasicPush, events);
+                state = Redirected(
+                    state, unit, target, DisplacementKind.Push, unit.Template.BasicPush, events);
 
                 return AfterAction(state, unit.Id, events);
             }
@@ -545,25 +561,59 @@ namespace Faultline.Core
             unit = state.UnitById(unit.Id);
 
             state = state.WithUnit(unit with { HasActed = true });
+
+            // D-058: a guard standing next to the target eats the whole action — the damage and the
+            // shove that rides with it — and takes it on its own tile. Worked out once, before any of
+            // it lands, so damage and displacement cannot disagree about who they hit.
+            var guard = Guard.Interceptor(state, target);
+            var victimId = guard?.Id ?? target.Id;
+
+            if (guard is not null)
+            {
+                events.Add(new GuardIntercepted(
+                    guard.Id, target.Id, unit.Id, guard.Position, target.Position));
+            }
+
             events.Add(new UnitAttacked(
                 unit.Id,
-                target.Id,
+                victimId,
                 unit.Position,
-                target.Position,
-                damage,
+                state.UnitById(victimId).Position,
+                Guard.Mitigate(state, victimId, damage, DamageSource.Attack),
                 Combat.IsElevatedShot(state, unit)));
 
-            state = Combat.ApplyDamage(state, target.Id, damage, DamageSource.Attack, events);
+            state = Combat.ApplyDamage(state, victimId, damage, DamageSource.Attack, events);
 
             // Brief §2: the Vanguard's basic shove rides along with its damage.
             int push = unit.Template.AttackPush;
-            if (push > 0 && state.UnitById(target.Id).IsOnBoard)
+            if (push > 0 && state.UnitById(victimId).IsOnBoard)
             {
-                state = Displacement.ResolveAuto(
-                    state, target.Id, unit.Position, DisplacementKind.Push, push, events);
+                state = Guard.ResolveAimed(
+                    state, unit.Position, target, victimId, DisplacementKind.Push, push, events);
             }
 
             return AfterAction(state, unit.Id, events);
+        }
+
+        // A standalone displacement, routed through whichever guard is covering the target.
+        private static GameState Redirected(
+            GameState state,
+            Unit source,
+            Unit target,
+            DisplacementKind kind,
+            int distance,
+            List<GameEvent> events)
+        {
+            var guard = Guard.Interceptor(state, target);
+            if (guard is null)
+            {
+                return Displacement.ResolveAuto(state, target.Id, source.Position, kind, distance, events);
+            }
+
+            events.Add(new GuardIntercepted(
+                guard.Id, target.Id, source.Id, guard.Position, target.Position));
+
+            return Guard.ResolveAimed(state, source.Position, target, guard.Id, kind, distance, events);
         }
 
         private static GameState ApplyAbility(GameState state, AbilityCommand command, List<GameEvent> events)
@@ -571,23 +621,39 @@ namespace Faultline.Core
             var unit = RequireActivatable(state, command.UnitId);
             Require(!unit.HasActed, "Unit has already acted this activation.");
 
-            var descriptor = Abilities.Of(unit);
-            Require(descriptor is not null && descriptor.Ability == command.Ability, "That unit does not have that ability.");
-            Require(Abilities.IsUsable(unit), "That ability cannot be used.");
+            var descriptor = Abilities.DescriptorFor(unit, command.Ability);
+            Require(descriptor is not null, "That unit does not have that ability.");
+            Require(Abilities.IsUsable(unit, descriptor), "That ability cannot be used.");
 
-            if (descriptor!.Targeting == AbilityTargeting.Enemy)
+            switch (descriptor!.Targeting)
             {
-                Require(command.TargetId.HasValue, "That ability needs a target.");
-                Require(
-                    Contains(Abilities.LegalTargets(state, unit), command.TargetId!.Value),
-                    "Target is not legal for that ability.");
-            }
-            else
-            {
-                Require(command.Direction.HasValue, "That ability needs a direction.");
-                Require(
-                    Contains(Abilities.LegalDirections(state, unit), command.Direction!.Value),
-                    "That direction does nothing.");
+                case AbilityTargeting.Enemy:
+                    Require(command.TargetId.HasValue, "That ability needs a target.");
+                    Require(
+                        Contains(Abilities.LegalTargets(state, unit, descriptor), command.TargetId!.Value),
+                        "Target is not legal for that ability.");
+                    break;
+
+                case AbilityTargeting.Direction:
+                    Require(command.Direction.HasValue, "That ability needs a direction.");
+                    Require(
+                        Contains(Abilities.LegalDirections(state, unit, descriptor), command.Direction!.Value),
+                        "That direction does nothing.");
+                    break;
+
+                case AbilityTargeting.Line:
+                    Require(command.Direction.HasValue, "That ability needs a direction.");
+                    Require(
+                        Contains(Abilities.LegalLines(state, unit, descriptor), command.Direction!.Value),
+                        "That direction does nothing.");
+                    break;
+
+                case AbilityTargeting.Self:
+                    break;
+
+                default:
+                    Require(false, "That ability cannot be used.");
+                    break;
             }
 
             state = CommitActivation(state, unit, events);
@@ -672,6 +738,16 @@ namespace Faultline.Core
             }
 
             events.Add(new ActivationStarted(unit.Id, unit.Team));
+
+            // D-058: Guard Stance lasts "until the guard's next activation", which is here — the
+            // instant it takes the slot, before it has done anything with it. Not at end of round:
+            // the stance is declared on one activation to cover the enemy round that follows it.
+            if (unit.Guarding)
+            {
+                state = state.WithUnit(state.UnitById(unit.Id) with { Guarding = false });
+                events.Add(new GuardStanceChanged(unit.Id, unit.Position, false));
+            }
+
             return state with { ActiveUnitId = unit.Id };
         }
 

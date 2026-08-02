@@ -238,7 +238,7 @@ public class CombatLogTests
             new AttackCommand(new UnitId(2), new UnitId(5), AttackMode.Pull),
             new AbilityCommand(new UnitId(3), Ability.StaggerShot, new UnitId(6)),
             new AbilityCommand(new UnitId(3), Ability.BullRush, null, Direction.Left),
-            new AbilityCommand(new UnitId(3), Ability.Hold),
+            new AbilityCommand(new UnitId(3), Ability.GuardStance),
             new RescueCommand(new UnitId(0), new UnitId(1)),
             new FinishClingingCommand(new UnitId(0), new UnitId(7)),
             new EndActivationCommand(new UnitId(4)),

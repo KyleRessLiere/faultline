@@ -7,14 +7,32 @@ public class AbilityTests
 {
     // --- Descriptors ------------------------------------------------------------------
 
+    // Changed by D-058: the Wardbearer went from one passive ability to two active ones, so "exactly
+    // one each" is no longer the rule. Three classes bring one; the Wardbearer brings two.
     [Fact]
-    public void EveryPlayerClass_HasExactlyOneAbility()
+    public void EveryPlayerClass_HasAtLeastOneAbility_AndTheWardbearerHasTwo()
     {
-        Assert.Equal(4, AbilityDescriptor.All().Count);
+        Assert.Equal(5, AbilityDescriptor.All().Count);
         Assert.Equal(Ability.BullRush, AbilityDescriptor.ForKind(UnitKind.Vanguard)!.Ability);
         Assert.Equal(Ability.StaggerShot, AbilityDescriptor.ForKind(UnitKind.Archer)!.Ability);
         Assert.Equal(Ability.Reel, AbilityDescriptor.ForKind(UnitKind.Threadcaster)!.Ability);
-        Assert.Equal(Ability.Hold, AbilityDescriptor.ForKind(UnitKind.Wardbearer)!.Ability);
+
+        Assert.Equal(
+            new[] { Ability.SpearThrust, Ability.GuardStance },
+            AbilityDescriptor.AllForKind(UnitKind.Wardbearer).Select(d => d.Ability));
+
+        foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster })
+        {
+            Assert.Single(AbilityDescriptor.AllForKind(kind));
+        }
+    }
+
+    [Fact]
+    public void Wardbearer_NoLongerHasAPassiveAbilityAtAll()
+    {
+        Assert.All(
+            AbilityDescriptor.AllForKind(UnitKind.Wardbearer),
+            d => Assert.NotEqual(AbilityTargeting.Passive, d.Targeting));
     }
 
     [Fact]
@@ -39,11 +57,14 @@ public class AbilityTests
         Assert.Equal("1 dmg · push 1", AbilityDescriptor.For(Ability.StaggerShot).Effect);
         Assert.Equal("push 2", AbilityDescriptor.For(Ability.BullRush).Effect);
         Assert.Equal("pull to adjacent", AbilityDescriptor.For(Ability.Reel).Effect);
-        Assert.Equal("passive", AbilityDescriptor.For(Ability.Hold).Effect);
+        Assert.Equal("line 2 · 1 dmg · push 1", AbilityDescriptor.For(Ability.SpearThrust).Effect);
+        Assert.Equal("stance", AbilityDescriptor.For(Ability.GuardStance).Effect);
     }
 
+    // Replaces Hold_IsPassiveAndNeverOffered, which asserted a rule D-058 deleted. Same fixture,
+    // opposite expectation: the Wardbearer now always has something to spend its action on.
     [Fact]
-    public void Hold_IsPassiveAndNeverOffered()
+    public void Wardbearer_IsOfferedBothOfItsAbilities()
     {
         var state = BoardBuilder.Open(5, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
@@ -52,9 +73,15 @@ public class AbilityTests
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
 
-        Assert.False(Abilities.IsUsable(wardbearer));
-        Assert.Empty(Abilities.LegalTargets(state, wardbearer));
-        Assert.DoesNotContain(Game.LegalCommands(state), c => c is AbilityCommand);
+        Assert.True(Abilities.IsUsable(wardbearer));
+
+        var abilities = Game.LegalCommands(state)
+            .OfType<AbilityCommand>()
+            .Select(c => c.Ability)
+            .ToList();
+
+        Assert.Contains(Ability.SpearThrust, abilities);
+        Assert.Contains(Ability.GuardStance, abilities);
     }
 
     // --- Stagger Shot ------------------------------------------------------------------

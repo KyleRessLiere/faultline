@@ -277,15 +277,25 @@ public class EveryFightStillPlaysTests
             return;
         }
 
-        // A fight that does not end under passive play must be a genuine stand-off, not a rules bug:
-        // every enemy left has decided to do nothing, and players who never swing cannot break the
-        // tie. That is the AI's "else hold position" branch meeting a fight with no clock, which is
-        // pre-existing and is what turn limits exist to fix (ROADMAP.md "Enemies cannot be told to
-        // hold a position").
+        // A fight that does not end under this policy must be a genuine stand-off, not a rules bug:
+        // nothing left on the board is able to finish it, and the fight has no clock to finish it
+        // for them. That is the AI's "else hold position" branch meeting a fight with no clock,
+        // which is pre-existing and is what turn limits exist to fix (ROADMAP.md "Enemies cannot be
+        // told to hold a position").
+        //
+        // A stand-off takes two shapes, and the second was added when the Wardbearer's kit changed
+        // (D-058). Either every enemy left has decided to do nothing, or the only enemies left are
+        // ones that deal no damage at all — a lone Grappler against a Vanguard is a fight neither
+        // side can win, since the Grappler has no attack and the player policy here is "take the
+        // first legal command", which walks and charges rather than hunting. The assertion that
+        // matters is the same either way: no enemy left is capable of ending this.
         Assert.Equal(0, fight.LastRound());
         Assert.All(
             state.Units.Where(u => u.Team == Team.Enemy && u.IsOnBoard),
-            enemy => Assert.Equal(IntentAction.Hold, Ai.IntentFor(state, enemy.Id)?.Action));
+            enemy => Assert.True(
+                Ai.IntentFor(state, enemy.Id)?.Action == IntentAction.Hold
+                || enemy.Template.Attack == AttackKind.None,
+                $"{enemy.Kind} {enemy.Id} is neither holding nor harmless, so this is not a stand-off."));
     }
 
     [Theory]

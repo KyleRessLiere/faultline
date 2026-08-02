@@ -5,9 +5,9 @@
 id: as-03-fists-and-feathers
 number: 403
 name: Fists and Feathers
-description: A brings two Vanguards, B brings two Archers. Nothing on the field caps displacement, and every Grappler on the board wants an Archer.
+description: A brings two Vanguards, B brings two Archers. Nothing on the field can stand in front of anyone, and every Grappler on the board wants an Archer.
 design: Asymmetry 3 — duplicate classes on both sides. Two Vanguards versus two Archers.
-design: No Wardbearer anywhere, so nothing caps displacement. No Threadcaster, so nothing pulls.
+design: No Wardbearer anywhere, so nobody can Guard Stance in front of an Archer. No Threadcaster, so nothing pulls.
 retired: Near-identical board and enemy mix to `as-09-glass`, which states the same thesis harder.
 
 spawn h = Husk

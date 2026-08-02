@@ -31,11 +31,12 @@ namespace Faultline.Core
     /// </param>
     /// <param name="PushResistance">
     /// Tiles subtracted from every Push against this unit, before Hold and Footing (D-018). One for
-    /// the Anchor, two for the Colossus. Pull is never reduced.
+    /// the Anchor, two for the Colossus and the Wardbearer. Pull is never reduced.
     /// </param>
     /// <param name="HoldAura">
-    /// True when adjacent allies cannot be displaced more than 1 tile. The Wardbearer's Hold and the
-    /// Bulwark's are the same rule, read off this flag (D-019).
+    /// True when adjacent allies cannot be displaced more than 1 tile. Only the enemy Bulwark carries
+    /// it: the Wardbearer's copy was deleted with the rest of its old kit (D-058), but the mechanic
+    /// stays a flag on the stat block rather than an archetype check (D-031).
     /// </param>
     /// <param name="HazardRanks">
     /// How many tiers of the pit → spikes → wall/edge ladder a flanking shover will aim for: 3 takes
@@ -144,7 +145,10 @@ namespace Faultline.Core
                 new UnitTemplate(UnitKind.Vanguard, "Vanguard", 7, 3, AttackKind.Melee, 1, 1, 0, false, AttackPush: 1),
                 new UnitTemplate(UnitKind.Archer, "Archer", 4, 3, AttackKind.Ranged, 3, 2, 0, true),
                 new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 4, 3, AttackKind.Ranged, 3, 1, 0, false, BasicPull: 1),
-                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 6, 3, AttackKind.Melee, 1, 1, 0, false, HoldAura: true),
+                // D-058: the Wardbearer's hold aura is gone and it is heavier instead — 7 HP behind
+                // push resistance 2, the Colossus's number on a player class. The aura mechanic
+                // itself survives on the enemy Bulwark below.
+                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 7, 3, AttackKind.Melee, 1, 1, 0, false, PushResistance: 2),
 
                 // Brief §2: Enemies. Grappler and Stalker deal no damage at all — their whole action
                 // is the displacement their priority list calls for (Pull 2 at range 3; Push 1 in melee).

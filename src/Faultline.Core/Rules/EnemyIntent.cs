@@ -23,6 +23,12 @@ namespace Faultline.Core
     /// <param name="DisplacementDistance">Effective distance after Stagger, Hold, Anchor and Footing.</param>
     /// <param name="DisplacementTo">Tile the target would end on.</param>
     /// <param name="Damage">Damage the planned attack would deal, zero when it does not attack.</param>
+    /// <param name="RedirectedTo">
+    /// The guard that will actually take this, when an ally of the target is holding Guard Stance
+    /// beside it (D-058). The target is unchanged — it is still what the enemy chases and still what
+    /// locks the plan — but the damage, the direction, the distance and the destination on this
+    /// record all describe what happens to the guard, so the telegraph and the resolution agree.
+    /// </param>
     public sealed record EnemyIntent(
         UnitId UnitId,
         UnitKind Kind,
@@ -35,5 +41,6 @@ namespace Faultline.Core
         Direction? DisplacementDirection,
         int DisplacementDistance,
         Coord? DisplacementTo,
-        int Damage);
+        int Damage,
+        UnitId? RedirectedTo = null);
 }

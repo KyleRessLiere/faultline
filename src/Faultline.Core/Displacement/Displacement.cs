@@ -256,7 +256,7 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Distance after Stagger, Anchor immunity, Wardbearer Hold and Footing, applied in that order.
+        /// Distance after Stagger, push resistance, a hold aura and Footing, applied in that order.
         /// </summary>
         /// <remarks>
         /// Order matters and is pinned by Brief §4: the Stagger bonus lands before the Anchor check so
@@ -327,9 +327,10 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// True when a living ally carrying a hold aura stands next to this unit. Brief §2: allies
-        /// adjacent to a Wardbearer cannot be displaced more than 1 tile — and the aura is a flag on
-        /// the stat block, so the enemy Bulwark is the same rule rather than a second one.
+        /// True when a living ally carrying a hold aura stands next to this unit: an ally adjacent to
+        /// one cannot be displaced more than 1 tile. The aura is a flag on the stat block rather than
+        /// an archetype check (D-031), and since D-058 the enemy Bulwark is the only thing that
+        /// carries it — the Wardbearer's copy was deleted with the rest of its old kit.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="target">Unit to test.</param>

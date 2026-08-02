@@ -44,6 +44,14 @@ namespace Faultline.Core
         /// <summary>Staggered until end of round; the next displacement against it gains +1 (M2).</summary>
         public bool Staggered { get; init; }
 
+        /// <summary>
+        /// True while this unit is holding Guard Stance: damage and displacement aimed at adjacent
+        /// allies land on it instead, and attack damage it takes is halved, rounded up, minimum 1.
+        /// Set by <see cref="Ability.GuardStance"/> and cleared at the start of the unit's next
+        /// activation — not at end of round, which is the whole point of it (D-058).
+        /// </summary>
+        public bool Guarding { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 

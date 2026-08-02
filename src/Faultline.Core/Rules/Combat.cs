@@ -165,6 +165,12 @@ namespace Faultline.Core
                 return state;
             }
 
+            // D-058: Guard Stance halves attack damage, rounded up, minimum 1 — and only attack
+            // damage. Collision, spikes and the fall land in full, which is why the board still kills
+            // a guard. It is done here rather than at each call site because this is the one place
+            // hit points are subtracted, so nothing can route around it.
+            amount = Guard.Mitigate(state, targetId, amount, source);
+
             // Brief §2: any damage to a Clinging unit finishes it — it loses its grip and is gone
             // for the run, not merely downed.
             if (target.Clinging)

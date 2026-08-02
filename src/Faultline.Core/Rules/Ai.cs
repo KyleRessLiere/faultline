@@ -210,6 +210,11 @@ namespace Faultline.Core
             var updated = new List<EnemyIntent>(state.Intents.Count);
             bool changed = false;
 
+            // A guard changes who a declared plan lands on without changing whom it names, so the
+            // check only runs when a stance could possibly be in play (D-058). With nobody guarding
+            // and no intent already redirected, this is exactly the behaviour it always was.
+            bool guardsInPlay = Guard.AnyGuarding(state) || AnyRedirected(state);
+
             foreach (var intent in state.Intents)
             {
                 var enemy = state.FindUnit(intent.UnitId);
@@ -221,7 +226,18 @@ namespace Faultline.Core
 
                 if (!intent.TargetId.HasValue || IsValidTarget(state, intent.TargetId.Value))
                 {
-                    updated.Add(intent);
+                    if (!guardsInPlay || !live || enemy.HasActivated || !RedirectMoved(state, intent))
+                    {
+                        updated.Add(intent);
+                        continue;
+                    }
+
+                    // The target is unchanged; only who eats the blow is. Re-declare with the target
+                    // still locked — a telegraph that lies is worse than no telegraph.
+                    changed = true;
+                    var refreshed = Compute(state, enemy, intent.TargetId);
+                    updated.Add(refreshed);
+                    events.Add(new IntentDeclared(refreshed, true));
                     continue;
                 }
 
@@ -237,6 +253,32 @@ namespace Faultline.Core
             }
 
             return changed ? state with { Intents = updated } : state;
+        }
+
+        // True when the guard that would take this plan is no longer the one the plan was declared
+        // against — a stance raised, dropped, or simply walked out of reach since the declaration.
+        private static bool RedirectMoved(GameState state, EnemyIntent intent)
+        {
+            if (!intent.TargetId.HasValue)
+            {
+                return false;
+            }
+
+            var guard = Guard.Interceptor(state, state.FindUnit(intent.TargetId.Value));
+            return guard?.Id != intent.RedirectedTo;
+        }
+
+        private static bool AnyRedirected(GameState state)
+        {
+            foreach (var intent in state.Intents)
+            {
+                if (intent.RedirectedTo.HasValue)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // ---- phase swaps ------------------------------------------------------------------------
@@ -903,9 +945,15 @@ namespace Faultline.Core
                 damage += 1;
             }
 
+            // D-058: a guard beside the target takes this instead, halved. The telegraph says so,
+            // and says how much, because the resolution is going to do exactly that.
+            var guard = Guard.Interceptor(state, target);
+            var victimId = guard?.Id ?? target.Id;
+            damage = Guard.Mitigate(state, victimId, damage, DamageSource.Attack);
+
             return new EnemyIntent(
                 enemy.Id, enemy.Kind, enemy.Position, IntentAction.Attack,
-                target.Id, target.Position, moveTo, null, null, 0, null, damage);
+                target.Id, target.Position, moveTo, null, null, 0, null, damage, guard?.Id);
         }
 
         private static EnemyIntent Displace(
@@ -921,7 +969,13 @@ namespace Faultline.Core
             // Project from where the enemy will be standing, not where it is now, so the telegraph
             // matches what the shove actually does.
             var view = moveTo.HasValue ? state.WithUnit(enemy with { Position = moveTo.Value }) : state;
-            var preview = Displacement.PreviewAuto(view, target.Id, from, kind, distance);
+
+            // D-058: and project onto whoever will actually travel. A guard beside the target takes
+            // the shove on its own tile, with its own resistance, so the direction, the distance and
+            // the destination the telegraph carries are the guard's, not the target's.
+            var guard = Guard.Interceptor(view, target);
+            var victimId = guard?.Id ?? target.Id;
+            var preview = Guard.PreviewAimed(view, from, target, victimId, kind, distance);
 
             return new EnemyIntent(
                 enemy.Id,
@@ -935,7 +989,8 @@ namespace Faultline.Core
                 preview.Direction,
                 preview.EffectiveDistance,
                 preview.Destination,
-                0);
+                0,
+                guard?.Id);
         }
 
         // ---- target selection -----------------------------------------------------------------
