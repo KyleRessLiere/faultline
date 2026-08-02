@@ -9,7 +9,7 @@ public class FightOutcomeTests
     {
         var state = BoardBuilder.Open(3, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -47,7 +47,7 @@ public class FightOutcomeTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Enemy(UnitKind.Anchor, 3, 0)
             .Build();
 
@@ -66,7 +66,7 @@ public class FightOutcomeTests
     {
         var state = BoardBuilder.Open(3, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -82,7 +82,7 @@ public class FightOutcomeTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Enemy(UnitKind.Anchor, 3, 0)
             .Build();
 
@@ -91,6 +91,6 @@ public class FightOutcomeTests
 
         var after = state.Then(new AttackCommand(archer.Id, husk.Id));
 
-        Assert.True(Movement.Reachable(after, after.Get(archer.Id)).ContainsKey(new Coord(1, 0)));
+        Assert.True(Movement.Reachable(after, after.Get(archer.Id)).ContainsKey(new Coord(2, 0)));
     }
 }

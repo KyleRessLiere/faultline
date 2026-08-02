@@ -41,7 +41,15 @@ namespace Faultline.Core
             }
 
             int range = template.Attack == AttackKind.Melee ? 1 : template.Range;
-            if (attacker.Position.DistanceTo(target.Position) > range)
+            int distance = attacker.Position.DistanceTo(target.Position);
+            if (distance > range)
+            {
+                return false;
+            }
+
+            // D-099: a bow needs room. Only the Archer states a minimum, and hers is what makes
+            // closing on her a real answer rather than a slower way of dying.
+            if (distance < template.MinRange)
             {
                 return false;
             }

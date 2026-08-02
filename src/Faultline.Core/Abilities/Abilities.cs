@@ -98,7 +98,7 @@ namespace Faultline.Core
                 }
 
                 int distance = unit.Position.DistanceTo(candidate.Position);
-                if (distance == 0 || distance > descriptor.Range)
+                if (distance == 0 || distance > descriptor.Range || distance < descriptor.MinRange)
                 {
                     continue;
                 }

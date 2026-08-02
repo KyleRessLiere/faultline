@@ -45,6 +45,11 @@ superseded it (D-074).
 
 Ranged attacks fired *from* HighGround deal **+1**. There is no line of sight (D-010).
 
+**The Archer alone has a minimum range of 2** (D-099). Neither her shot nor Stagger Shot reaches the
+tile next to her, so closing on her is a real answer rather than a slower way of dying. Her way out
+is her feet: step back, then shoot. Nothing else on either side has a minimum — an enemy Lobber or
+Perch still fires at what is standing on top of it.
+
 ## Round structure
 
 1. **Deployment.** Players alternate placing units into opposite corners — A bottom-left, B top-right.
@@ -234,7 +239,7 @@ available, e.g. *needs 2 more move*.
 | Class | HP | Move | Basic attack | Ability |
 |---|---|---|---|---|
 | Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015) — which since D-097 is what every action costs, so this is no longer a special case. |
-| Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
+| Archer | 4 | 3 | range **2-3**, 2 dmg | **Stagger Shot** — range **2-3**, 1 dmg + push 1 away. Also climbs HighGround for free. |
 | **Fisher** | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
 

@@ -17,7 +17,7 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(3, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Build();
 
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Archer).Id, state.Find(UnitKind.Husk).Id));
@@ -302,7 +302,7 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Objective(ObjectiveKind.Protect, tiles: new Coord(4, 0))
             .Build();
 
@@ -504,7 +504,7 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(3, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .TurnLimit(3)
             .Build();
 

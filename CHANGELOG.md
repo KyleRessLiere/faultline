@@ -1,5 +1,15 @@
 # Changelog
 
+## The Archer needs room
+
+- **Her bow no longer reaches the tile next to her.** Minimum range 2, on the basic shot and on
+  Stagger Shot alike, so closing on her is a real answer rather than a slower way of dying (D-099).
+- Her way out is her feet: step back, then shoot. Move 3 and, since D-097, movement comes first.
+- **Nothing else gained a minimum.** Enemy Lobbers and Perches still fire at what is on top of them,
+  and the Fisher keeps her point-blank shot.
+- Costs flagged rather than buried: three scoring policies in the harness now stall at
+  `broken-bridge` round 61, the stalemate D-097 had just cleared. Left standing and written down.
+
 ## Notes are logged, not exported
 
 - **Point at a folder once and every note lands on disk as you type it.** No export step: a note is

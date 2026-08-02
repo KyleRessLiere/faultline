@@ -38,6 +38,10 @@ namespace Faultline.Core
     /// it: the Wardbearer's copy was deleted with the rest of its old kit (D-058), but the mechanic
     /// stays a flag on the stat block rather than an archetype check (D-031).
     /// </param>
+    /// <param name="MinRange">
+    /// Closest tile the basic attack can be aimed at. Zero for everything without a stated minimum
+    /// — only the Archer has one, and hers is what makes closing on her an answer (D-099).
+    /// </param>
     /// <param name="HazardRanks">
     /// How many tiers of the pit → spikes → wall/edge ladder a flanking shover will aim for: 3 takes
     /// all three, 2 stops at spikes, 0 means the archetype does not hunt hazards at all (D-024).
@@ -74,6 +78,7 @@ namespace Faultline.Core
         int PushResistance = 0,
         bool HoldAura = false,
         int HazardRanks = 0,
+        int MinRange = 0,
         bool FootingNegates = false,
         UnitTemplate? Enraged = null,
         int EnrageAt = 0)
@@ -86,6 +91,12 @@ namespace Faultline.Core
         /// <see cref="RawName"/> is the label the table carries; this is what a player reads.
         /// </summary>
         public string Name => Naming.Of(Kind);
+
+        /// <summary>
+        /// True when this unit cannot shoot at what is standing on top of it — a bow needs room
+        /// (D-099). Zero for everything without a stated minimum, which is everything but the Archer.
+        /// </summary>
+        public bool HasMinRange => MinRange > 1;
 
         /// <summary>True when the basic action may pull instead of dealing damage.</summary>
         public bool CanPullWithBasic => BasicPull > 0;
@@ -150,7 +161,7 @@ namespace Faultline.Core
                 // 'footing:' key in the .fight file.
                 // The Vanguard's basic shoves; the Threadcaster's may pull instead of hurting.
                 new UnitTemplate(UnitKind.Vanguard, "Vanguard", 7, 3, AttackKind.Melee, 1, 1, 0, false, AttackPush: 1),
-                new UnitTemplate(UnitKind.Archer, "Archer", 4, 3, AttackKind.Ranged, 3, 2, 0, true),
+                new UnitTemplate(UnitKind.Archer, "Archer", 4, 3, AttackKind.Ranged, 3, 2, 0, true, MinRange: 2),
                 new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 4, 3, AttackKind.Ranged, 3, 1, 0, false, BasicPull: 1),
                 // D-058: the Wardbearer's hold aura is gone and it is heavier instead — 7 HP behind
                 // push resistance 2, the Colossus's number on a player class. The aura mechanic

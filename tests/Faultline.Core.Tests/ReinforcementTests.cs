@@ -193,7 +193,7 @@ public class ReinforcementTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Build();
 
         // A pending enemy is an enemy: an arrival still on the timetable blocks the kill-all win.

@@ -124,7 +124,7 @@ public class CombatTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
             .Enemy(UnitKind.Anchor, 3, 0)
             .Build();
 
@@ -135,8 +135,8 @@ public class CombatTests
 
         var downed = result.Single<UnitDowned>();
         Assert.Equal(husk.Id, downed.UnitId);
-        Assert.Equal(new Coord(1, 0), downed.At);
-        Assert.Null(result.NewState.UnitAt(new Coord(1, 0)));
+        Assert.Equal(new Coord(2, 0), downed.At);
+        Assert.Null(result.NewState.UnitAt(new Coord(2, 0)));
         Assert.False(result.NewState.Get(husk.Id).IsOnBoard);
     }
 
@@ -176,7 +176,7 @@ public class CombatTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 1)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 1)
             .Enemy(UnitKind.Anchor, 3, 0)
             .Build();
 

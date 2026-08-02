@@ -115,9 +115,10 @@ in this file when the question comes back.
 | D-095 | [A guard charges for what it takes, redirected or direct.](#d-095-a-guard-charges-for-what-it-takes-redirected-or-direct) | 2026-08-02 |  |
 | D-096 | [Guard Stance shields the structure beside it, not only the ally beside it.](#d-096-guard-stance-shields-the-structure-beside-it-not-only-the-ally-beside-it) | 2026-08-02 |  |
 | D-097 | [Movement is a budget spent in clicks, and the router takes the fastest way.](#d-097-movement-is-a-budget-spent-in-clicks-and-the-router-takes-the-fastest-way) | 2026-08-02 |  |
-| D-098 | [A displacement says who caused it.](#d-098-a-displacement-says-who-caused-it) | unreleased |  |
+| D-098 | [A displacement says who caused it.](#d-098-a-displacement-says-who-caused-it) | 2026-08-02 |  |
+| D-099 | [The Archer cannot shoot the tile next to her.](#d-099-the-archer-cannot-shoot-the-tile-next-to-her) | unreleased |  |
 
-**97 rulings.**
+**98 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1554,3 +1555,42 @@ earn nothing, so nobody noticed.
 
 **Extends D-073**, which it does not supersede: the read-back stays, with one more thing worth
 reading.
+
+**D-099 — The Archer cannot shoot the tile next to her.**
+
+**What forced it:** a design call, not a rule collision. The brief's §2 stat table gives her "range
+3, 2" and states no minimum, so this is new rather than a correction — recorded here rather than
+edited into the brief, which is what this file is for.
+
+**Minimum range 2, on the bow and not on the archetype.** `UnitTemplate.MinRange` and
+`AbilityDescriptor.MinRange` both default to 0 and only the Archer sets one. **Stagger Shot obeys the
+same minimum**, because a rule the basic shot follows and the ability does not is not a rule — she
+would simply press the other button.
+
+**Rejected: a minimum on every ranged unit.** The obvious generalisation, and the wrong one here. The
+enemy Lobber and Perch are built around threatening from where they stand, `first-contact`'s STRICT
+deployment guarantee is tuned against a mobile Lobber, and giving every bow a dead zone is a
+different ruling on forty boards rather than one on a class. The mechanism generalises; the ruling
+does not, and the two were kept apart deliberately.
+
+**Rejected: extending it to the Fisher and calling it "ranged units".** She keeps her point-blank
+shot. Her pull is the thing that wants distance and it has its own adjacency rule already — Reel
+needs somewhere to reel to — so stacking a second one on her basic attack would take away the
+answer she has to being closed on without giving her another.
+
+**Her way out is her feet, and that is the point.** Move 3, and since D-097 movement comes before the
+action: step back, then shoot. A minimum range with no way out of it would be a trap rather than a
+weakness, so that is pinned by a test.
+
+**It costs something measurable, and here it is.** Ten tests used an adjacent Archer as scaffolding
+for rules that have nothing to do with her bow; each keeps its subject and stands the target one tile
+further out. More seriously, the harness regressed: `board-first`, `blade-first` and `preserver` were
+clearing 6/10 after D-097 and now stall at `broken-bridge`, round 61, with neither side able to
+finish — the exact stalemate D-097 had just cleared. `brawler`, which never uses an ability, still
+clears 6/10.
+
+**That stall is left standing and flagged rather than patched.** It is a scoring policy walking into
+a position a person would walk out of, but "neither side can finish" is a design smell whichever way
+it was reached, and `broken-bridge` was already on the list for the dead-round bound
+(`docs/CURATED_SET.md` §8). The rule is not what makes that board unfinishable; it is what makes a
+naive player unable to finish it, which is a different and more interesting problem.

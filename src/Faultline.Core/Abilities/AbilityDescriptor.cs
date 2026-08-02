@@ -19,6 +19,11 @@ namespace Faultline.Core
     /// <param name="Damage">Direct damage, before any collision or hazard the displacement causes.</param>
     /// <param name="Push">Push distance applied to the target, zero when it does not push.</param>
     /// <param name="PullsToAdjacent">True when it pulls the target all the way in.</param>
+    /// <param name="MinRange">
+    /// Closest tile it can be aimed at. Zero for everything without a stated minimum; the Archer's
+    /// two abilities share her bow's, because a rule the basic shot obeys and the ability does not
+    /// is not a rule (D-099).
+    /// </param>
     public sealed record AbilityDescriptor(
         Ability Ability,
         UnitKind Kind,
@@ -28,7 +33,8 @@ namespace Faultline.Core
         int Range,
         int Damage,
         int Push,
-        bool PullsToAdjacent)
+        bool PullsToAdjacent,
+        int MinRange = 0)
     {
         private static readonly AbilityDescriptor[] Empty = new AbilityDescriptor[0];
 
@@ -174,7 +180,7 @@ namespace Faultline.Core
                         "Stagger Shot",
                         "Range 3. Deals 1 damage and pushes the target 1 tile directly away from you.",
                         AbilityTargeting.Enemy,
-                        3, 1, 1, false),
+                        3, 1, 1, false, MinRange: 2),
                 },
 
                 [UnitKind.Threadcaster] = new[]
