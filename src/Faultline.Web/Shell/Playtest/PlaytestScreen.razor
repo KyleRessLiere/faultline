@@ -1,5 +1,6 @@
 @inherits PlaytestPanel
 @inject PlaytestNotes Notes
+@inject BoardAnimator Animator
 
 @* The playtest screen: a header bar, then three columns that between them fill the viewport. This
    component owns the layout and the enemy-activation tick and nothing else — every panel reads the
@@ -49,11 +50,28 @@
 </div>
 
 @code {
+    /// <summary>
+    /// Gap between one enemy command and the next. Short, because the beat of an enemy round is now
+    /// carried by the movement animation itself; this is only the pause on the commands that show
+    /// nothing, such as ending an activation.
+    /// </summary>
+    private const int EnemyTickMs = 200;
+
     private bool _resolvingEnemy;
     private bool _disposed;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        // Only the end of a sequence, not every beat: the board subscribes to the beats itself, and
+        // this screen redraws its whole tree. What it needs to know is when the enemy may go again.
+        Animator.Finished += OnAnimationFinished;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        await Animator.ReadPreferenceAsync();
         await Runs.LoadAsync();
 
         // A reload lands here with a session the constructor built, not one the player chose. If a
@@ -69,17 +87,21 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        // Enemy slots resolve on a short delay so the hotseat players can watch them tick past.
-        if (!_resolvingEnemy && Session.AwaitingEnemy)
+        // Enemy slots resolve on a short delay so the hotseat players can watch them tick past, and
+        // never while the previous one is still being drawn — one activation at a time is what makes
+        // a round read as a sequence instead of everything happening at once.
+        if (!_resolvingEnemy && Session.AwaitingEnemy && !Animator.Busy)
         {
             _resolvingEnemy = true;
             _ = ResolveEnemyAsync();
         }
     }
 
+    private void OnAnimationFinished() => _ = InvokeAsync(StateHasChanged);
+
     private async Task ResolveEnemyAsync()
     {
-        await Task.Delay(400);
+        await Task.Delay(EnemyTickMs);
 
         if (!_disposed && Session.AwaitingEnemy)
         {
@@ -100,28 +122,40 @@
 
     private void EndActivation()
     {
-        if (Session.EndCommand is not null)
+        // Same rule as the board's tiles: no command leaves this screen while a sequence is playing.
+        if (Animator.Busy || Session.EndCommand is null)
         {
-            Session.Submit(Session.EndCommand);
+            return;
         }
+
+        Session.Submit(Session.EndCommand);
     }
 
     private void Undo()
     {
+        // The rewind replaces the position under whatever is on screen, so the animation goes with
+        // it rather than finishing a move that no longer happened.
         if (Session.InRun)
         {
             Runs.Undo();
+            Animator.Cancel();
             return;
         }
 
         Session.Undo();
+        Animator.Cancel();
     }
 
-    private void Restart() => Session.NewRun(Session.Seed + 1);
+    private void Restart()
+    {
+        Session.NewRun(Session.Seed + 1);
+        Animator.Cancel();
+    }
 
     public override void Dispose()
     {
         _disposed = true;
+        Animator.Finished -= OnAnimationFinished;
         base.Dispose();
     }
 }

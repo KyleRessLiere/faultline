@@ -15,6 +15,8 @@
 
 .board {
     --gutter: 22px;
+    --step: 170ms;
+    --flash: 130ms;
     --fit: min(
         (100cqw - var(--gutter) - 6px) / var(--cols),
         (100cqh - var(--gutter) - 6px) / var(--rows));
@@ -28,6 +30,7 @@
     grid-template-columns: var(--gutter) repeat(var(--cols), var(--cell));
     grid-template-rows: var(--gutter) repeat(var(--rows), var(--cell));
     margin: auto;
+    position: relative;
 }
 
 /* Coordinates */
@@ -206,6 +209,70 @@
 .cell.inspected {
     outline: 2px solid rgba(242, 245, 248, .85);
     outline-offset: -5px;
+}
+
+/* Movement. The tile a unit is crossing lights up red and stays lit until it lands, so the route it
+   took is readable while it is taking it — a walk round a wall paints the wall's shape. The wash is
+   an inset shadow rather than the ::before overlay because it has to win over the range, threat and
+   projected-route paints, all of which are still on the board while the unit moves. */
+
+.cell.trail,
+.board.lines .cell.trail {
+    border-color: rgba(255, 96, 96, .95);
+    border-style: solid;
+    box-shadow: inset 0 0 0 100vmax rgba(255, 64, 68, .34);
+}
+
+/* The sliding unit itself: one absolutely-placed sprite over the grid, moved by whole tiles. The
+   transition is what makes it a drag rather than a jump; .placing is the single paint that puts it
+   on the tile it left, with nothing to transition from. */
+
+.mover {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    height: var(--cell);
+    justify-content: center;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    transform: translate(
+        calc(var(--gutter) + var(--mx) * var(--cell)),
+        calc(var(--gutter) + var(--my) * var(--cell)));
+    transition: transform var(--step) linear;
+    width: var(--cell);
+    z-index: 2;
+}
+
+.mover.placing {
+    transition: none;
+}
+
+/* An attacker flashes twice where it stands: two iterations of one keyframe, so "twice" is the
+   animation's own count rather than something a timer has to get right. */
+
+@keyframes pt-strike {
+    0% { opacity: 1; }
+    50% { opacity: .12; }
+    100% { opacity: 1; }
+}
+
+.cell.flash .art,
+.cell.flash .hp {
+    animation: pt-strike var(--flash) linear 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mover {
+        transition: none;
+    }
+
+    .cell.flash .art,
+    .cell.flash .hp {
+        animation: none;
+    }
 }
 
 /* Contents */

@@ -28,6 +28,8 @@
     <!-- File saving and localStorage for custom scenarios. Plain script, loaded before Blazor so
          window.faultlineFiles exists by the time any component calls into it. -->
     <script src="js/fightfiles.js"></script>
+    <!-- One media query, read once by the board animator. -->
+    <script src="js/motion.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
 

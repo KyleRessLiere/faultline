@@ -1,11 +1,16 @@
 @inherits PlaytestPanel
+@inject BoardAnimator Animator
 @* The board, with its column and row numbers, sized to whatever box the panel gives it. The track
    count comes off Board.Width and Board.Height, so a 7x7, a 9x7 and an 11x7 all draw correctly
-   without anything here knowing which one it is. *@
+   without anything here knowing which one it is.
+
+   A unit that is mid-move is left out of its tile and drawn as the sprite at the bottom instead, so
+   it can slide along the path Core reported rather than appear at the far end of it. Nothing here
+   decides anything: the animator says which unit and which tile, the board draws it. *@
 
 <div class="stage">
     <div class="board @(View.GridLines ? "lines" : string.Empty)"
-         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor;"
+         style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor; --step: @(Animator.StepMs)ms; --flash: @(Animator.FlashMs)ms;"
          @onmouseleave="() => Session.Hover(null)">
         <div class="axis corner" aria-hidden="true"></div>
 
@@ -22,7 +27,7 @@
             @for (int x = 0; x < Width; x++)
             {
                 var cell = new Coord(x, row);
-                var unit = State.UnitAt(cell);
+                var unit = Occupant(cell);
 
                 <button type="button"
                         class="@CellClass(cell, unit)"
@@ -73,6 +78,18 @@
                 </button>
             }
         }
+
+        @if (Sliding is { } sliding)
+        {
+            <div class="mover @(Animator.Placing ? "placing" : string.Empty) team-@PlaytestText.TeamClass(sliding.Team)"
+                 style="--mx: @Animator.MoverTile.X; --my: @Animator.MoverTile.Y;"
+                 aria-hidden="true">
+                <span class="art">
+                    <UnitArt Kind="sliding.Kind" Label="@sliding.Name" />
+                </span>
+                <span class="hp">@sliding.Hp/@sliding.MaxHp</span>
+            </div>
+        }
     </div>
 </div>
 
@@ -83,8 +100,44 @@
 
     private IReadOnlyCollection<Coord> Threat => View.ThreatTiles(State);
 
+    /// <summary>The unit being drawn as a sliding sprite, if there is one.</summary>
+    private Unit? Sliding => Animator.Mover is { } id ? State.FindUnit(id) : null;
+
+    /// <summary>
+    /// Who is standing on a tile as far as the board is concerned. A unit mid-slide is nobody's
+    /// occupant: it is already at its destination in state, and drawing it there as well as on the
+    /// sprite would show it twice.
+    /// </summary>
+    private Unit? Occupant(Coord coord)
+    {
+        var unit = State.UnitAt(coord);
+        return unit is not null && Animator.IsSliding(unit.Id) ? null : unit;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Animator.Changed += Redraw;
+    }
+
+    public override void Dispose()
+    {
+        Animator.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
     private void OnCellClick(Coord coord, Unit? unit)
     {
+        // Clicks are ignored while a sequence plays rather than queued: the position on screen is
+        // mid-story, and a click aimed at what the player can see is not necessarily aimed at what
+        // the board now is. Nothing is lost — the command was never submitted.
+        if (Animator.Busy)
+        {
+            return;
+        }
+
         if (IsDeployTarget(coord))
         {
             Session.Submit(Session.DeployTargets[coord]);
@@ -114,10 +167,11 @@
     private bool IsDeployTarget(Coord coord) => Session.DeployTargets.ContainsKey(coord);
 
     private bool IsClickable(Coord coord, Unit? unit) =>
-        IsDeployTarget(coord)
-        || Session.Targets.ContainsKey(coord)
-        || (unit is not null && Session.Selectable.Contains(unit.Id))
-        || GameSession.CanInspect(unit);
+        !Animator.Busy
+        && (IsDeployTarget(coord)
+            || Session.Targets.ContainsKey(coord)
+            || (unit is not null && Session.Selectable.Contains(unit.Id))
+            || GameSession.CanInspect(unit));
 
     /// <summary>
     /// Whether a click on this cell would open a dossier rather than do something. Inspection is
@@ -151,6 +205,12 @@
             classes.Add("threat");
         }
 
+        // The tiles under the unit that is moving right now, and the ones it has already crossed.
+        if (Animator.Trail.Contains(coord))
+        {
+            classes.Add("trail");
+        }
+
         bool targetable = Session.Targets.ContainsKey(coord);
 
         if (unit is not null)
@@ -180,6 +240,11 @@
             if (Session.Inspected == unit.Id)
             {
                 classes.Add("inspected");
+            }
+
+            if (Animator.IsFlashing(unit.Id))
+            {
+                classes.Add("flash");
             }
         }
         else if (IsDeployTarget(coord))

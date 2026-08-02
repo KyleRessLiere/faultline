@@ -1,5 +1,6 @@
 @inherits PlaytestPanel
 @inject PlaytestNotes Notes
+@inject BoardAnimator Animator
 
 @* One bar: who we are on the left, the state of the fight as pills in the middle, and the three
    things a player reaches for on the right. End Turn is Core's EndActivationCommand and nothing
@@ -71,12 +72,16 @@
             Restart
         </button>
 
+        @* Disabled while the board is playing a sequence, for the same reason the tiles are: the
+           position on screen is mid-story and no command leaves the screen until it has caught up. *@
         <button type="button"
                 class="btn primary"
-                disabled="@(Session.EndCommand is null)"
-                title="@(Session.EndCommand is null
-                    ? "Nothing is activated, so there is no activation to end."
-                    : "End this unit's activation.")"
+                disabled="@(Session.EndCommand is null || Animator.Busy)"
+                title="@(Animator.Busy
+                    ? "Wait for the board to finish showing what just happened."
+                    : Session.EndCommand is null
+                        ? "Nothing is activated, so there is no activation to end."
+                        : "End this unit's activation.")"
                 @onclick="OnEndTurn">
             End Turn
         </button>

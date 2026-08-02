@@ -29,6 +29,10 @@ public sealed class GameSession
     // middle of an enemy turn the screen would immediately play forward again.
     private bool _submittingEnemy;
 
+    // True while a rewind is replaying the command log. The board is being rebuilt, not played, so
+    // the steps it produces are not offered to anything that would put them on screen one at a time.
+    private bool _silent;
+
     // docs/COMBAT_LOG.md: the flag belongs in the shell, not in Core. Core always emits its events;
     // it has no idea whether anyone is writing them down. Null means "not recording, retain nothing".
     private CombatRecorder? _recorder;
@@ -77,6 +81,17 @@ public sealed class GameSession
     /// tree: without this, a panel only redraws when its own button was the one pressed.
     /// </summary>
     public event Action? Changed;
+
+    /// <summary>
+    /// Raised once per step with the events Core emitted for it, and whether the command was the
+    /// enemy planner's rather than a person's. This is the renderer's script — CLAUDE.md: receive a
+    /// StepResult, animate its events in order, then render the new state.
+    /// </summary>
+    /// <remarks>
+    /// Silent while a rewind replays the command log: those steps rebuild a position rather than
+    /// play one, and nothing subscribed here is required for the board to be correct.
+    /// </remarks>
+    public event Action<IReadOnlyList<GameEvent>, bool>? Stepped;
 
     /// <summary>Human-readable event history, newest last.</summary>
     public IReadOnlyList<string> Log => _log;
@@ -253,11 +268,25 @@ public sealed class GameSession
     /// <param name="command">The combat command that was played.</param>
     /// <param name="before">The board it was played against.</param>
     /// <param name="result">What came back, unwrapped from the run's result.</param>
-    public void AdoptRunStep(Command command, GameState before, StepResult result)
+    /// <param name="silent">
+    /// True while the run is replaying its command log for a rewind, so the step is folded in
+    /// without being offered to <see cref="Stepped"/>.
+    /// </param>
+    public void AdoptRunStep(Command command, GameState before, StepResult result, bool silent = false)
     {
         _recorder?.RecordStep(command, before, result);
 
-        Adopt(result);
+        bool was = _silent;
+        _silent = silent;
+        try
+        {
+            Adopt(result);
+        }
+        finally
+        {
+            _silent = was;
+        }
+
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
     }
@@ -313,15 +342,23 @@ public sealed class GameSession
         // where the player put them.
         bool design = DesignOpen;
 
-        Reset(Fight, Seed);
-
-        var start = Game.Start(Fight, Seed);
-        _recorder?.RecordStart(start);
-        Adopt(start);
-
-        for (int i = 0; i < commands.Count; i++)
+        _silent = true;
+        try
         {
-            Play(commands[i], chosen[i]);
+            Reset(Fight, Seed);
+
+            var start = Game.Start(Fight, Seed);
+            _recorder?.RecordStart(start);
+            Adopt(start);
+
+            for (int i = 0; i < commands.Count; i++)
+            {
+                Play(commands[i], chosen[i]);
+            }
+        }
+        finally
+        {
+            _silent = false;
         }
 
         DesignOpen = design;
@@ -845,6 +882,13 @@ public sealed class GameSession
         else if (Selected.HasValue && !Selectable.Contains(Selected.Value))
         {
             Selected = null;
+        }
+
+        // Before Changed, so a renderer that wants to hold a unit back for a slide has already said
+        // so by the time the board redraws.
+        if (!_silent && result.Events.Count > 0)
+        {
+            Stepped?.Invoke(result.Events, _submittingEnemy);
         }
 
         Changed?.Invoke();

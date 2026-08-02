@@ -1,5 +1,13 @@
 # Changelog
 
+## The board moves
+
+- **Units slide tile by tile** along the path Core reported, lighting the tiles they cross in red,
+  and attackers **flash twice**. Played from the step's event stream in order — the state flow
+  CLAUDE.md always described, finally with the animate step in it.
+- Along the *path*, not From to To: a unit that has to go round a corner is seen to go round it.
+- Skipped entirely under `prefers-reduced-motion`.
+
 ## The playtest screen, rebuilt
 
 - **Three-column dashboard.** Battlefield ~60%, an information column and a testing column at ~20%

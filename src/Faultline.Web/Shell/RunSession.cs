@@ -371,7 +371,10 @@ public sealed class RunSession : IRunBoardDriver
         {
             _pushed = board;
             _session.AdoptRunStep(
-                play.Command, before, new StepResult(board, result.FightEvents, Unwrap(result.LegalNext)));
+                play.Command,
+                before,
+                new StepResult(board, result.FightEvents, Unwrap(result.LegalNext)),
+                _replaying);
         }
     }
 
