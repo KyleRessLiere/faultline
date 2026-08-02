@@ -29,6 +29,74 @@ namespace Faultline.Core
         /// <summary>The most Verve a unit can hold. Charges beyond this are reported and discarded.</summary>
         public const int Cap = 5;
 
+        /// <summary>Damage a Wrecking Weight push deals on contact, on top of anything it collides into.</summary>
+        public const int ContactDamage = 1;
+
+        /// <summary>Extra tiles a Wrecking Weight push asks for, before Stagger, resistance and Footing.</summary>
+        public const int ContactDistanceBonus = 1;
+
+        /// <summary>How far Retort shoves each adjacent enemy.</summary>
+        public const int RetortPush = 1;
+
+        /// <summary>What a spend costs.</summary>
+        /// <param name="spend">The spend.</param>
+        /// <returns>Its cost in Verve.</returns>
+        public static int CostOf(VerveSpend spend) => spend switch
+        {
+            VerveSpend.WreckingWeight => 2,
+            VerveSpend.Slingshot => 2,
+            VerveSpend.DoubleNock => 4,
+            VerveSpend.Retort => 3,
+            _ => 0,
+        };
+
+        /// <summary>
+        /// The one spend a class has, or <c>null</c> for a class with none. A unit never chooses
+        /// between spenders — only whether and when.
+        /// </summary>
+        /// <param name="kind">Archetype to ask about.</param>
+        /// <returns>Its spend, or null.</returns>
+        public static VerveSpend? SpendFor(UnitKind kind) => kind switch
+        {
+            UnitKind.Vanguard => VerveSpend.WreckingWeight,
+            UnitKind.Threadcaster => VerveSpend.Slingshot,
+            UnitKind.Archer => VerveSpend.DoubleNock,
+            UnitKind.Wardbearer => VerveSpend.Retort,
+            _ => (VerveSpend?)null,
+        };
+
+        /// <summary>The spend's name, for a card or a button.</summary>
+        /// <param name="spend">The spend.</param>
+        /// <returns>Its display name.</returns>
+        public static string NameOf(VerveSpend spend) => spend switch
+        {
+            VerveSpend.WreckingWeight => "Wrecking Weight",
+            VerveSpend.Slingshot => "Slingshot",
+            VerveSpend.DoubleNock => "Double Nock",
+            VerveSpend.Retort => "Retort",
+            _ => spend.ToString(),
+        };
+
+        /// <summary>
+        /// What the spend does, in plain words. Sourced from Core so the card and the rule cannot
+        /// drift apart.
+        /// </summary>
+        /// <param name="spend">The spend.</param>
+        /// <returns>The description.</returns>
+        public static string DescriptionOf(VerveSpend spend) => spend switch
+        {
+            VerveSpend.WreckingWeight =>
+                "Your next push this activation travels 1 further and deals 1 damage on contact, "
+                + "on top of anything it collides into.",
+            VerveSpend.Slingshot =>
+                "Immediately after your Reel leaves an enemy adjacent, trade places with it.",
+            VerveSpend.DoubleNock =>
+                "Attack twice this activation. Two separate targets, each resolved in full.",
+            VerveSpend.Retort =>
+                "End Guard Stance and shove every adjacent enemy 1 tile directly away.",
+            _ => string.Empty,
+        };
+
         /// <summary>
         /// Banks everything the finished event list earned, appending one
         /// <see cref="VerveCharged"/> per qualifying moment.
@@ -103,6 +171,177 @@ namespace Faultline.Core
             UnitKind.Wardbearer => "absorbing a hit in Guard Stance",
             _ => string.Empty,
         };
+
+        // ---- spending ------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Whether this unit may spend on this right now.
+        /// </summary>
+        /// <remarks>
+        /// Every spend needs the unit's own activation, an unspent spend for it, and the price. Two
+        /// then need something more: Slingshot needs a Reel to have just left an enemy in contact,
+        /// and Retort needs Guard Stance still standing — which means Retort is only ever legal as
+        /// the first thing in the activation, because taking the slot is what drops the stance
+        /// (D-058, D-077).
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Unit that would spend.</param>
+        /// <param name="spend">What it would spend on.</param>
+        /// <returns>Whether the spend is legal.</returns>
+        public static bool CanSpend(GameState state, Unit unit, VerveSpend spend)
+        {
+            if (state is null || unit is null)
+            {
+                return false;
+            }
+
+            if (SpendFor(unit.Kind) != spend
+                || unit.HasSpentVerve
+                || unit.Verve < CostOf(spend)
+                || !unit.IsOnBoard
+                || unit.Clinging
+                || unit.HasActivated
+                || unit.Team != state.ActiveTeam
+                || state.Phase != Phase.Battle
+                || state.Outcome != FightOutcome.InProgress)
+            {
+                return false;
+            }
+
+            // Somebody else holds the slot. A spend is not an activation of its own.
+            if (state.ActiveUnitId.HasValue && state.ActiveUnitId.Value != unit.Id)
+            {
+                return false;
+            }
+
+            return spend switch
+            {
+                VerveSpend.WreckingWeight => !unit.HasActed,
+                VerveSpend.DoubleNock => !unit.HasActed,
+                VerveSpend.Slingshot => SlingshotPartner(state, unit) is not null,
+                VerveSpend.Retort => unit.Guarding,
+                _ => false,
+            };
+        }
+
+        /// <summary>
+        /// Pays for a spend and applies it. The caller has already established that it is legal.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unitId">Unit spending.</param>
+        /// <param name="spend">What it is spending on.</param>
+        /// <param name="events">Sink for the resulting events.</param>
+        /// <returns>The state after the spend resolved.</returns>
+        public static GameState Spend(
+            GameState state, UnitId unitId, VerveSpend spend, List<GameEvent> events)
+        {
+            var unit = state.UnitById(unitId);
+            int cost = CostOf(spend);
+            int remaining = unit.Verve - cost;
+
+            state = state.WithUnit(unit with { Verve = remaining, HasSpentVerve = true });
+            events.Add(new VerveSpent(unitId, spend, unit.Position, cost, remaining));
+
+            switch (spend)
+            {
+                case VerveSpend.WreckingWeight:
+                    return state.WithUnit(state.UnitById(unitId) with { WreckingWeightArmed = true });
+
+                case VerveSpend.DoubleNock:
+                    return state.WithUnit(state.UnitById(unitId) with { ExtraAttacks = 1 });
+
+                case VerveSpend.Slingshot:
+                    return Swap(state, unitId, events);
+
+                case VerveSpend.Retort:
+                    return Retort(state, unitId, events);
+
+                default:
+                    return state;
+            }
+        }
+
+        /// <summary>
+        /// Trades tiles with the reeled enemy. Neither unit travels the ground between — they are
+        /// adjacent, so there is no ground between — which is why nothing on either tile resolves and
+        /// no collision is possible (D-078).
+        /// </summary>
+        private static GameState Swap(GameState state, UnitId unitId, List<GameEvent> events)
+        {
+            var unit = state.UnitById(unitId);
+            var partner = SlingshotPartner(state, unit);
+            if (partner is null)
+            {
+                return state;
+            }
+
+            var here = unit.Position;
+            var there = partner.Position;
+
+            state = state.WithUnit(state.UnitById(unitId) with { Position = there, SlingshotTarget = null });
+            state = state.WithUnit(state.UnitById(partner.Id) with { Position = here });
+
+            events.Add(new UnitsSwapped(unitId, here, partner.Id, there));
+            return state;
+        }
+
+        /// <summary>
+        /// Shoves every adjacent enemy one tile directly away, clockwise from north so that two
+        /// enemies who would land on the same tile always resolve in the same order.
+        /// </summary>
+        private static GameState Retort(GameState state, UnitId unitId, List<GameEvent> events)
+        {
+            var directions = new[] { Direction.Up, Direction.Right, Direction.Down, Direction.Left };
+
+            foreach (var direction in directions)
+            {
+                var unit = state.UnitById(unitId);
+                if (!unit.IsOnBoard)
+                {
+                    return state;
+                }
+
+                var tile = unit.Position.Step(direction);
+                var occupant = state.UnitAt(tile);
+                if (occupant is null || occupant.Team != Team.Enemy || !occupant.IsOnBoard)
+                {
+                    continue;
+                }
+
+                // The full pipeline, so collisions, spikes, pits, resistance and Footing all apply.
+                // Deliberately not passed as the pusher: Retort's collisions charge nothing, because
+                // collisions are the Vanguard's condition and absorption is the Wardbearer's.
+                state = Displacement.ResolveAuto(
+                    state, occupant.Id, unit.Position, DisplacementKind.Push, RetortPush, events);
+            }
+
+            return state;
+        }
+
+        /// <summary>
+        /// The enemy Slingshot would trade places with: the one a Reel just left in contact, if it is
+        /// still there to trade with.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">The Threadcaster.</param>
+        /// <returns>The partner, or null when the window is shut.</returns>
+        public static Unit? SlingshotPartner(GameState state, Unit unit)
+        {
+            if (unit.SlingshotTarget is null)
+            {
+                return null;
+            }
+
+            var target = state.FindUnit(unit.SlingshotTarget.Value);
+
+            // Reeled into contact and then killed by something on the way in is not a swap.
+            return target is not null
+                && target.IsOnBoard
+                && !target.Clinging
+                && unit.Position.IsAdjacentTo(target.Position)
+                ? target
+                : null;
+        }
 
         /// <summary>
         /// Whether the event at <paramref name="index"/> earned somebody a point, and who.

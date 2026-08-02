@@ -90,11 +90,15 @@ in this file when the question comes back.
 | D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | 2026-08-02 |  |
 | D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | 2026-08-02 |  |
 | D-072 | [Every enemy priority list has a rescue slot, above the list and below a lethal.](#d-072-every-enemy-priority-list-has-a-rescue-slot-above-the-list-and-below-a-lethal) | 2026-08-02 |  |
-| D-073 | [Verve charges by listening to the finished event stream, and the causer is read back out of that stream rather than added to the events.](#d-073-verve-charges-by-listening-to-the-finished-event-stream-and-the-causer-is-read-back-out-of-that-stream-rather-than-added-to-the-events) | unreleased |  |
-| D-074 | [Verve supersedes Momentum, and `GameState.Momentum` is left standing until the Verve UI replaces it.](#d-074-verve-supersedes-momentum-and-gamestatemomentum-is-left-standing-until-the-verve-ui-replaces-it) | unreleased |  |
-| D-075 | [HELD: a shared pool returns only if a reward is ever wanted for something that is not a displacement, a hazard, high ground or absorption.](#d-075-held-a-shared-pool-returns-only-if-a-reward-is-ever-wanted-for-something-that-is-not-a-displacement-a-hazard-high-ground-or-absorption) | unreleased | *held* |
+| D-073 | [Verve charges by listening to the finished event stream, and the causer is read back out of that stream rather than added to the events.](#d-073-verve-charges-by-listening-to-the-finished-event-stream-and-the-causer-is-read-back-out-of-that-stream-rather-than-added-to-the-events) | 2026-08-02 |  |
+| D-074 | [Verve supersedes Momentum, and `GameState.Momentum` is left standing until the Verve UI replaces it.](#d-074-verve-supersedes-momentum-and-gamestatemomentum-is-left-standing-until-the-verve-ui-replaces-it) | 2026-08-02 |  |
+| D-075 | [HELD: a shared pool returns only if a reward is ever wanted for something that is not a displacement, a hazard, high ground or absorption.](#d-075-held-a-shared-pool-returns-only-if-a-reward-is-ever-wanted-for-something-that-is-not-a-displacement-a-hazard-high-ground-or-absorption) | 2026-08-02 | *held* |
+| D-076 | [Wrecking Weight adds its tile to the requested distance, not to the result.](#d-076-wrecking-weight-adds-its-tile-to-the-requested-distance-not-to-the-result) | unreleased |  |
+| D-077 | [Retort is legal only as the first thing in an activation, because that is the only moment Guard Stance is still standing.](#d-077-retort-is-legal-only-as-the-first-thing-in-an-activation-because-that-is-the-only-moment-guard-stance-is-still-standing) | unreleased |  |
+| D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | unreleased |  |
+| D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | unreleased |  |
 
-**74 rulings.**
+**78 rulings.**
 
 <!-- toc:end -->
 ---
@@ -878,3 +882,76 @@ the metric its meaning.
 **Unblocks on:** a design wanting to reward something off-thesis — surviving a round, holding an
 objective, spending nothing. Until then Momentum is superseded, not parked, and this is the note
 that says which.
+
+**D-076 — Wrecking Weight adds its tile to the requested distance, not to the result.**
+`VERVE.md` says the bonus "goes through the existing arithmetic, so it composes with Stagger (+1) and
+push resistance (−N) rather than special-casing around them." The only place that is true is before
+`EffectiveDistance` runs, so the +1 is added to the request and everything else happens to it
+normally. An Anchor still shrugs a tile off: the Vanguard's plain 1 becomes 0, and his charged 2
+becomes 1, rather than the charge punching through resistance it was never meant to beat.
+
+**Contact damage lands before the shove, and the shove is abandoned if it kills.** That is the
+existing order for the Vanguard's basic attack — damage, then push only if the target is still on the
+board — so a charged shove is the same shape as an uncharged one. It means a charged shove into a
+wall reads 1 attack + 1 contact + 2 collision, and a target that dies to the first two never travels.
+
+**The pusher is passed explicitly, never inferred from who is standing on the source tile.** Position
+inference would have worked today and broken the first time a displacement originated from somewhere
+its causer was not standing — which Bull Rush already nearly does, since the Vanguard moves before he
+shoves. Twice this project has shipped a bug from a rule reading a concept out of incidental data
+(D-069, and the telegraph fallthrough beside it), and this is the same shape.
+
+**D-077 — Retort is legal only as the first thing in an activation, because that is the only moment
+Guard Stance is still standing.**
+`VERVE.md` requires Guard Stance to be active. D-058 drops the stance the instant the Wardbearer takes
+its next activation slot. Those two together make Retort **unusable as literally specified** — by the
+time a unit can declare a spend during its own activation, the stance it needs is already gone.
+
+**Chosen: work the spend out before the slot is taken.** `ApplySpendVerve` resolves Verve first and
+commits the activation after, so Retort reads the stance as it stood at the end of the enemy round.
+Every other spend is indifferent to the order. This keeps all three stated rules — spend during your
+own activation, one per activation, stance lasts until your next activation — and it gives the
+ability a shape: you guard on one turn, absorb what the enemies throw, and cash the stance in as it
+lapses.
+
+**Rejected: making Retort a reaction during the enemy turn.** Thematically the better fit for the
+name, and it breaks "declared during the unit's own activation" outright, needs a whole interrupt
+concept Core does not have, and would let a Wardbearer act in a slot that is not hers. Far too large
+a change to make by inference from four words in a spec.
+
+**Rejected: exempting Retort from the stance-drop.** That would leave a Wardbearer guarding through
+her own activation, which is the exact thing D-058 ruled out.
+
+**A Wardbearer may also declare Guard Stance and Retort in the same activation**, ending the stance
+she just took. Legal, costs 3, and buys a shove instead of a turn of cover. Left in: it is a real
+choice, and forbidding it would need a rule that says why.
+
+**D-078 — Slingshot's window is opened by the Reel itself and shut by the next thing she does.**
+`VERVE.md`: "Immediately after her Reel ends with the enemy adjacent, swap places with it. Illegal if
+the Reel ended non-adjacent." Both halves need a window, because "illegal" cannot be checked at all
+if the spend is armed before the Reel is thrown.
+
+So the Reel records the enemy it left in contact, and that record is cleared at the top of the next
+command from the same unit — done once in `Game.Apply` rather than in each of the six commands that
+could shut it. The Reel sets it after that pass runs, so a Reel never closes its own window. A reel
+that stopped short of contact records nothing, which is what makes the illegal case illegal rather
+than a special check.
+
+**There were no existing swap semantics to follow**, despite the spec citing them. Defined here: the
+two units exchange tiles directly, and because they are adjacent there is no ground between them to
+travel, so nothing on either tile resolves and no collision is possible. It gets its own event,
+`UnitsSwapped` — a pair of `UnitMoved` would claim each walked under its own power and spent movement
+doing it, and a `UnitPushed` would claim a path that does not exist.
+
+**D-079 — Double Nock buys attack actions rather than suspending the action half.**
+An attack spends an owed extra attack if the unit has one, and only otherwise spends the activation's
+action. The accounting is one counter and the existing `HasActed` flag, so a second shot is legal
+exactly while an attack is owed and the ordinary rule takes over the moment the counter empties.
+
+**It covers the basic attack and not the abilities.** `VERVE.md` says "her attack action", and the
+Archer's abilities are already priced as the action half; letting Double Nock buy two Stagger Shots
+would be a second, larger ability nobody specified.
+
+**Everything a spend arms expires at the end of the activation, and the Verve does not come back.**
+An armed Wrecking Weight that never found a push is two points gone. Deliberate — a spend that
+refunds itself when unused is a spend with no decision in it.

@@ -171,9 +171,9 @@ Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-
 
 ### Verve — the per-unit meter
 
-Each player unit carries its own integer meter, earned by playing the way the game is about. **Only
-the earning half is built** — nothing spends Verve yet, and there is no spend command, no cost and no
-UI for it.
+Each player unit carries its own integer meter, earned by playing the way the game is about and spent
+to bend one action. **There is no UI for it yet** — the rules are complete and the shell does not
+show them.
 
 | | |
 |---|---|
@@ -209,9 +209,47 @@ produce it (D-073). `Collision` and `UnitPushed` name who they happened to and n
 so the causer is read back out of the stream: within one command, every board consequence follows
 from a single `AbilityUsed` or `UnitAttacked`, and that unit owns it.
 
-One event carries this: **`VerveCharged`** — unit, source, the tile it happened on, the new total,
-and whether it was wasted against the cap. **`VerveSpent` does not exist yet**; it lands with the
-spenders that would fire it.
+**`VerveCharged`** carries this — unit, source, the tile it happened on, the new total, and whether
+it was wasted against the cap.
+
+#### Spending
+
+Declared during the unit's **own activation**, **once per activation**, and it costs **neither the
+move nor the action** — it arms or modifies them. Each class has exactly one spender, so the choice
+is whether and when, never which. **Anything a spend arms expires at the end of the activation, and
+the Verve does not come back.**
+
+| Class | Spender | Cost | What it does |
+|---|---|---|---|
+| Vanguard | **Wrecking Weight** | 2 | The next push this activation is **+1 distance** and deals **1 damage on contact**. |
+| Threadcaster | **Slingshot** | 2 | Immediately after her Reel leaves an enemy adjacent, **trade tiles with it**. |
+| Archer | **Double Nock** | 4 | Her attack action **fires twice**. Separate targets; each resolved in full. |
+| Wardbearer | **Retort** | 3 | Ends Guard Stance and shoves **every adjacent enemy 1 tile directly away**. |
+
+**Wrecking Weight** adds its tile to the *request*, before Stagger, resistance, hold auras and
+Footing, so it composes with all of them (D-076). An Anchor still shrugs a tile off — the Vanguard's
+plain push 1 becomes 0 and his charged push 2 becomes 1. The contact damage lands *before* the shove
+and stacks with everything after it: a charged basic attack into a wall is **1 attack + 1 contact + 2
+collision = 4**. A target killed by the first two never travels.
+
+**Slingshot** is legal only while a Reel has *just* left an enemy in contact — a reel that stopped
+short records nothing, and anything else she does shuts the window (D-078). The trade is not a
+displacement and not a walk: the two are adjacent, so there is no ground between them, nothing on
+either tile resolves and no collision is possible. It emits `UnitsSwapped`.
+
+**Double Nock** buys attack actions rather than suspending the action half (D-079). It covers the
+basic attack, not the abilities. The high-ground bonus applies **per shot**, and each qualifying shot
+charges +1 — so two shots from high ground make a 4-point spend a **net 2**. That is the design.
+
+**Retort is only ever legal as the first thing in an activation**, because taking the activation slot
+is what drops Guard Stance (D-058, D-077). In practice: guard on one turn, absorb what the enemy
+round throws, cash the stance in as it lapses. Each shove runs the full displacement pipeline —
+collisions, spikes, pits, resistance and Footing all apply — resolved **clockwise from north** so the
+order never depends on unit ids. **Retort's collisions charge nothing**: collisions are the
+Vanguard's condition, absorption is the Wardbearer's.
+
+Two events carry a spend: **`VerveSpent`** — unit, spender, tile, cost and what is left — followed by
+whatever the spend then did.
 
 ## Enemies — what they actually do
 

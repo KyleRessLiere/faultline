@@ -9,8 +9,24 @@
 - **A charge at the cap is shown, not swallowed**, so sitting on a full meter is visible.
 - **Verve carries between fights.** Being downed costs half your health and none of your Verve; being
   voided takes the meter with the unit.
-- **Nothing spends it yet.** The four spenders, the UI and the harness numbers are the next step.
 - Momentum is superseded (D-074) and its field is left standing until the Verve UI replaces it.
+
+### And four ways to spend it
+
+Once per activation, costing neither the move nor the action:
+
+- **Wrecking Weight** (Vanguard, 2) — the next push travels 1 further and bites for 1 on contact. A
+  charged basic attack into a wall is 1 + 1 + 2. The extra tile goes through push resistance rather
+  than around it, so an Anchor still shrugs one off.
+- **Slingshot** (Threadcaster, 2) — trade tiles with an enemy your Reel just dragged into contact.
+  Only immediately after, and only if the reel actually finished the job.
+- **Double Nock** (Archer, 4) — attack twice, separate targets, high-ground bonus on each. Two shots
+  from high ground charge 2 back, so it really costs 2.
+- **Retort** (Wardbearer, 3) — end Guard Stance and shove every adjacent enemy a tile away, clockwise
+  from north. Legal only as the opening move of an activation, which is the last instant the stance
+  you held through the enemy round is still standing.
+
+**Still no UI.** The rules are complete; the shell does not show them yet.
 
 ## Shoves land
 

@@ -92,6 +92,12 @@ namespace Faultline.Core
         /// <param name="distance">Requested distance, before modifiers.</param>
         /// <param name="spendFooting">Whether the target's owner spends a Footing token.</param>
         /// <param name="events">Sink for the resulting events.</param>
+        /// <param name="by">
+        /// Unit causing the displacement, where one is known. Passed explicitly rather than inferred
+        /// from who is standing on <paramref name="source"/>, because a rule that reads a unit out of
+        /// incidental geometry is a rule that breaks quietly the first time the geometry differs.
+        /// Only Wrecking Weight reads it.
+        /// </param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState Resolve(
             GameState state,
@@ -100,13 +106,35 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             bool spendFooting,
-            List<GameEvent> events)
+            List<GameEvent> events,
+            UnitId? by = null)
         {
             var before = state.UnitById(targetId);
             var direction = DirectionOf(before, source, kind);
             if (direction is null)
             {
                 return state;
+            }
+
+            // Wrecking Weight, spent earlier this activation: the shove asks for one more tile and
+            // bites on contact. The extra tile is added to the request, before Stagger, resistance
+            // and Footing, so it composes with all three rather than sidestepping them (D-076).
+            if (kind == DisplacementKind.Push && by.HasValue)
+            {
+                var pusher = state.FindUnit(by.Value);
+                if (pusher is not null && pusher.WreckingWeightArmed)
+                {
+                    distance += Verve.ContactDistanceBonus;
+                    state = state.WithUnit(pusher with { WreckingWeightArmed = false });
+                    state = Combat.ApplyDamage(
+                        state, targetId, Verve.ContactDamage, DamageSource.Attack, events);
+
+                    before = state.UnitById(targetId);
+                    if (!before.IsOnBoard)
+                    {
+                        return state;
+                    }
+                }
             }
 
             // A negating token turns the shove aside without being handed over, so a caller that asked
@@ -240,6 +268,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="events">Sink for the resulting events.</param>
+        /// <param name="by">Unit causing the displacement, where one is known.</param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState ResolveAuto(
             GameState state,
@@ -247,12 +276,13 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            List<GameEvent> events)
+            List<GameEvent> events,
+            UnitId? by = null)
         {
             bool spend = state.UnitById(targetId).Team == Team.Enemy
                 && EnemyWouldSpendFooting(state, targetId, source, kind, distance);
 
-            return Resolve(state, targetId, source, kind, distance, spend, events);
+            return Resolve(state, targetId, source, kind, distance, spend, events, by);
         }
 
         /// <summary>

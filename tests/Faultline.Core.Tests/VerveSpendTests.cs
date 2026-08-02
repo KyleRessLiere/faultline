@@ -1,0 +1,544 @@
+using System.Collections.Generic;
+using System.Linq;
+using Faultline.Core;
+
+namespace Faultline.Core.Tests;
+
+/// <summary>
+/// Spending Verve: the four spenders, and the rules every spend obeys regardless of which one it is.
+/// </summary>
+public class VerveSpendTests
+{
+    // ---- the shape of a spend ------------------------------------------------------------
+
+    [Fact]
+    public void ASpend_CostsNeitherTheMoveNorTheAction()
+    {
+        var state = ArmedVanguard(out var vanguard);
+
+        var result = state.Step(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        var after = result.NewState.Get(vanguard);
+
+        Assert.False(after.HasMoved);
+        Assert.False(after.HasActed);
+        Assert.False(after.HasActivated);
+    }
+
+    [Fact]
+    public void ASpend_EmitsWhatItCostAndWhatIsLeft()
+    {
+        var state = ArmedVanguard(out var vanguard);
+
+        var result = state.Step(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+
+        var spent = result.Single<VerveSpent>();
+        Assert.Equal(vanguard, spent.UnitId);
+        Assert.Equal(VerveSpend.WreckingWeight, spent.Spend);
+        Assert.Equal(2, spent.Cost);
+        Assert.Equal(Verve.Cap - 2, spent.Remaining);
+        Assert.Equal(Verve.Cap - 2, result.NewState.Get(vanguard).Verve);
+    }
+
+    [Fact]
+    public void OnlyOneSpendPerActivation()
+    {
+        var state = ArmedVanguard(out var vanguard);
+
+        var after = state.Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+
+        Assert.True(after.Get(vanguard).HasSpentVerve);
+        Assert.True(after.Get(vanguard).Verve >= Verve.CostOf(VerveSpend.WreckingWeight));
+        TestPlay.AssertNotLegal(after, new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        TestPlay.AssertIllegal(after, new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+    }
+
+    [Fact]
+    public void AUnitBelowTheCost_CannotSpend()
+    {
+        var state = ArmedVanguard(out var vanguard);
+        var broke = state.WithUnit(state.Get(vanguard) with { Verve = 1 });
+
+        TestPlay.AssertNotLegal(broke, new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        TestPlay.AssertIllegal(broke, new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+    }
+
+    [Fact]
+    public void AUnitCannotSpendOnAnotherClassesSpender()
+    {
+        var state = ArmedVanguard(out var vanguard);
+
+        foreach (VerveSpend spend in System.Enum.GetValues(typeof(VerveSpend)))
+        {
+            if (spend == VerveSpend.WreckingWeight)
+            {
+                continue;
+            }
+
+            TestPlay.AssertIllegal(state, new SpendVerveCommand(vanguard, spend));
+        }
+    }
+
+    [Fact]
+    public void EveryPlayerClass_HasExactlyOneSpender_AndNoEnemyHasAny()
+    {
+        var players = new[]
+        {
+            UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
+        };
+
+        var claimed = new List<VerveSpend>();
+        foreach (UnitKind kind in System.Enum.GetValues(typeof(UnitKind)))
+        {
+            var spend = Verve.SpendFor(kind);
+            Assert.Equal(players.Contains(kind), spend.HasValue);
+            if (spend.HasValue)
+            {
+                claimed.Add(spend.Value);
+            }
+        }
+
+        // Four classes, four spenders, no sharing and none left over.
+        Assert.Equal(4, claimed.Distinct().Count());
+    }
+
+    [Theory]
+    [InlineData(VerveSpend.WreckingWeight, 2)]
+    [InlineData(VerveSpend.Slingshot, 2)]
+    [InlineData(VerveSpend.DoubleNock, 4)]
+    [InlineData(VerveSpend.Retort, 3)]
+    public void TheCosts(VerveSpend spend, int cost)
+    {
+        Assert.Equal(cost, Verve.CostOf(spend));
+    }
+
+    [Fact]
+    public void EverySpender_SaysWhatItIsAndWhatItDoes()
+    {
+        foreach (VerveSpend spend in System.Enum.GetValues(typeof(VerveSpend)))
+        {
+            Assert.NotEmpty(Verve.NameOf(spend));
+            Assert.NotEmpty(Verve.DescriptionOf(spend));
+        }
+    }
+
+    // ---- Wrecking Weight -----------------------------------------------------------------
+
+    [Fact]
+    public void WreckingWeight_SendsTheShoveATileFurther_AndBitesOnContact()
+    {
+        var state = ArmedVanguard(out var vanguard);
+        var husk = state.Find(UnitKind.Husk);
+        int hp = state.Get(husk.Id).Hp;
+
+        var armed = state.Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        var result = armed.Step(new AttackCommand(vanguard, husk.Id));
+
+        // Attack 1 + contact 1, and the shove asks for 2 rather than the Vanguard's usual 1.
+        Assert.Equal(2, result.Single<UnitPushed>().Distance);
+        Assert.Equal(hp - 2, result.NewState.Get(husk.Id).Hp);
+    }
+
+    [Fact]
+    public void WreckingWeight_ContactDamageStacksOnTopOfTheCollision()
+    {
+        // VERVE.md: a charged shove into a wall is 1 contact + 2 collision. The attack's own 1 is on
+        // top of both, so a 6 HP Husk finishes on 2.
+        var state = BoardBuilder.Rows("...#")
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+        state = state.WithUnit(state.Get(vanguard) with { Verve = Verve.Cap });
+
+        var armed = state.Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        var result = armed.Step(new AttackCommand(vanguard, husk));
+
+        Assert.True(result.Has<Collision>());
+        Assert.Equal(6 - (1 + 1 + 2), result.NewState.Get(husk).Hp);
+    }
+
+    [Fact]
+    public void WreckingWeight_GoesThroughPushResistance_RatherThanAroundIt()
+    {
+        // The Anchor shrugs off a tile of every push. Vanguard's 1 becomes 0; charged, its 2 becomes
+        // 1. The bonus is added to the request and the existing arithmetic does the rest.
+        var plain = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Anchor, 1, 0)
+            .Build();
+
+        var vanguard = plain.Find(UnitKind.Vanguard).Id;
+        var anchor = plain.Find(UnitKind.Anchor).Id;
+
+        Assert.Equal(0, plain.Step(new AttackCommand(vanguard, anchor)).Single<UnitPushed>().Distance);
+
+        var charged = plain.WithUnit(plain.Get(vanguard) with { Verve = Verve.Cap })
+            .Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+
+        Assert.Equal(1, charged.Step(new AttackCommand(vanguard, anchor)).Single<UnitPushed>().Distance);
+    }
+
+    [Fact]
+    public void WreckingWeight_IsSpentByTheFirstPush_AndNotTheSecond()
+    {
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .PlayerB(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Build();
+
+        // Placed apart so the second shove is a fresh activation rather than an illegal second action.
+        state = BoardBuilder.Open(8, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+        state = state.WithUnit(state.Get(vanguard) with { Verve = Verve.Cap });
+
+        var armed = state.Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        var first = armed.Step(new AttackCommand(vanguard, husk));
+
+        Assert.Equal(2, first.Single<UnitPushed>().Distance);
+        Assert.False(first.NewState.Get(vanguard).WreckingWeightArmed);
+    }
+
+    [Fact]
+    public void AnArmedPushNeverTaken_ExpiresWithTheActivation_AndTheVerveIsStillGone()
+    {
+        var state = ArmedVanguard(out var vanguard);
+        int before = state.Get(vanguard).Verve;
+
+        var armed = state.Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        var ended = armed.Then(new EndActivationCommand(vanguard));
+
+        var after = ended.Get(vanguard);
+        Assert.False(after.WreckingWeightArmed);
+        Assert.False(after.HasSpentVerve);
+        Assert.Equal(before - 2, after.Verve);
+    }
+
+    // ---- Slingshot -----------------------------------------------------------------------
+
+    [Fact]
+    public void Slingshot_TradesPlacesWithTheEnemyTheReelBroughtIn()
+    {
+        var state = ReeledIn(out var caster, out var husk);
+
+        var casterAt = state.Get(caster).Position;
+        var huskAt = state.Get(husk).Position;
+
+        var result = state.Step(new SpendVerveCommand(caster, VerveSpend.Slingshot));
+
+        Assert.Equal(huskAt, result.NewState.Get(caster).Position);
+        Assert.Equal(casterAt, result.NewState.Get(husk).Position);
+
+        var swapped = result.Single<UnitsSwapped>();
+        Assert.Equal(caster, swapped.UnitId);
+        Assert.Equal(casterAt, swapped.From);
+        Assert.Equal(husk, swapped.OtherId);
+        Assert.Equal(huskAt, swapped.OtherFrom);
+    }
+
+    [Fact]
+    public void Slingshot_IsIllegalWithoutAReelHavingJustLandedOne()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster).Id;
+        state = state.WithUnit(state.Get(caster) with { Verve = Verve.Cap });
+
+        // Adjacent already, but nothing reeled it there.
+        TestPlay.AssertNotLegal(state, new SpendVerveCommand(caster, VerveSpend.Slingshot));
+        TestPlay.AssertIllegal(state, new SpendVerveCommand(caster, VerveSpend.Slingshot));
+    }
+
+    [Fact]
+    public void Slingshot_IsIllegalWhenTheReelStoppedShort()
+    {
+        // A wall between them: the pull runs out of room and leaves the Husk out of contact.
+        var state = BoardBuilder.Rows(".#..")
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+        state = state.WithUnit(state.Get(caster) with { Verve = Verve.Cap });
+
+        var reeled = state.Then(new AbilityCommand(caster, Ability.Reel, husk));
+
+        Assert.False(reeled.Get(caster).Position.IsAdjacentTo(reeled.Get(husk).Position));
+        TestPlay.AssertNotLegal(reeled, new SpendVerveCommand(caster, VerveSpend.Slingshot));
+    }
+
+    [Fact]
+    public void Slingshot_TheWindowShutsTheMomentSheDoesAnythingElse()
+    {
+        var state = ReeledIn(out var caster, out _);
+
+        TestPlay.AssertLegal(state, new SpendVerveCommand(caster, VerveSpend.Slingshot));
+
+        // She has already acted, so a move is all that is left — and it closes the window.
+        var moved = state.Then(new MoveCommand(caster, state.Get(caster).Position + new Coord(0, 1)));
+
+        Assert.Null(moved.Get(caster).SlingshotTarget);
+        TestPlay.AssertNotLegal(moved, new SpendVerveCommand(caster, VerveSpend.Slingshot));
+    }
+
+    // ---- Double Nock ---------------------------------------------------------------------
+
+    [Fact]
+    public void DoubleNock_BuysASecondAttackInTheSameActivation()
+    {
+        var state = ArmedArcher(out var archer, out var near, out var far);
+
+        var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
+        var once = armed.Then(new AttackCommand(archer, near));
+
+        // The action half is still unspent, because the first shot spent an owed attack instead.
+        Assert.False(once.Get(archer).HasActed);
+        TestPlay.AssertLegal(once, new AttackCommand(archer, far));
+
+        var twice = once.Then(new AttackCommand(archer, far));
+
+        Assert.True(twice.Get(archer).HasActed);
+        Assert.Equal(0, twice.Get(archer).ExtraAttacks);
+    }
+
+    [Fact]
+    public void WithoutDoubleNock_TheSecondAttackIsIllegal()
+    {
+        var state = ArmedArcher(out var archer, out var near, out var far);
+
+        var once = state.Then(new AttackCommand(archer, near));
+
+        Assert.True(once.Get(archer).HasActed);
+        TestPlay.AssertNotLegal(once, new AttackCommand(archer, far));
+    }
+
+    [Fact]
+    public void DoubleNock_TheHighGroundBonusAppliesToEachShot()
+    {
+        var state = ArcherOnHighGround(out var archer, out var near, out var far);
+
+        var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
+
+        var first = armed.Step(new AttackCommand(archer, near));
+        var second = first.NewState.Step(new AttackCommand(archer, far));
+
+        Assert.True(first.Single<UnitAttacked>().FromHighGround);
+        Assert.True(second.Single<UnitAttacked>().FromHighGround);
+        Assert.Equal(first.Single<UnitAttacked>().Damage, second.Single<UnitAttacked>().Damage);
+    }
+
+    [Fact]
+    public void DoubleNock_FromHighGround_CostsFourAndEarnsTwoBack()
+    {
+        // VERVE.md is explicit that this is the design and not an accident: two qualifying shots make
+        // a 4-point spend a net 2.
+        var state = ArcherOnHighGround(out var archer, out var near, out var far);
+        int before = state.Get(archer).Verve;
+
+        var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
+        Assert.Equal(before - 4, armed.Get(archer).Verve);
+
+        var after = armed
+            .Then(new AttackCommand(archer, near))
+            .Then(new AttackCommand(archer, far));
+
+        Assert.Equal(before - 2, after.Get(archer).Verve);
+    }
+
+    // ---- Retort --------------------------------------------------------------------------
+
+    [Fact]
+    public void Retort_ShovesEveryAdjacentEnemyATileAway()
+    {
+        var state = GuardingWardbearer(out var wardbearer);
+
+        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+
+        var pushes = result.All<UnitPushed>();
+        Assert.Equal(4, pushes.Count);
+        Assert.All(pushes, p => Assert.Equal(DisplacementKind.Push, p.Kind));
+
+        var centre = state.Get(wardbearer).Position;
+        foreach (var push in pushes)
+        {
+            Assert.Equal(1, push.From.DistanceTo(centre));
+            Assert.Equal(2, push.To.DistanceTo(centre));
+        }
+    }
+
+    [Fact]
+    public void Retort_ResolvesClockwiseFromNorth()
+    {
+        var state = GuardingWardbearer(out var wardbearer);
+        var centre = state.Get(wardbearer).Position;
+
+        var pushed = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort))
+            .All<UnitPushed>()
+            .Select(p => p.From)
+            .ToList();
+
+        Assert.Equal(
+            new[]
+            {
+                centre + new Coord(0, -1),
+                centre + new Coord(1, 0),
+                centre + new Coord(0, 1),
+                centre + new Coord(-1, 0),
+            },
+            pushed);
+    }
+
+    [Fact]
+    public void Retort_NeedsGuardStance()
+    {
+        var state = GuardingWardbearer(out var wardbearer);
+        var unguarded = state.WithUnit(state.Get(wardbearer) with { Guarding = false });
+
+        TestPlay.AssertNotLegal(unguarded, new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+        TestPlay.AssertIllegal(unguarded, new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+    }
+
+    [Fact]
+    public void Retort_EndsTheStance()
+    {
+        var state = GuardingWardbearer(out var wardbearer);
+
+        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+
+        Assert.False(result.NewState.Get(wardbearer).Guarding);
+        Assert.False(result.All<GuardStanceChanged>().Last().Active);
+    }
+
+    [Fact]
+    public void Retort_ChargesNothing_EvenWhenItsShovesCollide()
+    {
+        // Charges are class-bound: collisions are the Vanguard's condition, and the Wardbearer's is
+        // absorption. Boxed in on all four sides so every shove hits a wall.
+        var state = BoardBuilder.Rows("#####", "#...#", "#...#", "#...#", "#####")
+            .PlayerB(UnitKind.Wardbearer, 2, 2)
+            .Enemy(UnitKind.Husk, 2, 1, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 2, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 3, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 2, hp: 6)
+            .Active(Team.PlayerB)
+            .Build();
+
+        var wardbearer = state.Find(UnitKind.Wardbearer).Id;
+        state = state.WithUnit(state.Get(wardbearer) with { Verve = Verve.Cap, Guarding = true });
+
+        var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Retort));
+
+        Assert.True(result.Has<Collision>());
+        Assert.False(result.Has<VerveCharged>());
+        Assert.Equal(Verve.Cap - 3, result.NewState.Get(wardbearer).Verve);
+    }
+
+    // ---- the log --------------------------------------------------------------------------
+
+    [Fact]
+    public void TheLog_NamesASpendAndASwap()
+    {
+        var state = ArmedVanguard(out var vanguard);
+
+        var spent = new VerveSpent(vanguard, VerveSpend.Retort, new Coord(1, 1), 3, 2);
+        var swapped = new UnitsSwapped(vanguard, new Coord(1, 1), new UnitId(1), new Coord(2, 1));
+
+        Assert.Equal(nameof(VerveSpent), CombatLog.EventName(spent));
+        Assert.Equal(nameof(UnitsSwapped), CombatLog.EventName(swapped));
+        Assert.Equal(vanguard, CombatLog.ActorOf(spent));
+        Assert.Equal(vanguard, CombatLog.ActorOf(swapped));
+
+        Assert.Contains("Retort", CombatLog.Detail(spent, state));
+        Assert.Contains("trades places", CombatLog.Detail(swapped, state));
+    }
+
+    // ---- fixtures -------------------------------------------------------------------------
+
+    private static GameState ArmedVanguard(out UnitId vanguard)
+    {
+        var state = BoardBuilder.Open(8, 3)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Build();
+
+        vanguard = state.Find(UnitKind.Vanguard).Id;
+        return state.WithUnit(state.Get(vanguard) with { Verve = Verve.Cap });
+    }
+
+    private static GameState ReeledIn(out UnitId caster, out UnitId husk)
+    {
+        var state = BoardBuilder.Open(6, 3)
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        caster = state.Find(UnitKind.Threadcaster).Id;
+        husk = state.Find(UnitKind.Husk).Id;
+
+        var casterId = caster;
+        var huskId = husk;
+
+        return state
+            .WithUnit(state.Get(casterId) with { Verve = Verve.Cap })
+            .Then(new AbilityCommand(casterId, Ability.Reel, huskId));
+    }
+
+    private static GameState ArmedArcher(out UnitId archer, out UnitId near, out UnitId far)
+    {
+        var state = BoardBuilder.Open(6, 3)
+            .PlayerA(UnitKind.Archer, 0, 1)
+            .Enemy(UnitKind.Husk, 2, 1, hp: 9)
+            .Enemy(UnitKind.Husk, 3, 1, hp: 9)
+            .Build();
+
+        archer = state.Find(UnitKind.Archer).Id;
+        near = state.Units.Single(u => u.Position == new Coord(2, 1)).Id;
+        far = state.Units.Single(u => u.Position == new Coord(3, 1)).Id;
+
+        var id = archer;
+        return state.WithUnit(state.Get(id) with { Verve = Verve.Cap });
+    }
+
+    private static GameState ArcherOnHighGround(out UnitId archer, out UnitId near, out UnitId far)
+    {
+        var state = BoardBuilder.Rows("H....", ".....", ".....")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 9)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 9)
+            .Build();
+
+        archer = state.Find(UnitKind.Archer).Id;
+        near = state.Units.Single(u => u.Position == new Coord(2, 0)).Id;
+        far = state.Units.Single(u => u.Position == new Coord(3, 0)).Id;
+
+        var id = archer;
+        return state.WithUnit(state.Get(id) with { Verve = Verve.Cap });
+    }
+
+    private static GameState GuardingWardbearer(out UnitId wardbearer)
+    {
+        var state = BoardBuilder.Open(7, 7)
+            .PlayerB(UnitKind.Wardbearer, 3, 3)
+            .Enemy(UnitKind.Husk, 3, 2, hp: 6)
+            .Enemy(UnitKind.Husk, 4, 3, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 4, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 3, hp: 6)
+            .Active(Team.PlayerB)
+            .Build();
+
+        wardbearer = state.Find(UnitKind.Wardbearer).Id;
+        var id = wardbearer;
+        return state.WithUnit(state.Get(id) with { Verve = Verve.Cap, Guarding = true });
+    }
+}

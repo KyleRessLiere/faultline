@@ -114,6 +114,8 @@ namespace Faultline.Core
             GuardStanceChanged => nameof(GuardStanceChanged),
             GuardIntercepted => nameof(GuardIntercepted),
             VerveCharged => nameof(VerveCharged),
+            VerveSpent => nameof(VerveSpent),
+            UnitsSwapped => nameof(UnitsSwapped),
             FightWon => nameof(FightWon),
             FightLost => nameof(FightLost),
             ObjectiveDeclared => nameof(ObjectiveDeclared),
@@ -217,6 +219,13 @@ namespace Faultline.Core
                 + ", " + Number(e.NewTotal) + "/" + Number(Verve.Cap)
                 + (e.Wasted ? ", full, discarded" : string.Empty),
 
+            VerveSpent e => "spends " + Number(e.Cost) + " verve on " + Verve.NameOf(e.Spend)
+                + " at " + e.At
+                + ", " + Number(e.Remaining) + " left",
+
+            UnitsSwapped e => "trades places with " + Actor(state, e.OtherId)
+                + ", " + e.From + " <-> " + e.OtherFrom,
+
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
             FightLost e => "fight " + Number(e.FightNumber) + " lost, " + Clean(e.Reason),
@@ -297,6 +306,8 @@ namespace Faultline.Core
             GuardStanceChanged e => e.UnitId,
             GuardIntercepted e => e.UnitId,
             VerveCharged e => e.UnitId,
+            VerveSpent e => e.UnitId,
+            UnitsSwapped e => e.UnitId,
             StructureAttacked e => e.AttackerId,
             ReinforcementScheduled e => e.UnitId,
             ReinforcementArrived e => e.UnitId,

@@ -531,16 +531,35 @@ namespace Faultline.Core
                         state, targetId, unit.Position, DisplacementKind.Pull, distance, events);
                 }
 
-                return state;
+                // Slingshot's window opens here and nowhere else: a Reel that actually finished with
+                // the enemy in contact. A reel that stopped short — a wall, a pit, a body in the way —
+                // leaves nothing to trade places with (D-078).
+                return OpenSlingshotWindow(state, unit.Id, targetId);
             }
 
             if (descriptor.Push > 0)
             {
                 state = Displacement.ResolveAuto(
-                    state, targetId, unit.Position, DisplacementKind.Push, descriptor.Push, events);
+                    state, targetId, unit.Position, DisplacementKind.Push, descriptor.Push, events,
+                    by: unit.Id);
             }
 
             return state;
+        }
+
+        private static GameState OpenSlingshotWindow(GameState state, UnitId casterId, UnitId targetId)
+        {
+            var caster = state.UnitById(casterId);
+            var target = state.UnitById(targetId);
+
+            bool inContact = caster.IsOnBoard
+                && target.IsOnBoard
+                && !target.Clinging
+                && caster.Position.IsAdjacentTo(target.Position);
+
+            return inContact
+                ? state.WithUnit(caster with { SlingshotTarget = targetId })
+                : state;
         }
 
         // D-058: Guard Stance costs the action half and nothing else. It lapses at the start of this
@@ -646,7 +665,8 @@ namespace Faultline.Core
                     charge.Destination,
                     DisplacementKind.Push,
                     descriptor.Push,
-                    events);
+                    events,
+                    by: unit.Id);
             }
 
             return state;

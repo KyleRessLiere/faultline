@@ -170,6 +170,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance, before modifiers.</param>
         /// <param name="events">Sink for the resulting events.</param>
+        /// <param name="by">Unit causing the displacement, where one is known.</param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState ResolveAimed(
             GameState state,
@@ -178,7 +179,8 @@ namespace Faultline.Core
             UnitId victimId,
             DisplacementKind kind,
             int distance,
-            List<GameEvent> events)
+            List<GameEvent> events,
+            UnitId? by = null)
         {
             if (distance <= 0 || !state.UnitById(victimId).IsOnBoard)
             {
@@ -186,7 +188,7 @@ namespace Faultline.Core
             }
 
             var from = AimFrom(state, sourceAt, aimedAt, victimId, kind);
-            return Displacement.ResolveAuto(state, victimId, from, kind, distance, events);
+            return Displacement.ResolveAuto(state, victimId, from, kind, distance, events, by);
         }
 
         private static Coord AimFrom(

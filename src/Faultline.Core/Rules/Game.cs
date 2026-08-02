@@ -193,6 +193,11 @@ namespace Faultline.Core
             var events = new List<GameEvent>();
             GameState next;
 
+            // Slingshot's window is "immediately after the Reel", so anything else the Threadcaster
+            // does shuts it. Done here, once, rather than in every command that could shut it — the
+            // Reel re-opens it after this runs (D-078).
+            state = CloseSlingshotWindow(state, command);
+
             switch (command)
             {
                 case DeployCommand deploy:
@@ -212,6 +217,9 @@ namespace Faultline.Core
                     break;
                 case FinishClingingCommand finish:
                     next = ApplyFinish(state, finish, events);
+                    break;
+                case SpendVerveCommand spend:
+                    next = ApplySpendVerve(state, spend, events);
                     break;
                 case EndActivationCommand end:
                     next = ApplyEndActivation(state, end, events);
@@ -328,6 +336,14 @@ namespace Faultline.Core
                             commands.Add(new AbilityCommand(unit.Id, descriptor.Ability));
                         }
                     }
+                }
+
+                // A spend costs neither half of the activation, so it is offered on its own terms
+                // rather than under the action gate above.
+                var spend = Verve.SpendFor(unit.Kind);
+                if (spend.HasValue && Verve.CanSpend(state, unit, spend.Value))
+                {
+                    commands.Add(new SpendVerveCommand(unit.Id, spend.Value));
                 }
 
                 // Brief §2: a rescue costs the whole activation, so it needs both halves unspent.
@@ -590,7 +606,13 @@ namespace Faultline.Core
             state = CommitActivation(state, unit, events);
             unit = state.UnitById(unit.Id);
 
-            state = state.WithUnit(unit with { HasActed = true });
+            // Double Nock buys attack actions, not a free one: each shot spends an owed attack
+            // before it starts spending the activation's own action half (D-079).
+            state = unit.ExtraAttacks > 0
+                ? state.WithUnit(unit with { ExtraAttacks = unit.ExtraAttacks - 1 })
+                : state.WithUnit(unit with { HasActed = true });
+
+            unit = state.UnitById(unit.Id);
 
             // D-058: a guard standing next to the target eats the whole action — the damage and the
             // shove that rides with it — and takes it on its own tile. Worked out once, before any of
@@ -619,7 +641,8 @@ namespace Faultline.Core
             if (push > 0 && state.UnitById(victimId).IsOnBoard)
             {
                 state = Guard.ResolveAimed(
-                    state, unit.Position, target, victimId, DisplacementKind.Push, push, events);
+                    state, unit.Position, target, victimId, DisplacementKind.Push, push, events,
+                    by: unit.Id);
             }
 
             return AfterAction(state, unit.Id, events);
@@ -637,13 +660,15 @@ namespace Faultline.Core
             var guard = Guard.Interceptor(state, target);
             if (guard is null)
             {
-                return Displacement.ResolveAuto(state, target.Id, source.Position, kind, distance, events);
+                return Displacement.ResolveAuto(
+                    state, target.Id, source.Position, kind, distance, events, by: source.Id);
             }
 
             events.Add(new GuardIntercepted(
                 guard.Id, target.Id, source.Id, guard.Position, target.Position));
 
-            return Guard.ResolveAimed(state, source.Position, target, guard.Id, kind, distance, events);
+            return Guard.ResolveAimed(
+                state, source.Position, target, guard.Id, kind, distance, events, by: source.Id);
         }
 
         private static GameState ApplyAbility(GameState state, AbilityCommand command, List<GameEvent> events)
@@ -760,6 +785,57 @@ namespace Faultline.Core
             return unit;
         }
 
+        private static GameState ApplySpendVerve(
+            GameState state, SpendVerveCommand command, List<GameEvent> events)
+        {
+            var unit = state.UnitById(command.UnitId);
+            Require(Verve.CanSpend(state, unit, command.Spend), "That Verve spend is not available.");
+
+            // Retort reads Guard Stance, and taking the activation slot is what drops it (D-058), so
+            // the spend is worked out first and the slot taken after. Every other spend is unaffected
+            // by the order.
+            var spent = Verve.Spend(state, command.UnitId, command.Spend, events);
+            spent = CommitActivation(spent, spent.UnitById(command.UnitId), events);
+
+            return AfterAction(spent, command.UnitId, events);
+        }
+
+        /// <summary>
+        /// Shuts Slingshot's window unless the command is the Slingshot itself. The Reel sets it
+        /// again on its way out, so a Reel does not close its own window.
+        /// </summary>
+        private static GameState CloseSlingshotWindow(GameState state, Command command)
+        {
+            var actorId = ActorOf(command);
+            if (actorId is null)
+            {
+                return state;
+            }
+
+            if (command is SpendVerveCommand spend && spend.Spend == VerveSpend.Slingshot)
+            {
+                return state;
+            }
+
+            var unit = state.FindUnit(actorId.Value);
+            return unit is null || unit.SlingshotTarget is null
+                ? state
+                : state.WithUnit(unit with { SlingshotTarget = null });
+        }
+
+        private static UnitId? ActorOf(Command command) => command switch
+        {
+            DeployCommand c => c.UnitId,
+            MoveCommand c => c.UnitId,
+            AttackCommand c => c.UnitId,
+            AbilityCommand c => c.UnitId,
+            RescueCommand c => c.UnitId,
+            FinishClingingCommand c => c.UnitId,
+            SpendVerveCommand c => c.UnitId,
+            EndActivationCommand c => c.UnitId,
+            _ => null,
+        };
+
         private static GameState CommitActivation(GameState state, Unit unit, List<GameEvent> events)
         {
             if (state.ActiveUnitId.HasValue)
@@ -806,11 +882,17 @@ namespace Faultline.Core
             var unit = state.UnitById(unitId);
             bool passed = !(unit.HasMoved && unit.HasActed);
 
+            // Everything Verve arms is per-activation and expires here, spent or not. An armed
+            // Wrecking Weight that never found a push is gone, and so is the Verve that bought it.
             state = state.WithUnit(unit with
             {
                 HasActivated = true,
                 HasMoved = false,
                 HasActed = false,
+                HasSpentVerve = false,
+                WreckingWeightArmed = false,
+                ExtraAttacks = 0,
+                SlingshotTarget = null,
             });
             events.Add(new ActivationEnded(unitId, passed));
 

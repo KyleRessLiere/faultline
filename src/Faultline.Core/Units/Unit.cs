@@ -60,6 +60,31 @@ namespace Faultline.Core
         /// </summary>
         public int Verve { get; init; }
 
+        /// <summary>
+        /// True once this unit has spent Verve during the current activation. One spend per
+        /// activation, and spending costs neither half of it.
+        /// </summary>
+        public bool HasSpentVerve { get; init; }
+
+        /// <summary>
+        /// True while Wrecking Weight is armed: the next Push this unit causes gains a tile and deals
+        /// 1 damage on contact. Consumed by that push, and dropped at the end of the activation
+        /// whether it was used or not.
+        /// </summary>
+        public bool WreckingWeightArmed { get; init; }
+
+        /// <summary>
+        /// Attack actions still owed beyond the one the activation comes with, from Double Nock.
+        /// Each attack spends one instead of ending the action half.
+        /// </summary>
+        public int ExtraAttacks { get; init; }
+
+        /// <summary>
+        /// The enemy a Reel has just dragged into contact, and only until this unit does anything
+        /// else. Slingshot's window: while this is set, the pair may exchange tiles.
+        /// </summary>
+        public UnitId? SlingshotTarget { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 
