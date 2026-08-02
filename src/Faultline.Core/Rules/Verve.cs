@@ -109,6 +109,13 @@ namespace Faultline.Core
             // Snapshotted before the loop: a charge is an event, and a charge must never charge.
             int produced = events.Count;
 
+            // Guarding is charged per command rather than per event, because one blow can both hurt
+            // and shove a guard and that is one absorb, not two (D-095).
+            foreach (var guardId in Absorbed(state, events, produced))
+            {
+                state = Bank(state, guardId, VerveSource.Guard, events);
+            }
+
             for (int i = 0; i < produced; i++)
             {
                 if (!Earned(state, events, i, out var earnerId, out var source))
@@ -116,24 +123,90 @@ namespace Faultline.Core
                     continue;
                 }
 
-                var earner = state.FindUnit(earnerId);
-                if (earner is null)
+                state = Bank(state, earnerId, source, events);
+            }
+
+            return state;
+        }
+
+        /// <summary>Puts one point on a unit's meter, or reports it wasted against the cap.</summary>
+        private static GameState Bank(
+            GameState state, UnitId earnerId, VerveSource source, List<GameEvent> events)
+        {
+            var earner = state.FindUnit(earnerId);
+            if (earner is null)
+            {
+                return state;
+            }
+
+            bool wasted = earner.Verve >= Cap;
+            int total = wasted ? Cap : earner.Verve + 1;
+
+            if (!wasted)
+            {
+                state = state.WithUnit(earner with { Verve = total });
+            }
+
+            events.Add(new VerveCharged(earnerId, source, earner.Position, total, wasted));
+            return state;
+        }
+
+        /// <summary>
+        /// Every guard that actually took something this command — the units whose stance did its
+        /// job, in unit-id order.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Redirected or direct.</b> The stance halves attack damage the guard takes either way,
+        /// so both are absorbs, and charging only the redirect meant a Wardbearer standing in a
+        /// doorway being hit all round earned nothing (D-095). The earlier reading keyed the charge
+        /// to <see cref="GuardIntercepted"/> because that event was convenient, not because a direct
+        /// hit is a different thing.
+        /// </para>
+        /// <para>
+        /// <b>D-088's clause survives:</b> something has to have landed. Attack damage above zero,
+        /// or a displacement that moved the guard at least one tile. A shove its push resistance ate
+        /// whole is still not an absorb.
+        /// </para>
+        /// </remarks>
+        private static IReadOnlyList<UnitId> Absorbed(
+            GameState state, IReadOnlyList<GameEvent> events, int produced)
+        {
+            var guards = new List<UnitId>();
+
+            for (int i = 0; i < produced; i++)
+            {
+                UnitId id;
+
+                switch (events[i])
+                {
+                    // Only attack damage. Collision, spikes and the fall are the board hurting it,
+                    // which is not the stance absorbing anything.
+                    case UnitDamaged d when d.Amount > 0 && d.Source == DamageSource.Attack:
+                        id = d.UnitId;
+                        break;
+
+                    case UnitPushed p when p.Path.Count > 0:
+                        id = p.UnitId;
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                if (guards.Contains(id))
                 {
                     continue;
                 }
 
-                bool wasted = earner.Verve >= Cap;
-                int total = wasted ? Cap : earner.Verve + 1;
-
-                if (!wasted)
+                var unit = state.FindUnit(id);
+                if (unit is not null && unit.Guarding && Charges(unit.Kind, VerveSource.Guard))
                 {
-                    state = state.WithUnit(earner with { Verve = total });
+                    guards.Add(id);
                 }
-
-                events.Add(new VerveCharged(earnerId, source, earner.Position, total, wasted));
             }
 
-            return state;
+            return guards;
         }
 
         /// <summary>
@@ -163,7 +236,7 @@ namespace Faultline.Core
             UnitKind.Vanguard => "collisions you cause",
             UnitKind.Threadcaster => "your pulls ending in a collision or a hazard",
             UnitKind.Archer => "hitting an enemy from high ground",
-            UnitKind.Wardbearer => "absorbing a hit in Guard Stance",
+            UnitKind.Wardbearer => "taking a hit in Guard Stance, aimed at you or an ally",
             _ => string.Empty,
         };
 
@@ -321,20 +394,6 @@ namespace Faultline.Core
                     source = VerveSource.HighGround;
                     break;
 
-                case GuardIntercepted e:
-                    // An interception that landed on nothing is not an absorb. GuardIntercepted is
-                    // emitted before the redirected effect resolves, so whether anything actually
-                    // reached the guard is a question about what came after it in the stream.
-                    if (!AbsorbLanded(events, index, e.UnitId))
-                    {
-                        return false;
-                    }
-
-                    earnerId = e.UnitId;
-                    affectedId = e.AttackerId;
-                    source = VerveSource.Guard;
-                    break;
-
                 case Collision e:
                     affectedId = e.UnitId;
 
@@ -389,28 +448,6 @@ namespace Faultline.Core
         /// reduced to nothing still reports a distance, deliberately (D-057), and the path is the
         /// only field that says whether the unit went anywhere.
         /// </remarks>
-        private static bool AbsorbLanded(IReadOnlyList<GameEvent> events, int index, UnitId guardId)
-        {
-            for (int i = index + 1; i < events.Count; i++)
-            {
-                // A second interception in the same command starts a different absorb.
-                if (events[i] is GuardIntercepted)
-                {
-                    return false;
-                }
-
-                switch (events[i])
-                {
-                    case UnitDamaged d when d.UnitId == guardId && d.Amount > 0:
-                        return true;
-                    case UnitPushed p when p.UnitId == guardId && p.Path.Count > 0:
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// The unit responsible for the board consequences at <paramref name="index"/>: the actor of
         /// the nearest preceding action in the same command.

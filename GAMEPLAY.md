@@ -258,7 +258,7 @@ event on the board pays one unit and not another:
 | Vanguard | a collision **he** causes | `Collision` |
 | Fisher | a displacement **she** causes ends in a collision, spikes or a drain — including a Cast landing | `Collision`, `Hazard` |
 | Archer | **she** hits an enemy from HighGround | `HighGround` |
-| Wardbearer | **it** absorbs something in Guard Stance **that dealt damage or moved it a tile** | `Guard` |
+| Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
 
 The Fisher is ranged, so a shot of hers from HighGround produces exactly the event the Archer
 charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.

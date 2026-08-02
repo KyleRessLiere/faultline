@@ -1,5 +1,16 @@
 # Changelog
 
+## The Wardbearer earns for standing there
+
+- **A guard now charges for hits aimed at it, not only for hits it pulls off an ally.** Holding Guard
+  Stance and being attacked earned nothing at all, because the charge was wired to the redirect
+  rather than to the stance — so a Wardbearer in a doorway soaked hits all round and banked none of
+  them. The stance halves what it takes either way, so both are absorbs (D-095).
+- The clause that made a shrugged-off shove worth nothing is untouched: something still has to land.
+  Spikes and collisions still charge nothing — the stance does not mitigate those, so it took nothing
+  for anybody.
+- One blow that both hurts and shoves a guard charges once, not twice.
+
 ## The log says how hard it hit
 
 - **Damage now appears in the combat log, including the part that went past the end.** A 5 into a

@@ -236,6 +236,95 @@ public class GuardAbsorbChargeTests
         Assert.Equal(1, charged.Get(wardbearer).Verve);
     }
 
+    [Fact]
+    public void AGuardHitDirectly_ChargesToo()
+    {
+        // The bug a human found: he was only charged for hits redirected off an ally, so a
+        // Wardbearer standing in a doorway being attacked all round earned nothing. The stance
+        // halves what he takes either way, so both are absorbs (D-095).
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerB(UnitKind.Wardbearer, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
+            .Build();
+
+        var ward = state.Find(UnitKind.Wardbearer).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+
+        var guarding = EnemyTurn(state.WithUnit(state.Get(ward) with { Guarding = true }));
+
+        var result = guarding.Step(new AttackCommand(husk, ward));
+
+        Assert.False(result.Has<GuardIntercepted>());
+        Assert.Equal(1, result.NewState.Get(ward).Verve);
+        Assert.Equal(VerveSource.Guard, result.Single<VerveCharged>().Source);
+    }
+
+    [Fact]
+    public void AWardbearerHitWithNoStanceUp_ChargesNothing()
+    {
+        // The stance is the condition, not being a Wardbearer.
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerB(UnitKind.Wardbearer, 1, 0)
+            .Enemy(UnitKind.Husk, 2, 0)
+            .Build();
+
+        var ward = state.Find(UnitKind.Wardbearer).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+
+        var result = EnemyTurn(state).Step(new AttackCommand(husk, ward));
+
+        Assert.False(result.NewState.Get(ward).Guarding);
+        Assert.False(result.Has<VerveCharged>());
+    }
+
+    [Fact]
+    public void OneBlowThatBothHurtsAndShovesAGuard_ChargesOnce()
+    {
+        // The Quarry King's attack pushes as well as damaging. That is one absorb, not two, which
+        // is why guarding is charged per command rather than per event.
+        var state = BoardBuilder.Open(8, 1)
+            .PlayerB(UnitKind.Wardbearer, 3, 0)
+            .Enemy(UnitKind.QuarryKing, 4, 0)
+            .Build();
+
+        var ward = state.Find(UnitKind.Wardbearer).Id;
+        var king = state.Find(UnitKind.QuarryKing).Id;
+
+        var guarding = EnemyTurn(state.WithUnit(state.Get(ward) with
+        {
+            Guarding = true,
+            Staggered = true,
+        }));
+
+        var result = guarding.Step(new AttackCommand(king, ward));
+
+        Assert.True(result.Has<UnitDamaged>());
+        Assert.Single(result.All<VerveCharged>());
+        Assert.Equal(1, result.NewState.Get(ward).Verve);
+    }
+
+    [Fact]
+    public void TheBoardHurtingAGuard_IsNotAnAbsorb()
+    {
+        // Spikes are not something the stance took for anybody, and impact damage is never
+        // mitigated by it either.
+        var state = BoardBuilder.Rows(".^....")
+            .PlayerB(UnitKind.Wardbearer, 3, 0)
+            .Enemy(UnitKind.Threadcaster, 5, 0)
+            .Build();
+
+        var ward = state.Find(UnitKind.Wardbearer).Id;
+        var guarding = state.WithUnit(state.Get(ward) with { Guarding = true });
+
+        var events = new List<GameEvent>();
+        var hurt = Combat.ApplyDamage(guarding, ward, 3, DamageSource.Spikes, events);
+
+        var charged = Verve.Charge(hurt, events);
+
+        Assert.Empty(events.OfType<VerveCharged>());
+        Assert.Equal(0, charged.Get(ward).Verve);
+    }
+
     private static GameState Guarded(out UnitId wardbearer, out UnitId archer, out UnitId husk)
     {
         var state = BoardBuilder.Open(5, 2)

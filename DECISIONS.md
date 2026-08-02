@@ -111,9 +111,10 @@ in this file when the question comes back.
 | D-091 | [Cast: pluck an enemy from three tiles away, over anything, and set it down beside you.](#d-091-cast-pluck-an-enemy-from-three-tiles-away-over-anything-and-set-it-down-beside-you) | 2026-08-02 |  |
 | D-092 | [Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.](#d-092-player-a-fields-the-vanguard-and-the-fisher-player-b-the-wardbearer-and-the-archer) | 2026-08-02 |  |
 | D-093 | [The cast landing is chosen as a side, and drawn as a cone.](#d-093-the-cast-landing-is-chosen-as-a-side-and-drawn-as-a-cone) | 2026-08-02 |  |
-| D-094 | [A hit reports what it was worth, not what there was left to absorb it.](#d-094-a-hit-reports-what-it-was-worth-not-what-there-was-left-to-absorb-it) | unreleased |  |
+| D-094 | [A hit reports what it was worth, not what there was left to absorb it.](#d-094-a-hit-reports-what-it-was-worth-not-what-there-was-left-to-absorb-it) | 2026-08-02 |  |
+| D-095 | [A guard charges for what it takes, redirected or direct.](#d-095-a-guard-charges-for-what-it-takes-redirected-or-direct) | unreleased |  |
 
-**93 rulings.**
+**94 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1372,3 +1373,32 @@ hit reads as it always did, with the number restored.
 
 This is the same principle as D-057, which made a shove that moved nothing still report itself: a
 rule that fired and changed the outcome has to say so.
+
+**D-095 — A guard charges for what it takes, redirected or direct.**
+Amends D-088, which is otherwise unchanged.
+
+**The bug a human found by playing:** a Wardbearer holding Guard Stance and being attacked earned no
+Pluck at all. The charge was keyed to `GuardIntercepted`, which only fires when the stance pulls a
+blow off an *ally* — so a guard standing in a doorway taking hits aimed squarely at him absorbed
+them, halved them, and banked nothing.
+
+**That was an implementation detail wearing a rule's clothes.** The stance halves attack damage the
+guard takes **redirected or direct** — that is its own printed rule — so both are absorbs. Keying the
+charge to the redirect event was convenient rather than considered, and nothing in the design says a
+blow aimed at him counts for less than one aimed past him.
+
+**D-088's clause is kept in full.** Something still has to have landed: attack damage above zero, or
+a displacement that moved the guard at least one tile. A shove his push resistance ate whole remains
+worth nothing, which was the whole point of that ruling.
+
+**Only attack damage counts.** Collision, spikes and falls are the board hurting him, and the stance
+does not mitigate those (D-058) — it takes nothing for anybody when a pit does the work.
+
+**Charged per command, not per event.** One blow can both hurt and shove a guard — the Quarry King's
+attack does exactly that — and that is one absorb. Guarding is therefore resolved in its own pass
+over the command's events rather than in the per-event loop, which is what makes double-charging
+impossible rather than merely unlikely.
+
+**Expected to move the number that D-084 and Finding 7 are both about.** The Wardbearer's earn rate
+was the lowest of the four classes and this was why; it is also the charge condition most under his
+own control, since holding the stance is a decision he makes every activation.
