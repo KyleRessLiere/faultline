@@ -59,3 +59,25 @@
     line-height: 1.4;
     margin: 2px 0 0;
 }
+
+.verve-head {
+    border-top: 1px solid var(--pt-border-soft);
+    color: var(--pt-amber);
+    font-size: 12px;
+    letter-spacing: .06em;
+    margin: 14px 0 4px;
+    padding-top: 12px;
+    text-transform: uppercase;
+}
+
+.verve-intro {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 0 0 8px;
+}
+
+.earns {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 2px 0 0;
+}

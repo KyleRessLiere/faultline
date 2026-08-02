@@ -21,8 +21,43 @@
     }
 </ul>
 
+@* Verve is not an ability and so is absent from Core's descriptors, which would leave the one
+   resource in the game undocumented in the one panel that documents things. Every figure and phrase
+   below comes from Core. *@
+<h3 class="verve-head">Verve</h3>
+<p class="verve-intro">
+    Earned per unit, capped at @Verve.Cap, carried between fights. Spent once per activation, costing
+    neither the move nor the action.
+</p>
+
+<ul class="abilities">
+    @foreach (var (kind, spend) in Spenders)
+    {
+        <li>
+            <div class="head">
+                <span class="art">
+                    <UnitArt Kind="kind" Label="@Verve.NameOf(spend)" />
+                </span>
+                <strong class="name">@Verve.NameOf(spend)</strong>
+                <span class="badge kind">@kind</span>
+                <span class="badge effect">@Verve.CostOf(spend) verve</span>
+            </div>
+            <p class="summary">@Verve.DescriptionOf(spend)</p>
+            <p class="earns">Charges from @Verve.ConditionFor(kind).</p>
+        </li>
+    }
+</ul>
+
 @code {
     private static readonly IReadOnlyList<AbilityDescriptor> All = AbilityDescriptor.All().ToList();
+
+    /// <summary>Every class that holds a meter, with the one spender it holds it for.</summary>
+    private static readonly IReadOnlyList<(UnitKind Kind, VerveSpend Spend)> Spenders =
+        Enum.GetValues<UnitKind>()
+            .Select(k => (Kind: k, Spend: Verve.SpendFor(k)))
+            .Where(p => p.Spend.HasValue)
+            .Select(p => (p.Kind, p.Spend!.Value))
+            .ToList();
 
     /// <summary>How many abilities this tab lists, for the tab strip to say so.</summary>
     public static int Count => All.Count;
