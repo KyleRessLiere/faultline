@@ -32,6 +32,23 @@ namespace Faultline.Core
             // down — no placeholder, no substitute (DECISIONS.md D-049).
             var bindings = Bind(state, fight, out var adapted, out var loadout);
 
+            // A side with nothing left to field cannot deploy, and Game.Start has no answer for it:
+            // deployment opens on that side, offers no legal command, and never reaches the objective
+            // check — so the fight does not start, does not end, and cannot be left. The run stops
+            // here instead, which is a loss rather than a frozen board (DECISIONS.md D-051, D-056).
+            //
+            // The whole-squad guard in Resolve does not catch this. The campaign fights split the
+            // same four classes across the two players differently, so losing one player's two
+            // classes empties a roster while half the squad is still standing.
+            if (adapted.RosterA.Count == 0 || adapted.RosterB.Count == 0)
+            {
+                string empty = adapted.RosterA.Count == 0 ? "Player A" : "Player B";
+                return Campaign.Lose(
+                    state,
+                    empty + " has no units left to field in " + fight.Id + ".",
+                    context);
+            }
+
             var start = Game.Start(adapted, state.Seed, loadout);
             context.FightEvents.AddRange(start.Events);
             context.FinalBoard = start.NewState;

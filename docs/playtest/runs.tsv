@@ -1,0 +1,11 @@
+policy	seed	outcome	fights_won	ended_at_node	commands	reason
+first-legal	1	Lost	1	1	126	Fight lost: cb-06-bait-and-break.
+brawler	1	Lost	4	5	200	Player A has no units left to field in the-shrine.
+shover	1	Lost	1	1	143	Fight lost: cb-06-bait-and-break.
+careful	1	Lost	1	1	122	Fight lost: cb-06-bait-and-break.
+random-a	1	Lost	0	0	100	Fight lost: first-contact.
+random-b	1	Lost	1	1	138	Fight lost: cb-06-bait-and-break.
+random-c	1	Lost	1	1	128	Fight lost: cb-06-bait-and-break.
+random-d	1	Lost	1	1	156	Fight lost: cb-06-bait-and-break.
+random-e	1	Lost	0	0	98	Fight lost: first-contact.
+random-f	1	Lost	0	0	111	Fight lost: first-contact.

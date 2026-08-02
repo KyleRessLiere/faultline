@@ -630,6 +630,51 @@ public class RunTests
         Assert.Equal(3, carried.FieldingHp);
     }
 
+
+    [Fact]
+    public void Run_ASideWithNothingLeftToFieldEndsTheRunRatherThanFreezingIt()
+    {
+        // Found by tools/Faultline.Playtest on its first sweep: a run whose Vanguard and Archer were
+        // both voided walked into the-shrine, which rosters exactly those two on side A. Deployment
+        // opened on Player A with nothing to place, offered no legal command, and never reached the
+        // objective check — the fight could not start, end, or be left. Frozen is worse than lost.
+        var run = RunFixture.Start();
+
+        var gutted = run.Squad
+            .Select(u => u.Kind is UnitKind.Vanguard or UnitKind.Archer
+                ? u with { Hp = 0, Status = RunUnitStatus.Voided }
+                : u)
+            .ToList();
+
+        var state = run with { Squad = gutted };
+
+        Assert.NotEmpty(state.Available());
+
+        var step = Campaign.ApplyRun(state, new EnterNodeCommand());
+
+        Assert.Equal(RunOutcome.Lost, step.NewState.Outcome);
+        Assert.Equal(RunPhase.Complete, step.NewState.Phase);
+        Assert.Contains("no units left to field", step.Single<RunLost>().Reason);
+        Assert.Empty(Campaign.LegalRunCommands(step.NewState));
+    }
+
+    [Fact]
+    public void Run_ASideLosingOnlyOneOfItsTwoClassesStillPlays()
+    {
+        // The guard has to be about an empty roster, not about casualties. One down is a fight you
+        // fight a body short, which is the whole point of carrying losses forward.
+        var run = RunFixture.Start();
+
+        var gutted = run.Squad
+            .Select(u => u.Kind == UnitKind.Archer ? u with { Hp = 0, Status = RunUnitStatus.Voided } : u)
+            .ToList();
+
+        var step = Campaign.ApplyRun(run with { Squad = gutted }, new EnterNodeCommand());
+
+        Assert.Equal(RunOutcome.InProgress, step.NewState.Outcome);
+        Assert.Equal(RunPhase.InFight, step.NewState.Phase);
+    }
+
     private sealed record UnknownNode : CampaignNode
     {
         public override string Describe() => "unknown";
