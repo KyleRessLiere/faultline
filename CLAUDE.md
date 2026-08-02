@@ -16,7 +16,14 @@ Read AGENT_BRIEF.md first. That file defines WHAT to build; this file defines HO
 4. Run: `dotnet build && dotnet test` — all green before any commit. Never commit red.
 5. **Update GAMEPLAY.md in the same change as any rule that alters observable behaviour.** Exact
    numbers, not a summary. Update DECISIONS.md if you resolved an ambiguity; update CHANGELOG.md with one line.
-6. Commit.
+6. **Update the `.fight` files in the same change as any ruling that changes what boards field** —
+   rosters, spawns, terrain, objectives. A rule enforced only at runtime while the files still say
+   the old thing is a board that behaves differently depending on how it was reached: D-092 changed
+   the default teams, resolved them at run start, and left ten files disagreeing, so the same fight
+   fielded one squad from the campaign and another from the picker. Keep the runtime resolution as
+   the guard, author the files to match, and pin it with a test. Then regenerate what is derived from
+   them — `python tools/build_catalogue.py`, and the `FIGHT_FORMAT.md` worked example.
+7. Commit.
 
 ## The design docs
 
@@ -111,6 +118,10 @@ costs more than it saves.
 - **Watch for coupling, not just file names.** Two agents both changing `Game.cs` are the same task
   wearing two hats. Split by subsystem — Core rules, Core serialisation, shell pages — not by
   wishful thinking.
+- **Stage explicit paths. Never `git add -A` or `git add .`.** The working tree changes underneath a
+  session — this has swept another writer's untracked files into a commit whose message described
+  none of them. `git add -- <paths>`, then read `git status --short` before committing; if something
+  unexpected is staged, stop and say so rather than committing through it.
 - **Concurrent builds share `obj/` and `bin/`.** Expect occasional transient file-lock failures
   ("being used by another process", "could not copy"). These are not real errors: retry once, and
   only investigate if the same failure repeats. Tell every agent this so it does not go hunting for
