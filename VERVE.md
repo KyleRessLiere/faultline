@@ -97,6 +97,42 @@ question — *what do you get for playing well?* — with three differences that
    matter of opinion.
 3. **It is legible.** One integer on a unit, one condition per class, in plain words on the card.
 
+## UI
+
+The meter has to be legible or none of the above matters — a resource a player cannot see is a
+resource they do not play around.
+
+- **The meter appears in two places:** on the unit card, and on the **board token**, so it can be
+  read without selecting anybody. Charges per character must be clear at a glance.
+- **The charge condition is written on the card in plain words** — "collisions you cause", "hit from
+  high ground" — sourced from Core, not retyped in the shell.
+- **The meter ticks visibly at the charging moment**, as part of the event animation. Charging you
+  cannot feel is charging you will not aim for.
+- **Spend buttons live in the ability panel with cost chips**, disabled below cost.
+- **`VerveCharged` with `wasted = true` renders as `+0 (full)`** — the waste is shown, not hidden,
+  because a player sitting at the cap should feel it and spend.
+
+## Harness
+
+`tools/Faultline.Playtest` tracks **Verve earned, spent and wasted, per class, per fight** across the
+run suite. The shove-scoring policy is extended to spend when it can afford to — naively, as soon as
+possible.
+
+**The per-class earn rate is the thesis-compliance metric.** Every charge condition is a
+displacement, a hazard, high ground or absorption, so a squad earning Verve is a squad using the
+board. `docs/PLAYTEST_FINDINGS.md` finding 1 measured the same claim from the other end — 87% of
+damage taken was ordinary attacks — and these two numbers should move in opposite directions if the
+design is working.
+
+## Close out
+
+- `DECISIONS.md`: **Verve supersedes Momentum** (M5 shelved — revival requires a non-displacement
+  charge source, and that trigger must be written down per the HELD convention); the four abilities;
+  the carry-over and void rules.
+- `GAMEPLAY.md` gains a Verve section, with the exact numbers.
+- Bestiary and unit cards updated.
+- `CHANGELOG.md`, `README.md`.
+
 ## Out of scope
 
 The parked spenders; upgrade-offer integration; Momentum and the commander cards; hybrid charge
