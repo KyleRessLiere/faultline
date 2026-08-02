@@ -44,7 +44,7 @@ namespace Faultline.Core
         public static int CostOf(VerveSpend spend) => spend switch
         {
             VerveSpend.WreckingWeight => 2,
-            VerveSpend.Slingshot => 2,
+            VerveSpend.Cast => 3,
             VerveSpend.DoubleNock => 4,
             VerveSpend.Preen => 3,
             _ => 0,
@@ -59,7 +59,7 @@ namespace Faultline.Core
         public static VerveSpend? SpendFor(UnitKind kind) => kind switch
         {
             UnitKind.Vanguard => VerveSpend.WreckingWeight,
-            UnitKind.Threadcaster => VerveSpend.Slingshot,
+            UnitKind.Threadcaster => VerveSpend.Cast,
             UnitKind.Archer => VerveSpend.DoubleNock,
             UnitKind.Wardbearer => VerveSpend.Preen,
             _ => (VerveSpend?)null,
@@ -81,8 +81,10 @@ namespace Faultline.Core
             VerveSpend.WreckingWeight =>
                 "Your next push this activation travels 1 further and deals 1 damage on contact, "
                 + "on top of anything it collides into.",
-            VerveSpend.Slingshot =>
-                "Immediately after your Reel leaves an enemy adjacent, trade places with it.",
+            VerveSpend.Cast =>
+                "Pluck an enemy from up to " + Throw.GrabRange
+                + " tiles away, over anything in between, and set it down beside you. Nothing "
+                + "braces against being thrown.",
             VerveSpend.DoubleNock =>
                 "Attack twice this activation. Two separate targets, each resolved in full.",
             VerveSpend.Preen =>
@@ -211,7 +213,7 @@ namespace Faultline.Core
             {
                 VerveSpend.WreckingWeight => !unit.HasActed,
                 VerveSpend.DoubleNock => !unit.HasActed,
-                VerveSpend.Slingshot => SlingshotPartner(state, unit) is not null,
+                VerveSpend.Cast => Throw.Grabbable(state, unit).Count > 0,
 
                 // Nothing to patch up at full health. Offering it would be offering a unit the
                 // chance to burn three points on nothing.
@@ -227,9 +229,16 @@ namespace Faultline.Core
         /// <param name="unitId">Unit spending.</param>
         /// <param name="spend">What it is spending on.</param>
         /// <param name="events">Sink for the resulting events.</param>
+        /// <param name="targetId">Unit the spend acts on, for Cast.</param>
+        /// <param name="to">Where the spend puts it, for Cast.</param>
         /// <returns>The state after the spend resolved.</returns>
         public static GameState Spend(
-            GameState state, UnitId unitId, VerveSpend spend, List<GameEvent> events)
+            GameState state,
+            UnitId unitId,
+            VerveSpend spend,
+            List<GameEvent> events,
+            UnitId? targetId = null,
+            Coord? to = null)
         {
             var unit = state.UnitById(unitId);
             int cost = CostOf(spend);
@@ -246,8 +255,10 @@ namespace Faultline.Core
                 case VerveSpend.DoubleNock:
                     return state.WithUnit(state.UnitById(unitId) with { ExtraAttacks = 1 });
 
-                case VerveSpend.Slingshot:
-                    return Swap(state, unitId, events);
+                case VerveSpend.Cast:
+                    return targetId is null || to is null
+                        ? state
+                        : Throw.Resolve(state, unitId, targetId.Value, to.Value, events);
 
                 case VerveSpend.Preen:
                     return Preen(state, unitId, events);
@@ -255,30 +266,6 @@ namespace Faultline.Core
                 default:
                     return state;
             }
-        }
-
-        /// <summary>
-        /// Trades tiles with the reeled enemy. Neither unit travels the ground between — they are
-        /// adjacent, so there is no ground between — which is why nothing on either tile resolves and
-        /// no collision is possible (D-078).
-        /// </summary>
-        private static GameState Swap(GameState state, UnitId unitId, List<GameEvent> events)
-        {
-            var unit = state.UnitById(unitId);
-            var partner = SlingshotPartner(state, unit);
-            if (partner is null)
-            {
-                return state;
-            }
-
-            var here = unit.Position;
-            var there = partner.Position;
-
-            state = state.WithUnit(state.UnitById(unitId) with { Position = there, SlingshotTarget = null });
-            state = state.WithUnit(state.UnitById(partner.Id) with { Position = here });
-
-            events.Add(new UnitsSwapped(unitId, here, partner.Id, there));
-            return state;
         }
 
         /// <summary>
@@ -308,31 +295,6 @@ namespace Faultline.Core
             state = state.WithUnit(unit with { Hp = unit.Hp + healed });
             events.Add(new UnitHealed(unitId, healed, unit.Hp + healed, unit.Position));
             return state;
-        }
-
-        /// <summary>
-        /// The enemy Slingshot would trade places with: the one a Reel just left in contact, if it is
-        /// still there to trade with.
-        /// </summary>
-        /// <param name="state">Current state.</param>
-        /// <param name="unit">The Threadcaster.</param>
-        /// <returns>The partner, or null when the window is shut.</returns>
-        public static Unit? SlingshotPartner(GameState state, Unit unit)
-        {
-            if (unit.SlingshotTarget is null)
-            {
-                return null;
-            }
-
-            var target = state.FindUnit(unit.SlingshotTarget.Value);
-
-            // Reeled into contact and then killed by something on the way in is not a swap.
-            return target is not null
-                && target.IsOnBoard
-                && !target.Clinging
-                && unit.Position.IsAdjacentTo(target.Position)
-                ? target
-                : null;
         }
 
         /// <summary>
@@ -464,6 +426,13 @@ namespace Faultline.Core
                         return true;
                     case UnitAttacked e:
                         causerId = e.AttackerId;
+                        return true;
+
+                    // A spend is an action with an actor too. Without this a Cast that drops an
+                    // enemy in a pit would charge nobody, because the Fisher's own condition is
+                    // exactly that and nothing before it in the stream names her (D-091).
+                    case VerveSpent e:
+                        causerId = e.UnitId;
                         return true;
                 }
             }

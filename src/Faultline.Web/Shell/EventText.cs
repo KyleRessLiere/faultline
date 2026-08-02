@@ -31,7 +31,12 @@ public static class EventText
         UnitDamaged e => $"{Name(state, e.UnitId)} → {e.RemainingHp} HP ({e.Source}).",
         UnitDowned e => $"{Name(state, e.UnitId)} is down.",
         AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDescriptor.For(e.Ability).Name}.",
-        UnitPushed e => $"{Name(state, e.UnitId)} {(e.Kind == DisplacementKind.Push ? "shoved" : "pulled")} {e.Distance} → {e.To}.",
+        UnitPushed e => e.Kind switch
+        {
+            DisplacementKind.Throw => $"{Name(state, e.UnitId)} is thrown {e.Distance} → {e.To}, over everything between.",
+            DisplacementKind.Pull => $"{Name(state, e.UnitId)} pulled {e.Distance} → {e.To}.",
+            _ => $"{Name(state, e.UnitId)} shoved {e.Distance} → {e.To}.",
+        },
         IntentDeclared e => (e.Replanned ? "↻ " : "▸ ")
             + $"{Name(state, e.Intent.UnitId)} intends: {Intent(state, e.Intent)}",
         Collision e => e.ObstacleId is null
@@ -48,8 +53,6 @@ public static class EventText
         VerveSpent e =>
             $"{Name(state, e.UnitId)} spends {e.Cost} {Naming.MeterLower} on {Naming.Of(e.Spend)} ({e.Remaining} left).",
         UnitHealed e => $"{Name(state, e.UnitId)} patches up +{e.Amount} → {e.RemainingHp} HP.",
-        UnitsSwapped e =>
-            $"{Name(state, e.UnitId)} trades places with {Name(state, e.OtherId)} — {e.From} ⇄ {e.OtherFrom}.",
         Staggered e => $"{Name(state, e.UnitId)} is staggered.",
         Clinging e => $"{Name(state, e.UnitId)} is clinging to the pit at {e.At}!",
         Rescued e => $"{Name(state, e.RescuerId)} hauls {Name(state, e.UnitId)} out to {e.To}.",

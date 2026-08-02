@@ -91,6 +91,56 @@ public class PluckNamingTests
     }
 
     [Fact]
+    public void TheThreadcasterIsCalledTheFisher_Everywhere()
+    {
+        Assert.Equal("Fisher", Naming.Of(UnitKind.Threadcaster));
+        Assert.Equal("Fisher", UnitTemplate.For(UnitKind.Threadcaster).Name);
+        Assert.Equal(
+            "Fisher",
+            Unit.FromTemplate(new UnitId(0), UnitKind.Threadcaster, Team.PlayerA).Name);
+    }
+
+    [Fact]
+    public void TheIdentifierIsStillThreadcaster()
+    {
+        // §15 again: the enum member does not move, so every command log and every ruling that
+        // names her still resolves.
+        Assert.Equal("Threadcaster", UnitKind.Threadcaster.ToString());
+        Assert.Equal("Threadcaster", UnitTemplate.For(UnitKind.Threadcaster).RawName);
+    }
+
+    [Fact]
+    public void NoLogLineAboutHerSpellsTheOldName()
+    {
+        // The same guard the meter has. Anything a player reads goes through Naming, and the way
+        // that stops being true is somebody typing the word they saw in the C#.
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        var her = state.Find(UnitKind.Threadcaster).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+
+        var events = new GameEvent[]
+        {
+            new UnitDeployed(her, Team.PlayerA, UnitKind.Threadcaster, new Coord(0, 0)),
+            new ActivationStarted(her, Team.PlayerA),
+            new UnitAttacked(her, husk, new Coord(0, 0), new Coord(3, 0), 1, false),
+            new UnitPushed(husk, new Coord(3, 0), new Coord(1, 0), new[] { new Coord(1, 0) },
+                DisplacementKind.Pull, 2),
+        };
+
+        foreach (var evt in events)
+        {
+            string detail = CombatLog.Detail(evt, state);
+            Assert.DoesNotContain("Threadcaster", detail, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("Fisher", CombatLog.Actor(state, her), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RetortIsGone_AndPreenIsTheWardbearersSpender()
     {
         Assert.Equal(VerveSpend.Preen, Verve.SpendFor(UnitKind.Wardbearer));

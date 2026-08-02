@@ -5,7 +5,7 @@ namespace Faultline.Core
 {
     /// <summary>Static stat block for a <see cref="UnitKind"/>. Brief §2 stat tables.</summary>
     /// <param name="Kind">Archetype this describes.</param>
-    /// <param name="Name">Display name.</param>
+    /// <param name="RawName">The table's own label; <see cref="Name"/> is what a player reads.</param>
     /// <param name="MaxHp">Starting and maximum hit points.</param>
     /// <param name="Move">Movement points per activation.</param>
     /// <param name="Attack">How the basic attack reaches.</param>
@@ -59,7 +59,7 @@ namespace Faultline.Core
     /// </param>
     public sealed record UnitTemplate(
         UnitKind Kind,
-        string Name,
+        string RawName,
         int MaxHp,
         int Move,
         AttackKind Attack,
@@ -79,6 +79,13 @@ namespace Faultline.Core
         int EnrageAt = 0)
     {
         private static readonly Dictionary<UnitKind, UnitTemplate> Table = Build();
+
+        /// <summary>
+        /// What this archetype is called on screen, through the naming layer so that a display name
+        /// and its identifier can differ without anything having two names (MASTER_DESIGN §15).
+        /// <see cref="RawName"/> is the label the table carries; this is what a player reads.
+        /// </summary>
+        public string Name => Naming.Of(Kind);
 
         /// <summary>True when the basic action may pull instead of dealing damage.</summary>
         public bool CanPullWithBasic => BasicPull > 0;

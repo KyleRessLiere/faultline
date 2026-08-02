@@ -192,11 +192,6 @@ namespace Faultline.Core
             var events = new List<GameEvent>();
             GameState next;
 
-            // Slingshot's window is "immediately after the Reel", so anything else the Threadcaster
-            // does shuts it. Done here, once, rather than in every command that could shut it — the
-            // Reel re-opens it after this runs (D-078).
-            state = CloseSlingshotWindow(state, command);
-
             switch (command)
             {
                 case DeployCommand deploy:
@@ -342,7 +337,23 @@ namespace Faultline.Core
                 var spend = Verve.SpendFor(unit.Kind);
                 if (spend.HasValue && Verve.CanSpend(state, unit, spend.Value))
                 {
-                    commands.Add(new SpendVerveCommand(unit.Id, spend.Value));
+                    if (spend.Value == VerveSpend.Cast)
+                    {
+                        // One command per grab-and-place pair: which enemy, and onto what. Both
+                        // halves are the decision, so neither can be implied (D-091).
+                        foreach (var target in Throw.Grabbable(state, unit))
+                        {
+                            foreach (var landing in Throw.Landings(state, unit, target.Id))
+                            {
+                                commands.Add(new SpendVerveCommand(
+                                    unit.Id, spend.Value, target.Id, landing));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        commands.Add(new SpendVerveCommand(unit.Id, spend.Value));
+                    }
                 }
 
                 // D-082: a rescue is an action needing adjacency, so it is offered whenever the
@@ -805,36 +816,40 @@ namespace Faultline.Core
             var unit = state.UnitById(command.UnitId);
             Require(Verve.CanSpend(state, unit, command.Spend), "That Verve spend is not available.");
 
+            // CanSpend answers "is this spender available at all". Cast also aims, and an aimed
+            // spend has to have its aim checked or an illegal grab or landing walks straight in.
+            if (command.Spend == VerveSpend.Cast)
+            {
+                Require(command.TargetId is { } grabbed, "A cast needs somebody to grab.");
+                Require(command.To is { } landing, "A cast needs somewhere to put them.");
+
+                var targetId = command.TargetId!.Value;
+                var to = command.To!.Value;
+
+                bool reachable = false;
+                foreach (var candidate in Throw.Grabbable(state, unit))
+                {
+                    if (candidate.Id == targetId)
+                    {
+                        reachable = true;
+                        break;
+                    }
+                }
+
+                Require(reachable, "That unit is out of reach, or there is nowhere to set it down.");
+                Require(
+                    Contains(Throw.Landings(state, unit, targetId), to),
+                    "That is not a tile the cast unit can be set down on.");
+            }
+
             // Retort reads Guard Stance, and taking the activation slot is what drops it (D-058), so
             // the spend is worked out first and the slot taken after. Every other spend is unaffected
             // by the order.
-            var spent = Verve.Spend(state, command.UnitId, command.Spend, events);
+            var spent = Verve.Spend(
+                state, command.UnitId, command.Spend, events, command.TargetId, command.To);
             spent = CommitActivation(spent, spent.UnitById(command.UnitId), events);
 
             return AfterAction(spent, command.UnitId, events);
-        }
-
-        /// <summary>
-        /// Shuts Slingshot's window unless the command is the Slingshot itself. The Reel sets it
-        /// again on its way out, so a Reel does not close its own window.
-        /// </summary>
-        private static GameState CloseSlingshotWindow(GameState state, Command command)
-        {
-            var actorId = ActorOf(command);
-            if (actorId is null)
-            {
-                return state;
-            }
-
-            if (command is SpendVerveCommand spend && spend.Spend == VerveSpend.Slingshot)
-            {
-                return state;
-            }
-
-            var unit = state.FindUnit(actorId.Value);
-            return unit is null || unit.SlingshotTarget is null
-                ? state
-                : state.WithUnit(unit with { SlingshotTarget = null });
         }
 
         private static UnitId? ActorOf(Command command) => command switch
@@ -906,7 +921,6 @@ namespace Faultline.Core
                 HasSpentVerve = false,
                 WreckingWeightArmed = false,
                 ExtraAttacks = 0,
-                SlingshotTarget = null,
             });
             events.Add(new ActivationEnded(unitId, passed));
 

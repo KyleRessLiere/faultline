@@ -103,7 +103,7 @@ public class VerveSpendTests
 
     [Theory]
     [InlineData(VerveSpend.WreckingWeight, 2)]
-    [InlineData(VerveSpend.Slingshot, 2)]
+    [InlineData(VerveSpend.Cast, 3)]
     [InlineData(VerveSpend.DoubleNock, 4)]
     [InlineData(VerveSpend.Preen, 3)]
     public void TheCosts(VerveSpend spend, int cost)
@@ -219,77 +219,6 @@ public class VerveSpendTests
         Assert.False(after.WreckingWeightArmed);
         Assert.False(after.HasSpentVerve);
         Assert.Equal(before - 2, after.Verve);
-    }
-
-    // ---- Slingshot -----------------------------------------------------------------------
-
-    [Fact]
-    public void Slingshot_TradesPlacesWithTheEnemyTheReelBroughtIn()
-    {
-        var state = ReeledIn(out var caster, out var husk);
-
-        var casterAt = state.Get(caster).Position;
-        var huskAt = state.Get(husk).Position;
-
-        var result = state.Step(new SpendVerveCommand(caster, VerveSpend.Slingshot));
-
-        Assert.Equal(huskAt, result.NewState.Get(caster).Position);
-        Assert.Equal(casterAt, result.NewState.Get(husk).Position);
-
-        var swapped = result.Single<UnitsSwapped>();
-        Assert.Equal(caster, swapped.UnitId);
-        Assert.Equal(casterAt, swapped.From);
-        Assert.Equal(husk, swapped.OtherId);
-        Assert.Equal(huskAt, swapped.OtherFrom);
-    }
-
-    [Fact]
-    public void Slingshot_IsIllegalWithoutAReelHavingJustLandedOne()
-    {
-        var state = BoardBuilder.Open(6, 1)
-            .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0)
-            .Build();
-
-        var caster = state.Find(UnitKind.Threadcaster).Id;
-        state = state.WithUnit(state.Get(caster) with { Verve = Verve.Cap });
-
-        // Adjacent already, but nothing reeled it there.
-        TestPlay.AssertNotLegal(state, new SpendVerveCommand(caster, VerveSpend.Slingshot));
-        TestPlay.AssertIllegal(state, new SpendVerveCommand(caster, VerveSpend.Slingshot));
-    }
-
-    [Fact]
-    public void Slingshot_IsIllegalWhenTheReelStoppedShort()
-    {
-        // A wall between them: the pull runs out of room and leaves the Husk out of contact.
-        var state = BoardBuilder.Rows(".#..")
-            .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
-            .Build();
-
-        var caster = state.Find(UnitKind.Threadcaster).Id;
-        var husk = state.Find(UnitKind.Husk).Id;
-        state = state.WithUnit(state.Get(caster) with { Verve = Verve.Cap });
-
-        var reeled = state.Then(new AbilityCommand(caster, Ability.Reel, husk));
-
-        Assert.False(reeled.Get(caster).Position.IsAdjacentTo(reeled.Get(husk).Position));
-        TestPlay.AssertNotLegal(reeled, new SpendVerveCommand(caster, VerveSpend.Slingshot));
-    }
-
-    [Fact]
-    public void Slingshot_TheWindowShutsTheMomentSheDoesAnythingElse()
-    {
-        var state = ReeledIn(out var caster, out _);
-
-        TestPlay.AssertLegal(state, new SpendVerveCommand(caster, VerveSpend.Slingshot));
-
-        // She has already acted, so a move is all that is left — and it closes the window.
-        var moved = state.Then(new MoveCommand(caster, state.Get(caster).Position + new Coord(0, 1)));
-
-        Assert.Null(moved.Get(caster).SlingshotTarget);
-        TestPlay.AssertNotLegal(moved, new SpendVerveCommand(caster, VerveSpend.Slingshot));
     }
 
     // ---- Double Nock ---------------------------------------------------------------------
@@ -421,20 +350,25 @@ public class VerveSpendTests
     // ---- the log --------------------------------------------------------------------------
 
     [Fact]
-    public void TheLog_NamesASpendAndASwap()
+    public void TheLog_NamesASpendAndAThrow()
     {
         var state = ArmedVanguard(out var vanguard);
 
         var spent = new VerveSpent(vanguard, VerveSpend.Preen, new Coord(1, 1), 3, 2);
-        var swapped = new UnitsSwapped(vanguard, new Coord(1, 1), new UnitId(1), new Coord(2, 1));
+        var thrown = new UnitPushed(
+            new UnitId(1), new Coord(1, 1), new Coord(3, 1), new[] { new Coord(3, 1) },
+            DisplacementKind.Throw, 2);
 
         Assert.Equal(nameof(VerveSpent), CombatLog.EventName(spent));
-        Assert.Equal(nameof(UnitsSwapped), CombatLog.EventName(swapped));
+        Assert.Equal(nameof(UnitPushed), CombatLog.EventName(thrown));
         Assert.Equal(vanguard, CombatLog.ActorOf(spent));
-        Assert.Equal(vanguard, CombatLog.ActorOf(swapped));
+        Assert.Equal(new UnitId(1), CombatLog.ActorOf(thrown));
 
         Assert.Contains(Naming.Of(VerveSpend.Preen), CombatLog.Detail(spent, state));
-        Assert.Contains("trades places", CombatLog.Detail(swapped, state));
+
+        // A throw reads as a throw, not as a shove that happened to be long.
+        Assert.Contains("thrown", CombatLog.Detail(thrown, state));
+        Assert.DoesNotContain("via", CombatLog.Detail(thrown, state));
     }
 
     // ---- fixtures -------------------------------------------------------------------------
@@ -448,24 +382,6 @@ public class VerveSpendTests
 
         vanguard = state.Find(UnitKind.Vanguard).Id;
         return state.WithUnit(state.Get(vanguard) with { Verve = Verve.Cap });
-    }
-
-    private static GameState ReeledIn(out UnitId caster, out UnitId husk)
-    {
-        var state = BoardBuilder.Open(6, 3)
-            .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
-            .Build();
-
-        caster = state.Find(UnitKind.Threadcaster).Id;
-        husk = state.Find(UnitKind.Husk).Id;
-
-        var casterId = caster;
-        var huskId = husk;
-
-        return state
-            .WithUnit(state.Get(casterId) with { Verve = Verve.Cap })
-            .Then(new AbilityCommand(casterId, Ability.Reel, huskId));
     }
 
     private static GameState ArmedArcher(out UnitId archer, out UnitId near, out UnitId far)

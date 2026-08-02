@@ -79,12 +79,6 @@ namespace Faultline.Core
         /// </summary>
         public int ExtraAttacks { get; init; }
 
-        /// <summary>
-        /// The enemy a Reel has just dragged into contact, and only until this unit does anything
-        /// else. Slingshot's window: while this is set, the pair may exchange tiles.
-        /// </summary>
-        public UnitId? SlingshotTarget { get; init; }
-
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 

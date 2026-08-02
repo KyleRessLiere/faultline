@@ -9,8 +9,8 @@ namespace Faultline.Core
         /// <summary>Vanguard, 2: the next push this activation gains a tile and hurts on contact.</summary>
         WreckingWeight = 0,
 
-        /// <summary>Threadcaster, 2: swap places with an enemy her Reel just brought adjacent.</summary>
-        Slingshot = 1,
+        /// <summary>Fisher, 3: pick up an adjacent enemy and put it down within two tiles.</summary>
+        Cast = 1,
 
         /// <summary>Archer, 4: her attack action this activation fires twice.</summary>
         DoubleNock = 2,

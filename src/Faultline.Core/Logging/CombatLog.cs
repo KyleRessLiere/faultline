@@ -116,7 +116,6 @@ namespace Faultline.Core
             VerveCharged => nameof(VerveCharged),
             UnitHealed => nameof(UnitHealed),
             VerveSpent => nameof(VerveSpent),
-            UnitsSwapped => nameof(UnitsSwapped),
             FightWon => nameof(FightWon),
             FightLost => nameof(FightLost),
             ObjectiveDeclared => nameof(ObjectiveDeclared),
@@ -181,9 +180,11 @@ namespace Faultline.Core
 
             UnitDowned e => "down at " + e.At + ", off the board",
 
-            UnitPushed e => e.Kind + " " + Number(e.Distance)
-                + " " + e.From + " -> " + e.To
-                + " via " + Route(e.Path),
+            UnitPushed e => e.Kind == DisplacementKind.Throw
+                ? "thrown " + Number(e.Distance) + " " + e.From + " -> " + e.To + ", over everything between"
+                : e.Kind + " " + Number(e.Distance)
+                    + " " + e.From + " -> " + e.To
+                    + " via " + Route(e.Path),
 
             Collision e => "into "
                 + (e.ObstacleId.HasValue ? Actor(state, e.ObstacleId.Value) : "terrain")
@@ -230,9 +231,6 @@ namespace Faultline.Core
 
             UnitHealed e => "patched up +" + Number(e.Amount) + " at " + e.At
                 + ", hp " + Number(e.RemainingHp),
-
-            UnitsSwapped e => "trades places with " + Actor(state, e.OtherId)
-                + ", " + e.From + " <-> " + e.OtherFrom,
 
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
@@ -316,7 +314,6 @@ namespace Faultline.Core
             VerveCharged e => e.UnitId,
             UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,
-            UnitsSwapped e => e.UnitId,
             StructureAttacked e => e.AttackerId,
             ReinforcementScheduled e => e.UnitId,
             ReinforcementArrived e => e.UnitId,

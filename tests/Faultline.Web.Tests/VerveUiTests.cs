@@ -121,14 +121,27 @@ public sealed class VerveUiTests
     }
 
     [Fact]
-    public void AThreadcasterWithAFullMeter_IsNotOfferedSlingshotUntilAReelHasLanded()
+    public void AFisherWithSomebodyInReach_IsOfferedCast()
     {
-        // The whole point of reading legality off Core: nothing about the Threadcaster's own fields
-        // says "no". She has the class, the meter and the activation — and the spend is still not
-        // legal, because the window it needs is opened by an event, not by a stat.
         var session = new Fixture(7, 3)
             .Place(UnitKind.Threadcaster, Team.PlayerA, 1, 1, verve: Verve.Cap)
             .Place(UnitKind.Husk, Team.Enemy, 2, 1)
+            .Session();
+
+        session.Select(Find(session, UnitKind.Threadcaster).Id);
+
+        Assert.True(session.CanSpendVerve);
+        Assert.Equal(VerveSpend.Cast, session.VerveSpendCommand!.Spend);
+    }
+
+    [Fact]
+    public void AFisherWithNobodyAdjacent_IsNotOfferedCast()
+    {
+        // Still the point of reading legality off Core: she has the class, the meter and the
+        // activation, and the spend is illegal on a fact about the board rather than about her.
+        var session = new Fixture(7, 3)
+            .Place(UnitKind.Threadcaster, Team.PlayerA, 1, 1, verve: Verve.Cap)
+            .Place(UnitKind.Husk, Team.Enemy, 5, 1)
             .Session();
 
         session.Select(Find(session, UnitKind.Threadcaster).Id);
@@ -275,15 +288,18 @@ public sealed class VerveUiTests
         var husk = Find(session, UnitKind.Husk).Id;
 
         string spent = EventText.Describe(
-            new VerveSpent(caster, VerveSpend.Slingshot, new Coord(1, 1), 2, 3), session.State);
-        string swapped = EventText.Describe(
-            new UnitsSwapped(caster, new Coord(1, 1), husk, new Coord(2, 1)), session.State);
+            new VerveSpent(caster, VerveSpend.Cast, new Coord(1, 1), 3, 2), session.State);
+        string thrown = EventText.Describe(
+            new UnitPushed(husk, new Coord(2, 1), new Coord(3, 1), new[] { new Coord(3, 1) },
+                DisplacementKind.Throw, 1),
+            session.State);
 
-        Assert.Contains(Verve.NameOf(VerveSpend.Slingshot), spent);
-        Assert.Contains("trades places", swapped);
+        Assert.Contains(Verve.NameOf(VerveSpend.Cast), spent);
+        Assert.Contains("Fisher", spent);
+        Assert.Contains("thrown", thrown);
 
         Assert.NotEqual(nameof(VerveSpent), spent);
-        Assert.NotEqual(nameof(UnitsSwapped), swapped);
+        Assert.NotEqual(nameof(UnitPushed), thrown);
     }
 
     [Fact]

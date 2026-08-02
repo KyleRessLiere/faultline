@@ -27,13 +27,26 @@ namespace Faultline.Core
         /// <summary>The meter in running prose, where a capital would read as a proper noun.</summary>
         public const string MeterLower = "pluck";
 
+        /// <summary>
+        /// What an archetype is called on screen. The identifier stays put — the Fisher is
+        /// <see cref="UnitKind.Threadcaster"/> in the code, in every command log and in every ruling
+        /// that cites her (D-090).
+        /// </summary>
+        /// <param name="kind">Archetype to name.</param>
+        /// <returns>Its display name.</returns>
+        public static string Of(UnitKind kind) => kind switch
+        {
+            UnitKind.Threadcaster => "Fisher",
+            _ => UnitTemplate.For(kind).RawName,
+        };
+
         /// <summary>The display name of a spender.</summary>
         /// <param name="spend">The spend.</param>
         /// <returns>Its name.</returns>
         public static string Of(VerveSpend spend) => spend switch
         {
             VerveSpend.WreckingWeight => "Wrecking Weight",
-            VerveSpend.Slingshot => "Slingshot",
+            VerveSpend.Cast => "Cast",
             VerveSpend.DoubleNock => "Double Nock",
             VerveSpend.Preen => "Preen",
             _ => spend.ToString(),

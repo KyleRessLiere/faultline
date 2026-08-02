@@ -6,5 +6,16 @@ namespace Faultline.Core
     /// </summary>
     /// <param name="UnitId">Unit spending.</param>
     /// <param name="Spend">What it is spending on; each class has exactly one.</param>
-    public sealed record SpendVerveCommand(UnitId UnitId, VerveSpend Spend) : Command;
+    /// <param name="TargetId">
+    /// The unit the spend acts on, for the spends that aim at one. Only Cast does.
+    /// </param>
+    /// <param name="To">
+    /// Where the spend puts something, for the spends that place. Only Cast does — the landing tile
+    /// the Fisher picked.
+    /// </param>
+    public sealed record SpendVerveCommand(
+        UnitId UnitId,
+        VerveSpend Spend,
+        UnitId? TargetId = null,
+        Coord? To = null) : Command;
 }
