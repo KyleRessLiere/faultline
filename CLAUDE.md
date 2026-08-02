@@ -71,6 +71,23 @@ heading. Run it after adding a ruling. Never hand-edit the table — it is gener
 reason `docs/BATTLE_CATALOGUE.md` is: a hand-maintained index drifts from what it indexes, and an
 index you cannot trust is worse than none.
 
+## Handoffs
+
+`docs/handoffs/` — one dated file per session, from `TEMPLATE.md`. Written because of the rule at the
+bottom of this file: **assume the next session starts with zero memory beyond the repo.** Everything a
+session learned that is not in the code, the tests or `DECISIONS.md` dies at the turn boundary
+otherwise.
+
+The repo says what the game *is*. A handoff says what the *work* is: what is half-finished and how
+half, what is uncommitted, which traps a fresh reader will walk into, and **the exact next step** —
+a command or an edit, never an area.
+
+**Write a new one; never edit an old one to keep it current.** A stale handoff is a record of what
+was believed at the time, which is occasionally the most useful thing in the directory.
+
+A ruling written only in a handoff is a ruling that will be lost. Put it in `DECISIONS.md` and link
+it. See `docs/handoffs/README.md` for what belongs there and what does not.
+
 ## Delegating to subagents
 
 Default to farming work out to subagents. They run in parallel, so the wall-clock cost of being
