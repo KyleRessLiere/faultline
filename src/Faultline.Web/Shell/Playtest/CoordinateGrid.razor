@@ -124,6 +124,35 @@
     /// <summary>
     /// The tiles the hovered enemy alone threatens, while the squad is being placed.
     /// </summary>
+    /// <summary>Units that could reach a hanging ally this activation, from Core.</summary>
+    private IReadOnlyCollection<UnitId> Rescuers
+    {
+        get
+        {
+            var ids = new List<UnitId>();
+
+            foreach (var clinging in State.Units)
+            {
+                if (!clinging.Clinging || !clinging.IsAlive || !clinging.Team.IsPlayer())
+                {
+                    continue;
+                }
+
+                foreach (var unit in State.Units)
+                {
+                    if (!unit.HasActivated
+                        && Pits.CanReachToRescue(State, unit, clinging)
+                        && !ids.Contains(unit.Id))
+                    {
+                        ids.Add(unit.Id);
+                    }
+                }
+            }
+
+            return ids;
+        }
+    }
+
     private IReadOnlyCollection<Coord> HoveredThreat =>
         State.Phase == Phase.Deployment && Session.Hovered is { } at
             ? View.ThreatFrom(State, State.UnitAt(at)?.Id)
@@ -246,6 +275,13 @@
         if (HoveredThreat.Contains(coord))
         {
             classes.Add("threat-from");
+        }
+
+        // D-083: while an ally is over the edge, the units that could actually get to it this
+        // activation are marked. Reach is Core's answer, not a guess from distance.
+        if (unit is not null && Rescuers.Contains(unit.Id))
+        {
+            classes.Add("can-rescue");
         }
 
         // The tiles under the unit that is moving right now, and the ones it has already crossed.

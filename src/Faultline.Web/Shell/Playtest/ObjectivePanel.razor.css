@@ -1,0 +1,92 @@
+.objective .goal {
+    font-size: 13px;
+    margin: 0 0 8px;
+}
+
+/* Urgency is a border rather than a colour swap: the panel still has to be readable. */
+.objective.urgent {
+    box-shadow: inset 0 0 0 1px var(--pt-red);
+}
+
+.bar {
+    background: rgba(242, 245, 248, .1);
+    border-radius: 4px;
+    height: 18px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.fill {
+    background: var(--pt-cyan);
+    display: block;
+    height: 100%;
+    /* The tick is the point: progress must be seen moving as the hit lands. */
+    transition: width 220ms ease-out;
+    width: var(--fill, 0%);
+}
+
+.objective.urgent .fill {
+    background: var(--pt-red);
+}
+
+.bar-label {
+    align-items: center;
+    color: var(--pt-text);
+    display: flex;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    inset: 0;
+    justify-content: center;
+    mix-blend-mode: difference;
+    position: absolute;
+}
+
+.clock {
+    color: var(--pt-text-dim);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    margin: 0 0 8px;
+}
+
+.clock.tight {
+    color: var(--pt-red);
+    font-weight: 600;
+}
+
+/* Equal billing: same size, same weight, its own box rather than a footnote. */
+.loss {
+    border-top: 1px solid var(--pt-border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 8px;
+}
+
+.loss-head {
+    color: var(--pt-red);
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.loss-text {
+    font-size: 13px;
+}
+
+.paddling {
+    border-top: 1px solid var(--pt-border-soft);
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+.cling-line {
+    color: var(--pt-red);
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fill { transition: none; }
+}

@@ -13,6 +13,22 @@
     </h2>
 
     <div class="pt-body">
+        @* Persistent, not a toast: while somebody is over the edge it is the most important fact on
+           the screen, and it names the deadline rather than implying one (D-083). The units that
+           could still get there are listed, because "somebody is dying" without "and you can reach
+           them" is only half of what a player needs. *@
+        @if (PlaytestText.ClingingLines(State) is { Count: > 0 } paddling)
+        {
+            <div class="urgent-banner" role="status">
+                @foreach (var line in paddling)
+                {
+                    <p class="urgent-line">@line</p>
+                }
+
+                <p class="urgent-help">@RescuersLine</p>
+            </div>
+        }
+
         @if (Session.InRun && FightIsOver && Runs.State is { } run)
         {
             @if (Resolution is { } resolved)
@@ -131,6 +147,39 @@
 </div>
 
 @code {
+    /// <summary>Who could still get to a hanging ally this activation, in Core's own reckoning.</summary>
+    private string RescuersLine
+    {
+        get
+        {
+            var names = new List<string>();
+
+            foreach (var clinging in State.Units)
+            {
+                if (!clinging.Clinging || !clinging.IsAlive || !clinging.Team.IsPlayer())
+                {
+                    continue;
+                }
+
+                foreach (var unit in State.Units)
+                {
+                    if (unit.Team.IsPlayer()
+                        && !unit.HasActivated
+                        && Pits.CanReachToRescue(State, unit, clinging)
+                        && !names.Contains(unit.Name))
+                    {
+                        names.Add(unit.Name);
+                    }
+                }
+            }
+
+            return names.Count == 0
+                ? "Nobody can reach them this round."
+                : PlaytestText.Names(names) + " can reach them — highlighted on the board.";
+        }
+    }
+
+
     private FightResolved? Resolution => PlaytestFlow.Resolution(Runs);
 
     private string RunEnding =>

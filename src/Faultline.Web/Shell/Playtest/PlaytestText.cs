@@ -79,6 +79,72 @@ public static class PlaytestText
         return $"{Naming.Meter} {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.";
     }
 
+    /// <summary>
+    /// One line per clinging player unit, naming the deadline instead of implying one.
+    /// </summary>
+    /// <remarks>
+    /// A unit on a ledge is the only thing in this game on a private clock, and until now the board
+    /// said so with a two-pixel dot. "Hanging on" is not information; "gone at the end of this
+    /// round" is (D-083).
+    /// </remarks>
+    /// <param name="state">Current state.</param>
+    /// <returns>The lines, empty when nobody is hanging.</returns>
+    public static IReadOnlyList<string> ClingingLines(GameState state)
+    {
+        var lines = new List<string>();
+        if (state is null)
+        {
+            return lines;
+        }
+
+        foreach (var unit in state.Units)
+        {
+            if (!unit.Clinging || !unit.IsAlive || !unit.Team.IsPlayer())
+            {
+                continue;
+            }
+
+            // D-016: it loses its grip at the end of the round after the one it fell in.
+            bool lastChance = state.Round > unit.ClingingSinceRound;
+            lines.Add(lastChance
+                ? unit.Name + " is over the edge — gone at the end of this round."
+                : unit.Name + " is over the edge — gone at the end of round "
+                    + (unit.ClingingSinceRound + 1) + ".");
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// Why a rescue is not available to this unit right now, or empty when it is.
+    /// </summary>
+    /// <param name="state">Current state.</param>
+    /// <param name="rescuer">Unit that might go.</param>
+    /// <param name="clinging">Unit on the ledge.</param>
+    /// <returns>A short reason for a disabled button.</returns>
+    public static string RescueBlockedReason(GameState state, Unit rescuer, Unit clinging)
+    {
+        if (rescuer.HasActed)
+        {
+            return "action already spent";
+        }
+
+        int? needed = Pits.MoveNeededToReach(state, rescuer, clinging);
+        if (needed is null)
+        {
+            return "cannot reach this activation";
+        }
+
+        if (needed.Value > 0)
+        {
+            return "needs " + needed.Value + " more move";
+        }
+
+        return Pits.RescueDestinations(state, rescuer).Count == 0
+            ? "nowhere to set them down"
+            : string.Empty;
+    }
+
     /// <summary>The status flags worth showing beside a unit.</summary>
     /// <param name="unit">Unit to describe.</param>
     /// <returns>A comma-separated list, possibly empty.</returns>

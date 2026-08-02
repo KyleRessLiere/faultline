@@ -186,14 +186,42 @@
                 ActionMode.Ability, ability.Name, ability.Effect, usable, ability.Ability);
         }
 
-        if (Session.IsAvailable(ActionMode.Rescue))
+        // D-083: a rescue is listed whenever an ally is hanging, whether or not this unit can do
+        // it — with the reason it cannot. A button that is simply absent tells a player nothing, and
+        // "you were two tiles short" is exactly what they need to know while somebody is on a clock.
+        foreach (var clinging in State.Units)
         {
-            yield return new ActionOption(ActionMode.Rescue, "Rescue", "whole activation", true);
+            if (!clinging.Clinging || !clinging.IsAlive || clinging.Team.IsHostileTo(unit.Team)
+                || clinging.Id == unit.Id)
+            {
+                continue;
+            }
+
+            string blocked = PlaytestText.RescueBlockedReason(State, unit, clinging);
+
+            yield return new ActionOption(
+                ActionMode.Rescue,
+                "Rescue " + clinging.Name,
+                blocked.Length > 0 ? blocked : "action · pick where they land",
+                blocked.Length == 0 && Session.IsAvailable(ActionMode.Rescue));
         }
 
-        if (Session.IsAvailable(ActionMode.Finish))
+        // Same treatment for the free kick: an adjacent enemy on a ledge is a whole activation of
+        // value for nothing, and it used to appear only when it was already too late to plan for.
+        foreach (var clinging in State.Units)
         {
-            yield return new ActionOption(ActionMode.Finish, "Finish", "free action", true);
+            if (!clinging.Clinging || !clinging.IsAlive || !clinging.Team.IsHostileTo(unit.Team))
+            {
+                continue;
+            }
+
+            bool adjacent = unit.IsOnBoard && unit.Position.IsAdjacentTo(clinging.Position);
+
+            yield return new ActionOption(
+                ActionMode.Finish,
+                "Kick in " + clinging.Name,
+                adjacent ? "free action" : "not adjacent",
+                adjacent && Session.IsAvailable(ActionMode.Finish));
         }
     }
 }

@@ -10,6 +10,12 @@
     <PlaytestHeader OnUndo="Undo" OnRestart="Restart" OnEndTurn="EndActivation" />
 
     <div class="pt-main">
+        @* Left of the board and never in a menu: what the fight wants is not a thing to go looking
+           for (§3.5). It collapses above the board on narrow viewports rather than folding away. *@
+        <section class="pt-col pt-col-objective">
+            <ObjectivePanel />
+        </section>
+
         <section class="pt-col pt-col-board">
             <BattlefieldPanel />
         </section>

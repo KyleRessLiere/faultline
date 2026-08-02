@@ -124,3 +124,25 @@ h3 {
         max-height: none;
     }
 }
+
+/* A ledge is a private clock nothing else on this screen has. It stays up until it is resolved. */
+.urgent-banner {
+    background: rgba(255, 98, 104, .12);
+    border: 1px solid var(--pt-red);
+    border-radius: var(--pt-radius);
+    margin-bottom: 8px;
+    padding: 7px 9px;
+}
+
+.urgent-line {
+    color: var(--pt-red);
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+.urgent-help {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 0;
+}

@@ -1,0 +1,57 @@
+@inherits PlaytestPanel
+@* What this fight wants, how close it is, and what ends it badly — the last of those with the same
+   billing as the first. Every number is read off Core's ObjectiveStatus, which reads the same state
+   the win check reads, so the bar cannot disagree with the rules a moment later. *@
+
+<div class="pt-panel objective @(Status.Urgent ? "urgent" : string.Empty)">
+    <h2>Objective</h2>
+
+    <div class="pt-body">
+        <p class="goal">@Status.Goal</p>
+
+        @if (Status.HasBar)
+        {
+            @* The bar carries the numbers rather than sitting beside them: a bar with no figures is
+               a mood, and the figures are what a player actually counts on. *@
+            <div class="bar" role="progressbar"
+                 aria-valuenow="@Status.Progress"
+                 aria-valuemin="0"
+                 aria-valuemax="@Status.Target"
+                 aria-label="@Status.Label">
+                <span class="fill" style="--fill: @Percent"></span>
+                <span class="bar-label">@Status.Label</span>
+            </div>
+        }
+
+        @if (Status.Clock is { Length: > 0 })
+        {
+            <p class="clock @(Status.Urgent ? "tight" : string.Empty)">@Status.Clock</p>
+        }
+
+        <div class="loss">
+            <span class="loss-head">Lose if</span>
+            <span class="loss-text">@Status.Loss</span>
+        </div>
+
+        @if (Paddling.Count > 0)
+        {
+            @* The urgent case: somebody is on a ledge and the clock on them is not the fight's. *@
+            <div class="paddling">
+                @foreach (var line in Paddling)
+                {
+                    <p class="cling-line">@line</p>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private ObjectiveStatus Status => ObjectiveStatus.For(State);
+
+    private string Percent =>
+        ((int)System.Math.Round(Status.Fraction * 100)).ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
+
+    /// <summary>One line per clinging ally, naming the deadline rather than implying one.</summary>
+    private IReadOnlyList<string> Paddling => PlaytestText.ClingingLines(State);
+}
