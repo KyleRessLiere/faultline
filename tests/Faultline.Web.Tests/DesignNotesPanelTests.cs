@@ -85,17 +85,19 @@ public sealed class DesignNotesPanelTests
     }
 
     [Fact]
-    public void OpeningTheDesignNotes_ClosesAnOpenDossier()
+    public void OpeningTheDesignNotes_ShowsThemInsteadOfTheDossier_ButRemembersTheInspectedUnit()
     {
-        // One reference panel at a time: the side pane also carries the turn panel, and the turn
-        // panel is what a player needs every second.
+        // One reference panel, three tabs: the battle notes take the panel over from the character
+        // sheet, and the sheet is still one click away because the unit is still on record.
         var session = SessionOn("hz-10-bone-yard");
-        session.Inspect(session.State.Units.First(u => u.Team == Team.Enemy).Id);
+        var enemy = session.State.Units.First(u => u.Team == Team.Enemy);
+        session.Inspect(enemy.Id);
 
         session.ToggleDesign();
 
         Assert.True(session.DesignOpen);
-        Assert.Null(session.Inspected);
+        Assert.Equal(ReferenceTab.Battle, session.Tab);
+        Assert.Equal(enemy.Id, session.Inspected);
     }
 
     [Fact]

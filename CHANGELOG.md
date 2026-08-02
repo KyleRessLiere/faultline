@@ -1,5 +1,16 @@
 # Changelog
 
+## One reference panel, and a turn summary that names names
+
+- **Abilities, battle design notes and enemy character sheets now share one tabbed panel.** Clicking
+  Design notes or an enemy switches that panel's tab instead of opening another panel above it, which
+  is what used to squash the middle column.
+- **The turn summary says who can act.** Not "Player A to act" but *"Vanguard or Archer can activate
+  — click one on the board"*, narrowing to *"Player A — Vanguard is acting. Move spent — action still
+  to use."* once one is chosen. It lists every eligible unit rather than naming one, because within a
+  side's slot the player picks any un-activated unit and naming a single one would invent an
+  activation order the rules do not have.
+
 ## The board moves
 
 - **Units slide tile by tile** along the path Core reported, lighting the tiles they cross in red,

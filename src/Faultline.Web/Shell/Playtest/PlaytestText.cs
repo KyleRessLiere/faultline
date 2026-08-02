@@ -1,3 +1,5 @@
+using System.Linq;
+using System;
 using System.Collections.Generic;
 using Faultline.Core;
 
@@ -101,4 +103,51 @@ public static class PlaytestText
         structure.Role == ObjectiveKind.Protect
             ? $"Protect this — {structure.Hp}/{structure.MaxHp} HP. Enemies claw at it from adjacent tiles."
             : $"Destroy this — {structure.Hp}/{structure.MaxHp} HP. Immune to attacks; only collision damage counts.";
+
+    /// <summary>
+    /// Names as a person would say them: "A", "A or B", "A, B or C".
+    /// </summary>
+    /// <remarks>
+    /// The turn summary lists every unit that can still activate rather than naming one, because
+    /// within a side's slot the player may choose any un-activated unit. Naming a single one would
+    /// invent an activation order the rules do not have.
+    /// </remarks>
+    /// <param name="names">Names in board order.</param>
+    /// <returns>The joined phrase, or empty for no names.</returns>
+    public static string Names(IReadOnlyList<string> names)
+    {
+        if (names is null || names.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        return names.Count switch
+        {
+            1 => names[0],
+            2 => names[0] + " or " + names[1],
+            _ => string.Join(", ", names.Take(names.Count - 1)) + " or " + names[names.Count - 1],
+        };
+    }
+
+    /// <summary>
+    /// Which halves of its activation the acting unit still has, read straight off the unit.
+    /// </summary>
+    /// <param name="unit">The unit that is acting.</param>
+    /// <returns>One sentence.</returns>
+    public static string Halves(Unit unit)
+    {
+        if (unit is null)
+        {
+            throw new ArgumentNullException(nameof(unit));
+        }
+
+        return (unit.HasMoved, unit.HasActed) switch
+        {
+            (false, false) => "Move and action both unspent.",
+            (true, false) => "Move spent — action still to use.",
+            (false, true) => "Action spent — move still to use.",
+            _ => "Move and action both spent.",
+        };
+    }
+
 }

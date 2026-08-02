@@ -30,11 +30,11 @@
             #@Session.Fight.Number @Session.Fight.Name
         </span>
 
-        @* A view, never a command: this toggles a panel and touches nothing Core can see, so it is
-           offered in every phase and with an action already armed. *@
+        @* A view, never a command: this switches the reference panel to its Battle tab and touches
+           nothing Core can see, so it is offered in every phase and with an action already armed. *@
         <button type="button"
                 class="pill toggle @(Session.DesignOpen ? "on" : string.Empty)"
-                aria-pressed="@Session.DesignOpen"
+                aria-pressed="@(Session.DesignOpen ? "true" : "false")"
                 title="Why this board exists — the designer's notes for this battle"
                 @onclick="Session.ToggleDesign">
             Design notes

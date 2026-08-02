@@ -14,31 +14,13 @@
             <BattlefieldPanel />
         </section>
 
+        @* The reference panel is last and takes the slack: design notes and character sheets are
+           tabs inside it rather than panels of their own, so nothing above it ever moves. *@
         <section class="pt-col pt-col-mid">
-            @if (Session.DesignOpen)
-            {
-                @* Beside the board like the dossier, and mutually exclusive with it: one reference
-                   panel at a time keeps the turn panel on screen. *@
-                <div class="pt-ref">
-                    <FightDesign Fight="Session.Fight" OnDismiss="CloseDesign" />
-                </div>
-            }
-
-            @if (Session.InspectedBehaviour is { } inspected)
-            {
-                <div class="pt-ref">
-                    <UnitDossier Behaviour="inspected"
-                                 Live="Session.InspectedUnit"
-                                 Board="Session.State"
-                                 ShowBestiaryLink="true"
-                                 OnDismiss="ClearInspection" />
-                </div>
-            }
-
             <TurnSummaryPanel />
             <SelectedUnitPanel />
             <EnemyIntentsPanel />
-            <AbilitiesPanel />
+            <ReferencePanel />
         </section>
 
         <section class="pt-col pt-col-right">
@@ -115,10 +97,6 @@
             StateHasChanged();
         }
     }
-
-    private void CloseDesign() => Session.CloseDesign();
-
-    private void ClearInspection() => Session.ClearInspection();
 
     private void EndActivation()
     {

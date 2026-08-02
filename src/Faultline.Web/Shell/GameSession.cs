@@ -164,53 +164,60 @@ public sealed class GameSession
     public static bool CanInspect(Unit? unit) =>
         unit is not null && unit.Team == Team.Enemy && EnemyBehaviour.ForKind(unit.Kind) is not null;
 
-    /// <summary>Opens the dossier on an enemy. Anything else is ignored.</summary>
+    /// <summary>Reads an enemy's character sheet, in the reference panel. Anything else is ignored.</summary>
     /// <param name="id">Unit to inspect.</param>
     public void Inspect(UnitId id)
     {
         if (CanInspect(State.FindUnit(id)))
         {
             Inspected = id;
-            DesignOpen = false;
+            Tab = ReferenceTab.Unit;
         }
 
         Changed?.Invoke();
     }
 
-    /// <summary>Closes the dossier.</summary>
+    /// <summary>Forgets the inspected unit, leaving the unit tab on its empty state.</summary>
     public void ClearInspection()
     {
         Inspected = null;
         Changed?.Invoke();
     }
 
-    /// <summary>Whether the fight's design notes are open in the side pane.</summary>
+    /// <summary>Which reference the one reference panel is showing.</summary>
     /// <remarks>
-    /// The same kind of flag as <see cref="Inspected"/>, and for the same reason: reading why a board
-    /// exists is a view, not a command. It aims nothing, submits nothing, and Core never sees it.
+    /// The same kind of flag as <see cref="Inspected"/>, and for the same reason: reading what a
+    /// board or a unit is made of is a view, not a command. It aims nothing, submits nothing, and
+    /// Core never sees it.
     /// </remarks>
-    public bool DesignOpen { get; private set; }
+    public ReferenceTab Tab { get; private set; } = ReferenceTab.Abilities;
 
-    /// <summary>
-    /// Opens or closes the design notes. Opening them closes any open dossier, because the side pane
-    /// holds one reference panel at a time and the turn panel must stay in view.
-    /// </summary>
-    public void ToggleDesign()
+    /// <summary>Shows a reference tab.</summary>
+    /// <param name="tab">Tab to show.</param>
+    public void ShowTab(ReferenceTab tab)
     {
-        DesignOpen = !DesignOpen;
-
-        if (DesignOpen)
-        {
-            Inspected = null;
-        }
-
+        Tab = tab;
         Changed?.Invoke();
     }
 
-    /// <summary>Closes the design notes.</summary>
+    /// <summary>Whether the reference panel is on the design notes.</summary>
+    public bool DesignOpen => Tab == ReferenceTab.Battle;
+
+    /// <summary>
+    /// Shows the design notes, or puts the panel back on the abilities it defaults to. The inspected
+    /// unit is remembered either way, so the unit tab is still there to go back to.
+    /// </summary>
+    public void ToggleDesign() =>
+        ShowTab(DesignOpen ? ReferenceTab.Abilities : ReferenceTab.Battle);
+
+    /// <summary>Leaves the design notes, if they are what is showing.</summary>
     public void CloseDesign()
     {
-        DesignOpen = false;
+        if (DesignOpen)
+        {
+            Tab = ReferenceTab.Abilities;
+        }
+
         Changed?.Invoke();
     }
 
@@ -338,9 +345,9 @@ public sealed class GameSession
         var commands = _applied.GetRange(0, cut);
         var chosen = _chosen.GetRange(0, cut);
 
-        // The design notes are a view of the fight, not of the position, so a rewind leaves them
-        // where the player put them.
-        bool design = DesignOpen;
+        // The reference panel is a view of the fight, not of the position, so a rewind leaves it on
+        // whichever tab the player put it.
+        var tab = Tab;
 
         _silent = true;
         try
@@ -361,7 +368,7 @@ public sealed class GameSession
             _silent = false;
         }
 
-        DesignOpen = design;
+        Tab = tab;
         Changed?.Invoke();
         return true;
     }
@@ -406,7 +413,7 @@ public sealed class GameSession
         _chosen.Clear();
         Selected = null;
         Inspected = null;
-        DesignOpen = false;
+        Tab = ReferenceTab.Abilities;
         Hovered = null;
         Mode = ActionMode.Move;
 

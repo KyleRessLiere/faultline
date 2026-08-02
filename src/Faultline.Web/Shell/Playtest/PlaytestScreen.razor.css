@@ -41,18 +41,6 @@
     min-width: 0;
 }
 
-/* The dossier and the design notes: reference beside the board, never over it, and never allowed
-   to push the turn panel off the bottom. */
-.pt-ref {
-    background: var(--pt-bg-panel);
-    border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius);
-    flex: 0 1 auto;
-    max-height: 42%;
-    min-height: 0;
-    overflow-y: auto;
-}
-
 @media (max-width: 1200px) {
     .pt-app {
         --pt-gap: 6px;
@@ -85,9 +73,5 @@
     .pt-col-mid,
     .pt-col-right {
         min-height: 0;
-    }
-
-    .pt-ref {
-        max-height: none;
     }
 }

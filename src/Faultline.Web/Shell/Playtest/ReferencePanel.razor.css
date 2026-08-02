@@ -1,0 +1,84 @@
+/* The tab strip stands in for the panel's h2, so it wears the same chrome: raised bar, hairline
+   under it, uppercase and tracked out. It is the last panel in the column, so it takes the slack. */
+
+.pt-panel {
+    flex: 1 1 0;
+    min-height: 120px;
+}
+
+.tabs {
+    align-items: stretch;
+    background: var(--pt-bg-raised);
+    border-bottom: 1px solid var(--pt-border-soft);
+    display: flex;
+    flex: 0 0 auto;
+    gap: 2px;
+    padding: 0 9px;
+}
+
+.tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    margin-bottom: -1px;
+    padding: 5px 7px;
+    text-transform: uppercase;
+}
+
+.tab:hover {
+    color: var(--pt-text);
+}
+
+.tab.on {
+    border-bottom-color: var(--pt-blue);
+    color: var(--pt-text);
+}
+
+.tab:focus-visible {
+    outline: 2px solid var(--pt-blue);
+    outline-offset: -2px;
+}
+
+.count {
+    align-self: center;
+    color: var(--pt-text-dim);
+    font-size: 10px;
+    letter-spacing: .04em;
+    margin-left: auto;
+    overflow: hidden;
+    padding-left: 6px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.empty {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* The dossier and the design card are drawn by shared components with their own card border. Inside
+   this panel that border is the panel's, so only the side's colour bar is kept. */
+::deep .beast,
+::deep .design-card {
+    background: transparent;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    padding: 6px 0 0;
+}
+
+@media (max-width: 950px) {
+    .pt-panel {
+        flex: 0 0 auto;
+        max-height: 46vh;
+    }
+}

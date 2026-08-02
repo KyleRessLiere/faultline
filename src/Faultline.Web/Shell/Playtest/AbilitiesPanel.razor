@@ -1,38 +1,31 @@
-@inherits PlaytestPanel
-@* The ability reference, straight off Core's descriptors. Scrolls on its own so a long list never
-   pushes the turn panel off the screen. *@
+@* The ability reference, straight off Core's descriptors. One tab of the reference panel, so it
+   draws the list and none of the panel chrome around it. *@
 
-<div class="pt-panel">
-    <h2>
-        Abilities
-        <span class="count">@Descriptors.Count</span>
-    </h2>
-
-    <div class="pt-body">
-        <ul class="abilities">
-            @foreach (var descriptor in Descriptors)
-            {
-                <li>
-                    <div class="head">
-                        <span class="art">
-                            <UnitArt Kind="descriptor.Kind" Label="@descriptor.Name" />
-                        </span>
-                        <strong class="name">@descriptor.Name</strong>
-                        <span class="badge kind">@descriptor.Kind</span>
-                        @foreach (var effect in Effects(descriptor))
-                        {
-                            <span class="badge effect">@effect</span>
-                        }
-                    </div>
-                    <p class="summary">@descriptor.Summary</p>
-                </li>
-            }
-        </ul>
-    </div>
-</div>
+<ul class="abilities">
+    @foreach (var descriptor in Descriptors)
+    {
+        <li>
+            <div class="head">
+                <span class="art">
+                    <UnitArt Kind="descriptor.Kind" Label="@descriptor.Name" />
+                </span>
+                <strong class="name">@descriptor.Name</strong>
+                <span class="badge kind">@descriptor.Kind</span>
+                @foreach (var effect in Effects(descriptor))
+                {
+                    <span class="badge effect">@effect</span>
+                }
+            </div>
+            <p class="summary">@descriptor.Summary</p>
+        </li>
+    }
+</ul>
 
 @code {
     private static readonly IReadOnlyList<AbilityDescriptor> All = AbilityDescriptor.All().ToList();
+
+    /// <summary>How many abilities this tab lists, for the tab strip to say so.</summary>
+    public static int Count => All.Count;
 
     private IReadOnlyList<AbilityDescriptor> Descriptors => All;
 

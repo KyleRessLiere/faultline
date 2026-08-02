@@ -100,8 +100,9 @@
         else if (Session.SelectedUnit is { } selected)
         {
             <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
-                @PlaytestText.Team(State.ActiveTeam) acts with @selected.Name.
+                @PlaytestText.Team(State.ActiveTeam) — <strong>@selected.Name</strong> is acting.
             </p>
+            <p class="halves">@Halves(selected)</p>
             <p class="instruction">
                 @(Session.Targets.Count > 0
                     ? "Click a highlighted tile, or pick another action below."
@@ -110,10 +111,21 @@
         }
         else
         {
+            @* Who may act, not who must: inside a side's slot Core will take a command for any
+               un-activated unit, so naming one of several would be a rule this shell invented. *@
             <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
                 @PlaytestText.Team(State.ActiveTeam) to act.
             </p>
-            <p class="instruction">Select one of your units on the board.</p>
+            @if (ReadyNames.Count > 0)
+            {
+                <p class="instruction">
+                    <strong>@Names(ReadyNames)</strong> can activate — click one on the board.
+                </p>
+            }
+            else
+            {
+                <p class="instruction">Select one of your units on the board.</p>
+            }
         }
     </div>
 </div>
@@ -123,6 +135,24 @@
 
     private string RunEnding =>
         Runs.LastEvents.OfType<RunLost>().FirstOrDefault()?.Reason ?? "The run ends here.";
+
+    /// <summary>
+    /// Every unit Core would take a command for right now, in board order. Read through
+    /// <see cref="GameSession.Selectable"/> — the shell decides nothing about eligibility.
+    /// </summary>
+    private IReadOnlyList<string> ReadyNames
+    {
+        get
+        {
+            var ready = Session.Selectable;
+            return State.Units.Where(u => ready.Contains(u.Id)).Select(u => u.Name).ToList();
+        }
+    }
+
+    // Both live in PlaytestText so they can be tested without rendering anything.
+    private static string Names(IReadOnlyList<string> names) => PlaytestText.Names(names);
+
+    private static string Halves(Unit unit) => PlaytestText.Halves(unit);
 
     private string PendingDeployName =>
         Session.PendingDeployUnit is null
