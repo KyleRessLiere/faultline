@@ -174,7 +174,7 @@ namespace Faultline.Core
         /// </summary>
         /// <remarks>
         /// Every spend needs the unit's own activation, an unspent spend for it, and the price. Two
-        /// then need something more: Slingshot needs a Reel to have just left an enemy in contact,
+        /// then need something more: Cast needs an enemy in reach with somewhere to put it,
         /// and Retort needs Guard Stance still standing — which means Retort is only ever legal as
         /// the first thing in the activation, because taking the slot is what drops the stance
         /// (D-058, D-077).

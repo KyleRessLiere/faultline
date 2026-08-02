@@ -62,7 +62,7 @@ public class PluckNamingTests
     [Fact]
     public void EverySpenderAndSourceHasWordingFromTheLayer()
     {
-        // Not "must differ from the identifier": Preen and Slingshot are one word and read the same
+        // Not "must differ from the identifier": Preen and Cast are one word and read the same
         // either way, and forcing them apart would be inventing a difference to satisfy a test. What
         // matters is that there is exactly one place the name comes from.
         foreach (VerveSpend spend in Enum.GetValues(typeof(VerveSpend)))

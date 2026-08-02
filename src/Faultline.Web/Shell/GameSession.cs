@@ -588,9 +588,9 @@ public sealed class GameSession
     /// </summary>
     /// <remarks>
     /// Read off <see cref="StepResult.LegalNext"/> rather than worked out from the unit's class and
-    /// meter. Half of Verve's legality is not visible on the unit at all — Slingshot needs a Reel to
-    /// have just landed, Retort needs a stance that only exists before the activation slot is
-    /// taken — and a shell that re-derived it would be a second, disagreeing copy of the rule.
+    /// meter. Half of Verve's legality is not visible on the unit at all — Cast needs an enemy in
+    /// reach with somewhere to put it, and Preen needs hit points missing — and a shell that
+    /// re-derived it would be a second, disagreeing copy of the rule.
     /// </remarks>
     public SpendVerveCommand? VerveSpendCommand =>
         Selected is null
