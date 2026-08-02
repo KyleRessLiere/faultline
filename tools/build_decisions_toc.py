@@ -71,13 +71,21 @@ def blame_dates(path):
     return dates
 
 
-def status_of(body):
-    """Whether a later ruling has overtaken this one, read from the prose rather than a field."""
+def status_of(title, body):
+    """
+    Whether a later ruling has overtaken this one, read from the prose rather than a field.
+
+    Read narrowly on purpose. An earlier version matched the bare word "superseded" anywhere in the
+    body, which marked any ruling that mentioned *another* one being superseded — so a live decision
+    read as a dead one in the index everybody trusts. It also never fired for HELD at all, because
+    the phrases it looked for are not the convention the file actually uses: a held ruling says so in
+    its heading.
+    """
     lowered = body.lower()
-    if "superseded" in lowered or "supersedes this" in lowered:
-        return "superseded"
-    if "recorded as held" in lowered or "**held**" in lowered:
+    if title.lower().startswith("held:"):
         return "held"
+    if "superseded by" in lowered or "supersedes this" in lowered:
+        return "superseded"
     return "active"
 
 
@@ -98,7 +106,7 @@ def main():
     for index, (line_no, ruling, title) in enumerate(found):
         end = found[index + 1][0] - 1 if index + 1 < len(found) else len(lines)
         body = "\n".join(lines[line_no - 1:end])
-        rows.append((ruling, title, dates.get(line_no, "unreleased"), status_of(body)))
+        rows.append((ruling, title, dates.get(line_no, "unreleased"), status_of(title, body)))
 
     toc = [START, ""]
     toc.append("## Contents")

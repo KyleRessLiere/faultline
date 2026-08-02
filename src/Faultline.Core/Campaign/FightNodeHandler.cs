@@ -155,10 +155,13 @@ namespace Faultline.Core
                     : onBoard.Hp > 0 ? RunUnitStatus.Ready : RunUnitStatus.Downed;
 
                 // No healing between fights: whatever it walked off with is what it walks in with.
+                // Verve rides the same way, except that a voided unit takes its meter with it —
+                // there is no unit left to hold it, and the slot is not inherited.
                 var carried = unit with
                 {
                     Hp = status == RunUnitStatus.Ready ? onBoard.Hp : 0,
                     Status = status,
+                    Verve = status == RunUnitStatus.Voided ? 0 : onBoard.Verve,
                 };
 
                 squad.Add(carried);
@@ -208,12 +211,14 @@ namespace Faultline.Core
             var rosterB = new List<UnitKind>();
             var hpA = new List<int>();
             var hpB = new List<int>();
+            var verveA = new List<int>();
+            var verveB = new List<int>();
 
-            BindSide(available, fight.RosterA, Team.PlayerA, bindings, rosterA, hpA);
-            BindSide(available, fight.RosterB, Team.PlayerB, bindings, rosterB, hpB);
+            BindSide(available, fight.RosterA, Team.PlayerA, bindings, rosterA, hpA, verveA);
+            BindSide(available, fight.RosterB, Team.PlayerB, bindings, rosterB, hpB, verveB);
 
             adapted = fight with { RosterA = rosterA, RosterB = rosterB };
-            loadout = new SquadLoadout { HpA = hpA, HpB = hpB };
+            loadout = new SquadLoadout { HpA = hpA, HpB = hpB, VerveA = verveA, VerveB = verveB };
 
             // Ids are assigned by Game.Start in roster order, side A then side B, so the binding's
             // fight-local ids are known before the fight exists.
@@ -233,7 +238,8 @@ namespace Faultline.Core
             Team team,
             List<RunBinding> bindings,
             List<UnitKind> adaptedRoster,
-            List<int> hp)
+            List<int> hp,
+            List<int> verve)
         {
             foreach (var kind in roster)
             {
@@ -259,6 +265,10 @@ namespace Faultline.Core
 
                 adaptedRoster.Add(kind);
                 hp.Add(unit.FieldingHp);
+
+                // Being downed costs half your health and none of your Verve: the meter is a record
+                // of how you have been playing, and getting knocked over is not an argument about it.
+                verve.Add(unit.Verve);
                 bindings.Add(new RunBinding(unit.Id, UnitId.None, team));
             }
         }

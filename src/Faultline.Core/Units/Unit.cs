@@ -52,6 +52,14 @@ namespace Faultline.Core
         /// </summary>
         public bool Guarding { get; init; }
 
+        /// <summary>
+        /// Verve banked by this unit, capped at <see cref="Faultline.Core.Verve.Cap"/>. Earned on its
+        /// own class's condition and spent only by itself — see <see cref="Faultline.Core.Verve"/>.
+        /// Carries across fights on the <see cref="RunUnit"/> and is never reset by anything but
+        /// spending it.
+        /// </summary>
+        public int Verve { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 

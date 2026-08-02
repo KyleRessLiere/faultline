@@ -169,6 +169,50 @@ unit it varies cannot drift apart.
 
 Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
 
+### Verve — the per-unit meter
+
+Each player unit carries its own integer meter, earned by playing the way the game is about. **Only
+the earning half is built** — nothing spends Verve yet, and there is no spend command, no cost and no
+UI for it.
+
+| | |
+|---|---|
+| Starting value | **0** for every unit |
+| Cap | **5** |
+| At the cap | the charge still fires, banks nothing, and is reported as wasted |
+| Between fights | carried on the squad member, exactly like hit points |
+| Downed | **keeps every point**, and returns with it on half health |
+| Voided | **gone with the unit** |
+| Reset | never — only spending will reduce it, and spending does not exist yet |
+| Enemies | never charge, from any source |
+
+**Charges are class-bound.** Each class earns on its own condition and nobody else's, so the same
+event on the board pays one unit and not another:
+
+| Class | Earns +1 when | Source |
+|---|---|---|
+| Vanguard | a collision **he** causes | `Collision` |
+| Threadcaster | a displacement **she** causes ends in a collision, spikes or a pit | `Collision`, `Hazard` |
+| Archer | **she** hits an enemy from HighGround | `HighGround` |
+| Wardbearer | **it** absorbs something in Guard Stance | `Guard` |
+
+The Threadcaster is ranged, so a shot of hers from HighGround produces exactly the event the Archer
+charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.
+
+**A charge requires an enemy to have been affected.** A collision that touched only your own side
+pays nothing. Nothing in the game can currently reach that case — friendly fire is not a legal
+command — so the clause is presently only exercisable by driving the charge pass directly; it is
+written this way for debris, which is not built.
+
+Charging **listens to the finished event stream** rather than being checked inside the rules that
+produce it (D-073). `Collision` and `UnitPushed` name who they happened to and never who caused it,
+so the causer is read back out of the stream: within one command, every board consequence follows
+from a single `AbilityUsed` or `UnitAttacked`, and that unit owns it.
+
+One event carries this: **`VerveCharged`** — unit, source, the tile it happened on, the new total,
+and whether it was wasted against the cap. **`VerveSpent` does not exist yet**; it lands with the
+spenders that would fire it.
+
 ## Enemies — what they actually do
 
 Every enemy decision is a pure function of the board state. **No dice, no generator, no hidden

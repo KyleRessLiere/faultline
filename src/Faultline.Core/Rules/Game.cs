@@ -50,14 +50,18 @@ namespace Faultline.Core
             {
                 var unit = WithGrantedFooting(
                     Unit.FromTemplate(new UnitId(nextId++), fight.RosterA[i], Team.PlayerA), fight);
-                units.Add(WithCarriedHp(unit, loadout?.HpFor(Team.PlayerA, i)));
+                units.Add(WithCarriedVerve(
+                    WithCarriedHp(unit, loadout?.HpFor(Team.PlayerA, i)),
+                    loadout?.VerveFor(Team.PlayerA, i)));
             }
 
             for (int i = 0; i < fight.RosterB.Count; i++)
             {
                 var unit = WithGrantedFooting(
                     Unit.FromTemplate(new UnitId(nextId++), fight.RosterB[i], Team.PlayerB), fight);
-                units.Add(WithCarriedHp(unit, loadout?.HpFor(Team.PlayerB, i)));
+                units.Add(WithCarriedVerve(
+                    WithCarriedHp(unit, loadout?.HpFor(Team.PlayerB, i)),
+                    loadout?.VerveFor(Team.PlayerB, i)));
             }
 
             var events = new List<GameEvent> { new FightStarted(fight.Number, fight.Name) };
@@ -149,6 +153,27 @@ namespace Faultline.Core
             return unit with { Hp = carried };
         }
 
+        private static Unit WithCarriedVerve(Unit unit, int? verve)
+        {
+            if (verve is null)
+            {
+                return unit;
+            }
+
+            int carried = verve.Value;
+            if (carried > Verve.Cap)
+            {
+                carried = Verve.Cap;
+            }
+
+            if (carried < 0)
+            {
+                carried = 0;
+            }
+
+            return unit with { Verve = carried };
+        }
+
         /// <summary>Applies one command. The command must be present in the previous <see cref="StepResult.LegalNext"/>.</summary>
         /// <param name="state">State to advance.</param>
         /// <param name="command">Command to apply.</param>
@@ -194,6 +219,11 @@ namespace Faultline.Core
                 default:
                     throw new ArgumentException("Unsupported command " + command.GetType().Name + ".", nameof(command));
             }
+
+            // Verve reads the finished stream rather than being threaded through the rules that
+            // produced it, so it goes here — after the command, before re-planning, so a charge is
+            // logged next to the thing that earned it (D-073).
+            next = Verve.Charge(next, events);
 
             // Brief §2: an enemy whose target just died re-plans immediately and visibly.
             next = Ai.ReplanInvalidated(next, events);

@@ -32,7 +32,7 @@ in this file when the question comes back.
 | D-011 | [Core exposes collections as `IReadOnlyList<T>`, not `ImmutableArray<T>`.](#d-011-core-exposes-collections-as-ireadonlylistt-not-immutablearrayt) | 2026-08-01 |  |
 | D-012 | [`Board` and `GameState` implement structural equality by hand.](#d-012-board-and-gamestate-implement-structural-equality-by-hand) | 2026-08-01 |  |
 | D-013 | [In M1, enemy activation slots are resolved by the shell submitting `EndActivationCommand`.](#d-013-in-m1-enemy-activation-slots-are-resolved-by-the-shell-submitting-endactivationcommand) | 2026-08-01 |  |
-| D-014 | [`GameState.Momentum` exists from M1 but nothing writes to it until M5.](#d-014-gamestatemomentum-exists-from-m1-but-nothing-writes-to-it-until-m5) | 2026-08-01 |  |
+| D-014 | [`GameState.Momentum` exists from M1 but nothing writes to it until M5.](#d-014-gamestatemomentum-exists-from-m1-but-nothing-writes-to-it-until-m5) | 2026-08-01 | **superseded** |
 | D-015 | [Bull Rush spends both halves of the activation.](#d-015-bull-rush-spends-both-halves-of-the-activation) | 2026-08-01 |  |
 | D-016 | [A clinging unit is Voided at the end of the round *after* the one it fell in.](#d-016-a-clinging-unit-is-voided-at-the-end-of-the-round-after-the-one-it-fell-in) | 2026-08-01 |  |
 | D-017 | [Player Footing is not yet an interactive prompt.](#d-017-player-footing-is-not-yet-an-interactive-prompt) | 2026-08-01 |  |
@@ -82,16 +82,19 @@ in this file when the question comes back.
 | D-062 | [A clinging guard guards nobody.](#d-062-a-clinging-guard-guards-nobody) | 2026-08-02 |  |
 | D-063 | [Spear Thrust is a shape, not a ray-cast.](#d-063-spear-thrust-is-a-shape-not-a-ray-cast) | 2026-08-02 |  |
 | D-064 | [`AbilityDescriptor` is one-to-many per class, and the Wardbearer is why.](#d-064-abilitydescriptor-is-one-to-many-per-class-and-the-wardbearer-is-why) | 2026-08-02 |  |
-| D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | 2026-08-02 |  |
-| D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | 2026-08-02 |  |
+| D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | 2026-08-02 | *held* |
+| D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | 2026-08-02 | *held* |
 | D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | 2026-08-02 |  |
 | D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | 2026-08-02 |  |
 | D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | 2026-08-02 |  |
 | D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | 2026-08-02 |  |
 | D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | 2026-08-02 |  |
 | D-072 | [Every enemy priority list has a rescue slot, above the list and below a lethal.](#d-072-every-enemy-priority-list-has-a-rescue-slot-above-the-list-and-below-a-lethal) | 2026-08-02 |  |
+| D-073 | [Verve charges by listening to the finished event stream, and the causer is read back out of that stream rather than added to the events.](#d-073-verve-charges-by-listening-to-the-finished-event-stream-and-the-causer-is-read-back-out-of-that-stream-rather-than-added-to-the-events) | unreleased |  |
+| D-074 | [Verve supersedes Momentum, and `GameState.Momentum` is left standing until the Verve UI replaces it.](#d-074-verve-supersedes-momentum-and-gamestatemomentum-is-left-standing-until-the-verve-ui-replaces-it) | unreleased |  |
+| D-075 | [HELD: a shared pool returns only if a reward is ever wanted for something that is not a displacement, a hazard, high ground or absorption.](#d-075-held-a-shared-pool-returns-only-if-a-reward-is-ever-wanted-for-something-that-is-not-a-displacement-a-hazard-high-ground-or-absorption) | unreleased | *held* |
 
-**71 rulings.**
+**74 rulings.**
 
 <!-- toc:end -->
 ---
@@ -167,6 +170,11 @@ real one. `Game.IsEnemyTurn` marks the seam M3 replaces.
 **D-014 — `GameState.Momentum` exists from M1 but nothing writes to it until M5.**
 Momentum is part of the state shape the brief specifies. Carrying the field early avoids churning
 every state transition later; no accounting rule is implemented ahead of its milestone.
+
+**Superseded by D-074.** The milestone arrived and the answer was a per-unit meter, so nothing ever
+wrote to it — the field was carried for eleven milestones against a promise that was not kept. The
+lesson is not "do not carry state early"; it is that carrying it costs nothing only while somebody
+still intends to fill it, and nobody re-checked that intent.
 
 ---
 
@@ -807,3 +815,66 @@ Archer three tiles away skips the rescue and hits the Vanguard.
 archetype in every shipped fight — a Lobber would shoot instead of breaking contact — which is a far
 larger behaviour change than this ruling asked for. Recorded here so the gap is a decision somebody
 made rather than a bug nobody noticed.
+
+**D-073 — Verve charges by listening to the finished event stream, and the causer is read back out
+of that stream rather than added to the events.**
+`VERVE.md` requires charges to hang off events, never off a rule checking itself. The seam was
+already there: `Game.Apply` runs a post-pass over the completed event list for `Ai.ReplanInvalidated`,
+with the whole stream and the post-command state in hand. `Verve.Charge` sits beside it, immediately
+before re-planning so a charge is logged next to the thing that earned it.
+
+**Two of the four conditions could not be answered from the payloads.** `UnitAttacked` names its
+attacker and whether the shot came from HighGround, and `GuardIntercepted` names the guard — so the
+Archer and the Wardbearer are self-contained. But `Collision(UnitId, At, ObstacleId, Damage)` names
+the unit that collided and the obstacle it hit, and `UnitPushed` names the unit displaced. **Neither
+says who caused it**, and "a collision *he* causes" is the Vanguard's entire condition.
+
+**Chosen: read the causer out of the stream.** Within a single `Apply` every board consequence
+follows from one `AbilityUsed` or `UnitAttacked`, so the nearest preceding one names the unit
+responsible — including for chain collisions, which credit the shover, which is the intent.
+
+**Rejected: adding a causer field to `UnitPushed` and `Collision`.** Cleaner in the abstract, and it
+changes two event schemas, drags in D-070's coverage registration and touches every test that
+constructs either — for a capability nothing needs. It is not foreclosed: if a future rule needs
+attribution outside a single command, the field is still the answer.
+
+**Rejected: attributing to `GameState.ActiveUnitId`.** Nearly correct, and it has a timing seam —
+the active unit is set during the first command of an activation and cleared by the last, so a
+consequence at either boundary attributes to nobody or to the wrong unit. The stream has no such
+edge.
+
+**The anti-farm clause is phrased "an enemy was affected", never "the target was not scenery."**
+Debris does not exist yet; when it does, the first phrasing is already right and the second would
+have needed finding and changing. As the game stands **no command can reach the negative case** —
+friendly fire is not legal and nothing else collides — so it is held to its wording by a test that
+drives `Verve.Charge` directly. That is deliberate: a clause with no test is a clause that is not
+really there.
+
+**D-074 — Verve supersedes Momentum, and `GameState.Momentum` is left standing until the Verve UI
+replaces it.**
+The brief specified Momentum for M5 as a shared pool and nothing was ever built on it — the field
+exists, is compared, is hashed, and is always zero. `VERVE.md` answers the same question — *what do
+you get for playing well?* — per-unit instead of pooled, with charge conditions that are the game's
+thesis stated as arithmetic, which makes the earn rate a measurable thesis-compliance metric rather
+than a matter of opinion.
+
+**Deleting the field is deliberately not part of this change.** The meter shipped without UI; the
+board still renders Momentum, and removing the field now would leave the shell with nothing to show
+where a meter used to be. It goes when the Verve UI lands, in one change, so there is never a build
+with two meters or none. **Supersedes D-014**, which carried the field early on the promise that M5
+would write to it; M5 is now Verve, and nothing ever will.
+
+**`VerveSpent` is not in this change.** `CLAUDE.md` requires every event type to have a test
+asserting it fires at the right moment with the right payload, and an event nothing emits cannot
+have one. It lands with the four spenders.
+
+**D-075 — HELD: a shared pool returns only if a reward is ever wanted for something that is not a
+displacement, a hazard, high ground or absorption.**
+Verve's four charge conditions are deliberately all board-thesis, which is what makes the earn rate
+measurable as thesis-compliance (D-074). A reward for anything outside that set has nowhere to live
+in a per-unit meter bound to classes, and inventing a fifth condition to fit it would quietly cost
+the metric its meaning.
+
+**Unblocks on:** a design wanting to reward something off-thesis — surviving a round, holding an
+objective, spending nothing. Until then Momentum is superseded, not parked, and this is the note
+that says which.

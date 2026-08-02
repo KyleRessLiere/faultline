@@ -25,6 +25,12 @@ namespace Faultline.Core
         public RunUnitStatus Status { get; init; } = RunUnitStatus.Ready;
 
         /// <summary>
+        /// Verve carried into the next fight. A downed unit keeps what it earned and walks back on
+        /// with it; a voided one takes its meter with it, because there is no unit left to hold it.
+        /// </summary>
+        public int Verve { get; init; }
+
+        /// <summary>
         /// Maximum hit points, read from the archetype rather than stored, so a stat change to a class
         /// cannot leave a run holding a stale ceiling.
         /// </summary>
@@ -65,6 +71,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + (int)Kind;
                 hash = (hash * 31) + Hp;
                 hash = (hash * 31) + (int)Status;
+                hash = (hash * 31) + Verve;
                 return hash;
             }
         }
@@ -77,6 +84,7 @@ namespace Faultline.Core
             && Id.Equals(other.Id)
             && Kind == other.Kind
             && Hp == other.Hp
-            && Status == other.Status;
+            && Status == other.Status
+            && Verve == other.Verve;
     }
 }

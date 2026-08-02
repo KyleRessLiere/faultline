@@ -20,14 +20,26 @@ namespace Faultline.Core
         /// <summary>Hit points for each slot of <see cref="FightDefinition.RosterB"/>, in order.</summary>
         public IReadOnlyList<int> HpB { get; init; } = Array.Empty<int>();
 
+        /// <summary>Verve for each slot of <see cref="FightDefinition.RosterA"/>, in order.</summary>
+        public IReadOnlyList<int> VerveA { get; init; } = Array.Empty<int>();
+
+        /// <summary>Verve for each slot of <see cref="FightDefinition.RosterB"/>, in order.</summary>
+        public IReadOnlyList<int> VerveB { get; init; } = Array.Empty<int>();
+
         /// <summary>Hit points for one slot, or <c>null</c> to leave it at full health.</summary>
         /// <param name="team">Which player's roster.</param>
         /// <param name="slot">Index within that roster.</param>
         /// <returns>The carried hit points, or null.</returns>
-        public int? HpFor(Team team, int slot)
-        {
-            var list = team == Team.PlayerA ? HpA : team == Team.PlayerB ? HpB : Array.Empty<int>();
-            return slot >= 0 && slot < list.Count ? list[slot] : (int?)null;
-        }
+        public int? HpFor(Team team, int slot) => At(team == Team.PlayerA ? HpA : team == Team.PlayerB ? HpB : null, slot);
+
+        /// <summary>Verve carried into this fight by one slot, or <c>null</c> for an empty meter.</summary>
+        /// <param name="team">Which player's roster.</param>
+        /// <param name="slot">Index within that roster.</param>
+        /// <returns>The carried Verve, or null.</returns>
+        public int? VerveFor(Team team, int slot) =>
+            At(team == Team.PlayerA ? VerveA : team == Team.PlayerB ? VerveB : null, slot);
+
+        private static int? At(IReadOnlyList<int>? list, int slot) =>
+            list is not null && slot >= 0 && slot < list.Count ? list[slot] : (int?)null;
     }
 }

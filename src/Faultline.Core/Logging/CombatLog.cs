@@ -113,6 +113,7 @@ namespace Faultline.Core
             FootingSpent => nameof(FootingSpent),
             GuardStanceChanged => nameof(GuardStanceChanged),
             GuardIntercepted => nameof(GuardIntercepted),
+            VerveCharged => nameof(VerveCharged),
             FightWon => nameof(FightWon),
             FightLost => nameof(FightLost),
             ObjectiveDeclared => nameof(ObjectiveDeclared),
@@ -210,6 +211,12 @@ namespace Faultline.Core
                 + " at " + e.AllyAt
                 + ", it lands on " + e.At + " instead",
 
+            VerveCharged e => (e.Wasted ? "+0 verve at " : "+1 verve at ")
+                + e.At
+                + " from " + VerveText(e.Source)
+                + ", " + Number(e.NewTotal) + "/" + Number(Verve.Cap)
+                + (e.Wasted ? ", full, discarded" : string.Empty),
+
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
             FightLost e => "fight " + Number(e.FightNumber) + " lost, " + Clean(e.Reason),
@@ -289,11 +296,24 @@ namespace Faultline.Core
             FootingSpent e => e.UnitId,
             GuardStanceChanged e => e.UnitId,
             GuardIntercepted e => e.UnitId,
+            VerveCharged e => e.UnitId,
             StructureAttacked e => e.AttackerId,
             ReinforcementScheduled e => e.UnitId,
             ReinforcementArrived e => e.UnitId,
             ReinforcementDelayed e => e.UnitId,
             _ => UnitId.None,
+        };
+
+        /// <summary>What a Verve source reads as in the log.</summary>
+        /// <param name="source">Source to describe.</param>
+        /// <returns>A short phrase.</returns>
+        public static string VerveText(VerveSource source) => source switch
+        {
+            VerveSource.Collision => "a collision",
+            VerveSource.Hazard => "a hazard",
+            VerveSource.HighGround => "high ground",
+            VerveSource.Guard => "guard stance",
+            _ => source.ToString(),
         };
 
         /// <summary>The slot column: which activation the line belongs to, e.g. <c>PlayerA:u0</c>.</summary>

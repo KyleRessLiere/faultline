@@ -45,6 +45,25 @@ public class StateEqualityCoverageTests
         AssertEveryPropertyIsCompared(Fixtures.Fight(), Mutations.Fight, "FightDefinition");
     }
 
+    /// <remarks>
+    /// <see cref="RunUnit"/> hand-writes <c>Equals</c> for readability rather than for lists, and was
+    /// outside this guard until Verve was added to it — the one change that would have gone wrong
+    /// silently. <see cref="Unit"/> is deliberately not here: it takes the record's generated
+    /// equality, which cannot miss a field, so a mutation registry over it would be friction buying
+    /// nothing. If <c>Unit</c> ever hand-writes <c>Equals</c>, it belongs here the same day.
+    /// </remarks>
+    [Fact]
+    public void RunUnit_ComparesEveryPropertyItHas()
+    {
+        AssertEveryPropertyIsCompared(Fixtures.RunUnit(), Mutations.SquadMember, "RunUnit");
+    }
+
+    [Fact]
+    public void RunUnit_HashChangesWithTheUnit()
+    {
+        AssertHashMoves(Fixtures.RunUnit(), Mutations.SquadMember, "RunUnit");
+    }
+
     [Fact]
     public void GameState_HashChangesWithTheState()
     {
@@ -139,6 +158,9 @@ public class StateEqualityCoverageTests
             Campaign.Start(CampaignLibrary.Faultline, seed: 7).NewState;
 
         internal static FightDefinition Fight() => FightLibrary.ById("hold-the-gate");
+
+        internal static RunUnit RunUnit() =>
+            Faultline.Core.RunUnit.Fresh(new RunUnitId(0), UnitKind.Vanguard) with { Verve = 2 };
     }
 
     // --- mutations: one per property, each changing exactly that property -------------------------
@@ -189,6 +211,16 @@ public class StateEqualityCoverageTests
                     Bindings = new[] { new RunBinding(new RunUnitId(0), new UnitId(0), Team.PlayerA) },
                 },
                 ["FightsWon"] = s => s with { FightsWon = s.FightsWon + 1 },
+            };
+
+        internal static readonly IReadOnlyDictionary<string, Func<RunUnit, RunUnit>> SquadMember =
+            new Dictionary<string, Func<RunUnit, RunUnit>>
+            {
+                ["Id"] = u => u with { Id = new RunUnitId(u.Id.Value + 1) },
+                ["Kind"] = u => u with { Kind = UnitKind.Archer },
+                ["Hp"] = u => u with { Hp = u.Hp - 1 },
+                ["Status"] = u => u with { Status = RunUnitStatus.Downed },
+                ["Verve"] = u => u with { Verve = u.Verve + 1 },
             };
 
         internal static readonly IReadOnlyDictionary<string, Func<FightDefinition, FightDefinition>> Fight =

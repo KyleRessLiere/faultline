@@ -1,5 +1,17 @@
 # Changelog
 
+## Units bank Verve for playing the board
+
+- **Every player class now earns a per-unit meter, capped at 5**, on its own condition: collisions the
+  Vanguard causes, the Threadcaster's displacements that end in a collision or a hazard, the Archer's
+  hits from high ground, and what the Wardbearer absorbs in Guard Stance. Charges are class-bound —
+  the Threadcaster shooting from high ground earns nothing, and the Archer earns nothing from a shove.
+- **A charge at the cap is shown, not swallowed**, so sitting on a full meter is visible.
+- **Verve carries between fights.** Being downed costs half your health and none of your Verve; being
+  voided takes the meter with the unit.
+- **Nothing spends it yet.** The four spenders, the UI and the harness numbers are the next step.
+- Momentum is superseded (D-074) and its field is left standing until the Verve UI replaces it.
+
 ## Shoves land
 
 - **A shoved unit shudders where it stood, then slides** the path Core reported — the hit and where it
