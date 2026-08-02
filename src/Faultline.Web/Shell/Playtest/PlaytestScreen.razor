@@ -71,6 +71,10 @@
         }
 
         await Notes.LoadAsync();
+
+        // Picks a folder chosen in an earlier sitting back up, so the first note of the session goes
+        // to disk without anyone having to remember to re-point at it. Never prompts.
+        await Notes.Log.ResumeAsync();
     }
 
     protected override void OnAfterRender(bool firstRender)

@@ -24,8 +24,9 @@ namespace Faultline.Web.Shell;
 /// a serialiser: nothing should depend on reflection surviving trimming.
 /// </para>
 /// <para>
-/// This is browser storage, not a server. Clearing site data destroys every note, which is why
-/// export exists and why the UI says so.
+/// This is browser storage, not a server. Clearing site data destroys every note — which is why
+/// every note is also mirrored straight into a folder on disk as it is added, when the player has
+/// pointed at one. See <see cref="NoteLog"/>; export remains for browsers that cannot.
 /// </para>
 /// </remarks>
 public sealed class PlaytestNotes
@@ -34,11 +35,20 @@ public sealed class PlaytestNotes
     private const string ItemPrefix = "faultline.note.";
 
     private readonly FightFiles _files;
+    private readonly NoteLog _log;
     private readonly List<PlaytestNote> _notes = new();
 
     /// <summary>Creates the store.</summary>
     /// <param name="files">Browser storage access.</param>
-    public PlaytestNotes(FightFiles files) => _files = files;
+    /// <param name="log">The folder sink notes are mirrored into as they are written.</param>
+    public PlaytestNotes(FightFiles files, NoteLog log)
+    {
+        _files = files;
+        _log = log;
+    }
+
+    /// <summary>The folder sink, so a panel can show where notes are landing.</summary>
+    public NoteLog Log => _log;
 
     /// <summary>The tags offered as one-click buttons.</summary>
     /// <remarks>
@@ -141,6 +151,11 @@ public sealed class PlaytestNotes
         _notes.Add(note);
         Sort();
         await WriteIndexAsync();
+
+        // Straight to disk, in the same breath as the keystroke that finished the note. There is no
+        // export step because a session's most useful notes are written when nobody is thinking
+        // about filing them.
+        await _log.WriteAsync(_notes);
         return note;
     }
 
@@ -160,6 +175,10 @@ public sealed class PlaytestNotes
         }
 
         await WriteIndexAsync();
+
+        // The folder mirrors the app, deletions included, so the file on disk is never a list of
+        // notes the player already withdrew.
+        await _log.WriteAsync(_notes);
     }
 
     /// <summary>Forgets every note in this browser.</summary>
@@ -173,6 +192,7 @@ public sealed class PlaytestNotes
 
         _notes.Clear();
         await WriteIndexAsync();
+        await _log.WriteAsync(_notes);
     }
 
     /// <summary>Renders notes as Markdown, grouped by battle, for a person to read back.</summary>

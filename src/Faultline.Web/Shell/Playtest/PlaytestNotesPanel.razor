@@ -1,6 +1,7 @@
 @inherits PlaytestPanel
 @inject PlaytestNotes Notes
 @inject FightFiles Files
+@implements IDisposable
 
 @* Notes about the fight, captured with the situation they were written in. No <form> anywhere
    here: a form would make Enter submit, and a stray Enter on the board screen must never do
@@ -61,10 +62,41 @@
                 : string.Empty)
         </p>
 
-        <p class="meta warn">
-            Notes live in this browser's localStorage. Clearing site data deletes them and nothing is
-            stored on a server — <a href="notes">export them</a> to keep them.
-        </p>
+        @* Where the notes are actually landing. The warning below only applies while nothing is
+           logging them to disk, so it is the alternative to this row rather than a companion. *@
+        <div class="row logrow">
+            @if (Log.Active)
+            {
+                <span class="chip logging" title="@Log.Status">— logging to @Log.Folder</span>
+                <button type="button" class="tool" title="Stop writing notes to that folder."
+                        @onclick="StopLogging">Stop</button>
+            }
+            else if (Log.Supported)
+            {
+                <button type="button" class="tool primary" title="Pick a folder once. Every note lands in it as you write it."
+                        @onclick="ChooseFolder">Log notes to a folder—</button>
+            }
+        </div>
+
+        @if (Log.Active)
+        {
+            <p class="meta status">@Log.Status</p>
+        }
+        else if (Log.Supported)
+        {
+            <p class="meta warn">
+                Notes live in this browser's localStorage and nothing is stored on a server. Pick a
+                folder above and every note is written to disk as you add it.
+            </p>
+        }
+        else
+        {
+            <p class="meta warn">
+                Notes live in this browser's localStorage. Clearing site data deletes them, and this
+                browser cannot be given a folder to write them into — <a href="notes">export them</a>
+                to keep them.
+            </p>
+        }
 
         @if (_noteStatus is not null)
         {
@@ -114,7 +146,29 @@
     private readonly List<string> _noteTags = new();
     private string? _noteStatus;
 
+    private NoteLog Log => Notes.Log;
+
     private IReadOnlyList<PlaytestNote> NotesForThisFight => Notes.For(Session.Fight.Id);
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Log.Changed += OnLogChanged;
+    }
+
+    /// <inheritdoc/>
+    void IDisposable.Dispose()
+    {
+        Log.Changed -= OnLogChanged;
+        Dispose();
+    }
+
+    private void OnLogChanged() => InvokeAsync(StateHasChanged);
+
+    private Task ChooseFolder() => Log.ChooseAsync();
+
+    private Task StopLogging() => Log.ForgetAsync();
 
     private void OnNoteInput(ChangeEventArgs args)
     {
@@ -150,7 +204,12 @@
 
         _noteText = string.Empty;
         _noteTags.Clear();
-        _noteStatus = $"Saved with round {note.Round} of {note.FightName}.";
+
+        // The note is already on disk by the time this line runs, so it says so rather than
+        // suggesting there is still something to export.
+        _noteStatus = Log.Active
+            ? $"Logged to {Log.Folder}/{Log.LastPath} · round {note.Round} of {note.FightName}."
+            : $"Saved with round {note.Round} of {note.FightName}.";
     }
 
     private async Task DeleteNote(string id)

@@ -1,5 +1,19 @@
 # Changelog
 
+## Notes are logged, not exported
+
+- **Point at a folder once and every note lands on disk as you type it.** No export step: a note is
+  worth having because it was written in the middle of something, and an export at the end is a
+  second thing to remember at the exact moment a session stops being interesting.
+- Folders are the date, then the sitting, in US Eastern: `2026-08-02/14-35-07-EDT/notes.md`,
+  with `notes.json` beside it. The abbreviation is whichever the date actually falls under,
+  so a summer session says EDT rather than lying.
+- The file is rewritten whole on every note, so it is always complete and always matches the app —
+  deletions included.
+- The folder is remembered across reloads and picked back up without prompting.
+- **Chromium only.** Firefox and Safari have no directory handle to give, so there the export buttons
+  stay and the panel says why rather than offering a button that could only fail.
+
 ## The Fisher gets paid for her own pull
 
 - **Pulling an enemy into a drain with her basic Pull now charges Pluck.** Reel charged and the basic

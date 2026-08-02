@@ -12,6 +12,7 @@ builder.Services.AddSingleton<GameSession>();
 builder.Services.AddSingleton<PlaytestView>();
 builder.Services.AddSingleton<FightFiles>();
 builder.Services.AddSingleton<CustomFightStore>();
+builder.Services.AddSingleton<NoteLog>();
 builder.Services.AddSingleton<PlaytestNotes>();
 builder.Services.AddSingleton<RunStore>();
 builder.Services.AddSingleton<RunSession>();
