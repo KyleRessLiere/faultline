@@ -107,11 +107,12 @@ in this file when the question comes back.
 | D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | 2026-08-02 |  |
 | D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | 2026-08-02 |  |
 | D-089 | [The deployment threat overlay is per-enemy on hover, never the union painted over the board.](#d-089-the-deployment-threat-overlay-is-per-enemy-on-hover-never-the-union-painted-over-the-board) | 2026-08-02 |  |
-| D-090 | [The Threadcaster is the Fisher on screen, and stays `Threadcaster` in the code.](#d-090-the-threadcaster-is-the-fisher-on-screen-and-stays-threadcaster-in-the-code) | unreleased |  |
-| D-091 | [Cast: pluck an enemy from three tiles away, over anything, and set it down beside you.](#d-091-cast-pluck-an-enemy-from-three-tiles-away-over-anything-and-set-it-down-beside-you) | unreleased |  |
-| D-092 | [Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.](#d-092-player-a-fields-the-vanguard-and-the-fisher-player-b-the-wardbearer-and-the-archer) | unreleased |  |
+| D-090 | [The Threadcaster is the Fisher on screen, and stays `Threadcaster` in the code.](#d-090-the-threadcaster-is-the-fisher-on-screen-and-stays-threadcaster-in-the-code) | 2026-08-02 |  |
+| D-091 | [Cast: pluck an enemy from three tiles away, over anything, and set it down beside you.](#d-091-cast-pluck-an-enemy-from-three-tiles-away-over-anything-and-set-it-down-beside-you) | 2026-08-02 |  |
+| D-092 | [Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.](#d-092-player-a-fields-the-vanguard-and-the-fisher-player-b-the-wardbearer-and-the-archer) | 2026-08-02 |  |
+| D-093 | [The cast landing is chosen as a side, and drawn as a cone.](#d-093-the-cast-landing-is-chosen-as-a-side-and-drawn-as-a-cone) | unreleased |  |
 
-**91 rulings.**
+**92 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1321,3 +1322,16 @@ hold what.
 **It made the run more robust by accident, and a test noticed.** `Run_ASideWithNothingLeftToField...`
 voided the Vanguard and the Archer to empty one side; under the new split those two are on opposite
 sides, so it stopped testing anything. It reads the pair out of `DefaultTeams` now.
+
+**D-093 — The cast landing is chosen as a side, and drawn as a cone.**
+Cast's four landings are the Fisher's four orthogonal neighbours, so picking one is picking a
+direction rather than a square. The board now draws each as a wedge that narrows toward her and
+widens away, which together fan out as a cone off the unit doing the throwing.
+
+**A presentation ruling, not a rules one.** The commands, the geometry and the legality are unchanged
+— Core still takes a landing tile. What changed is that four separately highlighted squares read as
+four unrelated options, and the thing a player is actually deciding is *which way do I put them
+down*. The wedge says that; a square does not.
+
+**Each wedge still carries its own outcome** — drain, spikes 3, open — because the side is only half
+the decision and the ground is the other half.

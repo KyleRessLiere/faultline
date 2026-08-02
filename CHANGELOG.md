@@ -24,6 +24,10 @@
   short of where you aimed, which is how somebody scrabbles clear of a drain.
 - **She can only post somebody into a drain she is standing beside.** The reach is in the grab; the
   payoff is in where you chose to stand.
+- **Picking where they land is picking a side.** After you choose the enemy, the four landings draw
+  as a cone fanning off her — a wedge per direction, each still labelled with what that ground does.
+  Four highlighted squares read as four unrelated options; a cone reads as the decision you are
+  actually making.
 - **Default teams are now Vanguard + Fisher against Wardbearer + Archer** (D-092) — the two
   displacement classes against the two that hold a line and shoot. A campaign run re-splits whatever
   a board rosters instead of reading the split off ten files. Free draft is unchanged.

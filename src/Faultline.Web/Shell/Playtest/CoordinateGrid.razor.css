@@ -421,10 +421,44 @@
     box-shadow: 0 0 0 1px var(--pt-amber);
 }
 
-/* Stage two: where they would land. The label on the tile is the preview. */
+/* Stage two: which side of her they come down on. The four landings are her four neighbours, so
+   each draws a wedge widening away from her — together they read as a cone fanning off the Fisher
+   rather than as four unrelated squares (D-093). */
 .cell.cast-land {
     border-color: var(--pt-cyan);
     box-shadow: inset 0 0 12px rgba(66, 216, 197, .35);
+}
+
+.cast-cone {
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+/* The wedge points back at her: narrow on the edge she is standing on, wide on the far edge. */
+.cell.cast-land.side-up .cast-cone {
+    background: linear-gradient(to top, rgba(66, 216, 197, .40), rgba(66, 216, 197, .04));
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+}
+
+.cell.cast-land.side-down .cast-cone {
+    background: linear-gradient(to bottom, rgba(66, 216, 197, .40), rgba(66, 216, 197, .04));
+    clip-path: polygon(50% 0, 0 100%, 100% 100%);
+}
+
+.cell.cast-land.side-left .cast-cone {
+    background: linear-gradient(to left, rgba(66, 216, 197, .40), rgba(66, 216, 197, .04));
+    clip-path: polygon(100% 50%, 0 0, 0 100%);
+}
+
+.cell.cast-land.side-right .cast-cone {
+    background: linear-gradient(to right, rgba(66, 216, 197, .40), rgba(66, 216, 197, .04));
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+
+/* Hovering a side commits to it visibly before the click does. */
+.cell.cast-land:hover .cast-cone {
+    filter: brightness(1.6);
 }
 
 .cast-outcome {

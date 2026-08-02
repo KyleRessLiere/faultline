@@ -666,6 +666,34 @@ public sealed class GameSession
         }
     }
 
+    /// <summary>
+    /// Which way a landing tile lies from the Fisher — the side she would put them down on.
+    /// </summary>
+    /// <remarks>
+    /// The four landings are her four neighbours, so choosing one is choosing a side rather than a
+    /// square. The board draws them as a cone fanning off her, and this is the direction each one
+    /// points (D-093).
+    /// </remarks>
+    /// <param name="landing">A tile from <see cref="CastLandings"/>.</param>
+    /// <returns>The direction from the Fisher, or null when the tile is not one of hers.</returns>
+    public Direction? CastLandingSide(Coord landing)
+    {
+        if (SelectedUnit is not { } fisher)
+        {
+            return null;
+        }
+
+        foreach (var direction in Directions.All)
+        {
+            if (fisher.Position.Step(direction) == landing)
+            {
+                return direction;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>Starts aiming a cast, or puts it away again.</summary>
     public void ToggleCast()
     {

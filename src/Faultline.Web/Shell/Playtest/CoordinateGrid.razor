@@ -98,6 +98,7 @@
                        "drain" is the difference between a spend and a kill. *@
                     @if (Session.CastLandings.ContainsKey(cell))
                     {
+                        <span class="cast-cone" aria-hidden="true"></span>
                         <span class="cast-outcome">@PlaytestText.CastOutcome(State, cell)</span>
                     }
                 </button>
@@ -302,6 +303,13 @@
         if (Session.CastLandings.ContainsKey(coord))
         {
             classes.Add("cast-land");
+
+            // Which side of her this tile is. The four together fan out as a cone, so the choice
+            // reads as a direction rather than as four unrelated squares (D-093).
+            if (Session.CastLandingSide(coord) is { } side)
+            {
+                classes.Add("side-" + side.ToString().ToLowerInvariant());
+            }
         }
 
         // D-083: while an ally is over the edge, the units that could actually get to it this

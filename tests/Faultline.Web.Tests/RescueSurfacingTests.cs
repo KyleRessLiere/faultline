@@ -434,6 +434,40 @@ public sealed class CastAimingTests
     }
 
     [Fact]
+    public void EveryLandingKnowsWhichSideOfHerItIs()
+    {
+        // The cone: choosing a landing is choosing a side, so each tile carries the direction it
+        // lies in from the Fisher (D-093).
+        var session = Fisher(out var fisher, out var husk);
+        session.ToggleCast();
+        session.AimCastAt(husk);
+
+        var her = session.State.UnitById(fisher).Position;
+
+        foreach (var landing in session.CastLandings.Keys)
+        {
+            var side = session.CastLandingSide(landing);
+
+            Assert.NotNull(side);
+            Assert.Equal(landing, her.Step(side!.Value));
+        }
+
+        // All four sides are distinct, which is what makes a cone rather than a smear.
+        var sides = session.CastLandings.Keys.Select(session.CastLandingSide).ToList();
+        Assert.Equal(sides.Count, sides.Distinct().Count());
+    }
+
+    [Fact]
+    public void ATileThatIsNotOneOfHers_HasNoSide()
+    {
+        var session = Fisher(out _, out var husk);
+        session.ToggleCast();
+        session.AimCastAt(husk);
+
+        Assert.Null(session.CastLandingSide(new Coord(8, 0)));
+    }
+
+    [Fact]
     public void SubmittingALanding_ThrowsAndPutsTheAimingAway()
     {
         var session = Fisher(out _, out var husk);
