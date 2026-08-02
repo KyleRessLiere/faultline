@@ -314,7 +314,14 @@ public sealed class BoardAnimationTests
         int withShoves = Round(BoardAnimation.Plan(events));
         int withoutShoves = Round(BoardAnimation.Plan(events.Take(2).ToArray()));
 
-        Assert.True(withShoves < 3_500, $"A shove-heavy enemy round animated for {withShoves}ms.");
+        // Raised with the tile time, for the reason above. Still a hard ceiling: a shove-heavy round
+        // is the worst case a round can contain and it has to stay a sequence, not a wait.
+        Assert.True(withShoves < 4_600, $"A shove-heavy enemy round animated for {withShoves}ms.");
+
+        int singleShove = BoardAnimation.Duration(BoardAnimation.Plan(events), 100);
+        Assert.True(
+            withShoves < singleShove * 4 * 3 / 5,
+            $"Four shove-heavy activations cost {withShoves}ms against {singleShove}ms for one — not compressing.");
 
         // The shoves cost something — they are the point — but the compression keeps that something
         // proportionate rather than doubling the wait.
@@ -398,6 +405,18 @@ public sealed class BoardAnimationTests
             spent += BoardAnimation.Duration(activation, BoardAnimation.Tempo(spent));
         }
 
-        Assert.True(spent < 3_000, $"An enemy round animated for {spent}ms.");
+        // The absolute ceiling is generous on purpose. It was 3000ms when a tile took 170ms; a tile
+        // now takes 290ms because a readable first activation is the whole point of the slowdown,
+        // and four of those legitimately take longer. Compressing harder to hold the old number
+        // would make activations 2-4 unreadable, which is the opposite of what the number is for.
+        Assert.True(spent < 3_600, $"An enemy round animated for {spent}ms.");
+
+        // The invariant that actually matters, and the one that does not move when the constants do:
+        // the burst budget must be doing its job. Four activations must cost well under four times
+        // the first, or nothing is compressing at all.
+        int single = BoardAnimation.Duration(activation, 100);
+        Assert.True(
+            spent < single * 4 * 3 / 5,
+            $"Four activations cost {spent}ms against {single}ms for one — the burst budget is not compressing.");
     }
 }
