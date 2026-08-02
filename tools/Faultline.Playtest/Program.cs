@@ -9,6 +9,12 @@ using Faultline.Playtest;
 //
 // Headless: no browser, no dev server, no port. It can be run while someone is playing the app.
 
+if (args.Length > 0 && args[0] == "--stranded")
+{
+    Faultline.Playtest.Reach.Stranded();
+    return;
+}
+
 if (args.Length > 0 && args[0] == "--probe")
 {
     Faultline.Playtest.Probe.SoftLock(args.Length > 1 && int.TryParse(args[1], out int ps) ? ps : 1);
