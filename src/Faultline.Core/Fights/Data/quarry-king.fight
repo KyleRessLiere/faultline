@@ -14,8 +14,8 @@ spawn q = QuarryKing
 spawn h = Husk
 spawn l = Lobber
 
-roster a: Vanguard, Wardbearer
-roster b: Archer, Threadcaster
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 objective: kill-all
 

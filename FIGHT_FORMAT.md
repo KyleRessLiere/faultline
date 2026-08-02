@@ -247,8 +247,8 @@ design: The two Husks on the west edge stand in a line, so one Push from the Van
 spawn h = Husk
 spawn l = Lobber
 
-roster a: Vanguard, Archer
-roster b: Threadcaster, Wardbearer
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 board:
   #l#...B

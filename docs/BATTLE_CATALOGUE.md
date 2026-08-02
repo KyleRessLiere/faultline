@@ -52,7 +52,7 @@ The two Husks on the west edge stand in a line, so one Push from the Vanguard's 
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `h` Husk, `l` Lobber
 
@@ -86,7 +86,7 @@ Fight 2 — the spike seminar.
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `h` Husk, `l` Lobber, `s` Stalker
 
@@ -120,7 +120,7 @@ Fight 3 — the trench.
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `g` Grappler, `h` Husk, `s` Stalker
 
@@ -154,7 +154,7 @@ Fight 4 — the causeway.
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `g` Grappler, `l` Lobber, `n` Anchor
 
@@ -186,7 +186,7 @@ The escort DOES hunt you, so you cannot simply stand on the shrine and swing.
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `h` Husk, `r` Raider
 
@@ -227,7 +227,7 @@ The Warden under the gate is the complication: Move 0, so unlike the Anchors it 
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `h` Husk, `l` Lobber, `w` Warden
 
@@ -299,7 +299,7 @@ He is Move 1 for the first half of the fight: that is a gift, and the fight is a
 
 | A | B |
 |---|---|
-| Vanguard, Wardbearer | Archer, Threadcaster |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `h` Husk, `l` Lobber, `q` QuarryKing
 
@@ -335,7 +335,7 @@ A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight
 
 | A | B |
 |---|---|
-| Vanguard, Wardbearer | Archer, Threadcaster |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `g` Grappler, `h` Husk, `l` Lobber, `s` Stalker
 
@@ -1098,7 +1098,7 @@ The Anchor shrugs one tile off every Push and moves 1, so it will stand at the t
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Threadcaster, Wardbearer |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `g` Grappler, `h` Husk, `n` Anchor, `s` Stalker
 
@@ -2133,7 +2133,7 @@ No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 
 | A | B |
 |---|---|
-| Vanguard, Archer | Wardbearer, Threadcaster |
+| Vanguard, Threadcaster | Wardbearer, Archer |
 
 Legend: `h` Husk
 

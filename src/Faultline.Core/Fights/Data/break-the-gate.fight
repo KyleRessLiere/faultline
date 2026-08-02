@@ -22,8 +22,8 @@ spawn l = Lobber
 spawn w = Warden
 spawn h = Husk
 
-roster a: Vanguard, Archer
-roster b: Threadcaster, Wardbearer
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 objective: destroy 3,1
 

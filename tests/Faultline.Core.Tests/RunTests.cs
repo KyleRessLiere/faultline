@@ -642,6 +642,62 @@ public class RunTests
 
 
     [Fact]
+    public void EveryCampaignBoardAuthorsTheDefaultSplit()
+    {
+        // D-092 resolves the split at run start, which made the files free to disagree with it —
+        // and they did, so a campaign board played standalone from the picker fielded the old teams
+        // while the same board inside a run fielded the new ones. The runtime resolution stays as
+        // the guard; this is what stops the files drifting under it again.
+        foreach (var node in CampaignLibrary.Faultline.Nodes.OfType<FightNode>())
+        {
+            var fight = FightLibrary.ById(node.FightId);
+
+            DefaultTeams.Split(
+                fight.RosterA.Concat(fight.RosterB), out var expectedA, out var expectedB);
+
+            Assert.Equal(expectedA, fight.RosterA);
+            Assert.Equal(expectedB, fight.RosterB);
+        }
+    }
+
+    [Fact]
+    public void ACampaignBoardFieldsTheSameTeamsInARunAsOnItsOwn()
+    {
+        // The symptom that sent me looking: the two paths have to agree.
+        var fight = FightLibrary.Fight1();
+        var standalone = Game.Start(fight, seed: 1).NewState;
+
+        var run = Campaign.ApplyRun(
+            Campaign.Start(CampaignLibrary.Faultline, seed: 1).NewState,
+            new EnterNodeCommand()).NewState;
+
+        Assert.Equal(
+            Sides(standalone),
+            Sides(run.Fight!));
+
+        static IEnumerable<string> Sides(GameState state) =>
+            state.Units
+                .Where(u => u.Team.IsPlayer())
+                .Select(u => u.Team + ":" + u.Kind)
+                .OrderBy(s => s, System.StringComparer.Ordinal)
+                .ToList();
+    }
+
+    [Fact]
+    public void PlayerAOpensWithTheVanguardAndTheFisher()
+    {
+        var run = Campaign.ApplyRun(
+            Campaign.Start(CampaignLibrary.Faultline, seed: 1).NewState,
+            new EnterNodeCommand()).NewState;
+
+        var a = run.Fight!.Units.Where(u => u.Team == Team.PlayerA).Select(u => u.Kind).ToList();
+        var b = run.Fight!.Units.Where(u => u.Team == Team.PlayerB).Select(u => u.Kind).ToList();
+
+        Assert.Equal(new[] { UnitKind.Vanguard, UnitKind.Threadcaster }, a);
+        Assert.Equal(new[] { UnitKind.Wardbearer, UnitKind.Archer }, b);
+    }
+
+    [Fact]
     public void Run_ASideWithNothingLeftToFieldEndsTheRunRatherThanFreezingIt()
     {
         // Found by tools/Faultline.Playtest on its first sweep: a run that had lost both of one

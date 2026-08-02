@@ -1310,11 +1310,17 @@ that each player should hold one bruiser and one ranged unit. The new split pair
 displacement classes against the two that hold a line and shoot, which is a sharper division of
 labour than "one of each".
 
-**Resolved at run start, not per board.** All ten campaign fights roster the same four classes and
-disagree only about who holds which, so the split is a property of the squad. Reading it off ten
-`.fight` files meant ten places to change and ten chances to disagree; a campaign board's rosters are
-now re-split by `DefaultTeams` when the run enters it. **Boards outside the campaign keep what they
+**Resolved at run start, and the files say the same thing.** All ten campaign fights roster the same
+four classes and disagree only about who holds which, so the split is a property of the squad, and a
+run re-splits whatever a campaign board fields. **Boards outside the campaign keep what they
 authored** — a trial that hands one player three units is making a point with that.
+
+**Resolving it at run start alone was not enough, and shipping it that way was a mistake.** It left
+the ten files free to disagree with the rule, and they did: the same board played from the picker
+fielded the old teams while inside a run it fielded the new ones, so the tutorial contradicted itself
+depending on how you reached it. The files are now authored to the default as well. The runtime
+resolution stays — not as a fixup but as the guard — and a test asserts every campaign board already
+authors what `DefaultTeams` would produce, so they cannot drift apart again.
 
 **A free draft overrides it entirely.** This is the dock's suggested loadout, not a rule about who may
 hold what.

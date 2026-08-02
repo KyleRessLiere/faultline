@@ -60,8 +60,9 @@ public class FightMigrationTests
     {
         var fight = FightLibrary.Fight1();
 
-        Assert.Equal(new[] { UnitKind.Vanguard, UnitKind.Archer }, fight.RosterA);
-        Assert.Equal(new[] { UnitKind.Threadcaster, UnitKind.Wardbearer }, fight.RosterB);
+        // D-092: the two displacement classes on A, the wall and the bow on B.
+        Assert.Equal(new[] { UnitKind.Vanguard, UnitKind.Threadcaster }, fight.RosterA);
+        Assert.Equal(new[] { UnitKind.Wardbearer, UnitKind.Archer }, fight.RosterB);
     }
 
     [Fact]

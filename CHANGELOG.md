@@ -44,8 +44,10 @@
   *ally's* tile, so all but one were discarded and clicking took whichever happened to survive. The
   cone gives every side its own wedge, so the choice is finally a choice.
 - **Default teams are now Vanguard + Fisher against Wardbearer + Archer** (D-092) — the two
-  displacement classes against the two that hold a line and shoot. A campaign run re-splits whatever
-  a board rosters instead of reading the split off ten files. Free draft is unchanged.
+  displacement classes against the two that hold a line and shoot. Free draft is unchanged.
+- **All ten campaign boards now author that split too.** Resolving it only at run start left the
+  files free to disagree, so the same board fielded different teams depending on whether you reached
+  it from the campaign or the picker. They agree now, and a test keeps them agreeing.
 
 **Measured, and it is the finding of the session: nobody cast, once, in ten campaign runs.** She
 earns 1–2 Pluck a run and Cast costs 3, so the ability that would charge her is the one she can never

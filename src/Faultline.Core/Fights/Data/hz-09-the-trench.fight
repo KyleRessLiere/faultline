@@ -17,8 +17,8 @@ spawn h = Husk
 
 footing: Anchor=1
 
-roster a: Vanguard, Archer
-roster b: Threadcaster, Wardbearer
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 board:
   ....g...B

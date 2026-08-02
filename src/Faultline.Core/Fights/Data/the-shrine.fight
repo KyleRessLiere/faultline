@@ -16,8 +16,8 @@ design: The escort DOES hunt you, so you cannot simply stand on the shrine and s
 spawn r = Raider
 spawn h = Husk
 
-roster a: Vanguard, Archer
-roster b: Threadcaster, Wardbearer
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 objective: protect 3,3
 turn-limit: 8

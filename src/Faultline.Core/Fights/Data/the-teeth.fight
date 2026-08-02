@@ -13,8 +13,8 @@ spawn h = Husk
 spawn l = Lobber
 spawn s = Stalker
 
-roster a: Vanguard, Archer
-roster b: Threadcaster, Wardbearer
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 board:
   ..h...B

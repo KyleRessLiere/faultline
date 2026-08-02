@@ -13,8 +13,8 @@ spawn l = Lobber
 spawn g = Grappler
 spawn n = Anchor
 
-roster a: Vanguard, Archer
-roster b: Threadcaster, Wardbearer
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 board:
   .l....B

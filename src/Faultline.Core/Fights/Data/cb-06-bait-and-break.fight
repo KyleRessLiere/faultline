@@ -11,8 +11,8 @@ design: No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 
 spawn h = Husk
 
-roster a: Vanguard, Archer
-roster b: Wardbearer, Threadcaster
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 board:
   .h...h.BB

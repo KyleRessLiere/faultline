@@ -20,8 +20,8 @@ wave 4 = l@0,1 h@0,5
 wave 5 = s@0,3 h@0,0
 wave 6 = g@0,6
 
-roster a: Vanguard, Wardbearer
-roster b: Archer, Threadcaster
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
 
 objective: hold 4,3 4,4 for 7
 turn-limit: 7
