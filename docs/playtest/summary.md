@@ -8,27 +8,27 @@ thing that differed is how the players chose — anything below is caused by pla
 
 | Policy | What it does | Outcome | Cleared | Stopped at | Why |
 |---|---|---|---|---|---|
-| `first-legal` | Takes whatever Core offers first. Not trying to win — the baseline everything else is measured against. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `brawler` | Attacks whenever it can, moves otherwise, and never uses an ability. The damage-race player the design is arguing with. | Lost | 4/10 | node 5 | Player A has no units left to field in the-shrine. |
-| `shover` | Prefers abilities and displacement over swinging. The player the game is designed for. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `careful` | Pulls people out of pits before anything else and prefers moving to swinging. Tests whether caution is ever rewarded. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
+| `first-legal` | Takes whatever Core offers first. Not trying to win — the baseline everything else is measured against. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
+| `brawler` | Attacks whenever it can, moves otherwise, and never uses an ability. The damage-race player the design is arguing with. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
+| `shover` | Prefers abilities and displacement over swinging, and spends Verve the moment it can. The player the game is designed for. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
+| `careful` | Pulls people out of pits before anything else and prefers moving to swinging. Tests whether caution is ever rewarded. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
 | `random-a` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
 | `random-b` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-d` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-e` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
-| `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
+| `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 
 ## Where runs stop
 
 | Node | Fight | Runs that reached it | Runs that died here |
 |---|---|---|---|
-| 0 | `first-contact` | 10 | 3 |
-| 1 | `cb-06-bait-and-break` | 7 | 6 |
-| 2 | `the-teeth` | 1 | 0 |
-| 3 | `broken-bridge` | 1 | 0 |
-| 4 | *rest* | 1 | — |
-| 5 | `the-shrine` | 0 | 1 |
+| 0 | `first-contact` | 10 | 2 |
+| 1 | `cb-06-bait-and-break` | 8 | 5 |
+| 2 | `the-teeth` | 3 | 3 |
+| 3 | `broken-bridge` | 0 | 0 |
+| 4 | *rest* | 0 | — |
+| 5 | `the-shrine` | 0 | 0 |
 | 6 | `break-the-gate` | 0 | 0 |
 | 7 | `high-road` | 0 | 0 |
 | 8 | `hz-09-the-trench` | 0 | 0 |
@@ -43,31 +43,68 @@ ordinary attacks alone.
 
 | Policy | Attack | Collision | Spikes | Fall | Collisions caused | Pushes |
 |---|---|---|---|---|---|---|
-| `first-legal` | 21 | 0 | 0 | 0 | 0 | 4 |
-| `brawler` | 20 | 2 | 0 | 0 | 3 | 6 |
-| `shover` | 24 | 2 | 0 | 0 | 3 | 10 |
-| `careful` | 22 | 2 | 0 | 0 | 3 | 7 |
-| `random-a` | 17 | 2 | 3 | 0 | 1 | 6 |
-| `random-b` | 20 | 0 | 1 | 0 | 2 | 5 |
-| `random-c` | 20 | 0 | 1 | 0 | 1 | 3 |
-| `random-d` | 25 | 0 | 1 | 0 | 2 | 9 |
-| `random-e` | 20 | 0 | 1 | 0 | 1 | 4 |
-| `random-f` | 21 | 0 | 0 | 0 | 1 | 1 |
+| `first-legal` | 23 | 4 | 0 | 0 | 4 | 6 |
+| `brawler` | 26 | 0 | 0 | 0 | 0 | 3 |
+| `shover` | 22 | 2 | 0 | 0 | 3 | 13 |
+| `careful` | 20 | 8 | 0 | 0 | 7 | 19 |
+| `random-a` | 20 | 0 | 2 | 0 | 0 | 3 |
+| `random-b` | 21 | 0 | 1 | 0 | 0 | 3 |
+| `random-c` | 22 | 0 | 5 | 0 | 2 | 6 |
+| `random-d` | 24 | 0 | 6 | 0 | 0 | 5 |
+| `random-e` | 22 | 0 | 0 | 0 | 0 | 3 |
+| `random-f` | 19 | 0 | 3 | 0 | 2 | 6 |
+
+## Verve, by class
+
+The other end of the thesis check. Every charge condition is a displacement, a hazard,
+high ground or absorption, so a squad earning Verve is a squad using the board — and this
+number and the attack share above should move in opposite directions.
+
+**Wasted** is a charge that arrived at a full meter. A large wasted column against a small
+spent one means the game is paying out faster than a player can find a use for it.
+
+| Policy | Class | Earned | Wasted | Spent |
+|---|---|---|---|---|
+| `first-legal` | Vanguard | 2 | 0 | 0 |
+| `first-legal` | Wardbearer | 2 | 0 | 0 |
+| `brawler` | Wardbearer | 3 | 0 | 0 |
+| `shover` | Vanguard | 1 | 0 | 0 |
+| `shover` | Threadcaster | 1 | 0 | 0 |
+| `shover` | Wardbearer | 4 | 0 | 3 |
+| `careful` | Vanguard | 2 | 0 | 0 |
+| `careful` | Threadcaster | 2 | 0 | 0 |
+| `random-a` | Wardbearer | 1 | 0 | 0 |
+| `random-c` | Vanguard | 1 | 0 | 0 |
+
+## What the Verve went on
+
+| Policy | Wrecking Weight | Slingshot | Double Nock | Retort |
+|---|---|---|---|---|
+| `first-legal` | 0 | 0 | 0 | 0 |
+| `brawler` | 0 | 0 | 0 | 0 |
+| `shover` | 0 | 0 | 0 | 1 |
+| `careful` | 0 | 0 | 0 | 0 |
+| `random-a` | 0 | 0 | 0 | 0 |
+| `random-b` | 0 | 0 | 0 | 0 |
+| `random-c` | 0 | 0 | 0 | 0 |
+| `random-d` | 0 | 0 | 0 | 0 |
+| `random-e` | 0 | 0 | 0 | 0 |
+| `random-f` | 0 | 0 | 0 | 0 |
 
 ## Damage the squad dealt, by source
 
 | Policy | Attack | Collision | Spikes | Fall | Enemies killed |
 |---|---|---|---|---|---|
-| `first-legal` | 17 | 0 | 0 | 0 | 7 |
-| `brawler` | 36 | 6 | 5 | 0 | 18 |
-| `shover` | 12 | 6 | 0 | 0 | 8 |
-| `careful` | 9 | 6 | 1 | 0 | 6 |
-| `random-a` | 6 | 2 | 1 | 0 | 3 |
-| `random-b` | 9 | 6 | 6 | 0 | 8 |
-| `random-c` | 13 | 4 | 0 | 0 | 7 |
-| `random-d` | 13 | 4 | 0 | 0 | 6 |
-| `random-e` | 6 | 2 | 0 | 0 | 2 |
-| `random-f` | 4 | 2 | 0 | 0 | 3 |
+| `first-legal` | 26 | 4 | 3 | 0 | 13 |
+| `brawler` | 29 | 0 | 0 | 0 | 13 |
+| `shover` | 11 | 6 | 0 | 0 | 7 |
+| `careful` | 19 | 10 | 3 | 0 | 12 |
+| `random-a` | 4 | 0 | 0 | 0 | 3 |
+| `random-b` | 21 | 0 | 0 | 0 | 8 |
+| `random-c` | 9 | 6 | 0 | 0 | 5 |
+| `random-d` | 8 | 0 | 3 | 0 | 4 |
+| `random-e` | 7 | 0 | 0 | 0 | 3 |
+| `random-f` | 11 | 4 | 0 | 0 | 5 |
 
 ## Per-fight length, by policy
 
@@ -75,10 +112,10 @@ Rounds each fight took. A blank means the run never got there.
 
 | Fight | `first-legal` | `brawler` | `shover` | `careful` | `random-a` | `random-b` | `random-c` | `random-d` | `random-e` | `random-f` |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `first-contact` | 3 | 3 | 7 | 4 | 10 ✗ | 5 | 6 | 10 | 9 ✗ | 15 ✗ |
-| `cb-06-bait-and-break` | 7 ✗ | 6 | 7 ✗ | 4 ✗ | — | 7 ✗ | 4 ✗ | 4 ✗ | — | — |
-| `the-teeth` | — | 3 | — | — | — | — | — | — | — | — |
-| `broken-bridge` | — | 9 | — | — | — | — | — | — | — | — |
+| `first-contact` | 3 | 3 | 8 | 3 | 21 ✗ | 7 | 13 | 14 | 12 ✗ | 5 |
+| `cb-06-bait-and-break` | 7 | 7 | 3 ✗ | 6 | — | 9 ✗ | 3 ✗ | 3 ✗ | — | 3 ✗ |
+| `the-teeth` | 5 ✗ | 9 ✗ | — | 6 ✗ | — | — | — | — | — | — |
+| `broken-bridge` | — | — | — | — | — | — | — | — | — | — |
 | `the-shrine` | — | — | — | — | — | — | — | — | — | — |
 | `break-the-gate` | — | — | — | — | — | — | — | — | — | — |
 | `high-road` | — | — | — | — | — | — | — | — | — | — |

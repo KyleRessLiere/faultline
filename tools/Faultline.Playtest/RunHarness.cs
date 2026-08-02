@@ -14,7 +14,11 @@ namespace Faultline.Playtest;
 /// <param name="EnemiesKilled">Enemies put down.</param>
 /// <param name="Collisions">Collision events, whoever they hit.</param>
 /// <param name="Pushes">Displacements the players caused.</param>
-/// <param name="HpOut">Squad HP carried out, as "Kind=hp/max" entries.</param>
+/// <param name="HpOut">Squad HP and Verve carried out, as "Kind=hp/max vN" entries.</param>
+/// <param name="VerveEarned">Verve banked, by class. The thesis-compliance metric.</param>
+/// <param name="VerveWasted">Charges that arrived at a full meter and were discarded, by class.</param>
+/// <param name="VerveSpent">Verve spent, by class.</param>
+/// <param name="Spends">How many times each spender was used.</param>
 public sealed record FightReport(
     int NodeIndex,
     string FightId,
@@ -27,7 +31,55 @@ public sealed record FightReport(
     int EnemiesKilled,
     int Collisions,
     int Pushes,
-    List<string> HpOut);
+    List<string> HpOut,
+    Dictionary<UnitKind, int> VerveEarned,
+    Dictionary<UnitKind, int> VerveWasted,
+    Dictionary<UnitKind, int> VerveSpent,
+    Dictionary<VerveSpend, int> Spends);
+
+/// <summary>
+/// Running totals for the fight in progress.
+/// </summary>
+/// <remarks>
+/// One object rather than nine <c>ref</c> parameters. The list was already at the edge of readable
+/// before Verve wanted four more on it, and a tally that is awkward to extend is a tally nobody
+/// extends.
+/// </remarks>
+internal sealed class FightTally
+{
+    internal Dictionary<DamageSource, int> PlayerDamage { get; } = new();
+
+    internal Dictionary<DamageSource, int> EnemyDamage { get; } = new();
+
+    internal Dictionary<UnitKind, int> VerveEarned { get; } = new();
+
+    internal Dictionary<UnitKind, int> VerveWasted { get; } = new();
+
+    internal Dictionary<UnitKind, int> VerveSpent { get; } = new();
+
+    internal Dictionary<VerveSpend, int> Spends { get; } = new();
+
+    internal int Downed { get; set; }
+
+    internal int Voided { get; set; }
+
+    internal int Killed { get; set; }
+
+    internal int Collisions { get; set; }
+
+    internal int Pushes { get; set; }
+
+    internal string FightId { get; set; } = string.Empty;
+
+    internal int NodeIndex { get; set; }
+
+    internal static void Bump<T>(Dictionary<T, int> counts, T key, int by)
+        where T : notnull
+    {
+        counts.TryGetValue(key, out int had);
+        counts[key] = had + by;
+    }
+}
 
 /// <summary>What one whole campaign run did.</summary>
 /// <param name="Policy">Who played it.</param>
@@ -74,12 +126,8 @@ public static class RunHarness
         int commands = 0;
         string reason = "completed";
 
-        // Per-fight accumulators, reset when a fight begins.
-        var playerDamage = new Dictionary<DamageSource, int>();
-        var enemyDamage = new Dictionary<DamageSource, int>();
-        int downed = 0, voided = 0, killed = 0, collisions = 0, pushes = 0;
-        string fightId = string.Empty;
-        int nodeIndex = 0;
+        // Per-fight accumulators, replaced wholesale when a fight begins.
+        var tally = new FightTally();
 
         while (run.Phase != RunPhase.Complete && commands < maxCommands)
         {
@@ -117,18 +165,14 @@ public static class RunHarness
             {
                 if (e is FightBegan began)
                 {
-                    playerDamage = new Dictionary<DamageSource, int>();
-                    enemyDamage = new Dictionary<DamageSource, int>();
-                    downed = voided = killed = collisions = pushes = 0;
-                    fightId = began.FightId;
-                    nodeIndex = began.Index;
+                    tally = new FightTally { FightId = began.FightId, NodeIndex = began.Index };
                 }
             }
 
             var board = step.FinalBoard ?? run.Fight;
             foreach (var e in step.FightEvents)
             {
-                Absorb(e, board, playerDamage, enemyDamage, ref downed, ref voided, ref killed, ref collisions, ref pushes);
+                Absorb(e, board, tally);
             }
 
             foreach (var e in step.Events)
@@ -136,18 +180,24 @@ public static class RunHarness
                 if (e is FightResolved resolved)
                 {
                     fights.Add(new FightReport(
-                        nodeIndex,
+                        tally.NodeIndex,
                         resolved.FightId,
                         resolved.Outcome,
                         resolved.Round,
-                        new Dictionary<DamageSource, int>(playerDamage),
-                        new Dictionary<DamageSource, int>(enemyDamage),
-                        downed,
-                        voided,
-                        killed,
-                        collisions,
-                        pushes,
-                        step.NewState.Squad.Select(u => u.Kind + "=" + u.Hp + "/" + u.MaxHp).ToList()));
+                        new Dictionary<DamageSource, int>(tally.PlayerDamage),
+                        new Dictionary<DamageSource, int>(tally.EnemyDamage),
+                        tally.Downed,
+                        tally.Voided,
+                        tally.Killed,
+                        tally.Collisions,
+                        tally.Pushes,
+                        step.NewState.Squad
+                            .Select(u => u.Kind + "=" + u.Hp + "/" + u.MaxHp + " v" + u.Verve)
+                            .ToList(),
+                        new Dictionary<UnitKind, int>(tally.VerveEarned),
+                        new Dictionary<UnitKind, int>(tally.VerveWasted),
+                        new Dictionary<UnitKind, int>(tally.VerveSpent),
+                        new Dictionary<VerveSpend, int>(tally.Spends)));
                 }
                 else if (e is RunLost lost)
                 {
@@ -179,35 +229,25 @@ public static class RunHarness
     /// Folds one combat event into the accumulators. Sides are read off the board rather than
     /// guessed, so a collision that hurts both parties is counted for both.
     /// </summary>
-    private static void Absorb(
-        GameEvent e,
-        GameState? board,
-        Dictionary<DamageSource, int> playerDamage,
-        Dictionary<DamageSource, int> enemyDamage,
-        ref int downed,
-        ref int voided,
-        ref int killed,
-        ref int collisions,
-        ref int pushes)
+    private static void Absorb(GameEvent e, GameState? board, FightTally tally)
     {
         switch (e)
         {
             case UnitDamaged d:
-            {
-                var sink = IsPlayer(board, d.UnitId) ? playerDamage : enemyDamage;
-                sink.TryGetValue(d.Source, out int had);
-                sink[d.Source] = had + d.Amount;
+                FightTally.Bump(
+                    IsPlayer(board, d.UnitId) ? tally.PlayerDamage : tally.EnemyDamage,
+                    d.Source,
+                    d.Amount);
                 break;
-            }
 
             case UnitDowned down:
                 if (IsPlayer(board, down.UnitId))
                 {
-                    downed++;
+                    tally.Downed++;
                 }
                 else
                 {
-                    killed++;
+                    tally.Killed++;
                 }
 
                 break;
@@ -215,24 +255,42 @@ public static class RunHarness
             case Voided v:
                 if (IsPlayer(board, v.UnitId))
                 {
-                    voided++;
+                    tally.Voided++;
                 }
                 else
                 {
-                    killed++;
+                    tally.Killed++;
                 }
 
                 break;
 
             case Collision:
-                collisions++;
+                tally.Collisions++;
                 break;
 
             case UnitPushed:
-                pushes++;
+                tally.Pushes++;
+                break;
+
+            // Earned and wasted are counted apart on purpose. A squad charging hard into a meter
+            // that is already full is playing the board and getting nothing for it, which reads as a
+            // healthy earn rate right up until you notice none of it is being banked.
+            case VerveCharged charged:
+            {
+                var kind = KindOf(board, charged.UnitId);
+                FightTally.Bump(charged.Wasted ? tally.VerveWasted : tally.VerveEarned, kind, 1);
+                break;
+            }
+
+            case VerveSpent spent:
+                FightTally.Bump(tally.VerveSpent, KindOf(board, spent.UnitId), spent.Cost);
+                FightTally.Bump(tally.Spends, spent.Spend, 1);
                 break;
         }
     }
+
+    private static UnitKind KindOf(GameState? board, UnitId id) =>
+        board?.FindUnit(id)?.Kind ?? UnitKind.Husk;
 
     private static bool IsPlayer(GameState? board, UnitId id)
     {

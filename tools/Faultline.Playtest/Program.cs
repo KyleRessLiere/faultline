@@ -57,6 +57,14 @@ Directory.CreateDirectory(outDir);
 Console.WriteLine($"Faultline playtest — campaign '{CampaignLibrary.Faultline.Id}', seed {seed}, {policies.Length} runs");
 Console.WriteLine();
 
+// Verve is a player resource, so the per-class table walks the roster rather than every archetype.
+var playerClasses = new[]
+{
+    UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
+};
+
+var allSpends = Enum.GetValues<VerveSpend>();
+
 var reports = new List<RunReport>();
 foreach (var policy in policies)
 {
@@ -84,7 +92,8 @@ var fights = new StringBuilder();
 fights.AppendLine(
     "policy\tnode\tfight\toutcome\trounds\tdmg_taken\tdmg_taken_attack\tdmg_taken_collision\t" +
     "dmg_taken_spikes\tdmg_taken_fall\tdmg_dealt\tdmg_dealt_attack\tdmg_dealt_collision\t" +
-    "dmg_dealt_spikes\tdmg_dealt_fall\tdowned\tvoided\tenemies_killed\tcollisions\tpushes");
+    "dmg_dealt_spikes\tdmg_dealt_fall\tdowned\tvoided\tenemies_killed\tcollisions\tpushes\t" +
+    "verve_earned\tverve_wasted\tverve_spent\tspends");
 
 foreach (var r in reports)
 {
@@ -111,7 +120,11 @@ foreach (var r in reports)
             f.Voided,
             f.EnemiesKilled,
             f.Collisions,
-            f.Pushes));
+            f.Pushes,
+            f.VerveEarned.Values.Sum(),
+            f.VerveWasted.Values.Sum(),
+            f.VerveSpent.Values.Sum(),
+            f.Spends.Values.Sum()));
     }
 }
 
@@ -179,6 +192,48 @@ foreach (var r in reports)
 }
 
 summary.AppendLine();
+summary.AppendLine("## Verve, by class");
+summary.AppendLine();
+summary.AppendLine("The other end of the thesis check. Every charge condition is a displacement, a hazard,");
+summary.AppendLine("high ground or absorption, so a squad earning Verve is a squad using the board — and this");
+summary.AppendLine("number and the attack share above should move in opposite directions.");
+summary.AppendLine();
+summary.AppendLine("**Wasted** is a charge that arrived at a full meter. A large wasted column against a small");
+summary.AppendLine("spent one means the game is paying out faster than a player can find a use for it.");
+summary.AppendLine();
+summary.AppendLine("| Policy | Class | Earned | Wasted | Spent |");
+summary.AppendLine("|---|---|---|---|---|");
+foreach (var r in reports)
+{
+    foreach (var kind in playerClasses)
+    {
+        int earned = r.Fights.Sum(f => Get(f.VerveEarned, kind));
+        int wasted = r.Fights.Sum(f => Get(f.VerveWasted, kind));
+        int spent = r.Fights.Sum(f => Get(f.VerveSpent, kind));
+
+        if (earned == 0 && wasted == 0 && spent == 0)
+        {
+            continue;
+        }
+
+        summary.AppendLine($"| `{r.Policy}` | {kind} | {earned} | {wasted} | {spent} |");
+    }
+}
+
+summary.AppendLine();
+summary.AppendLine("## What the Verve went on");
+summary.AppendLine();
+summary.AppendLine("| Policy | " + string.Join(" | ", allSpends.Select(Verve.NameOf)) + " |");
+summary.AppendLine("|---|" + string.Concat(allSpends.Select(_ => "---|")));
+foreach (var r in reports)
+{
+    summary.AppendLine(
+        $"| `{r.Policy}` | "
+        + string.Join(" | ", allSpends.Select(sp => r.Fights.Sum(f => Get(f.Spends, sp))))
+        + " |");
+}
+
+summary.AppendLine();
 summary.AppendLine("## Damage the squad dealt, by source");
 summary.AppendLine();
 summary.AppendLine("| Policy | Attack | Collision | Spikes | Fall | Enemies killed |");
@@ -234,6 +289,7 @@ Console.WriteLine($"wrote {Path.Combine(outDir, "runs.tsv")}");
 Console.WriteLine($"wrote {Path.Combine(outDir, "fights.tsv")}");
 Console.WriteLine($"wrote {Path.Combine(outDir, "summary.md")}");
 
-static int Get(Dictionary<DamageSource, int> d, DamageSource s) => d.TryGetValue(s, out int v) ? v : 0;
+static int Get<T>(Dictionary<T, int> d, T key)
+    where T : notnull => d.TryGetValue(key, out int v) ? v : 0;
 
 static int Total(Dictionary<DamageSource, int> d) => d.Values.Sum();

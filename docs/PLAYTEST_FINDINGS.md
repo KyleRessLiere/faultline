@@ -177,6 +177,42 @@ game-design decision, not a bug fix, and is not mine to invent.
 
 ---
 
+## Finding 7 — Verve charges about once a fight, which is not enough to reach a spender
+
+*Measured*, from a fresh harness run on 2026-08-02 after the meter and all four spenders landed.
+Same campaign, same seed, same ten policies.
+
+| | |
+|---|---|
+| Fights played across all ten runs | **21** |
+| Verve earned, all classes | **19** — **0.90 per fight** |
+| Charges wasted against the cap of 5 | **0** — no unit ever filled its meter |
+| Verve spent | **3**, on a single Retort, in one fight out of twenty-one |
+| Double Nock (cost 4) used | **never** |
+
+At roughly one point a fight, a 2-cost spender is two fights of saving and a 4-cost spender is four —
+against runs that are currently ending on node 1 or 2. **As tuned, three of the four spenders are
+effectively unreachable in a run.** The meter is not broken; it is priced for a longer game than the
+one being played.
+
+**The metric itself looks sound, which is the good news.** `shover` — the policy that prefers
+displacement and abilities — earned **6 across 2 fights, about 3 a fight**, against the 0.90 average.
+The per-class earn rate does separate a board-using player from a swinging one, which is exactly what
+it was built to do. It is the *rate*, not the measure, that is off.
+
+**Not yet decided, and deliberately so.** The obvious levers — cheaper spenders, more charge sources,
+a charge worth more than 1 — are each a design call rather than a bug fix, and one of them (a charge
+source that is not a displacement, a hazard, high ground or absorption) is already held under D-075
+because it would cost the metric its meaning. This finding is the evidence; the call is the design
+agent's.
+
+**Caveat on comparing against Findings 1–6.** The committed `summary.md` those were drawn from
+predates the Wardbearer rework (D-058, D-068), enemy rescue (D-072) and Verve, so the run-length
+figures here and there are **not** a controlled comparison. `brawler` dropping from 4 cleared to 2 is
+not attributable to Verve — brawler never spends any — and has not been chased down.
+
+---
+
 ## Also fixed while gathering this
 
 - **D-057** — a displacement that moved nothing emitted no event at all, so Footing, push resistance,

@@ -97,12 +97,16 @@ public sealed class ShoverPolicy : Policy
     public override string Name => "shover";
 
     /// <inheritdoc/>
-    public override string Intent => "Prefers abilities and displacement over swinging. The player the game is designed for.";
+    public override string Intent => "Prefers abilities and displacement over swinging, and spends Verve the moment it can. The player the game is designed for.";
 
     /// <inheritdoc/>
     public override Command Choose(GameState state, IReadOnlyList<Command> legal, DeterministicRng rng) =>
         Best(legal, c => c switch
         {
+            // Spends the instant it can afford to, which is naive on purpose. A policy that held
+            // Verve for the right moment would be measuring the policy's judgement; this one
+            // measures how much the game hands out and how much of it a player can actually use.
+            SpendVerveCommand => 110,
             AbilityCommand => 100,
             FinishClingingCommand => 95,
             AttackCommand => 60,
