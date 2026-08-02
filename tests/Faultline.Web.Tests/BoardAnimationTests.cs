@@ -215,9 +215,9 @@ public sealed class BoardAnimationTests
         {
             Attack(new Coord(1, 1), new Coord(2, 1)),
             Shove(new Coord(2, 1), new Coord(3, 1), new Coord(3, 1)),
-            new UnitDamaged(Target, 2, 3, DamageSource.Collision, new Coord(3, 1)),
+            new UnitDamaged(Target, 2, 2, 3, DamageSource.Collision, new Coord(3, 1)),
             new UnitPushed(other, new Coord(3, 1), new Coord(4, 1), new[] { new Coord(4, 1) }, DisplacementKind.Push, 1),
-            new UnitDamaged(other, 2, 4, DamageSource.Collision, new Coord(4, 1)),
+            new UnitDamaged(other, 2, 2, 4, DamageSource.Collision, new Coord(4, 1)),
         });
 
         Assert.Equal(
@@ -335,7 +335,7 @@ public sealed class BoardAnimationTests
     {
         var beats = BoardAnimation.Plan(new GameEvent[]
         {
-            new UnitDamaged(Target, 2, 3, DamageSource.Attack, new Coord(3, 1)),
+            new UnitDamaged(Target, 2, 2, 3, DamageSource.Attack, new Coord(3, 1)),
         });
 
         Assert.Empty(beats);

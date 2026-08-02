@@ -186,9 +186,13 @@ namespace Faultline.Core
                 remaining = 0;
             }
 
+            // Both figures travel: what the blow was worth, and what there was left to take. A log
+            // that reports only the second cannot tell a killing blow from a grazing one (D-094).
+            int removed = target.Hp - remaining;
+
             var damaged = target with { Hp = remaining };
             state = state.WithUnit(damaged);
-            events.Add(new UnitDamaged(targetId, amount, remaining, source, target.Position));
+            events.Add(new UnitDamaged(targetId, amount, removed, remaining, source, target.Position));
 
             if (remaining == 0)
             {

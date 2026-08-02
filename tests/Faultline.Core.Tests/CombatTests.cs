@@ -191,3 +191,92 @@ public class CombatTests
         Assert.Equal(DamageSource.Attack, damaged.Source);
     }
 }
+
+/// <summary>
+/// D-094: a hit reports what it was worth, not merely what there was left to absorb it.
+/// </summary>
+public class OverkillTests
+{
+    [Fact]
+    public void AHitThatExceedsTheTarget_ReportsTheDamageDealtAndWhatWasTaken()
+    {
+        // A Runt has 1 hit point and spikes deal 3. Before this, the log could tell you it died and
+        // not how hard.
+        var state = BoardBuilder.Rows(".^..")
+            .PlayerA(UnitKind.Threadcaster, 0, 0)
+            .Enemy(UnitKind.Runt, 3, 0)
+            .Enemy(UnitKind.Husk, 3, 1)
+            .Build();
+
+        var caster = state.Find(UnitKind.Threadcaster).Id;
+        var runt = state.Find(UnitKind.Runt).Id;
+
+        Assert.Equal(1, state.Get(runt).Hp);
+
+        var result = state.Step(new AbilityCommand(caster, Ability.Reel, runt));
+
+        var damaged = result.All<UnitDamaged>().Single(d => d.UnitId == runt);
+
+        Assert.Equal(Displacement.SpikeDamage, damaged.Amount);
+        Assert.Equal(1, damaged.Removed);
+        Assert.Equal(Displacement.SpikeDamage - 1, damaged.Overkill);
+        Assert.Equal(0, damaged.RemainingHp);
+    }
+
+    [Fact]
+    public void AHitTheTargetSurvives_HasNoOverkill()
+    {
+        var state = BoardBuilder.Open(5, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+
+        var damaged = state.Step(new AttackCommand(archer, husk)).Single<UnitDamaged>();
+
+        Assert.Equal(damaged.Amount, damaged.Removed);
+        Assert.Equal(0, damaged.Overkill);
+        Assert.Equal(6 - damaged.Amount, damaged.RemainingHp);
+    }
+
+    [Fact]
+    public void RemovedNeverExceedsWhatTheUnitHad_AndAmountNeverShrinksToFit()
+    {
+        var state = BoardBuilder.Open(5, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Runt, 3, 0)
+            .Enemy(UnitKind.Husk, 4, 0)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer).Id;
+        var runt = state.Find(UnitKind.Runt).Id;
+        int before = state.Get(runt).Hp;
+
+        var damaged = state.Step(new AttackCommand(archer, runt)).Single<UnitDamaged>();
+
+        Assert.Equal(before, damaged.Removed);
+        Assert.True(damaged.Amount > damaged.Removed, "the Archer hits for more than a Runt has");
+    }
+
+    [Fact]
+    public void BothTheLogAndTheShellSayHowHardItHit()
+    {
+        var state = BoardBuilder.Open(4, 1).PlayerA(UnitKind.Archer, 0, 0).Build();
+        var id = state.Find(UnitKind.Archer).Id;
+
+        var over = new UnitDamaged(id, 5, 2, 0, DamageSource.Attack, new Coord(0, 0));
+        var clean = new UnitDamaged(id, 2, 2, 3, DamageSource.Attack, new Coord(0, 0));
+
+        string overLine = CombatLog.Detail(over, state);
+        Assert.Contains("-5", overLine);
+        Assert.Contains("2 taken", overLine);
+        Assert.Contains("3 over", overLine);
+
+        // A clean hit stays terse — the extra clause exists for the case that needed it.
+        string cleanLine = CombatLog.Detail(clean, state);
+        Assert.Contains("-2", cleanLine);
+        Assert.DoesNotContain("over", cleanLine);
+    }
+}

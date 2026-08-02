@@ -174,6 +174,7 @@ namespace Faultline.Core
                 + (e.FromHighGround ? " (high ground +1)" : string.Empty),
 
             UnitDamaged e => "-" + Number(e.Amount)
+                + (e.Overkill > 0 ? " (" + Number(e.Removed) + " taken, " + Number(e.Overkill) + " over)" : string.Empty)
                 + " " + e.Source
                 + " at " + e.At
                 + ", hp " + Number(e.RemainingHp),

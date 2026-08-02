@@ -110,9 +110,10 @@ in this file when the question comes back.
 | D-090 | [The Threadcaster is the Fisher on screen, and stays `Threadcaster` in the code.](#d-090-the-threadcaster-is-the-fisher-on-screen-and-stays-threadcaster-in-the-code) | 2026-08-02 |  |
 | D-091 | [Cast: pluck an enemy from three tiles away, over anything, and set it down beside you.](#d-091-cast-pluck-an-enemy-from-three-tiles-away-over-anything-and-set-it-down-beside-you) | 2026-08-02 |  |
 | D-092 | [Player A fields the Vanguard and the Fisher; Player B the Wardbearer and the Archer.](#d-092-player-a-fields-the-vanguard-and-the-fisher-player-b-the-wardbearer-and-the-archer) | 2026-08-02 |  |
-| D-093 | [The cast landing is chosen as a side, and drawn as a cone.](#d-093-the-cast-landing-is-chosen-as-a-side-and-drawn-as-a-cone) | unreleased |  |
+| D-093 | [The cast landing is chosen as a side, and drawn as a cone.](#d-093-the-cast-landing-is-chosen-as-a-side-and-drawn-as-a-cone) | 2026-08-02 |  |
+| D-094 | [A hit reports what it was worth, not what there was left to absorb it.](#d-094-a-hit-reports-what-it-was-worth-not-what-there-was-left-to-absorb-it) | unreleased |  |
 
-**92 rulings.**
+**93 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1347,3 +1348,27 @@ rescuer's choice, and the shell was throwing that choice away: every destination
 keyed to the *ally's* tile in the target map, so all but one were overwritten and clicking picked
 whichever survived. The ruling had shipped with no way to exercise it. Aiming a rescue now arms the
 same cone of the rescuer's own neighbours, in green rather than cyan.
+
+**D-094 — A hit reports what it was worth, not what there was left to absorb it.**
+`UnitDamaged` already carried the damage dealt unclamped — a 5 into a unit on 2 recorded 5 — and
+both readers threw it away. The combat log printed the figure but not the shortfall, and the shell's
+line printed neither: *"Husk [E] → 0 HP (Attack)"* said a unit died and nothing about how hard it was
+hit. A player could not tell a killing blow from a graze that happened to land last.
+
+**The event now carries both numbers.** `Amount` is the damage dealt, after mitigation and before
+the target's remaining hit points cap it. `Removed` is what actually came off. `Overkill` is the
+difference, and it is a computed property rather than a third stored field so the two can never
+disagree.
+
+**Why both rather than one:** the design cares about each separately. `Amount` is a fact about the
+blow, which is what a player is judging when they choose an attack; `Removed` is a fact about the
+board, which is what the damage tallies in the harness are summing. Reporting only the first
+overstates what the fight cost, and only the second hides how much force was wasted — and wasted
+force is exactly what the game wants a player to notice, because it is a shove they could have spent
+elsewhere.
+
+**The clean case stays terse.** The overkill clause appears only when there is overkill; an ordinary
+hit reads as it always did, with the number restored.
+
+This is the same principle as D-057, which made a shove that moved nothing still report itself: a
+rule that fired and changed the outcome has to say so.

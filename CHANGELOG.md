@@ -1,5 +1,13 @@
 # Changelog
 
+## The log says how hard it hit
+
+- **Damage now appears in the combat log, including the part that went past the end.** A 5 into a
+  unit on 2 reads as *"takes 5 → 0 HP, 3 over"* rather than *"→ 0 HP"*. The figure was in the event
+  the whole time and both readers were dropping it — the shell's line named no number at all, so a
+  killing blow and a graze that happened to land last looked identical (D-094).
+- Ordinary hits stay terse: the overkill clause only shows up when there is overkill.
+
 ## The campaign, played by a reader and measured level by level
 
 - **`docs/LEVEL_ANALYSIS.md`** — what each of the ten campaign boards asks, how hard it measures, and

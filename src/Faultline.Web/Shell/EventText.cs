@@ -28,7 +28,11 @@ public static class EventText
         UnitAttacked e => e.FromHighGround
             ? $"{Name(state, e.AttackerId)} hits {Name(state, e.TargetId)} for {e.Damage} (high ground)."
             : $"{Name(state, e.AttackerId)} hits {Name(state, e.TargetId)} for {e.Damage}.",
-        UnitDamaged e => $"{Name(state, e.UnitId)} → {e.RemainingHp} HP ({e.Source}).",
+        // The number was there the whole time and this line was throwing it away, so a hit read as
+        // a new hit-point total and nothing else (D-094).
+        UnitDamaged e => e.Overkill > 0
+            ? $"{Name(state, e.UnitId)} takes {e.Amount} ({e.Source}) → 0 HP, {e.Overkill} over."
+            : $"{Name(state, e.UnitId)} takes {e.Amount} ({e.Source}) → {e.RemainingHp} HP.",
         UnitDowned e => $"{Name(state, e.UnitId)} is down.",
         AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDescriptor.For(e.Ability).Name}.",
         UnitPushed e => e.Kind switch

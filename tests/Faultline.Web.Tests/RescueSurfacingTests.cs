@@ -634,3 +634,56 @@ public sealed class RescueConeTests
         }
     }
 }
+
+/// <summary>D-094: the shell's log line names the damage, not only the new hit-point total.</summary>
+public sealed class DamageTextTests
+{
+    private static GameState Board()
+    {
+        var rows = new System.Collections.Generic.List<string> { "....." };
+        var board = BoardLayout.Parse(rows);
+
+        return new GameState
+        {
+            Seed = 1,
+            RngState = 1,
+            Fight = new FightDefinition { Number = 1, Name = "Log", Board = board },
+            Board = board,
+            Units = new[]
+            {
+                Unit.FromTemplate(new UnitId(0), UnitKind.Husk, Team.Enemy) with
+                {
+                    Position = new Coord(0, 0), IsDeployed = true,
+                },
+            },
+            Round = 1,
+            Phase = Phase.Battle,
+            ActiveTeam = Team.PlayerA,
+            NextPlayerTeam = Team.PlayerA,
+            Outcome = FightOutcome.InProgress,
+        };
+    }
+
+    [Fact]
+    public void ACleanHit_NamesTheDamageAndTheNewTotal()
+    {
+        var text = EventText.Describe(
+            new UnitDamaged(new UnitId(0), 2, 2, 3, DamageSource.Attack, new Coord(0, 0)), Board());
+
+        Assert.Contains("takes 2", text);
+        Assert.Contains("3 HP", text);
+        Assert.DoesNotContain("over", text);
+    }
+
+    [Fact]
+    public void AnOverkill_SaysHowMuchWentPastTheEnd()
+    {
+        // The ask: a 5 into a unit on 2 should read as a 5, not as "→ 0 HP".
+        var text = EventText.Describe(
+            new UnitDamaged(new UnitId(0), 5, 2, 0, DamageSource.Collision, new Coord(0, 0)), Board());
+
+        Assert.Contains("takes 5", text);
+        Assert.Contains("0 HP", text);
+        Assert.Contains("3 over", text);
+    }
+}
