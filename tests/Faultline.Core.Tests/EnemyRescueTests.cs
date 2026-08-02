@@ -37,7 +37,7 @@ public class EnemyRescueTests
         Assert.Equal(new Coord(1, 1), intent.DisplacementTo);
 
         var command = Ai.Plan(state, rescuer);
-        Assert.Equal(new RescueCommand(rescuer.Id, clinging.Id), command);
+        Assert.Equal(state.Rescue(rescuer.Id, clinging.Id), command);
 
         var result = state.Step(command);
         var rescued = result.Single<Rescued>();
@@ -47,10 +47,11 @@ public class EnemyRescueTests
         Assert.False(result.NewState.Get(clinging.Id).Clinging);
         Assert.Equal(new Coord(1, 1), result.NewState.Get(clinging.Id).Position);
 
-        // Brief §2: the rescue is the whole activation, both halves — so the activation ends with it
-        // and the log records it as spent rather than passed.
-        Assert.True(result.NewState.Get(rescuer.Id).HasActivated);
-        Assert.False(result.All<ActivationEnded>().Single(e => e.UnitId == rescuer.Id).Passed);
+        // D-082: an action, not the whole activation. The rescuer has acted and still holds its
+        // move, so the activation is not over and nothing has been logged as ending.
+        Assert.True(result.NewState.Get(rescuer.Id).HasActed);
+        Assert.False(result.NewState.Get(rescuer.Id).HasMoved);
+        Assert.False(result.NewState.Get(rescuer.Id).HasActivated);
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public class EnemyRescueTests
 
         Assert.Equal(IntentAction.Rescue, intent.Action);
         Assert.Equal(new UnitId(0), intent.TargetId);
-        Assert.Equal(new RescueCommand(rescuer.Id, new UnitId(0)), Ai.Plan(state, rescuer));
+        Assert.Equal(state.Rescue(rescuer.Id, new UnitId(0)), Ai.Plan(state, rescuer));
     }
 
     // ---- the telegraph -------------------------------------------------------------------------
@@ -157,7 +158,7 @@ public class EnemyRescueTests
         // A clinging unit holds an activation slot but cannot use it, so the rescuer is the first
         // enemy the game asks for a command.
         var command = Game.NextEnemyCommand(state);
-        Assert.Equal(new RescueCommand(new UnitId(1), new UnitId(0)), command);
+        Assert.Equal(state.Rescue(new UnitId(1), new UnitId(0)), command);
 
         var result = state.Step(command!);
         Assert.Equal(declared.Intent.DisplacementTo, result.Single<Rescued>().To);
@@ -201,7 +202,7 @@ public class EnemyRescueTests
         Assert.Equal(IntentAction.Rescue, Ai.IntentFor(state, new UnitId(1))!.Action);
         Assert.Equal(IntentAction.Rescue, Ai.IntentFor(state, new UnitId(2))!.Action);
 
-        var result = state.Step(new RescueCommand(new UnitId(1), new UnitId(0)));
+        var result = state.Step(state.Rescue(new UnitId(1), new UnitId(0)));
 
         var replan = result.All<IntentDeclared>().Single(e => e.Intent.UnitId == new UnitId(2));
         Assert.True(replan.Replanned);
@@ -267,7 +268,7 @@ public class EnemyRescueTests
         Assert.DoesNotContain(events.OfType<IntentDeclared>(), e => e.Intent.UnitId == new UnitId(2));
         Assert.Equal(new UnitId(1), Ai.IntentFor(state, new UnitId(2))!.TargetId);
         Assert.Equal(
-            new RescueCommand(new UnitId(2), new UnitId(1)),
+            state.Rescue(new UnitId(2), new UnitId(1)),
             Ai.Plan(state, state.Get(new UnitId(2))));
     }
 
@@ -301,7 +302,7 @@ public class EnemyRescueTests
         // clause about player units, so it has no lethal attack to outrank the rescue with.
         Assert.Equal(IntentAction.Rescue, intent.Action);
         Assert.Equal(new UnitId(0), intent.TargetId);
-        Assert.Equal(new RescueCommand(new UnitId(1), new UnitId(0)), Ai.Plan(state, state.Get(new UnitId(1))));
+        Assert.Equal(state.Rescue(new UnitId(1), new UnitId(0)), Ai.Plan(state, state.Get(new UnitId(1))));
     }
 
     // ---- what the rescue rules already refused, and still do ------------------------------------
@@ -372,7 +373,7 @@ public class EnemyRescueTests
         Assert.Equal(new FinishClingingCommand(husk.Id, new UnitId(0)), finish);
 
         var after = state.Then(finish);
-        Assert.Equal(new RescueCommand(husk.Id, new UnitId(1)), Ai.Plan(after, after.Get(husk.Id)));
+        Assert.Equal(after.Rescue(husk.Id, new UnitId(1)), Ai.Plan(after, after.Get(husk.Id)));
     }
 
     // ---- determinism ---------------------------------------------------------------------------

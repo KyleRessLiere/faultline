@@ -239,7 +239,7 @@ public class CombatLogTests
             new AbilityCommand(new UnitId(3), Ability.StaggerShot, new UnitId(6)),
             new AbilityCommand(new UnitId(3), Ability.BullRush, null, Direction.Left),
             new AbilityCommand(new UnitId(3), Ability.GuardStance),
-            new RescueCommand(new UnitId(0), new UnitId(1)),
+            new RescueCommand(new UnitId(0), new UnitId(1), new Coord(2, 2)),
             new FinishClingingCommand(new UnitId(0), new UnitId(7)),
             new EndActivationCommand(new UnitId(4)),
         };

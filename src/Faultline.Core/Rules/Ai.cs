@@ -75,8 +75,13 @@ namespace Faultline.Core
                 {
                     switch (intent.Action)
                     {
-                        case IntentAction.Rescue when !enemy.HasMoved && Pits.CanRescue(state, enemy, target):
-                            return new RescueCommand(enemy.Id, target.Id);
+                        // The planner has no player to ask which side to set an ally down on, so it
+                        // takes the fixed-order default. Reproducible, which is what its rescues have
+                        // to be (D-082).
+                        case IntentAction.Rescue when !enemy.HasMoved
+                            && Pits.CanRescue(state, enemy, target)
+                            && Pits.DefaultRescueDestination(state, enemy) is { } landing:
+                            return new RescueCommand(enemy.Id, target.Id, landing);
 
                         case IntentAction.Attack when Combat.CanAttack(state, enemy, target, out _):
                             return new AttackCommand(enemy.Id, target.Id);
@@ -518,7 +523,7 @@ namespace Faultline.Core
             return new EnemyIntent(
                 enemy.Id, enemy.Kind, enemy.Position, IntentAction.Rescue,
                 pick.Id, pick.Position, null, null, null, 0,
-                Pits.RescueDestination(state, enemy), 0);
+                Pits.DefaultRescueDestination(state, enemy), 0);
         }
 
         // Whether this enemy could put a player unit on 0 with its basic attack this activation —

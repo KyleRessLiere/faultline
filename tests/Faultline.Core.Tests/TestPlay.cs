@@ -117,6 +117,17 @@ public static class TestPlay
     public static void AssertNotLegal(GameState state, Command command) =>
         Assert.DoesNotContain(command, Game.LegalCommands(state));
 
+    /// <summary>
+    /// Where a rescue by this unit would set the rescued one down, if nobody chose. The enemy
+    /// planner's pick, and the natural default for a test that is not about the choice (D-082).
+    /// </summary>
+    public static Coord RescueTo(this GameState state, UnitId rescuerId) =>
+        Pits.DefaultRescueDestination(state, state.UnitById(rescuerId))!.Value;
+
+    /// <summary>A rescue command that sets the ally down wherever the default would put them.</summary>
+    public static RescueCommand Rescue(this GameState state, UnitId rescuerId, UnitId clingingId) =>
+        new RescueCommand(rescuerId, clingingId, state.RescueTo(rescuerId));
+
     /// <summary>Convenience for building a coordinate.</summary>
     public static Coord At(int x, int y) => new(x, y);
 

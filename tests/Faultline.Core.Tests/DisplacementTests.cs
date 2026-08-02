@@ -244,16 +244,19 @@ public class DisplacementTests
         state = Displacement.Resolve(state, archer.Id, new Coord(-1, 0), DisplacementKind.Push, 1, false, events);
         Assert.True(state.Get(archer.Id).Clinging);
 
-        TestPlay.AssertLegal(state, new RescueCommand(vanguard.Id, archer.Id));
-        var result = state.Step(new RescueCommand(vanguard.Id, archer.Id));
+        TestPlay.AssertLegal(state, state.Rescue(vanguard.Id, archer.Id));
+        var result = state.Step(state.Rescue(vanguard.Id, archer.Id));
 
         var rescued = result.Single<Rescued>();
         Assert.Equal(archer.Id, rescued.UnitId);
         Assert.False(result.NewState.Get(archer.Id).Clinging);
         Assert.True(result.NewState.Get(archer.Id).Position.IsAdjacentTo(vanguard.Position));
 
-        // The rescue costs the whole activation.
-        Assert.True(result.NewState.Get(vanguard.Id).HasActivated);
+        // D-082: the action half and nothing else. The move is still there — a rescuer who walked
+        // into reach has already spent it, and one who did not can still step away from the lip.
+        Assert.True(result.NewState.Get(vanguard.Id).HasActed);
+        Assert.False(result.NewState.Get(vanguard.Id).HasMoved);
+        Assert.False(result.NewState.Get(vanguard.Id).HasActivated);
     }
 
     [Fact]

@@ -9,14 +9,20 @@ namespace Faultline.Core
     public static class Pits
     {
         /// <summary>
-        /// Where a rescued unit would be placed — the first open tile next to the rescuer, in a fixed
-        /// direction order so the outcome is reproducible.
+        /// Every tile a rescued unit could be set down on: open, unoccupied and adjacent to the
+        /// rescuer, in a fixed direction order so the list is reproducible.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="rescuer">Unit doing the rescuing.</param>
-        /// <returns>The destination tile, or <c>null</c> when the rescuer is hemmed in.</returns>
-        public static Coord? RescueDestination(GameState state, Unit rescuer)
+        /// <returns>The destinations, empty when the rescuer is hemmed in.</returns>
+        public static IReadOnlyList<Coord> RescueDestinations(GameState state, Unit rescuer)
         {
+            var tiles = new List<Coord>();
+            if (state is null || rescuer is null)
+            {
+                return tiles;
+            }
+
             foreach (var direction in Directions.All)
             {
                 var tile = rescuer.Position.Step(direction);
@@ -25,13 +31,52 @@ namespace Faultline.Core
                     continue;
                 }
 
+                // A pit is walkable and is emphatically not somewhere to put somebody you just
+                // pulled out of one.
+                if (state.Board.At(tile) == TileType.Pit)
+                {
+                    continue;
+                }
+
                 if (Movement.IsWalkable(state.Board.At(tile)) && !state.IsOccupied(tile))
                 {
-                    return tile;
+                    tiles.Add(tile);
                 }
             }
 
-            return null;
+            return tiles;
+        }
+
+        /// <summary>
+        /// The destination an actor with no opinion would pick: the first in the fixed direction
+        /// order. The enemy planner uses this — its rescues have to be reproducible, and it has no
+        /// player to ask.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="rescuer">Unit doing the rescuing.</param>
+        /// <returns>The tile, or <c>null</c> when the rescuer is hemmed in.</returns>
+        public static Coord? DefaultRescueDestination(GameState state, Unit rescuer)
+        {
+            var tiles = RescueDestinations(state, rescuer);
+            return tiles.Count > 0 ? tiles[0] : (Coord?)null;
+        }
+
+        /// <summary>Whether a tile is a legal place to set a rescued unit down.</summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="rescuer">Unit doing the rescuing.</param>
+        /// <param name="to">Proposed destination.</param>
+        /// <returns>Whether the rescue may put them there.</returns>
+        public static bool IsRescueDestination(GameState state, Unit rescuer, Coord to)
+        {
+            foreach (var tile in RescueDestinations(state, rescuer))
+            {
+                if (tile == to)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>Whether one unit may haul another out of a pit.</summary>
@@ -52,8 +97,77 @@ namespace Faultline.Core
             }
 
             return rescuer.Position.IsAdjacentTo(clinging.Position)
-                && RescueDestination(state, rescuer) is not null;
+                && RescueDestinations(state, rescuer).Count > 0;
         }
+
+        /// <summary>
+        /// How much further this unit would have to walk before it could haul that one out — 0 when
+        /// it is already in reach, <c>null</c> when it cannot get there this activation at all.
+        /// </summary>
+        /// <remarks>
+        /// The shell needs this to say "needs 2 more move" instead of greying a button out with no
+        /// explanation (D-083). It lives in Core because it is a question about movement and reach,
+        /// and a renderer that answered it itself would be a second copy of the pathfinder.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="rescuer">Unit that might go.</param>
+        /// <param name="clinging">Unit on the ledge.</param>
+        /// <returns>Movement points still needed, or null when no reachable tile is adjacent to it.</returns>
+        public static int? MoveNeededToReach(GameState state, Unit rescuer, Unit clinging)
+        {
+            if (state is null || rescuer is null || clinging is null)
+            {
+                return null;
+            }
+
+            if (!rescuer.IsOnBoard || rescuer.Clinging || !clinging.IsOnBoard || !clinging.Clinging)
+            {
+                return null;
+            }
+
+            if (rescuer.Team.IsHostileTo(clinging.Team) || rescuer.Id == clinging.Id)
+            {
+                return null;
+            }
+
+            if (rescuer.Position.IsAdjacentTo(clinging.Position))
+            {
+                return 0;
+            }
+
+            // Already moved: it is standing where it will stand, so anything not adjacent is out of
+            // reach for the rest of this activation.
+            if (rescuer.HasMoved)
+            {
+                return null;
+            }
+
+            int? best = null;
+            foreach (var pair in Movement.Reachable(state, rescuer))
+            {
+                if (!pair.Key.IsAdjacentTo(clinging.Position))
+                {
+                    continue;
+                }
+
+                if (best is null || pair.Value.Cost < best.Value)
+                {
+                    best = pair.Value.Cost;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// Whether this unit could get to the clinging one and haul it out within this activation.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="rescuer">Unit that might go.</param>
+        /// <param name="clinging">Unit on the ledge.</param>
+        /// <returns>Whether a rescue is available to it this activation.</returns>
+        public static bool CanReachToRescue(GameState state, Unit rescuer, Unit clinging) =>
+            !rescuer.HasActed && MoveNeededToReach(state, rescuer, clinging) is not null;
 
         /// <summary>Whether one unit may kick an adjacent clinging enemy off the ledge.</summary>
         /// <param name="state">Current state.</param>

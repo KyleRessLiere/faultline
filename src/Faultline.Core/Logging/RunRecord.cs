@@ -172,7 +172,7 @@ namespace Faultline.Core
             MoveCommand c => Join("Move", c.UnitId.ToString(), c.To.ToString()),
             AttackCommand c => Join("Attack", c.UnitId.ToString(), c.TargetId.ToString(), c.Mode.ToString()),
             AbilityCommand c => Join("Ability", c.UnitId.ToString(), c.Ability.ToString(), AbilityAim(c)),
-            RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString()),
+            RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString(), c.To.ToString()),
             FinishClingingCommand c => Join("Finish", c.UnitId.ToString(), c.ClingingId.ToString()),
             EndActivationCommand c => Join("End", c.UnitId.ToString()),
             _ => Join("Unknown", command is null ? "?" : command.GetType().Name),
@@ -207,7 +207,10 @@ namespace Faultline.Core
                     return ParseAbility(fields, offset);
 
                 case "Rescue":
-                    return new RescueCommand(ParseUnit(Field(fields, offset + 1)), ParseUnit(Field(fields, offset + 2)));
+                    return new RescueCommand(
+                        ParseUnit(Field(fields, offset + 1)),
+                        ParseUnit(Field(fields, offset + 2)),
+                        ParseTile(Field(fields, offset + 3)));
 
                 case "Finish":
                     return new FinishClingingCommand(ParseUnit(Field(fields, offset + 1)), ParseUnit(Field(fields, offset + 2)));

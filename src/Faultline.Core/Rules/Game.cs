@@ -345,14 +345,21 @@ namespace Faultline.Core
                     commands.Add(new SpendVerveCommand(unit.Id, spend.Value));
                 }
 
-                // Brief §2: a rescue costs the whole activation, so it needs both halves unspent.
-                if (!unit.HasMoved && !unit.HasActed)
+                // D-082: a rescue is an action needing adjacency, so it is offered whenever the
+                // action half is unspent — including after a move that walked into reach. Every
+                // destination is listed separately, because which side somebody comes up on matters.
+                if (!unit.HasActed)
                 {
                     foreach (var clinging in state.Units)
                     {
-                        if (Pits.CanRescue(state, unit, clinging))
+                        if (!Pits.CanRescue(state, unit, clinging))
                         {
-                            commands.Add(new RescueCommand(unit.Id, clinging.Id));
+                            continue;
+                        }
+
+                        foreach (var tile in Pits.RescueDestinations(state, unit))
+                        {
+                            commands.Add(new RescueCommand(unit.Id, clinging.Id, tile));
                         }
                     }
                 }
@@ -726,23 +733,27 @@ namespace Faultline.Core
         private static GameState ApplyRescue(GameState state, RescueCommand command, List<GameEvent> events)
         {
             var rescuer = RequireActivatable(state, command.UnitId);
-            Require(!rescuer.HasMoved && !rescuer.HasActed, "A rescue costs the entire activation.");
+
+            // An action, not the whole activation (D-082): walking into reach and then hauling is
+            // the ordinary move-then-act, and the action half is what a rescue costs.
+            Require(!rescuer.HasActed, "A rescue costs the action half, which is already spent.");
 
             var clinging = state.UnitById(command.ClingingId);
             Require(Pits.CanRescue(state, rescuer, clinging), "That unit cannot be rescued from here.");
-
-            var destination = Pits.RescueDestination(state, rescuer)!.Value;
+            Require(
+                Pits.IsRescueDestination(state, rescuer, command.To),
+                "That is not a tile the rescued unit can be set down on.");
 
             state = CommitActivation(state, rescuer, events);
             state = state.WithUnit(state.UnitById(clinging.Id) with
             {
-                Position = destination,
+                Position = command.To,
                 Clinging = false,
                 ClingingSinceRound = 0,
             });
-            events.Add(new Rescued(clinging.Id, rescuer.Id, destination));
+            events.Add(new Rescued(clinging.Id, rescuer.Id, command.To));
 
-            state = state.WithUnit(state.UnitById(rescuer.Id) with { HasMoved = true, HasActed = true });
+            state = state.WithUnit(state.UnitById(rescuer.Id) with { HasActed = true });
 
             return AfterAction(state, rescuer.Id, events);
         }
