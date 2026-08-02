@@ -13,19 +13,19 @@ thing that differed is how the players chose — anything below is caused by pla
 | `shover` | Prefers abilities and displacement over swinging, and spends Verve the moment it can. The player the game is designed for. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
 | `careful` | Pulls people out of pits before anything else and prefers moving to swinging. Tests whether caution is ever rewarded. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-a` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-b` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
+| `random-b` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
+| `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
 | `random-d` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-e` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
+| `random-e` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
+| `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 
 ## Where runs stop
 
 | Node | Fight | Runs that reached it | Runs that died here |
 |---|---|---|---|
-| 0 | `first-contact` | 10 | 1 |
-| 1 | `cb-06-bait-and-break` | 9 | 6 |
-| 2 | `the-teeth` | 3 | 1 |
+| 0 | `first-contact` | 10 | 2 |
+| 1 | `cb-06-bait-and-break` | 8 | 4 |
+| 2 | `the-teeth` | 4 | 2 |
 | 3 | `broken-bridge` | 2 | 0 |
 | 4 | *rest* | 2 | — |
 | 5 | `the-shrine` | 0 | 2 |
@@ -46,13 +46,13 @@ ordinary attacks alone.
 | `first-legal` | 21 | 0 | 0 | 0 | 3 | 6 |
 | `brawler` | 22 | 2 | 0 | 0 | 1 | 5 |
 | `shover` | 25 | 6 | 0 | 0 | 6 | 18 |
-| `careful` | 20 | 2 | 0 | 0 | 2 | 10 |
-| `random-a` | 21 | 4 | 0 | 0 | 3 | 6 |
-| `random-b` | 21 | 0 | 1 | 0 | 1 | 4 |
-| `random-c` | 19 | 2 | 4 | 0 | 2 | 8 |
-| `random-d` | 22 | 0 | 0 | 0 | 0 | 4 |
-| `random-e` | 21 | 0 | 3 | 0 | 2 | 3 |
-| `random-f` | 20 | 0 | 2 | 0 | 0 | 6 |
+| `careful` | 20 | 2 | 0 | 0 | 2 | 9 |
+| `random-a` | 20 | 0 | 4 | 0 | 1 | 2 |
+| `random-b` | 24 | 0 | 7 | 0 | 1 | 5 |
+| `random-c` | 21 | 0 | 1 | 0 | 0 | 4 |
+| `random-d` | 22 | 0 | 0 | 0 | 3 | 4 |
+| `random-e` | 17 | 0 | 5 | 0 | 2 | 3 |
+| `random-f` | 18 | 4 | 0 | 0 | 3 | 7 |
 
 ## Pluck, by class
 
@@ -70,16 +70,11 @@ spent one means the game is paying out faster than a player can find a use for i
 | `shover` | Wardbearer | 3 | 0 | 3 |
 | `careful` | Vanguard | 1 | 0 | 0 |
 | `careful` | Threadcaster | 2 | 0 | 0 |
-| `random-a` | Vanguard | 1 | 0 | 0 |
-| `random-a` | Threadcaster | 1 | 0 | 0 |
-| `random-a` | Wardbearer | 1 | 0 | 0 |
-| `random-b` | Vanguard | 1 | 0 | 0 |
-| `random-c` | Vanguard | 1 | 0 | 0 |
-| `random-c` | Threadcaster | 1 | 0 | 0 |
-| `random-c` | Wardbearer | 2 | 0 | 0 |
-| `random-e` | Vanguard | 1 | 0 | 0 |
+| `random-b` | Wardbearer | 1 | 0 | 0 |
+| `random-d` | Threadcaster | 1 | 0 | 0 |
 | `random-e` | Threadcaster | 1 | 0 | 0 |
-| `random-f` | Wardbearer | 2 | 0 | 0 |
+| `random-f` | Vanguard | 1 | 0 | 0 |
+| `random-f` | Threadcaster | 1 | 0 | 0 |
 
 ## Preen against what it soaked
 
@@ -93,12 +88,12 @@ should never exceed what the stance took for the squad.
 | `brawler` | 0 | 0 | 0 |
 | `shover` | 3 | 2 | 1 |
 | `careful` | 0 | 0 | 0 |
-| `random-a` | 1 | 0 | 1 |
-| `random-b` | 0 | 0 | 0 |
-| `random-c` | 2 | 0 | 2 |
+| `random-a` | 0 | 0 | 0 |
+| `random-b` | 1 | 0 | 1 |
+| `random-c` | 0 | 0 | 0 |
 | `random-d` | 0 | 0 | 0 |
 | `random-e` | 0 | 0 | 0 |
-| `random-f` | 2 | 0 | 2 |
+| `random-f` | 0 | 0 | 0 |
 
 **BREACHED** — Preen healed more than the stance soaked in:
 - `shover` on `cb-06-bait-and-break`: healed 2 against 1 absorbed
@@ -136,12 +131,12 @@ that stays visible rather than assumed:
 | `brawler` | 44 | 2 | 3 | 0 | 18 |
 | `shover` | 17 | 8 | 5 | 1 | 12 |
 | `careful` | 10 | 6 | 1 | 0 | 7 |
-| `random-a` | 8 | 8 | 2 | 0 | 7 |
-| `random-b` | 11 | 2 | 1 | 0 | 6 |
-| `random-c` | 10 | 6 | 1 | 0 | 8 |
-| `random-d` | 19 | 0 | 3 | 0 | 9 |
-| `random-e` | 14 | 4 | 1 | 0 | 8 |
-| `random-f` | 6 | 0 | 1 | 1 | 3 |
+| `random-a` | 12 | 2 | 3 | 0 | 7 |
+| `random-b` | 27 | 2 | 5 | 0 | 13 |
+| `random-c` | 7 | 0 | 1 | 0 | 2 |
+| `random-d` | 10 | 8 | 2 | 0 | 7 |
+| `random-e` | 4 | 4 | 1 | 0 | 3 |
+| `random-f` | 4 | 8 | 1 | 0 | 5 |
 
 ## Per-fight length, by policy
 
@@ -149,9 +144,9 @@ Rounds each fight took. A blank means the run never got there.
 
 | Fight | `first-legal` | `brawler` | `shover` | `careful` | `random-a` | `random-b` | `random-c` | `random-d` | `random-e` | `random-f` |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `first-contact` | 4 | 3 | 6 | 3 | 4 | 5 | 9 | 5 | 9 | 14 ✗ |
-| `cb-06-bait-and-break` | 5 | 4 | 10 | 6 ✗ | 6 ✗ | 7 ✗ | 5 ✗ | 12 ✗ | 5 ✗ | — |
-| `the-teeth` | 3 | 5 | 4 ✗ | — | — | — | — | — | — | — |
+| `first-contact` | 4 | 3 | 6 | 2 | 8 | 5 | 11 ✗ | 3 | 16 ✗ | 5 |
+| `cb-06-bait-and-break` | 5 | 4 | 10 | 6 ✗ | 5 ✗ | 7 | — | 6 ✗ | — | 5 ✗ |
+| `the-teeth` | 3 | 5 | 4 ✗ | — | — | 4 ✗ | — | — | — | — |
 | `broken-bridge` | 15 | 9 | — | — | — | — | — | — | — | — |
 | `the-shrine` | — | — | — | — | — | — | — | — | — | — |
 | `break-the-gate` | — | — | — | — | — | — | — | — | — | — |

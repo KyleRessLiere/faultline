@@ -31,10 +31,13 @@ conversation it is meant to force — see the batch write-ups in `docs/scenarios
 `first-contact`
 
 
-Husks walk straight at you while a lobber lands rocks from the back. Learn that a shove beats a swing.
+Husks walk at you while an emplaced lobber drops rocks from the north-west. Learn that a shove beats a swing.
 
 
 Fight 1 — the control group.
+
+
+Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
 
 
 The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
@@ -54,13 +57,13 @@ The two Husks on the west edge stand in a line, so one Push from the Vanguard's 
 Legend: `h` Husk, `l` Lobber
 
 ```
-#....lB
+#l#...B
 .^.H..B
 h.....B
 hO...O.
 #.....#
 A...^..
-AA..h..
+AA....h
 ```
 
 ### 2 · The Teeth
@@ -1643,7 +1646,7 @@ A gets a Threadcaster and a Wardbearer; B gets three attackers. A's job is to mo
 Asymmetry 4 — one player is pure support.
 
 
-A's whole roster is a rope and a shield. The shield is now an action rather than an aura, so every round A chooses between Spear Thrust's 2 damage across two tiles and Guard Stance's cover — it cannot do both. B's roster is the entire kill order.
+A's whole roster is a rope and a shield. The shield is now an action rather than an aura, so every round A chooses between Spear Thrust's 3 damage across two tiles, weighted to the far one and Guard Stance's cover — it cannot do both. B's roster is the entire kill order.
 
 
 **Asks:** Can a roster that cannot kill still win the fight?

@@ -85,7 +85,7 @@ in this file when the question comes back.
 | D-065 | [HELD: the Archer drops to 1 base damage and 2 from high ground.](#d-065-held-the-archer-drops-to-1-base-damage-and-2-from-high-ground) | 2026-08-02 | *held* |
 | D-066 | [HELD: the gate fallback — attacks in full, collisions doubled.](#d-066-held-the-gate-fallback--attacks-in-full-collisions-doubled) | 2026-08-02 | *held* |
 | D-067 | [`hz-08-free-kick` can stalemate under the soak harness, and the harness now says so.](#d-067-hz-08-free-kick-can-stalemate-under-the-soak-harness-and-the-harness-now-says-so) | 2026-08-02 |  |
-| D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | 2026-08-02 |  |
+| D-068 | [Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no displacement at all.](#d-068-spear-thrust-is-damage-only-2-to-the-adjacent-tile-1-to-the-tile-beyond-and-no-displacement-at-all) | 2026-08-02 | **superseded** |
 | D-069 | [Aiming is chosen by the ability's shape, and a unit may bring more than one.](#d-069-aiming-is-chosen-by-the-abilitys-shape-and-a-unit-may-bring-more-than-one) | 2026-08-02 |  |
 | D-070 | [Equality coverage is enforced by reflection; a state field nothing compares is a false green.](#d-070-equality-coverage-is-enforced-by-reflection-a-state-field-nothing-compares-is-a-false-green) | 2026-08-02 |  |
 | D-071 | [`FightWriter` must be able to say everything `FightDefinition` holds, and a test proves it.](#d-071-fightwriter-must-be-able-to-say-everything-fightdefinition-holds-and-a-test-proves-it) | 2026-08-02 |  |
@@ -97,9 +97,17 @@ in this file when the question comes back.
 | D-077 | [Retort is legal only as the first thing in an activation, because that is the only moment Guard Stance is still standing.](#d-077-retort-is-legal-only-as-the-first-thing-in-an-activation-because-that-is-the-only-moment-guard-stance-is-still-standing) | 2026-08-02 |  |
 | D-078 | [Slingshot's window is opened by the Reel itself and shut by the next thing she does.](#d-078-slingshots-window-is-opened-by-the-reel-itself-and-shut-by-the-next-thing-she-does) | 2026-08-02 |  |
 | D-079 | [Double Nock buys attack actions rather than suspending the action half.](#d-079-double-nock-buys-attack-actions-rather-than-suspending-the-action-half) | 2026-08-02 |  |
-| D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | unreleased |  |
+| D-080 | [Agency before injury: a player never loses hit points to a decision they were not allowed to make, and deployment is the decision they make blind.](#d-080-agency-before-injury-a-player-never-loses-hit-points-to-a-decision-they-were-not-allowed-to-make-and-deployment-is-the-decision-they-make-blind) | 2026-08-02 |  |
+| D-081 | [A cling nothing can still save resolves the instant it becomes hopeless.](#d-081-a-cling-nothing-can-still-save-resolves-the-instant-it-becomes-hopeless) | unreleased |  |
+| D-082 | [A rescue is an action requiring adjacency, and the rescuer's player chooses where the rescued unit is set down.](#d-082-a-rescue-is-an-action-requiring-adjacency-and-the-rescuers-player-chooses-where-the-rescued-unit-is-set-down) | unreleased |  |
+| D-083 | [What is about to kill you is stated, in words, where you are already looking.](#d-083-what-is-about-to-kill-you-is-stated-in-words-where-you-are-already-looking) | unreleased |  |
+| D-084 | [HELD: whether Preen's healing should be bounded by what Guard Stance actually soaked.](#d-084-held-whether-preens-healing-should-be-bounded-by-what-guard-stance-actually-soaked) | unreleased | *held* |
+| D-085 | [The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.](#d-085-the-meter-is-verve-in-the-code-and-pluck-on-screen-and-one-layer-decides-which) | unreleased |  |
+| D-086 | [Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet spot.](#d-086-spear-thrust-is-1-to-the-adjacent-tile-and-2-to-the-tile-beyond-the-tip-is-the-sweet-spot) | unreleased |  |
+| D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | unreleased |  |
+| D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | unreleased |  |
 
-**79 rulings.**
+**87 rulings.**
 
 <!-- toc:end -->
 ---
@@ -679,6 +687,7 @@ is a board change; it is queued with the dead-round board work.
 
 **D-068 — Spear Thrust is damage only: 2 to the adjacent tile, 1 to the tile beyond, and no
 displacement at all.**
+**Superseded by D-086**, which reverses the two numbers — the tip is the sweet spot.
 Supersedes D-058's Spear Thrust clause in full — Line 2, 1 damage and Push 1 to each, far target
 resolved first. **D-058's Guard Stance half is untouched.**
 
@@ -1031,3 +1040,151 @@ now cripple the squad to one hit point and play forward, so what they assert —
 the run and carries its casualties out — no longer depends on board tuning at all. Every seed tried
 now stalls on node 3 (`broken-bridge`) rather than losing, which is the stalemate class D-067 already
 describes and is **not investigated**.
+
+**D-081 — A cling nothing can still save resolves the instant it becomes hopeless.**
+A clinging unit is a question the board is asking: will somebody come? Holding the fight open until
+the end of a round when the answer is already no is dead time — the players go on spending
+activations against an enemy side that consists of one pair of hands on a ledge.
+
+**Hopeless means something different per side, and both readings come from who can rescue.** An
+enemy can be hauled out by another enemy (D-072) or by a reinforcement that has not landed yet, so
+it is doomed only when neither exists — no standing enemy, no pending wave. A player has no
+reinforcements at all and can only be rescued by another player unit, so a player side that is
+nothing but hands on ledges is doomed by the same logic. The outcome check then runs and the fight
+ends.
+
+**Hooked into `CheckOutcome`, not into the commands that cause it.** That is the one place the
+fight's outcome is decided, and the sweep has to happen *before* the decision: a doomed clinger is
+not a live unit, and a win must not be withheld on account of one.
+
+**The event chain is deliberately identical to an end-of-round sweep** — the same `Void`, the same
+reason string, the same order. A test compares the two streams payload for payload. An auto-sweep
+that logged differently would be a second kind of death for a renderer and a log reader to learn,
+for no gain.
+
+**Charging still happens at hazard entry and never at the sweep.** This was already true — the
+charge pass reads `Clinging`, and `Voided` earns nobody anything — but it is now pinned by event
+ordering rather than left to be true by accident. A Threadcaster who drops the last enemy in a pit
+banks her point for the drop, not for the disposal.
+
+**Rejected: sweeping only at end of round with a "nothing can save you" flag on the unit.** Same
+outcome, one more piece of state, and the fight still stays open for activations that cannot matter.
+
+**D-082 — A rescue is an action requiring adjacency, and the rescuer's player chooses where the
+rescued unit is set down.**
+Supersedes the Brief §2 reading that a rescue costs the entire activation, both halves unspent.
+
+**What forced it:** a unit on a ledge is on a three-round clock, and "I can see them and I am two
+tiles away" was a turn in which nothing could be done about it. That is the worst possible answer to
+the game's only private deadline. Move-then-rescue is now the ordinary move-then-act: the move half
+pays for the walk and the action half pays for the haul.
+
+**The destination is a choice rather than the first open tile in a fixed order.** Which side somebody
+comes up on is a real decision on a board where the board is the weapon — next to the pit again, or
+behind the Wardbearer. `RescueCommand` carries the tile, every legal destination is offered
+separately, and a pit is never one of them.
+
+**The enemy planner takes the fixed-order default**, because it has nobody to ask and its rescues
+have to be reproducible. `Pits.DefaultRescueDestination` is that default, and it is the same first
+tile the old rule always used.
+
+**Rejected: keeping the whole-activation cost and adding a separate "move toward" helper.** It keeps
+the ruling that caused the problem and adds UI to apologise for it.
+
+**Rejected: letting the rescue also be free like the kick.** A free rescue makes a pit a minor
+inconvenience, and the pit is the finisher the whole displacement system builds toward.
+
+**Note on the AI:** `PlanRescue` still requires both halves unspent, which is now stricter than the
+rules require. Left alone deliberately — that is a planner preference under D-072, not a legality,
+and loosening it would change enemy behaviour on every board with a pit.
+
+**D-083 — What is about to kill you is stated, in words, where you are already looking.**
+Three surfaces, one principle: the game must not hide a deadline behind a two-pixel dot.
+
+1. **A persistent banner while any ally is over the edge**, naming the round it ends on — "gone at
+   the end of round 3", not "clinging" — and listing which units could still reach it. Those units
+   are ringed on the board.
+2. **Rescue and Kick in are always listed** while there is somebody to rescue or kick, enabled or
+   not, **with the reason when not**: "needs 2 more move", "action already spent", "cannot reach this
+   activation". A button that is simply absent teaches a player nothing.
+3. **The objective panel** sits left of the board — goal, live bar with its own numbers, turn clock,
+   and the loss condition **with equal billing**. Most of these fights are lost on a clock or a
+   structure rather than on the thing the goal line mentions, so a panel that only says how to win
+   describes half the fight.
+
+**Reach is a Core query, not a distance check.** `Pits.MoveNeededToReach` runs the real pathfinder,
+so a wall between two adjacent-looking tiles counts. The shell has shipped three bugs from inferring
+a Core concept out of incidental data (D-069, D-073, D-080) and this was an obvious fourth.
+
+**The objective panel reads `ObjectiveStatus`, which reads the same state the win check reads.** No
+rule arithmetic happens beside the board, so the bar cannot say 7/12 while `Objectives.Check` is
+about to decide otherwise.
+
+**Placement is a ruling, not a preference.** Left of the board, and on a narrow viewport it collapses
+*above* the board — never into a menu. What the fight wants is not a thing to go looking for.
+
+**D-084 — HELD: whether Preen's healing should be bounded by what Guard Stance actually soaked.**
+The Wardbearer spec asks for a negative-sum invariant: across any fight, Preen healing ≤ damage
+absorbed via stance. The harness measures it per fight and **it is breached on the first run** —
+`shover` on `cb-06-bait-and-break` healed 2 against 1 absorbed.
+
+**It is not a theorem, for two independent reasons.** The meter *carries between fights* (D-074), so
+a Wardbearer can soak in one fight and spend in the next and no per-fight comparison can balance.
+And a charge does not require damage — an absorb that only moved the guard a tile earns a point, so
+three shoves that push him around without hurting him buy a Preen off zero absorbed damage.
+
+**Unblocks on:** a decision about which half to change. Either the invariant becomes per-run rather
+than per-fight, or the Guard charge narrows to damage-only and displacement-absorbs stop counting.
+The second is a real nerf to a Wardbearer facing Stalkers and Grapplers, who deal no damage at all.
+Measured and reported rather than picked, because both are design calls.
+
+**D-085 — The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.**
+MASTER_DESIGN §15 asks for a stable internal identifier with all display text routed through a
+naming layer. `Naming` is that layer: it owns the meter's name, every spender's name and every charge
+source's phrase, and the log formatter and the shell both read it rather than spelling anything
+themselves.
+
+**The identifier does not move.** The type, `Unit.Verve`, `VerveCharged`, `VerveSpent` and
+`SpendVerveCommand` all keep their names. Renaming them would have churned a hundred files, every
+serialised command log, and every ruling in this file that cites the type — in exchange for nothing a
+player can see.
+
+**The rule that makes it a layer rather than a convention: no user-facing string may spell an
+internal identifier.** A test walks the log formatter for every meter event and fails on any line
+containing "Verve". Without it the split lasts exactly until the next person types the word they saw
+in the C#.
+
+**D-086 — Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet
+spot.**
+Supersedes D-068, which had it the other way round. Reaching out is what a spear is for, and
+front-loading the damage made the thrust a worse basic attack rather than a different one. The shape
+is unchanged — Line 2, damage only, nothing displaced, structures chipped for 1 per tile face.
+
+**D-087 — The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is
+parked.**
+Retort was specified and built — end Guard Stance, shove every adjacent enemy a tile away, clockwise
+from north. It is removed rather than kept alongside: a class has exactly one spender, and holding an
+unused second one in the enum is how a spec quietly grows a branch nobody plays. Its resolution and
+its ordering rule are recorded in D-077 if it ever comes back.
+
+**Healing is otherwise not a thing this game does.** A run carries its damage and only a rest gives
+any back, so Preen is a deliberate exception and priced as one. It is not offered at full health —
+three points for nothing is a trap rather than a decision.
+
+**Preen does not read Guard Stance**, which is what made Retort legal only as the opening move of an
+activation (D-077). Preen is spendable on any activation the Wardbearer has hit points missing, so
+that timing rule no longer applies to anything.
+
+**D-088 — A Guard Stance absorb charges only when something actually landed: damage taken, or at
+least one tile of movement.**
+A Wardbearer with push resistance 2 in front of a Stalker absorbs a shove of 1 whole — no damage, no
+movement, nothing. Charging for that would be a meter filled by standing still, which is the opposite
+of what the condition is for.
+
+**Movement is read off `UnitPushed.Path`, not `Distance`.** A shove reduced to nothing still reports
+a distance, deliberately (D-057), and the path is the only field that says whether the unit went
+anywhere.
+
+**Implemented by looking forward in the event stream**, because `GuardIntercepted` is emitted before
+the redirected effect resolves — so "did anything land" is a question about what came after it, and
+the charge pass already has the finished list (D-073).

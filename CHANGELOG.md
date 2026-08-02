@@ -1,5 +1,31 @@
 # Changelog
 
+## Pluck, a spear with a point, and a ledge you cannot miss
+
+- **The meter is called Pluck.** Same meter, same rules — the code still calls it `Verve` internally
+  so nothing serialised had to move, and one naming layer decides what you see (D-085).
+- **Spear Thrust reversed: 1 to the adjacent tile, 2 to the tile beyond.** Reaching out is what a
+  spear is for. Front-loading it made the thrust a worse basic attack rather than a different one.
+- **The Wardbearer's spender is Preen (3):** patch yourself up for 2, never past your maximum. It is
+  the only healing in a fight. Retort is parked — its rules are kept in D-077 if it comes back.
+- **Guard Stance charges only when the hit landed.** A shove your push resistance ate whole is not an
+  absorb, and standing in front of a Stalker was not meant to fill a meter.
+- **A cling nothing can save resolves on the spot.** No enemies left standing and no wave still due?
+  Every clinging enemy goes now, and the fight ends. Symmetric for a player side that is nothing but
+  hands on ledges. It emits exactly the events an end-of-round sweep does.
+- **Rescue is an action, not your whole turn.** Walk into reach and haul them out, and **you pick
+  which tile they come up on**. "I can see them and I am two tiles away" is no longer a wasted turn.
+- **You can no longer miss a ledge.** A banner names the round they fall on and who could still reach
+  them; those units are ringed on the board. Rescue and Kick in are always listed, greyed with the
+  reason — *needs 2 more move* — rather than silently absent.
+- **An objective panel, left of the board.** Goal, a live bar with its own numbers, the turn clock,
+  and the loss condition at the same size as the goal. It collapses above the board on narrow
+  screens, never into a menu.
+
+**Known and not fixed:** Preen's healing is meant to be bounded by what Guard Stance soaked, and it
+is not — the meter carries between fights, and an absorb that only moved you earns a charge without
+costing you a hit point. Measured, breached on the first run, and held as a design call in D-084.
+
 ## Agency before injury
 
 A new design law: **you should never lose hit points to a decision you were not allowed to make**

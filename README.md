@@ -21,13 +21,14 @@ board is the primary weapon.
 lists, 38 active battles, and a twelve-node campaign that carries damage between fights. The seed
 plus the command log replays a whole run to an identical state, at both the fight and the run level.
 
-**M5 — Verve**, built after M6 and out of order. A per-unit meter, capped at 5, that each player
+**M5 — Pluck**, built after M6 and out of order. A per-unit meter, capped at 5, that each player
 class earns on its own condition — collisions the Vanguard causes, the Threadcaster's displacements
 that end badly, the Archer's shots from high ground, what the Wardbearer absorbs — and spends on one
 class-bound ability. It carries between fights and it replaced Momentum, which was carried unwritten
-for eleven milestones ([D-074](DECISIONS.md)). **It charges about once a fight, which is not enough
-to reach most of its own spenders** — measured, and left as an open design question in
-[Finding 7](docs/PLAYTEST_FINDINGS.md).
+for eleven milestones ([D-074](DECISIONS.md)). *Pluck is the display name; the code calls it `Verve`
+and one naming layer decides which appears where ([D-085](DECISIONS.md)).* **It charges about once a
+fight, which is not enough to reach most of its own spenders** — measured, and left as an open design
+question in [Finding 7](docs/PLAYTEST_FINDINGS.md).
 
 ## Layout
 
@@ -65,7 +66,7 @@ Serves on http://localhost:5199. The screens:
 |---|---|
 | `/` | Battle select — every fight with its board, enemies and lints, plus anything you saved in the creator |
 | `/battles` | The picker — every active board grouped Campaign / Trials / Co-op gauntlet / Other, retired ones collapsed |
-| `/campaign` | The run — twelve nodes, the squad's carried HP and Verve, and the two rests. Start a run here; its fights open on `/play` |
+| `/campaign` | The run — twelve nodes, the squad's carried HP and Pluck, and the two rests. Start a run here; its fights open on `/play` |
 | `/play` | The board, for whichever battle is loaded |
 | `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
 | `/bestiary` | Every unit: stat blocks, each enemy's priority list, its quirks and its counterplay |

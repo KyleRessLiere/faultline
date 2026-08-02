@@ -163,10 +163,24 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
   units never spend theirs: there is still no prompt, so a player holding a granted token can be
   shoved into a pit while it goes unused. Open question, not a rule — see D-026.*
 - **Clinging** — in a pit, cannot act, still holds an activation slot.
-  - An **adjacent ally** can spend its **entire activation** to haul it out.
+  - An **adjacent ally** hauls it out with its **action half** — so walk into reach and then rescue,
+    the ordinary move-then-act (D-082). **The rescuer's player picks the tile** it is set down on:
+    open, unoccupied, adjacent to the rescuer, and never another pit.
   - An **adjacent enemy** can kick it off as a **free action** — costs neither half.
   - **Any damage** while clinging kills it outright.
   - Otherwise it is **Voided at the end of the round after the one it fell in** (D-016).
+  - **A cling nothing can save resolves immediately** (D-081). For an enemy that means no standing
+    enemy left *and* no reinforcement wave still due — nobody to haul it out and nothing coming. For
+    the players it means a side that is nothing but hands on ledges, since only a player unit can
+    rescue a player unit. The sweep emits exactly the events an end-of-round sweep does, and the
+    outcome check runs straight after it.
+  - **Pluck charges on the way in, never on the way out.** A Threadcaster who drops the last enemy
+    into a pit banks her point for the drop, not for the disposal.
+
+**On screen** (D-083): while any ally is clinging, a banner names the round it ends on and lists who
+could still reach it, and those units are ringed on the board. **Rescue** and **Kick in** are always
+listed while there is somebody to rescue or kick — greyed with the reason when they are not
+available, e.g. *needs 2 more move*.
 - **Voided** — permanently gone for the whole run. Not the same as being downed.
 
 ## Units
@@ -176,7 +190,7 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
 | Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015). |
 | Archer | 4 | 3 | range 3, 2 dmg | **Stagger Shot** — range 3, 1 dmg + push 1 away. Also climbs HighGround for free. |
 | Threadcaster | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. |
-| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **1** to one in the tile beyond. Displaces nothing. Chips a structure on the line for 1 (D-068). **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
+| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* redirect onto it. Innate **push resistance 2**. |
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
@@ -204,7 +218,11 @@ unit it varies cannot drift apart.
 
 Player rosters: **A = Vanguard + Archer**, **B = Threadcaster + Wardbearer** (D-007).
 
-### Verve — the per-unit meter
+### Pluck — the per-unit meter
+
+> **Pluck** is what players call it. In the code it is `Verve` — the type, the field, the events and
+> the command all keep that name so no serialised log or ruling had to move, and one naming layer
+> decides the display text (D-085).
 
 Each player unit carries its own integer meter, earned by playing the way the game is about and spent
 to bend one action.
@@ -234,7 +252,7 @@ event on the board pays one unit and not another:
 | Vanguard | a collision **he** causes | `Collision` |
 | Threadcaster | a displacement **she** causes ends in a collision, spikes or a pit | `Collision`, `Hazard` |
 | Archer | **she** hits an enemy from HighGround | `HighGround` |
-| Wardbearer | **it** absorbs something in Guard Stance | `Guard` |
+| Wardbearer | **it** absorbs something in Guard Stance **that dealt damage or moved it a tile** | `Guard` |
 
 The Threadcaster is ranged, so a shot of hers from HighGround produces exactly the event the Archer
 charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.
@@ -264,7 +282,7 @@ the Verve does not come back.**
 | Vanguard | **Wrecking Weight** | 2 | The next push this activation is **+1 distance** and deals **1 damage on contact**. |
 | Threadcaster | **Slingshot** | 2 | Immediately after her Reel leaves an enemy adjacent, **trade tiles with it**. |
 | Archer | **Double Nock** | 4 | Her attack action **fires twice**. Separate targets; each resolved in full. |
-| Wardbearer | **Retort** | 3 | Ends Guard Stance and shoves **every adjacent enemy 1 tile directly away**. |
+| Wardbearer | **Preen** | 3 | Heals himself **2**, never past his maximum. Not offered at full health. |
 
 **Wrecking Weight** adds its tile to the *request*, before Stagger, resistance, hold auras and
 Footing, so it composes with all of them (D-076). An Anchor still shrugs a tile off — the Vanguard's
@@ -581,6 +599,24 @@ Export offers three routes: save into a folder (File System Access API, Chromium
 is disabled elsewhere), download (everywhere), and copy to the clipboard.
 
 ## Objectives, clocks and reinforcements
+
+### The objective panel
+
+Left of the board, and on a narrow viewport it collapses **above** the board — never into a menu
+(D-083). It carries four things:
+
+| | |
+|---|---|
+| **Goal** | What to do, in plain words. |
+| **Bar** | Live progress with its own numbers on it: `Enemies 3/8`, `Structure 7/12`, `Round 2/4`. |
+| **Clock** | `Turn 4/10`, when the fight has a limit. Turns red on the last two rounds. |
+| **Lose if** | The loss condition, **same size and weight as the goal**. |
+
+Every figure comes from `ObjectiveStatus` in Core, which reads the same state the win check reads —
+so the bar cannot say one thing while `Objectives.Check` is about to decide another. The bar moves as
+the hit lands rather than at end of round.
+
+
 
 A fight's goal is authored. With no `objective:` key it is **Kill All**, which is what all 55 of the
 original battles are.

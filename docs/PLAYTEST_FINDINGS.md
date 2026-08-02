@@ -187,7 +187,7 @@ Same campaign, same seed, same ten policies.
 | Fights played across all ten runs | **21** |
 | Verve earned, all classes | **19** — **0.90 per fight** |
 | Charges wasted against the cap of 5 | **0** — no unit ever filled its meter |
-| Verve spent | **3**, on a single Retort, in one fight out of twenty-one |
+| Pluck spent | **3**, on a single spend, in one fight out of twenty-one. *That spend was Retort, which has since been parked for Preen (D-087) — the rate is the finding, not the spender.* |
 | Double Nock (cost 4) used | **never** |
 
 At roughly one point a fight, a 2-cost spender is two fights of saving and a 4-cost spender is four —
