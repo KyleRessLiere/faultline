@@ -277,11 +277,26 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
 - **Clinging** — in a pit, cannot act, and **does not hold an activation slot**: `CanAct` excludes a
   clinging unit, so its side simply has one fewer activation that round rather than passing a dead
   one. This line used to say the opposite; the code has always done this (D-103).
-  - An **adjacent ally** hauls it out with its **action half** — so walk into reach and then rescue,
-    the ordinary move-then-act (D-082). Being an action, it **closes the move half** like any other,
-    so a rescuer who hauls before walking does not get to walk afterwards (D-097). **The rescuer's player picks the tile** it is set down on:
-    open, unoccupied, adjacent to the rescuer, and never another pit. On screen those tiles draw as
-    a cone around the rescuer, so the decision reads as which side they come up on (D-093).
+  - An ally **runs to it and hauls it out**, as one fused action costing the **whole activation**
+    — supersedes D-082's action-half pricing. The run-up is *inside* the verb: the rescue carries
+    its own route, walks it, and hauls from wherever it lands. Priced at the full pool it can only
+    be taken with the pool intact, which is what forbids moving first — there is no separate rule
+    saying so.
+  - **The approach is ordinary movement**, charged by the same grammar as anybody's: 1 per tile
+    plus every terrain surcharge, routed through the same pathfinder. So "reach 3" is what three
+    points *buy* — three tiles on open ground, fewer through the teeth of the board. Mercy gets no
+    pricing table of its own, and a drain ringed by brambles is meant to be hard to reach.
+  - **The route resolves in full on the way in.** Brambles bite, bodies are shouldered, Footing is
+    stripped. A rescuer can be hurt, staggered, or killed before she arrives.
+  - **A rescuer who sets off and does not arrive saves nobody, and the turn is gone.** Stopped by a
+    body that would not move, or short of reach because a surcharge ate the budget: no rescue is
+    logged and the activation is spent. Standing still and hauling from out of reach is a different
+    thing — that is an **illegal command**, not a spent turn.
+  - **The rescuer's player picks the tile** it is set down on: open, unoccupied, adjacent to the
+    rescuer **where the route left her**, and never another pit. On screen those tiles draw as a
+    cone around the rescuer, so the decision reads as which side they come up on (D-093). Both
+    halves of the verb are offered separately — every approach and every drop tile — so the run-up
+    is the player's choice too, not the pathfinder's.
   - An **adjacent enemy** can kick it off as a **free action** — costs neither half.
   - **Any damage** while clinging kills it outright.
   - Otherwise it is **Voided at the end of the round after the one it fell in** (D-016).
@@ -296,7 +311,7 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
 **On screen** (D-083): while any ally is clinging, a banner names the round it ends on and lists who
 could still reach it, and those units are ringed on the board. **Rescue** and **Kick in** are always
 listed while there is somebody to rescue or kick — greyed with the reason when they are not
-available, e.g. *needs 2 more move*.
+available — *out of reach*, or *the pool is already spent* once she has moved.
 - **Voided** — permanently gone for the whole run. Not the same as being downed.
 
 ## Units
@@ -492,8 +507,10 @@ resistance, Wardbearer Hold and Footing all apply identically (Brief §6 prior 2
 ### Enemies pull their own out of pits
 
 **Every enemy priority list has a rescue slot, and it sits above the whole list.** An enemy standing
-next to a clinging **ally** hauls it out — the same rescue the players have always had, on the same
-terms:
+next to a clinging **ally** hauls it out. This is the rescue the players *used to* have, and the two
+have now parted company: the player version fused with its run-up when the AP turn landed, and the
+enemy version did not, because enemies are exempt from the AP economy entirely. An enemy still has
+to already be adjacent. Its terms:
 
 - It costs **the entire activation**, both halves. An enemy that has already moved or acted this
   round cannot rescue.

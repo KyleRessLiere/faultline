@@ -384,6 +384,14 @@ namespace Faultline.Core
                         // cheapest rescue is the one nearest the front of the list.
                         AddRescues(state, unit, clinging, System.Array.Empty<Coord>(), commands);
 
+                        // Enemies are exempt from the AP turn and so from the fusion: theirs is still
+                        // the adjacency rescue it always was, costing the activation it always cost.
+                        // Offering them run-ups would be an economy change smuggled in as a list.
+                        if (!Activation.UsesActionPoints(unit))
+                        {
+                            continue;
+                        }
+
                         foreach (var route in Movement.Reachable(state, unit))
                         {
                             AddRescues(state, unit, clinging, route.Value.Path, commands);

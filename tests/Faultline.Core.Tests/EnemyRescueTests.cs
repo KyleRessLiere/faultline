@@ -402,6 +402,23 @@ public class EnemyRescueTests
 
     // A pit at (0,0) with an enemy hanging in it, an enemy standing beside it on (1,0), and a player
     // unit on the far side. Ids: 0 clinging, 1 rescuer, 2 player.
+    [Fact]
+    public void AnEnemyRescue_NeverCarriesARunUp_BecauseEnemiesAreExemptFromTheApTurn()
+    {
+        // The player rescue fused with its approach when the AP turn landed; this one did not,
+        // because the enemy economy is deliberately untouched. An enemy still has to already be
+        // standing there. Offering it a run-up would be an economy change smuggled in as a list.
+        var state = Lip(UnitKind.Husk);
+
+        var offered = Game.LegalCommands(state)
+            .OfType<RescueCommand>()
+            .Where(r => state.Get(r.UnitId).Team == Team.Enemy)
+            .ToList();
+
+        Assert.NotEmpty(offered);
+        Assert.All(offered, r => Assert.Empty(r.Path));
+    }
+
     private static GameState Lip(UnitKind rescuer, int? playerHp = null, int playerX = 2)
     {
         var state = BoardBuilder.Rows("O....", ".....")
