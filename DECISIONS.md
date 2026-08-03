@@ -117,9 +117,10 @@ in this file when the question comes back.
 | D-097 | [Movement is a budget spent in clicks, and the router takes the fastest way.](#d-097-movement-is-a-budget-spent-in-clicks-and-the-router-takes-the-fastest-way) | 2026-08-02 |  |
 | D-098 | [A displacement says who caused it.](#d-098-a-displacement-says-who-caused-it) | 2026-08-02 |  |
 | D-099 | [The Archer cannot shoot the tile next to her.](#d-099-the-archer-cannot-shoot-the-tile-next-to-her) | 2026-08-02 |  |
-| D-100 | [The Husk shoulders through a body in its way.](#d-100-the-husk-shoulders-through-a-body-in-its-way) | unreleased |  |
+| D-100 | [The Husk shoulders through a body in its way.](#d-100-the-husk-shoulders-through-a-body-in-its-way) | 2026-08-03 |  |
+| D-101 | [A Footing grant adds tokens; it never takes an archetype's own away.](#d-101-a-footing-grant-adds-tokens-it-never-takes-an-archetypes-own-away) | unreleased |  |
 
-**99 rulings.**
+**100 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1647,3 +1648,29 @@ re-verified under lanes and still hold.
 **Contradiction flagged:** the prompt cited `MASTER_DESIGN.md` §6, which does not exist in this repo.
 The Husk's design of record is `docs/ENEMY_ROSTER.md` and `AGENT_BRIEF.md` §2; both were used instead
 and both are updated.
+
+**D-101 — A Footing grant adds tokens; it never takes an archetype's own away.**
+
+**The bug a human found by playing:** "quarry king footing is not being respected". It was being
+respected exactly as written — he was simply walking onto the board with none. His stat block
+carries three negating tokens (D-039/D-043) and `quarry-king.fight` grants no Footing, and
+`Game.WithGrantedFooting` assigned the grant unconditionally: `Footing = fight.FootingFor(...)`,
+which is `0` when nothing is granted. So the zero was written over the three, in every fight he has
+ever appeared in.
+
+**The boss whose whole identity is that you have to break him first arrived already broken.** D-043
+says stripping all three is what makes him an ordinary body again; there was nothing to strip.
+
+**The fix is the direction of the rule, not the arithmetic.** A grant is the fight file *handing*
+tokens to an archetype that has none — that is what D-028 introduced it for, since no archetype
+started with any at the time. It was never meant to be a reassignment. A grant of zero and no grant
+at all are the same sentence in the file, so the absent case must leave the stat block alone.
+
+**Rejected: granting the King his three in `quarry-king.fight`.** It fixes the one board and leaves
+the rule wrong, so the next archetype with tokens of its own breaks the same way, silently, on every
+board that does not remember to re-grant them.
+
+**A fight still cannot take tokens away.** `FootingFor` cannot distinguish "granted 0" from "granted
+nothing", so a grant only ever raises. Nothing in the fight format currently wants to strip an
+archetype's tokens, and if something does it should say so in its own words rather than by writing a
+zero that reads as silence.

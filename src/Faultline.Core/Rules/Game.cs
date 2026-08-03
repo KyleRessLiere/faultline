@@ -123,8 +123,16 @@ namespace Faultline.Core
         /// Hands a freshly created unit whatever Footing the scenario granted it. No archetype starts
         /// with any, so a unit that can shrug off a tile of a shove is one the fight file asked for.
         /// </summary>
-        private static Unit WithGrantedFooting(Unit unit, FightDefinition fight) =>
-            unit with { Footing = fight.FootingFor(unit.Team, unit.Kind) };
+        private static Unit WithGrantedFooting(Unit unit, FightDefinition fight)
+        {
+            // A grant *adds* tokens to an archetype that has none; it never takes away tokens the
+            // archetype carries itself. This used to assign unconditionally, so a fight that granted
+            // nothing wrote a zero over the Quarry King's three negating tokens and he walked on
+            // shovable — the boss whose whole identity is that you have to break him first, with
+            // his defining rule silently switched off in every fight he appears in (D-101).
+            int granted = fight.FootingFor(unit.Team, unit.Kind);
+            return granted > 0 ? unit with { Footing = granted } : unit;
+        }
 
         /// <summary>
         /// Opens a unit on the hit points a run is carrying for it. Clamped to the archetype's

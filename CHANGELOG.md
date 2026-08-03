@@ -1,5 +1,15 @@
 # Changelog
 
+## The Quarry King gets his tokens back
+
+- **He was entering every fight on zero Footing.** His stat block carries three negating tokens, but
+  a fight's `footing:` grant was assigned unconditionally, so a fight that granted nothing wrote a
+  zero over them — and the boss whose whole identity is that you have to break him first arrived
+  already broken (D-101).
+- A grant now *adds* tokens to an archetype that has none. It never takes away the ones a stat block
+  carries.
+- Reported as "quarry king footing is not being respected". It was: he just had none to respect.
+
 ## The Husk stops queueing
 
 - **Shoulder**: a Husk barrels through a body on its route rather than stopping or going round. The
