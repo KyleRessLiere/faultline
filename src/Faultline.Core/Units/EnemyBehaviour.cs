@@ -46,7 +46,7 @@ namespace Faultline.Core
             UnitKind.Colossus,
             UnitKind.LesserGrappler, UnitKind.BluntedStalker, UnitKind.HeavyHusk, UnitKind.MobileAnchor,
             // The objective enemies, last: they are the two that need something on the board other
-            // than a player unit to have anything to do (docs/CURATED_SET.md §5).
+            // than a player unit to have anything to do (docs/archive/CURATED_SET.md §5).
             UnitKind.Raider, UnitKind.QuarryKing,
         };
 
@@ -784,7 +784,7 @@ namespace Faultline.Core
                     + "shrug entirely.",
                 });
 
-            // ---- objective enemies (docs/CURATED_SET.md §5) ------------------------------------
+            // ---- objective enemies (docs/archive/CURATED_SET.md §5) ------------------------------------
 
             table[UnitKind.Raider] = new EnemyBehaviour(
                 UnitKind.Raider,

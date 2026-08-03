@@ -4,7 +4,7 @@ Five enemies ship, all from `AGENT_BRIEF.md` §2. **Nothing here has been invent
 proposals below are designed against gaps that authoring 50 battles actually exposed, and are
 implemented only when scheduled.
 
-Brief §5 lists additional enemies as out of scope; `ROADMAP.md` records the decision to go past that.
+Brief §5 lists additional enemies as out of scope; `docs/archive/ROADMAP.md` records the decision to go past that.
 Each variant that lands still needs a `DECISIONS.md` entry.
 
 ---

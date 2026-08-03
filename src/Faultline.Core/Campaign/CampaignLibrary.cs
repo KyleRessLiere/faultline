@@ -19,7 +19,7 @@ namespace Faultline.Core
         private static readonly CampaignDefinition FaultlineCampaign = BuildFaultline();
 
         /// <summary>
-        /// The ten fights of <c>docs/CURATED_SET.md</c> §1, with a checkpoint after the fourth and
+        /// The ten fights of <c>docs/archive/CURATED_SET.md</c> §1, with a checkpoint after the fourth and
         /// after the eighth.
         /// </summary>
         /// <remarks>

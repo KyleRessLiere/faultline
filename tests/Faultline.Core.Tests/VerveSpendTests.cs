@@ -141,7 +141,7 @@ public class VerveSpendTests
     [Fact]
     public void WreckingWeight_ContactDamageStacksOnTopOfTheCollision()
     {
-        // VERVE.md: a charged shove into a wall is 1 contact + 2 collision. The attack's own 1 is on
+        // docs/archive/VERVE.md: a charged shove into a wall is 1 contact + 2 collision. The attack's own 1 is on
         // top of both, so a 6 HP Husk finishes on 2.
         var state = BoardBuilder.Rows("...#")
             .PlayerA(UnitKind.Vanguard, 0, 0)
@@ -273,7 +273,7 @@ public class VerveSpendTests
     [Fact]
     public void DoubleNock_FromHighGround_CostsFourAndEarnsTwoBack()
     {
-        // VERVE.md is explicit that this is the design and not an accident: two qualifying shots make
+        // docs/archive/VERVE.md is explicit that this is the design and not an accident: two qualifying shots make
         // a 4-point spend a net 2.
         var state = ArcherOnHighGround(out var archer, out var near, out var far);
         int before = state.Get(archer).Verve;

@@ -616,7 +616,7 @@ A **campaign is data**: an id, a squad, and a list of nodes. There are exactly t
 | **Rest** | Restores every unit that can still be fielded, and advances. |
 
 The shipped campaign is **twelve nodes: fights 1–4, a rest, fights 5–8, a rest, fights 9–10** — the
-`docs/CURATED_SET.md` §1 spine with a checkpoint after the fourth and the eighth. The rests sit where
+`docs/archive/CURATED_SET.md` §1 spine with a checkpoint after the fourth and the eighth. The rests sit where
 the two hardest jumps are: fight 5 is the first objective that is not a kill, and fight 9 is a hold
 going into the boss.
 

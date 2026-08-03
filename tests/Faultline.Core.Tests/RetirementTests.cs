@@ -125,7 +125,7 @@ public class RetirementTests
     }
 
     /// <summary>
-    /// The retirement pass from docs/CURATED_SET.md, pinned by id. A battle joining or leaving the
+    /// The retirement pass from docs/archive/CURATED_SET.md, pinned by id. A battle joining or leaving the
     /// list is a design decision, so it should be a deliberate edit here rather than a silent drift
     /// in a data file.
     /// </summary>

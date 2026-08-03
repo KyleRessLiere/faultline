@@ -614,7 +614,7 @@ namespace Faultline.Core
             return Guard.Mitigate(state, victim.Id, damage, DamageSource.Attack) >= victim.Hp;
         }
 
-        // docs/CURATED_SET.md §5A, Raider: "1. Adjacent to the Protect structure → claw it; 2. else
+        // docs/archive/CURATED_SET.md §5A, Raider: "1. Adjacent to the Protect structure → claw it; 2. else
         // path to it, Husk rules." That is the whole list. There is no third clause, no clause about
         // player units, and no self-defence clause: an enemy that ignores you is the entire point of
         // the archetype, and the pressure it applies is the clock of its walk (D-041).
@@ -651,7 +651,7 @@ namespace Faultline.Core
             return March(enemy, NearestTile(enemy.Position, shrines), moveTo);
         }
 
-        // docs/CURATED_SET.md §5B, Quarry King: the melee list with a Bull Rush branch on the front of
+        // docs/archive/CURATED_SET.md §5B, Quarry King: the melee list with a Bull Rush branch on the front of
         // it — the player's own opener, aimed back. Which branches exist is read off the stat block
         // rather than off the archetype: the enraged block is the one carrying a standalone shove, so
         // the phase swap adds the branch without there being two lists to keep in step (D-040).

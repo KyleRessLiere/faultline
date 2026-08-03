@@ -8,7 +8,7 @@ ground, `A`/`B` the two deployment zones, and any other letter an enemy from tha
 legend. A unit never starts on a hazard — the tile under a deploy slot or a spawn is Open.
 
 Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were
-proposals; `docs/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a
+proposals; `docs/archive/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a
 `retired:` key giving its reason — it is out of the picker's active list but still embedded,
 still parsed and still playable if chosen, because retiring is a flag and not a deletion
 (`docs/RETIRING_BATTLES.md`).

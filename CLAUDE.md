@@ -235,6 +235,7 @@ a branch outside the convention, and `check-unpushed.sh` warns when commits are 
 /tests/Faultline.Core.Tests
 /.claude/hooks             repo-local steering; committed so it applies to everyone
 docs/MASTER_DESIGN.md      design intent, and the authority
+docs/archive/              superseded docs, kept and never edited — see its README
 AGENT_BRIEF.md   CLAUDE.md   GAMEPLAY.md   DECISIONS.md   CHANGELOG.md   IDEAS.md   README.md
 ```
 - CI (GitHub Actions): build + test on push. Add the purity grep as a CI step.

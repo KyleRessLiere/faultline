@@ -131,7 +131,7 @@ def render(fights, verdicts):
     w("ground, `A`/`B` the two deployment zones, and any other letter an enemy from that battle's")
     w("legend. A unit never starts on a hazard — the tile under a deploy slot or a spawn is Open.\n")
     w("Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were")
-    w("proposals; `docs/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a")
+    w("proposals; `docs/archive/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a")
     w("`retired:` key giving its reason — it is out of the picker's active list but still embedded,")
     w("still parsed and still playable if chosen, because retiring is a flag and not a deletion")
     w("(`docs/RETIRING_BATTLES.md`).\n")

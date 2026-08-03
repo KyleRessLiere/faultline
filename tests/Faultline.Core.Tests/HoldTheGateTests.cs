@@ -5,7 +5,7 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// <c>hold-the-gate.fight</c> is docs/ENCOUNTERS.md #2 and the proof that objectives, turn limits and
+/// <c>hold-the-gate.fight</c> is docs/archive/ENCOUNTERS.md #2 and the proof that objectives, turn limits and
 /// spawn schedules compose: it is built entirely from the three of them and adds no new troops.
 /// </summary>
 public class HoldTheGateTests
@@ -83,7 +83,7 @@ public class HoldTheGateTests
             .Distinct()
             .ToList();
 
-        // docs/ENCOUNTERS.md #2: "New troops: none". These five are Brief §2's original roster.
+        // docs/archive/ENCOUNTERS.md #2: "New troops: none". These five are Brief §2's original roster.
         Assert.All(kinds, k => Assert.Contains(
             k,
             new[] { UnitKind.Husk, UnitKind.Lobber, UnitKind.Anchor, UnitKind.Grappler, UnitKind.Stalker }));
@@ -280,7 +280,7 @@ public class EveryFightStillPlaysTests
         // A fight that does not end under this policy must be a genuine stand-off, not a rules bug:
         // nothing left on the board is able to finish it, and the fight has no clock to finish it
         // for them. That is the AI's "else hold position" branch meeting a fight with no clock,
-        // which is pre-existing and is what turn limits exist to fix (ROADMAP.md "Enemies cannot be
+        // which is pre-existing and is what turn limits exist to fix (docs/archive/ROADMAP.md "Enemies cannot be
         // told to hold a position").
         //
         // A stand-off takes two shapes, and the second was added when the Wardbearer's kit changed

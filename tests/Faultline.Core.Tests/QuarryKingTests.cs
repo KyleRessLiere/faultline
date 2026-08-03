@@ -5,7 +5,7 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The Quarry King (docs/CURATED_SET.md §5B). Three things are new and each is tested on its own:
+/// The Quarry King (docs/archive/CURATED_SET.md §5B). Three things are new and each is tested on its own:
 /// a Footing token that negates a displacement instead of shortening it and is not spent doing so
 /// (D-039), the two events that strip one, and a second stat block that takes over at 7 hit points
 /// and re-declares his intent on the way in (D-040). Voiding him stays legal throughout.

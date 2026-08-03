@@ -5,7 +5,7 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The board and objective edits docs/CURATED_SET.md §6 calls for, pinned so they cannot drift back:
+/// The board and objective edits docs/archive/CURATED_SET.md §6 calls for, pinned so they cannot drift back:
 /// the first-contact re-cut, hz-02's reach line, as-05's tide, and tp-01's Warden.
 /// </summary>
 public class CuratedSetBoardTests
@@ -279,7 +279,7 @@ public class CuratedSetBoardTests
     }
 
     /// <summary>
-    /// docs/CURATED_SET.md's bar for a new board, measured the only way a driver can measure it:
+    /// docs/archive/CURATED_SET.md's bar for a new board, measured the only way a driver can measure it:
     /// every round up to eight has an enemy doing something. A dead round is the failure mode that
     /// retired a third of the library, so the two new boards are held to it by a test.
     /// </summary>

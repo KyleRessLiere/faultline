@@ -13,7 +13,7 @@ This is the original brief. It describes the game as it stood *and* what it was 
 
 > **This replaced an earlier brief**, archived at [docs/archive/AGENT_BRIEF_v1.md](docs/archive/AGENT_BRIEF_v1.md).
 > That version scoped a tight MVP: four classes, five enemies, five fights, two units a side, and a
-> list of things not to build. The project deliberately grew past it (see [ROADMAP.md](ROADMAP.md)),
+> list of things not to build. The project deliberately grew past it (see [docs/archive/ROADMAP.md](docs/archive/ROADMAP.md)),
 > and the brief stopped describing the game.
 >
 > **`DECISIONS.md` entries D-001 to D-029 cite the v1 brief.** Read them against the archive, not
@@ -159,7 +159,7 @@ published one is planning, and this game chose published.
 - **Player Footing prompts**, closing D-026.
 - **Structure targeting in the planner** — enemies claw at a Protect structure when adjacent but do
   not path toward it. See D-036.
-- The encounter designs in [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md), costed and ordered there.
+- The encounter designs in [docs/archive/ENCOUNTERS.md](docs/archive/ENCOUNTERS.md), costed and ordered there.
 
 ## 7. When rules are ambiguous
 

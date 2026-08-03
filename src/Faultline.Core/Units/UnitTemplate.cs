@@ -151,7 +151,7 @@ namespace Faultline.Core
 
         private static Dictionary<UnitKind, UnitTemplate> Build()
         {
-            // docs/CURATED_SET.md §5B: the Quarry King's second stat block. Move 1 becomes Move 3 and
+            // docs/archive/CURATED_SET.md §5B: the Quarry King's second stat block. Move 1 becomes Move 3 and
             // the priority list gains a Bull Rush, which the planner reads off the standalone shove
             // rather than off the archetype — the enraged block is the one that carries a BasicPush.
             var quarryKingEnraged = new UnitTemplate(
@@ -197,7 +197,7 @@ namespace Faultline.Core
                 new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 3, 3, AttackKind.Melee, 1, 1, 0, false, Plan: EnemyPlan.Melee),
                 new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 6, 2, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
 
-                // docs/CURATED_SET.md §5A/§5B: the objective enemies. The Raider is a Husk in every
+                // docs/archive/CURATED_SET.md §5A/§5B: the objective enemies. The Raider is a Husk in every
                 // number and differs only in the list it runs. The Quarry King is the only archetype
                 // that starts a fight holding Footing, because his three tokens are not the ordinary
                 // one-tile shrug — they are the boss (D-039, amending D-028).

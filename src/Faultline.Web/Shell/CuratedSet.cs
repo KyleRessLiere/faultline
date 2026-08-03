@@ -14,7 +14,7 @@ namespace Faultline.Web.Shell;
 /// <see cref="CampaignLibrary.Faultline"/>'s, read live through
 /// <see cref="CampaignDefinition.FightIds"/>, because the run engine walks that list and a second
 /// copy in a renderer would drift the first time someone reordered it. What the shell still owns is
-/// the two lists Core has no opinion about — the pick-any trials menu (<c>docs/CURATED_SET.md</c>
+/// the two lists Core has no opinion about — the pick-any trials menu (<c>docs/archive/CURATED_SET.md</c>
 /// §2) and the co-op gauntlet (§3) — which are picker sections rather than a campaign.
 /// </para>
 /// <para>

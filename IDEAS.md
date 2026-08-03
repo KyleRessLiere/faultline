@@ -2,7 +2,7 @@
 
 Unimplemented. CLAUDE.md: scope is the brief — nothing here gets built without a decision to widen it.
 
-**That decision has now been taken.** See [ROADMAP.md](ROADMAP.md) for the agreed expansion past the
+**That decision has now been taken.** See [docs/archive/ROADMAP.md](docs/archive/ROADMAP.md) for the agreed expansion past the
 brief and the order it has to happen in. Items below are captured but not yet scheduled.
 
 ## From the battle-design doc

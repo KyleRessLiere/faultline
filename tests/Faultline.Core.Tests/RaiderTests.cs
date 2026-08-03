@@ -3,7 +3,7 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The Raider (docs/CURATED_SET.md §5A). One priority list, two branches, and one thing that makes
+/// The Raider (docs/archive/CURATED_SET.md §5A). One priority list, two branches, and one thing that makes
 /// it unlike every other enemy in the game: its list has no clause about player units in it at all.
 /// One test per branch, plus the four the archetype's oddness demands — an ignored player, a fallen
 /// structure, no structure at all, and ordinary physics.

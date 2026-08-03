@@ -13,7 +13,7 @@ namespace Faultline.Core
     /// handed over: while any remain, <see cref="Displacement.EffectiveDistance"/> returns 0 for every
     /// Push and Pull against the unit, and the token is still there afterwards. Nothing the players
     /// aim at such a unit moves it — the fight is about stripping the tokens, not about out-shoving
-    /// them (docs/CURATED_SET.md §5B, DECISIONS.md D-039).
+    /// them (docs/archive/CURATED_SET.md §5B, DECISIONS.md D-039).
     /// </para>
     /// <para>
     /// Both strip triggers are events the engine already emits, so this is a listener and not a new
