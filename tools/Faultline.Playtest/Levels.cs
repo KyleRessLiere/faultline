@@ -24,10 +24,17 @@ public static class Levels
     /// <summary>Plays every campaign fight with every policy and writes the per-level table.</summary>
     /// <param name="seed">Seed every fight is played at.</param>
     /// <param name="outDir">Directory for the report.</param>
-    public static void Report(int seed, string outDir)
+    /// <param name="only">
+    /// Boards to sweep instead of the campaign spine. Named boards are how a ruling about one
+    /// objective gets evidence: <c>as-05-the-door</c> is not on the spine and the campaign sweep can
+    /// therefore say nothing at all about it.
+    /// </param>
+    public static void Report(int seed, string outDir, IReadOnlyList<string>? only = null)
     {
         var policies = Policies.All();
-        var fightIds = CampaignLibrary.Faultline.FightIds().ToList();
+        var fightIds = only is { Count: > 0 }
+            ? only.ToList()
+            : CampaignLibrary.Faultline.FightIds().ToList();
 
         Directory.CreateDirectory(outDir);
         Console.WriteLine($"Per-level sweep — {fightIds.Count} campaign fights x {policies.Length} policies, seed {seed}");

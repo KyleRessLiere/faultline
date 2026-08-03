@@ -66,9 +66,62 @@ Perch still fires at what is standing on top of it.
    declarations land before anyone activates, so the players see the whole enemy round first.
 3. **Activations alternate** Player A → enemy → Player B → enemy. When one side runs out, the other
    activates consecutively. Player A opens every round (D-006).
-4. An activation is **one move + one action**, and **the move comes first or not at all** (D-097).
-   Ending early forfeits the rest.
+4. A player activation is **three Action Points**: movement spends out of them a tile at a time, then
+   at most one action spends the rest and ends the activation. **The move comes first or not at all**
+   (D-097). Ending early forfeits the rest. See "The Action Point turn" below.
 5. **Round end:** Clinging resolves, then Stagger clears on everyone.
+
+### The Action Point turn
+
+A player unit activates with **3 action points**, and *everything* comes out of the same purse.
+
+| | Cost |
+|---|---|
+| Step onto open ground or a cracked tile | **1** |
+| Step onto brambles | **2** |
+| Climb onto high ground | **2** (the Archer climbs free, so **1**) |
+| Basic attack, or the pull/push half of one | **1** |
+| Stagger Shot, Spear Thrust, Guard Stance, the Fisher's flick, interact | **1** |
+| **Reel** | **2** |
+| **Bull Rush** | **3** — the whole pool |
+| **Rescue** | **3** — the whole pool, run-up fused in |
+| Finishing a clinging unit, and every Pluck spend | **0** |
+
+**Acting costs legs.** Three tiles of walking is the whole pool, so a unit that walks three tiles has
+nothing left to swing with — the swing is not "a second half" the movement cannot touch, it is
+another thing bought from the same three points. Walk two, then attack. This is the one habit the
+turn asks you to unlearn.
+
+Two rules fall out of the pricing with nothing extra written down:
+
+- **Bull Rush has no pre-move**, because at 3 there is nothing left to pre-move with. It charges up
+  to 3 on its own; a pre-move would silently have made the Vanguard's threat 5.
+- **Reel leaves exactly one tile of approach**, which is the whole shape of the Fisher's turn.
+
+**An attack owed by Double Nock is free.** The mod bought those attack actions when the Pluck was
+spent (D-079), so a shot that spends an owed attack costs 0 and does not touch the purse — the
+second, paid shot still finds the three points there. The move half is shut either way.
+
+**Nothing unaffordable is offered.** An attack or ability the purse cannot cover is off the legal
+list, not merely refused on submission, so the interface never shows an option that would be
+rejected.
+
+**The pool is uniform across all four classes.** Differentiation lives in what things cost and in
+earned upgrades, never in a per-class pool.
+
+#### Players pay in action points; enemies do not
+
+**The physics are symmetric and the economy deliberately is not.** Every enemy keeps
+movement-point semantics exactly as they always were:
+
+- Its pool is its **Move stat**, not 3.
+- Its terrain prices are unchanged: **brambles cost it 1**, and the high-ground climb is the old +1.
+- **An action never comes out of its pool.** An enemy that has spent every point of Move can still
+  attack, pull, push or shove.
+
+So on the same board, at the same three tiles, from the same reach: a duck that walked three tiles
+cannot swing, and a Husk that walked three tiles can. Nothing about damage, displacement, terrain
+damage or reach differs between the sides — only who is billed for the swing.
 
 ### The turn-order strip {D} who goes when
 
@@ -128,11 +181,13 @@ not an action: it costs the Husk nothing but movement points.
 
 The move half is a **budget**, not a single decision. While it is open, **every click is a segment**:
 
-- The unit walks to the clicked tile, the movement points it cost come off the budget, and the
-  highlight **recomputes from the tile it now stands on**.
+- The unit walks to the clicked tile, the points it cost come off the budget, and the highlight
+  **recomputes from the tile it now stands on**. For a player unit those are action points and the
+  budget is the same 3 the action will be paid out of; for an enemy they are movement points and
+  the action is not billed against them.
 - Clicks keep chaining until the budget is gone, **an action is taken**, or the activation ends.
 - **An action closes the move half**, whatever is left in it. Attack first and you do not move; move
-  one tile of three and then attack and the other two are forfeit. This is what ended "in either
+  one tile of three and then attack and the third point is forfeit. This is what ended "in either
   order" — the order is now move, then act.
 - The route is **drawn on hover before every click**, and the preview says what the segment costs and
   what is left after it.
@@ -145,10 +200,12 @@ The move half is a **budget**, not a single decision. While it is open, **every 
    east" beats "east then north", on any machine, every time.
 
 **A damaging tile on the fastest route is walked over and its entry effect applies.** No confirm, no
-route chip, no safety override: spikes on the quick way through cost 1 and the unit keeps going.
-Going *round* is a second click — put a waypoint on the far side and the router obeys it. Because
-dodging one tile on a square grid costs two extra points, **no 3-point unit can walk round a single
-spike and still arrive**; that is a real cost of the route, not an oversight.
+route chip, no safety override: brambles on the quick way through cost a player **2 points and 2 hit
+points** and the unit keeps going. Going *round* is a second click — put a waypoint on the far side
+and the router obeys it. Because dodging one tile on a square grid costs two extra points, **no
+3-point unit can walk round a single bramble tile and still arrive**; that is a real cost of the
+route, not an oversight. **An enemy pays 1 point for the same step** (the 2 damage is the same for
+everyone) — the surcharge is priced in action points and enemies have none.
 
 Each segment is its own `MoveCommand` **carrying the route it walked**, so a replay log shows which
 way a unit went and not merely where it stopped. Core re-derives the route regardless and refuses a

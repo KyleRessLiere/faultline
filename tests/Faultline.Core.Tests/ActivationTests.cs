@@ -76,13 +76,15 @@ public class ActivationTests
     {
         var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Anchor, 4, 0)
+            .Enemy(UnitKind.Anchor, 3, 0)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard);
         var anchor = state.Find(UnitKind.Anchor);
 
-        state = state.Then(new MoveCommand(vanguard.Id, new Coord(3, 0)));
+        // Two tiles, not three: acting costs legs, so the whole pool spent walking leaves nothing
+        // to swing with. Walking into reach and swinging is still one activation.
+        state = state.Then(new MoveCommand(vanguard.Id, new Coord(2, 0)));
         Assert.Equal(vanguard.Id, state.ActiveUnitId);
 
         var result = state.Step(new AttackCommand(vanguard.Id, anchor.Id));
@@ -132,6 +134,64 @@ public class ActivationTests
 
         Assert.True(swung.Get(vanguard.Id).HasActivated);
         TestPlay.AssertIllegal(swung, new MoveCommand(vanguard.Id, new Coord(1, 1)));
+    }
+
+    [Fact]
+    // MASTER_DESIGN §3: the physics are symmetric and the economy deliberately is not. Same board,
+    // same three tiles, same reach - only the duck pays for the swing out of the legs that carried
+    // it there. This is the whole exemption in one assertion, so if it ever leaks it fails here.
+    public void Activation_ThreeTilesCostsAPlayerItsAttack_ButNotAnEnemy()
+    {
+        var state = BoardBuilder.Open(5, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 4, 0)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.Husk);
+
+        var walked = state.Then(new MoveCommand(vanguard.Id, new Coord(3, 0)));
+
+        // Standing in reach of the Husk with an empty purse: the reach is there, the point is not.
+        Assert.Equal(0, Activation.Remaining(walked.Get(vanguard.Id)));
+        TestPlay.AssertNotLegal(walked, new AttackCommand(vanguard.Id, husk.Id));
+        TestPlay.AssertIllegal(walked, new AttackCommand(vanguard.Id, husk.Id));
+
+        var enemyTurn = state.Then(new EndActivationCommand(vanguard.Id));
+        Assert.True(Game.IsEnemyTurn(enemyTurn));
+
+        var closed = enemyTurn.Then(new MoveCommand(husk.Id, new Coord(1, 0)));
+        Assert.Equal(0, closed.Get(husk.Id).MoveRemaining);
+
+        // Its whole Move stat spent, and the swing still lands: an enemy's action was never priced
+        // against its legs.
+        TestPlay.AssertLegal(closed, new AttackCommand(husk.Id, vanguard.Id));
+        Assert.True(closed.Step(new AttackCommand(husk.Id, vanguard.Id)).Has<UnitAttacked>());
+    }
+
+    [Fact]
+    // MASTER_DESIGN §3 item (b). The wound for standing in them is unchanged and separate; this is
+    // only what the step costs, and it is priced in AP, so enemies are untouched.
+    public void Brambles_CostTwoPointsForAPlayer_AndOneForAnEnemy()
+    {
+        var state = BoardBuilder.Rows(".^...")
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.HeavyHusk, 4, 0)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.HeavyHusk);
+
+        var onFoot = Movement.Reachable(state, vanguard);
+        Assert.Equal(Activation.BrambleCost, onFoot[new Coord(1, 0)].Cost);
+
+        // Two open tiles past the brambles is four points on a three-point pool - the surcharge is
+        // what puts it out of reach, not the distance.
+        Assert.False(onFoot.ContainsKey(new Coord(3, 0)));
+
+        // Three tiles of Move, the last of them into the brambles, and it still arrives.
+        var enemyRoutes = Movement.Reachable(state, husk);
+        Assert.Equal(3, enemyRoutes[new Coord(1, 0)].Cost);
     }
 
     [Fact]

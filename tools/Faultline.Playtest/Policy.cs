@@ -52,6 +52,22 @@ public abstract class Policy
 
         return best;
     }
+
+    /// <summary>
+    /// What a move is worth to a policy that scores by command type, once the AP turn is priced in.
+    /// </summary>
+    /// <remarks>
+    /// The taste policies rank a <see cref="MoveCommand"/> above nothing and below acting, which was
+    /// a complete opinion while the halves were separate. Under an AP pool the interesting question
+    /// is not whether to move but how far, and a move that walks its purse out in front of somebody
+    /// it can no longer hit is worth barely more than standing still.
+    /// </remarks>
+    /// <param name="state">Board as it stands.</param>
+    /// <param name="command">Move being priced.</param>
+    /// <param name="worth">What this policy thinks moving is worth in the ordinary case.</param>
+    /// <returns>The move's score.</returns>
+    protected static int Walk(GameState state, MoveCommand command, int worth) =>
+        Budget.Waste(state, command) ? 5 : worth;
 }
 
 /// <summary>Takes the first legal command every time. The control group.</summary>
@@ -83,7 +99,7 @@ public sealed class BrawlerPolicy : Policy
             AttackCommand => 100,
             FinishClingingCommand => 90,
             DeployCommand => 50,
-            MoveCommand => 40,
+            MoveCommand m => Walk(state, m, 40),
             RescueCommand => 30,
             AbilityCommand => 10,
             _ => 0,
@@ -116,7 +132,7 @@ public sealed class ShoverPolicy : Policy
             FinishClingingCommand => 95,
             AttackCommand => 60,
             DeployCommand => 50,
-            MoveCommand => 40,
+            MoveCommand m => Walk(state, m, 40),
             RescueCommand => 35,
             _ => 0,
         });
@@ -151,7 +167,7 @@ public sealed class CarefulPolicy : Policy
         {
             RescueCommand => 120,
             DeployCommand => 50,
-            MoveCommand => 45,
+            MoveCommand m => Walk(state, m, 45),
             AbilityCommand => 40,
             AttackCommand => 35,
             FinishClingingCommand => 30,

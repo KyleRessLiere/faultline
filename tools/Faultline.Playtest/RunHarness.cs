@@ -26,6 +26,13 @@ namespace Faultline.Playtest;
 /// The Fisher's step distance to the nearest hazard each time she cast, one entry per cast. She can
 /// only post somebody into a drain she is standing beside, so this is what bounds the whole ability.
 /// </param>
+/// <param name="AttackDamageBy">Attack damage the squad dealt, by the class that dealt it.</param>
+/// <param name="AttackDistance">Step distance of every player attack, by class.</param>
+/// <param name="AbilityUses">Abilities the squad used, by ability.</param>
+/// <param name="RescueAttempts">Rescue commands issued.</param>
+/// <param name="RescueSuccesses">Rescues that got somebody back on the board.</param>
+/// <param name="AttackKills">Enemies whose killing damage was a weapon.</param>
+/// <param name="BoardKills">Enemies the board killed, drains included.</param>
 public sealed record FightReport(
     int NodeIndex,
     string FightId,
@@ -46,7 +53,14 @@ public sealed record FightReport(
     int Healed,
     int Absorbed,
     Dictionary<TileType, int> CastLandings,
-    List<int> HazardDistanceAtCast);
+    List<int> HazardDistanceAtCast,
+    Dictionary<UnitKind, int> AttackDamageBy,
+    Dictionary<UnitKind, List<int>> AttackDistance,
+    Dictionary<Ability, int> AbilityUses,
+    int RescueAttempts,
+    int RescueSuccesses,
+    int AttackKills,
+    int BoardKills);
 
 /// <summary>
 /// Running totals for the fight in progress.
@@ -79,6 +93,33 @@ internal sealed class FightTally
     internal Dictionary<TileType, int> CastLandings { get; } = new();
 
     internal List<int> HazardDistanceAtCast { get; } = new();
+
+    /// <summary>Attack damage the squad dealt, by the class that dealt it.</summary>
+    internal Dictionary<UnitKind, int> AttackDamageBy { get; } = new();
+
+    /// <summary>
+    /// Step distance of every attack a player made, one entry each. The kiting metric: an Archer
+    /// that can no longer walk and shoot in the same activation should be shooting from closer.
+    /// </summary>
+    internal Dictionary<UnitKind, List<int>> AttackDistance { get; } = new();
+
+    /// <summary>Abilities the squad used, by ability. Reel at two points lives or dies here.</summary>
+    internal Dictionary<Ability, int> AbilityUses { get; } = new();
+
+    /// <summary>Rescue commands issued, whether or not the haul landed.</summary>
+    internal int RescueAttempts { get; set; }
+
+    /// <summary>Rescues that actually got somebody back on the board.</summary>
+    internal int RescueSuccesses { get; set; }
+
+    /// <summary>Enemies whose last damage was a weapon.</summary>
+    internal int AttackKills { get; set; }
+
+    /// <summary>Enemies whose last damage was the board, plus everything that went down a drain.</summary>
+    internal int BoardKills { get; set; }
+
+    /// <summary>What last hurt each unit, so a down can be attributed to a source it does not carry.</summary>
+    internal Dictionary<UnitId, DamageSource> LastHurtBy { get; } = new();
 
 
 
@@ -211,6 +252,13 @@ public static class RunHarness
                         run.Fight!.FindUnit(RunLog.ActorOf(chosen))?.Kind ?? UnitKind.Husk,
                         chosen));
 
+                    // Counted from the command rather than an event, because the interesting half
+                    // of the full-pool price is the rescues that were tried and did not land.
+                    if (chosen is RescueCommand)
+                    {
+                        tally.RescueAttempts++;
+                    }
+
                     command = new PlayCommand(chosen);
                 }
             }
@@ -258,7 +306,14 @@ public static class RunHarness
                         tally.Healed,
                         tally.Absorbed,
                         new Dictionary<TileType, int>(tally.CastLandings),
-                        new List<int>(tally.HazardDistanceAtCast)));
+                        new List<int>(tally.HazardDistanceAtCast),
+                        new Dictionary<UnitKind, int>(tally.AttackDamageBy),
+                        tally.AttackDistance.ToDictionary(p => p.Key, p => new List<int>(p.Value)),
+                        new Dictionary<Ability, int>(tally.AbilityUses),
+                        tally.RescueAttempts,
+                        tally.RescueSuccesses,
+                        tally.AttackKills,
+                        tally.BoardKills));
                 }
                 else if (e is RunLost lost)
                 {
@@ -299,6 +354,37 @@ public static class RunHarness
                     IsPlayer(board, d.UnitId) ? tally.PlayerDamage : tally.EnemyDamage,
                     d.Source,
                     d.Amount);
+
+                // A down event carries no cause, so the last thing that hurt the unit is what
+                // attributes the kill. Events arrive in resolution order, so this is the blow.
+                tally.LastHurtBy[d.UnitId] = d.Source;
+                break;
+
+            // Only the squad's own swings: the same event fires for the enemy round and would
+            // otherwise fold their attacks into the Archer's share of the damage.
+            case UnitAttacked attacked when IsPlayer(board, attacked.AttackerId):
+            {
+                var kind = KindOf(board, attacked.AttackerId);
+                FightTally.Bump(tally.AttackDamageBy, kind, attacked.Damage);
+
+                if (!tally.AttackDistance.TryGetValue(kind, out var distances))
+                {
+                    distances = new List<int>();
+                    tally.AttackDistance[kind] = distances;
+                }
+
+                distances.Add(attacked.From.DistanceTo(attacked.To));
+                break;
+            }
+
+            case AbilityUsed used when IsPlayer(board, used.UnitId):
+                FightTally.Bump(tally.AbilityUses, used.Ability, 1);
+                break;
+
+            // The rescuer, not the rescued: enemies pull their own out too, and counting those
+            // against the squad's column made the full-pool price look cheaper than it is.
+            case Rescued rescued when IsPlayer(board, rescued.RescuerId):
+                tally.RescueSuccesses++;
                 break;
 
             // What the stance took on, which is the blow the ally was spared — not the halved
@@ -316,6 +402,17 @@ public static class RunHarness
                 else
                 {
                     tally.Killed++;
+
+                    // The thesis in one number: did the sword finish it, or did the board?
+                    if (tally.LastHurtBy.TryGetValue(down.UnitId, out var cause)
+                        && cause == DamageSource.Attack)
+                    {
+                        tally.AttackKills++;
+                    }
+                    else
+                    {
+                        tally.BoardKills++;
+                    }
                 }
 
                 break;
@@ -328,6 +425,9 @@ public static class RunHarness
                 else
                 {
                     tally.Killed++;
+
+                    // A drain is the board at its most complete - nothing was ever damaged.
+                    tally.BoardKills++;
                 }
 
                 break;

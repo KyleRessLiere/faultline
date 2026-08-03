@@ -294,7 +294,12 @@ namespace Faultline.Core
 
                 if (!unit.HasActed)
                 {
-                    foreach (var target in state.Units)
+                    // An action that cannot be paid for is not offered: a command on the legal list
+                    // that Apply would reject is a bug every consumer of the list walks into.
+                    int attackCost = unit.ExtraAttacks > 0 ? Activation.Free : Activation.ActionCost;
+                    bool canAct = Activation.CanAfford(unit, attackCost);
+
+                    foreach (var target in canAct ? (IReadOnlyList<Unit>)state.Units : Array.Empty<Unit>())
                     {
                         if (Combat.CanAttack(state, unit, target, out _))
                         {
@@ -317,6 +322,13 @@ namespace Faultline.Core
                     foreach (var descriptor in Abilities.AllOf(unit))
                     {
                         if (!Abilities.IsUsable(unit, descriptor))
+                        {
+                            continue;
+                        }
+
+                        // Priced per ability, not per action: Reel at 2 and Bull Rush at the whole
+                        // pool drop off the list at different points in the same activation.
+                        if (!Activation.CanAfford(unit, Activation.CostOf(descriptor.Ability)))
                         {
                             continue;
                         }
@@ -753,6 +765,11 @@ namespace Faultline.Core
             var unit = RequireActivatable(state, command.UnitId);
             Require(!unit.HasActed, "Unit has already acted this activation.");
 
+            // An owed attack from Double Nock was already bought by the mod that granted it (D-079),
+            // so it is not charged against the pool a second time.
+            int attackCost = unit.ExtraAttacks > 0 ? Activation.Free : Activation.ActionCost;
+            Require(Activation.CanAfford(unit, attackCost), "Not enough action points left to attack.");
+
             var target = state.UnitById(command.TargetId);
 
             if (command.Mode == AttackMode.Pull)
@@ -761,7 +778,7 @@ namespace Faultline.Core
 
                 state = CommitActivation(state, unit, events);
                 unit = state.UnitById(unit.Id);
-                state = state.WithUnit(unit with { HasActed = true, MoveClosed = true });
+                state = state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
 
                 state = Redirected(
                     state, unit, target, DisplacementKind.Pull, unit.Template.BasicPull, events);
@@ -775,7 +792,7 @@ namespace Faultline.Core
 
                 state = CommitActivation(state, unit, events);
                 unit = state.UnitById(unit.Id);
-                state = state.WithUnit(unit with { HasActed = true, MoveClosed = true });
+                state = state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
 
                 state = Redirected(
                     state, unit, target, DisplacementKind.Push, unit.Template.BasicPush, events);
@@ -792,7 +809,7 @@ namespace Faultline.Core
             // before it starts spending the activation's own action half (D-079).
             state = unit.ExtraAttacks > 0
                 ? state.WithUnit(unit with { ExtraAttacks = unit.ExtraAttacks - 1, MoveClosed = true })
-                : state.WithUnit(unit with { HasActed = true, MoveClosed = true });
+                : state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
 
             unit = state.UnitById(unit.Id);
 
@@ -865,6 +882,9 @@ namespace Faultline.Core
             var descriptor = Abilities.DescriptorFor(unit, command.Ability);
             Require(descriptor is not null, "That unit does not have that ability.");
             Require(Abilities.IsUsable(unit, descriptor), "That ability cannot be used.");
+            Require(
+                Activation.CanAfford(unit, Activation.CostOf(command.Ability)),
+                "Not enough action points left for that ability.");
 
             switch (descriptor!.Targeting)
             {
@@ -902,8 +922,9 @@ namespace Faultline.Core
 
             // D-097: an action closes the move half, whatever is left in the budget. This subsumes
             // D-015's special case for Bull Rush — it is no longer the only ability that costs the
-            // movement, it is simply the one that was honest about it first.
-            state = state.WithUnit(unit with { HasActed = true, MoveClosed = true });
+            // movement, it is simply the one that was honest about it first, and under the AP turn
+            // its full-pool price is what makes "no pre-move" fall out with no extra rule.
+            state = state.WithUnit(Activation.Spend(unit, Activation.CostOf(command.Ability)));
 
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
 

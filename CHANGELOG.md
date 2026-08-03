@@ -1,5 +1,23 @@
 # Changelog
 
+## Acting costs legs — the Action Point turn is wired through
+
+- Attacks and abilities are now **paid for out of the same three points movement spends**. Attack,
+  Stagger Shot, Spear Thrust, Guard Stance and the flick cost 1; Reel costs 2; Bull Rush and rescue
+  cost the whole pool. A unit that walks three tiles has nothing left to swing with.
+- **Bull Rush's "no pre-move" and Reel's one tile of approach now fall out of the price** rather
+  than out of a rule of their own.
+- **An attack owed by Double Nock is free** — the mod bought it when the Pluck was spent (D-079) —
+  and the purse is no longer read off `MoveRemaining`, which goes to zero the instant an action
+  shuts the move half. A free first shot used to leave the paid second shot unaffordable.
+- **Nothing unaffordable is offered.** `LegalCommands` applies the same test, so the interface can
+  never show an option Core would reject.
+- **Brambles cost a player 2 points to enter**, the climb onto high ground already cost 2, and
+  **enemies pay 1 for both** — they keep movement-point semantics entirely. The 2 damage for
+  walking in is unchanged for everybody.
+- The asymmetry is deliberate and is now pinned by a test that plays the same three tiles on the
+  same board with both sides: the duck cannot swing afterwards and the Husk can.
+
 ## The rescue runs to you now
 
 - A rescue is one **fused move-and-grab costing the whole activation**, superseding D-082's

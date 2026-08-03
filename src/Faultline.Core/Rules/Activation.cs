@@ -74,12 +74,37 @@ namespace Faultline.Core
             _ => ActionCost,
         };
 
+        /// <summary>
+        /// Points left in the purse this activation, which is not the same question as
+        /// <see cref="Unit.MoveRemaining"/>.
+        /// </summary>
+        /// <remarks>
+        /// <c>MoveRemaining</c> reads zero the moment the move half is shut, because it answers "can
+        /// this unit still walk". The purse answers "is there anything left to pay with", and the two
+        /// come apart exactly once: a Double Nock shot spends an owed attack rather than the pool,
+        /// closes the move half on its way through, and leaves the budget for the second shot intact
+        /// (D-079). Charging the purse against <c>MoveRemaining</c> would have made the mod buy an
+        /// attack the unit could then never afford.
+        /// </remarks>
+        /// <param name="unit">Unit being activated.</param>
+        /// <returns>Unspent points, never negative.</returns>
+        public static int Remaining(Unit unit)
+        {
+            if (unit is null)
+            {
+                return 0;
+            }
+
+            int left = Pool(unit) - unit.MoveSpent;
+            return left < 0 ? 0 : left;
+        }
+
         /// <summary>Whether a unit can still afford something this activation.</summary>
         /// <param name="unit">Unit being activated.</param>
         /// <param name="cost">Cost in action points.</param>
         /// <returns>True when the cost is affordable, and always true for an enemy.</returns>
         public static bool CanAfford(Unit unit, int cost) =>
-            !UsesActionPoints(unit) || unit.MoveRemaining >= cost;
+            !UsesActionPoints(unit) || Remaining(unit) >= cost;
 
         /// <summary>
         /// How much more the unit would have had to keep back to afford something. Zero when it can
@@ -95,7 +120,7 @@ namespace Faultline.Core
                 return 0;
             }
 
-            return cost - unit.MoveRemaining;
+            return cost - Remaining(unit);
         }
 
         /// <summary>

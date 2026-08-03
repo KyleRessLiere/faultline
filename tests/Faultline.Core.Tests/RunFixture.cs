@@ -254,7 +254,7 @@ internal static class RunFixture
                         break;
                     }
 
-                    command = legal[0];
+                    command = FirstAction(legal) ?? legal[0];
                 }
             }
 
@@ -263,5 +263,30 @@ internal static class RunFixture
         }
 
         return (run, log);
+    }
+
+    /// <summary>
+    /// The first legal command that actually does something to somebody, or null when there is none.
+    /// </summary>
+    /// <remarks>
+    /// "First legal command each time" used to reach an attack on its own: moves are enumerated
+    /// first, so the driver walked its budget out and then swung with what was left. Under the AP
+    /// turn acting costs legs, so a unit that walks its whole pool is offered nothing but
+    /// EndActivation and the driver never lands a blow — a run that could not clear a node no matter
+    /// how it was tuned. Preferring the action is the same naive policy the harness uses: afford the
+    /// action first, close with whatever is left over.
+    /// </remarks>
+    private static RunCommand? FirstAction(IReadOnlyList<RunCommand> legal)
+    {
+        foreach (var candidate in legal)
+        {
+            if (candidate is PlayCommand play
+                && play.Command is AttackCommand or AbilityCommand)
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 }

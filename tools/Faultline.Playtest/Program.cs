@@ -57,7 +57,20 @@ if (args.Length > 0 && args[0] == "--levels")
         }
     }
 
-    Faultline.Playtest.Levels.Report(levelSeed, levelOut);
+    // Anything that is not a flag or a flag's value is a board id to sweep instead of the spine.
+    var only = new List<string>();
+    for (int i = 1; i < args.Length; i++)
+    {
+        if (args[i] == "--seed" || args[i] == "--out")
+        {
+            i++;
+            continue;
+        }
+
+        only.Add(args[i]);
+    }
+
+    Faultline.Playtest.Levels.Report(levelSeed, levelOut, only);
     return;
 }
 
@@ -404,6 +417,122 @@ foreach (var r in reports)
 }
 
 summary.AppendLine();
+summary.AppendLine("## What finished them — the sword or the board");
+summary.AppendLine();
+summary.AppendLine("Attributed from the last damage each enemy took before it went down, and every");
+summary.AppendLine("drain counted for the board because nothing was ever damaged.");
+summary.AppendLine();
+summary.AppendLine("| Policy | Attack kills | Board kills | Board share |");
+summary.AppendLine("|---|---|---|---|");
+foreach (var r in reports)
+{
+    int attackKills = r.Fights.Sum(f => f.AttackKills);
+    int boardKills = r.Fights.Sum(f => f.BoardKills);
+    int total = attackKills + boardKills;
+    summary.AppendLine(string.Format(
+        CultureInfo.InvariantCulture,
+        "| `{0}` | {1} | {2} | {3} |",
+        r.Policy,
+        attackKills,
+        boardKills,
+        total == 0 ? "—" : (boardKills * 100 / total) + "%"));
+}
+
+summary.AppendLine();
+summary.AppendLine("## The kiting metric — who dealt the attack damage, and from how far");
+summary.AppendLine();
+summary.AppendLine("Under the Action Point turn a shot is bought out of the legs that carried the shooter");
+summary.AppendLine("into position, so an Archer that used to walk back and loose in the same activation");
+summary.AppendLine("now has to choose. Her share of the attack damage and her average firing distance are");
+summary.AppendLine("the two numbers that move when kiting stops being free.");
+summary.AppendLine();
+summary.AppendLine("| Policy | Archer damage | Squad attack damage | Archer share | Archer avg. distance | Squad avg. distance |");
+summary.AppendLine("|---|---|---|---|---|---|");
+foreach (var r in reports)
+{
+    int archer = r.Fights.Sum(f => Get(f.AttackDamageBy, UnitKind.Archer));
+    int all = r.Fights.Sum(f => f.AttackDamageBy.Values.Sum());
+
+    var archerShots = r.Fights.SelectMany(f =>
+        f.AttackDistance.TryGetValue(UnitKind.Archer, out var d) ? d : new List<int>()).ToList();
+    var allShots = r.Fights.SelectMany(f => f.AttackDistance.Values.SelectMany(d => d)).ToList();
+
+    summary.AppendLine(string.Format(
+        CultureInfo.InvariantCulture,
+        "| `{0}` | {1} | {2} | {3} | {4} | {5} |",
+        r.Policy,
+        archer,
+        all,
+        all == 0 ? "—" : (archer * 100 / all) + "%",
+        Mean(archerShots),
+        Mean(allShots)));
+}
+
+summary.AppendLine();
+summary.AppendLine("## Rescues — tried against landed");
+summary.AppendLine();
+summary.AppendLine("A rescue costs the whole pool and fuses the run-up, so a rescuer that sets off and");
+summary.AppendLine("does not arrive has spent its activation on nothing. The gap between the columns is");
+summary.AppendLine("what that price costs in practice.");
+summary.AppendLine();
+summary.AppendLine("| Policy | Attempted | Landed |");
+summary.AppendLine("|---|---|---|");
+foreach (var r in reports)
+{
+    summary.AppendLine(string.Format(
+        CultureInfo.InvariantCulture,
+        "| `{0}` | {1} | {2} |",
+        r.Policy,
+        r.Fights.Sum(f => f.RescueAttempts),
+        r.Fights.Sum(f => f.RescueSuccesses)));
+}
+
+summary.AppendLine();
+summary.AppendLine("## Abilities used");
+summary.AppendLine();
+summary.AppendLine("Reel is the one priced at two of the three points, which leaves exactly one tile of");
+summary.AppendLine("approach — so whether it is used at all is the question the price was asking.");
+summary.AppendLine();
+
+var usedAbilities = reports
+    .SelectMany(r => r.Fights.SelectMany(f => f.AbilityUses.Keys))
+    .Distinct()
+    .OrderBy(a => a.ToString(), StringComparer.Ordinal)
+    .ToList();
+
+if (usedAbilities.Count == 0)
+{
+    summary.AppendLine("No policy used an ability.");
+}
+else
+{
+    summary.Append("| Policy |");
+    foreach (var ability in usedAbilities)
+    {
+        summary.Append(" " + ability + " (" + Activation.CostOf(ability) + " AP) |");
+    }
+
+    summary.AppendLine();
+    summary.Append("|---|");
+    foreach (var _ in usedAbilities)
+    {
+        summary.Append("---|");
+    }
+
+    summary.AppendLine();
+    foreach (var r in reports)
+    {
+        summary.Append("| `" + r.Policy + "` |");
+        foreach (var ability in usedAbilities)
+        {
+            summary.Append(" " + r.Fights.Sum(f => Get(f.AbilityUses, ability)) + " |");
+        }
+
+        summary.AppendLine();
+    }
+}
+
+summary.AppendLine();
 summary.AppendLine("## Per-fight length, by policy");
 summary.AppendLine();
 summary.AppendLine("Rounds each fight took. A blank means the run never got there.");
@@ -445,3 +574,9 @@ static int Get<T>(Dictionary<T, int> d, T key)
     where T : notnull => d.TryGetValue(key, out int v) ? v : 0;
 
 static int Total(Dictionary<DamageSource, int> d) => d.Values.Sum();
+
+// Tenths, as integers. No float anywhere near a number that goes in a report next to Core's.
+static string Mean(IReadOnlyList<int> values) => values.Count == 0
+    ? "—"
+    : ((values.Sum() * 10 / values.Count) / 10).ToString(CultureInfo.InvariantCulture)
+        + "." + ((values.Sum() * 10 / values.Count) % 10).ToString(CultureInfo.InvariantCulture);

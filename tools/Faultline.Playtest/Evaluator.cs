@@ -331,6 +331,14 @@ public abstract class EvaluatorPolicy : Policy
 
         score += Threatened(state, unit, command.To) * w.Exposure;
 
+        // The AP turn's one lesson for a greedy chooser: the swing this walk was walking towards is
+        // bought out of the same purse. Priced as a fraction of a kill so it beats any amount of
+        // Advance and never outweighs an outcome the policy can actually see.
+        if (Budget.Waste(state, command))
+        {
+            score -= w.Kill / 4;
+        }
+
         return score;
     }
 

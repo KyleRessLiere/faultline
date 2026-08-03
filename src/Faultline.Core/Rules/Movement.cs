@@ -160,6 +160,14 @@ namespace Faultline.Core
                 return Activation.ClimbCost;
             }
 
+            // Brambles cost double to wade into, for AP users only (MASTER_DESIGN §3). Enemies keep
+            // movement-point semantics, so terrain prices them exactly as it always did. The damage
+            // for entering is unchanged and separate — this is the price of the step, not the wound.
+            if (tile == TileType.Spikes && Activation.UsesActionPoints(unit))
+            {
+                return Activation.BrambleCost;
+            }
+
             return Activation.StepCost;
         }
 
