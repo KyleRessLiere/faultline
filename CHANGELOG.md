@@ -1,5 +1,25 @@
 # Changelog
 
+## The rescue runs to you now
+
+- A rescue is one **fused move-and-grab costing the whole activation**, superseding D-082's
+  action-half pricing. The run-up lives inside the verb: the command carries its own route, walks
+  it, and hauls from wherever it lands.
+- **The approach is ordinary movement** — 1 AP a tile plus every terrain surcharge, routed through
+  the same pathfinder as anybody's. "Reach 3" is what three points buy: three tiles on open ground,
+  fewer through the teeth of the board. A drain ringed by brambles is meant to be hard to reach.
+- **The route resolves in full on the way in.** Brambles bite, bodies are shouldered, Footing is
+  stripped, and a rescuer can die before she arrives. Set off and fail to arrive and you save
+  nobody and lose the turn — but standing still and hauling from out of reach is still simply an
+  illegal command, not a spent one. The two failures read differently because they are different.
+- Both halves of the decision are offered separately, every approach and every drop tile, so the
+  run-up is the player's choice rather than the pathfinder's.
+- **Enemies are exempt** and keep the adjacency rescue they always had. `LegalNext` was briefly
+  offering them run-ups too — an economy change smuggled in through the command list — which is now
+  fixed and pinned by a test.
+- `Activation` carries the Action Point economy the rest of the turn will be priced in: the pool,
+  the surcharges, the action-cost table, and the affordability and shortfall queries the UI needs.
+
 ## The Great Doubling — every HP, damage and heal is ×2
 
 - A pure rescale for granularity headroom. Every ratio, law and behaviour is unchanged: the same
