@@ -36,6 +36,7 @@ Keeping them distinct is what lets design and code disagree *visibly* instead of
   supersedes the earlier design docs (BATTLE_DESIGN, CURATED_SET, VERVE, POND_AND_DYNASTY,
   ENCOUNTERS), which are now source material rather than authorities. Read it before ruling on
   anything; cite its section numbers the way rulings already cite D-numbers.
+  **It is inbound-only and is never edited here** — see the workflow section below.
 - **AGENT_BRIEF.md** — the original brief the project was built from, and still the record of the
   M1—M6 acceptance list. **No longer the top of the hierarchy**: where it and MASTER_DESIGN
   disagree, MASTER_DESIGN is the intent and the brief is history. It is **never edited to make a
@@ -56,18 +57,44 @@ the code contradict each other, **write the DECISIONS entry; never silently pick
 silently is how the two documents stop being able to disagree, which is the whole reason they are
 separate files.
 
-### How a new design version arrives
+## Design doc workflow (authoritative)
 
-Design rulings are locked in design sessions — nothing is final until the designer says so — and they
-reach the repo as an **updated `docs/MASTER_DESIGN.md`**. Always the same filename; the version lives
-in the header stamp, which matches the newest **Design Log** line at the top of the file. The `design`
-branch is the inbox (a browser upload onto it is a legitimate way to deliver one).
+`docs/MASTER_DESIGN.md` is the **design authority** — what the game is meant to be. It arrives via
+the designer's automated download pipeline, which is external to this repo's tooling and also
+archives prior versions (`docs/design-history/`). Rules for working with it:
 
-When a newer file arrives: **diff it against the repo copy, lead the report with the new Design Log
-lines, and commit it alone** — `git add -- docs/MASTER_DESIGN.md`, no other path in that commit.
-Then run the drift audit (`/sync-design`) and *report* what the new rulings contradict. Syncing the
-design and changing the game are separate acts; a sync that quietly rewrote rules would make the
-mirror untrustworthy.
+**1. Inbound-only.** *Never edit `docs/MASTER_DESIGN.md`.* Any edit here is silently overwritten by
+the next arrival. If the design seems wrong, or contradicts the code, **write a `DECISIONS.md` entry
+and tell the designer** — the fix comes back in the next stamped version. An edit made here does not
+reach the designer, and losing it is the best case; the worse case is believing it landed.
+
+**2. On arrival** — when the file changes, or when asked to "take in the new design":
+
+- Read its header **Version** stamp and the new **Design Log** lines.
+- Sanity-check: starts `# PLUCK — MASTER DESIGN`, contains `## Design Log`, and the stamp is
+  **newer than the last committed one**. **Abort loudly** on a stale or malformed file rather than
+  guessing which copy is current.
+- Commit it **alone**, no other path in that commit:
+
+  ```bash
+  git add -- docs/MASTER_DESIGN.md
+  git commit -m "design: MASTER_DESIGN <stamp>"
+  ```
+
+- Then run the **drift audit**: new and changed rulings against `GAMEPLAY.md`, `DECISIONS.md` and the
+  code. Report each as **built / unbuilt / contradicts**, and flag any change to what boards field
+  that has no matching `.fight` update — the D-092 trap.
+- The audit output is **candidate scope for the next implementation session**. *Do not implement
+  during intake.* Taking in the design and changing the game are separate acts; an intake that
+  quietly rewrote rules would make the mirror untrustworthy.
+
+**3. Hierarchy.** `docs/MASTER_DESIGN.md` (intent) > `GAMEPLAY.md` (as-built) > `DECISIONS.md` (why
+they differ). `AGENT_BRIEF.md` is historical. Implementation sessions receive prompts derived from
+the design doc; **on contradiction, write a DECISIONS entry — never a silent pick.**
+
+**4. Versioning.** The stamp in the header matches the newest Design Log line. Git history plus the
+designer's archive are the version record. **Single filename, always** — versions never live in a
+suffix.
 
 **The game is PLUCK** (working title through mid-2026: *Faultline*, which is still the namespace, the
 project names and the repo). The class meter is **Moxie** on screen and `Verve` in the code; the
