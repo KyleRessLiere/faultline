@@ -1,5 +1,20 @@
 # Changelog
 
+## The Warden becomes a door you can break
+
+- **Two negating Footing tokens instead of push resistance 1.** While they stand nothing shoves or
+  pulls it at all; break both and it moves like anybody else (D-102). Its old resistance was a
+  permanent one-tile shrug, so a Push 1 did nothing to it forever and the only answer was to go
+  round — which on a board with one door is no answer.
+- **A collision it suffers takes a token**, including one caused by something else being slammed
+  into it. You cannot shove the door, so you throw something at it: Bull Rush is now a door-breaker
+  and the Husk queueing in front of it has a second use.
+- **Two to the King's three**, and you meet a Warden at `break-the-gate` five fights before him, so
+  the mechanic is taught on something survivable rather than debuting in the fight it decides.
+- **Reel no longer plucks a Warden out of a doorway** while a token stands: negation cancels Pull as
+  well as Push. That was its printed counterplay and it is the price of the door being breakable.
+- The Fisher's Cast still lifts it outright, tokens or not: a throw places rather than shoves.
+
 ## The Quarry King gets his tokens back
 
 - **He was entering every fight on zero Footing.** His stat block carries three negating tokens, but

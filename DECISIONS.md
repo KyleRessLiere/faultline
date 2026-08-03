@@ -118,9 +118,10 @@ in this file when the question comes back.
 | D-098 | [A displacement says who caused it.](#d-098-a-displacement-says-who-caused-it) | 2026-08-02 |  |
 | D-099 | [The Archer cannot shoot the tile next to her.](#d-099-the-archer-cannot-shoot-the-tile-next-to-her) | 2026-08-02 |  |
 | D-100 | [The Husk shoulders through a body in its way.](#d-100-the-husk-shoulders-through-a-body-in-its-way) | 2026-08-03 |  |
-| D-101 | [A Footing grant adds tokens; it never takes an archetype's own away.](#d-101-a-footing-grant-adds-tokens-it-never-takes-an-archetypes-own-away) | unreleased |  |
+| D-101 | [A Footing grant adds tokens; it never takes an archetype's own away.](#d-101-a-footing-grant-adds-tokens-it-never-takes-an-archetypes-own-away) | 2026-08-03 |  |
+| D-102 | [The Warden is a door you break down, not a door that never opens.](#d-102-the-warden-is-a-door-you-break-down-not-a-door-that-never-opens) | unreleased |  |
 
-**100 rulings.**
+**101 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1674,3 +1675,45 @@ board that does not remember to re-grant them.
 nothing", so a grant only ever raises. Nothing in the fight format currently wants to strip an
 archetype's tokens, and if something does it should say so in its own words rather than by writing a
 zero that reads as silence.
+
+**D-102 — The Warden is a door you break down, not a door that never opens.**
+
+**What forced it:** its push resistance 1 was a permanent one-tile shrug, so a Push 1 did nothing to
+it **forever**. There was no sequence of play that opened the lane by force — the answer was always
+to go around, which on a board with one door is no answer. A blocker nothing can ever move is a wall
+wearing a stat block.
+
+**Two negating Footing tokens instead** (D-039/D-043's mechanic, not a new one): while any stand,
+every Push and Pull against it resolves at 0 and the token is not spent. Break both and it is an
+ordinary Move-0 body you shove out of the lane. Push resistance drops to 0 — the two would stack
+into a door that is still a wall after you have broken it.
+
+**Two, one fewer than the Quarry King's three**, and the campaign meets a Warden at
+`break-the-gate` (node 5) five fights before the King (node 10). So the mechanic is *taught* on
+something survivable and then turned up on the boss, rather than debuting in the fight it decides.
+Pinned by a test that reads the campaign's node order rather than trusting the authoring.
+
+**The counterplay is the interesting part.** A token is taken by a collision the unit *suffers*,
+"including one caused by something else being slammed into it" (D-043). You cannot shove the door, so
+**you throw something at it** — which turns Bull Rush into a door-breaker and gives the Husk
+queueing in front of it a second use.
+
+**Rejected: ordinary Footing tokens.** The obvious reading of "give it a Footing value", and it does
+the opposite of what was asked. An enemy only spends an ordinary token to keep itself out of a pit
+(D-028), so a Warden holding two of them would ignore them against every normal shove and end up
+*easier* to move than resistance 1 made it.
+
+**Rejected: keeping resistance and adding a break condition to it.** That is the negating-token
+mechanic under a second name, and the game already has the mechanic, the strip triggers and the log
+line for it.
+
+**What this took away, stated plainly.** Negation cancels Pull as well as Push, so **Reel no longer
+plucks a Warden out of a doorway** while a token stands — which was its printed counterplay in
+`docs/ENEMY_ROSTER.md` and is now corrected there. That is a real loss and it is the price of the
+door being breakable at all: a blocker that force cannot move but one rope can was never the door it
+claimed to be.
+
+**Cast still lifts it, tokens or not.** A throw places rather than shoves and never reaches the
+displacement modifiers (D-091), so the Fisher keeps the inversion she already has against the
+Colossus and the King. Deliberate: every door in this game should have exactly one key that is not
+force.

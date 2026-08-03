@@ -183,7 +183,7 @@ namespace Faultline.Core
 
                 // docs/ENEMY_ROSTER.md: behaviour variants. Each one names a plan the shipped five do
                 // not have; everything else about it is a number on this row.
-                new UnitTemplate(UnitKind.Warden, "Warden", 6, 0, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Warden, PushResistance: 1),
+                new UnitTemplate(UnitKind.Warden, "Warden", 6, 0, AttackKind.Melee, 1, 2, 2, false, Plan: EnemyPlan.Warden, FootingNegates: true),
                 new UnitTemplate(UnitKind.Perch, "Perch", 3, 2, AttackKind.Ranged, 3, 1, 0, false, Plan: EnemyPlan.Perch),
                 new UnitTemplate(UnitKind.Bulwark, "Bulwark", 5, 2, AttackKind.Melee, 1, 1, 0, false, Plan: EnemyPlan.Melee, HoldAura: true),
                 new UnitTemplate(UnitKind.Harrier, "Harrier", 4, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Harrier),

@@ -13,7 +13,7 @@ namespace Faultline.Core.Tests;
 public class EnemyVariantTests
 {
     // ================================================================================
-    // Warden — HP 6, Move 0, melee 2, push resistance 1. The door that stays shut.
+    // Warden — HP 6, Move 0, melee 2, two negating Footing tokens. The door you break down.
     // ================================================================================
 
     // Priority 1: hit whatever is adjacent.
@@ -110,7 +110,9 @@ public class EnemyVariantTests
     }
 
     [Fact]
-    public void Warden_ShrugsOffOneTileOfEveryPush_ButNotOfAPull()
+    // D-102: no longer a permanent one-tile shrug. While its two tokens stand, nothing moves it at
+    // all — and once they are gone it is an ordinary Move 0 body you shove out of the lane.
+    public void Warden_WithItsTokensStanding_IgnoresEveryShoveAndEveryPull()
     {
         var state = BoardBuilder.Open(7, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
@@ -119,9 +121,16 @@ public class EnemyVariantTests
 
         var warden = state.Find(UnitKind.Warden);
 
-        Assert.Equal(0, Displacement.EffectiveDistance(state, warden, DisplacementKind.Push, 1, false, out _));
-        Assert.Equal(1, Displacement.EffectiveDistance(state, warden, DisplacementKind.Push, 2, false, out _));
-        Assert.Equal(2, Displacement.EffectiveDistance(state, warden, DisplacementKind.Pull, 2, false, out _));
+        Assert.Equal(2, warden.Footing);
+        Assert.Equal(0, warden.Template.PushResistance);
+
+        foreach (int distance in new[] { 1, 2, 3 })
+        {
+            Assert.Equal(
+                0, Displacement.EffectiveDistance(state, warden, DisplacementKind.Push, distance, false, out _));
+            Assert.Equal(
+                0, Displacement.EffectiveDistance(state, warden, DisplacementKind.Pull, distance, false, out _));
+        }
     }
 
     // ================================================================================
@@ -956,7 +965,7 @@ public class EnemyVariantTests
     [Theory]
     [InlineData(UnitKind.Anchor, 1)]
     [InlineData(UnitKind.MobileAnchor, 1)]
-    [InlineData(UnitKind.Warden, 1)]
+    [InlineData(UnitKind.Warden, 0)]
     [InlineData(UnitKind.Colossus, 2)]
     [InlineData(UnitKind.Husk, 0)]
     public void PushResistance_IsANumberOnTheStatBlock(UnitKind kind, int expected)

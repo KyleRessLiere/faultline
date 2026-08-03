@@ -42,12 +42,19 @@ Every one of these came from an agent hitting a wall while authoring, not from s
 These exist to fill the gaps above. Each states the mechanic it explores.
 
 ### Warden — *the guard that actually guards*
-`HP 6 · Move 0 · melee 2 · Push resistance 1`
+`HP 6 · Move 0 · melee 2 · 2 negating Footing tokens`
 Never moves. Attacks anything adjacent. Fills gap 1 and 3 directly: a Warden in a doorway is a
 door. The whole point is that the player must go **through** it or **around** it, and it will still
-be there next round.
-*Explores:* whether a static threat makes chokepoints work as designed.
-*Counterplay:* Reel it out of the gap (Pull ignores push resistance), or pay the toll.
+be there next round — but since D-102 "through" is a real option, because the door can be broken.
+While either token stands nothing shoves or pulls it at all. A collision it **suffers** takes one,
+including one caused by something else being slammed into it, so two rams open the lane and after
+that it shoves like anybody.
+*Explores:* whether a static threat makes chokepoints work as designed, and whether a blocker is
+better as a timer than as a wall.
+*Counterplay:* slam something into it twice, then shove it out — the Husk queueing in front of it
+will do. **Reel no longer works while a token stands**: negation cancels Pull as well as Push, which
+is the one thing this change took away. The Fisher's **Cast** still lifts it outright, because a
+throw places rather than shoves (D-091).
 
 ### Perch — *contests the high ground*
 `HP 3 · Move 2 · range 3, 1 dmg`
