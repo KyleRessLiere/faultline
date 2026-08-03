@@ -48,3 +48,22 @@ determinism guarantee that pays for undo and the playtest harness would pay for 
 **Unblocking condition:** somebody wants to play with somebody who is not in the room. Until then the
 link is the cheap answer and nobody has asked for it twice.
 
+## Camp's Tempo pick becomes "+1 AP"
+
+Parked by the ruling that installed the Action Point turn (MASTER_DESIGN v2026-08-02i §3), which
+named it and then put it out of scope along with the rest of Camp/Molt. Recorded here rather than
+built so that the shape does not have to be rediscovered.
+
+Under the old turn the pick read **+1 Move**. Under AP that is the same thing said in the new
+currency — **+1 AP, once per duck** — but it is no longer only a movement upgrade, because the pool
+buys actions too. A duck with 4 AP can walk two and still afford a 2 AP Reel, which the 3 AP pool
+forbids. That is a bigger pick than it was, which is why the ruling promoted it to **uncommon**.
+
+**Vanguard eligibility is flagged for review, not decided.** Bull Rush costs the full pool precisely
+so that it cannot be pre-moved — a pre-move would extend his threat from 3 to 5. Give him a 4th
+point and move-1-then-Bull-Rush becomes legal, which reintroduces exactly the reach the full-pool
+price was chosen to prevent. Either he is excluded from the pick, or Bull Rush is priced at "the
+whole pool, whatever the pool is" rather than at the constant 3.
+
+**Unblocking condition:** Camp/Molt is built. The Vanguard question has to be answered in the same
+ruling, because shipping the pick without it silently undoes a live design decision.
