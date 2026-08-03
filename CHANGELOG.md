@@ -1,5 +1,19 @@
 # Changelog
 
+## Every fight logs itself
+
+- **Recording is on by default**, and every fight is written into the sitting's folder as it is
+  played: `<chosen>/2026-08-02/14-35-07-EDT/fights/01-first-contact.log`, numbered in play order so a
+  run reads top to bottom.
+- It used to be off, on the grounds that memory grows with the fight. That had the trade backwards
+  — the fights worth analysing are the ones nobody expected to be interesting, and a log you have
+  to switch on before the interesting thing happens is a log you do not have.
+- **Switching it off is now the deliberate act, and it is the bug-hunting setting**: no recorder, no
+  writes, nothing kept. The choice is remembered, because a bug hunt outlives a page load.
+- Checkpointed at activation boundaries and again when the fight resolves, not per command. One
+  write per activation bounds what a closed tab can lose to the activation in progress.
+- `NoteLog` is now `SessionLog`: it holds a sitting's whole folder, not just its notes.
+
 ## The Archer needs room
 
 - **Her bow no longer reaches the tile next to her.** Minimum range 2, on the basic shot and on

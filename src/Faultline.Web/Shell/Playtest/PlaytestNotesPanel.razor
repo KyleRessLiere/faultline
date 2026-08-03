@@ -146,7 +146,7 @@
     private readonly List<string> _noteTags = new();
     private string? _noteStatus;
 
-    private NoteLog Log => Notes.Log;
+    private SessionLog Log => Notes.Log;
 
     private IReadOnlyList<PlaytestNote> NotesForThisFight => Notes.For(Session.Fight.Id);
 

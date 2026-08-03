@@ -75,6 +75,10 @@
         // Picks a folder chosen in an earlier sitting back up, so the first note of the session goes
         // to disk without anyone having to remember to re-point at it. Never prompts.
         await Notes.Log.ResumeAsync();
+
+        // Recording is on unless somebody turned it off, and turning it off is what you do to
+        // bug-hunt — a decision that has to outlive the reload in the middle of the hunt.
+        Session.RestoreRecording(await Notes.Log.RecordingWantedAsync());
     }
 
     protected override void OnAfterRender(bool firstRender)

@@ -12,7 +12,7 @@ namespace Faultline.Web.Tests;
 /// of the feature is that nothing has to be remembered at the moment a session stops being
 /// interesting, so what these pin is that a note reaches a file with no second action.
 /// </summary>
-public sealed class NoteLogTests
+public sealed class SessionLogTests
 {
     // ---- where things land ---------------------------------------------------------------
 
@@ -21,7 +21,7 @@ public sealed class NoteLogTests
     [InlineData("2026-01-14\t09-02-00\tEST", "2026-01-14", "09-02-00-EST")]
     public void TheFoldersAreTheDateThenTheEasternTime(string clock, string date, string session)
     {
-        Assert.True(NoteLog.Folders(clock, out var dateFolder, out var sessionFolder));
+        Assert.True(SessionLog.Folders(clock, out var dateFolder, out var sessionFolder));
 
         Assert.Equal(date, dateFolder);
         Assert.Equal(session, sessionFolder);
@@ -32,7 +32,7 @@ public sealed class NoteLogTests
     [Fact]
     public void ASeparatorInTheClock_NeverBecomesAFolder()
     {
-        Assert.True(NoteLog.Folders("2026/08/02\t14:35:07\tEDT", out var date, out var session));
+        Assert.True(SessionLog.Folders("2026/08/02\t14:35:07\tEDT", out var date, out var session));
 
         Assert.Equal("2026-08-02", date);
         Assert.Equal("14-35-07-EDT", session);
@@ -44,7 +44,7 @@ public sealed class NoteLogTests
     [InlineData("\t\t")]
     public void AClockTheBrowserCouldNotAnswer_IsRefusedRatherThanGuessed(string clock)
     {
-        Assert.False(NoteLog.Folders(clock, out _, out _));
+        Assert.False(SessionLog.Folders(clock, out _, out _));
     }
 
     // Labelled UTC, not Eastern. A folder claiming a timezone it did not use is worse than one that
@@ -52,7 +52,7 @@ public sealed class NoteLogTests
     [Fact]
     public void WithNoEasternClock_TheFallbackSaysWhichClockItUsed()
     {
-        NoteLog.FallbackFolders(new DateTime(2026, 8, 2, 18, 35, 7, DateTimeKind.Utc), out var date, out var session);
+        SessionLog.FallbackFolders(new DateTime(2026, 8, 2, 18, 35, 7, DateTimeKind.Utc), out var date, out var session);
 
         Assert.Equal("2026-08-02", date);
         Assert.Equal("18-35-07-UTC", session);
@@ -115,7 +115,7 @@ public sealed class NoteLogTests
     {
         var js = new FakeJsRuntime();
         var files = new FightFiles(js);
-        var log = new NoteLog(files);
+        var log = new SessionLog(files);
         var notes = new PlaytestNotes(files, log);
 
         await log.ResumeAsync();
@@ -133,7 +133,7 @@ public sealed class NoteLogTests
     public async Task ABrowserWithNoDirectoryPicker_SaysSoRatherThanOfferingAButtonThatCannotWork()
     {
         var js = new FakeJsRuntime { FolderSupported = false };
-        var log = new NoteLog(new FightFiles(js));
+        var log = new SessionLog(new FightFiles(js));
 
         await log.ResumeAsync();
 
@@ -146,7 +146,7 @@ public sealed class NoteLogTests
     public async Task ACancelledPicker_IsNotAnError()
     {
         var js = new FakeJsRuntime { PickerAnswer = "cancelled" };
-        var log = new NoteLog(new FightFiles(js));
+        var log = new SessionLog(new FightFiles(js));
 
         await log.ResumeAsync();
         await log.ChooseAsync();
@@ -161,11 +161,11 @@ public sealed class NoteLogTests
     public async Task AFolderChosenEarlier_IsPickedBackUpOnLoad()
     {
         var js = new FakeJsRuntime();
-        var first = new NoteLog(new FightFiles(js));
+        var first = new SessionLog(new FightFiles(js));
         await first.ResumeAsync();
         await first.ChooseAsync();
 
-        var reloaded = new NoteLog(new FightFiles(js));
+        var reloaded = new SessionLog(new FightFiles(js));
         await reloaded.ResumeAsync();
 
         Assert.True(reloaded.Active);
@@ -192,15 +192,15 @@ public sealed class NoteLogTests
     [Fact]
     public void AFailedWrite_ReadsAsSomethingAPersonCanActOn()
     {
-        Assert.Equal("The browser refused write access to that folder.", NoteLog.Describe("denied"));
-        Assert.Equal("Could not write: disk full", NoteLog.Describe("error:disk full"));
+        Assert.Equal("The browser refused write access to that folder.", SessionLog.Describe("denied"));
+        Assert.Equal("Could not write: disk full", SessionLog.Describe("error:disk full"));
     }
 
     private static async Task<(PlaytestNotes Notes, FakeJsRuntime Js)> Logging()
     {
         var js = new FakeJsRuntime();
         var files = new FightFiles(js);
-        var log = new NoteLog(files);
+        var log = new SessionLog(files);
         var notes = new PlaytestNotes(files, log);
 
         await log.ResumeAsync();

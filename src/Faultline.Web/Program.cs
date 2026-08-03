@@ -8,11 +8,12 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddSingleton<GameSession>();
+builder.Services.AddSingleton<GameSession>(
+    sp => new GameSession(sp.GetRequiredService<SessionLog>()));
 builder.Services.AddSingleton<PlaytestView>();
 builder.Services.AddSingleton<FightFiles>();
 builder.Services.AddSingleton<CustomFightStore>();
-builder.Services.AddSingleton<NoteLog>();
+builder.Services.AddSingleton<SessionLog>();
 builder.Services.AddSingleton<PlaytestNotes>();
 builder.Services.AddSingleton<RunStore>();
 builder.Services.AddSingleton<RunSession>();

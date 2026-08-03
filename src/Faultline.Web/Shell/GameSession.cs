@@ -37,9 +37,26 @@ public sealed class GameSession
     // it has no idea whether anyone is writing them down. Null means "not recording, retain nothing".
     private CombatRecorder? _recorder;
 
+    // Where finished fights are written. Null in a session nobody wired one to, which is every test
+    // that only cares about the board.
+    private readonly SessionLog? _sink;
+
+    // Position of the current fight in this sitting, so the folder sorts in play order rather than
+    // alphabetically. Counts fights that were started, not fights that were won.
+    private int _fightNumber;
+
+    // Recording is on unless somebody turned it off, and that decision has to survive a reload:
+    // switching it off is what you do to bug-hunt, and a bug hunt outlives one page load.
+    private bool _recordingWanted = true;
+
     /// <summary>Creates a session already sitting on a fresh fight.</summary>
-    public GameSession()
+    /// <param name="sink">
+    /// Folder to write finished fight logs into, when the player has pointed at one. Optional, so a
+    /// session can be built with nothing but a board.
+    /// </param>
+    public GameSession(SessionLog? sink = null)
     {
+        _sink = sink;
         StartFight(FightLibrary.Fight1(), DefaultSeed);
 
         // The constructor's fight is a placeholder, not a choice. Saying so lets a page restore a
@@ -107,9 +124,18 @@ public sealed class GameSession
     }
 
     /// <summary>
-    /// Whether the full combat log is being recorded. Off by default: it costs memory that grows
-    /// with the length of a fight, and a player who is not analysing anything should not pay for it.
+    /// Whether the full combat log is being recorded. <b>On by default.</b>
     /// </summary>
+    /// <remarks>
+    /// It used to be off, on the grounds that memory grows with the fight and a player who is not
+    /// analysing anything should not pay for it. That had the trade backwards: the fights worth
+    /// analysing are the ones nobody expected to be interesting, and a log you have to remember to
+    /// switch on before the interesting thing happens is a log you do not have. A few hundred lines
+    /// of text is not a cost worth losing evidence over.
+    ///
+    /// Switching it <em>off</em> is now the deliberate act, and it is what you do to bug-hunt: no
+    /// recorder, no writes to disk, nothing on the board but the board.
+    /// </remarks>
     public bool Recording => _recorder is not null;
 
     /// <summary>Event-log lines recorded so far; zero when recording is off.</summary>
@@ -447,10 +473,10 @@ public sealed class GameSession
         Mode = ActionMode.Move;
         ArmedAbility = null;
 
-        if (Recording)
-        {
-            _recorder = new CombatRecorder(fight, seed);
-        }
+        // Keyed to what the player asked for, not to whether a recorder happens to exist: a new
+        // fight in a session that is recording is a new fight that records.
+        _recorder = _recordingWanted ? new CombatRecorder(fight, seed) : null;
+        _fightNumber++;
     }
 
     /// <summary>
@@ -461,6 +487,8 @@ public sealed class GameSession
     /// <param name="on">Whether to record.</param>
     public void SetRecording(bool on)
     {
+        _recordingWanted = on;
+
         if (on == Recording)
         {
             return;
@@ -469,6 +497,30 @@ public sealed class GameSession
         _recorder = on ? new CombatRecorder(Fight, Seed) : null;
         Changed?.Invoke();
     }
+
+    /// <summary>
+    /// Restores the recording preference from an earlier visit. Only ever turns recording
+    /// <em>off</em>: on is the default and needs no restoring, and a stored "on" that arrived from a
+    /// corrupt key should not be able to switch recording on behind somebody mid-bug-hunt.
+    /// </summary>
+    /// <param name="on">What was stored.</param>
+    public void RestoreRecording(bool on)
+    {
+        if (!on)
+        {
+            SetRecording(false);
+        }
+    }
+
+    /// <summary>
+    /// Writes the fight in progress to the sitting's folder, when there is a folder and a recorder.
+    /// Called at activation boundaries and when a fight resolves.
+    /// </summary>
+    /// <returns>A task that completes when the write has finished or been skipped.</returns>
+    public Task FlushFightLogAsync() =>
+        _sink is null || _recorder is null
+            ? Task.CompletedTask
+            : _sink.WriteFightLogAsync(_fightNumber, Fight.Id, _recorder.Export());
 
     /// <summary>
     /// The full export — command log first so the file is re-runnable, then the event log. Empty
@@ -1240,6 +1292,20 @@ public sealed class GameSession
         return unit.HasMoved ? ActionMode.Attack : ActionMode.Move;
     }
 
+    // The boundaries worth writing at: an activation finishing, and the fight itself finishing.
+    private static bool WorthCheckpointing(IReadOnlyList<GameEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            if (evt is ActivationEnded or FightWon or FightLost)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void Adopt(StepResult result)
     {
         State = result.NewState;
@@ -1248,6 +1314,18 @@ public sealed class GameSession
         foreach (var evt in result.Events)
         {
             _log.Add(EventText.Describe(evt, State));
+        }
+
+        // Checkpointed at activation boundaries and again when the fight ends, never per command:
+        // one write per activation bounds what a closed tab loses to the activation in progress,
+        // which is the same bound the board itself has. A rewind is not a checkpoint - it is the
+        // log being rebuilt, and writing each replayed step would put the fight on disk N times.
+        if (!_silent && WorthCheckpointing(result.Events))
+        {
+            // Deliberately not awaited. The write is the folder's business and the board must not
+            // wait on a file handle to redraw; a failure lands in SessionLog.Status, which the notes
+            // panel shows, rather than being thrown into a click handler.
+            _ = FlushFightLogAsync();
         }
 
         // A dossier on something that is no longer on the board is a lie about the live half, so it

@@ -6,21 +6,24 @@ using System.Threading.Tasks;
 namespace Faultline.Web.Shell;
 
 /// <summary>
-/// Writes playtest notes into a real folder the moment they are typed, so feedback is logged rather
-/// than exported.
+/// One sitting's folder on disk, written to as the sitting happens: the notes as they are typed and
+/// every fight's log as it is played. Logged rather than exported.
 /// </summary>
 /// <remarks>
 /// <para>
 /// <b>Export was the wrong shape.</b> A note is worth having because it was written in the middle of
-/// something; an export step at the end is a second thing to remember at the exact moment a session
-/// stops being interesting. So there is no step: the player points at a folder once, and every note
-/// from then on lands on disk as it is added.
+/// something, and a fight log is worth having because somebody wants to know what happened in a
+/// fight nobody expected to be interesting. An export step at the end is a second thing to remember
+/// at the exact moment a session stops being interesting. So there is no step: the player points at
+/// a folder once, and everything from then on lands on disk as it happens.
 /// </para>
 /// <para>
 /// <b>One folder per date, one folder per session, named in US Eastern.</b>
-/// <c>&lt;chosen&gt;/2026-08-02/14-35-07-EDT/notes.md</c> and <c>notes.json</c> beside it. The date
-/// groups a day's work; the time names the sitting. The abbreviation is whichever the date actually
-/// falls under, so a summer session says EDT rather than lying.
+/// <c>&lt;chosen&gt;/2026-08-02/14-35-07-EDT/</c> holds <c>notes.md</c>, <c>notes.json</c> and a
+/// <c>fights/</c> folder with one <c>.log</c> per fight, numbered in the order they were played so
+/// a run reads top to bottom. The date groups a day's work; the time names the sitting. The
+/// abbreviation is whichever the date actually falls under, so a summer session says EDT rather
+/// than lying.
 /// </para>
 /// <para>
 /// <b>Rewritten whole on every note, never appended.</b> Appending would need the file read back and
@@ -34,16 +37,18 @@ namespace Faultline.Web.Shell;
 /// export buttons remain the answer.
 /// </para>
 /// </remarks>
-public sealed class NoteLog
+public sealed class SessionLog
 {
     private readonly FightFiles _files;
+
+    private readonly List<string> _fights = new();
 
     private string? _dateFolder;
     private string? _sessionFolder;
 
     /// <summary>Creates the sink.</summary>
     /// <param name="files">Browser file access.</param>
-    public NoteLog(FightFiles files) => _files = files;
+    public SessionLog(FightFiles files) => _files = files;
 
     /// <summary>Raised when the folder or the last status changes, so panels can redraw.</summary>
     public event Action? Changed;
@@ -63,7 +68,7 @@ public sealed class NoteLog
     /// <summary>Path of the last file written, relative to the chosen folder.</summary>
     public string LastPath { get; private set; } = string.Empty;
 
-    /// <summary>How many times notes have been written to disk this session.</summary>
+    /// <summary>How many files have been written to disk this session.</summary>
     public int Writes { get; private set; }
 
     /// <summary>
@@ -71,6 +76,33 @@ public sealed class NoteLog
     /// </summary>
     public string SessionPath =>
         _dateFolder is null || _sessionFolder is null ? string.Empty : _dateFolder + "/" + _sessionFolder;
+
+    /// <summary>localStorage key holding the recording preference, so switching it off sticks.</summary>
+    public const string RecordingKey = "faultline.recording";
+
+    /// <summary>Reads the stored recording preference. Absent or unreadable means on.</summary>
+    /// <returns>Whether fights should be recorded.</returns>
+    /// <remarks>
+    /// Stored only when it is <c>off</c>. On is the default, so writing it would put a key in every
+    /// browser that has never touched the setting, and a missing key already means the right thing.
+    /// </remarks>
+    public async Task<bool> RecordingWantedAsync() =>
+        !string.Equals(await _files.GetAsync(RecordingKey), "off", StringComparison.Ordinal);
+
+    /// <summary>Remembers whether fights should be recorded.</summary>
+    /// <param name="on">The new preference.</param>
+    /// <returns>A task that completes when it is stored.</returns>
+    public async Task SetRecordingWantedAsync(bool on)
+    {
+        if (on)
+        {
+            await _files.RemoveAsync(RecordingKey);
+        }
+        else
+        {
+            await _files.SetAsync(RecordingKey, "off");
+        }
+    }
 
     /// <summary>
     /// Picks up a folder chosen in an earlier visit. Never prompts, so it is safe on page load.
@@ -129,7 +161,7 @@ public sealed class NoteLog
     /// </summary>
     /// <param name="notes">Every note, in the order they should read.</param>
     /// <returns>A task that completes when the write has finished or been skipped.</returns>
-    public async Task WriteAsync(IReadOnlyList<PlaytestNote> notes)
+    public async Task WriteNotesAsync(IReadOnlyList<PlaytestNote> notes)
     {
         if (!Active || notes is null)
         {
@@ -161,6 +193,57 @@ public sealed class NoteLog
                 + " notes logged to " + Folder + "/" + SessionPath + ".";
         Raise();
     }
+
+    /// <summary>
+    /// Writes one fight's log into <c>fights/</c>, numbered in play order.
+    /// </summary>
+    /// <remarks>
+    /// Called at every activation boundary and again when the fight resolves, not on every command.
+    /// A rewrite per command would be several hundred writes a fight to save at most one command's
+    /// worth of transcript; a rewrite per activation bounds what a closed tab can lose to the
+    /// activation in progress, which is the same bound the board itself has.
+    /// </remarks>
+    /// <param name="number">Position in the sitting, from 1. Zero-padded so the folder sorts.</param>
+    /// <param name="slug">Fight id, for a name a person can read.</param>
+    /// <param name="text">The rendered log.</param>
+    /// <returns>A task that completes when the write has finished or been skipped.</returns>
+    public async Task WriteFightLogAsync(int number, string slug, string text)
+    {
+        if (!Active || string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        await EnsureSessionAsync();
+
+        var name = number.ToString("00", CultureInfo.InvariantCulture) + "-" + Safe(slug ?? "fight") + ".log";
+        var outcome = await _files.WriteNoteFileAsync(
+            new[] { _dateFolder!, _sessionFolder!, "fights" }, name, text);
+
+        if (!outcome.StartsWith("wrote:", StringComparison.Ordinal))
+        {
+            Status = Describe(outcome);
+            Raise();
+            return;
+        }
+
+        Writes++;
+        LastPath = outcome.Substring("wrote:".Length);
+
+        if (!_fights.Contains(name))
+        {
+            _fights.Add(name);
+        }
+
+        Status = _fights.Count == 1
+            ? "Logging this fight to " + Folder + "/" + SessionPath + "/fights/."
+            : _fights.Count.ToString(CultureInfo.InvariantCulture)
+                + " fights logged to " + Folder + "/" + SessionPath + "/fights/.";
+        Raise();
+    }
+
+    /// <summary>Fight logs written this sitting, in play order.</summary>
+    public IReadOnlyList<string> FightLogs => _fights;
 
     /// <summary>
     /// Splits the browser's Eastern clock into the two folder names. Public so the naming can be

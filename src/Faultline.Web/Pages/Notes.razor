@@ -223,7 +223,7 @@
 
     private sealed record BattleGroup(string Id, string Name, int Number, List<PlaytestNote> Notes);
 
-    private NoteLog Log => Store.Log;
+    private SessionLog Log => Store.Log;
 
     protected override async Task OnInitializedAsync()
     {
