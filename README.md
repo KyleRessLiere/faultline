@@ -44,33 +44,14 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 
 - .NET 10 SDK (the Core library targets netstandard2.1 so it can drop into Unity later)
 
-## Giving it to somebody who does not code
-
-```
-tools\make-shareable.cmd
-```
-
-Produces `dist\Faultline-windows.zip`. Send that. They unzip it and double-click **Faultline** —
-nothing to install, no .NET, no terminal, no internet. The runtime is published *inside* the
-executable, and `docs/SHARING.md` rides along in the zip as "READ ME FIRST.txt" with the two things
-a non-technical player actually needs to know: leave the black window open, and Windows will warn
-about an unknown program the first time.
-
-About 87 MB, almost all of it the runtime. `dist/` is gitignored — a shareable build is a binary
-and belongs in a message, not in the history.
-
-The launcher is `tools/Faultline.Launcher`: a console app over `HttpListener` that serves the
-published game out of the `wwwroot` beside it and opens a browser. Deliberately not an ASP.NET host,
-which would triple the download to serve a folder.
-
-## How to run
+## How to run it yourself
 
 **Never opened a terminal?** Double-click **Play Faultline.cmd** (Windows) or
 **play-faultline.command** (macOS). It checks whether the .NET SDK is installed, tells you exactly
-where to get it if it is not, and otherwise builds and opens the game. Unlike the shareable build
-above, this one does need the SDK — it is the path for somebody working *in* the repo.
+where to get it if it is not, and otherwise builds the game and opens it in your browser. That is
+the whole procedure — there is nothing to type.
 
-**The easy way, on Windows — no arguments, no decisions:**
+**From a terminal, no arguments, no decisions:**
 
 ```powershell
 .\play.ps1
@@ -97,6 +78,78 @@ Serves on http://localhost:5199. The screens:
 | `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
 | `/bestiary` | Every unit: stat blocks, each enemy's priority list, its quirks and its counterplay |
 | `/notes` | Playtest notes across every battle, filterable by battle and tag, with export |
+
+## Sending it to somebody who does not code
+
+One command builds a copy that needs **nothing installed** — no .NET, no terminal, no internet:
+
+```
+tools\make-shareable.cmd
+```
+
+Then send `dist\Faultline-windows.zip` (about 41 MB). They unzip it and double-click **Faultline**.
+The .NET runtime is published *inside* the executable, so the folder is self-sufficient; deleting it
+uninstalls the game.
+
+`docs/SHARING.md` rides along in the zip as "READ ME FIRST.txt" and answers the two things a
+non-technical player actually hits: the black console window **is** the game server so leave it open,
+and Windows will warn about an unknown program the first time (**More info → Run anyway**).
+
+For a Mac or Linux friend, name the runtime:
+
+```
+tools\make-shareable.cmd osx-arm64
+tools\make-shareable.cmd linux-x64
+```
+
+Those work, but the zip step and the read-me are written Windows-first, so that path is rougher.
+
+### Shipping an update
+
+The zip is a snapshot. When the game changes, the copy your friend has does **not** — there is no
+updater and it never phones home. To give them a new version:
+
+```bash
+git pull                        # or just make your changes
+dotnet build && dotnet test     # never ship red
+tools\make-shareable.cmd        # rebuilds dist\Faultline-windows.zip from scratch
+```
+
+Send the new zip. Tell them to **delete the old folder first** rather than unzipping over it: a
+stale file left behind from the previous version is the one failure mode that produces a game that
+starts and then misbehaves, which is much harder to diagnose than one that does not start.
+
+Nothing carries over between versions except what lives in their browser — playtest notes and any
+saved run are in that browser's storage, not in the folder, so they survive a replacement. Notes
+logged to a folder on disk are files and are untouched.
+
+`dist/` is gitignored: a shareable build is a binary and belongs in a message, not in the history.
+Every run of the script wipes and rebuilds it, so there is no stale-output failure on your side.
+
+### How the bundle works
+
+`tools/Faultline.Launcher` is a console app over `HttpListener` that serves the published game from
+the `wwwroot` beside it, asks the operating system for a free port, and opens a browser. Deliberately
+not an ASP.NET host — a Blazor app is static files that need *a* web server and do not care which,
+and the base runtime already has one, so an ASP.NET dependency would have tripled the download to
+serve a folder.
+
+Two things in it decide whether the bundle works at all, and both are worth leaving alone:
+
+- **Content types are written out rather than guessed.** A `.wasm` served as `application/octet-stream`
+  downloads fine and then fails at instantiation, which reads as "the game is broken" rather than "a
+  header is wrong".
+- **Unknown paths fall back to `index.html`.** Without it, refreshing the browser while on `/play`
+  returns a 404, because that route is one the app draws rather than a file on disk.
+
+If you change either, re-verify by publishing and hitting the running server:
+
+```bash
+curl -o /dev/null -w "%{http_code} %{content_type}\n" http://localhost:<port>/
+curl -o /dev/null -w "%{http_code} %{content_type}\n" http://localhost:<port>/_framework/<any>.wasm
+```
+
+Expect `200 text/html` and `200 application/wasm`.
 
 | bash | PowerShell | Does |
 |---|---|---|
