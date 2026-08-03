@@ -367,21 +367,26 @@ namespace Faultline.Core
                     }
                 }
 
-                // D-082: a rescue is an action needing adjacency, so it is offered whenever the
-                // action half is unspent — including after a move that walked into reach. Every
-                // destination is listed separately, because which side somebody comes up on matters.
-                if (!unit.HasActed)
+                // The rescue is fused and costs the whole pool (superseding D-082), so what is on
+                // offer is one command per route *and* drop tile: the run-up is part of the verb, and
+                // which side somebody comes up on is still a real decision. Offered only with the
+                // pool intact - having moved first is exactly what makes it unaffordable.
+                if (!unit.HasActed && Activation.CanAfford(unit, Activation.FullPool))
                 {
                     foreach (var clinging in state.Units)
                     {
-                        if (!Pits.CanRescue(state, unit, clinging))
+                        if (!Pits.IsEligibleRescuer(unit, clinging))
                         {
                             continue;
                         }
 
-                        foreach (var tile in Pits.RescueDestinations(state, unit))
+                        // Standing still is a route of no tiles, and is offered first so that the
+                        // cheapest rescue is the one nearest the front of the list.
+                        AddRescues(state, unit, clinging, System.Array.Empty<Coord>(), commands);
+
+                        foreach (var route in Movement.Reachable(state, unit))
                         {
-                            commands.Add(new RescueCommand(unit.Id, clinging.Id, tile));
+                            AddRescues(state, unit, clinging, route.Value.Path, commands);
                         }
                     }
                 }
@@ -679,6 +684,35 @@ namespace Faultline.Core
             }
 
             return state;
+        }
+
+        /// <summary>
+        /// Offers every drop tile for one rescuer, one clinging ally and one approach. The reach and
+        /// the destinations are both judged from where the route *lands*, which is why this works on
+        /// a scratch board with the rescuer already moved: asking the live board would price the run
+        /// -up from the tile she is about to leave.
+        /// </summary>
+        private static void AddRescues(
+            GameState state,
+            Unit unit,
+            Unit clinging,
+            IReadOnlyList<Coord> path,
+            List<Command> commands)
+        {
+            var scratch = path.Count == 0
+                ? state
+                : state.WithUnit(unit with { Position = path[path.Count - 1] });
+            var landed = scratch.UnitById(unit.Id);
+
+            if (!Pits.CanRescue(scratch, landed, clinging))
+            {
+                return;
+            }
+
+            foreach (var tile in Pits.RescueDestinations(scratch, landed))
+            {
+                commands.Add(new RescueCommand(unit.Id, clinging.Id, tile, path));
+            }
         }
 
         // An empty path means the issuer left the routing to Core; anything else has to match the

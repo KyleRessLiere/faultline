@@ -22,10 +22,7 @@ public class RescueRulingTests
         var command = new RescueCommand(
             vanguard, archer, landed.RescueTo(vanguard), new[] { new Coord(2, 1) });
 
-        // NOTE: not AssertLegal yet - Game.LegalNext still enumerates only adjacent, path-less
-        // rescues, so a fused one resolves correctly but is not yet offered. Wiring the
-        // enumeration is the next step; the UI reads LegalNext, so until then the verb is
-        // reachable by command but not by clicking.
+        TestPlay.AssertLegal(state, command);
 
         var result = state.Step(command);
 
@@ -120,7 +117,9 @@ public class RescueRulingTests
 
         var offered = Game.LegalCommands(state)
             .OfType<RescueCommand>()
-            .Where(r => r.UnitId == vanguard && r.ClingingId == archer)
+            // Scoped to the stand-still route: since the rescue fused, every reachable approach
+            // offers its own drop tiles too, and this is a question about the drop, not the run-up.
+            .Where(r => r.UnitId == vanguard && r.ClingingId == archer && r.Path.Count == 0)
             .Select(r => r.To)
             .ToList();
 
@@ -128,6 +127,25 @@ public class RescueRulingTests
 
         Assert.True(offered.Count > 1, "a choice of one tile is not a choice");
         Assert.Equal(expected.OrderBy(c => c.X).ThenBy(c => c.Y), offered.OrderBy(c => c.X).ThenBy(c => c.Y));
+    }
+
+    [Fact]
+    public void EveryApproachIsOffered_SoTheRunUpIsThePlayersToo()
+    {
+        // The fused verb has two decisions in it, and the shell reads both off LegalCommands: which
+        // way she runs and which side he comes up on. A rescue offered from one tile only would make
+        // the approach Core's choice rather than the player's.
+        var state = TwoAway(out var vanguard, out var archer);
+
+        var routes = Game.LegalCommands(state)
+            .OfType<RescueCommand>()
+            .Where(r => r.UnitId == vanguard && r.ClingingId == archer)
+            .Select(r => r.Path.Count == 0 ? "stay" : string.Join(">", r.Path))
+            .Distinct()
+            .ToList();
+
+        Assert.True(routes.Count > 1, "a rescue with one approach is not a decision");
+        Assert.DoesNotContain("stay", routes);
     }
 
     [Fact]
