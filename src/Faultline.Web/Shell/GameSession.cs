@@ -808,7 +808,13 @@ public sealed class GameSession
 
             foreach (var command in Legal.OfType<RescueCommand>())
             {
-                if (command.UnitId == Selected.Value && command.ClingingId == RescueTarget.Value)
+                // Stand-still rescues only. Core offers routed ones too since the rescue fused with
+                // its run-up, but this surface is a cone of the rescuer's own neighbours and has no
+                // way to ask which route she took - keying a routed drop tile here would silently
+                // pick one approach on the player's behalf. Surfacing the run-up is its own job.
+                if (command.UnitId == Selected.Value
+                    && command.ClingingId == RescueTarget.Value
+                    && command.Path.Count == 0)
                 {
                     tiles[command.To] = command;
                 }

@@ -122,7 +122,25 @@
             <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
                 @PlaytestText.Team(State.ActiveTeam) — <strong>@selected.Name</strong> is acting.
             </p>
-            <p class="halves">@Halves(selected)</p>
+            @* The pool, on the banner as well as the unit card: this is the line a player reads
+               between decisions, and "what have I got left" is the decision. Enemies keep movement
+               points, so they keep the two-halves sentence. *@
+            @if (ActionPoints.Shows(selected))
+            {
+                <p class="ap-banner" title="@ActionPoints.Title(selected)">
+                    <span class="ap">
+                        @foreach (var lit in ActionPoints.Pips(selected))
+                        {
+                            <i class="ap-pip @(lit ? "on" : "spent")"></i>
+                        }
+                    </span>
+                    <span class="ap-said">@ActionPoints.Summary(selected)</span>
+                </p>
+            }
+            else
+            {
+                <p class="halves">@Halves(selected)</p>
+            }
             <p class="instruction">
                 @(Session.Targets.Count > 0
                     ? "Click a highlighted tile, or pick another action below."

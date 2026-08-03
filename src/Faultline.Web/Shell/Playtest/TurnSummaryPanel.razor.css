@@ -155,3 +155,40 @@ h3 {
     margin: 4px 0 0;
     opacity: .8;
 }
+
+/* The acting unit's Action Point pool, drawn the same way it is on the unit card so the two read
+   as one fact in two places rather than two facts. */
+.ap-banner {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin: 0 0 3px;
+}
+
+.ap {
+    display: inline-flex;
+    gap: 3px;
+}
+
+.ap-pip {
+    border: 1px solid var(--pt-border);
+    border-radius: 2px;
+    display: inline-block;
+    height: 11px;
+    width: 11px;
+}
+
+.ap-pip.on {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+}
+
+.ap-pip.spent {
+    background: transparent;
+    opacity: .5;
+}
+
+.ap-said {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
+}

@@ -287,3 +287,98 @@
     border-color: var(--pt-amber);
     box-shadow: inset 0 0 0 1px var(--pt-amber);
 }
+
+/* The Action Point pool (MASTER_DESIGN §3). Same shape as the meter above it, deliberately: both
+   are "how much of this do I have left", and a player should not have to learn two idioms. */
+.ap-row {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin: 0 0 3px;
+}
+
+.ap-label {
+    color: var(--pt-text-dim);
+    font-size: 10.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.ap {
+    display: inline-flex;
+    gap: 3px;
+}
+
+.ap-pip {
+    border: 1px solid var(--pt-border);
+    border-radius: 2px;
+    display: inline-block;
+    height: 11px;
+    width: 11px;
+}
+
+.ap-pip.on {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+}
+
+.ap-pip.spent {
+    background: transparent;
+    opacity: .5;
+}
+
+.ap-count {
+    color: var(--pt-text-dim);
+    font-size: 10.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ap-summary {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 0 0 6px;
+}
+
+.mode-head {
+    align-items: center;
+    display: flex;
+    gap: 5px;
+}
+
+.ap-cost {
+    background: rgba(242, 245, 248, .1);
+    border-radius: 999px;
+    color: var(--pt-text-dim);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    padding: 0 6px;
+}
+
+.ap-cost.afford {
+    background: rgba(37, 131, 255, .22);
+    color: var(--pt-text);
+}
+
+/* Greyed, but the number stays legible: the cost is the reason the button is off. The chip is
+   lifted back out of the button's own opacity so it can still be read. */
+.mode.unaffordable .ap-cost.short {
+    background: rgba(255, 98, 104, .22);
+    color: var(--pt-red);
+    opacity: 1;
+}
+
+.ap-hint {
+    color: var(--pt-yellow);
+    font-size: 10px;
+}
+
+/* An unaffordable button greys itself whether or not Core has disabled it — the pool, not the
+   shell, is what says it cannot be paid for, and the shell decides no legality. It greys less hard
+   than a merely unavailable button because it has something to say: the number and the hint are the
+   whole point of still drawing it. */
+.mode.unaffordable,
+.mode.unaffordable:disabled {
+    border-style: dashed;
+    color: var(--pt-text-dim);
+    opacity: .72;
+}

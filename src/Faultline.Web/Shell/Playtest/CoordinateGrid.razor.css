@@ -495,3 +495,21 @@
 .cell.rescue-land.side-right .cone {
     background: linear-gradient(to right, rgba(121, 166, 106, .48), rgba(121, 166, 106, .05));
 }
+
+/* The Action Point price of each tile on the previewed route, printed on the tile (MASTER_DESIGN
+   §3). Amber to match the projected-route paint underneath it; red when the terrain surcharges. */
+.ap-tile {
+    background: rgba(8, 11, 16, .72);
+    border-radius: 3px;
+    color: var(--pt-amber);
+    font-size: clamp(7px, calc(var(--cell) * .16), 11px);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    padding: 0 3px;
+    position: relative;
+    z-index: 2;
+}
+
+.ap-tile.surcharge {
+    color: var(--pt-red);
+}

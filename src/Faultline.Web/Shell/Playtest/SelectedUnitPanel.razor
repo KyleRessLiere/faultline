@@ -27,12 +27,30 @@
                 <div><dt>Footing</dt><dd>@unit.Footing</dd></div>
             </dl>
 
-            <ul class="halves">
-                @* Since D-097 the move half is a budget walked in segments, so the pip reports what
-                   is left rather than a yes or no. *@
-                <li class="@(unit.HasMoved ? "spent" : string.Empty)">Move@(unit.HasMoved ? string.Empty : " " + unit.MoveRemaining + "/" + unit.Move)</li>
-                <li class="@(unit.HasActed ? "spent" : string.Empty)">Action</li>
-            </ul>
+            @* The Action Point pool (MASTER_DESIGN §3): one row of pips, spending down as each
+               movement segment and then the action is taken. Drawn only for a unit the economy
+               applies to — an enemy keeps movement points and gets the old two-halves row. *@
+            @if (ActionPoints.Shows(unit))
+            {
+                <div class="ap-row" title="@ActionPoints.Title(unit)">
+                    <span class="ap-label">@ActionPoints.Label</span>
+                    <span class="ap">
+                        @foreach (var lit in ActionPoints.Pips(unit))
+                        {
+                            <i class="ap-pip @(lit ? "on" : "spent")"></i>
+                        }
+                    </span>
+                    <span class="ap-count">@ActionPoints.Count(unit)</span>
+                </div>
+                <p class="ap-summary">@ActionPoints.Summary(unit)</p>
+            }
+            else
+            {
+                <ul class="halves">
+                    <li class="@(unit.HasMoved ? "spent" : string.Empty)">Move@(unit.HasMoved ? string.Empty : " " + unit.MoveRemaining + "/" + unit.Move)</li>
+                    <li class="@(unit.HasActed ? "spent" : string.Empty)">Action</li>
+                </ul>
+            }
 
             @* The meter, and — in Core's own words, never retyped here — what fills it. A resource
                whose earning condition is not written down is a resource nobody aims for. *@
@@ -89,12 +107,29 @@
             <div class="actions">
                 @foreach (var option in ActionOptions())
                 {
+                    var priced = option.Cost is { } cost ? ActionPoints.Price(unit, cost) : null;
+
+                    @* An action the pool cannot cover is greyed with its number still on it: the
+                       cost is the reason it is greyed, so hiding the cost hides the reason. *@
                     <button type="button"
-                            class="mode @(IsOn(option) ? "on" : string.Empty)"
+                            class="mode @(IsOn(option) ? "on" : string.Empty) @(priced is { Affordable: false } ? "unaffordable" : string.Empty)"
                             disabled="@(!option.Available)"
                             @onclick="() => Arm(option)">
-                        <span class="mode-name">@option.Name</span>
+                        <span class="mode-head">
+                            <span class="mode-name">@option.Name</span>
+                            @if (priced is { } price)
+                            {
+                                <span class="ap-cost @(price.Affordable ? "afford" : "short")"
+                                      title="@(price.Chip + (price.Affordable ? string.Empty : " — " + price.Shortfall + " short"))">
+                                    @price.Chip
+                                </span>
+                            }
+                        </span>
                         <span class="mode-effect">@option.Effect</span>
+                        @if (priced is { Hint.Length: > 0 } hinted)
+                        {
+                            <span class="ap-hint">@hinted.Hint</span>
+                        }
                     </button>
                 }
             </div>
@@ -134,6 +169,8 @@
     /// <summary>
     /// One button in the action row. <paramref name="Ability"/> is set only for an ability, because a
     /// unit may bring several and the mode alone no longer says which one a button arms.
+    /// <paramref name="Cost"/> is null for Move, which is priced a tile at a time on the board
+    /// rather than as one number on a button.
     /// </summary>
     private sealed record ActionOption(
         ActionMode Mode,
@@ -141,7 +178,8 @@
         string Effect,
         bool Available,
         Ability? Ability = null,
-        UnitId? Clinging = null);
+        UnitId? Clinging = null,
+        int? Cost = null);
 
     private bool IsOn(ActionOption option) =>
         option.Clinging is { } clinging
@@ -182,8 +220,16 @@
             yield break;
         }
 
+        // Move carries no chip: it is priced a tile at a time, and the board prints that price on
+        // the tiles themselves. Core has no notion of a button, so the mapping from one to a price
+        // is here — but every number in it is an Activation constant, never a literal.
         yield return new ActionOption(
-            ActionMode.Move, "Move", $"up to {unit.Move} MP", Session.IsAvailable(ActionMode.Move));
+            ActionMode.Move,
+            "Move",
+            ActionPoints.Shows(unit)
+                ? $"{Activation.StepCost} {ActionPoints.Label} a tile · {ActionPoints.Remaining(unit)} left"
+                : $"up to {unit.Move} MP",
+            Session.IsAvailable(ActionMode.Move));
 
         var template = unit.Template;
         if (template.Attack != AttackKind.None)
@@ -196,7 +242,11 @@
             }
 
             yield return new ActionOption(
-                ActionMode.Attack, "Attack", effect, Session.IsAvailable(ActionMode.Attack));
+                ActionMode.Attack,
+                "Attack",
+                effect,
+                Session.IsAvailable(ActionMode.Attack),
+                Cost: Activation.ActionCost);
         }
 
         if (template.CanPullWithBasic)
@@ -205,7 +255,8 @@
                 ActionMode.Pull,
                 "Pull",
                 $"range {template.Range} · pull {template.BasicPull}",
-                Session.IsAvailable(ActionMode.Pull));
+                Session.IsAvailable(ActionMode.Pull),
+                Cost: Activation.ActionCost);
         }
 
         // One button per ability the archetype brings, not one button called "the ability": the
@@ -216,7 +267,12 @@
                 && Session.IsAbilityAvailable(ability.Ability);
 
             yield return new ActionOption(
-                ActionMode.Ability, ability.Name, ability.Effect, usable, ability.Ability);
+                ActionMode.Ability,
+                ability.Name,
+                ability.Effect,
+                usable,
+                ability.Ability,
+                Cost: Activation.CostOf(ability.Ability));
         }
 
         // D-083: a rescue is listed whenever an ally is hanging, whether or not this unit can do
@@ -237,7 +293,8 @@
                 "Rescue " + clinging.Name,
                 blocked.Length > 0 ? blocked : "action · then pick a side",
                 blocked.Length == 0 && Session.IsAvailable(ActionMode.Rescue),
-                Clinging: clinging.Id);
+                Clinging: clinging.Id,
+                Cost: Activation.FullPool);
         }
 
         // Same treatment for the free kick: an adjacent enemy on a ledge is a whole activation of
@@ -255,7 +312,8 @@
                 ActionMode.Finish,
                 "Kick in " + clinging.Name,
                 adjacent ? "free action" : "not adjacent",
-                adjacent && Session.IsAvailable(ActionMode.Finish));
+                adjacent && Session.IsAvailable(ActionMode.Finish),
+                Cost: Activation.Free);
         }
     }
 }

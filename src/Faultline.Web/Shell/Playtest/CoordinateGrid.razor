@@ -106,6 +106,14 @@
                         <span class="cone" aria-hidden="true"></span>
                         <span class="cast-outcome">@PlaytestText.CastOutcome(State, cell)</span>
                     }
+
+                    @* Every tile of the route carries its own price: the running Action Point total
+                       on arrival, and the surcharge in brackets where the terrain charges one. A
+                       climb that costs two is not something a player should have to count. *@
+                    @if (ApLabel(cell) is { Length: > 0 } price)
+                    {
+                        <span class="ap-tile @(IsSurcharged(cell) ? "surcharge" : string.Empty)">@price</span>
+                    }
                 </button>
             }
         }
@@ -265,6 +273,26 @@
     }
 
     private bool IsDeployTarget(Coord coord) => Session.DeployTargets.ContainsKey(coord);
+
+    /// <summary>
+    /// What this tile costs on the route being previewed, or empty when it is not on one. Only a
+    /// walk is priced per tile — an ability's projected line is a shape, not a journey.
+    /// </summary>
+    private string ApLabel(Coord coord)
+    {
+        if (!View.RangePreview
+            || Session.Mode != ActionMode.Move
+            || Session.SelectedUnit is not { } unit
+            || !Session.ProjectedPath.Contains(coord))
+        {
+            return string.Empty;
+        }
+
+        return ActionPoints.TileLabel(State, unit, coord);
+    }
+
+    private bool IsSurcharged(Coord coord) =>
+        Session.SelectedUnit is { } unit && ActionPoints.IsSurcharged(State, unit, coord);
 
     private bool IsClickable(Coord coord, Unit? unit) =>
         !Animator.Busy
