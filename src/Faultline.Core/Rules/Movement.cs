@@ -153,13 +153,14 @@ namespace Faultline.Core
         /// <returns>The cost in movement points.</returns>
         public static int StepCost(TileType tile, Unit unit)
         {
-            // Brief §2: climbing onto HighGround costs +1, except for the Archer.
+            // Brief §2: climbing onto HighGround costs +1, except for the Archer. Under the AP
+            // turn that surcharge is denominated in AP like every other one (MASTER_DESIGN §3).
             if (tile == TileType.HighGround && !unit.Template.FreeClimb)
             {
-                return 2;
+                return Activation.ClimbCost;
             }
 
-            return 1;
+            return Activation.StepCost;
         }
 
         private static bool TryPickCheapest(

@@ -126,7 +126,8 @@ namespace Faultline.Core
         public int Move => Template.Move;
 
         /// <summary>
-        /// Movement points still available this activation. Zero once the move half is closed.
+        /// Points still available this activation - action points for a player unit, movement
+        /// points for an enemy. Zero once the activation is closed.
         /// </summary>
         public int MoveRemaining
         {
@@ -137,7 +138,7 @@ namespace Faultline.Core
                     return 0;
                 }
 
-                int left = Move - MoveSpent;
+                int left = Activation.Pool(this) - MoveSpent;
                 return left < 0 ? 0 : left;
             }
         }
