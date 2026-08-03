@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-02f** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-02i** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,16 +16,29 @@ Last design session: 2026-08-02.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-02 (i) — LOCKED: the Action Point turn (player-side only) — 3 AP, 1 AP/tile, one
+  action ever; acting costs legs (kiting reined in: acting units cover 2, Husks cover 3).
+  Costs: attack/light skills 1, Reel 2 (range 3→4), Rescue and Bull Rush full-pool. Pools are
+  grammar (uniform; differentiation lives in costs and earned upgrades). Fisher LoS experiment
+  rejected — the line flies over rocks, the slam stays; drag trickle added (+1 on 3+ tile
+  drags). Terrain surcharges unified into AP. Enemies exempt (pillar 2 clarified: physics
+  symmetric, economy deliberately not). Turn-limit audit rider on the migration.
+2026-08-02 (h) — Governance correction (drift report from repo intake): §16 rewritten for the
+  download-pipeline workflow; design-branch /pull-design text retired. No design changes.
+2026-08-02 (g) — LOCKED: the meter is named PLUCK again — title and resource share the word
+  deliberately (ducks with pluck spend Pluck). Moxie retired; understudies (Gumption, Grit)
+  stand by if the shared word confuses in playtest. AP economy prototype still in workshop,
+  not yet in this doc.
 2026-08-02 (f) — Workflow: Google Doc retired. The `design` branch is the doc inbox (browser
   upload fine); /pull-design promotes to main with diff review + drift audit; one filename,
   version stamp in the header.
-2026-08-02 (e) — LOCKED: the game is named PLUCK. The class meter renames Pluck → MOXIE
-  (display-layer only). Pluckwater pocketed as the town's name. Ownability/storefront check +
+2026-08-02 (e) — LOCKED: the game is named PLUCK. The class meter briefly renamed to Moxie
+  (reversed in g — see below). Pluckwater pocketed as the town's name. Ownability/storefront check +
   subtitle owed before public use. Spoils-draft camp expansion remains in workshop.
 2026-08-02 (d) — LOCKED: Camp v2 (per-fight 1-of-2 pure power from rarity pool; Mend removed),
   Spire-style act maps (healing only at Rest nodes: heal OR forge), Bedraggled (downed return at
   quarter HP round up min 1, skip first activation, no AI preference), the Great Doubling (all
-  HP/damage/healing ×2; Moxie economy, tiles, ranges, counts unchanged).
+  HP/damage/healing ×2; Pluck economy, tiles, ranges, counts unchanged).
 2026-08-02 (c) — Doc moved to Google Drive as the living master (since retired, see f); §13/§14
   refreshed vs the D-095–099 handoff; Design Log added.
 2026-08-02 (b) — Meter named (ex-Verve), Preen, spear tip sweet spot, Camp & Molt structure,
@@ -78,7 +91,7 @@ generation, and the town grows.
 # 3 · Core rules
 *(All HP, damage, and healing values are on the DOUBLED scale — the Great Doubling, locked
 2026-08-02(d): a pure ×2 rescale for granularity headroom; every ratio and law unchanged. NOT
-doubled: the Moxie economy, Footing, distances/ranges/radii, movement and MP costs, turn limits,
+doubled: the Pluck economy, Footing, distances/ranges/radii, movement and MP costs, turn limits,
 wave schedules, slot and mod counts.)*
 
 ## Board & terrain
@@ -96,7 +109,7 @@ water moving somewhere else — ducks don't drown, they get swept.
 **Debris** (`o`): standing piece. Occupies tile, blocks movement, 4 HP, allegiance-less, never
 activates. Attackable; displaceable by any push/pull. Unit into debris: 4 both. Debris into unit:
 4 + Stagger. Debris into structure: full collision damage. Swept in drains. No statuses/Footing/
-Moxie; v1 AI ignores it. (v2 parked: drain-plugging, AI shoving debris.)
+Pluck; v1 AI ignores it. (v2 parked: drain-plugging, AI shoving debris.)
 
 **Movement pathing (ruled — segmented clicks, fastest path):** movement is incremental: while
 the Move half is open, each click is a segment and the reachable highlight re-shrinks to
@@ -129,12 +142,12 @@ lethal attack, above all else). Voided/Swept (permanent for the run; out of the 
 (round up, min 1: 14→4, 8→2)** and **skips its first activation** (deploys normally; its first
 slot does not exist — the side has one fewer activation in round 1). Deployment UI marks
 Bedraggled units loudly; round-1 enemy targeting treats them like any other unit — no AI
-preference for the wounded. Moxie and learned abilities intact.
+preference for the wounded. Pluck and learned abilities intact.
 
 **Doomed-cling resolution:** when no standing enemy remains AND no pending reinforcement wave
 could arrive to rescue, all clinging enemies are swept immediately and the fight resolves (waves
 pending → cling plays out normally; a wave rescue is a feature). Symmetric: all remaining player
-units clinging with no possible rescuer → swept immediately, loss resolves. Moxie charges fire
+units clinging with no possible rescuer → swept immediately, loss resolves. Pluck charges fire
 at hazard ENTRY (Clinging onset), never at sweep — the Fisher is paid before any
 auto-resolution; auto-sweeps emit the full normal event chain identical to a natural sweep.
 
@@ -147,9 +160,29 @@ player; authors encouraged to make zones asymmetric.
 Round: intents declared (locked; re-plan only on invalidation, visibly) → activations alternate
 initiative-holder's unit / enemy / other player / enemy… → round end (Clinging, Stagger clears).
 
-**Activation = optional Move, then optional Action — the Action ends the activation.** No
-movement after acting (protects the telegraph economy; curbs kiting). "Move after acting" is a
-premium verb sold via Moxie or future kits. Pass is a bare pass (no charge value).
+**Activation — the Action Point turn (players only):** each duck activates with **3 AP**.
+Movement spends first at **1 AP per tile** (terrain surcharges unify into AP: brambles 2 AP to
+enter + 2 damage; climb 2 AP, Archer 1). Then **exactly ONE action, which ends the activation**
+— AP prices how far you moved before your action, never how many actions; no movement after
+acting (protects the telegraph economy). Spending all 3 AP on movement is legal (the dash needs
+no button — it is today's full move, gated on forfeiting your action). **Acting costs legs:**
+an attacking unit covers ≤2 tiles while a Husk covers 3 — enemies outpace anyone who fights
+back; kiting is a countdown, not a stall. Pluck spends cost 0 AP (free-timing, one per
+activation, unchanged). "Move after acting" remains a premium verb sold via mods/legendaries.
+Pass is a bare pass.
+
+**Action costs:** basic attacks 1 · Stagger Shot 1 · Spear Thrust 1 · Guard Stance 1 · Fisher's
+flick 1 · **Reel 2** · kick-in 0 · interact 1 · **Rescue 3 (full pool — drop everything; reach
+3 preserved)** · **Bull Rush 3 (full pool, no pre-move — his charge was always priced as
+everything)** · any Pluck spend 0.
+
+**Design law (appended to §2 in spirit): pools are grammar.** The AP pool is uniform across all
+player ducks — differentiation lives in ACTION COSTS and EARNED upgrades (Camp's +1 AP pick,
+future pool-as-identity hybrids), never in base pools. Enemies do NOT use AP — authored
+behaviors and stat-lines unchanged; pillar 2 clarified: physics symmetric, economy deliberately
+not. Balance rider: campaign turn limits need a +1–2 audit (fighting through now takes longer);
+Camp's Tempo "+1 Move" becomes "+1 AP" (once per duck, promoted to uncommon; Vanguard
+eligibility flagged for review — move-1-then-Bull-Rush extends his threat range).
 
 # 4 · Player classes (final kits — doubled scale)
 
@@ -157,24 +190,24 @@ premium verb sold via Moxie or future kits. Pass is a bare pass (no charge value
 |---|---|---|---|---|
 | **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush**: charge ≤3 in a line, first enemy hit pushed 2, stop adjacent (fused move+act) |
 | **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away. Climbs HighGround free |
-| **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 | **Reel**: pull one enemy in range 3 all the way to adjacent, every tile resolved |
-| **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Moxie, structure-aimed included) |
+| **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
+| **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
 
 Hold aura: deleted. The formerly-held Archer damage change is retired in favor of minimum
 range 2 (see §13).
 
-# 5 · Moxie (in-run class meters; supersedes Momentum)
-*(renamed Verve → Pluck → Moxie; the game itself took the word Pluck)*
+# 5 · Pluck (in-run class meters; supersedes Momentum)
+*(was Verve, briefly Moxie; the title and the meter now share the word Pluck deliberately)*
 
 Per-unit meter, **cap 5, carries between fights**, overflow wasted. Charged only by class-identity
 acts affecting an enemy; spending is free-timing within own activation, one spend per activation.
-Downed ducks keep Moxie; swept ducks lose it. Meter + condition printed on the unit card; ticks
+Downed ducks keep Pluck; swept ducks lose it. Meter + condition printed on the unit card; ticks
 at the moment of the deed.
 
 | Class | +1 when… | Spender | Cost | Effect |
 |---|---|---|---|---|
 | Vanguard | causes a collision | **Wrecking Weight** | 2 | next push: 2 dmg on contact, +1 distance (collision stacks) |
-| Fisher | her displacement ends in collision/hazard | **Cast** | 3 | target an enemy within range 3 (lob — grab ignores everything between, even screens) and place it on any unoccupied non-wall tile within radius 1 of her (long rod, short landing: to drain-cast she must stand at the drain's edge). Landing applies shoved-onto effects; hazard landings charge her. A THROW: resist doesn't apply; boss negate-tokens DO. **Footing vs Cast: the catch squirms — target diverts to the first legal non-hazard tile in her radius-1 (N/E/S/W); no alternate → Footing unspendable, landing stands.** Independent of Reel: one activation can Reel one enemy (action) and Cast another (spend) |
+| Fisher | her displacement ends in collision/hazard, **or a Reel drags an enemy 3+ tiles** (paid for fishing, not only landed catches; a long drag INTO a collision pays twice) | **Cast** | 3 | target an enemy within range 3 (lob — grab ignores everything between, even screens) and place it on any unoccupied non-wall tile within radius 1 of her (long rod, short landing: to drain-cast she must stand at the drain's edge). Landing applies shoved-onto effects; hazard landings charge her. A THROW: resist doesn't apply; boss negate-tokens DO. **Footing vs Cast: the catch squirms — target diverts to the first legal non-hazard tile in her radius-1 (N/E/S/W); no alternate → Footing unspendable, landing stands.** Independent of Reel: one activation can Reel one enemy (action) and Cast another (spend) |
 | Archer | hits an enemy from high ground | **Double Nock** | 4 | attack twice this action |
 | Wardbearer | absorbs via Guard Stance (**only if the absorb dealt damage or moved him ≥1 — fully-negated redirects charge nothing**) | **Preen** | 3 | heal himself 4 (cap at max) |
 
@@ -211,7 +244,7 @@ Footing auto-spends only vs drains.
 **Boss — Quarry King** (snapping-turtle warden of the Locks, species provisional): HP 28,
 Move 1, melee 6 + push 1. **3 shell tokens: while any remain, every displacement against him
 reduces to 0** (throws included). Token stripped on suffering a collision or ending a round
-adjacent to a drain. At ≤14 HP: shell off → Move 3, gains Bull Rush. Drain-void legal and smart.
+adjacent to a drain. At ≤14 HP: shell off — Move 3, gains Bull Rush. Drain-void legal and smart.
 No AoE in v1.
 
 # 7 · Structures & objectives (doubled scale)
@@ -263,7 +296,7 @@ the teaching zone (Warrens), always first. Act 2 — player-chosen from the midd
 Quarry King (the False Crown). **Boss down → Rest (full heal) → the Molt → next zone.** Beat the
 third boss → run won → **the generation passes** (survivors home to Pluckwater, pairing,
 inheritance; a lost run passes the generation with whoever sailed home). Bosses owed: Warrens
-boss + one per middle territory. Downed return Bedraggled (§3); swept are gone with their Moxie
+boss + one per middle territory. Downed return Bedraggled (§3); swept are gone with their Pluck
 and tricks. A fully-swept side ends the run. Collision damage stays allegiance-blind.
 
 # 8.5 · The Camp, the Map, and the Molt (in-run progression)
@@ -277,8 +310,8 @@ common/uncommon · elite or risky event: legendary chances · Molt: guaranteed b
 
 | Tier | Contents |
 |---|---|
-| **Common** | stat modifiers (+2 max HP, +1 Move, +1 Footing/fight — per-duck caps stand), Moxie economy (start fights with 1 banked, small refunds) |
-| **Uncommon** | ability modifiers (cheaper / stronger / economy axes), Learn (new spender into an open slot), alternative Moxie generation (additional class-bound charge conditions — moved from Molt-exclusive into the pool), Moxie cap +1, Replace, Swap (kit-hook tags) |
+| **Common** | stat modifiers (+2 max HP, +1 Move, +1 Footing/fight — per-duck caps stand), Pluck economy (start fights with 1 banked, small refunds) |
+| **Uncommon** | ability modifiers (cheaper / stronger / economy axes), Learn (new spender into an open slot), alternative Pluck generation (additional class-bound charge conditions — moved from Molt-exclusive into the pool), Pluck cap +1, Replace, Swap (kit-hook tags) |
 | **Legendary** | rule-breakers: each legendary breaks ONE law the game otherwise enforces, sourced from the parked list (Friendly Cast — Cast targets allies; Follow Through — move 2 after causing a collision; Kestrel Step — the Archer's paid kiting; Point Blank — Double Nock ignores min range from high ground; stance-persistence; catalog to be drafted ~2 per class). Also: 3rd slot unlock, cap +2, a spender arriving pre-modded |
 
 **Capacity:** 3 spender slots max per duck — slots 1–2 fillable from act 1; **slot 3 is itself a
@@ -301,7 +334,7 @@ Learn (slot 3 + a spender with one free mod). Two Molts before the Locks. Full h
 act-boss Rest.
 
 **Hard rules:** upgrades never touch BASIC attack or collision numbers; spender-effect mods may
-scale within the ladder, never exceeding 6, all Moxie-gated. Stat picks capped per duck; drawn
+scale within the ladder, never exceeding 6, all Pluck-gated. Stat picks capped per duck; drawn
 camp offers differ in category where possible. **If spirals prove unrecoverable in playtest, the
 dial is Rest-node frequency on the map — never a menu heal.**
 
@@ -355,7 +388,7 @@ structures; segmented movement + fastest path; displacement causer attribution; 
 range 2.
 **In flight / queued:** the Great Doubling migration (atomic session: stats, tests, fixtures,
 .fight files, harness re-baseline — all historical harness numbers get a pre-doubling asterisk);
-Husk Shoulder session; broken-bridge stall diagnosis; Moxie economy pass (Cast 3→2, Double Nock
+Husk Shoulder session; broken-bridge stall diagnosis; Pluck economy pass (Cast 3→2, Double Nock
 4→3, measured charge-condition gate); cb-06 tune; comparative re-baseline. Then: human playtest
 of campaign 1–6 (the gate through which everything else passes) → Camp/Map/Molt & Bedraggled →
 collapse clock ("the flood") → territories → Generations → endgame.
@@ -371,7 +404,7 @@ Behemoth/multi-tile enemies (flagship later); drain-plugging.
 
 1. Does Move-then-Act feel rigid to humans? (cheap reversal if so)
 2. Wardbearer survivability under Rest-only healing — harness tracking end-fight HP.
-3. Fisher Moxie earn rate — Cast cost cut + causer attribution may close it; measure before
+3. Fisher Pluck earn rate — Cast cost cut + causer attribution may close it; measure before
    widening conditions.
 4. cb-06 as fight 2 — lethal to naive play; re-judge after shove-scoring policy + human data.
 5. Rest-node frequency per act map (the anti-spiral dial).
@@ -390,10 +423,11 @@ yank out of position — Reel, Cast, the displacement thesis itself), and the st
 to a duck that loses). One syllable, ownable pending a storefront/collision check (owed before
 any public use; a subtitle may ride along for search).
 
-**Ruled: the class charge meter is MOXIE** (was Pluck, was Verve) — the title takes the word; the
-resource yields it. "Spend 2 Moxie" reads clean. No code identifiers existed under any prior
-name — the rename is pure display-layer data. Understudies if Moxie sours in playtest: Gumption,
-Grit.
+**Ruled: the class charge meter is PLUCK — the title and the resource share the word,
+deliberately.** Ducks with pluck spend Pluck in a game called PLUCK; the double-use is flavor,
+not accident. UI writing discipline: never construct the sentence "Pluck costs Pluck" — cost
+lines read "3" on the meter chip, not the word twice. No code identifiers churn (display-layer
+data). Understudies if the shared word confuses in playtest: Gumption, Grit.
 
 **Ruled: the Threadcaster is THE FISHER.** **Ruled: default Dock loadout is Vanguard + Fisher /
 Wardbearer + Archer** (supersedes D-007; free draft unchanged).
@@ -410,10 +444,13 @@ stay decoupled from code identifiers throughout — renames are data.
 # 16 · Governance
 
 Rulings are made in design sessions and **locked explicitly** — discussion is free; nothing
-enters this file until the designer confirms the lock. This file is updated in the same session
-as any locked ruling, with a Design Log line per session and a matching header version stamp —
-a ruling not reflected here is not final. **The `design` branch is the doc inbox:** the latest
-MASTER_DESIGN.md is uploaded there (browser upload is fine, single filename always);
-`/pull-design` promotes it to main with a reviewed diff and a drift audit. Agents implement from
-session prompts derived from this file; GAMEPLAY.md tracks what actually shipped; divergence
-goes to DECISIONS.md. Superseded design docs are archived, not edited.
+enters this file until the designer confirms the lock. Each locked session updates this file
+with a Design Log line and a matching header version stamp — a ruling not reflected here is not
+final. **Delivery:** the stamped file travels by the designer's automated download pipeline,
+landing at `docs/MASTER_DESIGN.md` in the repo with prior versions auto-archived. The repo
+treats that path as INBOUND-ONLY design authority: agents never edit it — a disagreement with
+code becomes a DECISIONS.md entry and a report back to the designer, and the fix returns in the
+next stamped version (this paragraph is itself the product of that loop). On arrival the repo
+commits it alone and runs the drift audit. Agents implement from session prompts derived from
+this file; GAMEPLAY.md tracks what actually shipped; divergence goes to DECISIONS.md.
+Superseded design docs are archived, not edited.
