@@ -15,7 +15,10 @@
     display: grid;
     flex: 1 1 auto;
     gap: var(--pt-gap);
-    grid-template-columns: minmax(0, 15fr) minmax(0, 47fr) minmax(0, 19fr) minmax(0, 19fr);
+    /* Widened from 15fr when the turn order and the selected unit moved in beside the objective:
+       the strip is a row of portraits and squeezing it into the narrowest column would make it
+       scroll from the first round. The middle column gave up the room, having lost two panels. */
+    grid-template-columns: minmax(0, 20fr) minmax(0, 45fr) minmax(0, 16fr) minmax(0, 19fr);
     min-height: 0;
     padding: var(--pt-gap);
 }

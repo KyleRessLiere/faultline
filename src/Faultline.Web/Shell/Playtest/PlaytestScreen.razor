@@ -11,9 +11,17 @@
 
     <div class="pt-main">
         @* Left of the board and never in a menu: what the fight wants is not a thing to go looking
-           for (§3.5). It collapses above the board on narrow viewports rather than folding away. *@
+           for (§3.5). It collapses above the board on narrow viewports rather than folding away.
+
+           The turn order and the selected unit sit here too, because both are read *while looking at
+           the board* rather than consulted between decisions: the strip answers "who goes next" and
+           the unit panel answers "what can this one do", and both were on the far side of the board
+           from the piece they describe. Whose turn it is and what that unit is are the two questions
+           a player asks continuously, so they belong against the board, not across the screen. *@
         <section class="pt-col pt-col-objective">
             <ObjectivePanel />
+            <TurnOrderPanel />
+            <SelectedUnitPanel />
         </section>
 
         <section class="pt-col pt-col-board">
@@ -24,8 +32,6 @@
            tabs inside it rather than panels of their own, so nothing above it ever moves. *@
         <section class="pt-col pt-col-mid">
             <TurnSummaryPanel />
-            <TurnOrderPanel />
-            <SelectedUnitPanel />
             <EnemyIntentsPanel />
             <ReferencePanel />
         </section>
