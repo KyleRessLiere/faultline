@@ -51,6 +51,29 @@ So the chain is: **MASTER_DESIGN says what it should be, GAMEPLAY says what it i
 those differ.** A gap between the first two is either unbuilt design or a missing DECISIONS entry —
 never something to quietly close by editing one of them to match the other.
 
+**Implementation sessions receive prompts derived from `docs/MASTER_DESIGN.md`.** When the prompt and
+the code contradict each other, **write the DECISIONS entry; never silently pick a side.** Picking
+silently is how the two documents stop being able to disagree, which is the whole reason they are
+separate files.
+
+### How a new design version arrives
+
+Design rulings are locked in design sessions — nothing is final until the designer says so — and they
+reach the repo as an **updated `docs/MASTER_DESIGN.md`**. Always the same filename; the version lives
+in the header stamp, which matches the newest **Design Log** line at the top of the file. The `design`
+branch is the inbox (a browser upload onto it is a legitimate way to deliver one).
+
+When a newer file arrives: **diff it against the repo copy, lead the report with the new Design Log
+lines, and commit it alone** — `git add -- docs/MASTER_DESIGN.md`, no other path in that commit.
+Then run the drift audit (`/sync-design`) and *report* what the new rulings contradict. Syncing the
+design and changing the game are separate acts; a sync that quietly rewrote rules would make the
+mirror untrustworthy.
+
+**The game is PLUCK** (working title through mid-2026: *Faultline*, which is still the namespace, the
+project names and the repo). The class meter is **Moxie** on screen and `Verve` in the code; the
+Fisher is `Threadcaster` in the code. Display names are decoupled from code identifiers on purpose
+(MASTER_DESIGN §15) — a rename is data in `Naming.cs`, never a sweep through the C#.
+
 A Stop hook (`.claude/hooks/check-gameplay-doc.sh`) blocks the turn when anything under
 `src/Faultline.Core/{Rules,Displacement,Abilities,Fights,Units,Board}` changes without GAMEPLAY.md
 changing too. If a change genuinely alters no observable rule — a refactor, a comment — say so

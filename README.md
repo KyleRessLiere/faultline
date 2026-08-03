@@ -1,9 +1,17 @@
-# Faultline
+# PLUCK
 
-A 2-player hotseat co-op turn-based tactics game where displacement is the primary mechanic and the
-board is the primary weapon.
+A 2-player hotseat co-op turn-based tactics roguelike where displacement is the primary mechanic and
+the board is the primary weapon. You play ducks in a lighthearted rebellion against an animal
+aristocracy, and the deadliest thing on any board is the plumbing.
 
-- [AGENT_BRIEF.md](AGENT_BRIEF.md) — what the game is meant to be. The spec.
+*Named 2026-08-02. The working title was **Faultline**, which survives as the namespace, the project
+names and the repo directory — display names are decoupled from code identifiers on purpose
+(MASTER_DESIGN §15), so renaming the game renamed no C#.*
+
+- [docs/MASTER_DESIGN.md](docs/MASTER_DESIGN.md) — **the design authority**: what the game is meant to
+  be. Every locked ruling lives here, and a ruling not reflected here is not final.
+- [AGENT_BRIEF.md](AGENT_BRIEF.md) — the original brief, and historical intent. Superseded by
+  MASTER_DESIGN wherever the two disagree.
 - [GAMEPLAY.md](GAMEPLAY.md) — **what the game is today**, with real numbers. Start here to understand
   how it actually plays.
 - [DECISIONS.md](DECISIONS.md) — why those two differ, wherever they do.
