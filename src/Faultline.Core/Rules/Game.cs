@@ -439,6 +439,29 @@ namespace Faultline.Core
             return null;
         }
 
+        /// <summary>
+        /// The units the active side could activate right now, in the order the rules consider them.
+        /// </summary>
+        /// <remarks>
+        /// Internal rather than private so <see cref="TurnOrder"/> names the enemy the same way the
+        /// rules do: the first pending unit in <see cref="GameState.Units"/> order, with no sort and
+        /// no tiebreak ladder (D-103).
+        /// </remarks>
+        /// <param name="state">Board to read.</param>
+        /// <returns>Candidates in rules order.</returns>
+        internal static IEnumerable<Unit> Activatable(GameState state) => ActivationCandidates(state);
+
+        /// <summary>Whether this side still has somebody who can take a slot.</summary>
+        /// <param name="state">Board to read.</param>
+        /// <param name="team">Side to ask about.</param>
+        /// <returns>Whether the side is pending.</returns>
+        internal static bool SidePending(GameState state, Team team) => HasPending(state, team);
+
+        /// <summary>Whether this unit could take an activation slot at all.</summary>
+        /// <param name="unit">Unit to ask about.</param>
+        /// <returns>On the board and not clinging.</returns>
+        internal static bool CanActivate(Unit unit) => CanAct(unit);
+
         private static IEnumerable<Unit> ActivationCandidates(GameState state)
         {
             if (state.ActiveUnitId.HasValue)
@@ -1054,36 +1077,60 @@ namespace Faultline.Core
                 return BeginRound(state, events);
             }
 
+            NextSlot(state, out var team, out var nextPlayer);
+            return state with { ActiveTeam = team, NextPlayerTeam = nextPlayer, ActiveUnitId = null };
+        }
+
+        /// <summary>
+        /// Who takes the next activation slot, as a pure function of the board. Returns false when
+        /// nobody does, which is the round ending.
+        /// </summary>
+        /// <remarks>
+        /// Extracted so <see cref="AdvanceTurn"/> and <see cref="TurnOrder"/> read the same
+        /// alternation instead of each carrying a copy. Two copies of an activation order drift the
+        /// day somebody touches one of them, and the order is the thing the strip publishes — a
+        /// strip that disagrees with the game is worse than no strip (D-103).
+        ///
+        /// Reads only pendingness and the two team fields, so it can be walked forward over a
+        /// simulated board without any of the round's other machinery running.
+        /// </remarks>
+        /// <param name="state">Board to read.</param>
+        /// <param name="team">Side that takes the slot.</param>
+        /// <param name="nextPlayerTeam">The <see cref="GameState.NextPlayerTeam"/> that goes with it.</param>
+        /// <returns>Whether anybody is left to activate this round.</returns>
+        internal static bool NextSlot(GameState state, out Team team, out Team nextPlayerTeam)
+        {
+            team = state.ActiveTeam;
+            nextPlayerTeam = state.NextPlayerTeam;
+
+            bool playersPending = HasPending(state, Team.PlayerA) || HasPending(state, Team.PlayerB);
+            bool enemiesPending = HasPending(state, Team.Enemy);
+
+            if (!playersPending && !enemiesPending)
+            {
+                return false;
+            }
+
             Team previous = state.ActiveTeam;
 
             if (previous.IsPlayer())
             {
                 // The next player slot belongs to the other player; the enemy side takes the slot in
                 // between whenever it still has someone to activate.
-                state = state with { NextPlayerTeam = previous.OtherPlayer() };
+                nextPlayerTeam = previous.OtherPlayer();
 
-                if (enemiesPending)
-                {
-                    return state with { ActiveTeam = Team.Enemy, ActiveUnitId = null };
-                }
+                team = enemiesPending
+                    ? Team.Enemy
+                    : PickPlayer(state, nextPlayerTeam) ?? previous;
 
-                return state with
-                {
-                    ActiveTeam = PickPlayer(state, state.NextPlayerTeam) ?? previous,
-                    ActiveUnitId = null,
-                };
+                return true;
             }
 
-            if (playersPending)
-            {
-                return state with
-                {
-                    ActiveTeam = PickPlayer(state, state.NextPlayerTeam) ?? Team.PlayerA,
-                    ActiveUnitId = null,
-                };
-            }
+            team = playersPending
+                ? PickPlayer(state, nextPlayerTeam) ?? Team.PlayerA
+                : Team.Enemy;
 
-            return state with { ActiveTeam = Team.Enemy, ActiveUnitId = null };
+            return true;
         }
 
         private static GameState NormalizeActiveTeam(GameState state)

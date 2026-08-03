@@ -1,0 +1,165 @@
+@inherits PlaytestPanel
+
+@* The activation order, published (D-103). Intents have always said what each enemy will do and
+   nothing has ever said when — and "does the Anchor swing before or after my Wardbearer?" is the
+   most decision-relevant fact on the board.
+
+   Every scrap of order logic is Core's: this reads TurnOrder.Upcoming and draws it. Deliberately no
+   reach shading on hover — D-089 keeps threat painting per-enemy and on demand, and a reach fan
+   under an intent arrow drowns the arrow. *@
+
+@if (Order.Count > 0)
+{
+    <div class="pt-panel turn-order">
+        <h2>
+            Turn order
+            <span class="count">round @State.Round, into @(State.Round + 1)</span>
+        </h2>
+
+        <ol class="strip">
+            @{ int shown = State.Round; }
+            @foreach (var entry in Order)
+            {
+                @if (entry.Round != shown)
+                {
+                    shown = entry.Round;
+                    <li class="seam" aria-label="@($"Round {entry.Round} begins")">
+                        <span class="seam-line"></span>
+                        <span class="seam-label">round @entry.Round</span>
+                        @if (entry.ReinforcementsDue)
+                        {
+                            @* Waves land at round start before intents (D-037). Where an arrival
+                               belongs in the order is undecided, so this says the round is not the
+                               whole story and claims nothing about position. *@
+                            <span class="wave" title="A reinforcement wave lands at the start of this round. Its place in the order is not yet decided.">+ wave</span>
+                        }
+                    </li>
+                }
+
+                <li class="@EntryClass(entry)">
+                    @if (entry.Kind == ActivationKind.PlayerSlot && !entry.IsNamed)
+                    {
+                        @* A slot, not a portrait. Which of a player's units goes is the player's
+                           free choice and the rules hold no answer, so naming one would be
+                           inventing a fact the game does not have. *@
+                        <div class="slot" title="@SlotTitle(entry)">
+                            <span class="slot-mark">?</span>
+                            <span class="who">@PlaytestText.Team(entry.Team)</span>
+                            <span class="candidates">@Candidates(entry)</span>
+                        </div>
+                    }
+                    else
+                    {
+                        var unit = State.FindUnit(entry.UnitId!.Value);
+                        <button type="button"
+                                class="portrait"
+                                disabled="@(unit is null)"
+                                title="@PortraitTitle(entry, unit)"
+                                @onclick="() => Click(entry)">
+                            <span class="art team-@(unit is null ? "e" : PlaytestText.TeamClass(unit.Team))">
+                                @if (unit is not null)
+                                {
+                                    <UnitArt Kind="unit.Kind" Label="@unit.Name" />
+                                }
+                            </span>
+                            <span class="who">@(unit?.Name ?? "—")</span>
+                            @if (unit is not null)
+                            {
+                                <span class="hp">@unit.Hp/@unit.MaxHp</span>
+                            }
+                            @if (entry.Kind == ActivationKind.Skipped)
+                            {
+                                <span class="tag skipped">skipped</span>
+                            }
+                            else if (entry.IsCurrent)
+                            {
+                                <span class="tag now">now</span>
+                            }
+                        </button>
+                    }
+                </li>
+            }
+        </ol>
+
+        <p class="meta">
+            Clicking a portrait reads it. It never gives an order — that is the board's job.
+        </p>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<ActivationEntry> Order => TurnOrder.Upcoming(State);
+
+    /// <summary>
+    /// Inspect always; select as well when this is a unit the active player may actually command.
+    /// The two are deliberately not merged: inspection is universal and read-only, selection is
+    /// gated on whose slot it is, and a control that changes meaning under you is the opposite of a
+    /// tutorial (D-103).
+    /// </summary>
+    private void Click(ActivationEntry entry)
+    {
+        if (entry.UnitId is not { } id)
+        {
+            return;
+        }
+
+        Session.Inspect(id);
+
+        if (Session.Selectable.Contains(id))
+        {
+            Session.Select(id);
+        }
+    }
+
+    private string EntryClass(ActivationEntry entry)
+    {
+        var classes = new List<string> { "entry", entry.Kind.ToString().ToLowerInvariant() };
+
+        if (entry.IsCurrent)
+        {
+            classes.Add("current");
+        }
+
+        if (entry.Round != State.Round)
+        {
+            classes.Add("peeked");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string Candidates(ActivationEntry entry)
+    {
+        var names = new List<string>();
+        foreach (var id in entry.Candidates)
+        {
+            if (State.FindUnit(id) is { } unit)
+            {
+                names.Add(unit.Name);
+            }
+        }
+
+        return names.Count == 0 ? "—" : string.Join(" / ", names);
+    }
+
+    private string SlotTitle(ActivationEntry entry) =>
+        $"{PlaytestText.Team(entry.Team)}'s slot in round {entry.Round}. "
+        + $"Either of {Candidates(entry)} may take it — that choice is the player's, so the order cannot name one.";
+
+    private string PortraitTitle(ActivationEntry entry, Unit? unit)
+    {
+        if (unit is null)
+        {
+            return "No longer on the board.";
+        }
+
+        var when = entry.IsCurrent ? "acting now" : $"round {entry.Round}";
+
+        return entry.Kind switch
+        {
+            ActivationKind.Skipped =>
+                $"{unit.Name} is clinging and takes no activation — its side has one fewer this round. Click to read it.",
+            _ => $"{unit.Name} — {when}. Click to read it.",
+        };
+    }
+}

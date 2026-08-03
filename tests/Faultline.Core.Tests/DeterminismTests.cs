@@ -125,6 +125,29 @@ public class DeterminismTests
         Assert.Equal(played.GetHashCode(), replayed.GetHashCode());
     }
 
+    // The activation order is a Core query, and a query that answered differently on a second ask
+    // would put a strip on screen that disagrees with the game (D-103).
+    [Fact]
+    public void TurnOrder_IsPure_SameStateGivesTheSameList()
+    {
+        var start = Game.Start(FightLibrary.Fight1(), seed: 4242).NewState;
+        var (played, _) = TestPlay.PlayFirstLegal(start, maxSteps: 40);
+
+        var first = TurnOrder.Upcoming(played);
+        var second = TurnOrder.Upcoming(played);
+
+        Assert.NotEmpty(first);
+        Assert.Equal(first, second);
+        Assert.Equal(first.Count, second.Count);
+
+        // And the same board rebuilt from the same seed answers the same, not merely the same object.
+        var rebuilt = TestPlay.Replay(
+            Game.Start(FightLibrary.Fight1(), seed: 4242).NewState,
+            TestPlay.PlayFirstLegal(Game.Start(FightLibrary.Fight1(), seed: 4242).NewState, maxSteps: 40).Log);
+
+        Assert.Equal(first, TurnOrder.Upcoming(rebuilt));
+    }
+
     [Fact]
     public void SeededRng_SameSeedProducesTheSameSequence()
     {

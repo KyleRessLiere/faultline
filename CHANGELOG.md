@@ -19,6 +19,19 @@
   with a command-not-found.
 - `dist/` is gitignored: a shareable build is a binary and belongs in a message, not in the history.
 
+## You can see whose turn is next
+
+- **The activation order is published** as a strip of portraits covering the rest of this round and
+  the opening of the next, so the round seam — where an enemy swings twice with nothing of yours
+  in between — stops being an ambush (D-103).
+- Enemies are named; a player's future place is a **slot with its candidates**, because which of
+  your two goes is your choice and the rules hold no answer to publish. A clinging unit sits greyed
+  and marked skipped, taking no slot and changing nothing about the alternation.
+- **Clicking a portrait reads that unit and never commands it.** Inspection now covers every unit on
+  the board rather than enemies only, which is what left half the strip clicking into nothing.
+- The order is a Core query walking the same code the rules walk, so the strip and the game cannot
+  disagree.
+
 ## The Warden becomes a door you can break
 
 - **Two negating Footing tokens instead of push resistance 1.** While they stand nothing shoves or

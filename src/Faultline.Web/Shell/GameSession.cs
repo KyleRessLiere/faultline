@@ -207,15 +207,24 @@ public sealed class GameSession
         InspectedUnit is null ? null : EnemyBehaviour.ForKind(InspectedUnit.Kind);
 
     /// <summary>
-    /// Whether a unit has a dossier to show: an enemy of an archetype Core can describe. Player
-    /// units are served by the action panel and are not inspected here.
+    /// Whether a unit can be inspected: <b>any unit on the board</b>, either side (D-103).
     /// </summary>
+    /// <remarks>
+    /// It used to be enemy-only, on the grounds that "player units are served by the action panel".
+    /// That was true of the board and false of the activation strip, where half the portraits are
+    /// yours and clicked into nothing. Inspect is universal and read-only; <see cref="Select"/> stays
+    /// gated on whose slot it is, and where a clicked unit is one you may command both fire — that
+    /// coincidence is not a licence to merge them.
+    ///
+    /// A player kind has no <see cref="EnemyBehaviour"/> and never will; the panel handles the null
+    /// rather than this guard turning it into "not inspectable", which is what made the strip dead
+    /// on its own side.
+    /// </remarks>
     /// <param name="unit">Unit to test.</param>
     /// <returns>Whether inspecting it would show anything.</returns>
-    public static bool CanInspect(Unit? unit) =>
-        unit is not null && unit.Team == Team.Enemy && EnemyBehaviour.ForKind(unit.Kind) is not null;
+    public static bool CanInspect(Unit? unit) => unit is not null && unit.IsOnBoard;
 
-    /// <summary>Reads an enemy's character sheet, in the reference panel. Anything else is ignored.</summary>
+    /// <summary>Reads a unit's character sheet, in the reference panel. Anything else is ignored.</summary>
     /// <param name="id">Unit to inspect.</param>
     public void Inspect(UnitId id)
     {

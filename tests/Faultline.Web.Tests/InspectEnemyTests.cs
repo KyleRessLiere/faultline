@@ -20,6 +20,24 @@ public sealed class InspectEnemyTests
     private static Unit FirstEnemy(GameSession session) =>
         session.State.Units.First(u => u.Team == Team.Enemy);
 
+    // Player units are not on the board until deployment is over, and CanInspect asks for a unit on
+    // the board — so a test about reading your own duck has to put it there first.
+    private static GameSession Deployed(string fightId)
+    {
+        var session = SessionOn(fightId);
+        for (int i = 0; i < 40 && session.State.Phase == Phase.Deployment; i++)
+        {
+            if (session.Legal.Count == 0)
+            {
+                break;
+            }
+
+            session.Submit(session.Legal[0]);
+        }
+
+        return session;
+    }
+
     [Fact]
     public void Inspect_Enemy_OpensTheDossierOnThatUnit()
     {
@@ -33,15 +51,40 @@ public sealed class InspectEnemyTests
     }
 
     [Fact]
-    public void Inspect_PlayerUnit_ShowsNothing()
+    // Inverted by D-103. This used to assert a player unit showed nothing, on the grounds that
+    // "player units are served by the action panel" — true of the board and false of the activation
+    // strip, where half the portraits are yours and clicked into nothing. Inspection is universal
+    // now; what a player unit has no more of is a *dossier*, and the panel handles that.
+    public void Inspect_PlayerUnit_IsRead_ButHasNoBehaviourDossier()
     {
-        var session = SessionOn("hz-10-bone-yard");
-        var player = session.State.Units.First(u => u.Team.IsPlayer());
+        var session = Deployed("hz-10-bone-yard");
+        var player = session.State.Units.First(u => u.Team.IsPlayer() && u.IsOnBoard);
+
+        Assert.True(GameSession.CanInspect(player));
 
         session.Inspect(player.Id);
 
-        Assert.Null(session.Inspected);
-        Assert.False(GameSession.CanInspect(player));
+        Assert.Equal(player.Id, session.Inspected);
+        Assert.Equal(ReferenceTab.Unit, session.Tab);
+        Assert.Equal(player.Id, session.InspectedUnit!.Id);
+
+        // No EnemyBehaviour for a player archetype, and there never will be — the reference panel
+        // shows the live stat block instead of a dossier.
+        Assert.Null(session.InspectedBehaviour);
+    }
+
+    // Select stays gated on whose slot it is; Inspect does not. Where they coincide both fire, and
+    // that coincidence is not a licence to merge them (D-103).
+    [Fact]
+    public void Inspect_IsUngated_WhileSelect_StaysGatedOnTheActiveSlot()
+    {
+        var session = SessionOn("hz-10-bone-yard");
+        var enemy = FirstEnemy(session);
+
+        session.Inspect(enemy.Id);
+
+        Assert.Equal(enemy.Id, session.Inspected);
+        Assert.DoesNotContain(enemy.Id, session.Selectable);
     }
 
     [Fact]

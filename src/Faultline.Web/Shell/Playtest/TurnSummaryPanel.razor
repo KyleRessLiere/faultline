@@ -132,7 +132,11 @@
         else
         {
             @* Who may act, not who must: inside a side's slot Core will take a command for any
-               un-activated unit, so naming one of several would be a rule this shell invented. *@
+               un-activated unit, so naming one of several would be a rule this shell invented.
+
+               This says who is acting *now* and stops there. What comes after it is the turn-order
+               strip's job since D-103 — two places answering "who is next" is how they end up
+               disagreeing. *@
             <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
                 @PlaytestText.Team(State.ActiveTeam) to act.
             </p>

@@ -61,6 +61,39 @@ Perch still fires at what is standing on top of it.
    Ending early forfeits the rest.
 5. **Round end:** Clinging resolves, then Stagger clears on everyone.
 
+### The turn-order strip {D} who goes when
+
+The activation order is **published** as a strip of portraits, left to right (D-103). Intents say
+*what* each enemy will do; this says *when*.
+
+**The horizon is the rest of this round plus the opening of the next**, stopping once each side that
+can act has appeared once in the peeked round. That seam is the point: an enemy that activates last
+in one round and first in the next takes **two swings with nothing of yours in between**, and the
+strip is where you see that coming. Deliberately not the whole of the next round {D} reinforcements
+land at round start (D-037), so most of it would be a guess, and a queue that reshuffles is worse
+than no queue.
+
+- **Enemies are named.** The rules pick the activating enemy as the first pending unit in unit order,
+  so the queue falls out of the board with no sort and no tiebreak.
+- **A player's future place is a slot, not a portrait.** Which of your two goes is your free choice
+  and the rules hold no answer, so the strip shows the slot with its candidates. It collapses to a
+  name when only one candidate is left, or once that player has committed.
+- **A clinging unit sits greyed in its place, marked skipped.** Display only: it takes no slot, so
+  its side simply has one fewer activation. The strip shows the drain's cost to your action economy
+  without changing what the drain costs.
+- **A peeked round a wave lands in is marked**, and no arrival is placed in the order. Where an
+  arrival belongs is undecided, and inventing a position would be a queue that lies.
+- Nothing is published during deployment or after the fight resolves.
+
+**Clicking a portrait reads that unit; it never gives an order.** Inspection is universal and
+read-only and now covers **every unit on the board, either side** {D} it used to be enemies only,
+which left half the strip clicking into nothing. Selecting is still gated on whose slot it is, so
+where a clicked unit is one you may command both happen, and where it is not, only the reading does.
+A player unit has no behaviour dossier and shows its live stat block instead.
+
+There is **no reach shading** on a strip portrait: threat painting stays per-enemy and on demand
+(D-089), and a reach fan under an intent arrow drowns the arrow.
+
 ### Shoulder — walking through a body
 
 **The Husk, and nothing else, barrels through a unit standing in its way** (D-100). It is movement,
@@ -232,7 +265,9 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
   out of a pit, and only when that actually works** — deterministic, never a coin flip. *Player
   units never spend theirs: there is still no prompt, so a player holding a granted token can be
   shoved into a pit while it goes unused. Open question, not a rule — see D-026.*
-- **Clinging** — in a pit, cannot act, still holds an activation slot.
+- **Clinging** — in a pit, cannot act, and **does not hold an activation slot**: `CanAct` excludes a
+  clinging unit, so its side simply has one fewer activation that round rather than passing a dead
+  one. This line used to say the opposite; the code has always done this (D-103).
   - An **adjacent ally** hauls it out with its **action half** — so walk into reach and then rescue,
     the ordinary move-then-act (D-082). Being an action, it **closes the move half** like any other,
     so a rescuer who hauls before walking does not get to walk afterwards (D-097). **The rescuer's player picks the tile** it is set down on:

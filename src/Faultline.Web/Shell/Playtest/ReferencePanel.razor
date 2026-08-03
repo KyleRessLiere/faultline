@@ -63,9 +63,27 @@
                                  Board="Session.State"
                                  ShowBestiaryLink="true" />
                 }
+                else if (Session.InspectedUnit is { } own)
+                {
+                    @* A player archetype has no EnemyBehaviour and never will, so the dossier has
+                       nothing to draw. Since D-103 made inspection universal this is a real state
+                       rather than an impossible one, and it shows the stat block instead of the
+                       prompt that used to sit here. Commanding it is still the action panel's job. *@
+                    <div class="own-unit">
+                        <h3>@own.Name <span class="side">@PlaytestText.Team(own.Team)</span></h3>
+                        <dl class="stats">
+                            <div><dt>HP</dt><dd>@own.Hp/@own.MaxHp</dd></div>
+                            <div><dt>Move</dt><dd>@own.MoveRemaining/@own.Move</dd></div>
+                            <div><dt>Range</dt><dd>@PlaytestText.Reach(own)</dd></div>
+                            <div><dt>Footing</dt><dd>@own.Footing</dd></div>
+                            <div><dt>@Naming.Meter</dt><dd>@own.Verve/@Verve.Cap</dd></div>
+                        </dl>
+                        <p class="note">Reading only. Select it on the board to give it orders.</p>
+                    </div>
+                }
                 else
                 {
-                    <p class="empty">Click an enemy to read it — on the board, in the unit table or in the intents list.</p>
+                    <p class="empty">Click any unit to read it — on the board, in the turn order, in the unit table or in the intents list.</p>
                 }
                 break;
 
