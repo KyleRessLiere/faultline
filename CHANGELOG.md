@@ -1,5 +1,24 @@
 # Changelog
 
+## You can hand the game to somebody who does not code
+
+- `tools/make-shareable.cmd` produces `dist/Faultline-windows.zip`. Unzip, double-click
+  **Faultline**, the game opens in a browser. **Nothing to install** — no .NET, no terminal, no
+  internet. The runtime is published inside the executable.
+- `tools/Faultline.Launcher` is what makes that work: a console app over `HttpListener` that serves
+  the published game from the `wwwroot` beside it, picks a free port, and opens a browser. A Blazor
+  app is static files that need *a* server and do not care which, and the base runtime already has
+  one — an ASP.NET host would have tripled the download to serve a folder.
+- Content types are written out rather than guessed. A `.wasm` served as octet-stream loads and then
+  fails at instantiation, which reads as "the game is broken" rather than "a header is wrong".
+- Unknown paths fall back to `index.html`, so refreshing on `/play` works instead of 404ing.
+- `docs/SHARING.md` ships in the zip as "READ ME FIRST.txt": leave the black window open, and expect
+  Windows to warn about an unknown program the first time.
+- For working *in* the repo there are now double-click launchers too — **Play Faultline.cmd** and
+  **play-faultline.command** — which check for the SDK and say where to get it rather than failing
+  with a command-not-found.
+- `dist/` is gitignored: a shareable build is a binary and belongs in a message, not in the history.
+
 ## The Warden becomes a door you can break
 
 - **Two negating Footing tokens instead of push resistance 1.** While they stand nothing shoves or

@@ -44,7 +44,31 @@ tests/Faultline.Core.Tests xUnit. References Core only.
 
 - .NET 10 SDK (the Core library targets netstandard2.1 so it can drop into Unity later)
 
+## Giving it to somebody who does not code
+
+```
+tools\make-shareable.cmd
+```
+
+Produces `dist\Faultline-windows.zip`. Send that. They unzip it and double-click **Faultline** —
+nothing to install, no .NET, no terminal, no internet. The runtime is published *inside* the
+executable, and `docs/SHARING.md` rides along in the zip as "READ ME FIRST.txt" with the two things
+a non-technical player actually needs to know: leave the black window open, and Windows will warn
+about an unknown program the first time.
+
+About 87 MB, almost all of it the runtime. `dist/` is gitignored — a shareable build is a binary
+and belongs in a message, not in the history.
+
+The launcher is `tools/Faultline.Launcher`: a console app over `HttpListener` that serves the
+published game out of the `wwwroot` beside it and opens a browser. Deliberately not an ASP.NET host,
+which would triple the download to serve a folder.
+
 ## How to run
+
+**Never opened a terminal?** Double-click **Play Faultline.cmd** (Windows) or
+**play-faultline.command** (macOS). It checks whether the .NET SDK is installed, tells you exactly
+where to get it if it is not, and otherwise builds and opens the game. Unlike the shareable build
+above, this one does need the SDK — it is the path for somebody working *in* the repo.
 
 **The easy way, on Windows — no arguments, no decisions:**
 

@@ -72,3 +72,6 @@ desktop.ini
 # Python bytecode from the tools/ scripts.
 __pycache__/
 *.pyc
+
+# Shareable builds from tools/make-shareable.cmd — a runtime-sized binary, never committed.
+dist/
