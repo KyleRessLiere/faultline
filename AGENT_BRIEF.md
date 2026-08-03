@@ -3,9 +3,13 @@
 **Faultline** is a 2-player hotseat co-op turn-based tactics game where displacement (push/pull) is
 the primary mechanic and the board is the primary weapon.
 
-This is the spec. It describes the game as it now stands *and* what it is still growing into. Where
-it and any other file disagree, this document wins — flag the conflict rather than resolving it
-silently.
+> **Design intent now lives in [`docs/MASTER_DESIGN.md`](docs/MASTER_DESIGN.md).** That file is the
+> authority on what the game is meant to be and is updated with every ruling; this brief is the
+> document the project was built from and the record of the original acceptance list. Where the two
+> disagree, MASTER_DESIGN is the intent and this is history — flag the conflict rather than
+> resolving it silently, and never edit either to make a shipped behaviour look intended.
+
+This is the original brief. It describes the game as it stood *and* what it was growing into.
 
 > **This replaced an earlier brief**, archived at [docs/archive/AGENT_BRIEF_v1.md](docs/archive/AGENT_BRIEF_v1.md).
 > That version scoped a tight MVP: four classes, five enemies, five fights, two units a side, and a

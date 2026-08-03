@@ -1,6 +1,6 @@
 # CLAUDE.md — Faultline Engineering Practices
 
-Read AGENT_BRIEF.md first. That file defines WHAT to build; this file defines HOW you work. These practices apply to every session, every task, no exceptions.
+Read `docs/MASTER_DESIGN.md` first — it is the single source of design intent and defines WHAT to build (AGENT_BRIEF.md is the original brief it grew out of). This file defines HOW you work. These practices apply to every session, every task, no exceptions.
 
 ## Prime directives
 
@@ -27,17 +27,29 @@ Read AGENT_BRIEF.md first. That file defines WHAT to build; this file defines HO
 
 ## The design docs
 
-Four files, four jobs. Keeping them distinct is what lets design and code disagree *visibly* instead
-of silently.
+Keeping them distinct is what lets design and code disagree *visibly* instead of silently.
 
-- **AGENT_BRIEF.md** — what the game is meant to be, and what it is still growing into. The spec; it
-  wins over everything. It is **never edited to make a shipped behaviour look intended** — that is
-  what DECISIONS.md is for. It *is* revised when the project's direction genuinely changes, and when
-  it is, the previous version is archived under `docs/archive/` because existing decisions cite it.
+- **`docs/MASTER_DESIGN.md`** — **the single source of design intent, and the authority.** What the
+  game is *meant to be*: vision, pillars, the accumulated design laws to cite when ruling, the class
+  and enemy kits, the campaign shape, and §14's open questions. Its own §16 governs it: it is updated
+  **in the same session as any design ruling**, and *a ruling not reflected there is not final*. It
+  supersedes the earlier design docs (BATTLE_DESIGN, CURATED_SET, VERVE, POND_AND_DYNASTY,
+  ENCOUNTERS), which are now source material rather than authorities. Read it before ruling on
+  anything; cite its section numbers the way rulings already cite D-numbers.
+- **AGENT_BRIEF.md** — the original brief the project was built from, and still the record of the
+  M1—M6 acceptance list. **No longer the top of the hierarchy**: where it and MASTER_DESIGN
+  disagree, MASTER_DESIGN is the intent and the brief is history. It is **never edited to make a
+  shipped behaviour look intended** — that is what DECISIONS.md is for — and when it is genuinely
+  revised the previous version is archived under `docs/archive/`, because existing decisions cite it.
 - **GAMEPLAY.md** — what the game *is*, today: the as-built rules with real numbers. This is what a
   design agent reads instead of the C#. It must never describe behaviour the code does not have.
-- **DECISIONS.md** — why the two differ, wherever they do. Also the **design history**: see below.
+- **DECISIONS.md** — why intent and as-built differ, wherever they do. Also the **design history**:
+  see below.
 - **CHANGELOG.md** — when things landed.
+
+So the chain is: **MASTER_DESIGN says what it should be, GAMEPLAY says what it is, DECISIONS says why
+those differ.** A gap between the first two is either unbuilt design or a missing DECISIONS entry —
+never something to quietly close by editing one of them to match the other.
 
 A Stop hook (`.claude/hooks/check-gameplay-doc.sh`) blocks the turn when anything under
 `src/Faultline.Core/{Rules,Displacement,Abilities,Fights,Units,Board}` changes without GAMEPLAY.md
@@ -222,6 +234,7 @@ a branch outside the convention, and `check-unpushed.sh` warns when commits are 
 /src/Faultline.Web
 /tests/Faultline.Core.Tests
 /.claude/hooks             repo-local steering; committed so it applies to everyone
+docs/MASTER_DESIGN.md      design intent, and the authority
 AGENT_BRIEF.md   CLAUDE.md   GAMEPLAY.md   DECISIONS.md   CHANGELOG.md   IDEAS.md   README.md
 ```
 - CI (GitHub Actions): build + test on push. Add the purity grep as a CI step.
