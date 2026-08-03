@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-02i** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03j** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -11,11 +11,16 @@ POND_AND_DYNASTY, ENCOUNTERS — now source material, not authorities). Relation
 is meant to be**; `DECISIONS.md` records why they differ wherever they do. When this file and
 GAMEPLAY disagree, that is either unbuilt design or a missing DECISIONS entry.
 
-Last design session: 2026-08-02.
+Last design session: 2026-08-03.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (j) — LOCKED (rescue rulings, from repo intake questions): rescue reach is priced
+  in AP like all movement — no terrain waiver, no special case (a drain ringed by brambles IS
+  harder to reach; the board mattering). Rescue can fail mid-route: damage en route resolves
+  normally, death lands where it lands, AP spent, cling clock untouched, doomed-cling composes.
+  Friendly Cast's legendary pitch noted: the only duck who pulls you out over the brambles.
 2026-08-02 (i) — LOCKED: the Action Point turn (player-side only) — 3 AP, 1 AP/tile, one
   action ever; acting costs legs (kiting reined in: acting units cover 2, Husks cover 3).
   Costs: attack/light skills 1, Reel 2 (range 3→4), Rescue and Bull Rush full-pool. Pools are
