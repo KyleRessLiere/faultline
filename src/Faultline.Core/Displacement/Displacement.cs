@@ -11,13 +11,23 @@ namespace Faultline.Core
     public static class Displacement
     {
         /// <summary>Damage each party takes from a collision.</summary>
-        public const int CollisionDamage = 2;
+        public const int CollisionDamage = 4;
 
         /// <summary>Damage from being displaced onto spikes.</summary>
-        public const int SpikeDamage = 3;
+        public const int SpikeDamage = 6;
+
+        /// <summary>
+        /// Damage for walking onto spikes of your own accord, as opposed to being shoved onto them.
+        /// </summary>
+        /// <remarks>
+        /// Deliberately far below <see cref="SpikeDamage"/>: choosing to cross is a price, being put
+        /// there is a punishment. It lived as a literal inside the movement walk until D-104 needed
+        /// to rescale it and could not find it.
+        /// </remarks>
+        public const int SpikeWalkDamage = 2;
 
         /// <summary>Damage from being pushed down off HighGround.</summary>
-        public const int FallDamage = 1;
+        public const int FallDamage = 2;
 
         /// <summary>
         /// Works out exactly what a displacement would do without applying it. The shell's push

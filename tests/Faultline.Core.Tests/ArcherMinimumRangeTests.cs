@@ -30,7 +30,7 @@ public class ArcherMinimumRangeTests
         var husk = state.Find(UnitKind.Husk);
 
         Assert.True(Combat.CanAttack(state, state.Get(archer.Id), state.Get(husk.Id), out int damage));
-        Assert.Equal(2, damage);
+        Assert.Equal(4, damage);
         TestPlay.AssertLegal(state, new AttackCommand(archer.Id, husk.Id));
     }
 
@@ -130,6 +130,6 @@ public class ArcherMinimumRangeTests
     private static GameState Board(int enemyAt) =>
         BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, enemyAt, 0, hp: 6)
+            .Enemy(UnitKind.Husk, enemyAt, 0, hp: 12)
             .Build();
 }

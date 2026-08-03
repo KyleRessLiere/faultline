@@ -8,6 +8,13 @@ namespace Faultline.Core
     /// </summary>
     public static class Combat
     {
+        /// <summary>Extra damage a ranged attack gains for being fired from HighGround.</summary>
+        /// <remarks>
+        /// A named constant rather than a literal in the damage expression since D-104: it is a
+        /// damage number, and a rescale has to be able to find every one of those.
+        /// </remarks>
+        public const int HighGroundBonus = 2;
+
         /// <summary>
         /// Whether <paramref name="attacker"/> may basic-attack <paramref name="target"/>, and for
         /// how much.
@@ -54,7 +61,7 @@ namespace Faultline.Core
                 return false;
             }
 
-            damage = template.Damage + (IsElevatedShot(state, attacker) ? 1 : 0);
+            damage = template.Damage + (IsElevatedShot(state, attacker) ? HighGroundBonus : 0);
             return true;
         }
 

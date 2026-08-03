@@ -28,7 +28,7 @@ public class TrampleTests
 
         Assert.Equal(new Coord(2, 1), result.NewState.Get(husk).Position);
         Assert.Equal(new Coord(1, 0), result.NewState.Get(blocker).Position);
-        Assert.Equal(6, result.NewState.Get(blocker).Hp);
+        Assert.Equal(12, result.NewState.Get(blocker).Hp);
     }
 
     // Both sides open, so N/E/S/W decides and north wins. Asserted a hundred times over, because a
@@ -162,7 +162,7 @@ public class TrampleTests
         Assert.Null(Trample.Side(turn, turn.Get(husk), new Coord(1, 1), Direction.Right));
         Assert.False(Movement.Reachable(turn, turn.Get(husk)).ContainsKey(new Coord(2, 1)));
 
-        Assert.Equal(7, turn.Get(ward).Hp);
+        Assert.Equal(14, turn.Get(ward).Hp);
     }
 
     // Both perpendicular tiles walled: the blocker is masonry and the route simply does not exist.
@@ -278,8 +278,8 @@ public class TrampleTests
     [Fact]
     public void Husk_KeepsTwoHitPointsAndStillDiesToOneBareCollision()
     {
-        Assert.Equal(2, UnitTemplate.For(UnitKind.Husk).MaxHp);
-        Assert.Equal(1, UnitTemplate.For(UnitKind.Husk).Damage);
+        Assert.Equal(4, UnitTemplate.For(UnitKind.Husk).MaxHp);
+        Assert.Equal(2, UnitTemplate.For(UnitKind.Husk).Damage);
         Assert.True(UnitTemplate.For(UnitKind.Husk).Tramples);
 
         var state = BoardBuilder.Rows("...#")

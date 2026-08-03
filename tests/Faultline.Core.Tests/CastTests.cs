@@ -130,14 +130,14 @@ public class CastTests
     }
 
     [Fact]
-    public void Cast_OntoSpikes_DealsThreeAndStaggers_AndChargesHer()
+    public void Cast_OntoSpikes_DealsSixAndStaggers_AndChargesHer()
     {
         var state = Hazards(out var fisher, out var husk, out _, out var spikes);
 
         var result = state.Step(Cast(fisher, husk, spikes));
 
         Assert.Equal(Displacement.SpikeDamage, result.Single<SpikeHit>().Damage);
-        Assert.Equal(6 - Displacement.SpikeDamage, result.NewState.Get(husk).Hp);
+        Assert.Equal(12 - Displacement.SpikeDamage, result.NewState.Get(husk).Hp);
         Assert.True(result.NewState.Get(husk).Staggered);
 
         var charged = result.Single<VerveCharged>();
@@ -281,7 +281,7 @@ public class CastTests
                 ".........")
             .PlayerA(UnitKind.Threadcaster, 3, 2)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(enemy, 5, 2, hp: 12)
+            .Enemy(enemy, 5, 2, hp: 24)
             .Enemy(UnitKind.Husk, 8, 0)
             .Build();
 
@@ -301,7 +301,7 @@ public class CastTests
                 ".........")
             .PlayerA(UnitKind.Threadcaster, 1, 1)
             .Enemy(UnitKind.Husk, 2, 1)
-            .Enemy(UnitKind.Lobber, 4, 1, hp: 6)
+            .Enemy(UnitKind.Lobber, 4, 1, hp: 12)
             .Enemy(UnitKind.Husk, 8, 2)
             .Build();
 
@@ -321,7 +321,7 @@ public class CastTests
                 ".........")
             .PlayerA(UnitKind.Threadcaster, 1, 1)
             .Enemy(UnitKind.Husk, 2, 1)
-            .Enemy(UnitKind.Lobber, 4, 1, hp: 6)
+            .Enemy(UnitKind.Lobber, 4, 1, hp: 12)
             .Enemy(UnitKind.Husk, 8, 2)
             .Build();
 
@@ -342,7 +342,7 @@ public class CastTests
                 ".........")
             .PlayerA(UnitKind.Threadcaster, 2, 1)
             .PlayerB(UnitKind.Wardbearer, 7, 2)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Enemy(UnitKind.Husk, 8, 2)
             .Build();
 
@@ -365,7 +365,7 @@ public class CastTests
                 ".........")
             .PlayerA(UnitKind.Threadcaster, 4, 1)
             .PlayerB(UnitKind.Wardbearer, 3, 1)
-            .Enemy(UnitKind.Husk, 6, 1, hp: 6)
+            .Enemy(UnitKind.Husk, 6, 1, hp: 12)
             .Enemy(UnitKind.Husk, 8, 2)
             .Build();
 

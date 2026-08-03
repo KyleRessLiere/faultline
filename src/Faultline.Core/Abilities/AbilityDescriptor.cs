@@ -180,7 +180,7 @@ namespace Faultline.Core
                         "Stagger Shot",
                         "Range 3. Deals 1 damage and pushes the target 1 tile directly away from you.",
                         AbilityTargeting.Enemy,
-                        3, 1, 1, false, MinRange: 2),
+                        3, 2, 1, false, MinRange: 2),
                 },
 
                 [UnitKind.Threadcaster] = new[]
@@ -205,7 +205,7 @@ namespace Faultline.Core
                         AbilityTargeting.Line,
                         2, 0, 0, false)
                     {
-                        TileDamage = new[] { 1, 2 },
+                        TileDamage = new[] { 2, 4 },
                     },
 
                     new AbilityDescriptor(

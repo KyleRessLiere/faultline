@@ -639,7 +639,7 @@ namespace Faultline.Core
                 if (state.Board.At(step) == TileType.Spikes)
                 {
                     spikesEntered.Add(step);
-                    hp -= 1;
+                    hp -= Displacement.SpikeWalkDamage;
                     if (hp <= 0)
                     {
                         break;
@@ -661,8 +661,9 @@ namespace Faultline.Core
             foreach (var spike in spikesEntered)
             {
                 // Brief §2: voluntary spike entry is 1 damage and does not Stagger.
-                events.Add(new SpikeHit(unit.Id, spike, 1, true));
-                state = Combat.ApplyDamage(state, unit.Id, 1, DamageSource.Spikes, events);
+                events.Add(new SpikeHit(unit.Id, spike, Displacement.SpikeWalkDamage, true));
+                state = Combat.ApplyDamage(
+                    state, unit.Id, Displacement.SpikeWalkDamage, DamageSource.Spikes, events);
             }
 
             return AfterAction(state, unit.Id, events);

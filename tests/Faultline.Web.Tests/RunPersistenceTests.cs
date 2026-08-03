@@ -61,7 +61,7 @@ public sealed class RunPersistenceTests
         var vanguard = restored.Squad.Single(u => u.Kind == UnitKind.Vanguard);
 
         Assert.Equal(3, vanguard.Hp);
-        Assert.Equal(7, vanguard.MaxHp);
+        Assert.Equal(14, vanguard.MaxHp);
     }
 
     [Fact]

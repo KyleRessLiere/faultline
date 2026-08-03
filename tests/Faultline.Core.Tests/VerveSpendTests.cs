@@ -135,7 +135,7 @@ public class VerveSpendTests
 
         // Attack 1 + contact 1, and the shove asks for 2 rather than the Vanguard's usual 1.
         Assert.Equal(2, result.Single<UnitPushed>().Distance);
-        Assert.Equal(hp - 2, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(hp - 4, result.NewState.Get(husk.Id).Hp);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class VerveSpendTests
         // top of both, so a 6 HP Husk finishes on 2.
         var state = BoardBuilder.Rows("...#")
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard).Id;
@@ -156,7 +156,11 @@ public class VerveSpendTests
         var result = armed.Step(new AttackCommand(vanguard, husk));
 
         Assert.True(result.Has<Collision>());
-        Assert.Equal(6 - (1 + 1 + 2), result.NewState.Get(husk).Hp);
+        Assert.Equal(
+            12 - (UnitTemplate.For(UnitKind.Vanguard).Damage
+                + Verve.ContactDamage
+                + Displacement.CollisionDamage),
+            result.NewState.Get(husk).Hp);
     }
 
     [Fact]
@@ -186,13 +190,13 @@ public class VerveSpendTests
         var state = BoardBuilder.Open(8, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
             .PlayerB(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 18)
             .Build();
 
         // Placed apart so the second shove is a fresh activation rather than an illegal second action.
         state = BoardBuilder.Open(8, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 18)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard).Id;
@@ -291,18 +295,18 @@ public class VerveSpendTests
     // ---- Preen ---------------------------------------------------------------------------
 
     [Fact]
-    public void Preen_PutsTwoHitPointsBack()
+    public void Preen_PutsFourHitPointsBack()
     {
-        var state = HurtWardbearer(out var wardbearer, hp: 3);
+        var state = HurtWardbearer(out var wardbearer, hp: 6);
 
         var result = state.Step(new SpendVerveCommand(wardbearer, VerveSpend.Preen));
 
-        Assert.Equal(3 + Verve.PreenHeal, result.NewState.Get(wardbearer).Hp);
+        Assert.Equal(6 + Verve.PreenHeal, result.NewState.Get(wardbearer).Hp);
 
         var healed = result.Single<UnitHealed>();
         Assert.Equal(wardbearer, healed.UnitId);
         Assert.Equal(Verve.PreenHeal, healed.Amount);
-        Assert.Equal(3 + Verve.PreenHeal, healed.RemainingHp);
+        Assert.Equal(6 + Verve.PreenHeal, healed.RemainingHp);
     }
 
     [Fact]
@@ -333,7 +337,7 @@ public class VerveSpendTests
     {
         // Unlike the parked Retort, which read the stance. Preen is spendable on any activation the
         // Wardbearer has hit points missing.
-        var state = HurtWardbearer(out var wardbearer, hp: 3);
+        var state = HurtWardbearer(out var wardbearer, hp: 6);
 
         Assert.False(state.Get(wardbearer).Guarding);
         TestPlay.AssertLegal(state, new SpendVerveCommand(wardbearer, VerveSpend.Preen));
@@ -342,7 +346,7 @@ public class VerveSpendTests
     [Fact]
     public void Preen_CostsNeitherHalfOfTheActivation()
     {
-        var state = HurtWardbearer(out var wardbearer, hp: 3);
+        var state = HurtWardbearer(out var wardbearer, hp: 6);
 
         var after = state.Then(new SpendVerveCommand(wardbearer, VerveSpend.Preen));
 
@@ -380,7 +384,7 @@ public class VerveSpendTests
     {
         var state = BoardBuilder.Open(8, 3)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 18)
             .Build();
 
         vanguard = state.Find(UnitKind.Vanguard).Id;
@@ -391,8 +395,8 @@ public class VerveSpendTests
     {
         var state = BoardBuilder.Open(6, 3)
             .PlayerA(UnitKind.Archer, 0, 1)
-            .Enemy(UnitKind.Husk, 2, 1, hp: 9)
-            .Enemy(UnitKind.Husk, 3, 1, hp: 9)
+            .Enemy(UnitKind.Husk, 2, 1, hp: 18)
+            .Enemy(UnitKind.Husk, 3, 1, hp: 18)
             .Build();
 
         archer = state.Find(UnitKind.Archer).Id;
@@ -407,8 +411,8 @@ public class VerveSpendTests
     {
         var state = BoardBuilder.Rows("H....", ".....", ".....")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 9)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 9)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 18)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 18)
             .Build();
 
         archer = state.Find(UnitKind.Archer).Id;
@@ -436,10 +440,10 @@ public class VerveSpendTests
     {
         var state = BoardBuilder.Open(7, 7)
             .PlayerB(UnitKind.Wardbearer, 3, 3)
-            .Enemy(UnitKind.Husk, 3, 2, hp: 6)
-            .Enemy(UnitKind.Husk, 4, 3, hp: 6)
-            .Enemy(UnitKind.Husk, 3, 4, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 3, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 2, hp: 12)
+            .Enemy(UnitKind.Husk, 4, 3, hp: 12)
+            .Enemy(UnitKind.Husk, 3, 4, hp: 12)
+            .Enemy(UnitKind.Husk, 2, 3, hp: 12)
             .Active(Team.PlayerB)
             .Build();
 

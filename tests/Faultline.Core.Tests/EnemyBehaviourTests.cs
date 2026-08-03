@@ -219,9 +219,9 @@ public class EnemyBehaviourTests
     }
 
     [Theory]
-    [InlineData(UnitKind.Husk, "melee · 1 dmg")]
-    [InlineData(UnitKind.Lobber, "range 3 · 1 dmg")]
-    [InlineData(UnitKind.Anchor, "melee · 2 dmg")]
+    [InlineData(UnitKind.Husk, "melee · 2 dmg")]
+    [InlineData(UnitKind.Lobber, "range 3 · 2 dmg")]
+    [InlineData(UnitKind.Anchor, "melee · 4 dmg")]
     [InlineData(UnitKind.Grappler, "no attack · range 3 · pull 2")]
     [InlineData(UnitKind.Stalker, "no attack · melee · push 1")]
     public void AttackLine_ReadsAsTheStatTableDoes(UnitKind kind, string expected)
@@ -232,12 +232,12 @@ public class EnemyBehaviourTests
     [Fact]
     public void Describe_CoversThePlayerClassesToo()
     {
-        Assert.Equal("melee · 1 dmg · push 1", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Vanguard)));
-        Assert.Equal("range 3 · 2 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Archer)));
+        Assert.Equal("melee · 2 dmg · push 1", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Vanguard)));
+        Assert.Equal("range 3 · 4 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Archer)));
         Assert.Equal(
-            "range 3 · 1 dmg · may pull 1 instead",
+            "range 3 · 2 dmg · may pull 1 instead",
             EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Threadcaster)));
-        Assert.Equal("melee · 1 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Wardbearer)));
+        Assert.Equal("melee · 2 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Wardbearer)));
     }
 
     [Fact]

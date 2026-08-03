@@ -28,7 +28,7 @@ namespace Faultline.Core
     public static class Trample
     {
         /// <summary>Contact damage the blocker takes, before the shove's own consequences.</summary>
-        public const int ContactDamage = 1;
+        public const int ContactDamage = 2;
 
         /// <summary>Movement points a trampled tile costs on top of the terrain's own.</summary>
         public const int ExtraCost = 1;

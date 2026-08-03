@@ -54,12 +54,12 @@ public class AbilityTests
             Assert.False(string.IsNullOrWhiteSpace(descriptor.Effect));
         }
 
-        Assert.Equal("1 dmg · push 1", AbilityDescriptor.For(Ability.StaggerShot).Effect);
+        Assert.Equal("2 dmg · push 1", AbilityDescriptor.For(Ability.StaggerShot).Effect);
         Assert.Equal("push 2", AbilityDescriptor.For(Ability.BullRush).Effect);
         Assert.Equal("pull to adjacent", AbilityDescriptor.For(Ability.Reel).Effect);
         // Per-tile damage prints per tile, nearest first: the ability no longer has one number.
-        Assert.Equal("line 2 · 1/2 dmg", AbilityDescriptor.For(Ability.SpearThrust).Effect);
-        Assert.Equal(new[] { 1, 2 }, AbilityDescriptor.For(Ability.SpearThrust).TileDamage);
+        Assert.Equal("line 2 · 2/4 dmg", AbilityDescriptor.For(Ability.SpearThrust).Effect);
+        Assert.Equal(new[] { 2, 4 }, AbilityDescriptor.For(Ability.SpearThrust).TileDamage);
         Assert.Equal(0, AbilityDescriptor.For(Ability.SpearThrust).Push);
         Assert.Equal("stance", AbilityDescriptor.For(Ability.GuardStance).Effect);
     }
@@ -94,7 +94,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -103,7 +103,7 @@ public class AbilityTests
         var result = state.Step(new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
 
         Assert.Equal(Ability.StaggerShot, result.Single<AbilityUsed>().Ability);
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(husk.Id).Hp);
         Assert.Equal(new Coord(3, 0), result.NewState.Get(husk.Id).Position);
     }
 
@@ -112,7 +112,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Rows("...#")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -121,7 +121,7 @@ public class AbilityTests
         var result = state.Step(new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
 
         // 1 from the shot, 2 from slamming into the wall.
-        Assert.Equal(3, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(6, result.NewState.Get(husk.Id).Hp);
         Assert.True(result.NewState.Get(husk.Id).Staggered);
     }
 
@@ -130,7 +130,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 1)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 2)
             .Enemy(UnitKind.Anchor, 5, 0)
             .Build();
 
@@ -232,7 +232,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard);
@@ -250,7 +250,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard);
@@ -267,7 +267,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard);
@@ -333,7 +333,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var vanguard = state.Find(UnitKind.Vanguard);
@@ -341,7 +341,7 @@ public class AbilityTests
 
         var result = state.Step(new AttackCommand(vanguard.Id, husk.Id));
 
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(husk.Id).Hp);
         Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
     }
 
@@ -383,7 +383,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Rows("...#..")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -421,14 +421,14 @@ public class AbilityTests
     {
         var state = BoardBuilder.Rows("..#")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 2)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 4)
             .Build();
 
         var preview = Displacement.Preview(
             state, state.Find(UnitKind.Husk).Id, new Coord(0, 0), DisplacementKind.Push, 1);
 
         Assert.True(preview.WouldDown);
-        Assert.Equal(2, preview.DamageToUnit);
+        Assert.Equal(4, preview.DamageToUnit);
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public class AbilityTests
     {
         var state = BoardBuilder.Rows(layout)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 9)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 18)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);

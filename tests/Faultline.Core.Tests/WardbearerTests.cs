@@ -17,7 +17,7 @@ public class WardbearerTests
     {
         var template = UnitTemplate.For(UnitKind.Wardbearer);
 
-        Assert.Equal(7, template.MaxHp);
+        Assert.Equal(14, template.MaxHp);
         Assert.Equal(2, template.PushResistance);
         Assert.False(template.HoldAura);
     }
@@ -98,8 +98,8 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -108,8 +108,8 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(5, result.NewState.Get(near.Id).Hp);
-        Assert.Equal(4, result.NewState.Get(far.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(near.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(far.Id).Hp);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -125,8 +125,8 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(5, result.NewState.Get(husk.Id).Hp);
-        Assert.Equal(1, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(10, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -142,8 +142,8 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
-        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(4, result.Single<UnitAttacked>().Damage);
     }
 
     // The withdrawn design pushed both targets and made the far one resolve first so the near one
@@ -154,8 +154,8 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -177,8 +177,8 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Rows("...#")
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -187,8 +187,8 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(5, result.NewState.Get(near.Id).Hp);
-        Assert.Equal(4, result.NewState.Get(far.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(near.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(far.Id).Hp);
         Assert.False(result.Has<Collision>());
         Assert.False(result.NewState.Get(near.Id).Staggered);
         Assert.False(result.NewState.Get(far.Id).Staggered);
@@ -200,8 +200,8 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -213,9 +213,9 @@ public class WardbearerTests
         var attacks = result.All<UnitAttacked>();
         Assert.Equal(2, attacks.Count);
         Assert.Equal(near.Id, attacks[0].TargetId);
-        Assert.Equal(1, attacks[0].Damage);
+        Assert.Equal(2, attacks[0].Damage);
         Assert.Equal(far.Id, attacks[1].TargetId);
-        Assert.Equal(2, attacks[1].Damage);
+        Assert.Equal(4, attacks[1].Damage);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Runt, 1, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -234,7 +234,7 @@ public class WardbearerTests
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
         Assert.False(result.NewState.Get(runt.Id).IsOnBoard);
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
     }
 
     // D-060: an attack chips a structure for 1, whatever the weapon — so the 2 the adjacent tile
@@ -245,7 +245,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 6, 0)
-            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(1, 0))
+            .Objective(ObjectiveKind.Protect, hp: 12, tiles: new Coord(1, 0))
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -260,12 +260,12 @@ public class WardbearerTests
         var attacked = result.Single<StructureAttacked>();
         Assert.Equal(wardbearer.Id, attacked.AttackerId);
         Assert.Equal(new Coord(1, 0), attacked.At);
-        Assert.Equal(1, attacked.Damage);
+        Assert.Equal(2, attacked.Damage);
 
         var damaged = result.Single<StructureDamaged>();
-        Assert.Equal(1, damaged.Amount);
+        Assert.Equal(2, damaged.Amount);
         Assert.Equal(DamageSource.Attack, damaged.Source);
-        Assert.Equal(5, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
+        Assert.Equal(10, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
     }
 
     // D-060 supersedes the brief's "immune to attacks" clause: a Destroy structure chips for 1 too.
@@ -275,15 +275,15 @@ public class WardbearerTests
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 6, 0)
-            .Objective(ObjectiveKind.Destroy, hp: 8, tiles: new Coord(1, 0))
+            .Objective(ObjectiveKind.Destroy, hp: 16, tiles: new Coord(1, 0))
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(1, result.Single<StructureDamaged>().Amount);
-        Assert.Equal(7, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
+        Assert.Equal(2, result.Single<StructureDamaged>().Amount);
+        Assert.Equal(14, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .PlayerA(UnitKind.Archer, 1, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -303,7 +303,7 @@ public class WardbearerTests
 
         Assert.Equal(archer.Hp, result.NewState.Get(archer.Id).Hp);
         Assert.Equal(new Coord(1, 0), result.NewState.Get(archer.Id).Position);
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
     }
 
     // D-010: there is no line of sight in this game, and Spear Thrust is a fixed shape rather than a
@@ -313,7 +313,7 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Rows(".#..")
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -321,7 +321,7 @@ public class WardbearerTests
 
         var result = state.Step(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
         Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
     }
 
@@ -348,7 +348,7 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 2)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -366,8 +366,8 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -375,7 +375,7 @@ public class WardbearerTests
         var hits = Abilities.PreviewLine(state, wardbearer, Direction.Right, Ability.SpearThrust);
         var after = state.Then(new AbilityCommand(wardbearer.Id, Ability.SpearThrust, null, Direction.Right));
 
-        Assert.Equal(new[] { 1, 2 }, hits.Select(h => h.Damage));
+        Assert.Equal(new[] { 2, 4 }, hits.Select(h => h.Damage));
         Assert.Equal(new[] { new Coord(1, 0), new Coord(2, 0) }, hits.Select(h => h.At));
 
         foreach (var hit in hits)
@@ -392,7 +392,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
             .Enemy(UnitKind.Husk, 6, 0)
-            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(1, 0))
+            .Objective(ObjectiveKind.Protect, hp: 12, tiles: new Coord(1, 0))
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -402,8 +402,8 @@ public class WardbearerTests
 
         Assert.True(hit.HitsStructure);
         Assert.Null(hit.UnitId);
-        Assert.Equal(1, hit.Damage);
-        Assert.Equal(6 - hit.Damage, after.StructureAt(new Coord(1, 0))!.Hp);
+        Assert.Equal(2, hit.Damage);
+        Assert.Equal(12 - hit.Damage, after.StructureAt(new Coord(1, 0))!.Hp);
     }
 
     // ---- activation economy ------------------------------------------------------------
@@ -413,7 +413,7 @@ public class WardbearerTests
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -535,7 +535,7 @@ public class WardbearerTests
         var lapsed = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = false });
         var result = EnemyTurn(lapsed).Step(new AttackCommand(husk.Id, archer.Id));
 
-        Assert.Equal(archer.Hp - 1, result.NewState.Get(archer.Id).Hp);
+        Assert.Equal(archer.Hp - 2, result.NewState.Get(archer.Id).Hp);
         Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
         Assert.False(result.Has<GuardIntercepted>());
     }
@@ -553,7 +553,7 @@ public class WardbearerTests
         var result = EnemyTurn(state).Step(new AttackCommand(husk.Id, archer.Id));
 
         Assert.Equal(archer.Hp, result.NewState.Get(archer.Id).Hp);
-        Assert.Equal(6, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(13, result.NewState.Get(wardbearer.Id).Hp);
 
         var intercepted = result.Single<GuardIntercepted>();
         Assert.Equal(wardbearer.Id, intercepted.UnitId);
@@ -647,7 +647,7 @@ public class WardbearerTests
         var result = state.Step(new AttackCommand(second.Id, archer.Id));
 
         Assert.Equal(archer.Hp, result.NewState.Get(archer.Id).Hp);
-        Assert.Equal(5, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(12, result.NewState.Get(wardbearer.Id).Hp);
     }
 
     [Fact]
@@ -667,7 +667,7 @@ public class WardbearerTests
 
         var result = EnemyTurn(state).Step(new AttackCommand(husk.Id, archer.Id));
 
-        Assert.Equal(archer.Hp - 1, result.NewState.Get(archer.Id).Hp);
+        Assert.Equal(archer.Hp - 2, result.NewState.Get(archer.Id).Hp);
         Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
     }
 
@@ -677,7 +677,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
             .PlayerB(UnitKind.Wardbearer, 1, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -688,7 +688,7 @@ public class WardbearerTests
 
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
         Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
         Assert.False(result.Has<GuardIntercepted>());
     }
@@ -705,7 +705,7 @@ public class WardbearerTests
 
         var result = EnemyTurn(state).Step(new AttackCommand(husk.Id, archer.Id));
 
-        Assert.Equal(archer.Hp - 1, result.NewState.Get(archer.Id).Hp);
+        Assert.Equal(archer.Hp - 2, result.NewState.Get(archer.Id).Hp);
         Assert.False(result.Has<GuardIntercepted>());
     }
 
@@ -718,6 +718,8 @@ public class WardbearerTests
     [InlineData(4, 2)]
     [InlineData(5, 3)]
     [InlineData(6, 3)]
+    [InlineData(8, 4)]
+    [InlineData(12, 6)]
     public void GuardStance_HalvesAttackDamage_RoundedUpMinimumOne(int dealt, int landed)
     {
         var state = GuardingWardbearer();
@@ -726,7 +728,9 @@ public class WardbearerTests
         var events = new List<GameEvent>();
         var after = Combat.ApplyDamage(state, wardbearer.Id, dealt, DamageSource.Attack, events);
 
-        Assert.Equal(7 - landed, after.Get(wardbearer.Id).Hp);
+        // Read off the unit rather than written as a literal, so the next rescale cannot make
+        // this test lie about what halving did.
+        Assert.Equal(wardbearer.Hp - landed, after.Get(wardbearer.Id).Hp);
         Assert.Equal(landed, events.OfType<UnitDamaged>().Single().Amount);
     }
 
@@ -779,7 +783,7 @@ public class WardbearerTests
         var result = EnemyTurn(state).Step(new AttackCommand(grappler.Id, archer.Id, AttackMode.Pull));
 
         Assert.Equal(new Coord(3, 1), result.NewState.Get(wardbearer.Id).Position);
-        Assert.Equal(5, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(wardbearer.Id).Hp);
 
         // Asserted on the event rather than the surviving flag: the Grappler's swing now ends its
         // own activation (D-097), which can turn the round over and clear the Stagger with it.
@@ -793,7 +797,7 @@ public class WardbearerTests
     public void GuardStance_ARedirectedAttackCanDownTheWardbearer()
     {
         var state = BoardBuilder.Open(4, 2)
-            .PlayerB(UnitKind.Wardbearer, 1, 1, hp: 1)
+            .PlayerB(UnitKind.Wardbearer, 1, 1, hp: 2)
             .PlayerA(UnitKind.Archer, 1, 0)
             .Enemy(UnitKind.Anchor, 0, 0)
             .Build();
@@ -861,7 +865,7 @@ public class WardbearerTests
         var declared = Ai.IntentFor(state, anchor.Id)!;
         Assert.Equal(archer.Id, declared.TargetId);
         Assert.Null(declared.RedirectedTo);
-        Assert.Equal(2, declared.Damage);
+        Assert.Equal(4, declared.Damage);
 
         var raised = state.Step(new AbilityCommand(wardbearer.Id, Ability.GuardStance));
 
@@ -870,7 +874,7 @@ public class WardbearerTests
         var rerouted = Ai.IntentFor(raised.NewState, anchor.Id)!;
         Assert.Equal(archer.Id, rerouted.TargetId);
         Assert.Equal(wardbearer.Id, rerouted.RedirectedTo);
-        Assert.Equal(1, rerouted.Damage);
+        Assert.Equal(2, rerouted.Damage);
         Assert.Contains(raised.All<IntentDeclared>(), e => e.Replanned && e.Intent.UnitId == anchor.Id);
     }
 
@@ -898,7 +902,7 @@ public class WardbearerTests
         var result = state.Step(Game.NextEnemyCommand(state)!);
 
         Assert.Equal(archer.Hp, result.NewState.Get(archer.Id).Hp);
-        Assert.Equal(7 - intent.Damage, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(14 - intent.Damage, result.NewState.Get(wardbearer.Id).Hp);
         Assert.Equal(wardbearer.Id, result.Single<GuardIntercepted>().UnitId);
     }
 
@@ -977,7 +981,7 @@ public class WardbearerTests
 
         var result = EnemyTurn(state).Step(new EndActivationCommand(husk.Id));
 
-        Assert.Equal(6, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(12, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
         Assert.Equal(wardbearer.Hp - 1, result.NewState.Get(wardbearer.Id).Hp);
         Assert.False(result.Has<StructureAttacked>());
 
@@ -986,7 +990,7 @@ public class WardbearerTests
         Assert.Equal(new Coord(2, 0), shielded.StructureAt);
         Assert.Equal(husk.Id, shielded.AttackerId);
         Assert.Equal(wardbearer.Position, shielded.At);
-        Assert.Equal(1, shielded.Spared);
+        Assert.Equal(2, shielded.Spared);
 
         Assert.Equal(wardbearer.Id, result.Single<UnitAttacked>().TargetId);
     }
@@ -1002,9 +1006,9 @@ public class WardbearerTests
 
         var result = EnemyTurn(state).Step(new EndActivationCommand(colossus.Id));
 
-        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
-        Assert.Equal(wardbearer.Hp - 2, result.NewState.Get(wardbearer.Id).Hp);
-        Assert.Equal(1, result.Single<GuardShielded>().Spared);
+        Assert.Equal(3, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(wardbearer.Hp - 3, result.NewState.Get(wardbearer.Id).Hp);
+        Assert.Equal(2, result.Single<GuardShielded>().Spared);
     }
 
     [Fact]
@@ -1030,7 +1034,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Wardbearer, 2, 1)
             .Enemy(UnitKind.Husk, 3, 0)
-            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new[] { new Coord(2, 0), new Coord(3, 1) })
+            .Objective(ObjectiveKind.Protect, hp: 12, tiles: new[] { new Coord(2, 0), new Coord(3, 1) })
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -1041,8 +1045,8 @@ public class WardbearerTests
         Assert.Equal(2, result.All<GuardShielded>().Count);
         Assert.Single(result.All<UnitAttacked>());
         Assert.Equal(wardbearer.Hp - 1, result.NewState.Get(wardbearer.Id).Hp);
-        Assert.Equal(6, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
-        Assert.Equal(6, result.NewState.StructureAt(new Coord(3, 1))!.Hp);
+        Assert.Equal(12, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(12, result.NewState.StructureAt(new Coord(3, 1))!.Hp);
         Assert.Equal(1, result.NewState.Get(wardbearer.Id).Verve);
     }
 
@@ -1052,7 +1056,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Wardbearer, 0, 1)
             .Enemy(UnitKind.Husk, 3, 0)
-            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(2, 0))
+            .Objective(ObjectiveKind.Protect, hp: 12, tiles: new Coord(2, 0))
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);
@@ -1061,7 +1065,7 @@ public class WardbearerTests
         var result = EnemyTurn(state).Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
 
         Assert.False(result.Has<GuardShielded>());
-        Assert.Equal(5, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(10, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
         Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
     }
 
@@ -1072,7 +1076,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Wardbearer, 2, 1)
             .Enemy(UnitKind.Husk, 3, 0)
-            .Objective(ObjectiveKind.Destroy, hp: 6, tiles: new Coord(2, 0))
+            .Objective(ObjectiveKind.Destroy, hp: 12, tiles: new Coord(2, 0))
             .Build();
 
         state = state.WithUnit(state.Get(state.Find(UnitKind.Wardbearer).Id) with { Guarding = true });
@@ -1090,7 +1094,7 @@ public class WardbearerTests
         var result = EnemyTurn(lapsed).Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
 
         Assert.False(result.Has<GuardShielded>());
-        Assert.Equal(5, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(10, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
         Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
     }
 
@@ -1100,7 +1104,7 @@ public class WardbearerTests
         var state = BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Wardbearer, 2, 1)
             .Enemy(attacker, 3, 0)
-            .Objective(ObjectiveKind.Protect, hp: 6, tiles: new Coord(2, 0))
+            .Objective(ObjectiveKind.Protect, hp: 12, tiles: new Coord(2, 0))
             .Build();
 
         var wardbearer = state.Find(UnitKind.Wardbearer);

@@ -141,12 +141,12 @@ public class MovementTests
         var result = state.Step(new MoveCommand(vanguard.Id, new Coord(1, 0)));
 
         var spike = result.Single<SpikeHit>();
-        Assert.Equal(1, spike.Damage);
+        Assert.Equal(2, spike.Damage);
         Assert.True(spike.Voluntary);
 
         var moved = result.NewState.Get(vanguard.Id);
         Assert.Equal(new Coord(1, 0), moved.Position);
-        Assert.Equal(6, moved.Hp);
+        Assert.Equal(12, moved.Hp);
         Assert.False(moved.Staggered);
     }
 
@@ -291,7 +291,7 @@ public class MovementTests
         Assert.Equal(new Coord(2, 0), result.NewState.Get(vanguard.Id).Position);
         Assert.Contains(new Coord(1, 0), result.Single<UnitMoved>().Path);
         Assert.Equal(new Coord(1, 0), result.Single<SpikeHit>().At);
-        Assert.Equal(vanguard.Hp - 1, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(vanguard.Hp - 2, result.NewState.Get(vanguard.Id).Hp);
     }
 
     [Fact]

@@ -33,12 +33,12 @@ public class EnemyVariantTests
         Assert.Equal(IntentAction.Attack, intent.Action);
         Assert.Equal(vanguard.Id, intent.TargetId);
         Assert.Null(intent.MoveTo);
-        Assert.Equal(2, intent.Damage);
+        Assert.Equal(4, intent.Damage);
 
         Assert.Equal(new AttackCommand(warden.Id, vanguard.Id), Ai.Plan(state, warden));
 
         var result = state.Step(Ai.Plan(state, warden));
-        Assert.Equal(5, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(vanguard.Id).Hp);
         Assert.Equal(new Coord(2, 0), result.NewState.Get(warden.Id).Position);
     }
 
@@ -153,11 +153,11 @@ public class EnemyVariantTests
         var intent = Ai.Declare(state, perch);
         Assert.Equal(IntentAction.Attack, intent.Action);
         Assert.Null(intent.MoveTo);
-        Assert.Equal(2, intent.Damage);
-        Assert.Equal(1, UnitTemplate.For(UnitKind.Perch).Damage);
+        Assert.Equal(4, intent.Damage);
+        Assert.Equal(2, UnitTemplate.For(UnitKind.Perch).Damage);
 
         var result = state.Step(Ai.Plan(state, perch));
-        Assert.Equal(5, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(vanguard.Hp - intent.Damage, result.NewState.Get(vanguard.Id).Hp);
     }
 
     // Priority 2: contact breaks the whole plan, exactly as it does for a Lobber.
@@ -275,10 +275,10 @@ public class EnemyVariantTests
 
         var intent = Ai.Declare(state, bulwark);
         Assert.Equal(IntentAction.Attack, intent.Action);
-        Assert.Equal(1, intent.Damage);
+        Assert.Equal(2, intent.Damage);
 
         var result = state.Step(Ai.Plan(state, bulwark));
-        Assert.Equal(6, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(12, result.NewState.Get(vanguard.Id).Hp);
     }
 
     // Priority 2: else close, two tiles at a time.
@@ -363,7 +363,7 @@ public class EnemyVariantTests
     {
         var state = BoardBuilder.Open(8, 2)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Enemy(UnitKind.Bulwark, 1, 1)
             .Enemy(UnitKind.Anchor, 2, 0)
             .Build();
@@ -374,13 +374,13 @@ public class EnemyVariantTests
         var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
 
         Assert.True(result.Has<Collision>());
-        Assert.Equal(4, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
     }
 
     private static GameState HuskBesideABulwark() =>
         BoardBuilder.Open(8, 2)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Enemy(UnitKind.Bulwark, 2, 1)
             .Build();
 
@@ -493,7 +493,7 @@ public class EnemyVariantTests
         Assert.Equal(IntentAction.Attack, Ai.Declare(state, runt).Action);
 
         var result = state.Step(Ai.Plan(state, runt));
-        Assert.Equal(6, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(12, result.NewState.Get(vanguard.Id).Hp);
     }
 
     [Fact]
@@ -523,7 +523,7 @@ public class EnemyVariantTests
         var vanguard = state.Find(UnitKind.Vanguard);
         var runt = state.Find(UnitKind.Runt);
 
-        Assert.Equal(1, state.Get(runt.Id).Hp);
+        Assert.Equal(2, state.Get(runt.Id).Hp);
 
         var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Left));
 
@@ -571,10 +571,10 @@ public class EnemyVariantTests
 
         var intent = Ai.Declare(state, colossus);
         Assert.Equal(IntentAction.Attack, intent.Action);
-        Assert.Equal(3, intent.Damage);
+        Assert.Equal(6, intent.Damage);
 
         var result = state.Step(Ai.Plan(state, colossus));
-        Assert.Equal(4, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(8, result.NewState.Get(vanguard.Id).Hp);
     }
 
     [Fact]
@@ -616,7 +616,7 @@ public class EnemyVariantTests
 
         var result = state.Step(new AttackCommand(vanguard.Id, colossus.Id));
 
-        Assert.Equal(9, result.NewState.Get(colossus.Id).Hp);
+        Assert.Equal(18, result.NewState.Get(colossus.Id).Hp);
         Assert.Equal(new Coord(3, 0), result.NewState.Get(colossus.Id).Position);
     }
 
@@ -877,7 +877,7 @@ public class EnemyVariantTests
             ordinary.Find(UnitKind.Vanguard).Id, Ability.BullRush, null, Direction.Left));
 
         Assert.True(heavyResult.NewState.Get(heavy.Find(UnitKind.HeavyHusk).Id).IsAlive);
-        Assert.Equal(1, heavyResult.NewState.Get(heavy.Find(UnitKind.HeavyHusk).Id).Hp);
+        Assert.Equal(2, heavyResult.NewState.Get(heavy.Find(UnitKind.HeavyHusk).Id).Hp);
         Assert.False(ordinaryResult.NewState.Get(ordinary.Find(UnitKind.Husk).Id).IsAlive);
     }
 
@@ -955,7 +955,7 @@ public class EnemyVariantTests
             .Active(Team.Enemy)
             .Build();
 
-        Assert.Equal(2, Ai.Declare(state, state.Find(UnitKind.MobileAnchor)).Damage);
+        Assert.Equal(4, Ai.Declare(state, state.Find(UnitKind.MobileAnchor)).Damage);
     }
 
     // ================================================================================

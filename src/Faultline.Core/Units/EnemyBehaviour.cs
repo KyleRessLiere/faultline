@@ -305,7 +305,7 @@ namespace Faultline.Core
                     ("Shoot from where it stands",
                      $"With no player unit adjacent and one within range {lobber.Range}, it shoots the nearest "
                      + $"for {lobber.Damage} and does not move. Fired from HighGround the shot is "
-                     + $"{lobber.Damage + 1} instead — the +1 ranged bonus is not a player-only rule."),
+                     + $"{lobber.Damage + Combat.HighGroundBonus} instead — the +1 ranged bonus is not a player-only rule."),
                     ("Break contact before anything else",
                      "If any player unit is adjacent, it retreats to the reachable tile that maximises the "
                      + "distance to the nearest player unit, ties broken by the greater total distance to all "
@@ -321,7 +321,7 @@ namespace Faultline.Core
                     + "plan is to keep away from you and it is not fast enough to do it.",
                     "The adjacency check runs against every player unit, not just the one it declared against: "
                     + "a second unit stepping in also stops the shot.",
-                    $"On HighGround it hits for {lobber.Damage + 1}, so a Lobber that climbs is a different "
+                    $"On HighGround it hits for {lobber.Damage + Combat.HighGroundBonus}, so a Lobber that climbs is a different "
                     + "threat from a Lobber on the flat.",
                 },
                 new[]
@@ -473,11 +473,11 @@ namespace Faultline.Core
                 UnitKind.Perch,
                 "artillery that takes the ledge",
                 $"A Lobber that wants the high ground: it shoots for {perch.Damage} on the flat and "
-                + $"{perch.Damage + 1} from HighGround, and once it is up there it does not come down.",
+                + $"{perch.Damage + Combat.HighGroundBonus} from HighGround, and once it is up there it does not come down.",
                 Steps(
                     ("Shoot from where it stands",
                      $"With no player unit adjacent and one within range {perch.Range}, it shoots the "
-                     + $"nearest without moving — {perch.Damage} normally, {perch.Damage + 1} if it is "
+                     + $"nearest without moving — {perch.Damage} normally, {perch.Damage + Combat.HighGroundBonus} if it is "
                      + "standing on HighGround. The +1 ranged bonus is not a player-only rule."),
                     ("Break contact before anything else",
                      "A player unit adjacent and the shot is off: it retreats to the reachable tile "

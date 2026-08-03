@@ -28,7 +28,7 @@ public class FightOutcomeTests
     {
         var state = BoardBuilder.Open(3, 1)
             .Enemy(UnitKind.Anchor, 0, 0)
-            .PlayerA(UnitKind.Archer, 1, 0, hp: 1)
+            .PlayerA(UnitKind.Archer, 1, 0, hp: 2)
             .Build();
 
         var anchor = state.Find(UnitKind.Anchor);

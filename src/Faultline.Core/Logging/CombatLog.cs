@@ -173,7 +173,7 @@ namespace Faultline.Core
             UnitAttacked e => "hits " + Actor(state, e.TargetId)
                 + " " + e.From + " -> " + e.To
                 + " for " + Number(e.Damage)
-                + (e.FromHighGround ? " (high ground +1)" : string.Empty),
+                + (e.FromHighGround ? $" (high ground +{Combat.HighGroundBonus})" : string.Empty),
 
             UnitDamaged e => "-" + Number(e.Amount)
                 + (e.Overkill > 0 ? " (" + Number(e.Removed) + " taken, " + Number(e.Overkill) + " over)" : string.Empty)

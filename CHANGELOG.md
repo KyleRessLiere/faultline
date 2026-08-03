@@ -1,5 +1,19 @@
 # Changelog
 
+## The Great Doubling — every HP, damage and heal is ×2
+
+- A pure rescale for granularity headroom. Every ratio, law and behaviour is unchanged: the same
+  shoves kill the same units in the same number of blows. Collision 2→4, spikes 3→6, falls 1→2,
+  walking onto spikes 1→2, Husk contact 1→2, Preen 2→4, the ranged high-ground bonus 1→2, the
+  gate 8→16, and every row of the unit table.
+- The high-ground bonus was spelled as a literal `1` in six places — two in `Ai`, four in the
+  bestiary prose — so a Perch on a ledge shot for 3 while `Combat.Damage` gave 4. All six now read
+  `Combat.HighGroundBonus`, and the combat log prints the bonus rather than the word "+1".
+- `ScaleTests` asserts the ratios instead of the numbers: the impact ladder's ordering, walking onto
+  spikes costing less than being thrown onto them, a Preen never buying back more than one
+  collision, the stance halving back to the old scale, and every terrain finisher still killing a
+  Husk outright. These fail the moment one constant is doubled without its neighbours.
+
 ## You can hand the game to somebody who does not code
 
 - `tools/make-shareable.cmd` produces `dist/Faultline-windows.zip`. Unzip, double-click

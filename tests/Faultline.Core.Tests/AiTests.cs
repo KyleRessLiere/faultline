@@ -29,11 +29,11 @@ public class AiTests
         Assert.Equal(IntentAction.Attack, intent.Action);
         Assert.Equal(vanguard.Id, intent.TargetId);
         Assert.Null(intent.MoveTo);
-        Assert.Equal(1, intent.Damage);
+        Assert.Equal(2, intent.Damage);
 
         var result = state.Step(Ai.Plan(state, husk));
         Assert.Equal(new AttackCommand(husk.Id, vanguard.Id), Ai.Plan(state, husk));
-        Assert.Equal(6, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(12, result.NewState.Get(vanguard.Id).Hp);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class AiTests
         state = state.Then(Ai.Plan(state, state.Get(husk.Id)));
 
         Assert.Equal(new Coord(1, 0), state.Get(husk.Id).Position);
-        Assert.Equal(6, state.Get(vanguard.Id).Hp);
+        Assert.Equal(12, state.Get(vanguard.Id).Hp);
     }
 
     // ---- Lobber: 1. in range and nothing adjacent → shoot. 2. adjacent → move away. 3. advance. --
@@ -100,7 +100,7 @@ public class AiTests
         Assert.Null(intent.MoveTo);
 
         var result = state.Step(Ai.Plan(state, lobber));
-        Assert.Equal(3, result.NewState.Get(archer.Id).Hp);
+        Assert.Equal(6, result.NewState.Get(archer.Id).Hp);
     }
 
     [Fact]
@@ -172,11 +172,11 @@ public class AiTests
 
         var intent = Ai.Declare(state, anchor);
         Assert.Equal(IntentAction.Attack, intent.Action);
-        Assert.Equal(2, intent.Damage);
+        Assert.Equal(4, intent.Damage);
         Assert.Null(intent.MoveTo);
 
         var result = state.Step(Ai.Plan(state, anchor));
-        Assert.Equal(5, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(vanguard.Id).Hp);
     }
 
     [Fact]
@@ -351,8 +351,8 @@ public class AiTests
 
         var result = state.Step(Ai.Plan(state, stalker));
 
-        Assert.Equal(3, result.Single<SpikeHit>().Damage);
-        Assert.Equal(4, result.NewState.Get(vanguard.Id).Hp);
+        Assert.Equal(6, result.Single<SpikeHit>().Damage);
+        Assert.Equal(8, result.NewState.Get(vanguard.Id).Hp);
     }
 
     [Fact]
@@ -596,7 +596,7 @@ public class AiTests
     public void Intent_IsRedeclaredWhenItsTargetDies()
     {
         var state = BoardBuilder.Rows("^......", ".......", ".......")
-            .PlayerA(UnitKind.Vanguard, 1, 0, hp: 1)
+            .PlayerA(UnitKind.Vanguard, 1, 0, hp: 2)
             .PlayerB(UnitKind.Wardbearer, 0, 2)
             .Enemy(UnitKind.Husk, 6, 0)
             .Build()

@@ -17,7 +17,7 @@ namespace Faultline.Core
         /// What an attack takes off a structure, whatever the weapon swung it (D-060). A collision is
         /// unaffected and still lands in full, which is what keeps the board the better answer.
         /// </summary>
-        public const int AttackDamageToStructure = 1;
+        public const int AttackDamageToStructure = 2;
 
         /// <summary>
         /// Evaluates every ending the fight can currently reach and returns the state, completed when

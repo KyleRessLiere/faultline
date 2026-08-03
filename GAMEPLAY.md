@@ -26,6 +26,15 @@ superseded it (D-074).
 
 ---
 
+## The scale
+
+**Every hit point, every point of damage and every point of healing is on a doubled scale** (D-104).
+A pure rescale for granularity headroom: every ratio, every law and every behaviour is unchanged, and
+the numbers below are the doubled ones. Nothing else moved with them — the Pluck economy (cap 5,
+every spender cost, every charge amount), Footing tokens, push and pull distances, ranges, radii,
+movement points, turn limits and wave schedules are counts rather than damage, and counts did not
+double.
+
 ## Board and geometry
 
 - 7×7 grid. Everything is **4-way orthogonal** — movement, adjacency, range and displacement lines.
@@ -39,11 +48,11 @@ superseded it (D-074).
 | Open | free | — |
 | Wall | impossible | collision |
 | Pit | **impossible** (D-004) | Clinging |
-| Spikes | costs 1 movement, **1 damage**, no Stagger — and the router will walk you over them if that is the fastest way (D-097) | **3 damage**, stops there, Staggers |
+| Spikes | costs 1 movement, **2 damage**, no Stagger — and the router will walk you over them if that is the fastest way (D-097) | **6 damage**, stops there, Staggers |
 | HighGround | costs **2** movement (Archer: 1) | **impossible from below** — the ledge collides |
-| HighGround → down | free | **1 damage**, and the displacement *continues* |
+| HighGround → down | free | **2 damage**, and the displacement *continues* |
 
-Ranged attacks fired *from* HighGround deal **+1**. There is no line of sight (D-010).
+Ranged attacks fired *from* HighGround deal **+2**. There is no line of sight (D-010).
 
 **The Archer alone has a minimum range of 2** (D-099). Neither her shot nor Stagger Shot reaches the
 tile next to her, so closing on her is a real answer rather than a slower way of dying. Her way out
@@ -200,9 +209,9 @@ Then it travels, stopping the moment any of these happen:
 
 | What it enters | Result |
 |---|---|
-| Wall, board edge, or a HighGround ledge from below | **Collision** — 2 damage, Staggered |
-| Another unit | **Collision** — 2 damage **to both**, both Staggered |
-| Spikes | 3 damage, stops, Staggered |
+| Wall, board edge, or a HighGround ledge from below | **Collision** — 4 damage, Staggered |
+| Another unit | **Collision** — 4 damage **to both**, both Staggered |
+| Spikes | 6 damage, stops, Staggered |
 | Pit | **Clinging** |
 | Open, leaving HighGround | 1 fall damage, keeps travelling |
 
@@ -294,30 +303,30 @@ available, e.g. *needs 2 more move*.
 
 | Class | HP | Move | Basic attack | Ability |
 |---|---|---|---|---|
-| Vanguard | 7 | 3 | melee, 1 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015) — which since D-097 is what every action costs, so this is no longer a special case. |
-| Archer | 4 | 3 | range **2-3**, 2 dmg | **Stagger Shot** — range **2-3**, 1 dmg + push 1 away. Also climbs HighGround for free. |
-| **Fisher** | 4 | 3 | range 3, 1 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
-| Wardbearer | **7** | 3 | melee, 1 dmg | **Spear Thrust** — Line 2, damage only: **1** to an enemy in the adjacent tile, **2** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 1. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
+| Vanguard | 14 | 3 | melee, 2 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015) — which since D-097 is what every action costs, so this is no longer a special case. |
+| Archer | 8 | 3 | range **2-3**, 4 dmg | **Stagger Shot** — range **2-3**, 2 dmg + push 1 away. Also climbs HighGround for free. |
+| **Fisher** | 8 | 3 | range 3, 2 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
+| Wardbearer | **14** | 3 | melee, 2 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **4** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 2. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
-| Husk | 2 | 3 | melee, 1 dmg | chaff. **Shoulder**: walks through a body on its route, knocking it 1 aside for 1 and paying +1 MP (D-100) |
-| Lobber | 3 | 2 | range 3, 1 dmg | **hits for 2 from HighGround** — the +1 ranged bonus is not player-only |
-| Anchor | 6 | 1 | melee, 2 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
-| Grappler | 5 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
-| Stalker | 4 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **Wardbearer Hold does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1 |
-| Warden | 6 | **0** | melee, 2 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. **2 negating Footing tokens** — nothing shoves or pulls it while they stand; a collision it suffers takes one; break both and it moves like anybody (D-102) |
-| Perch | 3 | 2 | range 3, 1 dmg | seeks the nearest reachable HighGround and **hits for 2 from it**; once up, it does not come down |
-| Bulwark | 5 | 2 | melee, 1 dmg | **hold aura** — adjacent allies cannot be displaced more than 1. The Wardbearer's rule exactly; does not protect itself |
-| Harrier | 4 | 4 | **melee, push 1** | no damage. Shoves to **maximise the target's distance from its nearest ally**, and refuses any shove that would not move it — so it never uses walls or the edge |
-| Runt | 1 | 4 | melee, 1 dmg | dies to one collision, one spike tile, or one point of fall damage |
-| Colossus | 10 | 1 | melee, 3 dmg | **push resistance 2.** Push 1 → nothing; Push 2 → nothing; a Staggered Bull Rush moves it 1. **Pull is unaffected** |
-| Lesser Grappler | 5 | 3 | range **2**, pull 2 | Grappler list; must close to 2 where a Grappler already has you at 3 |
-| Blunted Stalker | 4 | 4 | **melee, push 1** | ranks **pit → spikes only.** Will not shove into a wall or the board edge, and does not loiter near them |
-| Heavy Husk | 3 | 3 | melee, 1 dmg | Husk list; survives one collision |
-| Mobile Anchor | 6 | 2 | melee, 2 dmg | Anchor list and shrug, at double the speed |
-| Raider | 2 | 3 | melee, 1 dmg | **never targets a player unit at all.** Walks at the nearest standing Protect structure and takes 1 off it whenever it ends an activation adjacent. No self-defence, and no free finish on a clinging unit. With no Protect structure standing anywhere, it holds (D-045) |
-| Quarry King | 14 | **1** | melee, 3 dmg **+ push 1** | **boss.** Three Footing tokens that *negate*: while any remain, every Push and Pull against him resolves at 0 and no token is spent (D-043). A token is stripped by a collision he suffers, or by ending a round next to a pit. At **7 HP or below** the stat block swaps to Move 3 and the list gains Bull Rush; he re-declares his intent on the spot (D-044) |
+| Husk | 4 | 3 | melee, 2 dmg | chaff. **Shoulder**: walks through a body on its route, knocking it 1 aside for 2 and paying +1 MP (D-100) |
+| Lobber | 6 | 2 | range 3, 2 dmg | **hits for 4 from HighGround** — the +2 ranged bonus is not player-only |
+| Anchor | 12 | 1 | melee, 4 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
+| Grappler | 10 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
+| Stalker | 8 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **Wardbearer Hold does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1 |
+| Warden | 12 | **0** | melee, 4 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. **2 negating Footing tokens** — nothing shoves or pulls it while they stand; a collision it suffers takes one; break both and it moves like anybody (D-102) |
+| Perch | 6 | 2 | range 3, 2 dmg | seeks the nearest reachable HighGround and **hits for 4 from it**; once up, it does not come down |
+| Bulwark | 10 | 2 | melee, 2 dmg | **hold aura** — adjacent allies cannot be displaced more than 1. The Wardbearer's rule exactly; does not protect itself |
+| Harrier | 8 | 4 | **melee, push 1** | no damage. Shoves to **maximise the target's distance from its nearest ally**, and refuses any shove that would not move it — so it never uses walls or the edge |
+| Runt | 2 | 4 | melee, 2 dmg | dies to one collision, one spike tile, or one fall |
+| Colossus | 20 | 1 | melee, 6 dmg | **push resistance 2.** Push 1 → nothing; Push 2 → nothing; a Staggered Bull Rush moves it 1. **Pull is unaffected** |
+| Lesser Grappler | 10 | 3 | range **2**, pull 2 | Grappler list; must close to 2 where a Grappler already has you at 3 |
+| Blunted Stalker | 8 | 4 | **melee, push 1** | ranks **pit → spikes only.** Will not shove into a wall or the board edge, and does not loiter near them |
+| Heavy Husk | 6 | 3 | melee, 2 dmg | Husk list; survives one collision |
+| Mobile Anchor | 12 | 2 | melee, 4 dmg | Anchor list and shrug, at double the speed |
+| Raider | 4 | 3 | melee, 2 dmg | **never targets a player unit at all.** Walks at the nearest standing Protect structure and takes 2 off it whenever it ends an activation adjacent. No self-defence, and no free finish on a clinging unit. With no Protect structure standing anywhere, it holds (D-045) |
+| Quarry King | 28 | **1** | melee, 6 dmg **+ push 1** | **boss.** Three Footing tokens that *negate*: while any remain, every Push and Pull against him resolves at 0 and no token is spent (D-043). A token is stripped by a collision he suffers, or by ending a round next to a pit. At **14 HP or below** the stat block swaps to Move 3 and the list gains Bull Rush; he re-declares his intent on the spot (D-044) |
 
 **A variant shares its archetype's priority list rather than copying it** (D-032). The planner
 dispatches on the plan named by the stat block, not on the archetype, so a stat-block variant and the
@@ -388,10 +397,10 @@ the Verve does not come back.**
 
 | Class | Spender | Cost | What it does |
 |---|---|---|---|
-| Vanguard | **Wrecking Weight** | 2 | The next push this activation is **+1 distance** and deals **1 damage on contact**. |
+| Vanguard | **Wrecking Weight** | 2 | The next push this activation is **+1 distance** and deals **2 damage on contact**. |
 | Fisher | **Cast** | 3 | Pluck an enemy from **up to 3 tiles**, over anything between, and set it down on **one of her four tiles**. The landing does its worst. |
 | Archer | **Double Nock** | 4 | Her attack action **fires twice**. Separate targets; each resolved in full. |
-| Wardbearer | **Preen** | 3 | Heals himself **2**, never past his maximum. Not offered at full health. |
+| Wardbearer | **Preen** | 3 | Heals himself **4**, never past his maximum. Not offered at full health. |
 
 **Wrecking Weight** adds its tile to the *request*, before Stagger, resistance, hold auras and
 Footing, so it composes with all of them (D-076). An Anchor still shrugs a tile off — the Vanguard's
@@ -402,7 +411,7 @@ collision = 4**. A target killed by the first two never travels.
 **Cast** is a third displacement verb, `Throw` (D-091). **The grab is a lob**: she reaches up to 3
 tiles and nothing in between is consulted — not walls, not bodies, not hazards — so a Lobber hiding
 behind its own screen is not hiding. **The landing is the only tile that resolves**, and it resolves
-in full: spikes for 3 and a Stagger, a drain for a cling, either of which charges her Pluck.
+in full: spikes for 6 and a Stagger, a drain for a cling, either of which charges her Pluck.
 
 **Push resistance does not apply to a throw.** An Anchor braces against the ground and has nothing to
 brace against in the air, which makes Cast the answer to the units nothing else can move. **Footing
@@ -753,14 +762,14 @@ none due → win under every objective** (D-034); then, at end of round only, th
 and finally the turn limit.
 
 **Structures** are board state, not units (D-035). A structure blocks its tile like a unit, and when
-it is destroyed the tile clears — which can open a route. Protect defaults to 6 HP and Destroy to 8,
+it is destroyed the tile clears — which can open a route. Protect defaults to 12 HP and Destroy to 16,
 both authorable. A Protect structure can be attacked; a Destroy structure cannot, and **collision is
-the only thing that hurts it** — 2 per slam, so four slams for a default 8 HP. Because collision is
+the only thing that hurts it** — 4 per slam, so four slams for a default 16 HP. Because collision is
 universal physics, shoving an enemy into a structure you are guarding damages it too.
 
 Enemies do not yet path toward a Protect structure. Instead an enemy that **ends its activation
 adjacent** to one claws at it (D-036) — a stand-in until the planner learns about structures. The
-claw takes **1**, like every attack on a structure, however hard the thing swinging hits (D-060).
+claw takes **2**, like every attack on a structure, however hard the thing swinging hits (D-060).
 
 A Wardbearer in **Guard Stance** standing next to the structure takes that claw instead, and takes it
 at the enemy's real damage rather than the flat 1 (D-096). One body beside the altar is the answer to

@@ -608,7 +608,7 @@ namespace Faultline.Core
             if (enemy.Template.Attack == AttackKind.Ranged
                 && state.Board.At(from) == TileType.HighGround)
             {
-                damage += 1;
+                damage += Combat.HighGroundBonus;
             }
 
             return Guard.Mitigate(state, victim.Id, damage, DamageSource.Attack) >= victim.Hp;
@@ -1124,7 +1124,7 @@ namespace Faultline.Core
             int damage = template.Damage;
             if (template.Attack == AttackKind.Ranged && state.Board.At(from) == TileType.HighGround)
             {
-                damage += 1;
+                damage += Combat.HighGroundBonus;
             }
 
             // D-058: a guard beside the target takes this instead, halved. The telegraph says so,

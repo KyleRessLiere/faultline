@@ -118,15 +118,15 @@ public class PrimitiveTests
     }
 
     [Theory]
-    [InlineData(UnitKind.Vanguard, 7, 3)]
-    [InlineData(UnitKind.Archer, 4, 3)]
-    [InlineData(UnitKind.Threadcaster, 4, 3)]
-    [InlineData(UnitKind.Wardbearer, 7, 3)]
-    [InlineData(UnitKind.Husk, 2, 3)]
-    [InlineData(UnitKind.Lobber, 3, 2)]
-    [InlineData(UnitKind.Anchor, 6, 1)]
-    [InlineData(UnitKind.Grappler, 5, 3)]
-    [InlineData(UnitKind.Stalker, 4, 4)]
+    [InlineData(UnitKind.Vanguard, 14, 3)]
+    [InlineData(UnitKind.Archer, 8, 3)]
+    [InlineData(UnitKind.Threadcaster, 8, 3)]
+    [InlineData(UnitKind.Wardbearer, 14, 3)]
+    [InlineData(UnitKind.Husk, 4, 3)]
+    [InlineData(UnitKind.Lobber, 6, 2)]
+    [InlineData(UnitKind.Anchor, 12, 1)]
+    [InlineData(UnitKind.Grappler, 10, 3)]
+    [InlineData(UnitKind.Stalker, 8, 4)]
     public void UnitTemplate_MatchesTheBriefStatTables(UnitKind kind, int maxHp, int move)
     {
         var template = UnitTemplate.For(kind);

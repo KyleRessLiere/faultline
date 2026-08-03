@@ -143,14 +143,14 @@ public class CombatLogTests
         var collision = Columns(lines[1]);
         Assert.Equal("Grappler [E] u1", collision[2]);
         Assert.Contains("into Anchor [E] u2", collision[4], StringComparison.Ordinal);
-        Assert.Contains("2 damage to both", collision[4], StringComparison.Ordinal);
+        Assert.Contains("4 damage to both", collision[4], StringComparison.Ordinal);
 
-        // Both parties take their 2 and are staggered, each on its own line.
+        // Both parties take their 4 and are staggered, each on its own line.
         Assert.Equal("Grappler [E] u1", Columns(lines[2])[2]);
-        Assert.Contains("-2 Collision", Columns(lines[2])[4], StringComparison.Ordinal);
+        Assert.Contains("-4 Collision", Columns(lines[2])[4], StringComparison.Ordinal);
         Assert.Equal("Grappler [E] u1", Columns(lines[3])[2]);
         Assert.Equal("Anchor [E] u2", Columns(lines[4])[2]);
-        Assert.Contains("-2 Collision", Columns(lines[4])[4], StringComparison.Ordinal);
+        Assert.Contains("-4 Collision", Columns(lines[4])[4], StringComparison.Ordinal);
         Assert.Equal("Anchor [E] u2", Columns(lines[5])[2]);
     }
 

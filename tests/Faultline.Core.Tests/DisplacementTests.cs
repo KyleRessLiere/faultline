@@ -22,7 +22,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("..#")
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -30,7 +30,7 @@ public class DisplacementTests
 
         Assert.Empty(preview.Path);
         Assert.Equal(DisplacementStop.Collision, preview.Stop);
-        Assert.Equal(2, preview.DamageToUnit);
+        Assert.Equal(4, preview.DamageToUnit);
         Assert.True(preview.WouldStagger);
         Assert.False(preview.IsNoOp);
     }
@@ -42,8 +42,8 @@ public class DisplacementTests
         // second with nowhere to go, both taking 2.
         var state = BoardBuilder.Open(3, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 2)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 2)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 4)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 4)
             .Build();
 
         var near = state.UnitAt(new Coord(1, 0))!;
@@ -51,8 +51,8 @@ public class DisplacementTests
 
         Assert.Empty(preview.Path);
         Assert.Equal(DisplacementStop.Collision, preview.Stop);
-        Assert.Equal(2, preview.DamageToUnit);
-        Assert.Equal(2, preview.DamageToObstacle);
+        Assert.Equal(4, preview.DamageToUnit);
+        Assert.Equal(4, preview.DamageToObstacle);
         Assert.True(preview.WouldDown);
         Assert.False(preview.IsNoOp);
     }
@@ -78,7 +78,7 @@ public class DisplacementTests
         // Vanguard at 0, Husk at 1, wall at 3. Push 2 moves the Husk one tile, then it hits the wall.
         var state = BoardBuilder.Rows("...#")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -91,10 +91,10 @@ public class DisplacementTests
 
         var collision = events.OfType<Collision>().Single();
         Assert.Null(collision.ObstacleId);
-        Assert.Equal(2, collision.Damage);
+        Assert.Equal(4, collision.Damage);
 
         var moved = after.Get(husk.Id);
-        Assert.Equal(4, moved.Hp);
+        Assert.Equal(8, moved.Hp);
         Assert.True(moved.Staggered);
         Assert.Contains(events, e => e is Staggered);
     }
@@ -104,7 +104,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("....")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Enemy(UnitKind.Anchor, 2, 0)
             .Build();
 
@@ -116,8 +116,8 @@ public class DisplacementTests
         var collision = events.OfType<Collision>().Single();
         Assert.Equal(anchor.Id, collision.ObstacleId);
 
-        Assert.Equal(4, after.Get(husk.Id).Hp);
-        Assert.Equal(4, after.Get(anchor.Id).Hp);
+        Assert.Equal(8, after.Get(husk.Id).Hp);
+        Assert.Equal(8, after.Get(anchor.Id).Hp);
         Assert.True(after.Get(husk.Id).Staggered);
         Assert.True(after.Get(anchor.Id).Staggered);
         Assert.Equal(new Coord(1, 0), after.Get(husk.Id).Position);
@@ -128,7 +128,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("...")
             .PlayerA(UnitKind.Archer, 2, 0)
-            .Enemy(UnitKind.Husk, 0, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 0, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -137,7 +137,7 @@ public class DisplacementTests
 
         Assert.Single(events.OfType<Collision>());
         Assert.Equal(new Coord(0, 0), after.Get(husk.Id).Position);
-        Assert.Equal(4, after.Get(husk.Id).Hp);
+        Assert.Equal(8, after.Get(husk.Id).Hp);
     }
 
     // --- Stagger ----------------------------------------------------------------------
@@ -147,7 +147,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("......")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -166,7 +166,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 5, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 5, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -186,7 +186,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows(".. ^.".Replace(" ", string.Empty))
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -194,11 +194,11 @@ public class DisplacementTests
         var after = Displacement.Resolve(state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 3, false, events);
 
         var spike = events.OfType<SpikeHit>().Single();
-        Assert.Equal(3, spike.Damage);
+        Assert.Equal(6, spike.Damage);
         Assert.False(spike.Voluntary);
 
         Assert.Equal(new Coord(2, 0), after.Get(husk.Id).Position);
-        Assert.Equal(3, after.Get(husk.Id).Hp);
+        Assert.Equal(6, after.Get(husk.Id).Hp);
         Assert.True(after.Get(husk.Id).Staggered);
     }
 
@@ -214,7 +214,7 @@ public class DisplacementTests
         var result = state.Step(new MoveCommand(vanguard.Id, new Coord(1, 0)));
 
         var spike = result.Single<SpikeHit>();
-        Assert.Equal(1, spike.Damage);
+        Assert.Equal(2, spike.Damage);
         Assert.True(spike.Voluntary);
         Assert.False(result.NewState.Get(vanguard.Id).Staggered);
     }
@@ -574,7 +574,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("..H.")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -583,7 +583,7 @@ public class DisplacementTests
 
         Assert.Single(events.OfType<Collision>());
         Assert.Equal(new Coord(1, 0), after.Get(husk.Id).Position);
-        Assert.Equal(4, after.Get(husk.Id).Hp);
+        Assert.Equal(8, after.Get(husk.Id).Hp);
     }
 
     [Fact]
@@ -591,7 +591,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("H....")
             .PlayerA(UnitKind.Archer, 4, 0)
-            .Enemy(UnitKind.Husk, 0, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 0, 0, hp: 12)
             .Build();
 
         var husk = state.Find(UnitKind.Husk);
@@ -601,7 +601,7 @@ public class DisplacementTests
         var after = Displacement.Resolve(state, husk.Id, new Coord(4, 0), DisplacementKind.Pull, 2, false, events);
 
         Assert.Equal(new Coord(2, 0), after.Get(husk.Id).Position);
-        Assert.Equal(5, after.Get(husk.Id).Hp);
+        Assert.Equal(10, after.Get(husk.Id).Hp);
         Assert.Contains(events, e => e is UnitDamaged d && d.Source == DamageSource.Fall);
         Assert.False(after.Get(husk.Id).Staggered);
     }
@@ -635,7 +635,7 @@ public class DisplacementTests
     {
         var state = BoardBuilder.Rows("...#")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 2)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 4)
             .Enemy(UnitKind.Anchor, 0, 0)
             .Active(Team.PlayerA)
             .Build();

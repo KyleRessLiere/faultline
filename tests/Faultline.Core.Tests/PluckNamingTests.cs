@@ -116,7 +116,7 @@ public class PluckNamingTests
         // that stops being true is somebody typing the word they saw in the C#.
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var her = state.Find(UnitKind.Threadcaster).Id;

@@ -57,7 +57,7 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(3, 1)
             .Enemy(UnitKind.Anchor, 0, 0)
-            .PlayerA(UnitKind.Archer, 1, 0, hp: 1)
+            .PlayerA(UnitKind.Archer, 1, 0, hp: 2)
             .Objective(ObjectiveKind.Survive, rounds: 9)
             .Build();
 
@@ -212,7 +212,7 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(3, 1)
             .Enemy(UnitKind.Anchor, 0, 0)
-            .PlayerA(UnitKind.Archer, 1, 0, hp: 1)
+            .PlayerA(UnitKind.Archer, 1, 0, hp: 2)
             .Objective(ObjectiveKind.Reach, tiles: new Coord(2, 0))
             .Build();
 
@@ -230,8 +230,8 @@ public class ObjectiveTests
 
         var structure = Assert.Single(state.Structures);
         Assert.Equal(new Coord(2, 0), structure.At);
-        Assert.Equal(6, structure.Hp);
-        Assert.Equal(6, structure.MaxHp);
+        Assert.Equal(12, structure.Hp);
+        Assert.Equal(12, structure.MaxHp);
         Assert.Equal(ObjectiveKind.Protect, structure.Role);
         Assert.True(structure.IsSiegeTarget);
     }
@@ -257,8 +257,8 @@ public class ObjectiveTests
         var attacked = result.Single<StructureAttacked>();
         Assert.Equal(husk.Id, attacked.AttackerId);
         Assert.Equal(new Coord(2, 0), attacked.At);
-        Assert.Equal(1, attacked.Damage);
-        Assert.Equal(5, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(2, attacked.Damage);
+        Assert.Equal(10, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
     }
 
     [Fact]
@@ -274,13 +274,13 @@ public class ObjectiveTests
         var result = state.Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
 
         Assert.False(result.Has<StructureAttacked>());
-        Assert.Equal(6, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(12, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
     }
 
     [Fact]
     public void Protect_LosesWhenTheStructureFalls()
     {
-        var state = ProtectBoard(hp: 1);
+        var state = ProtectBoard(hp: 2);
 
         var result = state.Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
 
@@ -292,7 +292,7 @@ public class ObjectiveTests
     [Fact]
     public void Protect_DoesNotLoseWhileTheStructureStands()
     {
-        var result = ProtectBoard(hp: 3).Step(new EndActivationCommand(ProtectBoard(hp: 3).Find(UnitKind.Husk).Id));
+        var result = ProtectBoard(hp: 6).Step(new EndActivationCommand(ProtectBoard(hp: 6).Find(UnitKind.Husk).Id));
 
         Assert.Equal(FightOutcome.InProgress, result.NewState.Outcome);
     }
@@ -318,7 +318,7 @@ public class ObjectiveTests
         // the thing you are guarding.
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 5)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 10)
             .Objective(ObjectiveKind.Protect, tiles: new Coord(2, 0))
             .Build();
 
@@ -326,8 +326,8 @@ public class ObjectiveTests
 
         var damaged = result.Single<StructureDamaged>();
         Assert.Equal(DamageSource.Collision, damaged.Source);
-        Assert.Equal(2, damaged.Amount);
-        Assert.Equal(4, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(4, damaged.Amount);
+        Assert.Equal(8, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
     }
 
     // ---- destroy <coords> -------------------------------------------------------------------
@@ -347,17 +347,19 @@ public class ObjectiveTests
         var events = new List<GameEvent>();
         var after = Objectives.Damage(state, structure.At, 3, DamageSource.Attack, events);
 
-        Assert.Equal(structure.Hp - 1, after.StructureAt(structure.At)!.Hp);
-        Assert.Equal(1, events.OfType<StructureDamaged>().Single().Amount);
+        Assert.Equal(structure.Hp - 2, after.StructureAt(structure.At)!.Hp);
+        Assert.Equal(2, events.OfType<StructureDamaged>().Single().Amount);
     }
 
-    // D-060: whatever the weapon, an attack takes exactly 1 off a structure — the Anchor's 2 and the
-    // Husk's 1 chip it identically. Collisions are untouched by the rule and still do full damage.
+    // D-060: whatever the weapon, an attack takes the same flat chip off a structure — the Anchor's
+    // 4 and the Husk's 2 chip it identically. Collisions are untouched by the rule and still do full
+    // damage. Written against the constant, because the flat chip is the rule and its size is not.
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(5)]
-    public void Structure_TakesExactlyOneFromAnyAttack_AndFullDamageFromACollision(int dealt)
+    [InlineData(10)]
+    public void Structure_TakesTheSameFlatChipFromAnyAttack_AndFullDamageFromACollision(int dealt)
     {
         var state = ProtectBoard();
         var at = new Coord(2, 0);
@@ -366,7 +368,7 @@ public class ObjectiveTests
         var attacked = Objectives.Damage(state, at, dealt, DamageSource.Attack, new List<GameEvent>());
         var slammed = Objectives.Damage(state, at, dealt, DamageSource.Collision, new List<GameEvent>());
 
-        Assert.Equal(hp - 1, attacked.StructureAt(at)!.Hp);
+        Assert.Equal(hp - Objectives.AttackDamageToStructure, attacked.StructureAt(at)!.Hp);
         Assert.Equal(hp - dealt, slammed.StructureAt(at)!.Hp);
     }
 
@@ -385,7 +387,7 @@ public class ObjectiveTests
         var result = state.Step(new EndActivationCommand(state.Find(UnitKind.Husk).Id));
 
         Assert.False(result.Has<StructureAttacked>());
-        Assert.Equal(8, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(16, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
     }
 
     [Fact]
@@ -396,8 +398,8 @@ public class ObjectiveTests
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Vanguard).Id, state.Find(UnitKind.Husk).Id));
 
         var damaged = result.Single<StructureDamaged>();
-        Assert.Equal(2, damaged.Amount);
-        Assert.Equal(6, damaged.RemainingHp);
+        Assert.Equal(4, damaged.Amount);
+        Assert.Equal(12, damaged.RemainingHp);
         Assert.Equal(DamageSource.Collision, damaged.Source);
         Assert.True(result.Has<Collision>());
     }
@@ -411,25 +413,25 @@ public class ObjectiveTests
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Vanguard).Id, husk.Id));
 
         // 1 from the Vanguard's swing, then 2 from the collision.
-        Assert.Equal(husk.Hp - 3, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(husk.Hp - 6, result.NewState.Get(husk.Id).Hp);
     }
 
     [Fact]
     public void Destroy_WinsOnTheFourthSlam()
     {
-        var state = DestroyBoard(hp: 8);
+        var state = DestroyBoard(hp: 16);
         var at = new Coord(2, 0);
 
         for (int slam = 1; slam <= 4; slam++)
         {
             var events = new List<GameEvent>();
-            state = Objectives.Damage(state, at, 2, DamageSource.Collision, events);
+            state = Objectives.Damage(state, at, Displacement.CollisionDamage, DamageSource.Collision, events);
             state = Objectives.Check(state, false, events);
 
             if (slam < 4)
             {
                 Assert.Equal(FightOutcome.InProgress, state.Outcome);
-                Assert.Equal(8 - (slam * 2), state.StructureAt(at)!.Hp);
+                Assert.Equal(16 - (slam * 4), state.StructureAt(at)!.Hp);
             }
             else
             {
@@ -442,10 +444,10 @@ public class ObjectiveTests
     [Fact]
     public void Destroy_RubbleStopsBlockingItsTile()
     {
-        var state = DestroyBoard(hp: 2);
+        var state = DestroyBoard(hp: 4);
         var at = new Coord(2, 0);
 
-        state = Objectives.Damage(state, at, 2, DamageSource.Collision, new List<GameEvent>());
+        state = Objectives.Damage(state, at, Displacement.CollisionDamage, DamageSource.Collision, new List<GameEvent>());
 
         Assert.Null(state.StructureAt(at));
         Assert.False(state.IsOccupied(at));
@@ -456,7 +458,7 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(6, 1)
             .Enemy(UnitKind.Anchor, 0, 0)
-            .PlayerA(UnitKind.Archer, 1, 0, hp: 1)
+            .PlayerA(UnitKind.Archer, 1, 0, hp: 2)
             .Objective(ObjectiveKind.Destroy, tiles: new Coord(4, 0))
             .Build();
 
@@ -541,7 +543,7 @@ public class ObjectiveTests
             .Objective(ObjectiveKind.Hold, rounds: rounds, tiles: new Coord(3, 2))
             .Build();
 
-    private static GameState ProtectBoard(int hp = 6) =>
+    private static GameState ProtectBoard(int hp = 12) =>
         BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
             .Enemy(UnitKind.Husk, 3, 0)
@@ -549,10 +551,10 @@ public class ObjectiveTests
             .Active(Team.Enemy)
             .Build();
 
-    private static GameState DestroyBoard(int hp = 8) =>
+    private static GameState DestroyBoard(int hp = 16) =>
         BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 5)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 10)
             .Objective(ObjectiveKind.Destroy, hp: hp, tiles: new Coord(2, 0))
             .Build();
 

@@ -30,13 +30,13 @@ namespace Faultline.Core
         public const int Cap = 5;
 
         /// <summary>Damage a Wrecking Weight push deals on contact, on top of anything it collides into.</summary>
-        public const int ContactDamage = 1;
+        public const int ContactDamage = 2;
 
         /// <summary>Extra tiles a Wrecking Weight push asks for, before Stagger, resistance and Footing.</summary>
         public const int ContactDistanceBonus = 1;
 
         /// <summary>Hit points Preen puts back, never past the unit's maximum.</summary>
-        public const int PreenHeal = 2;
+        public const int PreenHeal = 4;
 
         /// <summary>What a spend costs.</summary>
         /// <param name="spend">The spend.</param>

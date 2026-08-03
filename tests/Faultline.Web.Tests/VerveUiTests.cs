@@ -168,7 +168,7 @@ public sealed class VerveUiTests
     public void AHurtWardbearer_IsOfferedPreen()
     {
         var session = new Fixture(7, 3)
-            .Place(UnitKind.Wardbearer, Team.PlayerB, 1, 1, verve: Verve.Cap, hp: 3)
+            .Place(UnitKind.Wardbearer, Team.PlayerB, 1, 1, verve: Verve.Cap, hp: 6)
             .Place(UnitKind.Husk, Team.Enemy, 2, 1)
             .Active(Team.PlayerB)
             .Session();

@@ -221,13 +221,13 @@ public class CuratedSetBoardTests
         var gate = start.Structures.Single();
 
         Assert.Equal(ObjectiveKind.Destroy, gate.Role);
-        Assert.Equal(8, gate.MaxHp);
+        Assert.Equal(16, gate.MaxHp);
         Assert.False(gate.IsSiegeTarget);
 
         var chipped = Objectives.Damage(start, gate.At, 2, DamageSource.Attack, new List<GameEvent>());
         var slammed = Objectives.Damage(start, gate.At, 2, DamageSource.Collision, new List<GameEvent>());
 
-        Assert.Equal(gate.Hp - 1, chipped.StructureAt(gate.At)!.Hp);
+        Assert.Equal(gate.Hp - 2, chipped.StructureAt(gate.At)!.Hp);
         Assert.Equal(gate.Hp - 2, slammed.StructureAt(gate.At)!.Hp);
     }
 

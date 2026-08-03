@@ -128,8 +128,8 @@ public class VerveTests
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 1, 0, hp: 6)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -147,7 +147,7 @@ public class VerveTests
     {
         var state = BoardBuilder.Rows(".^..")
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -165,7 +165,7 @@ public class VerveTests
     {
         var state = BoardBuilder.Rows(".O..")
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -186,7 +186,7 @@ public class VerveTests
     {
         var state = BoardBuilder.Rows(".O.")
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -206,7 +206,7 @@ public class VerveTests
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Threadcaster, 0, 0)
             .Enemy(UnitKind.Anchor, 1, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -225,7 +225,7 @@ public class VerveTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);
@@ -265,7 +265,7 @@ public class VerveTests
     {
         var state = BoardBuilder.Rows("H...")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -283,7 +283,7 @@ public class VerveTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -332,7 +332,7 @@ public class VerveTests
         // class could never satisfy the raw condition in the first place, so it would prove nothing.
         var state = BoardBuilder.Rows("H...")
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var caster = state.Find(UnitKind.Threadcaster);

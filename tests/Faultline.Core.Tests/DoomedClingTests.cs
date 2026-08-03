@@ -32,7 +32,7 @@ public class DoomedClingTests
         // The Vanguard shoves west with his basic attack; the pit is the tile behind the Husk.
         var state = BoardBuilder.Rows("O.....")
             .PlayerA(UnitKind.Vanguard, 2, 0)
-            .Enemy(UnitKind.Husk, 1, 0, footing: 0, hp: 6)
+            .Enemy(UnitKind.Husk, 1, 0, footing: 0, hp: 12)
             .Enemy(UnitKind.Husk, 5, 0)
             .Build();
 

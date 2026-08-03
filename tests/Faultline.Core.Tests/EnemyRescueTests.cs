@@ -55,7 +55,7 @@ public class EnemyRescueTests
     [Fact]
     public void Enemy_WithALethalAttackInReach_TakesTheKillAndLeavesTheAllyHanging()
     {
-        var state = Lip(UnitKind.Husk, playerHp: 1);
+        var state = Lip(UnitKind.Husk, playerHp: 2);
 
         var rescuer = state.Get(new UnitId(1));
         var player = state.Get(new UnitId(2));
@@ -77,7 +77,7 @@ public class EnemyRescueTests
     [Fact]
     public void Enemy_WithALethalAttackAfterWalking_StillTakesTheKill()
     {
-        var state = Lip(UnitKind.Husk, playerHp: 1, playerX: 3);
+        var state = Lip(UnitKind.Husk, playerHp: 2, playerX: 3);
 
         var rescuer = state.Get(new UnitId(1));
         var intent = Ai.Declare(state, rescuer);
@@ -94,7 +94,7 @@ public class EnemyRescueTests
     [Fact]
     public void Enemy_WithAnAttackThatWouldNotKill_StillRescues()
     {
-        var state = Lip(UnitKind.Husk, playerHp: 2);
+        var state = Lip(UnitKind.Husk, playerHp: 4);
 
         Assert.Equal(IntentAction.Rescue, Ai.Declare(state, state.Get(new UnitId(1))).Action);
     }
@@ -104,7 +104,7 @@ public class EnemyRescueTests
     {
         // A Grappler has no attack at all, so no lethal can ever outrank the rescue — not even
         // against a player unit on 1 hit point standing in its pulling band.
-        var state = Lip(UnitKind.Grappler, playerHp: 1, playerX: 3);
+        var state = Lip(UnitKind.Grappler, playerHp: 2, playerX: 3);
 
         var intent = Ai.Declare(state, state.Get(new UnitId(1)));
 
@@ -284,7 +284,7 @@ public class EnemyRescueTests
         var state = BoardBuilder.Rows("O.....", "......")
             .Enemy(UnitKind.Husk, 0, 0)
             .Enemy(UnitKind.Raider, 1, 0)
-            .PlayerA(UnitKind.Vanguard, 1, 1, hp: 1)
+            .PlayerA(UnitKind.Vanguard, 1, 1, hp: 2)
             .Objective(ObjectiveKind.Protect, 0, 6, new Coord(5, 0))
             .Active(Team.Enemy)
             .Build();

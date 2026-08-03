@@ -18,9 +18,9 @@ public class CombatTests
         var result = state.Step(new AttackCommand(vanguard.Id, anchor.Id));
 
         var attacked = result.Single<UnitAttacked>();
-        Assert.Equal(1, attacked.Damage);
+        Assert.Equal(2, attacked.Damage);
         Assert.False(attacked.FromHighGround);
-        Assert.Equal(5, result.NewState.Get(anchor.Id).Hp);
+        Assert.Equal(10, result.NewState.Get(anchor.Id).Hp);
     }
 
     [Fact]
@@ -51,8 +51,8 @@ public class CombatTests
 
         var result = state.Step(new AttackCommand(archer.Id, anchor.Id));
 
-        Assert.Equal(2, result.Single<UnitAttacked>().Damage);
-        Assert.Equal(4, result.NewState.Get(anchor.Id).Hp);
+        Assert.Equal(4, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(8, result.NewState.Get(anchor.Id).Hp);
     }
 
     [Fact]
@@ -83,9 +83,9 @@ public class CombatTests
         var result = state.Step(new AttackCommand(archer.Id, anchor.Id));
 
         var attacked = result.Single<UnitAttacked>();
-        Assert.Equal(3, attacked.Damage);
+        Assert.Equal(6, attacked.Damage);
         Assert.True(attacked.FromHighGround);
-        Assert.Equal(3, result.NewState.Get(anchor.Id).Hp);
+        Assert.Equal(6, result.NewState.Get(anchor.Id).Hp);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class CombatTests
         var anchor = state.Find(UnitKind.Anchor);
 
         Assert.True(Combat.CanAttack(state, vanguard, anchor, out int damage));
-        Assert.Equal(1, damage);
+        Assert.Equal(2, damage);
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class CombatTests
     {
         var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 1)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 2)
             .Enemy(UnitKind.Anchor, 3, 0)
             .Build();
 
@@ -186,7 +186,7 @@ public class CombatTests
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
         var damaged = result.Single<UnitDamaged>();
-        Assert.Equal(2, damaged.Amount);
+        Assert.Equal(4, damaged.Amount);
         Assert.Equal(0, damaged.RemainingHp);
         Assert.Equal(DamageSource.Attack, damaged.Source);
     }
@@ -211,15 +211,15 @@ public class OverkillTests
         var caster = state.Find(UnitKind.Threadcaster).Id;
         var runt = state.Find(UnitKind.Runt).Id;
 
-        Assert.Equal(1, state.Get(runt).Hp);
+        Assert.Equal(2, state.Get(runt).Hp);
 
         var result = state.Step(new AbilityCommand(caster, Ability.Reel, runt));
 
         var damaged = result.All<UnitDamaged>().Single(d => d.UnitId == runt);
 
         Assert.Equal(Displacement.SpikeDamage, damaged.Amount);
-        Assert.Equal(1, damaged.Removed);
-        Assert.Equal(Displacement.SpikeDamage - 1, damaged.Overkill);
+        Assert.Equal(2, damaged.Removed);
+        Assert.Equal(Displacement.SpikeDamage - 2, damaged.Overkill);
         Assert.Equal(0, damaged.RemainingHp);
     }
 
@@ -228,7 +228,7 @@ public class OverkillTests
     {
         var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 3, 0, hp: 6)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
 
         var archer = state.Find(UnitKind.Archer).Id;
@@ -238,7 +238,7 @@ public class OverkillTests
 
         Assert.Equal(damaged.Amount, damaged.Removed);
         Assert.Equal(0, damaged.Overkill);
-        Assert.Equal(6 - damaged.Amount, damaged.RemainingHp);
+        Assert.Equal(12 - damaged.Amount, damaged.RemainingHp);
     }
 
     [Fact]

@@ -19,14 +19,14 @@ public class QuarryKingTests
     [Fact]
     public void QuarryKing_ReadsAsTheSpecWroteHim()
     {
-        Assert.Equal(14, King.MaxHp);
+        Assert.Equal(28, King.MaxHp);
         Assert.Equal(1, King.Move);
         Assert.Equal(AttackKind.Melee, King.Attack);
-        Assert.Equal(3, King.Damage);
+        Assert.Equal(6, King.Damage);
         Assert.Equal(1, King.AttackPush);
         Assert.Equal(3, King.Footing);
         Assert.True(King.FootingNegates);
-        Assert.Equal(7, King.EnrageAt);
+        Assert.Equal(14, King.EnrageAt);
 
         var enraged = King.Enraged!;
         Assert.Equal(3, enraged.Move);
@@ -43,7 +43,7 @@ public class QuarryKingTests
 
         var after = state.Then(Game.NextEnemyCommand(state)!).UnitById(vanguard.Id);
 
-        Assert.Equal(UnitTemplate.For(UnitKind.Vanguard).MaxHp - 3, after.Hp);
+        Assert.Equal(UnitTemplate.For(UnitKind.Vanguard).MaxHp - 6, after.Hp);
         Assert.Equal(new Coord(3, 0), after.Position);
     }
 
@@ -98,7 +98,7 @@ public class QuarryKingTests
         Assert.Empty(shove.Path);
         Assert.Equal(new Coord(1, 0), shove.To);
         Assert.False(result.Has<FootingSpent>());
-        Assert.Equal(King.MaxHp - 1, king.Hp);
+        Assert.Equal(King.MaxHp - 2, king.Hp);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class QuarryKingTests
             .UnitById(kingId);
 
         Assert.Equal(new Coord(2, 0), after.Position);
-        Assert.Equal(King.MaxHp - 1, after.Hp);
+        Assert.Equal(King.MaxHp - 2, after.Hp);
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class QuarryKingTests
     {
         var state = BoardBuilder.Rows(".........")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.QuarryKing, 3, 0, hp: 9)
+            .Enemy(UnitKind.QuarryKing, 3, 0, hp: 18)
             .Build()
             .WithIntents();
 
@@ -286,14 +286,14 @@ public class QuarryKingTests
     {
         var state = BoardBuilder.Rows(".........")
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.QuarryKing, 3, 0, hp: 10)
+            .Enemy(UnitKind.QuarryKing, 3, 0, hp: 20)
             .Build()
             .WithIntents();
 
         var kingId = state.Find(UnitKind.QuarryKing).Id;
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Archer).Id, kingId));
 
-        Assert.Equal(8, result.NewState.UnitById(kingId).Hp);
+        Assert.Equal(16, result.NewState.UnitById(kingId).Hp);
         Assert.False(result.NewState.UnitById(kingId).Enraged);
         Assert.False(result.Has<IntentDeclared>());
     }
@@ -329,7 +329,7 @@ public class QuarryKingTests
         var state = Enraged(BoardBuilder.Rows(".........")
             .PlayerA(UnitKind.Vanguard, 3, 0)
             .PlayerA(UnitKind.Archer, 4, 0)
-            .Enemy(UnitKind.QuarryKing, 0, 0, hp: 7)
+            .Enemy(UnitKind.QuarryKing, 0, 0, hp: 14)
             .Active(Team.Enemy)
             .Build());
 
@@ -429,7 +429,7 @@ public class QuarryKingTests
     private static GameState Shove(string row, int vanguard, int king, Team active = Team.PlayerA) =>
         BoardBuilder.Rows(row)
             .PlayerA(UnitKind.Vanguard, vanguard, 0)
-            .Enemy(UnitKind.QuarryKing, king, 0, hp: 7)
+            .Enemy(UnitKind.QuarryKing, king, 0, hp: 14)
             .Active(active)
             .Build();
 

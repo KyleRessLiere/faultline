@@ -108,7 +108,7 @@ public class ObjectiveParsingTests
 
         Assert.Equal(ObjectiveKind.Protect, objective.Kind);
         Assert.Equal(Objective.DefaultProtectHp, objective.Hp);
-        Assert.Equal(6, objective.Hp);
+        Assert.Equal(12, objective.Hp);
         Assert.True(objective.HasStructure);
     }
 
@@ -119,7 +119,7 @@ public class ObjectiveParsingTests
 
         Assert.Equal(ObjectiveKind.Destroy, objective.Kind);
         Assert.Equal(Objective.DefaultDestroyHp, objective.Hp);
-        Assert.Equal(8, objective.Hp);
+        Assert.Equal(16, objective.Hp);
     }
 
     [Fact]

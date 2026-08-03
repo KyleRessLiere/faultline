@@ -17,10 +17,10 @@ namespace Faultline.Core
     public sealed record Objective
     {
         /// <summary>Hit points a <c>protect</c> structure gets when the file does not say. Brief §3, fight 2.</summary>
-        public const int DefaultProtectHp = 6;
+        public const int DefaultProtectHp = 12;
 
         /// <summary>Hit points a <c>destroy</c> structure gets when the file does not say. Brief §3, fight 4.</summary>
-        public const int DefaultDestroyHp = 8;
+        public const int DefaultDestroyHp = 16;
 
         /// <summary>The plain Kill All objective — the default for every fight that names none.</summary>
         public static readonly Objective KillAll = new Objective();

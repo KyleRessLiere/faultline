@@ -42,8 +42,8 @@ public class RaiderTests
 
         Assert.Equal(raider.Id, attacked.AttackerId);
         Assert.Equal(Shrine, attacked.At);
-        Assert.Equal(1, attacked.Damage);
-        Assert.Equal(Objective.DefaultProtectHp - 1, result.NewState.StructureAt(Shrine)!.Hp);
+        Assert.Equal(2, attacked.Damage);
+        Assert.Equal(Objective.DefaultProtectHp - 2, result.NewState.StructureAt(Shrine)!.Hp);
     }
 
     // ---- branch 2: else path to it, Husk rules --------------------------------------------------
@@ -221,7 +221,7 @@ public class RaiderTests
         var after = state.Then(new AttackCommand(vanguard.Id, raiderId)).UnitById(raiderId);
 
         Assert.Equal(new Coord(2, 0), after.Position);
-        Assert.Equal(UnitTemplate.For(UnitKind.Raider).MaxHp - 1, after.Hp);
+        Assert.Equal(UnitTemplate.For(UnitKind.Raider).MaxHp - 2, after.Hp);
     }
 
     [Fact]
