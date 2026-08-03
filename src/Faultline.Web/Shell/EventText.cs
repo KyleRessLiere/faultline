@@ -52,6 +52,8 @@ public static class EventText
             $"🛡 {Name(state, e.UnitId)} steps in for {Name(state, e.AllyId)} — {e.Redirected} redirected onto {e.At}.",
         GuardShielded e =>
             $"🛡 {Name(state, e.UnitId)} shields the structure at {e.StructureAt} — the claw lands on {e.At} instead.",
+        UnitTrampled e =>
+            $"{Name(state, e.UnitId)} shoulders through {Name(state, e.VictimId)} at {e.At}, knocking it {e.Aside.ToString().ToLowerInvariant()} for {e.Damage}.",
         GuardStanceChanged e => e.Active
             ? $"{Name(state, e.UnitId)} takes up {AbilityDescriptor.For(Ability.GuardStance).Name} at {e.At}."
             : $"{Name(state, e.UnitId)}'s {AbilityDescriptor.For(Ability.GuardStance).Name} lapses.",
@@ -108,7 +110,14 @@ public static class EventText
     public static string Intent(GameState state, EnemyIntent intent)
     {
         string target = intent.TargetId is null ? "—" : Name(state, intent.TargetId.Value);
-        string walk = intent.MoveTo is null ? string.Empty : $"move to {intent.MoveTo.Value}, then ";
+
+        // The shoulder is part of the walk and costs somebody a hit point, so it is telegraphed
+        // with the walk rather than left to be discovered when it lands (D-100).
+        string through = intent.TrampleVictim is { } victim
+            ? $" through {Name(state, victim)} ({intent.TrampleAside.ToString()?.ToLowerInvariant()})"
+            : string.Empty;
+
+        string walk = intent.MoveTo is null ? string.Empty : $"move to {intent.MoveTo.Value}{through}, then ";
 
         return intent.Action switch
         {

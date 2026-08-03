@@ -556,6 +556,12 @@ namespace Faultline.Core
 
             // Walk the route tile by tile so spike damage lands where it happened, and so a unit that
             // dies to spikes stops on the tile that killed it rather than completing the walk.
+            //
+            // A trampler resolves each body as it reaches it, before stepping onto the tile, so the
+            // doorway is clear at the moment it arrives — which is both the causal order and the
+            // order a renderer needs to animate it. The board therefore changes underneath the rest
+            // of the route: a victim shoved into a later tile is simply shouldered again, and a
+            // trample that fails on the day stops the walk where it stands (D-100).
             var walked = new List<Coord>();
             var spikesEntered = new List<Coord>();
             int hp = unit.Hp;
@@ -564,8 +570,39 @@ namespace Faultline.Core
 
             foreach (var step in option.Path)
             {
+                int toll = Movement.StepCost(state.Board.At(step), unit);
+
+                if (state.IsOccupied(step))
+                {
+                    var heading = Directions.Toward(position, step);
+                    if (heading is null || Trample.Side(state, state.UnitById(unit.Id), step, heading.Value) is null)
+                    {
+                        // Nothing left to shove it with: the body is a wall today, whatever the route
+                        // said when it was planned.
+                        break;
+                    }
+
+                    toll += Trample.ExtraCost;
+
+                    // Charged against the budget rather than assumed affordable. The route was priced
+                    // on the board as it was, and a second trample of the same victim is not a tile
+                    // that pricing knew about.
+                    if (cost + toll > unit.MoveRemaining)
+                    {
+                        break;
+                    }
+
+                    state = Trample.Resolve(state, state.UnitById(unit.Id), step, heading.Value, events);
+
+                    // The shove may have put somebody else on the tile, or failed to clear it.
+                    if (state.IsOccupied(step))
+                    {
+                        break;
+                    }
+                }
+
                 walked.Add(step);
-                cost += Movement.StepCost(state.Board.At(step), unit);
+                cost += toll;
                 position = step;
 
                 if (state.Board.At(step) == TileType.Spikes)
@@ -578,6 +615,10 @@ namespace Faultline.Core
                     }
                 }
             }
+
+            // Everything the walk did to other people has already happened; what is left is where the
+            // mover ended up. A route that trampled and then stopped still spent what it spent.
+            unit = state.UnitById(unit.Id);
 
             // The segment's cost goes on the tally rather than latching the half shut: what is left
             // is what the next click gets to route with (D-097). A unit stopped early by spikes is

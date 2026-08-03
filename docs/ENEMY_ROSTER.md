@@ -13,7 +13,7 @@ Each variant that lands still needs a `DECISIONS.md` entry.
 
 | Enemy | HP | Move | Attack | Behaviour |
 |---|---|---|---|---|
-| **Husk** | 2 | 3 | melee 1 | Adjacent → attack, else close. Chaff. Dies to one collision. |
+| **Husk** | 2 | 3 | melee 1 | Adjacent → attack, else close. **Shoulder**: barrels through a body on its route, knocking it 1 aside for 1 and paying +1 MP (D-100). Chaff. Dies to one collision. |
 | **Lobber** | 3 | 2 | range 3, 1 | Holds a 2–3 band and lobs; retreats if you close. Bodies do not block it. |
 | **Anchor** | 6 | 1 | melee 2 | Shrugs one tile off every Push. Adjacent → attack, else advance. |
 | **Grappler** | 5 | 3 | pull 2, range 3 | Pulls toward itself, preferring HighGround targets then the Archer. Inert in melee. |

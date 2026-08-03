@@ -32,6 +32,18 @@ namespace Faultline.Core
         /// </remarks>
         public const int OccupiedPenalty = 2;
 
+        /// <summary>
+        /// Extra distance charged to a unit that shoulders through bodies instead of going round.
+        /// </summary>
+        /// <remarks>
+        /// One rather than two, because for a trampler that is the truth: a body in the doorway costs
+        /// it a single extra movement point (D-100). Pricing it at the ordinary toll would make it
+        /// route round obstacles it is designed to walk through. A body it <em>cannot</em> shift —
+        /// a Wardbearer, somebody boxed in — is charged the ordinary toll instead, so the planner
+        /// goes round exactly the things that would stop it.
+        /// </remarks>
+        public const int TramplePenalty = 1;
+
         private readonly int _width;
         private readonly int _height;
         private readonly int[] _distance;
@@ -96,7 +108,11 @@ namespace Faultline.Core
                     continue;
                 }
 
-                step[Index(width, unit.Position)] = 1 + OccupiedPenalty;
+                int toll = Trample.CouldTrample(state, mover, unit.Position)
+                    ? TramplePenalty
+                    : OccupiedPenalty;
+
+                step[Index(width, unit.Position)] = 1 + toll;
             }
 
             // Steps cost 1 or 1 + OccupiedPenalty, so a bucket per distance settles tiles in ascending

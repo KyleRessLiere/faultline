@@ -38,6 +38,10 @@ namespace Faultline.Core
     /// it: the Wardbearer's copy was deleted with the rest of its old kit (D-058), but the mechanic
     /// stays a flag on the stat block rather than an archetype check (D-031).
     /// </param>
+    /// <param name="Tramples">
+    /// Whether it shoulders through a body in its way rather than stopping or going round it
+    /// (D-100). Only the Husk does.
+    /// </param>
     /// <param name="MinRange">
     /// Closest tile the basic attack can be aimed at. Zero for everything without a stated minimum
     /// — only the Archer has one, and hers is what makes closing on her an answer (D-099).
@@ -79,6 +83,7 @@ namespace Faultline.Core
         bool HoldAura = false,
         int HazardRanks = 0,
         int MinRange = 0,
+        bool Tramples = false,
         bool FootingNegates = false,
         UnitTemplate? Enraged = null,
         int EnrageAt = 0)
@@ -170,7 +175,7 @@ namespace Faultline.Core
 
                 // Brief §2: Enemies. Grappler and Stalker deal no damage at all — their whole action
                 // is the displacement their priority list calls for (Pull 2 at range 3; Push 1 in melee).
-                new UnitTemplate(UnitKind.Husk, "Husk", 2, 3, AttackKind.Melee, 1, 1, 0, false, Plan: EnemyPlan.Melee),
+                new UnitTemplate(UnitKind.Husk, "Husk", 2, 3, AttackKind.Melee, 1, 1, 0, false, Plan: EnemyPlan.Melee, Tramples: true),
                 new UnitTemplate(UnitKind.Lobber, "Lobber", 3, 2, AttackKind.Ranged, 3, 1, 0, false, Plan: EnemyPlan.Lobber),
                 new UnitTemplate(UnitKind.Anchor, "Anchor", 6, 1, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
                 new UnitTemplate(UnitKind.Grappler, "Grappler", 5, 3, AttackKind.None, 3, 0, 0, false, BasicPull: 2, Plan: EnemyPlan.Grappler),

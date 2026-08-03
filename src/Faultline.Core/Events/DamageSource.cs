@@ -17,5 +17,12 @@ namespace Faultline.Core
 
         /// <summary>Pushed down off HighGround (M2).</summary>
         Fall = 3,
+
+        /// <summary>
+        /// Shouldered out of the way by something walking through (D-100). Its own source rather
+        /// than a collision: a collision is a displacement ending against something, this is a walk
+        /// continuing through something, and they cost different amounts and charge different meters.
+        /// </summary>
+        Trample = 4,
     }
 }

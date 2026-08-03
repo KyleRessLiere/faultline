@@ -114,6 +114,7 @@ namespace Faultline.Core
             GuardStanceChanged => nameof(GuardStanceChanged),
             GuardIntercepted => nameof(GuardIntercepted),
             GuardShielded => nameof(GuardShielded),
+            UnitTrampled => nameof(UnitTrampled),
             VerveCharged => nameof(VerveCharged),
             UnitHealed => nameof(UnitHealed),
             VerveSpent => nameof(VerveSpent),
@@ -211,6 +212,9 @@ namespace Faultline.Core
             GuardStanceChanged e => e.Active
                 ? "takes guard stance at " + e.At + ", covering adjacent allies until its next activation"
                 : "drops guard stance at " + e.At,
+
+            UnitTrampled e => "shoulders through " + Actor(state, e.VictimId)
+                + " at " + e.At + ", knocking it " + e.Aside + " for " + e.Damage,
 
             GuardShielded e => "steps in front of the structure at " + e.StructureAt
                 + ", taking " + Actor(state, e.AttackerId) + "'s claw on " + e.At
@@ -318,6 +322,7 @@ namespace Faultline.Core
             GuardStanceChanged e => e.UnitId,
             GuardIntercepted e => e.UnitId,
             GuardShielded e => e.UnitId,
+            UnitTrampled e => e.UnitId,
             VerveCharged e => e.UnitId,
             UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,
@@ -408,6 +413,19 @@ namespace Faultline.Core
             }
 
             text.Append(intent.MoveTo.HasValue ? " move to " + intent.MoveTo.Value : " no move");
+
+            // The shoulder is part of the walk and costs somebody a hit point, so it is logged with
+            // the walk rather than left to be inferred from the events that follow (D-100).
+            if (intent.TrampleVictim.HasValue && intent.TrampleAt.HasValue)
+            {
+                text.Append(" through ").Append(Actor(state, intent.TrampleVictim.Value))
+                    .Append(" at ").Append(intent.TrampleAt.Value);
+
+                if (intent.TrampleAside.HasValue)
+                {
+                    text.Append(" knocked ").Append(intent.TrampleAside.Value);
+                }
+            }
 
             if (intent.Displacement.HasValue)
             {

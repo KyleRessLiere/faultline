@@ -8,16 +8,16 @@ thing that differed is how the players chose — anything below is caused by pla
 
 | Policy | What it does | Outcome | Cleared | Stopped at | Why |
 |---|---|---|---|---|---|
-| `first-legal` | Takes whatever Core offers first. Not trying to win — the baseline everything else is measured against. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
+| `first-legal` | Takes whatever Core offers first. Not trying to win — the baseline everything else is measured against. | Lost | 3/10 | node 3 | Fight lost: broken-bridge. |
 | `brawler` | Attacks whenever it can, moves otherwise, and never uses an ability. The damage-race player the design is arguing with. | Lost | 6/10 | node 7 | Fight lost: high-road. |
 | `shover` | Prefers abilities and displacement over swinging, and spends Verve the moment it can. The player the game is designed for. | Lost | 2/10 | node 2 | Fight lost: the-teeth. |
 | `careful` | Pulls people out of pits before anything else and prefers moving to swinging. Tests whether caution is ever rewarded. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `board-first` | Prices every option from Core's previews and pays a premium for kills the board caused. The player the brief describes, playing well. | InProgress | 3/10 | node 3 | stalled: broken-bridge reached round 61 with neither side able to finish it |
 | `blade-first` | Same sight, no preference for the board: a kill is a kill and damage is damage. Tests whether displacement pays on its own merits. | InProgress | 3/10 | node 3 | stalled: broken-bridge reached round 61 with neither side able to finish it |
 | `preserver` | Prices outcomes the same way but weighs its own hit points far higher. Tests whether a run is lost to attrition or to single fights. | InProgress | 3/10 | node 3 | stalled: broken-bridge reached round 61 with neither side able to finish it |
-| `random-a` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
+| `random-a` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-b` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
-| `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 0/10 | node 0 | Fight lost: first-contact. |
+| `random-c` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 4/10 | node 5 | Fight lost: the-shrine. |
 | `random-d` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-e` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
 | `random-f` | Uniform over legal commands, from a seeded source. Explores states a policy with taste never reaches. | Lost | 1/10 | node 1 | Fight lost: cb-06-bait-and-break. |
@@ -26,12 +26,12 @@ thing that differed is how the players chose — anything below is caused by pla
 
 | Node | Fight | Runs that reached it | Runs that died here |
 |---|---|---|---|
-| 0 | `first-contact` | 13 | 2 |
-| 1 | `cb-06-bait-and-break` | 11 | 5 |
-| 2 | `the-teeth` | 6 | 2 |
-| 3 | `broken-bridge` | 1 | 0 |
-| 4 | *rest* | 1 | — |
-| 5 | `the-shrine` | 1 | 0 |
+| 0 | `first-contact` | 13 | 0 |
+| 1 | `cb-06-bait-and-break` | 13 | 6 |
+| 2 | `the-teeth` | 7 | 1 |
+| 3 | `broken-bridge` | 3 | 1 |
+| 4 | *rest* | 2 | — |
+| 5 | `the-shrine` | 2 | 1 |
 | 6 | `break-the-gate` | 1 | 0 |
 | 7 | `high-road` | 1 | 1 |
 | 8 | `hz-09-the-trench` | 0 | 0 |
@@ -46,19 +46,19 @@ ordinary attacks alone.
 
 | Policy | Attack | Collision | Spikes | Fall | Collisions caused | Pushes |
 |---|---|---|---|---|---|---|
-| `first-legal` | 23 | 2 | 0 | 0 | 1 | 3 |
+| `first-legal` | 21 | 8 | 0 | 0 | 4 | 10 |
 | `brawler` | 34 | 8 | 2 | 0 | 9 | 22 |
 | `shover` | 29 | 10 | 0 | 0 | 9 | 21 |
-| `careful` | 23 | 2 | 0 | 0 | 3 | 9 |
-| `board-first` | 11 | 2 | 3 | 0 | 6 | 7 |
-| `blade-first` | 11 | 2 | 3 | 0 | 6 | 7 |
-| `preserver` | 11 | 2 | 3 | 0 | 6 | 7 |
-| `random-a` | 23 | 0 | 1 | 0 | 0 | 4 |
-| `random-b` | 23 | 0 | 1 | 0 | 1 | 5 |
-| `random-c` | 21 | 0 | 1 | 0 | 0 | 2 |
-| `random-d` | 23 | 0 | 1 | 0 | 4 | 8 |
-| `random-e` | 25 | 0 | 2 | 0 | 3 | 6 |
-| `random-f` | 20 | 0 | 4 | 0 | 0 | 2 |
+| `careful` | 22 | 2 | 0 | 0 | 4 | 11 |
+| `board-first` | 10 | 2 | 3 | 0 | 6 | 7 |
+| `blade-first` | 10 | 2 | 3 | 0 | 6 | 7 |
+| `preserver` | 10 | 2 | 3 | 0 | 6 | 7 |
+| `random-a` | 27 | 0 | 3 | 0 | 0 | 3 |
+| `random-b` | 22 | 0 | 2 | 0 | 0 | 5 |
+| `random-c` | 20 | 2 | 9 | 0 | 6 | 18 |
+| `random-d` | 17 | 0 | 5 | 0 | 1 | 3 |
+| `random-e` | 25 | 2 | 1 | 0 | 2 | 6 |
+| `random-f` | 20 | 2 | 0 | 0 | 3 | 7 |
 
 ## Pluck, by class
 
@@ -71,35 +71,35 @@ spent one means the game is paying out faster than a player can find a use for i
 
 | Policy | Class | Earned | Wasted | Spent |
 |---|---|---|---|---|
-| `first-legal` | Wardbearer | 3 | 0 | 0 |
+| `first-legal` | Wardbearer | 5 | 1 | 0 |
 | `brawler` | Vanguard | 5 | 0 | 0 |
 | `brawler` | Wardbearer | 5 | 1 | 0 |
 | `shover` | Fisher | 3 | 0 | 3 |
 | `shover` | Wardbearer | 15 | 0 | 12 |
 | `careful` | Vanguard | 1 | 0 | 0 |
-| `careful` | Fisher | 2 | 0 | 0 |
-| `careful` | Wardbearer | 4 | 0 | 0 |
-| `board-first` | Vanguard | 5 | 0 | 2 |
-| `board-first` | Fisher | 1 | 0 | 0 |
+| `careful` | Fisher | 1 | 0 | 0 |
+| `careful` | Wardbearer | 3 | 0 | 0 |
+| `board-first` | Vanguard | 4 | 0 | 2 |
+| `board-first` | Fisher | 2 | 0 | 0 |
 | `board-first` | Wardbearer | 3 | 0 | 3 |
-| `blade-first` | Vanguard | 5 | 0 | 2 |
-| `blade-first` | Fisher | 1 | 0 | 0 |
+| `blade-first` | Vanguard | 4 | 0 | 2 |
+| `blade-first` | Fisher | 2 | 0 | 0 |
 | `blade-first` | Wardbearer | 3 | 0 | 3 |
-| `preserver` | Vanguard | 5 | 0 | 2 |
-| `preserver` | Fisher | 1 | 0 | 0 |
+| `preserver` | Vanguard | 4 | 0 | 2 |
+| `preserver` | Fisher | 2 | 0 | 0 |
 | `preserver` | Wardbearer | 3 | 0 | 3 |
-| `random-a` | Wardbearer | 6 | 0 | 3 |
-| `random-b` | Vanguard | 1 | 0 | 0 |
-| `random-b` | Wardbearer | 5 | 0 | 3 |
-| `random-c` | Fisher | 1 | 0 | 0 |
-| `random-c` | Wardbearer | 4 | 0 | 0 |
-| `random-d` | Vanguard | 2 | 0 | 0 |
+| `random-a` | Fisher | 2 | 0 | 0 |
+| `random-a` | Wardbearer | 3 | 0 | 0 |
+| `random-b` | Wardbearer | 1 | 0 | 0 |
+| `random-c` | Vanguard | 1 | 0 | 0 |
+| `random-c` | Fisher | 4 | 0 | 3 |
+| `random-c` | Wardbearer | 2 | 0 | 0 |
 | `random-d` | Fisher | 1 | 0 | 0 |
-| `random-d` | Wardbearer | 4 | 0 | 3 |
-| `random-e` | Vanguard | 3 | 0 | 2 |
-| `random-e` | Wardbearer | 3 | 0 | 0 |
-| `random-f` | Fisher | 1 | 0 | 0 |
-| `random-f` | Wardbearer | 4 | 0 | 0 |
+| `random-d` | Wardbearer | 4 | 0 | 0 |
+| `random-e` | Fisher | 2 | 0 | 0 |
+| `random-e` | Wardbearer | 4 | 0 | 3 |
+| `random-f` | Fisher | 2 | 0 | 0 |
+| `random-f` | Wardbearer | 3 | 0 | 0 |
 
 ## Preen against what it soaked
 
@@ -113,31 +113,27 @@ understates every absorb by half.
 
 | Policy | Absorbed via stance | Healed by Preen | Net |
 |---|---|---|---|
-| `first-legal` | 2 | 0 | 2 |
+| `first-legal` | 3 | 0 | 3 |
 | `brawler` | 3 | 0 | 3 |
 | `shover` | 12 | 8 | 4 |
 | `careful` | 1 | 0 | 1 |
 | `board-first` | 3 | 2 | 1 |
 | `blade-first` | 3 | 2 | 1 |
 | `preserver` | 3 | 2 | 1 |
-| `random-a` | 0 | 2 | -2 |
-| `random-b` | 0 | 2 | -2 |
+| `random-a` | 0 | 0 | 0 |
+| `random-b` | 0 | 0 | 0 |
 | `random-c` | 0 | 0 | 0 |
-| `random-d` | 1 | 2 | -1 |
-| `random-e` | 1 | 0 | 1 |
+| `random-d` | 0 | 0 | 0 |
+| `random-e` | 0 | 2 | -2 |
 | `random-f` | 0 | 0 | 0 |
 
 **BREACHED** — Preen healed more than the stance soaked:
-- `random-a`: healed 2 against 0 absorbed across the run
-- `random-b`: healed 2 against 0 absorbed across the run
-- `random-d`: healed 2 against 1 absorbed across the run
+- `random-e`: healed 2 against 0 absorbed across the run
 
 Fights where the heal was paid for out of an earlier fight's soaking. Expected —
 this is the meter carrying between fights, not a leak:
 - `shover` on `the-teeth`: healed 2 against 0 absorbed in that fight
-- `random-a` on `first-contact`: healed 2 against 0 absorbed in that fight
-- `random-b` on `first-contact`: healed 2 against 0 absorbed in that fight
-- `random-d` on `cb-06-bait-and-break`: healed 2 against 1 absorbed in that fight
+- `random-e` on `cb-06-bait-and-break`: healed 2 against 0 absorbed in that fight
 
 **One hole remains, and it is not visible in these numbers.** A charge does not require
 damage: an absorb that only moved the guard a tile earns a point while adding nothing to
@@ -153,6 +149,7 @@ story: her step distance to the nearest drain or spikes at the moment she cast.
 | Policy | Casts | → open | → spikes | → drain | Avg. hazard distance at cast |
 |---|---|---|---|---|---|
 | `shover` | 1 | 1 | 0 | 0 | — |
+| `random-c` | 1 | 1 | 0 | 0 | 3.0 |
 
 ## What the Pluck went on
 
@@ -165,30 +162,30 @@ story: her step distance to the nearest drain or spikes at the moment she cast.
 | `board-first` | 1 | 0 | 0 | 1 |
 | `blade-first` | 1 | 0 | 0 | 1 |
 | `preserver` | 1 | 0 | 0 | 1 |
-| `random-a` | 0 | 0 | 0 | 1 |
-| `random-b` | 0 | 0 | 0 | 1 |
-| `random-c` | 0 | 0 | 0 | 0 |
-| `random-d` | 0 | 0 | 0 | 1 |
-| `random-e` | 1 | 0 | 0 | 0 |
+| `random-a` | 0 | 0 | 0 | 0 |
+| `random-b` | 0 | 0 | 0 | 0 |
+| `random-c` | 0 | 1 | 0 | 0 |
+| `random-d` | 0 | 0 | 0 | 0 |
+| `random-e` | 0 | 0 | 0 | 1 |
 | `random-f` | 0 | 0 | 0 | 0 |
 
 ## Damage the squad dealt, by source
 
 | Policy | Attack | Collision | Spikes | Fall | Enemies killed |
 |---|---|---|---|---|---|
-| `first-legal` | 27 | 0 | 7 | 0 | 13 |
+| `first-legal` | 34 | 2 | 9 | 0 | 15 |
 | `brawler` | 74 | 14 | 5 | 0 | 30 |
 | `shover` | 18 | 14 | 3 | 0 | 13 |
-| `careful` | 9 | 8 | 2 | 0 | 8 |
-| `board-first` | 17 | 16 | 1 | 0 | 14 |
-| `blade-first` | 17 | 16 | 1 | 0 | 14 |
-| `preserver` | 17 | 16 | 1 | 0 | 14 |
-| `random-a` | 5 | 0 | 1 | 0 | 2 |
-| `random-b` | 10 | 4 | 1 | 0 | 6 |
-| `random-c` | 5 | 0 | 1 | 0 | 2 |
-| `random-d` | 9 | 8 | 3 | 0 | 8 |
-| `random-e` | 8 | 8 | 2 | 0 | 7 |
-| `random-f` | 9 | 0 | 1 | 0 | 5 |
+| `careful` | 10 | 10 | 4 | 0 | 9 |
+| `board-first` | 15 | 18 | 1 | 0 | 14 |
+| `blade-first` | 15 | 18 | 1 | 0 | 14 |
+| `preserver` | 15 | 18 | 1 | 0 | 14 |
+| `random-a` | 12 | 0 | 1 | 0 | 5 |
+| `random-b` | 13 | 0 | 2 | 1 | 6 |
+| `random-c` | 33 | 16 | 11 | 0 | 22 |
+| `random-d` | 8 | 2 | 2 | 0 | 4 |
+| `random-e` | 11 | 4 | 1 | 0 | 7 |
+| `random-f` | 10 | 6 | 4 | 0 | 8 |
 
 ## Per-fight length, by policy
 
@@ -196,11 +193,11 @@ Rounds each fight took. A blank means the run never got there.
 
 | Fight | `first-legal` | `brawler` | `shover` | `careful` | `board-first` | `blade-first` | `preserver` | `random-a` | `random-b` | `random-c` | `random-d` | `random-e` | `random-f` |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `first-contact` | 5 | 4 | 3 | 7 | 2 | 2 | 2 | 11 ✗ | 6 | 10 ✗ | 4 | 13 | 9 |
-| `cb-06-bait-and-break` | 5 | 7 | 14 | 6 ✗ | 6 | 6 | 6 | — | 4 ✗ | — | 8 ✗ | 4 ✗ | 2 ✗ |
-| `the-teeth` | 5 ✗ | 5 | 7 ✗ | — | 3 | 3 | 3 | — | — | — | — | — | — |
-| `broken-bridge` | — | 5 | — | — | — | — | — | — | — | — | — | — | — |
-| `the-shrine` | — | 3 | — | — | — | — | — | — | — | — | — | — | — |
+| `first-contact` | 2 | 4 | 3 | 7 | 2 | 2 | 2 | 11 | 7 | 3 | 8 | 13 | 3 |
+| `cb-06-bait-and-break` | 5 | 7 | 14 | 7 ✗ | 6 | 6 | 6 | 3 ✗ | 5 ✗ | 3 | 3 ✗ | 6 ✗ | 6 ✗ |
+| `the-teeth` | 6 | 5 | 7 ✗ | — | 2 | 2 | 2 | — | — | 5 | — | — | — |
+| `broken-bridge` | 5 ✗ | 5 | — | — | — | — | — | — | — | 60 | — | — | — |
+| `the-shrine` | — | 3 | — | — | — | — | — | — | — | 7 ✗ | — | — | — |
 | `break-the-gate` | — | 8 | — | — | — | — | — | — | — | — | — | — | — |
 | `high-road` | — | 8 ✗ | — | — | — | — | — | — | — | — | — | — | — |
 | `hz-09-the-trench` | — | — | — | — | — | — | — | — | — | — | — | — | — |

@@ -1,5 +1,21 @@
 # Changelog
 
+## The Husk stops queueing
+
+- **Shoulder**: a Husk barrels through a body on its route rather than stopping or going round. The
+  blocker is knocked 1 tile sideways for 1 contact damage, then the shove resolves normally —
+  collisions, spikes and drains all included. The Husk pays +1 MP (D-100).
+- **The blocker has to vacate or there is no trample at all.** Push resistance 2, a Footing token, or
+  a body already in the way, and the Husk simply stops: no damage, no shove. A Wardbearer in a
+  doorway is a door again.
+- Allegiance-blind, and mostly friendly fire in practice: across thirteen harness runs every trample
+  observed was a Husk shouldering its own ally, twice onto spikes.
+- Priced into the routing metric, so it goes round when round is genuinely cheaper. Transit only —
+  nothing may end its move standing on somebody.
+- Telegraphed on the intent, painted by the threat overlay, and counted by the round-one damage
+  guarantee. `first-contact` STRICT re-verified under trample lanes.
+- HP 2, melee 1 and targeting are unchanged. It still dies to one collision.
+
 ## Every fight logs itself
 
 - **Recording is on by default**, and every fight is written into the sitting's folder as it is

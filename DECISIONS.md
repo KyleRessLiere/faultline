@@ -116,9 +116,10 @@ in this file when the question comes back.
 | D-096 | [Guard Stance shields the structure beside it, not only the ally beside it.](#d-096-guard-stance-shields-the-structure-beside-it-not-only-the-ally-beside-it) | 2026-08-02 |  |
 | D-097 | [Movement is a budget spent in clicks, and the router takes the fastest way.](#d-097-movement-is-a-budget-spent-in-clicks-and-the-router-takes-the-fastest-way) | 2026-08-02 |  |
 | D-098 | [A displacement says who caused it.](#d-098-a-displacement-says-who-caused-it) | 2026-08-02 |  |
-| D-099 | [The Archer cannot shoot the tile next to her.](#d-099-the-archer-cannot-shoot-the-tile-next-to-her) | unreleased |  |
+| D-099 | [The Archer cannot shoot the tile next to her.](#d-099-the-archer-cannot-shoot-the-tile-next-to-her) | 2026-08-02 |  |
+| D-100 | [The Husk shoulders through a body in its way.](#d-100-the-husk-shoulders-through-a-body-in-its-way) | unreleased |  |
 
-**98 rulings.**
+**99 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1594,3 +1595,55 @@ a position a person would walk out of, but "neither side can finish" is a design
 it was reached, and `broken-bridge` was already on the list for the dead-round bound
 (`docs/CURATED_SET.md` §8). The rule is not what makes that board unfinishable; it is what makes a
 naive player unable to finish it, which is a different and more interesting problem.
+
+**D-100 — The Husk shoulders through a body in its way.**
+
+**What forced it:** a design call. The Husk was chaff that queued — a body in the doorway stopped it
+dead, so a player's answer to a swarm was to plug the gap and let them pile up behind it. That is a
+real tactic, but it was the *only* one, and it made the cheapest enemy in the game the easiest to
+switch off.
+
+**Movement, not an action.** A trample is paid for out of the move half and costs the Husk nothing
+else. It keeps its attack, which is the point: shouldering past your Vanguard to reach your Archer is
+a different threat from stopping to hit the Vanguard.
+
+**1 tile aside, 1 contact damage, then the ordinary displacement.** The shove is a real shove, so it
+collides, it spikes, it drops people into drains, and Stagger makes it travel two. Nothing about the
+trample is a special case once the blocker is moving — which is what keeps it small.
+
+**The blocker has to vacate, or there is no trample at all.** No damage, no shove, and the Husk stops
+short. **This is the load-bearing clause.** Push resistance eating the tile, a Footing token
+cancelling the shove, a body already standing where it would go: all of them collapse into the same
+halt without needing a rule each, and it is checkable in advance, so the route a Husk *plans* and the
+route it *walks* agree. **Rejected: dealing the contact damage anyway and halting.** It would make a
+Wardbearer holding a doorway bleed for free every round to no purpose, which is the opposite of what
+holding a doorway should mean.
+
+**Side selection is the tile it ends up on, then N/E/S/W.** Not "prefer the open tile" as a terrain
+test — a drain and a spike tile are excellent sides, and being knocked somewhere terrible is the
+mechanic rather than an exception to it.
+
+**Priced into the routing metric, not bolted on after it.** `PathField` charges a trampler 1 for a
+body it can shift and the ordinary 2 for one it cannot, so the planner goes round exactly the things
+that would stop it. **On flat ground shouldering always beats going round** — a detour costs two
+extra tiles and the shoulder costs one — and that is intended, not an oversight.
+
+**Transit, never a destination.** `Movement.Reachable` keeps trampled tiles in the search and out of
+the answer. Without that clause the first thing the planner did was walk *onto* the unit it had come
+to attack, trampling its own target and forfeiting the swing. Nothing may end its move standing in
+somebody else's square.
+
+**Allegiance-blind, and in practice that is most of it.** Across thirteen harness runs the mechanic
+fired three times and *every one* was a Husk shouldering its own ally — twice onto spikes, killing
+it. That is a genuinely funny result and worth watching rather than fixing: it says the Husk's own
+crowd is the body most often in its way.
+
+**Trample lanes are threat.** Standing in one costs a hit point and a tile of position, so
+`Threat.ForUnit` paints them and `DamageRound1` counts them. Without that the agency law (D-080)
+would read a Husk's reach as its attack alone and call a deployment safe that is not.
+`first-contact`'s STRICT round-one guarantee and every campaign board's damage-free deployment were
+re-verified under lanes and still hold.
+
+**Contradiction flagged:** the prompt cited `MASTER_DESIGN.md` §6, which does not exist in this repo.
+The Husk's design of record is `docs/ENEMY_ROSTER.md` and `AGENT_BRIEF.md` §2; both were used instead
+and both are updated.

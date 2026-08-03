@@ -61,6 +61,27 @@ Perch still fires at what is standing on top of it.
    Ending early forfeits the rest.
 5. **Round end:** Clinging resolves, then Stagger clears on everyone.
 
+### Shoulder — walking through a body
+
+**The Husk, and nothing else, barrels through a unit standing in its way** (D-100). It is movement,
+not an action: it costs the Husk nothing but movement points.
+
+- The blocker is knocked **1 tile perpendicular** to the Husk's heading and takes **1 contact
+  damage**. Then the shove resolves normally — collision, spikes, drain, Stagger, the lot.
+- **The trampled tile costs the Husk +1 MP** on top of its terrain, and that price is in the routing
+  comparison, so it goes round when round is genuinely cheaper. On flat ground it never is: a detour
+  costs two extra tiles and the shoulder costs one.
+- **Side selection:** the perpendicular tile the blocker actually ends up on. Both work → the fixed
+  order **N/E/S/W**. Neither works → the blocker is a **wall** and the Husk stops.
+- **The blocker has to vacate or there is no trample at all** — no damage, no shove, Husk halts.
+  Push resistance eating the tile, a Footing token cancelling the shove, a body already in the way:
+  all of them are the same halt. **A Wardbearer at resistance 2 is a door.**
+- **Allegiance-blind.** A Husk shoulders its own ally aside exactly as readily as a player unit, and
+  in practice that is most of what it does.
+- **Transit, never a destination.** It walks *through* a body; it cannot end its move standing on one.
+- Telegraphed on the intent — victim, tile and vector — and trample lanes are painted by the
+  threat overlay and counted by the round-one damage guarantee (D-080/D-089).
+
 ### Movement — segmented clicks, fastest path
 
 The move half is a **budget**, not a single decision. While it is open, **every click is a segment**:
@@ -245,7 +266,7 @@ available, e.g. *needs 2 more move*.
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
-| Husk | 2 | 3 | melee, 1 dmg | chaff |
+| Husk | 2 | 3 | melee, 1 dmg | chaff. **Shoulder**: walks through a body on its route, knocking it 1 aside for 1 and paying +1 MP (D-100) |
 | Lobber | 3 | 2 | range 3, 1 dmg | **hits for 2 from HighGround** — the +1 ranged bonus is not player-only |
 | Anchor | 6 | 1 | melee, 2 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
 | Grappler | 5 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |

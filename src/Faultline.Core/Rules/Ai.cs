@@ -116,7 +116,34 @@ namespace Faultline.Core
                 throw new ArgumentNullException(nameof(enemy));
             }
 
-            return Compute(state, enemy, null);
+            return WithTrample(state, enemy, Compute(state, enemy, null));
+        }
+
+        /// <summary>
+        /// Adds the trample a plan's walk would perform, when its route crosses a body it can shift.
+        /// </summary>
+        /// <remarks>
+        /// Decorated onto the finished intent rather than threaded through the dozen places that
+        /// build one. Every planner branch that produces a walk gets it for free, and a branch added
+        /// later cannot forget to telegraph a hit it is about to deal — which is the failure mode
+        /// this is guarding against, not the arithmetic.
+        /// </remarks>
+        private static EnemyIntent WithTrample(GameState state, Unit enemy, EnemyIntent intent)
+        {
+            if (intent.MoveTo is not { } destination || !enemy.Template.Tramples)
+            {
+                return intent;
+            }
+
+            if (!Movement.TryGetMove(state, enemy, destination, out var option))
+            {
+                return intent;
+            }
+
+            return Trample.FirstOnRoute(
+                state, enemy, enemy.Position, option.Path, out var victim, out var at, out var aside)
+                ? intent with { TrampleVictim = victim, TrampleAt = at, TrampleAside = aside }
+                : intent;
         }
 
         /// <summary>The intent currently on record for a unit, if it has one.</summary>
@@ -405,7 +432,7 @@ namespace Faultline.Core
                 locked = declared.TargetId.Value;
             }
 
-            return Compute(state, enemy, locked);
+            return WithTrample(state, enemy, Compute(state, enemy, locked));
         }
 
         private static EnemyIntent Compute(GameState state, Unit enemy, UnitId? locked)

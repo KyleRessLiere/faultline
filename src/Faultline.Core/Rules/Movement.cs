@@ -64,12 +64,26 @@ namespace Faultline.Core
                     }
 
                     var tile = board.At(next);
-                    if (!IsWalkable(tile) || state.IsOccupied(next))
+                    if (!IsWalkable(tile))
                     {
                         continue;
                     }
 
-                    int cost = node.Cost + StepCost(tile, unit);
+                    // A body is a wall to everyone except something that shoulders through, and to
+                    // that it is a wall only when it cannot be knocked aside from this heading
+                    // (D-100). Terrain is unaffected either way: nothing tramples masonry.
+                    bool trampling = false;
+                    if (state.IsOccupied(next))
+                    {
+                        if (Trample.Side(state, unit, next, Directions.All[d]) is null)
+                        {
+                            continue;
+                        }
+
+                        trampling = true;
+                    }
+
+                    int cost = node.Cost + StepCost(tile, unit) + (trampling ? Trample.ExtraCost : 0);
                     if (cost > unit.MoveRemaining)
                     {
                         continue;
@@ -88,6 +102,16 @@ namespace Faultline.Core
             foreach (var pair in best)
             {
                 if (pair.Value.IsStart)
+                {
+                    continue;
+                }
+
+                // A trampler walks *through* a body, never stops on one (D-100). The tile stays in
+                // the search so routes may cross it, and leaves the answer so nothing can plan to
+                // finish its move standing in somebody else's square — which is what an enemy
+                // asked to close on a target would otherwise do, trampling the very unit it came to
+                // hit and forfeiting the attack.
+                if (state.IsOccupied(pair.Key))
                 {
                     continue;
                 }
@@ -119,7 +143,11 @@ namespace Faultline.Core
             tile == TileType.Open || tile == TileType.Spikes || tile == TileType.HighGround
             || tile == TileType.Cracked;
 
-        /// <summary>Movement points to enter a tile.</summary>
+        /// <summary>
+        /// Movement points to enter a tile, from its terrain alone. A body standing on it costs
+        /// <see cref="Trample.ExtraCost"/> more again, which the caller adds because only the search
+        /// knows which heading the tile is being crossed on.
+        /// </summary>
         /// <param name="tile">Terrain being entered.</param>
         /// <param name="unit">Unit doing the entering.</param>
         /// <returns>The cost in movement points.</returns>

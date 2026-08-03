@@ -35,6 +35,13 @@ namespace Faultline.Core
     /// locks the plan — but the damage, the direction, the distance and the destination on this
     /// record all describe what happens to the guard, so the telegraph and the resolution agree.
     /// </param>
+    /// <param name="TrampleVictim">
+    /// Whoever this plan's walk would shoulder out of the way, when its route crosses a body it can
+    /// shift (D-100). A trample costs the victim a hit point and a tile of position and is nobody's
+    /// idea of a detail, so it is telegraphed with everything else the plan does.
+    /// </param>
+    /// <param name="TrampleAt">Tile that victim is standing on.</param>
+    /// <param name="TrampleAside">Direction it would be knocked, always across the walk.</param>
     public sealed record EnemyIntent(
         UnitId UnitId,
         UnitKind Kind,
@@ -48,5 +55,8 @@ namespace Faultline.Core
         int DisplacementDistance,
         Coord? DisplacementTo,
         int Damage,
-        UnitId? RedirectedTo = null);
+        UnitId? RedirectedTo = null,
+        UnitId? TrampleVictim = null,
+        Coord? TrampleAt = null,
+        Direction? TrampleAside = null);
 }

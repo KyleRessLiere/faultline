@@ -37,7 +37,14 @@ namespace Faultline.Core
         public static IReadOnlyCollection<Coord> ForUnit(GameState state, Unit unit)
         {
             var tiles = new HashSet<Coord>();
-            if (state is null || unit is null || !unit.IsOnBoard || unit.Template.BasicReach <= 0)
+            if (state is null || unit is null || !unit.IsOnBoard)
+            {
+                return tiles;
+            }
+
+            // Something that shoulders through bodies threatens tiles even with no reach at all, so
+            // the no-attack shortcut has to let a trampler past it.
+            if (unit.Template.BasicReach <= 0 && !unit.Template.Tramples)
             {
                 return tiles;
             }
@@ -54,6 +61,13 @@ namespace Faultline.Core
                 {
                     tiles.Add(tile);
                 }
+            }
+
+            // Standing in a trampler's way costs a hit point and a tile of position, so a lane is a
+            // threatened tile in exactly the sense this overlay means (D-100).
+            foreach (var lane in Trample.Lanes(state, unit, stands))
+            {
+                tiles.Add(lane);
             }
 
             return tiles;
