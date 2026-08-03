@@ -86,18 +86,36 @@ namespace Faultline.Core
         /// <returns>Whether the rescue is legal.</returns>
         public static bool CanRescue(GameState state, Unit rescuer, Unit clinging)
         {
+            return IsEligibleRescuer(rescuer, clinging)
+                && rescuer.Position.IsAdjacentTo(clinging.Position)
+                && RescueDestinations(state, rescuer).Count > 0;
+        }
+
+        /// <summary>
+        /// Whether these two could ever be rescuer and rescued, ignoring where they are standing.
+        /// </summary>
+        /// <param name="rescuer">Unit attempting the rescue.</param>
+        /// <param name="clinging">Unit clinging to the edge.</param>
+        /// <returns>Whether the pairing is legal at all.</returns>
+        /// <remarks>
+        /// Split out from <see cref="CanRescue"/> because a fused rescue has to be judged eligible
+        /// *before* the approach is walked and in reach only *after* — the same question asked at two
+        /// different moments, which is exactly the kind of thing that grows a second, subtly
+        /// different copy if it is not named once.
+        /// </remarks>
+        public static bool IsEligibleRescuer(Unit rescuer, Unit clinging)
+        {
+            if (rescuer is null || clinging is null)
+            {
+                return false;
+            }
+
             if (!rescuer.IsOnBoard || rescuer.Clinging || !clinging.IsOnBoard || !clinging.Clinging)
             {
                 return false;
             }
 
-            if (rescuer.Team.IsHostileTo(clinging.Team) || rescuer.Id == clinging.Id)
-            {
-                return false;
-            }
-
-            return rescuer.Position.IsAdjacentTo(clinging.Position)
-                && RescueDestinations(state, rescuer).Count > 0;
+            return !rescuer.Team.IsHostileTo(clinging.Team) && rescuer.Id != clinging.Id;
         }
 
         /// <summary>

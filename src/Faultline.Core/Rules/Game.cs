@@ -585,6 +585,18 @@ namespace Faultline.Core
             state = CommitActivation(state, unit, events);
             unit = state.UnitById(unit.Id);
 
+            state = Walk(state, unit, option, events);
+
+            return AfterAction(state, unit.Id, events);
+        }
+
+        /// <summary>
+        /// Walks a resolved route tile by tile, spending the budget as it goes. Shared by the move
+        /// command and by a rescue's approach, because a rescue's movement is movement: same
+        /// pricing, same surcharges, same brambles, same trample, same death on the way.
+        /// </summary>
+        private static GameState Walk(GameState state, Unit unit, MoveOption option, List<GameEvent> events)
+        {
             // Walk the route tile by tile so spike damage lands where it happened, and so a unit that
             // dies to spikes stops on the tile that killed it rather than completing the walk.
             //
@@ -666,7 +678,7 @@ namespace Faultline.Core
                     state, unit.Id, Displacement.SpikeWalkDamage, DamageSource.Spikes, events);
             }
 
-            return AfterAction(state, unit.Id, events);
+            return state;
         }
 
         // An empty path means the issuer left the routing to Core; anything else has to match the
@@ -860,26 +872,69 @@ namespace Faultline.Core
         {
             var rescuer = RequireActivatable(state, command.UnitId);
 
-            // An action, not the whole activation (D-082): walking into reach and then hauling is
-            // the ordinary move-then-act, and the action half is what a rescue costs.
-            Require(!rescuer.HasActed, "A rescue costs the action half, which is already spent.");
+            // The whole pool, fused with the run-up (MASTER_DESIGN §3), superseding D-082's "an
+            // action, not a whole activation". Priced as the full pool it can only be taken with the
+            // pool intact - which is what "drop everything" means, and why the approach has to live
+            // inside the command rather than in front of it.
+            Require(!rescuer.HasActed, "A rescue costs the whole activation, and this one has acted.");
+            Require(
+                Activation.CanAfford(rescuer, Activation.FullPool),
+                "A rescue costs the whole pool, and this activation has already spent some of it.");
 
             var clinging = state.UnitById(command.ClingingId);
-            Require(Pits.CanRescue(state, rescuer, clinging), "That unit cannot be rescued from here.");
+            Require(Pits.IsEligibleRescuer(rescuer, clinging), "That unit cannot be rescued by this one.");
+
+            state = CommitActivation(state, rescuer, events);
+            rescuer = state.UnitById(rescuer.Id);
+
+            // The approach is ordinary movement and is charged like anybody's: 1 AP a tile plus every
+            // terrain surcharge. Routing it through Movement is what makes "reach 3" mean three
+            // points' worth rather than three tiles - a bramble on the way bills her exactly what it
+            // bills everyone, and the board is allowed to make a rescue hard.
+            if (command.Path.Count > 0)
+            {
+                Require(
+                    Movement.TryGetMove(state, rescuer, command.Path[command.Path.Count - 1], out var approach),
+                    "That approach is not walkable this activation.");
+                Require(SamePath(command.Path, approach.Path), "That is not the route Core would take.");
+
+                state = Walk(state, rescuer, approach, events);
+                rescuer = state.UnitById(rescuer.Id);
+            }
+
+            // Spent whatever happens next. She committed the turn the moment she set off.
+            state = state.WithUnit(rescuer with
+            {
+                MoveSpent = Activation.Pool(rescuer),
+                HasActed = true,
+                MoveClosed = true,
+            });
+            rescuer = state.UnitById(rescuer.Id);
+            clinging = state.UnitById(clinging.Id);
+
+            // She may have died on the way, been dragged in herself, or been stopped short - by a body
+            // that would not move, or by a surcharge that ate the budget before she arrived. Then
+            // there is no rescue and the turn is gone: the cheaper tragedy, where she could not reach
+            // him and everybody watched.
+            if (!Pits.CanRescue(state, rescuer, clinging))
+            {
+                // Standing still and hauling from out of reach was never a rescue, it is a malformed
+                // command. The tragedy is only for a rescuer who actually set off.
+                Require(command.Path.Count > 0, "That unit cannot be rescued from here.");
+                return AfterAction(state, rescuer.Id, events);
+            }
+
             Require(
                 Pits.IsRescueDestination(state, rescuer, command.To),
                 "That is not a tile the rescued unit can be set down on.");
 
-            state = CommitActivation(state, rescuer, events);
-            state = state.WithUnit(state.UnitById(clinging.Id) with
+            state = state.WithUnit(clinging with
             {
                 Position = command.To,
                 Clinging = false,
                 ClingingSinceRound = 0,
             });
             events.Add(new Rescued(clinging.Id, rescuer.Id, command.To));
-
-            state = state.WithUnit(state.UnitById(rescuer.Id) with { HasActed = true, MoveClosed = true });
 
             return AfterAction(state, rescuer.Id, events);
         }

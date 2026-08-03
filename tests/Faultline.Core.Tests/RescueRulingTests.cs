@@ -10,38 +10,67 @@ namespace Faultline.Core.Tests;
 public class RescueRulingTests
 {
     [Fact]
-    public void MoveThenRescue_IsLegal()
+    public void ARescue_RunsToTheClingingAlly_WithTheApproachInsideTheAction()
     {
-        // The whole point of the ruling. Two tiles away used to mean "nothing you can do this turn".
+        // The reach was always the walk, so the walk moved inside the verb. Two tiles away is still
+        // reachable - it now costs the whole activation rather than a move half and an action half.
         var state = TwoAway(out var vanguard, out var archer);
 
         Assert.False(state.Get(vanguard).Position.IsAdjacentTo(state.Get(archer).Position));
 
-        var moved = state.Then(new MoveCommand(vanguard, new Coord(2, 1)));
+        var landed = state.Then(new MoveCommand(vanguard, new Coord(2, 1)));
+        var command = new RescueCommand(
+            vanguard, archer, landed.RescueTo(vanguard), new[] { new Coord(2, 1) });
 
-        Assert.Equal(1, moved.Get(vanguard).MoveSpent);
-        Assert.True(moved.Get(vanguard).Position.IsAdjacentTo(moved.Get(archer).Position));
+        // NOTE: not AssertLegal yet - Game.LegalNext still enumerates only adjacent, path-less
+        // rescues, so a fused one resolves correctly but is not yet offered. Wiring the
+        // enumeration is the next step; the UI reads LegalNext, so until then the verb is
+        // reachable by command but not by clicking.
 
-        var command = moved.Rescue(vanguard, archer);
-        TestPlay.AssertLegal(moved, command);
-
-        var result = moved.Step(command);
+        var result = state.Step(command);
 
         Assert.True(result.Has<Rescued>());
         Assert.False(result.NewState.Get(archer).Clinging);
+        Assert.Equal(new Coord(2, 1), result.NewState.Get(vanguard).Position);
+
+        // The whole pool, however few tiles the run-up actually took: the activation is over.
+        Assert.True(result.NewState.Get(vanguard).HasActivated);
     }
 
     [Fact]
-    public void ARescue_SpendsTheActionAndEndsTheActivationWhenTheMoveIsAlreadyGone()
+    public void MovingFirst_MakesTheRescueUnaffordable()
     {
+        // There is no rule forbidding the pre-move. The full-pool price forbids it, which is the
+        // same grammar every other action is priced in.
         var state = TwoAway(out var vanguard, out var archer);
+        var moved = state.Then(new MoveCommand(vanguard, new Coord(2, 1)));
 
-        var after = state
-            .Then(new MoveCommand(vanguard, new Coord(2, 1)))
-            .Then(state.Then(new MoveCommand(vanguard, new Coord(2, 1))).Rescue(vanguard, archer));
+        Assert.True(moved.Get(vanguard).Position.IsAdjacentTo(moved.Get(archer).Position));
 
-        // Both halves gone, so the activation is over — the ordinary rule, not a rescue-only one.
-        Assert.True(after.Get(vanguard).HasActivated);
+        TestPlay.AssertIllegal(moved, moved.Rescue(vanguard, archer));
+    }
+
+    [Fact]
+    public void ARescuerWhoSetsOffAndDoesNotArrive_SpendsTheTurnAndSavesNobody()
+    {
+        // The cheaper tragedy: she could not reach him, and everybody watched. The rescue never
+        // happens, no Rescued is logged, and the activation is gone all the same.
+        var state = FarAway(out var vanguard, out var archer);
+        var drowning = state.Get(archer).Position;
+
+        var short_ = Movement.Reachable(state, state.Get(vanguard))
+            .Where(p => p.Value.Path.Count > 0 && !p.Key.IsAdjacentTo(drowning))
+            .OrderBy(p => p.Key.X)
+            .ThenBy(p => p.Key.Y)
+            .First();
+
+        var result = state.Step(
+            new RescueCommand(vanguard, archer, drowning, short_.Value.Path));
+
+        Assert.False(result.Has<Rescued>());
+        Assert.True(result.NewState.Get(archer).Clinging);
+        Assert.Equal(short_.Key, result.NewState.Get(vanguard).Position);
+        Assert.True(result.NewState.Get(vanguard).HasActivated);
     }
 
     [Fact]
