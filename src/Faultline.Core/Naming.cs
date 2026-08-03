@@ -61,6 +61,7 @@ namespace Faultline.Core
             VerveSource.Hazard => "a hazard",
             VerveSource.HighGround => "high ground",
             VerveSource.Guard => "guard stance",
+            VerveSource.LongPull => "a long haul",
             _ => source.ToString(),
         };
     }

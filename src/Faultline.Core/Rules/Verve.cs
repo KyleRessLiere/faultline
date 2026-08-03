@@ -38,6 +38,18 @@ namespace Faultline.Core
         /// <summary>Hit points Preen puts back, never past the unit's maximum.</summary>
         public const int PreenHeal = 4;
 
+        /// <summary>
+        /// Tiles a pull must actually drag its target across before it charges on length alone.
+        /// </summary>
+        /// <remarks>
+        /// Three is chosen so that only the heavy can reach it: Reel at range 4 requests exactly
+        /// three, and the basic Pull requests one, which even a Stagger only lifts to two. A Grappler
+        /// can reach three against a Staggered target, which costs nothing because enemies charge from
+        /// no source at all. Counted off the path actually walked rather than the requested distance,
+        /// because a drag that a wall stopped after one tile is a drag of one tile (D-057).
+        /// </remarks>
+        public const int LongPullTiles = 3;
+
         /// <summary>What a spend costs.</summary>
         /// <param name="spend">The spend.</param>
         /// <returns>Its cost in Verve.</returns>
@@ -219,7 +231,9 @@ namespace Faultline.Core
         public static bool Charges(UnitKind kind, VerveSource source) => kind switch
         {
             UnitKind.Vanguard => source == VerveSource.Collision,
-            UnitKind.Threadcaster => source == VerveSource.Collision || source == VerveSource.Hazard,
+            UnitKind.Threadcaster => source == VerveSource.Collision
+                || source == VerveSource.Hazard
+                || source == VerveSource.LongPull,
             UnitKind.Archer => source == VerveSource.HighGround,
             UnitKind.Wardbearer => source == VerveSource.Guard,
             _ => false,
@@ -234,7 +248,9 @@ namespace Faultline.Core
         public static string ConditionFor(UnitKind kind) => kind switch
         {
             UnitKind.Vanguard => "collisions you cause",
-            UnitKind.Threadcaster => "your pulls ending in a collision or a hazard",
+            UnitKind.Threadcaster =>
+                "your pulls ending in a collision or a hazard, and any drag of "
+                + LongPullTiles + " tiles or more",
             UnitKind.Archer => "hitting an enemy from high ground",
             UnitKind.Wardbearer => "taking a hit in Guard Stance, aimed at you or an ally",
             _ => string.Empty,
@@ -412,6 +428,24 @@ namespace Faultline.Core
                 case Clinging e:
                     affectedId = e.UnitId;
                     source = VerveSource.Hazard;
+                    break;
+
+                // The haul itself is worth something, independently of where it ends. Deliberately
+                // additive: a long drag that also slams or drops pays this *and* the collision or
+                // hazard charge, because the reach and the landing are two different things the
+                // Fisher did.
+                case UnitPushed e
+                    when e.Kind == DisplacementKind.Pull && e.Path.Count >= LongPullTiles:
+                    affectedId = e.UnitId;
+                    source = VerveSource.LongPull;
+
+                    // A standalone drag names its own causer and nothing precedes it to be found by
+                    // the scan below (D-098); an ability-driven one leaves By null and is scanned for.
+                    if (e.By.HasValue)
+                    {
+                        earnerId = e.By.Value;
+                    }
+
                     break;
 
                 default:

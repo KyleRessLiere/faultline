@@ -189,9 +189,10 @@ namespace Faultline.Core
                         Ability.Reel,
                         UnitKind.Threadcaster,
                         "Reel",
-                        "Range 3. Pulls one enemy all the way in until it is adjacent to you, resolving every tile on the way.",
+                        "Range 4. Pulls one enemy all the way in until it is adjacent to you, resolving every tile on the way. "
+                        + "Nothing between you and it is consulted — the line flies over rock and body alike.",
                         AbilityTargeting.Enemy,
-                        3, 0, 0, true),
+                        4, 0, 0, true),
                 },
 
                 [UnitKind.Wardbearer] = new[]

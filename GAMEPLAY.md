@@ -320,8 +320,15 @@ available — *out of reach*, or *the pool is already spent* once she has moved.
 |---|---|---|---|---|
 | Vanguard | 14 | 3 | melee, 2 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015) — which since D-097 is what every action costs, so this is no longer a special case. |
 | Archer | 8 | 3 | range **2-3**, 4 dmg | **Stagger Shot** — range **2-3**, 2 dmg + push 1 away. Also climbs HighGround for free. |
-| **Fisher** | 8 | 3 | range 3, 2 dmg **or pull 1** | **Reel** — range 3, pull one enemy all the way to adjacent, resolving every tile. *(`Threadcaster` in the code — D-090.)* |
+| **Fisher** | 8 | 3 | range **3**, 2 dmg **or pull 1** | **Reel** — range **4**, pull one enemy all the way to adjacent, resolving every tile. Nothing between her and it is consulted — no line of sight, no lane check; the line flies over rock and body alike (D-010). *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **14** | 3 | melee, 2 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **4** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 2. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
+
+**The Fisher's two reaches differ on purpose.** Her basic flick is **range 3** — 2 damage, or a pull
+of 1 instead. **Reel is range 4**, and it is the only thing about her that reaches four tiles. A Reel
+aimed at exactly 4 drags the target **3 tiles** (all the way to adjacent), which is precisely the
+length that charges her meter on its own — so the extra tile is not just reach, it is the tile that
+turns the heavy into a charger. A target already adjacent is still never a legal Reel: there is
+nowhere to reel it to.
 
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
@@ -383,12 +390,32 @@ event on the board pays one unit and not another:
 | Class | Earns +1 when | Source |
 |---|---|---|
 | Vanguard | a collision **he** causes | `Collision` |
-| Fisher | a displacement **she** causes ends in a collision, spikes or a drain — her basic Pull, Reel and a Cast landing alike | `Collision`, `Hazard` |
+| Fisher | a displacement **she** causes ends in a collision, spikes or a drain — her basic Pull, Reel and a Cast landing alike; **and, separately, any pull she causes that drags its target 3 or more tiles** | `Collision`, `Hazard`, `LongPull` |
 | Archer | **she** hits an enemy from HighGround | `HighGround` |
 | Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally, taken off the structure beside it, or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
 
 The Fisher is ranged, so a shot of hers from HighGround produces exactly the event the Archer
 charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.
+
+**The haul and the landing are two separate charges, and a long drag pays both.**
+
+- **`LongPull` — the haul.** A **Pull** she causes that drags its target **3 or more tiles** charges
+  **+1**, on its own, wherever it ends. Counted off the tiles the target **actually entered**, not
+  the distance requested: a drag a wall stopped after one tile is a drag of one tile.
+- **The gate is exactly 3, and Reel is the only thing a player owns that clears it.** Reel at range 4
+  requests 3. Her basic Pull requests 1 — **even Staggered** that is 2, one short — and no other
+  player class pulls at all. A Grappler's pull 2 does reach 3 when its target is Staggered, but
+  **enemies never charge from any source**, so it pays nobody.
+- **Double pay.** A 3-tile drag that *also* ends in a collision or a hazard charges **+2 total** —
+  one `LongPull` and one `Collision`/`Hazard`, two separate `VerveCharged` events on the same
+  command. Reeling an enemy 3 tiles onto spikes is **+2**; reeling it 3 tiles onto open ground is
+  **+1**; slamming it into a body after a **2**-tile drag is **+1**, because the length gate was not
+  met. Both charges obey the cap independently — at 4 a double pay banks one and reports the other
+  wasted.
+- **Enemies still never charge**, from this source or any other, so a Grappler's drag pays nobody
+  even where the arithmetic would allow it.
+- **Push is not included.** This is a `Pull`-only condition; a Bull Rush or a Stagger Shot that
+  travels three tiles charges nothing extra for the distance.
 
 **A charge requires an enemy to have been affected.** A collision that touched only your own side
 pays nothing. Nothing in the game can currently reach that case — friendly fire is not a legal

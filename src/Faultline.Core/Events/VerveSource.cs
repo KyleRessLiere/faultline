@@ -18,5 +18,12 @@ namespace Faultline.Core
 
         /// <summary>Something aimed at an ally was absorbed by Guard Stance.</summary>
         Guard = 3,
+
+        /// <summary>
+        /// A pull dragged its target the length of a whole board lane rather than a step. Its own
+        /// source rather than a flavour of <see cref="Collision"/> so that a drag which also slams
+        /// pays twice and the log says which half was which.
+        /// </summary>
+        LongPull = 4,
     }
 }
