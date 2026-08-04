@@ -2115,7 +2115,7 @@ AAs....
 `cb-06-bait-and-break`
 
 
-Six Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
+Five Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
 
 
 Combat Manoeuvre 6 — the nook.
@@ -2129,7 +2129,7 @@ No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 **Verdict:** KEEP — The player creates the geometry with their own body — nothing else asks that.
 
 
-9×7 board · enemies: 6× Husk
+9×7 board · enemies: 5× Husk
 
 | A | B |
 |---|---|
@@ -2140,7 +2140,7 @@ Legend: `h` Husk
 ```
 .h...h.BB
 .......BB
-.h.....h.
+.h.......
 .........
 .....h...
 AA.#.#...

@@ -5,7 +5,7 @@
 id: cb-06-bait-and-break
 number: 506
 name: Bait and Break
-description: Six Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
+description: Five Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
 design: Combat Manoeuvre 6 — the nook.
 design: No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 
@@ -17,7 +17,7 @@ roster b: Wardbearer, Archer
 board:
   .h...h.BB
   .......BB
-  .h.....h.
+  .h.......
   .........
   .....h...
   AA.#.#...

@@ -274,7 +274,7 @@ is a parse error, so a paragraph is written as consecutive lines.
 
 ```
 design: No pits and no spikes. Four wall tiles make a two-deep slot with one mouth.
-design: Six Husks all walk at whoever is nearest, so a tough body in the slot turns the swarm
+design: Five Husks all walk at whoever is nearest, so a tough body in the slot turns the swarm
 design: into a single file you can break one shove at a time.
 ```
 
