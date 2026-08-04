@@ -70,6 +70,17 @@ public sealed record RunSave
     public bool ActCleared { get; init; }
 
     /// <summary>
+    /// True when the run was standing at a fork with the vote still to cast.
+    /// </summary>
+    /// <remarks>
+    /// The one phase this record has to carry. Everything else a save drops is re-entered harmlessly
+    /// — D-050 sends a half-played fight back to deployment — but the node under a fork has already
+    /// been cleared, so a run restored onto it as <see cref="RunPhase.AtNode"/> is offered the fight
+    /// it just won, all over again, and the fork never arrives (DECISIONS.md D-125).
+    /// </remarks>
+    public bool AtVote { get; init; }
+
+    /// <summary>
     /// The run RNG's cursor as it stood, or <c>null</c> for a record written before votes existed.
     /// Restored so the next split vote does not re-flip a coin this run has already flipped; when it
     /// is absent Core falls back to the seed, which is where an unflipped run starts.
@@ -99,6 +110,7 @@ public sealed record RunSave
             Squad = state.Squad,
             Route = state.MapState?.Route ?? (IReadOnlyList<string>)Array.Empty<string>(),
             ActCleared = state.MapState?.Completed ?? false,
+            AtVote = state.Phase == RunPhase.AtVote,
             RngState = state.RngState,
         };
     }
@@ -129,7 +141,8 @@ public sealed record RunSave
                     Route = Route,
                     Completed = ActCleared,
                 },
-            RngState);
+            RngState,
+            AtVote);
 
     /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
     /// <returns>The stored text.</returns>
@@ -155,6 +168,7 @@ public sealed record RunSave
             // and no '>' in it, so the separator needs no escaping.
             text.Append("route: ").Append(string.Join(">", Route)).Append('\n');
             text.Append("act-cleared: ").Append(ActCleared ? "yes" : "no").Append('\n');
+            text.Append("at-vote: ").Append(AtVote ? "yes" : "no").Append('\n');
         }
 
         foreach (var unit in Squad)
@@ -248,6 +262,8 @@ public sealed record RunSave
                 : Array.Empty<string>(),
             ActCleared = fields.TryGetValue("act-cleared", out var cleared)
                 && string.Equals(cleared, "yes", StringComparison.Ordinal),
+            AtVote = fields.TryGetValue("at-vote", out var voting)
+                && string.Equals(voting, "yes", StringComparison.Ordinal),
             RngState = fields.TryGetValue("rng", out var rng)
                 && int.TryParse(rng, NumberStyles.Integer, CultureInfo.InvariantCulture, out int cursor)
                     ? cursor

@@ -432,8 +432,17 @@ namespace Faultline.Core
         /// The run RNG's cursor as it stood. Defaults to the seed, which is where an unflipped run
         /// starts — restore a run that has flipped coins without it and the next coin repeats one.
         /// </param>
-        /// <returns>The run, standing on its node.</returns>
-        /// <exception cref="ArgumentException">The squad does not match the campaign's.</exception>
+        /// <param name="atVote">
+        /// True when the run was standing at a fork with its vote still to cast. The one phase a
+        /// restore cannot infer and must not lose: the node under a fork has already been cleared, so
+        /// a run restored onto it as <see cref="RunPhase.AtNode"/> would be handed the fight it just
+        /// won to fight again, and the fork would never arrive (DECISIONS.md D-125).
+        /// </param>
+        /// <returns>The run, standing on its node — or at its fork.</returns>
+        /// <exception cref="ArgumentException">
+        /// The squad does not match the campaign's, or <paramref name="atVote"/> is claimed somewhere
+        /// no fork exists.
+        /// </exception>
         public static RunState Restore(
             CampaignDefinition campaign,
             int seed,
@@ -442,7 +451,8 @@ namespace Faultline.Core
             int fightsWon,
             RunOutcome outcome,
             MapState? mapState = null,
-            int? rngState = null)
+            int? rngState = null,
+            bool atVote = false)
         {
             if (campaign is null)
             {
@@ -503,6 +513,31 @@ namespace Faultline.Core
                 ? outcome
                 : past ? RunOutcome.Won : RunOutcome.InProgress;
 
+            // A fork is a position, not a decoration, so it is checked against the graph rather than
+            // taken on trust: a save claiming a vote on a node with one door out — or none — was
+            // written against a different map and is refused rather than quietly downgraded to
+            // AtNode, which is the mis-restore this parameter exists to stop.
+            bool waiting = false;
+            if (atVote)
+            {
+                if (campaign.Map is not ActMap voting || restoredMap is null)
+                {
+                    throw new ArgumentException(
+                        "Campaign '" + campaign.Id + "' has no map, so it has no fork to be waiting at.",
+                        nameof(atVote));
+                }
+
+                if (voting.Successors(restoredMap.CurrentNodeId).Count < 2)
+                {
+                    throw new ArgumentException(
+                        "The save claims a vote at '" + restoredMap.CurrentNodeId
+                        + "', which has no fork out of it on map '" + voting.Id + "'.",
+                        nameof(atVote));
+                }
+
+                waiting = ending == RunOutcome.InProgress;
+            }
+
             return new RunState
             {
                 Seed = seed,
@@ -511,7 +546,9 @@ namespace Faultline.Core
                 Squad = squad,
                 FightsWon = fightsWon,
                 Outcome = ending,
-                Phase = ending == RunOutcome.InProgress ? RunPhase.AtNode : RunPhase.Complete,
+                Phase = ending != RunOutcome.InProgress ? RunPhase.Complete
+                    : waiting ? RunPhase.AtVote
+                    : RunPhase.AtNode,
                 Fight = null,
                 Bindings = Array.Empty<RunBinding>(),
                 MapState = restoredMap,

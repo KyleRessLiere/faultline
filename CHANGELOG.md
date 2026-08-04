@@ -1,5 +1,19 @@
 # Changelog
 
+## An Act 1 run can leave column 1
+
+- **A run at a fork no longer offers the fight it just won (D-125).** Winning `first-contact` on the
+  act map and pressing "Play the next fight" produced *"Core refused that: The run is between columns
+  and the only thing it takes is a vote"*, because a cleared node is still `CurrentNode` until the
+  vote is cast. The status band now draws that button only when `Campaign.LegalRunCommands` holds an
+  `EnterNodeCommand`, points at the vote instead, and no longer dead-ends on a map campfire or an
+  event node. The linear ten was never affected.
+- **A fork survives a reload (D-125).** The save records `at-vote: yes|no` and `Campaign.Restore`
+  takes an `atVote` flag, checked against the graph. Without it a reload stood the run back on the
+  node it had cleared and handed it that fight again, so Act 1 could not get past column 1.
+- **The seam is tested on both shapes now**: `RunAdvanceSeamTests` (Core) and `RunAdvanceBandTests`
+  (Web) clear a board by playing it, rather than restoring a save, which is why this shipped.
+
 ## The game is PLUCK on screen, the board keeps its height, and a battle has a door
 
 - **Nothing occupies a layout row between the turn-order strip and the board (D-122).** The three

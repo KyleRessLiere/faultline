@@ -139,11 +139,12 @@ in this file when the question comes back.
 | D-119 | [The act map's campfire is its own node type and heals half, rounded up, per duck.](#d-119-the-act-maps-campfire-is-its-own-node-type-and-heals-half-rounded-up-per-duck) | 2026-08-04 |  |
 | D-120 | [The Molting Pool is the whole v1 event tier, and bodily consent is enforced at the command surface.](#d-120-the-molting-pool-is-the-whole-v1-event-tier-and-bodily-consent-is-enforced-at-the-command-surface) | 2026-08-04 |  |
 | D-121 | [HELD: `RunUnit.Owner`, so bodily consent can be checked rather than assumed.](#d-121-held-rununitowner-so-bodily-consent-can-be-checked-rather-than-assumed) | 2026-08-04 | *held* |
-| D-122 | [Nothing occupies a layout row between the turn-order strip and the board; a system message is a toast drawn over the board, or it moves into a region that already exists.](#d-122-nothing-occupies-a-layout-row-between-the-turn-order-strip-and-the-board-a-system-message-is-a-toast-drawn-over-the-board-or-it-moves-into-a-region-that-already-exists) | unreleased |  |
-| D-123 | [Leaving a battle is a reload, and the wordmark is the door.](#d-123-leaving-a-battle-is-a-reload-and-the-wordmark-is-the-door) | unreleased |  |
-| D-124 | [PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id is unchanged.](#d-124-pluck-is-the-name-on-screen-every-code-identifier-namespace-storage-key-and-campaign-id-is-unchanged) | unreleased |  |
+| D-122 | [Nothing occupies a layout row between the turn-order strip and the board; a system message is a toast drawn over the board, or it moves into a region that already exists.](#d-122-nothing-occupies-a-layout-row-between-the-turn-order-strip-and-the-board-a-system-message-is-a-toast-drawn-over-the-board-or-it-moves-into-a-region-that-already-exists) | 2026-08-04 |  |
+| D-123 | [Leaving a battle is a reload, and the wordmark is the door.](#d-123-leaving-a-battle-is-a-reload-and-the-wordmark-is-the-door) | 2026-08-04 |  |
+| D-124 | [PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id is unchanged.](#d-124-pluck-is-the-name-on-screen-every-code-identifier-namespace-storage-key-and-campaign-id-is-unchanged) | 2026-08-04 |  |
+| D-125 | [A screen offers what `Campaign.LegalRunCommands` offers, never what a node's type implies; and the save carries `AtVote`, because a fork is a position a reload must not lose.](#d-125-a-screen-offers-what-campaignlegalruncommands-offers-never-what-a-nodes-type-implies-and-the-save-carries-atvote-because-a-fork-is-a-position-a-reload-must-not-lose) | unreleased |  |
 
-**123 rulings.**
+**124 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2678,3 +2679,57 @@ display name and was never doing display work.
 picker, and `CombatRecorder`'s exported log header `# Faultline combat log`, the sibling of the notes
 header that did change. Both are display data of exactly the kind §15 says is a rename, and both are
 outstanding — recorded here so the gap is visible rather than assumed done.
+
+**D-125 — A screen offers what `Campaign.LegalRunCommands` offers, never what a node's type implies;
+and the save carries `AtVote`, because a fork is a position a reload must not lose.**
+
+**What forced it:** a user report, reproduced in the browser. Playing Act 1 — the Warrens, winning
+`first-contact` and pressing **"Play the next fight"** produced *"Core refused that: The run is
+between columns and the only thing it takes is a vote."* The run could not leave column 1.
+
+Two independent faults, both on the far side of the same untested seam — **a fight resolving into
+the node after it**. Every test and browser check that had ever stood at a fork got there by
+restoring a save, so nothing had ever asked what the state one command past a real win offers.
+
+**Fault one — the band asked the wrong question.** On an act map `MapState.CurrentNodeId` does not
+move until the vote is cast, so between the two `RunState.CurrentNode` is still the fight *just won*.
+`StatusBand` drew its continue button from `run.CurrentNode is FightNode`, which is true there — so
+it offered to play `first-contact` again, named it as "next", and sent an `EnterNodeCommand` into a
+run in `RunPhase.AtVote`. Core was right to refuse. The band now draws that button only when
+`Campaign.LegalRunCommands` actually contains an `EnterNodeCommand`, and says the honest thing at a
+fork instead. **The linear ten never had this**: its `NodeIndex` moves on advance, so its
+`CurrentNode` genuinely is the next node — which is exactly why nobody saw it. The same guessing had
+left a map campfire (`MapRestNode`, deliberately *not* `RestNode` — D-119) and an event node matching
+no branch at all, so the band drew a dead end with no way off it; both now match.
+
+**Fault two — the fork did not survive a reload.** `RunSave` recorded no phase and `Campaign.Restore`
+always returned `AtNode`, so a reload at a fork stood the run back on the node it had already cleared
+and offered it that fight again. This is the half that made the run genuinely unable to advance: the
+fork never arrived, `FightsWon` climbed, and Act 1 looped on column 1 forever. The save now writes
+`at-vote: yes|no` and `Campaign.Restore` takes an `atVote` flag.
+
+**Rejected: inferring the fork from the save.** Nothing in `Route`, `NodeIndex` or `FightsWon`
+distinguishes "standing on a node about to be entered" from "standing on a node already cleared" —
+`MoveTo` appends to the route on arrival either way. An inference would have been a guess that is
+right most of the time, which is the worst kind.
+
+**Rejected: downgrading a fork that does not check out.** `Restore` throws when a save claims a vote
+at a node with fewer than two doors out, or on a campaign with no map at all. Silently falling back
+to `AtNode` is precisely the mis-restore this flag exists to prevent, and it would hide a save
+written against a different map. A record from before the field exists has no `at-vote` line, reads
+as `no`, and restores exactly as it always did.
+
+**Rejected: teaching `Advance` to move the map before the vote.** It would make `CurrentNode` mean
+"where you are going" for one phase and "where you are" for every other, and it would have to invent
+a destination before the coin that picks it. The fork is genuinely a position between two nodes; the
+fix belongs in what the screens ask, not in moving the run somewhere it has not been.
+
+**Why nothing caught it.** `tools/Faultline.Playtest` plays whole campaigns through real fight
+resolutions, and would have hit this on its first fork — but every entry point in it is hard-wired to
+`CampaignLibrary.Faultline`, the linear ten, so it has never walked the act map at all. Worse,
+`RunDriver.AutoAdvance` handles `AtNode` and assumes anything else is a live fight, so on reaching
+`AtVote` it would dereference a null `Run.Fight`: the harness cannot walk a mapped run today. Left as
+found and recorded here rather than fixed in a bug session — teaching the harness to vote is a policy
+question (which door does a headless run take?) and belongs with the balance work that reads its
+numbers. `RunAdvanceSeamTests` and `RunAdvanceBandTests` close the coverage gap meanwhile: both
+shapes of campaign, cleared by playing the board, pinned side by side.

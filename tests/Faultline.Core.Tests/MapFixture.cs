@@ -131,11 +131,16 @@ internal static class MapFixture
     /// <param name="seed">Run seed.</param>
     /// <param name="vote">How the two players vote at a fork.</param>
     /// <param name="maxCommands">Guard against a driver that cannot make progress.</param>
+    /// <param name="until">
+    /// Stop as soon as this holds, instead of playing the act out. What a test of the seam between a
+    /// fight and the node after it needs: the fight has to be *won by commands*, not emptied.
+    /// </param>
     /// <returns>The state it ended in and the log that got there.</returns>
     internal static (RunState State, List<RunCommand> Log) PlayForReal(
         int seed,
         Func<IReadOnlyList<string>, (string A, string B)>? vote = null,
-        int maxCommands = 40000)
+        int maxCommands = 40000,
+        Func<RunState, bool>? until = null)
     {
         vote ??= Agreeing;
         var run = Start(seed);
@@ -143,6 +148,11 @@ internal static class MapFixture
 
         while (run.Phase != RunPhase.Complete && log.Count < maxCommands)
         {
+            if (until is not null && until(run))
+            {
+                break;
+            }
+
             RunCommand command;
 
             if (run.Phase == RunPhase.AtVote)

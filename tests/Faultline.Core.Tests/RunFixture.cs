@@ -227,12 +227,24 @@ internal static class RunFixture
     }
 
     /// <summary>Plays a run on from wherever it stands, first legal command each time.</summary>
-    internal static (RunState State, List<RunCommand> Log) PlayForward(RunState run, int maxCommands = 40000)
+    /// <param name="run">Where to start.</param>
+    /// <param name="maxCommands">Guard against a driver that cannot make progress.</param>
+    /// <param name="until">
+    /// Stop as soon as this holds, instead of playing the campaign out — for a test that needs a
+    /// fight <em>won by commands</em> and the node after it, rather than a rigged board.
+    /// </param>
+    internal static (RunState State, List<RunCommand> Log) PlayForward(
+        RunState run, int maxCommands = 40000, Func<RunState, bool>? until = null)
     {
         var log = new List<RunCommand>();
 
         while (run.Phase != RunPhase.Complete && log.Count < maxCommands)
         {
+            if (until is not null && until(run))
+            {
+                break;
+            }
+
             RunCommand command;
 
             if (run.Phase == RunPhase.AtNode)

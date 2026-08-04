@@ -932,6 +932,20 @@ seed plus its command log flips the same coins in the same order and reaches the
 A vote naming a door that is not there is refused by name. On Act 1 a run votes at most three times:
 leaving column 1, leaving column 2, and leaving the pool.
 
+**A run at a fork is still standing on the node it cleared.** `MapState.CurrentNodeId` does not move
+until the vote is cast, so between the two `RunState.CurrentNode` is the fight *just won*, not the
+one ahead. Entering it again is refused: *"The run is between columns and the only thing it takes is
+a vote."* Which means a screen must decide what to offer from `Campaign.LegalRunCommands` — at a fork
+that list is votes and nothing else — and never from "there is a fight node here" (D-125).
+
+**A fork survives being put down and picked up.** The save records `at-vote: yes|no`, and
+`Campaign.Restore` takes an `atVote` flag: a run reloaded at a fork comes back at the fork, with the
+same doors and the same coin cursor. Without it a reload stood the run back on the cleared node as
+`AtNode` and handed it the fight it had already won, forever — Act 1 could not get past column 1
+(D-125). The flag is checked against the graph rather than trusted: a save claiming a vote at a node
+with fewer than two doors out, or on the linear campaign, is refused rather than downgraded. A record
+written before the field existed has no `at-vote` line, reads as `no`, and restores as it always did.
+
 ### The campfire — half, rounded up, per duck
 
 The act map's Camp is `MapRestNode`, a **different node type** from the linear campaign's full-heal
