@@ -185,6 +185,15 @@ costs more than it saves.
 - **Watch for coupling, not just file names.** Two agents both changing `Game.cs` are the same task
   wearing two hats. Split by subsystem — Core rules, Core serialisation, shell pages — not by
   wishful thinking.
+- **`git commit -- <paths>` every time. Never a bare `git commit`.** Scoping the *add* means
+  nothing if the commit throws the scoping away: a bare commit takes the whole index, including
+  whatever another writer had staged. That is how a battle-screen commit swallowed somebody
+  else's `DECISIONS.md` entry, under a message describing none of it.
+  The recurring lure is "I needed `-A` to pick up deletions" — and it is false. **`git commit --
+  <paths>` already commits deletions of tracked files under those paths**, so `-A` is never
+  required. Only genuinely new files need staging first: `git add -- <new paths>`, then commit
+  with the pathspec. Read `git show --stat --name-only HEAD` afterwards; if a path you did not
+  name is in it, say so immediately rather than rewriting pushed history under another writer.
 - **Stage explicit paths. Never `git add -A` or `git add .`.** The working tree changes underneath a
   session — this has swept another writer's untracked files into a commit whose message described
   none of them. `git add -- <paths>`, then read `git status --short` before committing; if something

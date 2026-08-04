@@ -1,5 +1,12 @@
 # DECISIONS_PENDING — eight shipped rulings awaiting a home in `DECISIONS.md`
 
+> **D-104 (Great Doubling) landed inside `0b28802` (the battle-screen commit)** by a bare
+> `git commit` staging accident: another writer's staged entry was in the index and went along
+> with it. Content correct, attribution wrong. Recorded here rather than rewritten — rewriting
+> pushed shared history to fix a commit message trades bookkeeping for another writer's
+> potentially lost work.
+
+
 **This is a staging area, not a design document.** Nothing here is authoritative and nothing here
 should be cited. It exists for one reason: `DECISIONS.md` was held open, dirty, by a concurrent
 writer for the whole of this session, so eight rulings that are already *shipped in the code* have
