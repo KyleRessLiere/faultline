@@ -78,24 +78,44 @@ public sealed class UndoTests
     }
 
     [Fact]
-    public void Undo_RewindsPastTheEnemyActivationsADecisionCaused()
+    public void Undo_StopsDeadAtTheEnemyActivationsADecisionCaused()
     {
-        // An enemy activation is a consequence, not a decision. Rewinding to the middle of one would
-        // leave the screen playing it straight forward again, so undo takes the whole slot back.
+        // This used to assert the opposite: that a rewind swept the enemy activations away with the
+        // decision that caused them, on the grounds that they were consequences rather than choices.
+        // They are consequences, but they are also information — the player has now seen where every
+        // enemy went, and replaying the same decision into a board they have already read is not the
+        // same decision. An enemy activation is a hard boundary and undo says so out loud
+        // (DECISIONS.md, undo contract).
         var session = SessionOn("hz-10-bone-yard");
         DeployEverything(session);
 
-        var beforePlayerMove = session.State;
-        int logBefore = session.Log.Count;
-
-        var move = session.Legal.OfType<MoveCommand>().First();
-        session.Submit(move);
+        session.Submit(session.Legal.OfType<EndActivationCommand>().First());
 
         while (session.AwaitingEnemy)
         {
             session.ResolveEnemyActivation();
         }
 
+        var afterTheEnemy = session.State;
+
+        Assert.False(session.CanUndo);
+        Assert.False(session.Undo());
+        Assert.Equal(afterTheEnemy, session.State);
+        Assert.Equal("enemy has acted — round is committed", session.UndoBlockedReason);
+    }
+
+    [Fact]
+    public void Undo_TakesBackOneMoveSegmentWhileTheActivationIsStillOpen()
+    {
+        // The half of the old test that survived the narrowing: inside the open activation a rewind
+        // is exact, down to the transcript.
+        var session = SessionOn("hz-10-bone-yard");
+        DeployEverything(session);
+
+        var beforePlayerMove = session.State;
+        int logBefore = session.Log.Count;
+
+        session.Submit(session.Legal.OfType<MoveCommand>().First(m => m.Path.Count == 1));
         Assert.NotEqual(beforePlayerMove, session.State);
 
         Assert.True(session.Undo());
@@ -137,6 +157,9 @@ public sealed class UndoTests
     [Fact]
     public void UndoingEverything_LandsExactlyOnTheOpeningPosition()
     {
+        // Deployment is one open segment. Core hands the placement slot back and forth after every
+        // single placement, so the activation-shaped boundaries have nothing to bite on here and a
+        // player can walk the whole setup back — which is what setup is for.
         var session = SessionOn("hz-10-bone-yard");
         var opening = session.State;
 
@@ -189,6 +212,8 @@ public sealed class UndoTests
 
         Assert.False(session.CanUndo);
         Assert.False(session.Undo());
+        Assert.Equal("the run owns the rewind — undo the run instead", session.UndoBlockedReason);
+        Assert.Equal(string.Empty, session.UndoDescription);
     }
 
     private sealed class NullDriver : IRunBoardDriver

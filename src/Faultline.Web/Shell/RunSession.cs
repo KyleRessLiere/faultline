@@ -28,11 +28,10 @@ public sealed class RunSession : IRunBoardDriver
     private readonly GameSession _session;
     private readonly List<string> _journal = new();
 
-    // Every run command this browser has applied since the run was started, and whether a person
-    // chose it. Undo replays the run from its seed with the tail dropped, which is exact for the
-    // same reason the fight-level undo is: Core is deterministic on seed plus command log.
-    private readonly List<RunCommand> _commands = new();
-    private readonly List<bool> _chosen = new();
+    // Every run command this browser has applied since the run was started, with what its step
+    // crossed. Undo replays the run from its seed with the last entry dropped, which is exact for
+    // the same reason the fight-level undo is: Core is deterministic on seed plus command log.
+    private readonly List<Applied> _commands = new();
 
     // True only when _commands covers the run from Campaign.Start. A run read back out of storage
     // arrives as a state, not as a log, so there is nothing to replay and undo stays off.
@@ -130,7 +129,6 @@ public sealed class RunSession : IRunBoardDriver
 
             _journal.Clear();
             _commands.Clear();
-            _chosen.Clear();
             _logFromStart = false;
         }
 
@@ -149,7 +147,6 @@ public sealed class RunSession : IRunBoardDriver
 
         _journal.Clear();
         _commands.Clear();
-        _chosen.Clear();
         _logFromStart = true;
         _pushed = null;
         _restoredNode = null;
@@ -176,7 +173,6 @@ public sealed class RunSession : IRunBoardDriver
         _pushed = null;
         _journal.Clear();
         _commands.Clear();
-        _chosen.Clear();
         _logFromStart = false;
         _session.DetachRun();
         Changed?.Invoke();
@@ -223,14 +219,37 @@ public sealed class RunSession : IRunBoardDriver
     }
 
     /// <summary>
-    /// Whether the run can be rewound to before the last command a person chose. False for a run
-    /// that came back out of storage: a save is a state, not a command log, so there is nothing to
-    /// replay from and pretending otherwise would land on a different board.
+    /// Whether the last run command can be taken back. False for a run that came back out of
+    /// storage: a save is a state, not a command log, so there is nothing to replay from and
+    /// pretending otherwise would land on a different board.
     /// </summary>
-    public bool CanUndo => _logFromStart && State is not null && LastChosen >= 0;
+    public bool CanUndo => _logFromStart && State is not null && Blocked == GameSession.UndoBlock.None;
+
+    /// <summary>Why undo is refused right now, wordlessly.</summary>
+    public GameSession.UndoBlock Blocked
+    {
+        get
+        {
+            if (_commands.Count == 0)
+            {
+                return GameSession.UndoBlock.Nothing;
+            }
+
+            var last = _commands[_commands.Count - 1];
+            return GameSession.BlockOn(
+                last.Chosen,
+                last.DrewFromTheSeed,
+                last.TurnedTheRound,
+                last.Command is PlayCommand { Command: EndActivationCommand },
+                last.ClosedTheActivation,
+                last.ActorTeam,
+                _session.State?.ActiveTeam ?? last.ActorTeam);
+        }
+    }
 
     /// <summary>
     /// Why undo is unavailable, for the button's tooltip, or <c>null</c> when it is available.
+    /// Non-null exactly when <see cref="CanUndo"/> is false.
     /// </summary>
     public string? UndoBlockedReason =>
         CanUndo ? null
@@ -238,28 +257,47 @@ public sealed class RunSession : IRunBoardDriver
         : !_logFromStart
             ? "This run came back out of browser storage as a saved position, not as a command log, "
               + "so there is nothing to replay from. Undo works again on a run started in this tab."
-            : "Nothing has been played on this run yet.";
+            : Blocked == GameSession.UndoBlock.Nothing
+                ? "Nothing has been played on this run yet."
+                : GameSession.UndoWords(Blocked, _commands[_commands.Count - 1].ActorTeam);
 
     /// <summary>
-    /// Rewinds the run to just before the last command a person chose, by replaying it from its
-    /// seed with the tail of the command log dropped.
+    /// What one press would take back — "undo move segment to D4". Non-empty exactly when
+    /// <see cref="CanUndo"/> is true.
+    /// </summary>
+    public string UndoDescription
+    {
+        get
+        {
+            if (!CanUndo)
+            {
+                return string.Empty;
+            }
+
+            var last = _commands[_commands.Count - 1].Command;
+            return last is PlayCommand play
+                ? GameSession.DescribeUndo(_session.State, play.Command)
+                : "undo entering " + (CurrentNode?.Describe() ?? "this node");
+        }
+    }
+
+    /// <summary>
+    /// Takes back exactly one run command — the last one — by replaying the run from its seed with
+    /// that one entry dropped.
     /// </summary>
     /// <returns>Whether anything was undone.</returns>
     public bool Undo()
     {
-        int cut = LastChosen;
-        if (!CanUndo || cut < 0)
+        if (!CanUndo)
         {
             return false;
         }
 
         var campaign = State!.Campaign;
         int seed = State.Seed;
-        var commands = _commands.GetRange(0, cut);
-        var chosen = _chosen.GetRange(0, cut);
+        var kept = _commands.GetRange(0, _commands.Count - 1);
 
         _commands.Clear();
-        _chosen.Clear();
         _journal.Clear();
         _pushed = null;
         Problem = null;
@@ -272,9 +310,9 @@ public sealed class RunSession : IRunBoardDriver
         _replaying = true;
         try
         {
-            for (int i = 0; i < commands.Count; i++)
+            foreach (var entry in kept)
             {
-                Apply(commands[i], chosen[i]);
+                Apply(entry.Command, entry.Chosen);
             }
         }
         finally
@@ -287,21 +325,14 @@ public sealed class RunSession : IRunBoardDriver
         return true;
     }
 
-    private int LastChosen
-    {
-        get
-        {
-            for (int i = _chosen.Count - 1; i >= 0; i--)
-            {
-                if (_chosen[i])
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-    }
+    /// <summary>One applied run command, and what the undo rule needs to know about its step.</summary>
+    private readonly record struct Applied(
+        RunCommand Command,
+        bool Chosen,
+        Team ActorTeam,
+        bool ClosedTheActivation,
+        bool TurnedTheRound,
+        bool DrewFromTheSeed);
 
     private void Apply(RunCommand command) => Apply(command, !_session.SubmittingEnemyCommand);
 
@@ -332,8 +363,7 @@ public sealed class RunSession : IRunBoardDriver
         State = result.NewState;
         LastEvents = result.Events;
         Record(result.Events);
-        _commands.Add(command);
-        _chosen.Add(chosen);
+        _commands.Add(Record(command, chosen, board, result));
 
         PushBoard(command, board, result);
 
@@ -346,6 +376,56 @@ public sealed class RunSession : IRunBoardDriver
 
         Changed?.Invoke();
     }
+
+    // The same reading of a step the fight-level undo makes, over the board the run unwrapped.
+    private static Applied Record(RunCommand command, bool chosen, GameState? before, RunStepResult result)
+    {
+        bool closed = false;
+        bool turned = false;
+
+        foreach (var evt in result.FightEvents)
+        {
+            if (evt is ActivationEnded)
+            {
+                closed = true;
+            }
+            else if (evt is RoundEnded)
+            {
+                turned = true;
+            }
+        }
+
+        var team = before is null ? Team.PlayerA : before.ActiveTeam;
+        if (command is PlayCommand play && before is not null)
+        {
+            team = TeamOf(before, play.Command);
+        }
+
+        bool drew = before is not null
+            && result.FinalBoard is not null
+            && before.RngState != result.FinalBoard.RngState;
+
+        return new Applied(command, chosen, team, closed, turned, drew);
+    }
+
+    private static Team TeamOf(GameState before, Command command)
+    {
+        var id = ActorOf(command);
+        return id != UnitId.None && before.FindUnit(id) is { } unit ? unit.Team : before.ActiveTeam;
+    }
+
+    private static UnitId ActorOf(Command command) => command switch
+    {
+        DeployCommand c => c.UnitId,
+        MoveCommand c => c.UnitId,
+        AttackCommand c => c.UnitId,
+        AbilityCommand c => c.UnitId,
+        RescueCommand c => c.UnitId,
+        FinishClingingCommand c => c.UnitId,
+        SpendVerveCommand c => c.UnitId,
+        EndActivationCommand c => c.UnitId,
+        _ => UnitId.None,
+    };
 
     private void PushBoard(RunCommand command, GameState? before, RunStepResult result)
     {

@@ -1,8 +1,13 @@
 @inherits PlaytestPanel
 
-@* The meter, what fills it, and the one named thing it buys. Drawn only for a duck the player is
-   commanding — an enemy holds no meter and never will — and drawn as a section of the inspector
-   rather than a panel of its own, because it is a fact about that duck.
+@* The meter, what fills it, and the one named thing it buys. Drawn for any duck a player owns — an
+   enemy holds no meter and never will — and drawn as a section of the inspector rather than a panel
+   of its own, because it is a fact about that duck.
+
+   A fact about the duck, not about the clock: how full an ally's meter is and what it is saving for
+   is precisely what the other player wants to read on their own turn, so the section renders for a
+   duck being inspected exactly as it does for one being commanded. Only the spender goes dead, and
+   it says why.
 
    There is deliberately no generic "activate your charge" control. A meter with an anonymous button
    on it is a meter nobody can plan around: the whole point of the spender is that it is a named,
@@ -90,8 +95,12 @@
     private int _lastVerve = -1;
     private bool _gained;
 
-    /// <summary>Only a duck the player is commanding gets a meter panel.</summary>
-    private Unit? Unit => Session.SelectedUnit is { } unit && unit.Team.IsPlayer() ? unit : null;
+    /// <summary>
+    /// The duck the inspector is about, when a player owns it. Same subject the action list below
+    /// uses, so the meter and the rows can never end up describing two different ducks.
+    /// </summary>
+    private Unit? Unit =>
+        ActionRows.Subject(Session) is { } unit && unit.Team.IsPlayer() ? unit : null;
 
     /// <summary>Whether the newest segment should pulse — one redraw's worth, then it stops.</summary>
     private bool Gained => _gained;

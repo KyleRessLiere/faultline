@@ -13,9 +13,13 @@
 
    It has no frame, no heading and no region of its own: it is drawn inside the inspector, for the
    duck the inspector is already about, and it draws nothing at all when there is no such duck. An
-   ACTIONS panel standing empty beside an empty inspector was two boxes saying "click something". *@
+   ACTIONS panel standing empty beside an empty inspector was two boxes saying "click something".
 
-@if (Session.SelectedUnit is not null)
+   "The duck the inspector is about" is the whole of it, not only the one being commanded. A duck
+   the other player owns still has a kit, and §7.5 promises stats then Pluck then actions for every
+   friendly duck: the list is drawn, priced and dead, with the reason on it. *@
+
+@if (Subject is not null)
 {
     @* Named action-list, not actions: app.css used to carry a global .actions from the old action
        bar that laid its children out as a wrapping flex row, which put these rows beside the
@@ -24,15 +28,14 @@
     <div class="action-list">
         <p class="section-head">Actions <span class="section-note">move, then act — an action ends the activation</span></p>
 
-            <p class="summary">@ActionRows.Summary(Session)</p>
+            @if (ActionRows.Summary(Session) is { Length: > 0 } summary)
+            {
+                <p class="summary">@summary</p>
+            }
 
             @if (Locked)
             {
-                <p class="locked" role="status">
-                    @(Animator.Busy
-                        ? "The board is still showing what just happened."
-                        : "Activation spent — nothing left to give this one.")
-                </p>
+                <p class="locked" role="status">@LockedText</p>
             }
 
             <ul class="rows">
@@ -104,11 +107,22 @@
                 <button type="button" class="cancel" @onclick="Cancel">Cancel</button>
             }
 
-            <p class="preview @(PreviewText is null ? "idle" : string.Empty)">@(PreviewText ?? IdleText)</p>
+            @* Aiming talk, for the duck that can be aimed. "Hover a highlighted tile" beside a card
+               with no highlighted tiles on the board is an instruction that cannot be followed. *@
+            @if (Commandable)
+            {
+                <p class="preview @(PreviewText is null ? "idle" : string.Empty)">@(PreviewText ?? IdleText)</p>
+            }
     </div>
 }
 
 @code {
+    /// <summary>The duck this list is about — commanded or merely read.</summary>
+    private Unit? Subject => ActionRows.Subject(Session);
+
+    /// <summary>Whether Core will take orders for the subject right now.</summary>
+    private bool Commandable => ActionRows.IsCommandable(Session);
+
     /// <summary>
     /// Every row except the class spender, which the Pluck section above draws instead — it is
     /// bought with a different currency and belongs beside the meter that pays for it.
@@ -132,10 +146,35 @@
 
     /// <summary>
     /// Whether controls are locked. Same rule the board's tiles keep: no command leaves this screen
-    /// while a sequence is playing, and none leaves it once the activation has been closed.
+    /// while a sequence is playing, none leaves it once the activation has been closed, and none
+    /// leaves it at all for a duck that is only being read.
     /// </summary>
+    /// <remarks>
+    /// The third case joins the other two rather than growing a second greying mechanism beside
+    /// them: one concept called "locked" with one status line saying which of the three it is, so a
+    /// player never has to work out which kind of dead a button is.
+    /// </remarks>
     private bool Locked =>
-        Animator.Busy || (Session.SelectedUnit is { } unit && unit.HasActed);
+        Animator.Busy || !Commandable || (Session.SelectedUnit is { } unit && unit.HasActed);
+
+    /// <summary>Which lock it is, named. A greyed list with no sentence on it teaches nothing.</summary>
+    private string LockedText
+    {
+        get
+        {
+            if (Animator.Busy)
+            {
+                return "The board is still showing what just happened.";
+            }
+
+            if (!Commandable)
+            {
+                return "Not your activation — this is a read of the kit, not a hand on it.";
+            }
+
+            return "Activation spent — nothing left to give this one.";
+        }
+    }
 
     private bool Aiming =>
         Session.AimingCast || Session.AimingRescue

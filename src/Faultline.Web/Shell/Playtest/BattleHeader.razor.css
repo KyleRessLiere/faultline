@@ -1,17 +1,110 @@
-/* The quietest bar on the screen. Nothing here competes with the board: one wordmark, one muted
-   context line, four outline buttons. The chrome should be findable, not readable. */
+/* The quietest bar on the screen, and now the shortest. Nothing here competes with the board: one
+   muted context line, one icon and one primary button at 24px, and the rest only when asked for.
 
-.pt-header {
+   24px is the whole story. The board is height-limited — it is given whatever the fixed bands leave
+   it — so every pixel this bar keeps is a pixel the position does not get. The full row is drawn as
+   a fixed overlay instead, which means expanding it takes nothing from the board and no layout below
+   it moves. The strip stays in the flex column while the row is open (visibility, not display) so
+   the 24px it reserves never blinks. */
+
+.hdr {
+    flex: 0 0 auto;
+    height: 24px;
+    position: relative;
+    z-index: 45;
+}
+
+.hdr:focus {
+    outline: none;
+}
+
+/* ---- the collapsed strip --------------------------------------------------------------------- */
+
+.strip {
     align-items: center;
     background: var(--pt-bg-panel);
     border-bottom: 1px solid var(--pt-border);
     display: flex;
+    gap: 8px;
+    height: 100%;
+    overflow: hidden;
+    padding: 0 8px;
+}
+
+/* Hover is CSS on purpose: :hover holds while the pointer is inside any descendant, including a
+   fixed one drawn nowhere near the strip, which is exactly the case a mouse-leave handler gets
+   wrong. Hidden rather than removed so the row it reserves cannot collapse under the board. */
+.hdr:hover .strip,
+.hdr.open .strip {
+    visibility: hidden;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.handle {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
     flex: 0 0 auto;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 6px;
+}
+
+.handle:hover {
+    border-color: var(--pt-border);
+    color: var(--pt-text);
+}
+
+.icon {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 12px;
+    line-height: 1;
+    padding: 2px 7px;
+}
+
+.icon:hover:enabled {
+    border-color: var(--pt-blue);
+    color: var(--pt-text);
+}
+
+.icon:disabled {
+    cursor: default;
+    opacity: .4;
+}
+
+/* ---- the full row, drawn over the board ------------------------------------------------------ */
+
+.panel {
+    align-items: center;
+    background: var(--pt-bg-panel);
+    border-bottom: 1px solid var(--pt-border);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .45);
+    display: none;
     gap: 12px;
     justify-content: space-between;
-    min-height: 54px;
+    left: 0;
     padding: 6px 12px;
-    position: relative;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 46;
+}
+
+.hdr:hover .panel,
+.hdr.open .panel {
+    display: flex;
 }
 
 .brand {
@@ -63,13 +156,15 @@
     line-height: 1.1;
 }
 
-/* One line, muted, and truncated rather than wrapped: the header must not change height because a
-   battle has a long name. */
+/* One line, muted, and truncated rather than wrapped: neither state of the bar may change height
+   because a battle has a long name. */
 .context {
     color: var(--pt-text-dim);
+    flex: 0 1 auto;
     font-size: 11.5px;
     font-variant-numeric: tabular-nums;
     line-height: 1.25;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -110,13 +205,52 @@
     color: var(--pt-blue);
 }
 
-/* Restart is the only destructive thing in the bar, and it says so only once it has been asked
-   for — a red button sitting in the header all day is just noise. */
-.btn.danger {
-    background: var(--pt-red);
-    border-color: var(--pt-red);
-    color: #1a0d0e;
+/* END TURN is the most-pressed control on the screen and the only one here that changes the
+   position. It is filled rather than outlined so it cannot be mistaken for Undo at a glance — the
+   two sit beside each other and do opposite things. */
+.btn.primary {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+    color: #06101f;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+.btn.primary:hover:enabled {
+    filter: brightness(1.12);
+}
+
+/* Greyed, it stops being the loudest thing in the bar. A disabled button that still shouts is a
+   button people keep pressing. */
+.btn.primary:disabled {
+    background: transparent;
+    border-color: var(--pt-border);
+    color: var(--pt-text-dim);
     font-weight: 600;
+}
+
+.btn.slim {
+    border-radius: 4px;
+    font-size: 10.5px;
+    padding: 2px 9px;
+}
+
+.end {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin-left: 6px;
+}
+
+/* The same treatment the action list gives a greyed row: the reason travels with the button rather
+   than hiding in a tooltip nobody hovers a dead control to read. */
+.reason {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .menu {
@@ -136,7 +270,7 @@
     right: 0;
     top: calc(100% + 6px);
     width: 168px;
-    z-index: 40;
+    z-index: 47;
 }
 
 .opt {
@@ -159,6 +293,15 @@
     background: rgba(37, 131, 255, .14);
     border-color: var(--pt-blue);
     color: var(--pt-blue);
+}
+
+/* Restart is the only destructive thing in the bar, and it says so only once it has been asked
+   for — a red button sitting in the header all day is just noise. */
+.btn.danger {
+    background: var(--pt-red);
+    border-color: var(--pt-red);
+    color: #1a0d0e;
+    font-weight: 600;
 }
 
 /* Markup, not window.confirm: the shell owns no JS interop, and a browser dialog cannot say what
@@ -206,7 +349,7 @@
 }
 
 @media (max-width: 1200px) {
-    .pt-header {
+    .panel {
         gap: 8px;
         padding: 5px 8px;
     }
@@ -217,7 +360,12 @@
 }
 
 @media (max-width: 760px) {
-    .context {
+    .strip .context,
+    .titles .context {
+        display: none;
+    }
+
+    .reason {
         display: none;
     }
 }

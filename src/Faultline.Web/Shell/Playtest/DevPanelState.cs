@@ -34,6 +34,7 @@ public sealed class DevPanelState
         DevTab.Battles,
         DevTab.State,
         DevTab.Ai,
+        DevTab.Log,
         DevTab.Replay,
         DevTab.Overlays,
     };

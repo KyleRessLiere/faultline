@@ -113,13 +113,64 @@ public sealed record ActionRow(
 /// </remarks>
 public static class ActionRows
 {
-    /// <summary>Every row for the selected unit, in the order the list draws them.</summary>
+    /// <summary>
+    /// What every row of a duck the player may read but not command says about itself.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately the same shape as every other reason on a row — a <see cref="ActionRow.Reason"/>
+    /// beside a false <see cref="ActionRow.Available"/> — rather than a second mechanism for
+    /// "greyed". A parallel one would mean two ways for a button to be dead and two places to look
+    /// for why.
+    /// </remarks>
+    public const string NotYoursReason = "not your activation";
+
+    /// <summary>
+    /// The duck the list is about: the one being commanded, or the one the inspector is reading.
+    /// </summary>
+    /// <remarks>
+    /// §7.5 says a friendly duck renders stats, then Pluck, then its action list — with no clause
+    /// about whose activation it is. Keying the list to the selection alone left the other player's
+    /// ducks as four numbers and a void, which reads as a broken panel rather than as "you cannot
+    /// move this one": the kit is exactly what somebody planning around an ally needs to read.
+    /// </remarks>
+    /// <param name="session">The board and what is selected.</param>
+    /// <returns>The duck, or null when the inspector is on an enemy, a tile or nothing.</returns>
+    public static Unit? Subject(GameSession? session)
+    {
+        if (session is null)
+        {
+            return null;
+        }
+
+        if (session.SelectedUnit is { } selected)
+        {
+            return selected;
+        }
+
+        var inspected = Inspection.Resolve(session);
+        return inspected.Kind == InspectKind.Friendly ? inspected.Unit : null;
+    }
+
+    /// <summary>
+    /// Whether the subject is the duck Core will take orders for.
+    /// </summary>
+    /// <remarks>
+    /// Read off the session's own selection, never worked out from teams and rounds. Which duck is
+    /// committed is <see cref="GameState.ActiveUnitId"/>'s answer and the session already follows
+    /// it; a shell that re-derived "may I command this" would be a second copy of the activation
+    /// rule, disagreeing on the first edge case.
+    /// </remarks>
+    /// <param name="session">The board and what is selected.</param>
+    /// <returns>Whether commands may be aimed at the subject.</returns>
+    public static bool IsCommandable(GameSession? session) => session?.SelectedUnit is not null;
+
+    /// <summary>Every row for the subject duck, in the order the list draws them.</summary>
     /// <param name="session">The board and what is aimed.</param>
-    /// <returns>The rows, empty when nothing is selected or the unit is an enemy.</returns>
+    /// <returns>The rows, empty when the inspector is on nothing a player owns.</returns>
     public static IReadOnlyList<ActionRow> For(GameSession session)
     {
         var rows = new List<ActionRow>();
-        if (session?.SelectedUnit is not { } unit)
+        if (Subject(session) is not { } unit)
         {
             return rows;
         }
@@ -145,6 +196,25 @@ public static class ActionRows
                 string.Empty,
                 string.Empty,
                 false));
+        }
+
+        // A duck being read rather than commanded keeps its whole kit, priced, and loses only the
+        // ability to press any of it. Dropping the rows instead would hide what an ally brings at
+        // exactly the moment somebody is planning around it, and the reasons the rows would
+        // otherwise carry — "nowhere to walk", "no target in range" — are answers to a question
+        // nobody asked: none of them is why the button is dead.
+        if (!IsCommandable(session))
+        {
+            for (int i = 0; i < rows.Count; i++)
+            {
+                rows[i] = rows[i] with
+                {
+                    Available = false,
+                    Armed = false,
+                    Reason = NotYoursReason,
+                    Hint = string.Empty,
+                };
+            }
         }
 
         return rows;
@@ -252,8 +322,10 @@ public static class ActionRows
     private static IEnumerable<ActionRow> AbilityRows(GameSession session, Unit unit, GameState state)
     {
         // One row per ability the archetype brings, never one row called "the ability": the
-        // Wardbearer has two and the player has to be able to say which is being aimed.
-        foreach (var descriptor in session.SelectedAbilities)
+        // Wardbearer has two and the player has to be able to say which is being aimed. Asked of
+        // the archetype rather than of the selection, so a duck that is being read still lists the
+        // kit it owns — what it brings is a fact about the class, not about whose turn it is.
+        foreach (var descriptor in AbilityDescriptor.AllForKind(unit.Kind))
         {
             bool usable = descriptor.Targeting != AbilityTargeting.Passive
                 && session.IsAbilityAvailable(descriptor.Ability);

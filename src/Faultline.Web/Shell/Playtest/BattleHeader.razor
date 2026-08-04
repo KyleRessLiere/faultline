@@ -1,95 +1,171 @@
 @inherits PlaytestPanel
 @inject DevPanelState Dev
 
-@* One bar and one bar only: who we are, which board this is, and the four things that are not part
-   of playing the battle. Everything that answers a question about the *position* — round, side,
-   phase, objective, the activation being ended — was taken out of here on purpose. A header that
-   also reports the game is a second place to read the game, and two places disagree eventually. *@
+@* One bar and one bar only: who we are, which board this is, the four things that are not part of
+   playing the battle — and the one that is, END TURN. Everything that answers a question about the
+   *position* — round, side, phase, objective — was taken out of here on purpose. A header that also
+   reports the game is a second place to read the game, and two places disagree eventually.
 
-<header class="pt-header">
-    <div class="brand">
-        @* Drawn rather than lettered so the mark survives a rename: the wordmark beside it is the
-           only place the title is spelled. *@
-        <span class="logo" aria-hidden="true">
-            <svg viewBox="0 0 24 24" role="none" focusable="false">
-                <rect x="1.5" y="1.5" width="21" height="21" rx="5" class="logo-plate" />
-                <path d="M8 3.5 L13 10 L10 12 L16 20.5" class="logo-fault" />
-            </svg>
-        </span>
+   It is 24 pixels tall and it stays 24 pixels tall. The board is height-limited, not width-limited:
+   a 54px band of chrome across the top was 54px taken off the only region anybody looks at. So the
+   bar collapses to a strip carrying the context line, Undo and END TURN, and the full row — wordmark,
+   Restart, Dev, Settings — arrives on hover or on a click as an overlay *over* the board rather than
+   above it. Expanding costs the board nothing, which is the whole point; the collapsed strip is the
+   only height the layout ever reserves.
 
-        <span class="titles">
-            <span class="mark">Faultline</span>
-            <span class="context" title="@ContextTitle">@ContextLine</span>
-        </span>
-    </div>
+   The dev panel already worked this way (a strip until somebody wants it), and this is deliberately
+   the same gesture rather than a second one. It does not share the dev panel's state object, though:
+   that object is gated on DevBuild and refuses every mutation on a release build, which is exactly
+   right for the dev panel and would silently weld this bar shut. *@
 
-    <div class="controls">
+<header class="hdr @(Open ? "open" : string.Empty)"
+        tabindex="-1"
+        @ref="_root"
+        @onkeydown="OnRootKeyDown">
+
+    @* The collapsed strip. Hover expansion is CSS, not state: the panel below is in the markup the
+       whole time and :hover on the root reveals it. A mouse-enter handler would have to guess where
+       the pointer went, and the pointer leaving a fixed overlay that is nowhere near the element it
+       hangs off is exactly the guess that gets it wrong. *@
+    <div class="strip">
         <button type="button"
-                class="btn"
+                class="handle"
+                aria-expanded="@(Open ? "true" : "false")"
+                aria-label="Show the battle controls"
+                title="Everything else: Restart, Dev, Settings."
+                @onclick="ToggleBar">@(Open ? "⌃" : "⌄")</button>
+
+        <span class="context" title="@ContextTitle">@ContextLine</span>
+
+        <span class="spacer"></span>
+
+        <button type="button"
+                class="icon"
                 disabled="@(!CanUndo)"
                 title="@UndoTitle"
-                @onclick="OnUndo">
-            Undo
-        </button>
+                aria-label="Undo"
+                @onclick="OnUndo">↶</button>
 
-        @* Asked rather than done. Restart throws the whole battle away, and it sits one pixel from
-           Undo — the two most similar-looking buttons on the screen with the least similar
-           consequences. The dialog is markup, not window.confirm: no JS interop in the shell. *@
         <button type="button"
-                class="btn"
-                disabled="@Session.InRun"
-                title="@RestartTitle"
-                aria-haspopup="dialog"
-                @onclick="AskRestart">
-            Restart
-        </button>
+                class="btn primary slim"
+                disabled="@(!CanEndTurn)"
+                title="@EndTurnTitle"
+                @onclick="EndTurn">END TURN</button>
+    </div>
 
-        @if (DevPanelState.Available)
-        {
+    @* The full row. Fixed rather than absolute, and over the board rather than above it: the strip
+       keeps its 24px in the flex column while this is open, so nothing below moves by a pixel. *@
+    <div class="panel">
+        <div class="brand">
+            @* Drawn rather than lettered so the mark survives a rename: the wordmark beside it is the
+               only place the title is spelled. *@
+            <span class="logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="none" focusable="false">
+                    <rect x="1.5" y="1.5" width="21" height="21" rx="5" class="logo-plate" />
+                    <path d="M8 3.5 L13 10 L10 12 L16 20.5" class="logo-fault" />
+                </svg>
+            </span>
+
+            <span class="titles">
+                <span class="mark">Faultline</span>
+                <span class="context" title="@ContextTitle">@ContextLine</span>
+            </span>
+        </div>
+
+        <div class="controls">
             <button type="button"
-                    class="btn @(Dev.Open ? "on" : string.Empty)"
-                    aria-pressed="@(Dev.Open ? "true" : "false")"
-                    title="Developer overlays and board tools. Internal builds only."
-                    @onclick="Dev.Toggle">
-                Dev
+                    class="btn"
+                    disabled="@(!CanUndo)"
+                    title="@UndoTitle"
+                    @onclick="OnUndo">
+                Undo
             </button>
-        }
 
-        <div class="menu">
+            @* Asked rather than done. Restart throws the whole battle away, and it sits one pixel from
+               Undo — the two most similar-looking buttons on the screen with the least similar
+               consequences. The dialog is markup, not window.confirm: no JS interop in the shell. *@
             <button type="button"
-                    class="btn @(_settingsOpen ? "on" : string.Empty)"
-                    aria-expanded="@(_settingsOpen ? "true" : "false")"
-                    aria-haspopup="true"
-                    title="How the board is drawn. None of it changes the game."
-                    @onclick="ToggleSettings">
-                Settings
+                    class="btn"
+                    disabled="@Session.InRun"
+                    title="@RestartTitle"
+                    aria-haspopup="dialog"
+                    @onclick="AskRestart">
+                Restart
             </button>
 
-            @if (_settingsOpen)
+            @if (DevPanelState.Available)
             {
-                @* Only the view switches that are not already on the board's own toolbar. Zoom and
-                   the overlays stay where the thing they change is. *@
-                <div class="popover" role="group" aria-label="View settings">
-                    <button type="button"
-                            class="opt @(View.GridLines ? "on" : string.Empty)"
-                            aria-pressed="@(View.GridLines ? "true" : "false")"
-                            @onclick="View.ToggleGridLines">
-                        Grid lines
-                    </button>
-                    <button type="button"
-                            class="opt @(View.RangePreview ? "on" : string.Empty)"
-                            aria-pressed="@(View.RangePreview ? "true" : "false")"
-                            @onclick="View.ToggleRangePreview">
-                        Hover preview
-                    </button>
-                    <button type="button"
-                            class="opt @(View.BoardOnly ? "on" : string.Empty)"
-                            aria-pressed="@(View.BoardOnly ? "true" : "false")"
-                            @onclick="View.ToggleBoardOnly">
-                        Board only
-                    </button>
-                </div>
+                <button type="button"
+                        class="btn @(Dev.Open ? "on" : string.Empty)"
+                        aria-pressed="@(Dev.Open ? "true" : "false")"
+                        title="Developer overlays and board tools. Internal builds only."
+                        @onclick="Dev.Toggle">
+                    Dev
+                </button>
             }
+
+            <div class="menu">
+                <button type="button"
+                        class="btn @(_settingsOpen ? "on" : string.Empty)"
+                        aria-expanded="@(_settingsOpen ? "true" : "false")"
+                        aria-haspopup="true"
+                        title="How the board is drawn. None of it changes the game."
+                        @onclick="ToggleSettings">
+                    Settings
+                </button>
+
+                @if (_settingsOpen)
+                {
+                    @* Only the view switches that are not already on the board's own toolbar. Zoom and
+                       the overlays stay where the thing they change is. *@
+                    <div class="popover" role="group" aria-label="View settings">
+                        <button type="button"
+                                class="opt @(View.GridLines ? "on" : string.Empty)"
+                                aria-pressed="@(View.GridLines ? "true" : "false")"
+                                @onclick="View.ToggleGridLines">
+                            Grid lines
+                        </button>
+                        <button type="button"
+                                class="opt @(View.RangePreview ? "on" : string.Empty)"
+                                aria-pressed="@(View.RangePreview ? "true" : "false")"
+                                @onclick="View.ToggleRangePreview">
+                            Hover preview
+                        </button>
+                        <button type="button"
+                                class="opt @(View.BoardOnly ? "on" : string.Empty)"
+                                aria-pressed="@(View.BoardOnly ? "true" : "false")"
+                                @onclick="View.ToggleBoardOnly">
+                            Board only
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @* Last, heaviest, and on its own side of the row. It is the most-pressed control in a
+               hotseat game and it is not a sibling of Undo in anything but shape, so it does not
+               borrow Undo's outline. The reason rides beside it rather than only in the tooltip —
+               the same treatment the action list gives a greyed row. *@
+            <div class="end">
+                <button type="button"
+                        class="btn primary"
+                        disabled="@(!CanEndTurn)"
+                        title="@EndTurnTitle"
+                        @onclick="EndTurn">
+                    END TURN
+                </button>
+
+                @if (EndTurnReason.Length > 0)
+                {
+                    <span class="reason">@EndTurnReason</span>
+                }
+            </div>
+
+            <button type="button"
+                    class="handle"
+                    aria-expanded="true"
+                    aria-label="Collapse the battle controls"
+                    title="Put the bar back (Escape)"
+                    @onclick="CloseBar">⌃</button>
         </div>
     </div>
 
@@ -119,71 +195,81 @@
     [Parameter]
     public EventCallback OnRestart { get; set; }
 
+    private readonly Expansion _bar = new();
+
+    private ElementReference _root;
+
+    // Whether the root has already been focused for the expansion it is currently in. Focusing on
+    // every render would take the caret out of whatever anybody was typing.
+    private bool _focused;
+
     private bool _confirming;
     private bool _settingsOpen;
 
-    private bool CanUndo => Session.InRun ? Runs.CanUndo : Session.CanUndo;
+    /// <summary>
+    /// Whether the full row is held open. Hover is not in here on purpose — that is CSS, and a bar
+    /// that redrew the whole screen on every pointer crossing would be paying a render for a hover.
+    /// A popover or a dialog pins it: neither can be read through a bar that closed underneath it.
+    /// </summary>
+    private bool Open => _bar.Open || _settingsOpen || _confirming;
 
-    private string UndoTitle
-    {
-        get
-        {
-            if (CanUndo)
-            {
-                return "Take back the last thing you did — the fight replays from its seed without it.";
-            }
+    private bool CanUndo => HeaderBar.CanUndo(Session, Runs);
 
-            if (Session.InRun)
-            {
-                return Runs.UndoBlockedReason ?? "There is nothing to undo yet.";
-            }
+    private string UndoTitle => HeaderBar.UndoTitle(Session, Runs);
 
-            return "There is nothing to undo yet.";
-        }
-    }
+    private bool CanEndTurn => HeaderBar.CanEndTurn(Session);
 
-    private string RestartTitle =>
-        Session.InRun
-            ? "A run's seed belongs to the run, not to this fight — restart from the campaign screen."
-            : "Start this battle again on the next seed.";
+    private string EndTurnReason => HeaderBar.EndTurnReason(Session);
+
+    private string EndTurnTitle => HeaderBar.EndTurnTitle(Session);
+
+    private string RestartTitle => HeaderBar.RestartTitle(Session);
 
     /// <summary>The seed the restart would land on, so the dialog can name it rather than imply it.</summary>
-    private string NextSeed => Number(Session.Seed + 1);
+    private string NextSeed => HeaderBar.Number(Session.Seed + 1);
 
-    /// <summary>
-    /// The one muted line under the wordmark: where in the run, which board, which seed.
-    /// </summary>
-    private string ContextLine
-    {
-        get
-        {
-            var parts = new List<string>();
-
-            if (Session.InRun && Runs.State is { } run)
-            {
-                parts.Add("Run " + Number(RunNodeNumber) + "/" + Number(run.Campaign.Length));
-            }
-
-            parts.Add(Session.Fight.Name);
-            parts.Add("Seed " + Number(Session.Seed));
-
-            return string.Join(" · ", parts);
-        }
-    }
+    /// <summary>The one muted line: where in the run, which board, which seed.</summary>
+    private string ContextLine => HeaderBar.ContextLine(Session, Runs);
 
     private string ContextTitle => Session.Fight.Id;
 
-    private int RunNodeNumber
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        get
+        // Escape only closes the bar if the keystroke reaches the bar, and it only reaches the bar if
+        // the bar has focus. Taken once per opening, given back when it closes — and never taken for
+        // a hover, which has no state and needs no key to end it.
+        if (_bar.Open && !_focused)
         {
-            var run = Runs.State;
-            if (run is null)
-            {
-                return 0;
-            }
+            _focused = true;
+            await _root.FocusAsync();
+        }
+        else if (!_bar.Open)
+        {
+            _focused = false;
+        }
+    }
 
-            return run.NodeIndex < run.Campaign.Length ? run.NodeIndex + 1 : run.Campaign.Length;
+    private void OnRootKeyDown(KeyboardEventArgs args) => _bar.Key(args.Key);
+
+    private void ToggleBar() => _bar.Toggle();
+
+    private void CloseBar()
+    {
+        _settingsOpen = false;
+        _bar.Close();
+    }
+
+    /// <summary>
+    /// Ends the selected duck's activation with the command Core offered for it. The same submit path
+    /// the action list's Wait row presses — one route to Core, and no second opinion about when an
+    /// activation may close.
+    /// </summary>
+    private void EndTurn()
+    {
+        if (Session.EndCommand is { } end)
+        {
+            Session.Submit(end);
         }
     }
 
@@ -200,9 +286,152 @@
     private async Task ConfirmRestart()
     {
         _confirming = false;
+        _bar.Close();
         await OnRestart.InvokeAsync();
     }
 
-    private static string Number(int value) =>
-        value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>
+    /// Whether the bar is being held open, and what closes it. A class rather than a bool field so
+    /// the gesture can be tested: this project renders no components in its tests (see
+    /// <see cref="DevPanelState"/> and the note on DevPanelTests), so anything a header decides has
+    /// to be decided somewhere a test can reach.
+    /// </summary>
+    public sealed class Expansion
+    {
+        /// <summary>Whether the full row is pinned open by a click.</summary>
+        public bool Open { get; private set; }
+
+        /// <summary>Pins the row open, or lets it go.</summary>
+        public void Toggle() => Open = !Open;
+
+        /// <summary>Lets the row go, whatever pinned it.</summary>
+        public void Close() => Open = false;
+
+        /// <summary>Offers a keystroke to the bar.</summary>
+        /// <param name="key">The key that was pressed, as the browser names it.</param>
+        /// <returns>Whether the bar took it.</returns>
+        public bool Key(string key)
+        {
+            if (key != "Escape" || !Open)
+            {
+                return false;
+            }
+
+            Open = false;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Everything the bar says and everything it greys, as functions of the session. Nothing here
+    /// decides a rule: END TURN is available exactly when Core has published the command for it, and
+    /// undo is available exactly when the session that owns the command stream says so.
+    /// </summary>
+    public static class HeaderBar
+    {
+        /// <summary>Whether END TURN may be pressed.</summary>
+        /// <param name="session">The board.</param>
+        /// <returns>True when Core has an end-of-activation command for the selected duck.</returns>
+        public static bool CanEndTurn(GameSession session) => session?.EndCommand is not null;
+
+        /// <summary>
+        /// Why END TURN is greyed, in the words shown beside it. Empty exactly when the button is
+        /// live — a reason string that lingered after the block cleared would grey a working button
+        /// in the reader's head.
+        /// </summary>
+        /// <param name="session">The board.</param>
+        /// <returns>The reason, or the empty string.</returns>
+        public static string EndTurnReason(GameSession session)
+        {
+            if (CanEndTurn(session))
+            {
+                return string.Empty;
+            }
+
+            return session?.SelectedUnit is null
+                ? "no activation is open — select one of your ducks"
+                : "this duck's activation is not open — there is nothing to end";
+        }
+
+        /// <summary>The END TURN tooltip: what it does, or why it will not.</summary>
+        /// <param name="session">The board.</param>
+        /// <returns>One sentence.</returns>
+        public static string EndTurnTitle(GameSession session)
+        {
+            string reason = EndTurnReason(session);
+            return reason.Length > 0
+                ? reason
+                : "End this activation and pass the board to the next one.";
+        }
+
+        /// <summary>Whether there is a decision to take back.</summary>
+        /// <param name="session">The board.</param>
+        /// <param name="runs">The run, which owns the command stream when one is being played.</param>
+        /// <returns>True when undo would do something.</returns>
+        public static bool CanUndo(GameSession session, RunSession runs) =>
+            session.InRun ? runs.CanUndo : session.CanUndo;
+
+        /// <summary>
+        /// The undo tooltip: what the rewind would take back, or why there is nothing to take. Both
+        /// halves are the owning session's own words — a header that wrote its own would be a second
+        /// account of a history it does not keep.
+        /// </summary>
+        /// <param name="session">The board.</param>
+        /// <param name="runs">The run, which owns the command stream when one is being played.</param>
+        /// <returns>One sentence.</returns>
+        public static string UndoTitle(GameSession session, RunSession runs)
+        {
+            if (CanUndo(session, runs))
+            {
+                return session.InRun ? runs.UndoDescription : session.UndoDescription;
+            }
+
+            return (session.InRun ? runs.UndoBlockedReason : session.UndoBlockedReason)
+                ?? "Nothing to undo.";
+        }
+
+        /// <summary>Why Restart is offered, or why it is not.</summary>
+        /// <param name="session">The board.</param>
+        /// <returns>One sentence.</returns>
+        public static string RestartTitle(GameSession session) =>
+            session.InRun
+                ? "A run's seed belongs to the run, not to this fight — restart from the campaign screen."
+                : "Start this battle again on the next seed.";
+
+        /// <summary>The one muted line: where in the run, which board, which seed.</summary>
+        /// <param name="session">The board.</param>
+        /// <param name="runs">The run, when one owns the board.</param>
+        /// <returns>The line, always naming at least the fight and the seed.</returns>
+        public static string ContextLine(GameSession session, RunSession runs)
+        {
+            var parts = new List<string>();
+
+            if (session.InRun && runs.State is { } run)
+            {
+                parts.Add("Run " + Number(NodeNumber(runs)) + "/" + Number(run.Campaign.Length));
+            }
+
+            parts.Add(session.Fight.Name);
+            parts.Add("Seed " + Number(session.Seed));
+
+            return string.Join(" · ", parts);
+        }
+
+        /// <summary>Formats a number without asking the browser's culture what a digit is.</summary>
+        /// <param name="value">The number.</param>
+        /// <returns>Its invariant text.</returns>
+        public static string Number(int value) =>
+            value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        private static int NodeNumber(RunSession runs)
+        {
+            var run = runs.State;
+            if (run is null)
+            {
+                return 0;
+            }
+
+            return run.NodeIndex < run.Campaign.Length ? run.NodeIndex + 1 : run.Campaign.Length;
+        }
+    }
 }

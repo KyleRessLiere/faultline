@@ -39,33 +39,39 @@ else
                 </span>
             </div>
 
+            @* Action Points have exactly one home on this screen (§7.5), and it is this stat row:
+               the cur/max figure and the pips are one fact drawn twice for one eye, not two claims.
+               They used to be three — the figure here, a pip strip below it, and a "2/3 AP" label
+               beside that — which is three places to keep in step and three places to disagree.
+
+               One pip per point of the pool: bright while unspent, hollow once gone, and dimmed for
+               the ones an action the player is merely hovering would take. The preview number comes
+               from the spotlight, which the action list writes and this reads — the row that is
+               hovered and the pips that answer it are two components, and neither owns the other. *@
             <dl class="stats">
                 <div><dt>HP</dt><dd>@own.Hp / @own.MaxHp</dd></div>
                 <div><dt>Move</dt><dd>@own.MoveRemaining / @own.Move</dd></div>
                 <div><dt>Footing</dt><dd>@own.Footing / @own.Template.Footing</dd></div>
                 @if (ActionPoints.Shows(own))
                 {
-                    <div><dt>@ActionPoints.Label</dt><dd>@ActionPoints.Remaining(own) / @ActionPoints.Pool(own)</dd></div>
+                    <div>
+                        <dt>@ActionPoints.Label</dt>
+                        <dd class="ap" title="@ActionPoints.Title(own)">
+                            <span class="ap-figure">@ActionPoints.Remaining(own) / @ActionPoints.Pool(own)</span>
+                            <span class="ap-pips">
+                                @for (int i = 0; i < ActionPoints.Pool(own); i++)
+                                {
+                                    <i class="ap-pip @PipClass(i, ActionPoints.Remaining(own), Spotlight.Preview(own))"></i>
+                                }
+                            </span>
+                        </dd>
+                    </div>
                 }
             </dl>
 
-            @* One pip per point of the pool: bright while unspent, hollow once gone, and dimmed for
-               the ones an action the player is merely hovering would take. The preview number comes
-               from the spotlight, which the action list writes and this reads — the row that is
-               hovered and the pips that answer it are two components, and neither owns the other. *@
-            @if (ActionPoints.Shows(own))
-            {
-                <div class="ap-row" title="@ActionPoints.Title(own)">
-                    <span class="ap-pips">
-                        @for (int i = 0; i < ActionPoints.Pool(own); i++)
-                        {
-                            <i class="ap-pip @PipClass(i, ActionPoints.Remaining(own), Spotlight.Preview(own))"></i>
-                        }
-                    </span>
-                    <span class="ap-count">@ActionPoints.Count(own)</span>
-                </div>
-            }
-            else
+            @* Not a duplicate of the row above: a unit off the Action Point economy has halves
+               rather than a pool, and drawing it three pips would be a rule this shell invented. *@
+            @if (!ActionPoints.Shows(own))
             {
                 <ul class="halves">
                     <li class="@(own.HasMoved ? "spent" : string.Empty)">Move @own.MoveRemaining/@own.Move</li>

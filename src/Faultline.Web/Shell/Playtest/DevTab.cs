@@ -4,9 +4,13 @@ namespace Faultline.Web.Shell.Playtest;
 /// Which drawer of the developer panel is showing.
 /// </summary>
 /// <remarks>
-/// Five drawers rather than five panels. The dev tools answer questions that are asked one at a time
-/// — "what board is this", "what does the state say", "why did it do that", "replay it", "paint it" —
-/// so they share one strip of screen and cost nothing when nobody is asking.
+/// Six drawers rather than six panels. The dev tools answer questions that are asked one at a time
+/// — "what board is this", "what does the state say", "why did it do that", "what just happened",
+/// "replay it", "paint it" — so they share one strip of screen and cost nothing when nobody is
+/// asking.
+///
+/// The members are persisted by name, never by number (<see cref="DevPanelState.Encode"/>), so a
+/// drawer can be inserted in reading order without invalidating what a browser already remembers.
 /// </remarks>
 public enum DevTab
 {
@@ -19,9 +23,12 @@ public enum DevTab
     /// <summary>What the enemy planner declared, and the empty socket where its reasoning will go.</summary>
     Ai = 2,
 
+    /// <summary>A read-only window over the always-on fight log. No controls — the folder is the record.</summary>
+    Log = 3,
+
     /// <summary>The command log: export it, parse one back, step the board.</summary>
-    Replay = 3,
+    Replay = 4,
 
     /// <summary>Debug overlays painted onto the board.</summary>
-    Overlays = 4,
+    Overlays = 5,
 }

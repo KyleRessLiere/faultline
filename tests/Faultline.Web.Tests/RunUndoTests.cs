@@ -125,6 +125,45 @@ public sealed class RunUndoTests
     }
 
     [Fact]
+    public async Task TheRunsButton_AlsoNamesWhatOnePressWouldTakeBack()
+    {
+        // Same contract as the board's, because the header draws one button over both.
+        var (session, runs) = await InFirstFight();
+        var deploy = session.Legal.OfType<DeployCommand>().First();
+
+        session.Submit(deploy);
+
+        Assert.True(runs.CanUndo);
+        Assert.Null(runs.UndoBlockedReason);
+        Assert.Contains("undo placing", runs.UndoDescription, System.StringComparison.Ordinal);
+
+        // The board itself stays silent inside a run: one command stream, one answer.
+        Assert.Equal(string.Empty, session.UndoDescription);
+    }
+
+    [Fact]
+    public async Task ARunsEnemyActivation_IsAsHardABoundaryAsTheBoards()
+    {
+        var (session, runs) = await InFirstFight();
+
+        while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
+        {
+            session.Submit(deploy);
+        }
+
+        session.Submit(session.Legal.OfType<EndActivationCommand>().First());
+        while (session.AwaitingEnemy)
+        {
+            session.ResolveEnemyActivation();
+        }
+
+        Assert.False(runs.CanUndo);
+        Assert.False(runs.Undo());
+        Assert.Equal("enemy has acted — round is committed", runs.UndoBlockedReason);
+        Assert.Equal(string.Empty, runs.UndoDescription);
+    }
+
+    [Fact]
     public async Task UndoingEverything_LandsOnTheRunAsItStarted()
     {
         var (session, runs) = await InFirstFight();

@@ -115,26 +115,33 @@
     margin: 0;
 }
 
-/* One pip per point of the pool. "going" is the preview a hovered action row asks for. */
-.ap-row {
+/* Action Points live in the stat row and nowhere else (§7.5): the figure and the pips sit in the
+   same cell because they are one fact, read two ways — the number to check, the row to glance at.
+   "going" is the preview a hovered action row asks for. */
+.stats dd.ap {
     align-items: center;
     display: flex;
-    gap: 8px;
-    margin-bottom: 6px;
+    gap: 6px;
+}
+
+.ap-figure {
+    font-variant-numeric: tabular-nums;
 }
 
 .ap-pips {
     display: flex;
-    gap: 4px;
+    gap: 3px;
 }
 
+/* Sized to sit inside a stat cell rather than to fill a strip of its own: the pips are a glance,
+   and the figure beside them is the reading. */
 .ap-pip {
     background: var(--pt-blue);
     border: 1px solid var(--pt-blue);
-    border-radius: 3px;
-    height: 13px;
+    border-radius: 2px;
+    height: 10px;
     transition: background-color .12s ease, opacity .12s ease;
-    width: 20px;
+    width: 11px;
 }
 
 .ap-pip.going {
@@ -147,12 +154,6 @@
     background: transparent;
     border-color: var(--pt-border);
     opacity: .55;
-}
-
-.ap-count {
-    color: var(--pt-text-dim);
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
 }
 
 .halves {

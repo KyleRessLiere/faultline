@@ -1,7 +1,9 @@
 @inherits PlaytestPanel
 @inject DevPanelState Dev
+@inject FightFiles Files
+@inject SessionLog Sink
 
-@* The developer panel: five drawers of things a playtester needs and a player must never see.
+@* The developer panel: six drawers of things a playtester needs and a player must never see.
 
    It draws nothing at all on a release build — not a strip, not a button, no markup. DevBuild is the
    one gate, and DevPanelState refuses every mutation behind it, so there is no arrangement of stored
@@ -84,6 +86,16 @@
                         @onclick="() => Dev.Show(DevTab.Ai)"
                         @onkeydown="OnTabKeyDown">AI</button>
 
+                <button type="button" role="tab" id="dev-tab-log"
+                        class="tab @On(DevTab.Log)"
+                        aria-selected="@Selected(DevTab.Log)"
+                        aria-controls="dev-tabpanel"
+                        tabindex="@TabIndex(DevTab.Log)"
+                        title="@Title(DevTab.Log)"
+                        @ref="_log"
+                        @onclick="() => Dev.Show(DevTab.Log)"
+                        @onkeydown="OnTabKeyDown">LOG</button>
+
                 <button type="button" role="tab" id="dev-tab-replay"
                         class="tab @On(DevTab.Replay)"
                         aria-selected="@Selected(DevTab.Replay)"
@@ -133,6 +145,10 @@
 
                     case DevTab.Ai:
                         @RenderAi
+                        break;
+
+                    case DevTab.Log:
+                        @RenderLog
                         break;
 
                     case DevTab.Replay:
@@ -302,6 +318,71 @@
     </div>;
 }
 
+@* ---- LOG: a window over the always-on log, with nothing on it that can switch the log off ------- *@
+@code {
+    private RenderFragment RenderLog => @<div class="drawer">
+        @{
+            var lines = VisibleLog;
+        }
+
+        <div class="row">
+            <label class="lbl" for="dev-log-filter">Filter</label>
+
+            @* Every key event is stopped here for the same reason the replay textarea stops them:
+               the board's hotkeys are on an ancestor, so typing "e" in a filter box ended an
+               activation. *@
+            <input id="dev-log-filter"
+                   class="ctl grow"
+                   type="text"
+                   autocomplete="off"
+                   placeholder="Narrow to lines containing…"
+                   value="@_logFilter"
+                   @oninput="OnLogFilterInput"
+                   @onkeydown:stopPropagation="true"
+                   @onkeypress:stopPropagation="true"
+                   @onkeyup:stopPropagation="true" />
+
+            <button type="button"
+                    class="tool"
+                    disabled="@(lines.Count == 0)"
+                    title="Put exactly the lines showing here on the clipboard."
+                    @onclick="CopyVisibleLog">Copy visible</button>
+        </div>
+
+        @if (lines.Count == 0)
+        {
+            <p class="meta">@(_logFilter.Length == 0 ? "Nothing logged yet." : "No line matches that.")</p>
+        }
+        else
+        {
+            <ol class="log">
+                @foreach (var line in lines)
+                {
+                    @if (line.Kind == DevLogKind.Divider)
+                    {
+                        <li class="divider"><span>@line.Text</span></li>
+                    }
+                    else
+                    {
+                        <li class="line @LineClass(line.Kind)">@line.Text</li>
+                    }
+                }
+            </ol>
+        }
+
+        <p class="meta">
+            @LogSourceLine
+        </p>
+
+        @* No record switch, no clear, no save. Logging is automatic and the folder is the record
+           (MASTER_DESIGN §7.5); a control here would make the transcript something a playtester has
+           to have remembered to arm, which is the failure the always-on log exists to prevent. *@
+        <p class="meta">
+            @(_logCopied is null ? "Read-only — the fight log writes itself." : _logCopied)
+        </p>
+    </div>;
+}
+
 @* ---- REPLAY: the command log out, a command log in, and one step back -------------------------- *@
 @code {
     private RenderFragment RenderReplay => @<div class="drawer">
@@ -337,7 +418,10 @@
 
         <h3 class="head">Step</h3>
         <div class="row">
-            <button type="button" class="tool" disabled="@(!CanUndo)" title="Rewind to just before the last command a person chose." @onclick="Undo">Undo</button>
+            @* The same sentence the battle bar shows, read off the same pair rather than retyped:
+               a dev copy of the button that described undo differently from the real one would be a
+               second answer to "what does this take back", and the two would drift. *@
+            <button type="button" class="tool" disabled="@(!CanUndo)" title="@UndoTitle" @onclick="Undo">Undo</button>
             <span class="meta">@(Session.InRun ? "The run owns the command stream." : "Fight-level command log.")</span>
         </div>
     </div>;
@@ -387,6 +471,7 @@
         DevTab.Battles,
         DevTab.State,
         DevTab.Ai,
+        DevTab.Log,
         DevTab.Replay,
         DevTab.Overlays,
     };
@@ -395,6 +480,7 @@
     private ElementReference _battles;
     private ElementReference _state;
     private ElementReference _ai;
+    private ElementReference _log;
     private ElementReference _replay;
     private ElementReference _overlays;
 
@@ -406,6 +492,8 @@
     private int _seed = GameSession.DefaultSeed;
     private string _replayText = string.Empty;
     private string? _replayStatus;
+    private string _logFilter = string.Empty;
+    private string? _logCopied;
 
     private static IReadOnlyList<FightParseResult> Playable =>
         GameSession.Library.Where(r => r.Ok).ToList();
@@ -414,11 +502,25 @@
 
     private bool CanUndo => Session.InRun ? Runs.CanUndo : Session.CanUndo;
 
+    private string UndoTitle => CanUndo
+        ? (Session.InRun ? Runs.UndoDescription : Session.UndoDescription)
+        : ((Session.InRun ? Runs.UndoBlockedReason : Session.UndoBlockedReason) ?? "Nothing to undo.");
+
+    // Rebuilt on every render of the drawer rather than cached. The transcript is the session's and
+    // grows under this panel; a cached copy would be a second, staler log — which is the one thing a
+    // log must not be.
+    private IReadOnlyList<DevLogLine> VisibleLog =>
+        DevLog.Read(Session.Log, Session.RenderCombatLog(), _logFilter);
+
     /// <inheritdoc/>
     protected override void OnInitialized()
     {
         base.OnInitialized();
         Dev.Changed += Redraw;
+
+        // PlaytestPanel subscribes to the session, the run and the view, but not to the folder: only
+        // this drawer shows where the log is landing, so only this drawer pays for it.
+        Sink.Changed += Redraw;
         _seed = Session.Seed;
     }
 
@@ -426,6 +528,7 @@
     public override void Dispose()
     {
         Dev.Changed -= Redraw;
+        Sink.Changed -= Redraw;
         base.Dispose();
     }
 
@@ -480,6 +583,7 @@
     {
         DevTab.State => _state.FocusAsync(),
         DevTab.Ai => _ai.FocusAsync(),
+        DevTab.Log => _log.FocusAsync(),
         DevTab.Replay => _replay.FocusAsync(),
         DevTab.Overlays => _overlays.FocusAsync(),
         _ => _battles.FocusAsync(),
@@ -498,6 +602,7 @@
     {
         DevTab.State => "dev-tab-state",
         DevTab.Ai => "dev-tab-ai",
+        DevTab.Log => "dev-tab-log",
         DevTab.Replay => "dev-tab-replay",
         DevTab.Overlays => "dev-tab-overlays",
         _ => "dev-tab-battles",
@@ -507,6 +612,7 @@
     {
         DevTab.State => "State",
         DevTab.Ai => "AI",
+        DevTab.Log => "Log",
         DevTab.Replay => "Replay",
         DevTab.Overlays => "Overlays",
         _ => "Battles",
@@ -516,6 +622,7 @@
     {
         DevTab.State => "▤",
         DevTab.Ai => "◈",
+        DevTab.Log => "☰",
         DevTab.Replay => "⟲",
         DevTab.Overlays => "▦",
         _ => "⚑",
@@ -525,6 +632,7 @@
     {
         DevTab.State => "The raw GameState: round, phase, queue, RNG cursor, hash.",
         DevTab.Ai => "What the enemy planner declared for the inspected enemy.",
+        DevTab.Log => "Read this fight's log as it is written. Nothing here can switch it off.",
         DevTab.Replay => "Export the command log, parse one back, take a step back.",
         DevTab.Overlays => "Debug overlays painted on the board.",
         _ => "Load any authored battle on any seed.",
@@ -566,6 +674,52 @@
     }
 
     private void RestartWithSeed() => Session.NewRun(_seed);
+
+    private static string LineClass(DevLogKind kind) => kind switch
+    {
+        DevLogKind.Intent => "intent",
+        DevLogKind.Command => "cmd",
+        _ => "evt",
+    };
+
+    // Where the bytes are going, in one line. Read straight off the sink — this drawer never asks it
+    // to do anything, and there is no state here that could disagree with the folder.
+    private string LogSourceLine
+    {
+        get
+        {
+            string source = Session.Log.Count + " transcript line(s) · "
+                + Session.RecordedLineCount + " recorded";
+
+            if (Sink.Active)
+            {
+                string where = Sink.SessionPath.Length == 0 ? Sink.Folder : Sink.Folder + "/" + Sink.SessionPath;
+                return source + " · writing to " + where + "/fights/ (" + Sink.Writes + " file(s))";
+            }
+
+            return Sink.Supported
+                ? source + " · no folder chosen, so this fight is logged in this tab only"
+                : source + " · this browser cannot be given a folder, so this fight is logged in this tab only";
+        }
+    }
+
+    private void OnLogFilterInput(ChangeEventArgs args)
+    {
+        _logFilter = args.Value?.ToString() ?? string.Empty;
+        _logCopied = null;
+    }
+
+    private async Task CopyVisibleLog()
+    {
+        // The visible set, not the log: a copy that widened to everything would make the filter a lie
+        // the moment somebody pasted the result into a bug report.
+        var lines = VisibleLog;
+        var outcome = await Files.CopyAsync(DevLog.CopyText(lines));
+
+        _logCopied = outcome == "copied"
+            ? lines.Count + " line(s) copied."
+            : "Could not copy: " + SessionLog.Describe(outcome);
+    }
 
     private void OnReplayInput(ChangeEventArgs args)
     {

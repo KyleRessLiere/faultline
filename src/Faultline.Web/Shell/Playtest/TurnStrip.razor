@@ -10,6 +10,10 @@
    carries its one instruction line inside the band — the alternative was two stacked text panels
    above the board saying between them what one muted line says, paid for out of the board's height.
 
+   Three rows per card and no more — portrait, "who · side", then the numbers and the badge on one
+   line. The band is the board's neighbour and the board is height-limited, so a fourth row is a row
+   taken off the only thing on the screen anybody is looking at.
+
    Clicking a card *reads* it and never gives an order. Friendly activation happens by clicking the
    duck on the board, and the caption below says so — a control that changes meaning depending on
    whose card it is would be the opposite of a tutorial. *@
@@ -55,66 +59,79 @@
                             @onblur="() => Session.Telegraph(null)">
                         <span class="seq">@card.Sequence</span>
 
-                        <span class="art">
-                            @if (card.Unit is { } unit)
-                            {
-                                <UnitArt Kind="unit.Kind" Label="@unit.Name" />
-                            }
-                            else
-                            {
-                                <span class="slot-mark">?</span>
-                            }
-                        </span>
-
-                        <span class="who">@card.Name</span>
-                        <span class="owner">@PlaytestText.Team(card.Team)</span>
-
-                        @if (card.Unit is { } body)
+                        @* An open slot is drawn *open* (MASTER_DESIGN §3): every un-activated duck
+                           that could take it, as overlapping minis. Prose was the wrong instrument —
+                           "Wardbearer or A…" is the two facts a portrait carries for free, clipped
+                           down to neither of them. One candidate is not a choice, so it resolves to
+                           the plain portrait and no stack is drawn. The names stay on the hover. *@
+                        @if (Portraits(card) is { Count: > 0 } faces)
                         {
-                            <span class="hp">@body.Hp/@body.MaxHp</span>
-
-                            @* Resource pips: one per point of the meter for a class that holds one,
-                               so a reader can see a spender coming without selecting anybody. *@
-                            @if (Verve.SpendFor(body.Kind) is { } spender)
-                            {
-                                <span class="pips @(body.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty)"
-                                      title="@PlaytestText.VerveTitle(body)">
-                                    @for (int v = 0; v < Verve.Cap; v++)
-                                    {
-                                        <i class="pip @(v < body.Verve ? "on" : string.Empty)"></i>
-                                    }
-                                </span>
-                            }
+                            <span class="art @(faces.Count > 1 ? "stack" : string.Empty)">
+                                @foreach (var face in faces)
+                                {
+                                    <span class="mini">
+                                        <UnitArt Kind="face.Kind" Label="@face.Name" />
+                                    </span>
+                                }
+                            </span>
                         }
                         else
                         {
-                            <span class="candidates">@Candidates(card)</span>
+                            <span class="art">
+                                <span class="slot-mark">?</span>
+                            </span>
                         }
 
-                        @* One badge slot, and what fills it depends on what the card is. A gap says
-                           why it is a gap; an enemy says what it means to do; a spent slot says it is
-                           spent. Never all three, and never nothing. *@
-                        @if (card.Skip != ActivationSkip.None)
-                        {
-                            <span class="badge gap">@StripCards.GapLabel(card.Skip)</span>
-                        }
-                        else if (card.State == StripState.Defeated)
-                        {
-                            <span class="badge out">out</span>
-                        }
-                        else if (card.State == StripState.Done)
-                        {
-                            <span class="badge done" aria-label="@(Deploying ? "Placed" : "Activation spent")">✓</span>
-                        }
-                        else if (card.Intent != IntentCategory.None)
-                        {
-                            <span class="badge intent @Intents.Class(card.Intent)"
-                                  aria-label="@card.IntentText">@Intents.Glyph(card.Intent)</span>
-                        }
-                        else if (card.IsCurrent)
-                        {
-                            <span class="badge now">@(Deploying ? "next" : "now")</span>
-                        }
+                        <span class="who">@Ident(card)</span>
+
+                        @* Numbers and badge share the last line. They are each two or three
+                           characters wide and the band has width to spare and none to spare
+                           vertically. *@
+                        <span class="meta">
+                            @if (card.Unit is { } body)
+                            {
+                                <span class="hp">@body.Hp/@body.MaxHp</span>
+
+                                @* Resource pips: one per point of the meter for a class that holds
+                                   one, so a reader can see a spender coming without selecting
+                                   anybody. *@
+                                @if (Verve.SpendFor(body.Kind) is { } spender)
+                                {
+                                    <span class="pips @(body.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty)"
+                                          title="@PlaytestText.VerveTitle(body)">
+                                        @for (int v = 0; v < Verve.Cap; v++)
+                                        {
+                                            <i class="pip @(v < body.Verve ? "on" : string.Empty)"></i>
+                                        }
+                                    </span>
+                                }
+                            }
+
+                            @* One badge slot, and what fills it depends on what the card is. A gap
+                               says why it is a gap; an enemy says what it means to do; a spent slot
+                               says it is spent. Never all three, and never nothing. *@
+                            @if (card.Skip != ActivationSkip.None)
+                            {
+                                <span class="badge gap">@StripCards.GapLabel(card.Skip)</span>
+                            }
+                            else if (card.State == StripState.Defeated)
+                            {
+                                <span class="badge out">out</span>
+                            }
+                            else if (card.State == StripState.Done)
+                            {
+                                <span class="badge done" aria-label="@(Deploying ? "Placed" : "Activation spent")">✓</span>
+                            }
+                            else if (card.Intent != IntentCategory.None)
+                            {
+                                <span class="badge intent @Intents.Class(card.Intent)"
+                                      aria-label="@card.IntentText">@Intents.Glyph(card.Intent)</span>
+                            }
+                            else if (card.IsCurrent)
+                            {
+                                <span class="badge now">@(Deploying ? "next" : "now")</span>
+                            }
+                        </span>
                     </button>
                 </li>
             }
@@ -131,6 +148,36 @@
     private IReadOnlyList<StripCard> Cards => Deploying
         ? StripCards.Deployment(State, Session.PendingDeployUnit)
         : StripCards.Build(State);
+
+    /// <summary>
+    /// The portraits a card draws: the one unit it names, or — for a slot the player has not filled
+    /// yet — every un-activated duck that could take it. A slot down to a single candidate has
+    /// resolved itself and draws exactly one, which is why nothing here counts candidates.
+    /// </summary>
+    /// <param name="card">Card to draw.</param>
+    /// <returns>The units to draw, in order. Empty only when the slot has no candidate at all.</returns>
+    public static IReadOnlyList<Unit> Portraits(StripCard card) =>
+        card.Unit is { } unit ? new[] { unit } : card.Candidates;
+
+    /// <summary>
+    /// The card's one identity line: who, then which side, on a single row. Two rows said the same
+    /// thing and cost the board one row of height on every card in the band.
+    /// </summary>
+    /// <param name="card">Card to label.</param>
+    /// <returns>Something of the shape <c>Vanguard · A</c>, or <c>A slot</c> for an open one.</returns>
+    public static string Ident(StripCard card) =>
+        card.Unit is { } unit ? unit.Name + " · " + Owner(card.Team) : Owner(card.Team) + " slot";
+
+    /// <summary>
+    /// The side, at card width. The full "Player A" is what the hover and every panel with room for
+    /// it says; a 62px card says the letter and lets its border colour carry the rest.
+    /// </summary>
+    private static string Owner(Team team) => team switch
+    {
+        Team.PlayerA => "A",
+        Team.PlayerB => "B",
+        _ => "Enemy",
+    };
 
     /// <summary>What the band is counting: a round, or the placements before the first one.</summary>
     private string RoundLabel => Deploying ? "Deployment" : "Round " + State.Round;

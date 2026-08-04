@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
+using Faultline.Web.Shell.Playtest;
 
 namespace Faultline.Web.Shell;
 
@@ -18,11 +19,10 @@ public sealed class GameSession
 {
     private readonly List<string> _log = new();
 
-    // Every command applied to this board since it started, and whether a person chose it. Undo is
+    // Every command applied to this board since it started, with what its step crossed. Undo is
     // built on Core's determinism guarantee: seed + command log replays to the same state, so
     // dropping the tail of the log and replaying is an exact rewind rather than an approximation.
-    private readonly List<Command> _applied = new();
-    private readonly List<bool> _chosen = new();
+    private readonly List<Applied> _applied = new();
 
     // True while Core's planner is having its own command submitted, so the command log can tell an
     // enemy activation from a player's decision. Undo rewinds to before a decision, never to the
@@ -434,28 +434,71 @@ public sealed class GameSession
     public bool SubmittingEnemyCommand => _submittingEnemy;
 
     /// <summary>
-    /// Whether there is a decision to take back: a command a person chose, on a board this session
-    /// has played from the start. Always false inside a run — there, the run owns the command
-    /// stream and <see cref="RunSession.CanUndo"/> answers instead.
+    /// Whether the last command can be taken back: it was this player's own, it is still inside the
+    /// activation they are holding, and nothing has resolved on top of it. Always false inside a
+    /// run — there, the run owns the command stream and <see cref="RunSession.CanUndo"/> answers.
     /// </summary>
-    public bool CanUndo => _run is null && LastChosen >= 0;
+    public bool CanUndo => Blocked == UndoBlock.None;
 
     /// <summary>
-    /// Rewinds to just before the last command a person chose, by replaying the fight from its seed
-    /// with the tail of the command log dropped. Enemy activations played since that decision go
-    /// with it, because they were consequences of it.
+    /// Why the last command cannot be taken back, in the player's words, or <c>null</c> when it can.
+    /// Non-null exactly when <see cref="CanUndo"/> is false.
     /// </summary>
+    public string? UndoBlockedReason
+    {
+        get
+        {
+            var block = Blocked;
+            return block == UndoBlock.None
+                ? null
+                : UndoWords(block, _applied.Count == 0 ? Team.PlayerA : _applied[_applied.Count - 1].ActorTeam);
+        }
+    }
+
+    /// <summary>
+    /// What one press would take back — "undo move segment to D4". Non-empty exactly when
+    /// <see cref="CanUndo"/> is true, because a button that names nothing has nothing to promise.
+    /// </summary>
+    public string UndoDescription =>
+        CanUndo ? DescribeUndo(State, _applied[_applied.Count - 1].Command) : string.Empty;
+
+    /// <summary>Why undo is refused right now, wordlessly. <see cref="UndoBlock.None"/> means it is not.</summary>
+    public UndoBlock Blocked
+    {
+        get
+        {
+            if (_run is not null)
+            {
+                return UndoBlock.InRun;
+            }
+
+            if (_applied.Count == 0)
+            {
+                return UndoBlock.Nothing;
+            }
+
+            var last = _applied[_applied.Count - 1];
+            return BlockOn(last, State.ActiveTeam);
+        }
+    }
+
+    /// <summary>
+    /// Takes back exactly one command — the last one — by replaying the fight from its seed with
+    /// that one entry dropped. One press, one command: a walk made of three segments takes three.
+    /// </summary>
+    /// <remarks>
+    /// Refuses rather than doing nothing quietly whenever <see cref="CanUndo"/> is false, and
+    /// <see cref="UndoBlockedReason"/> says which boundary is in the way.
+    /// </remarks>
     /// <returns>Whether anything was undone.</returns>
     public bool Undo()
     {
-        int cut = LastChosen;
-        if (_run is not null || cut < 0)
+        if (!CanUndo)
         {
             return false;
         }
 
-        var commands = _applied.GetRange(0, cut);
-        var chosen = _chosen.GetRange(0, cut);
+        var kept = _applied.GetRange(0, _applied.Count - 1);
 
         // The reference panel is a view of the fight, not of the position, so a rewind leaves it on
         // whichever tab the player put it.
@@ -470,9 +513,9 @@ public sealed class GameSession
             _recorder?.RecordStart(start);
             Adopt(start);
 
-            for (int i = 0; i < commands.Count; i++)
+            foreach (var entry in kept)
             {
-                Play(commands[i], chosen[i]);
+                Play(entry.Command, entry.Chosen);
             }
         }
         finally
@@ -485,36 +528,222 @@ public sealed class GameSession
         return true;
     }
 
-    private int LastChosen
-    {
-        get
-        {
-            for (int i = _chosen.Count - 1; i >= 0; i--)
-            {
-                if (_chosen[i])
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-    }
-
     private void Play(Command command, bool chosen)
     {
         var before = State;
         var result = Game.Apply(before, command);
 
         _recorder?.RecordStep(command, before, result);
-        _applied.Add(command);
-        _chosen.Add(chosen);
+        _applied.Add(Record(command, chosen, before, result));
 
         Adopt(result);
         Hovered = null;
         Mode = DefaultModeFor(SelectedUnit);
         ArmedAbility = null;
     }
+
+    // ---- undo policy: which commands the shell still offers to take back -----------------------
+
+    /// <summary>
+    /// Why the shell refuses to take a command back. Wordless on purpose, the way
+    /// <see cref="TargetingBlock"/> is: this is a policy talking, and the words belong to whoever is
+    /// drawing the button.
+    /// </summary>
+    public enum UndoBlock
+    {
+        /// <summary>Nothing is in the way; the last command can be taken back.</summary>
+        None = 0,
+
+        /// <summary>The board belongs to a run, which owns its own command stream.</summary>
+        InRun = 1,
+
+        /// <summary>Nothing has been played on this board yet.</summary>
+        Nothing = 2,
+
+        /// <summary>The last thing on the log is the enemy's, not a person's.</summary>
+        EnemyActed = 3,
+
+        /// <summary>The step consumed a seeded draw, so its result is on the table.</summary>
+        Randomised = 4,
+
+        /// <summary>The step turned the round, which re-declares every enemy plan.</summary>
+        RoundTurned = 5,
+
+        /// <summary>The player closed the activation deliberately.</summary>
+        TurnEnded = 6,
+
+        /// <summary>The slot has passed to the other player, and it is theirs now.</summary>
+        NotYours = 7,
+    }
+
+    /// <summary>
+    /// The whole rule, as a pure function of one applied command and who holds the slot after it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The order is the precedence, and it is deliberate: the loudest boundary wins, so a player who
+    /// crossed two of them at once is told about the one that actually cost them the rewind.
+    /// </para>
+    /// <para>
+    /// <b>Deployment is one open segment.</b> Core hands the placement slot back and forth after
+    /// every single placement, so an activation-shaped gate would make undo dead for the whole of
+    /// setup in any two-player fight; nothing has closed an activation during deployment, so
+    /// <see cref="UndoBlock.NotYours"/> cannot fire there.
+    /// </para>
+    /// </remarks>
+    /// <param name="chosen">Whether a person chose the command rather than Core's planner.</param>
+    /// <param name="drewFromTheSeed">Whether the step advanced the generator.</param>
+    /// <param name="turnedTheRound">Whether the step ended the round and declared fresh plans.</param>
+    /// <param name="endedTheTurn">Whether the command was the deliberate end of an activation.</param>
+    /// <param name="closedTheActivation">Whether the step closed the activation, however it did it.</param>
+    /// <param name="actorTeam">Side that issued the command.</param>
+    /// <param name="slotTeam">Side holding the slot now.</param>
+    /// <returns>The boundary in the way, or <see cref="UndoBlock.None"/>.</returns>
+    public static UndoBlock BlockOn(
+        bool chosen,
+        bool drewFromTheSeed,
+        bool turnedTheRound,
+        bool endedTheTurn,
+        bool closedTheActivation,
+        Team actorTeam,
+        Team slotTeam)
+    {
+        if (!chosen)
+        {
+            return UndoBlock.EnemyActed;
+        }
+
+        if (drewFromTheSeed)
+        {
+            return UndoBlock.Randomised;
+        }
+
+        if (turnedTheRound)
+        {
+            return UndoBlock.RoundTurned;
+        }
+
+        if (endedTheTurn)
+        {
+            return UndoBlock.TurnEnded;
+        }
+
+        // A closed activation whose slot went to the enemy is still the acting player's to take
+        // back until the enemy actually moves; a closed activation whose slot went to the *other
+        // player* is not, because the button is one button and the next person is already on it.
+        return closedTheActivation && slotTeam.IsPlayer() && slotTeam != actorTeam
+            ? UndoBlock.NotYours
+            : UndoBlock.None;
+    }
+
+    /// <summary>Core's refusal in the player's words. Empty when nothing is refusing.</summary>
+    /// <param name="block">Why undo is refused.</param>
+    /// <param name="actorTeam">Side whose command it was, for the wrong-player case.</param>
+    /// <returns>One phrase, lower-case, for a tooltip.</returns>
+    public static string UndoWords(UndoBlock block, Team actorTeam) => block switch
+    {
+        UndoBlock.InRun => "the run owns the rewind — undo the run instead",
+        UndoBlock.Nothing => "nothing to undo",
+        UndoBlock.EnemyActed => "enemy has acted — round is committed",
+        UndoBlock.Randomised => "a seeded roll has been made — its result is on the table",
+        UndoBlock.RoundTurned => "the round has turned — the new plans are on the table",
+        UndoBlock.TurnEnded => "end turn is committed — a closed activation cannot be reopened",
+        UndoBlock.NotYours => "that was " + TeamName(actorTeam) + "'s activation — the slot has passed on",
+        _ => string.Empty,
+    };
+
+    /// <summary>
+    /// What one press would take back, named so the button promises something specific.
+    /// </summary>
+    /// <param name="state">Board as it stands, for naming whoever the command was aimed at.</param>
+    /// <param name="command">The command that would go back.</param>
+    /// <returns>A short phrase beginning "undo".</returns>
+    public static string DescribeUndo(GameState? state, Command? command) => command switch
+    {
+        MoveCommand move => "undo move segment to " + BoardCoords.Of(move.To),
+        DeployCommand deploy => "undo placing " + NameOf(state, deploy.UnitId) + " on " + BoardCoords.Of(deploy.At),
+        AttackCommand { Mode: AttackMode.Pull } pull => "undo pull on " + NameOf(state, pull.TargetId),
+        AttackCommand attack => "undo attack on " + NameOf(state, attack.TargetId),
+        AbilityCommand ability => "undo " + AbilityDescriptor.For(ability.Ability).Name,
+        SpendVerveCommand spend => "undo " + Naming.Of(spend.Spend),
+        RescueCommand rescue => "undo rescue of " + NameOf(state, rescue.ClingingId),
+        FinishClingingCommand finish => "undo kicking " + NameOf(state, finish.ClingingId) + " off the ledge",
+        EndActivationCommand => "undo end turn",
+        null => string.Empty,
+        _ => "undo the last command",
+    };
+
+    private static string TeamName(Team team) => team switch
+    {
+        Team.PlayerA => "Player A",
+        Team.PlayerB => "Player B",
+        _ => "the enemy",
+    };
+
+    private static string NameOf(GameState? state, UnitId id) =>
+        state?.FindUnit(id)?.Name ?? "the unit";
+
+    /// <summary>One applied command, and everything the undo rule needs to know about its step.</summary>
+    private readonly record struct Applied(
+        Command Command,
+        bool Chosen,
+        Team ActorTeam,
+        bool ClosedTheActivation,
+        bool TurnedTheRound,
+        bool DrewFromTheSeed);
+
+    private static UndoBlock BlockOn(Applied entry, Team slotTeam) =>
+        BlockOn(
+            entry.Chosen,
+            entry.DrewFromTheSeed,
+            entry.TurnedTheRound,
+            entry.Command is EndActivationCommand,
+            entry.ClosedTheActivation,
+            entry.ActorTeam,
+            slotTeam);
+
+    private static Applied Record(Command command, bool chosen, GameState before, StepResult result)
+    {
+        bool closed = false;
+        bool turned = false;
+
+        foreach (var evt in result.Events)
+        {
+            if (evt is ActivationEnded)
+            {
+                closed = true;
+            }
+            else if (evt is RoundEnded)
+            {
+                // The rollover, not the opening of round 1: coming out of deployment declares plans
+                // for the first time, and taking the placement that caused it back takes the plans
+                // with it. A round *turning* mid-fight is the reveal that cannot be un-seen.
+                turned = true;
+            }
+        }
+
+        return new Applied(
+            command,
+            chosen,
+            TeamOf(before, command),
+            closed,
+            turned,
+            before.RngState != result.NewState.RngState);
+    }
+
+    private static Team TeamOf(GameState before, Command command)
+    {
+        var id = ActorOf(command);
+        return id != UnitId.None && before.FindUnit(id) is { } unit ? unit.Team : before.ActiveTeam;
+    }
+
+    // Deliberately not UnitOf: that one drives Selectable and the target maps, and a Verve spend
+    // must not turn into a selectable unit just because undo wanted to know whose it was.
+    private static UnitId ActorOf(Command command) => command switch
+    {
+        SpendVerveCommand s => s.UnitId,
+        _ => UnitOf(command),
+    };
 
     private void Reset(FightDefinition fight, int seed)
     {
@@ -523,7 +752,6 @@ public sealed class GameSession
         Seed = seed;
         _log.Clear();
         _applied.Clear();
-        _chosen.Clear();
         Selected = null;
         Inspected = null;
         InspectedTile = null;
@@ -532,6 +760,12 @@ public sealed class GameSession
         Hovered = null;
         Mode = ActionMode.Move;
         ArmedAbility = null;
+
+        // A half-aimed cast or rescue is aimed at a position that is about to stop existing. It used
+        // to survive a rewind, which left the board drawing landing tiles for a grab that had been
+        // taken back.
+        ClearCast();
+        ClearRescue();
 
         // Keyed to what the player asked for, not to whether a recorder happens to exist: a new
         // fight in a session that is recording is a new fight that records.

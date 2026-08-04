@@ -2,7 +2,12 @@
    is the loudest thing in the strip. Everything else here is deliberately quieter than the board.
 
    One fixed height in every phase, and a small one: this band is the board's neighbour, and every
-   pixel it grows by is a pixel off the only thing on the screen a player is actually looking at. */
+   pixel it grows by is a pixel off the only thing on the screen a player is actually looking at.
+
+   The height is engineered, not guessed. 74px = 1px border + 4px list padding + a 47px card (18px
+   portrait + 11px identity + 11px numbers-and-badge + 3px padding + 2px border, times the 1.03 the
+   current card is enlarged by) + 3px list padding + a 17px caption row + 1px border, with the
+   remainder as slack. Change any row's font-size and this sum is what has to be re-done. */
 
 .strip-bar {
     align-items: stretch;
@@ -14,9 +19,9 @@
     grid-template-areas:
         "now list"
         "now caption";
-    grid-template-columns: minmax(116px, 132px) minmax(0, 1fr);
+    grid-template-columns: minmax(112px, 128px) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
-    height: 108px;
+    height: 74px;
     min-height: 0;
     overflow: hidden;
 }
@@ -26,20 +31,21 @@
     align-content: center;
     border-right: 1px solid var(--pt-border-soft);
     display: grid;
-    gap: 2px;
+    gap: 1px;
     grid-area: now;
-    padding: 8px 10px;
+    padding: 6px 10px;
 }
 
 .now .round {
     color: var(--pt-text-dim);
-    font-size: 10px;
+    font-size: 9.5px;
     letter-spacing: .1em;
+    line-height: 1.2;
     text-transform: uppercase;
 }
 
 .now .actor {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     letter-spacing: .04em;
     line-height: 1.15;
@@ -59,7 +65,19 @@
     min-height: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 5px 8px 2px;
+    padding: 4px 8px 3px;
+    /* A default scrollbar is 15px of the board's height spent saying the row is longer than the
+       band, which the clipped card at the edge already says. */
+    scrollbar-width: thin;
+}
+
+.strip::-webkit-scrollbar {
+    height: 4px;
+}
+
+.strip::-webkit-scrollbar-thumb {
+    background: var(--pt-border);
+    border-radius: 2px;
 }
 
 .strip-empty {
@@ -72,14 +90,16 @@
 }
 
 /* One line, muted, inside the band. Not a bordered row, and not a panel of its own above the
-   board: the instruction and the thing it is about belong in the same box. */
+   board: the instruction and the thing it is about belong in the same box. The smallest text in
+   the band, and it stays that way — it is the line a player reads once. */
 .caption {
     color: var(--pt-text-dim);
-    font-size: 10.5px;
+    font-size: 10px;
     grid-area: caption;
+    line-height: 1.25;
     margin: 0;
     overflow: hidden;
-    padding: 0 9px 5px;
+    padding: 0 9px 4px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -92,7 +112,7 @@
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     justify-content: center;
     margin: 0 2px;
     padding: 0 5px;
@@ -132,7 +152,7 @@
     gap: 0;
     justify-content: center;
     min-width: 62px;
-    padding: 2px 6px;
+    padding: 1px 6px 2px;
     position: relative;
     transition: transform .12s ease, border-color .12s ease, opacity .12s ease;
 }
@@ -143,61 +163,88 @@
 
 .seq {
     color: var(--pt-text-dim);
-    font-size: 9px;
+    font-size: 8.5px;
     font-variant-numeric: tabular-nums;
-    left: 4px;
+    left: 3px;
     position: absolute;
-    top: 2px;
+    top: 1px;
 }
 
 .art {
     align-items: center;
     display: flex;
     flex: 0 0 auto;
-    font-size: 14px;
-    height: 19px;
+    height: 18px;
     justify-content: center;
     line-height: 1;
 }
 
+/* One portrait, sized explicitly so the shared .unit-art rule (100% of its box) has a box. */
+.mini {
+    display: block;
+    flex: 0 0 auto;
+    height: 18px;
+    width: 18px;
+}
+
+/* An unfilled slot's candidates, overlapping like a held hand: the open choice drawn as open
+   (MASTER_DESIGN §3), and narrow enough that a three-way choice does not make one card twice the
+   width of its neighbours. */
+.art.stack .mini {
+    height: 16px;
+    width: 16px;
+}
+
+.art.stack .mini + .mini {
+    margin-left: -6px;
+}
+
+.art.stack .mini {
+    filter: drop-shadow(-1px 0 0 var(--pt-bg-raised));
+    opacity: .82;
+}
+
+.art.stack .mini:first-child {
+    opacity: 1;
+}
+
 .slot-mark {
     color: var(--pt-text-dim);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
+    line-height: 1;
 }
 
+/* Name and side on one row, in one element: "Vanguard · A". */
 .who {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 600;
-    line-height: 1.25;
-    max-width: 78px;
+    line-height: 1.2;
+    max-width: 96px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.owner,
-.candidates {
-    color: var(--pt-text-dim);
-    font-size: 8.5px;
-    letter-spacing: .04em;
-    line-height: 1.25;
-    max-width: 78px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+/* The last row: hit points, the meter, and whichever badge the card earns, side by side. */
+.meta {
+    align-items: center;
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    min-height: 11px;
 }
 
 .hp {
-    font-size: 9.5px;
+    font-size: 9px;
     font-variant-numeric: tabular-nums;
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .pips {
     display: flex;
     gap: 1.5px;
-    margin-top: 1px;
+    margin-top: 0;
 }
 
 .pip {
@@ -220,9 +267,10 @@
     border-radius: 3px;
     font-size: 8.5px;
     letter-spacing: .04em;
-    line-height: 1.35;
-    margin-top: 1px;
-    padding: 0 4px;
+    line-height: 1.3;
+    margin-top: 0;
+    padding: 0 3px;
+    white-space: nowrap;
 }
 
 .badge.now {
@@ -251,8 +299,8 @@
 .badge.intent {
     background: color-mix(in srgb, var(--enemy) 24%, transparent);
     color: var(--enemy);
-    font-size: 10px;
-    padding: 0 5px;
+    font-size: 9.5px;
+    padding: 0 4px;
 }
 
 /* ---- Card states -------------------------------------------------------------------------- */
@@ -307,7 +355,7 @@
 
 @media (max-width: 1200px) {
     .strip-bar {
-        grid-template-columns: minmax(104px, 116px) minmax(0, 1fr);
+        grid-template-columns: minmax(100px, 112px) minmax(0, 1fr);
     }
 
     .face {
