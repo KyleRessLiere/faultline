@@ -24,5 +24,8 @@ builder.Services.AddSingleton<PlaytestNotes>();
 builder.Services.AddSingleton<RunStore>();
 builder.Services.AddSingleton<RunSession>();
 builder.Services.AddSingleton<BoardAnimator>();
+// Every message about the game as a whole goes here, and there is nowhere else for one to go: the
+// battle screen reserves no row for text between the turn-order strip and the board.
+builder.Services.AddSingleton<SystemToasts>();
 
 await builder.Build().RunAsync();

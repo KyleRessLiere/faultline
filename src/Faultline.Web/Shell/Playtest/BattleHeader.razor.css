@@ -107,12 +107,62 @@
     display: flex;
 }
 
+/* The wordmark is a button, so it says so: a hover state, a pointer, a focus ring. A logo that goes
+   somewhere and looks like decoration is a door nobody finds. */
 .brand {
     align-items: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: inherit;
     display: flex;
     flex: 0 1 auto;
+    font: inherit;
     gap: 8px;
     min-width: 0;
+    padding: 2px 8px 2px 4px;
+    text-align: left;
+}
+
+.brand.home {
+    cursor: pointer;
+}
+
+.brand.home:hover {
+    background: var(--pt-bg-raised);
+    border-color: var(--pt-blue);
+}
+
+.brand.home:hover .mark {
+    color: var(--pt-blue);
+}
+
+.brand.home:focus-visible,
+.home.mini:focus-visible {
+    outline: 2px solid var(--pt-blue);
+    outline-offset: 1px;
+}
+
+/* The same door on the 24px strip, at the size the strip has room for. It is the first thing in the
+   row for the same reason it is the first thing in every other application's. */
+.home.mini {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    flex: 0 0 auto;
+    line-height: 0;
+    padding: 1px;
+}
+
+.home.mini .logo {
+    height: 18px;
+    width: 18px;
+}
+
+.home.mini:hover {
+    border-color: var(--pt-blue);
 }
 
 .logo {
@@ -134,12 +184,20 @@
     stroke-width: 1.4;
 }
 
-.logo-fault {
-    fill: none;
+.logo-duck {
+    fill: var(--pt-blue);
+}
+
+.logo-bill {
+    fill: var(--pt-amber, #e0a34a);
+}
+
+.logo-eye {
+    fill: #06101f;
+}
+
+.home:hover .logo-plate {
     stroke: var(--pt-blue);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
 }
 
 .titles {
@@ -293,6 +351,14 @@
     background: rgba(37, 131, 255, .14);
     border-color: var(--pt-blue);
     color: var(--pt-blue);
+}
+
+/* Not a view switch like the three above it, so it is ruled off from them: this one leaves. */
+.opt.leave {
+    border-top: 1px solid var(--pt-border);
+    border-radius: 0 0 4px 4px;
+    margin-top: 3px;
+    padding-top: 6px;
 }
 
 /* Restart is the only destructive thing in the bar, and it says so only once it has been asked

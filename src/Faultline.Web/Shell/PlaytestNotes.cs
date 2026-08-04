@@ -201,7 +201,7 @@ public sealed class PlaytestNotes
     public static string RenderMarkdown(IReadOnlyList<PlaytestNote> notes)
     {
         var text = new StringBuilder();
-        text.Append("# Faultline playtest notes\n\n");
+        text.Append("# PLUCK playtest notes\n\n");
         text.Append(notes.Count.ToString(CultureInfo.InvariantCulture))
             .Append(notes.Count == 1 ? " note, exported " : " notes, exported ")
             .Append(Stamp(DateTime.UtcNow))

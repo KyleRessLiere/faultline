@@ -2,12 +2,17 @@
 @inject PlaytestNotes Notes
 @inject BoardAnimator Animator
 
-@* The battle screen. Four bands down the left and one sidebar down the right, and that is the whole
+@* The battle screen. Three bands down the left and one sidebar down the right, and that is the whole
    vertical rhythm: header, the activation strip, the board, and one row carrying the legend and the
-   view controls. Nothing else is allowed a band of its own — the status band draws only when it has
-   something to say and reserves no height when it does not.
+   view controls.
 
-   The board is the point of the screen, so it is given every pixel the four fixed bands do not
+   NOTHING may occupy a layout row between the strip and the board. It is not a preference: the board
+   is handed whatever the fixed bands leave it, so a sentence given a row of its own is a sentence
+   paid for in tiles. Anything with something to say is either an overlay drawn over the board —
+   toasts, the status band — or it moves into a region that already exists, the way the deployment
+   instruction lives in the strip's own caption line.
+
+   The board is the point of the screen, so it is given every pixel the three fixed bands do not
    take: it is sized by the region rather than by a zoom setting, and the region is what is left.
 
    The sidebar carries the objective, the inspector — which is where the meter and the action list
@@ -22,10 +27,10 @@
     <div class="pt-main">
         <section class="pt-stage">
             <TurnStrip />
-            <StatusBand />
 
             @* The board is the primary element and takes what is left of the height. Everything a
-               player decides with is drawn on it; the sidebar supports it. *@
+               player decides with is drawn on it; the sidebar supports it. The status band and the
+               system toasts are drawn inside this panel, over the board — they are not rows. *@
             <BattlefieldPanel />
 
             <BoardControls />

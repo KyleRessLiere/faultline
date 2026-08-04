@@ -1,5 +1,29 @@
 # Changelog
 
+## The game is PLUCK on screen, the board keeps its height, and a battle has a door
+
+- **Nothing occupies a layout row between the turn-order strip and the board (D-122).** The three
+  notices that used to sit above it — the refusal, the mid-run reload notice and the frozen-board
+  line — are `SystemToast`s now: over the board, top-centre, dismissible, gone after 8s. The status
+  band moved into the same overlay, keeping every word and every state, including staying up until
+  it is resolved while somebody is over the edge. Measured at 1920x1080, a run reloaded mid-fight
+  used to cost the board 25px (902px to 877px) at a fill percentage that barely moved, because the
+  region shrank with it; the board is now 902px in every phase at 1920x1080 and 1129px at 2560x1307.
+- **The battle screen has a way out (D-123).** The wordmark is a home button in both header states,
+  with **Leave battle** in Settings for anyone who does not click logos. Mid-run it goes to the act
+  map. Leaving is a full page load — D-050's own path — so the confirm promises exactly what a
+  reload delivers: the run is saved, the half-played fight restarts from deployment. Outside a run it
+  says the opposite, truthfully. The strip's expand handle moved to the right, out from under the new
+  mark: the hover-revealed row is drawn over the strip, so reaching for the handle would have pressed
+  "leave the battle".
+- **PLUCK is the name on screen (D-124).** Tab title, boot line, every page heading, the in-battle
+  wordmark and the exported notes header. The mark is a duck. Namespaces, project names, storage
+  keys, interop names and the `faultline` campaign id are all unchanged — the id is written into
+  every save, and renaming it would orphan every run in every browser.
+- **Two measurement scripts**: `tools/ui-checks/board-fill-acceptance.mjs` records the board's
+  absolute size in three phases at two resolutions and fails if any message element is a flex row of
+  the stage column; `tools/ui-checks/home-nav-check.mjs` is the no-dead-ends audit.
+
 ## Broken Bridge can end: the crossings are breakable
 
 - **`broken-bridge` was a board with no terminating state**, and is not one now. Its two trench

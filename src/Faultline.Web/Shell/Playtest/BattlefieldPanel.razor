@@ -1,29 +1,20 @@
 @inherits PlaytestPanel
 @* The board's region. Deliberately unframed: a border and a padding around the board is a border
    and a padding taken off the board, and the board is the screen. The panel's whole job is to hand
-   the grid the box it fits itself into. *@
+   the grid the box it fits itself into.
 
-<div class="battlefield">
-    @if (Runs.Problem is not null)
-    {
-        <p class="banner warn">@Runs.Problem</p>
-    }
+   Nothing in here is a row except the board. Three notices used to be — a refusal, the mid-run
+   reload notice and the frozen-board line — and between them they took height off the position to
+   say things a player reads once. They are toasts now, and the status band above them is an overlay
+   for the same reason: the whole point of this region is that it is the board's. *@
 
-    @if (Session.InRun && Runs.RestartedByReload)
-    {
-        <p class="banner">
-            Reloaded mid-run. The run came back — seed, node and everything the squad is carrying —
-            but the half-played board did not, so this fight restarts from deployment.
-        </p>
-    }
-
-    @if (Session.InRun && FightIsOver && ShowBoard)
-    {
-        <p class="banner">
-            The fight is over and the run has already moved on. This is the board it finished on,
-            frozen — nothing on it takes another command.
-        </p>
-    }
+<div class="battlefield @(ShowBoard ? string.Empty : "boardless")">
+    @* Out of flow, over the board, top-centre. Nothing in this stack occupies a layout row, which
+       is why the region's height is the same whether or not anything has something to say. *@
+    <div class="overlays">
+        <SystemToast />
+        <StatusBand />
+    </div>
 
     @if (ShowBoard)
     {

@@ -1,5 +1,6 @@
 /* No frame, no padding, no background: the board sits directly on the page surface and every pixel
-   of this region is the board's. */
+   of this region is the board's. Position is relative only so the message overlay has something to
+   pin itself to — it adds no box of its own. */
 .battlefield {
     display: flex;
     flex: 1 1 auto;
@@ -8,22 +9,41 @@
     min-height: 0;
     min-width: 0;
     overflow: hidden;
+    position: relative;
 }
 
-.banner {
-    border-left: 2px solid var(--pt-yellow);
-    color: var(--pt-yellow);
-    flex: 0 0 auto;
-    font-size: 12px;
-    line-height: 1.45;
-    margin: 0;
-    padding: 2px 0 2px 8px;
+/* The one place a message about the whole board may be drawn. Absolute, so it is not a row: the
+   board below is laid out as though this were empty, because as far as the flex column is
+   concerned it is. Centred over the top of the position, and clickable only where a message
+   actually is — the gaps between toasts are still board. */
+.overlays {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    left: 0;
+    max-height: 100%;
+    overflow: hidden;
+    padding: 6px 8px 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 6;
 }
 
-.banner.warn {
-    border-left-color: var(--pt-red);
-    color: var(--pt-red);
+/* With no board drawn there is no board height to protect, and the between-nodes text is the thing
+   that would be covered instead. So the stack goes back into the flow — the rule is about what the
+   board is charged, not about overlaying for its own sake. */
+.battlefield.boardless .overlays {
+    padding-bottom: 6px;
+    pointer-events: auto;
+    position: static;
 }
+
+/* Each overlaid component turns its own pointer events back on, in its own stylesheet: CSS
+   isolation scopes a selector to this component's elements, so a rule aimed at a child
+   component's root element from here would need ::deep and would silently do nothing without it. */
 
 .between {
     display: flex;

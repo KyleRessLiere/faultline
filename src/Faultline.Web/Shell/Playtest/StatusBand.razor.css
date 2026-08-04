@@ -1,14 +1,26 @@
 /* Slim, and absent when there is nothing to carry. No min-height, no placeholder, no empty border:
-   a strip that is always there is a strip that stops being read. */
+   a strip that is always there is a strip that stops being read.
 
-/* Flush with the board and the strip: the stage's own gap is the only spacing, so a band that is
-   drawn costs its content's height and not a pixel more. */
+   It is drawn OVER the board now rather than in a row above it. It was the last thing on the screen
+   that could push the position down, and a ledge notice worth 40px of board is a notice that makes
+   the thing it is warning you about harder to look at. The band keeps every word and every state it
+   had — persistent while somebody is over the edge (D-083), never a toast — it simply is not a row.
+   Pointer events come back on here because the overlay stack turns them off, so the space around
+   the band is still board a player can click through. */
 .band {
     display: flex;
-    flex: 0 0 auto;
     flex-wrap: wrap;
     gap: var(--pt-gap);
+    justify-content: center;
+    max-width: min(72ch, 100%);
     padding: 0;
+    pointer-events: auto;
+}
+
+/* Over the board, so it needs a surface of its own — the blocks that already had one keep it. */
+.band > .block {
+    backdrop-filter: blur(2px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .55);
 }
 
 .block {
@@ -26,7 +38,7 @@
 
 /* A ledge is a private clock nothing else on this screen has. It stays up until it is resolved. */
 .urgent-banner {
-    background: rgba(255, 98, 104, .12);
+    background: color-mix(in srgb, var(--pt-red) 14%, var(--pt-bg-panel));
     border: 1px solid var(--pt-red);
 }
 
@@ -46,7 +58,7 @@
 /* A missing activation is a cost, not an emergency — loud enough to place around, quieter than the
    ledge's clock so the two never compete for the same alarm. */
 .bedraggled-banner {
-    background: rgba(232, 179, 65, .12);
+    background: color-mix(in srgb, var(--pt-yellow) 14%, var(--pt-bg-panel));
     border: 1px solid var(--pt-yellow);
 }
 

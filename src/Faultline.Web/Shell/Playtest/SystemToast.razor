@@ -1,0 +1,93 @@
+@inherits PlaytestPanel
+@inject SystemToasts Toasts
+
+@* Every system message the battle screen has, drawn OVER the board rather than above it.
+
+   This component is the answer to a rule with no exceptions: nothing occupies a layout row between
+   the turn-order strip and the board. Three sentences used to — the mid-run reload notice, the
+   "Core refused that" line and the frozen-board notice — and each of them was worth about twenty
+   pixels of the only region on the screen anybody is looking at. They are the same sentences; they
+   are drawn out of flow now, top-centre, dismissible, and gone by themselves after eight seconds.
+
+   The queue is a service so the wording and the dedupe rules can be tested without rendering
+   anything; what lives here is the eight-second clock and the markup. *@
+
+@if (Toasts.Live.Count > 0)
+{
+    <div class="toasts" role="status" aria-live="polite">
+        @foreach (var toast in Toasts.Live)
+        {
+            <div class="sys-toast tone-@(toast.Tone == SystemTone.Warn ? "warn" : "info")"
+                 data-toast="@toast.Key">
+                <p class="text">@toast.Text</p>
+                <button type="button"
+                        class="close"
+                        title="Dismiss"
+                        aria-label="Dismiss this message"
+                        @onclick="() => Dismiss(toast.Key)">✕</button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Toasts.Changed += Redraw;
+    }
+
+    /// <summary>
+    /// Reconciles the queue against what is true after every paint.
+    /// </summary>
+    /// <remarks>
+    /// After the render rather than before it, and guarded on whether anything actually moved: a
+    /// sync that always redrew would render forever. A sync that moved something redraws once, and
+    /// the next pass finds nothing to do.
+    /// </remarks>
+    /// <param name="firstRender">Whether this was the first paint.</param>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        var result = Toasts.Sync(BattleMessages.Current(Session, Runs));
+
+        foreach (var key in result.Added)
+        {
+            _ = ExpireAsync(key);
+        }
+
+        if (result.Changed)
+        {
+            StateHasChanged();
+        }
+    }
+
+    /// <inheritdoc/>
+    public override void Dispose()
+    {
+        Toasts.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Dismiss(string key)
+    {
+        Toasts.Dismiss(key);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// The eight-second clock. One per posted message, started when it is posted and never
+    /// cancelled: dismissing early is idempotent, so a clock that fires on a message somebody has
+    /// already closed does nothing.
+    /// </summary>
+    /// <param name="key">Which message.</param>
+    /// <returns>A task that completes once the message is down.</returns>
+    private async Task ExpireAsync(string key)
+    {
+        await Task.Delay(SystemToasts.LifetimeMs);
+        Toasts.Dismiss(key);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+}

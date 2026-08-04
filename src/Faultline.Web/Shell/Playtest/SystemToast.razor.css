@@ -1,0 +1,76 @@
+/* Out of flow, always. The container is the board's own region, so a toast is drawn over the top of
+   the position and the board's height is exactly what it would have been with nothing to say.
+
+   pointer-events is off on the stack and back on for each toast: the space around a message is
+   still board, and a player aiming a shove through it must not have the click swallowed by an
+   invisible box. */
+
+.toasts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.sys-toast {
+    align-items: flex-start;
+    animation: sys-toast-in 160ms ease-out;
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-left-width: 3px;
+    border-radius: var(--pt-radius);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .55);
+    display: flex;
+    gap: 8px;
+    max-width: 68ch;
+    padding: 7px 8px 7px 10px;
+    pointer-events: auto;
+}
+
+.sys-toast.tone-info {
+    border-left-color: var(--pt-yellow);
+}
+
+.sys-toast.tone-warn {
+    border-left-color: var(--pt-red);
+}
+
+.text {
+    color: var(--pt-text);
+    font-size: 12px;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.tone-warn .text {
+    color: var(--pt-red);
+}
+
+.close {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 5px;
+}
+
+.close:hover {
+    border-color: var(--pt-border);
+    color: var(--pt-text);
+}
+
+@keyframes sys-toast-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sys-toast {
+        animation: none;
+    }
+}

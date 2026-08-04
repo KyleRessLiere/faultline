@@ -20,7 +20,7 @@ window.faultlineFiles = (function () {
         }
 
         const ext = extension || '.fight';
-        const label = description || 'Faultline fight';
+        const label = description || 'PLUCK fight';
 
         try {
             const handle = await window.showSaveFilePicker({

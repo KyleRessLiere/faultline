@@ -45,7 +45,7 @@ public sealed class FightFiles
         string fileName,
         string text,
         string extension = ".fight",
-        string description = "Faultline fight") =>
+        string description = "PLUCK fight") =>
         Invoke("faultlineFiles.saveToDirectory", fileName, text, extension, description);
 
     /// <summary>Downloads the file through a blob, for browsers with no save dialog.</summary>

@@ -132,15 +132,18 @@ in this file when the question comes back.
 | D-112 | [No display string retypes a rule number; it interpolates the constant that holds it.](#d-112-no-display-string-retypes-a-rule-number-it-interpolates-the-constant-that-holds-it) | 2026-08-04 |  |
 | D-113 | [A side has exactly one colour token, declared at `:root`, and the playtest palette may not draw a side.](#d-113-a-side-has-exactly-one-colour-token-declared-at-root-and-the-playtest-palette-may-not-draw-a-side) | 2026-08-04 |  |
 | D-114 | [A wall that has to come down is masonry with hit points, not a turn limit: `broken-bridge`'s two crossings become breakable blockers of 6.](#d-114-a-wall-that-has-to-come-down-is-masonry-with-hit-points-not-a-turn-limit-broken-bridges-two-crossings-become-breakable-blockers-of-6) | 2026-08-04 |  |
-| D-115 | [A run's act is a graph in Core, and the linear ten stays shipped beside it.](#d-115-a-runs-act-is-a-graph-in-core-and-the-linear-ten-stays-shipped-beside-it) | unreleased |  |
-| D-116 | [Act 1 is hand-authored, and the constraint generator is acts-2-and-3 work.](#d-116-act-1-is-hand-authored-and-the-constraint-generator-is-acts-2-and-3-work) | unreleased |  |
-| D-117 | [A vote is one command carrying both picks, because a half-voted state is where a re-vote comes from.](#d-117-a-vote-is-one-command-carrying-both-picks-because-a-half-voted-state-is-where-a-re-vote-comes-from) | unreleased |  |
-| D-118 | [Reward marks are typed references with a `Payable` flag, and are paid by nobody.](#d-118-reward-marks-are-typed-references-with-a-payable-flag-and-are-paid-by-nobody) | unreleased |  |
-| D-119 | [The act map's campfire is its own node type and heals half, rounded up, per duck.](#d-119-the-act-maps-campfire-is-its-own-node-type-and-heals-half-rounded-up-per-duck) | unreleased |  |
-| D-120 | [The Molting Pool is the whole v1 event tier, and bodily consent is enforced at the command surface.](#d-120-the-molting-pool-is-the-whole-v1-event-tier-and-bodily-consent-is-enforced-at-the-command-surface) | unreleased |  |
-| D-121 | [HELD: `RunUnit.Owner`, so bodily consent can be checked rather than assumed.](#d-121-held-rununitowner-so-bodily-consent-can-be-checked-rather-than-assumed) | unreleased | *held* |
+| D-115 | [A run's act is a graph in Core, and the linear ten stays shipped beside it.](#d-115-a-runs-act-is-a-graph-in-core-and-the-linear-ten-stays-shipped-beside-it) | 2026-08-04 |  |
+| D-116 | [Act 1 is hand-authored, and the constraint generator is acts-2-and-3 work.](#d-116-act-1-is-hand-authored-and-the-constraint-generator-is-acts-2-and-3-work) | 2026-08-04 |  |
+| D-117 | [A vote is one command carrying both picks, because a half-voted state is where a re-vote comes from.](#d-117-a-vote-is-one-command-carrying-both-picks-because-a-half-voted-state-is-where-a-re-vote-comes-from) | 2026-08-04 |  |
+| D-118 | [Reward marks are typed references with a `Payable` flag, and are paid by nobody.](#d-118-reward-marks-are-typed-references-with-a-payable-flag-and-are-paid-by-nobody) | 2026-08-04 |  |
+| D-119 | [The act map's campfire is its own node type and heals half, rounded up, per duck.](#d-119-the-act-maps-campfire-is-its-own-node-type-and-heals-half-rounded-up-per-duck) | 2026-08-04 |  |
+| D-120 | [The Molting Pool is the whole v1 event tier, and bodily consent is enforced at the command surface.](#d-120-the-molting-pool-is-the-whole-v1-event-tier-and-bodily-consent-is-enforced-at-the-command-surface) | 2026-08-04 |  |
+| D-121 | [HELD: `RunUnit.Owner`, so bodily consent can be checked rather than assumed.](#d-121-held-rununitowner-so-bodily-consent-can-be-checked-rather-than-assumed) | 2026-08-04 | *held* |
+| D-122 | [Nothing occupies a layout row between the turn-order strip and the board; a system message is a toast drawn over the board, or it moves into a region that already exists.](#d-122-nothing-occupies-a-layout-row-between-the-turn-order-strip-and-the-board-a-system-message-is-a-toast-drawn-over-the-board-or-it-moves-into-a-region-that-already-exists) | unreleased |  |
+| D-123 | [Leaving a battle is a reload, and the wordmark is the door.](#d-123-leaving-a-battle-is-a-reload-and-the-wordmark-is-the-door) | unreleased |  |
+| D-124 | [PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id is unchanged.](#d-124-pluck-is-the-name-on-screen-every-code-identifier-namespace-storage-key-and-campaign-id-is-unchanged) | unreleased |  |
 
-**120 rulings.**
+**123 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2563,3 +2566,115 @@ code that reads it would be the code that enforces consent.
 Recorded as HELD rather than dropped in `IDEAS.md` because it was actively considered and consciously
 parked, and per CLAUDE.md a held idea with its trigger written down is a decision; without one it is
 just a thing someone forgot.
+
+**D-122 — Nothing occupies a layout row between the turn-order strip and the board; a system message
+is a toast drawn over the board, or it moves into a region that already exists.**
+
+**What forced it:** the board is height-limited by construction — `--fit` is
+`min(regionW/cols, regionH/rows)` against whatever the fixed bands leave the stage column — so any
+element given a row of its own is paid for in tiles, and the payment is invisible in a percentage.
+Measured at 1920x1080 with a run reloaded mid-fight: the reload notice took a 21px band, the board's
+region fell from 906px to 881px and the board itself from 902px to 877px. **The fill percentage
+barely moved — 99.6% to 99.5% — because the region shrank with the board.** A fill ratio cannot see
+this class of theft at all, which is why the acceptance measurement now records the board's absolute
+size and asserts separately that no message element is a flex row of `.pt-stage`.
+
+**What shipped:** `SystemToasts` (the queue) and `SystemToast.razor` (the eight-second clock and the
+markup), with `BattleMessages.Current` computing which conditions hold. The three notices that used
+to be `<p class="banner">` above the board — the refusal, the mid-run reload notice (D-050's
+behaviour, said out loud) and the frozen-board line — are toasts: over the board, top-centre,
+dismissible, gone by themselves after 8s. The status band is now an overlay in the same stack. It
+keeps every word and every state it had, including staying up until it is resolved while somebody is
+over the edge (D-083) — **being persistent and being a layout row are different properties, and only
+the second one was ever the problem.** The deployment instruction was already inside the strip's own
+caption line and stays there; that is the other half of the rule — a message with a permanent home
+belongs in a region that exists, not in a new one.
+
+**Rejected: reserving a fixed-height band and drawing into it when there is something to say.** It
+costs the board the height permanently to avoid a reflow occasionally, and an always-present strip is
+one people stop reading — the wrong habit for the one line that can cost a duck.
+
+**Rejected: keeping the reload notice as a band because it is important.** Importance is an argument
+for being *loud*, and a toast over the board is louder than a muted band above it. It is not an
+argument for being *structural*.
+
+**Rejected: auto-dismissing everything on a timer, including the ledge warning.** The clinging clock
+is a deadline, not an announcement, and D-083 requires it to stay until resolved. So the toast rule
+governs *system messages* — facts about the app — while the status band, which is about the position,
+is an overlay without a clock.
+
+Identity in the queue is a stable key, never the wording: the host syncs after every paint and the
+battle screen repaints on every click, so a queue keyed on text would stack forty copies of one
+sentence. A dismissal belongs to the condition rather than to the session — dismissed while true,
+forgotten when it clears, so the next reload says it again.
+
+**D-123 — Leaving a battle is a reload, and the wordmark is the door.**
+
+**What forced it:** the battle screen shipped as a room with no exit. A fight entered from the
+campaign had no control anywhere on it that reached the campaign again; the only ways out were the
+browser's back button and the address bar, neither of which is a feature. Found by the no-dead-ends
+audit this session, which walks every screen and asks whether a visible control reaches the prior one.
+
+**What shipped:** the mark is a button in both header states — leftmost in the collapsed 24px strip
+and leftmost in the hover-revealed row — plus **Leave battle** in the Settings menu, because the
+wordmark is for people who already know that a logo goes home and a menu item is for everyone else.
+Mid-run it goes to the campaign screen, which draws the act map when the run walks one: **mid-run the
+map is home**, and sending a player in a run to the battle picker would be sending them to a screen
+about a mode they are not in.
+
+**The mechanism is `NavigateTo(route, forceLoad: true)` and nothing else.** Leaving *is* a reload, so
+the safety contract is D-050's contract unchanged: the run comes back out of localStorage with its
+seed, its node and everything the squad is carrying, and the half-played board does not, so the fight
+restarts from deployment. **Rejected: suspending the board and resuming it.** It would have meant a
+second notion of what a saved fight is, alongside the one the campaign already has, and the first of
+the two to drift would be the one nobody plays. No new state, no new save format, no second way for a
+fight to end.
+
+The confirm therefore promises exactly what a reload delivers and not one word more — and it says
+something *different* outside a run, because a one-off battle from the picker is never written
+anywhere and telling that player their position is safe would be the worst sentence on the screen. It
+does not ask at all for the placeholder board the session's constructor puts up, or for a fight the
+run has already resolved: **a dialog guarding a door that costs nothing to walk through is a dialog
+people learn to click past without reading, and then it is not guarding the other one either.**
+
+**A mis-click hazard found while wiring it, and fixed rather than noted:** the full header row is
+revealed by CSS `:hover` and drawn *over* the collapsed strip, so whatever the panel has at a given x
+is what a click at that x actually hits — a player reaching for a strip control hovers the row open
+before the mousedown lands. The expand handle sat second from the left, directly under the new mark,
+so reaching for "show me the controls" would have pressed "leave the battle". The two rows now agree
+position by position: the mark is leftmost in both and goes home in both, the handle is rightmost in
+both and toggles the bar in both. Pinned by `tools/ui-checks/home-nav-check.mjs`, which measures the
+x of all four.
+
+**D-124 — PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id
+is unchanged.**
+
+**What forced it:** MASTER_DESIGN §15 rules that the game is PLUCK, and that display names stay
+decoupled from code identifiers throughout — *renames are data*. The shell still said Faultline in
+nine places a player could read.
+
+**What shipped, display layer only:** the browser tab and boot line, the `<PageTitle>` and `<h1>` of
+every page, the in-battle wordmark, the exported playtest-notes header, and the save-dialog file-type
+label. The header mark is now a duck rather than the fault-line glyph — placeholder art in the same
+flat style as `UnitArt`, because a mark that draws the *old* title beside the new word is worse than
+no mark at all.
+
+**What deliberately did not change, each because changing it breaks something:** the `Faultline.Core`
+and `Faultline.Web` namespaces, the project and assembly names, and `Faultline.Web.styles.css` (a
+rename there is a C# sweep, which §15 forbids); `CampaignLibrary.FaultlineId` and the `"faultline"`
+value it holds, which is written into `RunSave.CampaignId` — **changing it orphans every run in every
+existing browser**; the `faultline.*` localStorage keys, the `faultline` IndexedDB name and the
+`faultline-notes` directory-picker id, for the same reason; the `window.faultlineFiles` and
+`window.faultlineMotion` interop names, which must match the JS; and the literal
+`src/Faultline.Core/Fights/Data/` paths printed as instructions in the creator, which are real
+on-disk paths.
+
+**Rejected: renaming the campaign id and migrating saves.** A migration is a permanent code path
+carrying a dead name forever, bought in order to change a string no player ever sees. The id is not a
+display name and was never doing display work.
+
+**Two user-facing survivors are in Core and were not touched**, because this session was shell-only:
+`CampaignLibrary.Faultline.Name = "Faultline"`, the campaign *shape's* display name in the campaign
+picker, and `CombatRecorder`'s exported log header `# Faultline combat log`, the sibling of the notes
+header that did change. Both are display data of exactly the kind §15 says is a rename, and both are
+outstanding — recorded here so the gap is visible rather than assumed done.

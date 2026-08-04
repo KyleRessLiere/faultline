@@ -1,5 +1,6 @@
 @inherits PlaytestPanel
 @inject DevPanelState Dev
+@inject NavigationManager Nav
 
 @* One bar and one bar only: who we are, which board this is, the four things that are not part of
    playing the battle — and the one that is, END TURN. Everything that answers a question about the
@@ -28,12 +29,17 @@
        the pointer went, and the pointer leaving a fixed overlay that is nowhere near the element it
        hangs off is exactly the guess that gets it wrong. *@
     <div class="strip">
+        @* The way out, on the one row of chrome the layout always reserves. It was reachable only
+           by expanding the bar, and a player who does not know the bar expands is a player stuck in
+           a fight with no door — which is what this is here to fix. It costs no height: the strip
+           is 24px whether or not the mark is in it. *@
         <button type="button"
-                class="handle"
-                aria-expanded="@(Open ? "true" : "false")"
-                aria-label="Show the battle controls"
-                title="Everything else: Restart, Dev, Settings."
-                @onclick="ToggleBar">@(Open ? "⌃" : "⌄")</button>
+                class="home mini"
+                title="@HomeTitle"
+                aria-label="@("Leave the battle — " + HomeLabel)"
+                @onclick="AskLeave">
+            @DuckMark
+        </button>
 
         <span class="context" title="@ContextTitle">@ContextLine</span>
 
@@ -51,26 +57,40 @@
                 disabled="@(!CanEndTurn)"
                 title="@EndTurnTitle"
                 @onclick="EndTurn">END TURN</button>
+
+        @* Last, not second, and that is a correctness fix rather than a taste one. The full row is
+           revealed by :hover and drawn OVER this strip, so whatever the panel has at a given x is
+           what a click at that x actually hits — a player reaching for a control here is hovering
+           the bar open before the mousedown lands. So the two rows have to agree position by
+           position: the mark is leftmost in both and goes home in both, and the expand/collapse
+           handle is rightmost in both and toggles the bar in both. It sat second from the left,
+           under the mark, where reaching for "show me the controls" pressed "leave the battle". *@
+        <button type="button"
+                class="handle"
+                aria-expanded="@(Open ? "true" : "false")"
+                aria-label="Show the battle controls"
+                title="Everything else: Restart, Dev, Settings."
+                @onclick="ToggleBar">@(Open ? "⌃" : "⌄")</button>
     </div>
 
     @* The full row. Fixed rather than absolute, and over the board rather than above it: the strip
        keeps its 24px in the flex column while this is open, so nothing below moves by a pixel. *@
     <div class="panel">
-        <div class="brand">
-            @* Drawn rather than lettered so the mark survives a rename: the wordmark beside it is the
-               only place the title is spelled. *@
-            <span class="logo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="none" focusable="false">
-                    <rect x="1.5" y="1.5" width="21" height="21" rx="5" class="logo-plate" />
-                    <path d="M8 3.5 L13 10 L10 12 L16 20.5" class="logo-fault" />
-                </svg>
-            </span>
+        @* The wordmark is the way home, because a logo in the top-left is where every player on
+           earth already clicks to leave. Drawn rather than lettered so the mark survives a rename:
+           the word beside it is the only place the title is spelled (MASTER_DESIGN §15). *@
+        <button type="button"
+                class="brand home"
+                title="@HomeTitle"
+                aria-label="@("Leave the battle — " + HomeLabel)"
+                @onclick="AskLeave">
+            @DuckMark
 
             <span class="titles">
-                <span class="mark">Faultline</span>
+                <span class="mark">PLUCK</span>
                 <span class="context" title="@ContextTitle">@ContextLine</span>
             </span>
-        </div>
+        </button>
 
         <div class="controls">
             <button type="button"
@@ -137,6 +157,17 @@
                                 @onclick="View.ToggleBoardOnly">
                             Board only
                         </button>
+
+                        @* The wordmark for those who know, a menu item for those who do not. The
+                           same gesture behind both, including the same confirm — one exit, one
+                           sentence about what it costs. *@
+                        <button type="button"
+                                class="opt leave"
+                                aria-haspopup="dialog"
+                                title="@HomeTitle"
+                                @onclick="AskLeave">
+                            Leave battle
+                        </button>
                     </div>
                 }
             </div>
@@ -168,6 +199,22 @@
                     @onclick="CloseBar">⌃</button>
         </div>
     </div>
+
+    @* One dialog, one consequence, told straight. Leaving is a reload — D-050's own path — so what
+       it costs is exactly what a reload costs, and the sentence says so rather than implying the
+       position will be waiting. *@
+    @if (_leaving)
+    {
+        <div class="scrim" @onclick="CancelLeave"></div>
+        <div class="confirm" role="dialog" aria-modal="true" aria-labelledby="leave-ask">
+            <p class="ask" id="leave-ask">Leave battle?</p>
+            <p class="consequence">@LeaveConsequence</p>
+            <div class="confirm-row">
+                <button type="button" class="btn" @onclick="CancelLeave">Stay</button>
+                <button type="button" class="btn primary" @onclick="ConfirmLeave">@("Leave — " + HomeLabel)</button>
+            </div>
+        </div>
+    }
 
     @if (_confirming)
     {
@@ -204,6 +251,7 @@
     private bool _focused;
 
     private bool _confirming;
+    private bool _leaving;
     private bool _settingsOpen;
 
     /// <summary>
@@ -211,7 +259,29 @@
     /// that redrew the whole screen on every pointer crossing would be paying a render for a hover.
     /// A popover or a dialog pins it: neither can be read through a bar that closed underneath it.
     /// </summary>
-    private bool Open => _bar.Open || _settingsOpen || _confirming;
+    private bool Open => _bar.Open || _settingsOpen || _confirming || _leaving;
+
+    /// <summary>Where the wordmark goes — the act map mid-run, the picker otherwise.</summary>
+    private string HomeLabel => BattleExit.HomeLabel(Runs);
+
+    private string HomeTitle => BattleExit.HomeTitle(Session, Runs);
+
+    private string LeaveConsequence => BattleExit.Consequence(Session, Runs);
+
+    /// <summary>
+    /// The mark. A duck, drawn in the same flat placeholder style as the units, because the game is
+    /// PLUCK and the thing it is about is ducks — the fault-line glyph it replaces was the old
+    /// title's, and a mark that spells the old name beside the new word is worse than no mark.
+    /// </summary>
+    private static RenderFragment DuckMark => @<span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="none" focusable="false">
+            <rect x="1.5" y="1.5" width="21" height="21" rx="5" class="logo-plate" />
+            <path d="M6 17.5 Q5.5 11.5 11 10.5 Q14.5 10 15.5 12.5 L19 13 Q18.5 18 12.5 18.5 Z" class="logo-duck" />
+            <circle cx="13.8" cy="8.2" r="3.1" class="logo-duck" />
+            <path d="M16.4 7.4 L20 7.9 L16.6 9.4 Z" class="logo-bill" />
+            <circle cx="14.6" cy="7.5" r=".7" class="logo-eye" />
+        </svg>
+    </span>;
 
     private bool CanUndo => HeaderBar.CanUndo(Session, Runs);
 
@@ -239,18 +309,53 @@
         // Escape only closes the bar if the keystroke reaches the bar, and it only reaches the bar if
         // the bar has focus. Taken once per opening, given back when it closes — and never taken for
         // a hover, which has no state and needs no key to end it.
-        if (_bar.Open && !_focused)
+        // Anything pinned open, not just the bar: the leave dialog can be opened from the collapsed
+        // strip, and a dialog whose Escape does not work because the keystroke never reached the
+        // element listening for it is a dialog with no way out but the mouse.
+        if (Open && !_focused)
         {
             _focused = true;
             await _root.FocusAsync();
         }
-        else if (!_bar.Open)
+        else if (!Open)
         {
             _focused = false;
         }
     }
 
-    private void OnRootKeyDown(KeyboardEventArgs args) => _bar.Key(args.Key);
+    /// <summary>
+    /// Escape backs out of whatever is innermost: a dialog first, then the popover, then the bar.
+    /// One key, one step out — a screen where Escape from a dialog also closed the bar behind it
+    /// takes two decisions from one keystroke.
+    /// </summary>
+    /// <param name="args">The keystroke.</param>
+    private void OnRootKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key != "Escape")
+        {
+            return;
+        }
+
+        if (_leaving)
+        {
+            _leaving = false;
+            return;
+        }
+
+        if (_confirming)
+        {
+            _confirming = false;
+            return;
+        }
+
+        if (_settingsOpen)
+        {
+            _settingsOpen = false;
+            return;
+        }
+
+        _bar.Key(args.Key);
+    }
 
     private void ToggleBar() => _bar.Toggle();
 
@@ -274,6 +379,44 @@
     }
 
     private void ToggleSettings() => _settingsOpen = !_settingsOpen;
+
+    /// <summary>
+    /// Asks to leave — or leaves outright when there is nothing left to lose, which is what a
+    /// resolved fight is. A dialog guarding a door that costs nothing to walk through is a dialog
+    /// people learn to click past without reading, and then it is not guarding the other one either.
+    /// </summary>
+    private void AskLeave()
+    {
+        _settingsOpen = false;
+
+        if (!BattleExit.NeedsConfirm(Session, Runs))
+        {
+            Leave();
+            return;
+        }
+
+        _leaving = true;
+    }
+
+    private void CancelLeave() => _leaving = false;
+
+    private void ConfirmLeave()
+    {
+        _leaving = false;
+        Leave();
+    }
+
+    /// <summary>
+    /// Goes home with a full page load, which is the whole mechanism: leaving IS a reload (D-050).
+    /// The run is read back out of browser storage exactly as it would be after a refresh, and the
+    /// half-played board is not, so the fight restarts from deployment. No suspend, no resume, no
+    /// second idea of what a saved fight is.
+    /// </summary>
+    private void Leave()
+    {
+        _bar.Close();
+        Nav.NavigateTo(BattleExit.HomeRoute(Runs), forceLoad: true);
+    }
 
     private void AskRestart()
     {
