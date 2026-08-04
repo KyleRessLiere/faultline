@@ -4,8 +4,15 @@
 # GAMEPLAY.md is the as-built design doc — what the game actually does today. If the rules move and
 # it doesn't, the design agent is reading fiction. This blocks the turn until both move together.
 #
-# "Changed" means not yet pushed: uncommitted work plus any commits the upstream branch has not seen.
-# Once a change is pushed it is settled and no longer nags.
+# "Changed" means STAGED but not yet pushed: the index, plus any commits the upstream branch has not
+# seen. Once a change is pushed it is settled and no longer nags.
+#
+# It judges the index rather than the working tree on purpose. This hook guards the commit boundary,
+# so what is about to be committed is the honest thing to judge — and a subagent's half-finished
+# scratch files are not a violation, they are a job in progress. Judging the working tree meant a
+# running agent editing Core blocked its own parent's every turn, with no action available that would
+# clear it: the parent could not write the doc without clobbering the live writer, and the agent had
+# not reached its doc update yet.
 #
 # Emits JSON on stdout. No jq dependency — the reason text is fixed, so printf is safe.
 
@@ -20,8 +27,8 @@ RULES='^src/Faultline\.Core/(Rules|Displacement|Abilities|Fights|Units|Board)/'
 DOC='GAMEPLAY.md'
 
 changed_files() {
-  # Uncommitted: staged, unstaged and untracked. cut -c4- keeps paths containing spaces intact.
-  git status --porcelain 2>/dev/null | cut -c4-
+  # Staged only. Unstaged and untracked paths are deliberately ignored — see the note above.
+  git diff --cached --name-only 2>/dev/null
 
   # Committed but not yet pushed.
   if upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null); then

@@ -101,6 +101,11 @@ project names and the repo). The class meter is **Moxie** on screen and `Verve` 
 Fisher is `Threadcaster` in the code. Display names are decoupled from code identifiers on purpose
 (MASTER_DESIGN §15) — a rename is data in `Naming.cs`, never a sweep through the C#.
 
+**The doc hook judges staged changes.** A running subagent's dirty working tree is expected
+state, not a violation — the hook guards the commit boundary, so it reads the index.
+Never edit GAMEPLAY.md to clear a block caused by another writer's unfinished work, and never
+bypass the hook: say plainly that the changes are not yours and not finished, and wait.
+
 A Stop hook (`.claude/hooks/check-gameplay-doc.sh`) blocks the turn when anything under
 `src/Faultline.Core/{Rules,Displacement,Abilities,Fights,Units,Board}` changes without GAMEPLAY.md
 changing too. If a change genuinely alters no observable rule — a refactor, a comment — say so
