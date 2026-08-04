@@ -8,7 +8,7 @@ description: No pits, no spikes, three shovers. A Harrier pulls your party apart
 design: The question: can displacement be a threat on a board with no hazards on it at all?
 design: No pits. No spikes. Nothing on this map deals damage except the units. Three shovers, and the contrast between them is the battle.
 design: The Harrier scores a shove by how much further from its nearest ally the target lands, and it refuses any shove that does not move the target at all. It never uses the wall.
-design: The ordinary Stalker has no pit and no spikes, so it falls to the third tier of its ladder and shoves you into the board edge for 2 and a Stagger. Every round. That edge is always available, which is why it is the most reliable damage in the enemy roster on a unit documented as dealing none.
+design: The ordinary Stalker has no pit and no spikes, so it falls to the third tier of its ladder and shoves you into the board edge for 4 and a Stagger. Every round. That edge is always available, which is why it is the most reliable damage in the enemy roster on a unit documented as dealing none.
 design: The Blunted Stalker has that tier switched off. Same speed, same shove, and on this board it does nothing whatsoever. That is the fix, not a bug.
 design: Stand in a block and the Harrier has nothing to gain; spread out and it picks you off one at a time.
 retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set

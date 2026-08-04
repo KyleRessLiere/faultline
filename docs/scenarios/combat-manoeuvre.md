@@ -8,6 +8,14 @@ ordinary ground.
 edge behind the enemy line, where it is the *last* step of a four-step answer rather than the first.
 Nothing in this batch works because something fell in a hole.
 
+> **Written at the pre-doubling scale.** Hit points, damage and healing were each multiplied by two
+> after this batch was cut, so every damage figure below — including the outcome table that follows —
+> is half of what the game now uses. That costs the batch nothing. The rescale was pure, so the whole
+> argument here, that ordinary ground carries its own weight because a wall hits about as hard as a
+> sword, is as true at the new scale as at the old. Read the numbers as relative and take
+> `GAMEPLAY.md` for the current absolutes. Counts never doubled and are exact as written: displacement
+> distances, the Stagger's +1, ranges, movement points, Pluck costs and every grid size.
+
 What the maps use instead — all of it already in the rules:
 
 | Outcome | Effect | Used as the spine of |

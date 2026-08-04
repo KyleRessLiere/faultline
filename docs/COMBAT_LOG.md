@@ -37,7 +37,7 @@ round   slot          actor            event          detail
 3       PlayerA:u0    Vanguard [A]     UnitMoved      (0,5) -> (2,5) cost 2
 3       PlayerA:u0    Vanguard [A]     AbilityUsed    BullRush
 3       PlayerA:u0    Husk [E] u5      UnitPushed     Push 2 (3,5) -> (5,5)
-3       PlayerA:u0    Husk [E] u5      Collision      into wall, 2 damage, staggered
+3       PlayerA:u0    Husk [E] u5      Collision      into wall, 4 damage, staggered
 3       PlayerA:u0    Husk [E] u5      UnitDowned     at (5,5)
 ```
 

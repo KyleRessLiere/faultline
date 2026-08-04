@@ -218,6 +218,89 @@ public class ArcherMinimumRangeTests
         TestPlay.AssertIllegal(state, new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
     }
 
+    // Double Nock buys a second attack action, and a second attack is the same bow fired twice: both
+    // shots route through Combat.CanAttack, so both inherit the exception. That is true by routing
+    // rather than by rule — nothing states it, so nothing would catch it going away. Hence the pin.
+    [Fact]
+    public void DoubleNock_FromHighGround_TakesBothShotsAtTheEnemiesStandingRightBelowHer()
+    {
+        var state = BoardBuilder.Rows("H.....", "......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Enemy(UnitKind.Husk, 0, 1, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer).Id;
+        var beside = state.Units.Single(u => u.Position == new Coord(1, 0)).Id;
+        var below = state.Units.Single(u => u.Position == new Coord(0, 1)).Id;
+        state = state.WithUnit(state.Get(archer) with { Verve = Verve.Cap });
+
+        int expected = UnitTemplate.For(UnitKind.Archer).Damage + Combat.HighGroundBonus;
+
+        var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
+        Assert.Equal(1, armed.Get(archer).ExtraAttacks);
+        Assert.Equal(1, armed.Get(archer).Position.DistanceTo(armed.Get(beside).Position));
+        Assert.Equal(1, armed.Get(archer).Position.DistanceTo(armed.Get(below).Position));
+
+        var first = armed.Step(new AttackCommand(archer, beside));
+        var attacked = first.Single<UnitAttacked>();
+        Assert.True(attacked.FromHighGround);
+        Assert.Equal(expected, attacked.Damage);
+        Assert.Equal(12 - expected, first.NewState.Get(beside).Hp);
+
+        // The owed attack is gone and the activation is still open: what follows is the second shot.
+        var between = first.NewState;
+        Assert.Equal(0, between.Get(archer).ExtraAttacks);
+        Assert.False(between.Get(archer).HasActivated);
+
+        Assert.True(Combat.CanAttack(between, between.Get(archer), between.Get(below), out int damage));
+        Assert.Equal(expected, damage);
+        TestPlay.AssertLegal(between, new AttackCommand(archer, below));
+
+        var second = between.Step(new AttackCommand(archer, below));
+        var again = second.Single<UnitAttacked>();
+        Assert.True(again.FromHighGround);
+        Assert.Equal(expected, again.Damage);
+        Assert.Equal(12 - expected, second.NewState.Get(below).Hp);
+    }
+
+    // And the same half that keeps the basic shot's exception honest keeps the second shot honest:
+    // an owed attack is not a licence to fire at somebody standing on the ledge with her.
+    [Fact]
+    public void DoubleNock_OnTheSameLedge_TheSecondShotIsStillTooClose()
+    {
+        var state = BoardBuilder.Rows("HH....", "......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 18)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 18)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 18)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer).Id;
+        var ledgeMate = state.Units.Single(u => u.Position == new Coord(1, 0)).Id;
+        var target = state.Units.Single(u => u.Position == new Coord(2, 0)).Id;
+        var spare = state.Units.Single(u => u.Position == new Coord(3, 0)).Id;
+        state = state.WithUnit(state.Get(archer) with { Verve = Verve.Cap });
+
+        var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
+
+        // The first shot refuses him, and spends the owed attack on somebody two tiles out.
+        Assert.False(Combat.CanAttack(armed, armed.Get(archer), armed.Get(ledgeMate), out _));
+        TestPlay.AssertNotLegal(armed, new AttackCommand(archer, ledgeMate));
+        TestPlay.AssertIllegal(armed, new AttackCommand(archer, ledgeMate));
+
+        var between = armed.Then(new AttackCommand(archer, target));
+        Assert.Equal(0, between.Get(archer).ExtraAttacks);
+
+        // There is a second shot to take — so the refusal below is the minimum range, not an
+        // activation that has run out.
+        TestPlay.AssertLegal(between, new AttackCommand(archer, spare));
+
+        Assert.False(Combat.CanAttack(between, between.Get(archer), between.Get(ledgeMate), out _));
+        TestPlay.AssertNotLegal(between, new AttackCommand(archer, ledgeMate));
+        TestPlay.AssertIllegal(between, new AttackCommand(archer, ledgeMate));
+    }
+
     // Nothing else moved. Stagger Shot is the only ability in the game with a minimum range at all,
     // so lifting it downhill cannot have loosened anything else by accident.
     [Fact]

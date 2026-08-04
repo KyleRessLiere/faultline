@@ -126,16 +126,16 @@ objective: kill-all              # win when nothing hostile is left. The default
 objective: survive 6             # win at the end of round 6 if anyone is still standing
 objective: hold 4,3 4,4 for 7    # win at the end of round 7 if no enemy is on those tiles
 objective: reach 6,0             # win the moment a player unit stands there
-objective: protect 3,3 hp 6      # a 6 HP structure; lose if it falls. hp defaults to 6
-objective: destroy 2,3 hp 8      # an 8 HP structure. Attacks chip it for 1; collisions hurt properly
+objective: protect 3,3 hp 12     # a 12 HP structure; lose if it falls. hp defaults to 12
+objective: destroy 2,3 hp 16     # a 16 HP structure. Attacks chip it for 2; collisions hurt properly
 ```
 
 **Clearing the board always wins**, under every objective — an empty board cannot stop anything.
 **Every player unit down or voided always loses.** `hold` has no early loss: an enemy standing on the
 ground in round 2 of a round-7 hold costs nothing, and only the deadline check judges it.
 
-A structure occupies its tile. Nothing walks onto it, and anything displaced into it collides — 2 to
-the unit and 2 to the structure. **An ordinary attack chips a structure for 1 whatever the weapon;
+A structure occupies its tile. Nothing walks onto it, and anything displaced into it collides — 4 to
+the unit and 4 to the structure. **An ordinary attack chips a structure for 2 whatever the weapon;
 a collision does full damage** (D-060), so the board is the best answer rather than the only one. A
 collision into a structure is **source-blind** — a player unit slammed into it damages it exactly as
 an enemy does. It also means
@@ -242,7 +242,7 @@ name: First Contact
 description: Husks walk at you while an emplaced lobber drops rocks from the north-west. Learn that a shove beats a swing.
 design: Fight 1 — the control group.
 design: Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
-design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
+design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 4 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
 
 spawn h = Husk
 spawn l = Lobber

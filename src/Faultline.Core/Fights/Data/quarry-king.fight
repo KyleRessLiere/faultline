@@ -6,9 +6,9 @@
 id: quarry-king
 number: 10
 name: The Quarry King
-description: Fourteen hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
+description: Twenty-eight hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
 design: The campaign finale. Everything at once, against one body.
-design: He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it. Three tokens no shove can spend, stripped two ways — slam his own escort into him (2 apiece, one token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane east, so a King crawling at you the short way pays a token a round for it. At 7 HP he becomes Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
+design: He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it. Three tokens no shove can spend, stripped two ways — slam his own escort into him (4 apiece, one token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane east, so a King crawling at you the short way pays a token a round for it. At 14 HP he becomes Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
 
 spawn q = QuarryKing
 spawn h = Husk

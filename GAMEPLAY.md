@@ -188,7 +188,7 @@ There is **no reach shading** on a strip portrait: threat painting stays per-ene
 **The Husk, and nothing else, barrels through a unit standing in its way** (D-100). It is movement,
 not an action: it costs the Husk nothing but movement points.
 
-- The blocker is knocked **1 tile perpendicular** to the Husk's heading and takes **1 contact
+- The blocker is knocked **1 tile perpendicular** to the Husk's heading and takes **2 contact
   damage**. Then the shove resolves normally — collision, spikes, drain, Stagger, the lot.
 - **The trampled tile costs the Husk +1 MP** on top of its terrain, and that price is in the routing
   comparison, so it goes round when round is genuinely cheaper. On flat ground it never is: a detour
@@ -297,7 +297,7 @@ Then it travels, stopping the moment any of these happen:
 | Another unit | **Collision** — 4 damage **to both**, both Staggered |
 | Spikes | 6 damage, stops, Staggered |
 | Pit | **Clinging** |
-| Open, leaving HighGround | 1 fall damage, keeps travelling |
+| Open, leaving HighGround | 2 fall damage, keeps travelling |
 
 Collision, spike and fall damage ignore mitigation.
 
@@ -324,9 +324,9 @@ enemy round that follows, not just the rest of this one — damage and displacem
 - **Redirects stack.** Two enemies hitting the covered ally in one round both land on the Wardbearer.
 - **It shields an adjacent Protect structure too.** An enemy that would claw at the altar beside it
   hits the Wardbearer instead (D-096). The structure loses nothing; the Wardbearer takes the
-  **enemy's own attack damage, halved** — not the flat 1 the structure would have lost, because that
-  1 is how fast masonry comes apart and not how hard the thing is swinging. A Colossus clawing at a
-  shielded altar takes the altar to 0 damage and the Wardbearer to **2**.
+  **enemy's own attack damage, halved** — not the flat 2 the structure would have lost, because that
+  2 is how fast masonry comes apart and not how hard the thing is swinging. A Colossus clawing at a
+  shielded altar takes the altar to 0 damage and the Wardbearer to **3**.
 - **One activation is one blow.** A Wardbearer covering two tiles of the same structure is in the way
   of both claws and is hit once. A second enemy clawing is a second blow.
 - **It never shields a `destroy` structure**, whichever side is next to it. Nobody steps in front of
@@ -531,8 +531,8 @@ the Verve does not come back.**
 **Wrecking Weight** adds its tile to the *request*, before Stagger, resistance, hold auras and
 Footing, so it composes with all of them (D-076). An Anchor still shrugs a tile off — the Vanguard's
 plain push 1 becomes 0 and his charged push 2 becomes 1. The contact damage lands *before* the shove
-and stacks with everything after it: a charged basic attack into a wall is **1 attack + 1 contact + 2
-collision = 4**. A target killed by the first two never travels.
+and stacks with everything after it: a charged basic attack into a wall is **2 attack + 2 contact + 4
+collision = 8**. A target killed by the first two never travels.
 
 **Cast** is a third displacement verb, `Throw` (D-091). **The grab is a lob**: she reaches up to 3
 tiles and nothing in between is consulted — not walls, not bodies, not hazards — so a Lobber hiding
@@ -605,9 +605,9 @@ straight-line distance, and attack range still ignores walls (D-010).
 
 | Enemy | Priority list, in order |
 |---|---|
-| **Husk** (Move 3) | 1. Player unit adjacent → **attack for 1**, without moving. 2. Else walk toward the nearest player unit, and attack if the walk lands adjacent. |
-| **Lobber** (Move 2, range 3) | 1. No player unit adjacent and one within 3 → **shoot for 1**, without moving. 2. Player unit adjacent → **retreat**, to the reachable tile that maximises the distance to the nearest player (ties: maximise total distance to all of them) — then shoot if the retreat broke contact. 3. Else advance toward the nearest player, aiming for **2–3 tiles away**, not contact (D-023) — then shoot if it arrives in range and out of melee. |
-| **Anchor** (Move 1) | 1. Player unit adjacent → **attack for 2**, without moving. 2. Else advance one tile toward the nearest, and attack if that lands adjacent. |
+| **Husk** (Move 3) | 1. Player unit adjacent → **attack for 2**, without moving. 2. Else walk toward the nearest player unit, and attack if the walk lands adjacent. |
+| **Lobber** (Move 2, range 3) | 1. No player unit adjacent and one within 3 → **shoot for 2**, without moving. 2. Player unit adjacent → **retreat**, to the reachable tile that maximises the distance to the nearest player (ties: maximise total distance to all of them) — then shoot if the retreat broke contact. 3. Else advance toward the nearest player, aiming for **2–3 tiles away**, not contact (D-023) — then shoot if it arrives in range and out of melee. |
+| **Anchor** (Move 1) | 1. Player unit adjacent → **attack for 4**, without moving. 2. Else advance one tile toward the nearest, and attack if that lands adjacent. |
 | **Grappler** (Move 3, range 3) | 1. Player unit **2–3 tiles away** → **pull 2 toward itself**, choosing (a) a unit standing on HighGround, else (b) the Archer, else lowest id. A unit already adjacent cannot be pulled (D-020). 2. Else advance toward the Archer — or the nearest player if the Archer is gone — aiming for **2–3 tiles**, and pull if it arrives in range. |
 | **Stalker** (Move 4) | 1. A player unit with a hazard on one side and a **reachable** tile on the opposite side → move to that tile and **push 1 into the hazard**. Hazards rank **pit → spikes → wall or board edge** (D-024); a hazard tile with something standing on it does not count. 2. Else walk toward the nearest player unit that is **within 2 of a hazard**. 3. Else hold position. |
 
@@ -814,9 +814,9 @@ becomes seed-plus-command-log, which is D-050's own stated fix.
 rest brings it back. Its side simply fields one fewer unit in every later fight — the slot is dropped,
 never filled with a substitute (D-049). A run with nothing left to field ends there (D-051).
 
-**Collision damage stays allegiance-blind.** A shove into a unit is 2 to *both* and staggers both,
+**Collision damage stays allegiance-blind.** A shove into a unit is 4 to *both* and staggers both,
 whoever they belong to, and nothing in the run layer special-cases teams. Slamming your own Vanguard
-into a Husk costs the Vanguard 2 real hit points that it carries to the next fight — which is what
+into a Husk costs the Vanguard 4 real hit points that it carries to the next fight — which is what
 makes the game's best interaction cost something across a run.
 
 ### The node seam
@@ -878,7 +878,7 @@ exactly. The **event log** follows: one line per event, tab-separated, five colu
 round  slot        actor            event       detail
 3      PlayerA:u0  Vanguard [A] u0  UnitMoved   (0,5) -> (2,5) cost 2 via (1,5),(2,5)
 3      PlayerA:u0  Husk [E] u5      UnitPushed  Push 2 (3,5) -> (5,5) via (4,5),(5,5)
-3      PlayerA:u0  Husk [E] u5      Collision   into terrain at (5,5), 2 damage
+3      PlayerA:u0  Husk [E] u5      Collision   into terrain at (5,5), 4 damage
 ```
 
 Units carry their id (`Husk [E] u5`) because three Husks are otherwise indistinguishable. Damage,
@@ -941,7 +941,7 @@ adjacent** to one claws at it (D-036) — a stand-in until the planner learns ab
 claw takes **2**, like every attack on a structure, however hard the thing swinging hits (D-060).
 
 A Wardbearer in **Guard Stance** standing next to the structure takes that claw instead, and takes it
-at the enemy's real damage rather than the flat 1 (D-096). One body beside the altar is the answer to
+at the enemy's real damage rather than the flat 2 (D-096). One body beside the altar is the answer to
 a siege the planner cannot yet be steered away from.
 
 **`turn-limit: N`** caps the fight. Reaching it is a loss, except under `survive`, where arriving is

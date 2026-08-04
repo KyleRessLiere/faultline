@@ -469,7 +469,7 @@ namespace Faultline.Core
                     break;
                 }
 
-                // An objective structure blocks its tile exactly as a unit does, and takes the same 2
+                // An objective structure blocks its tile exactly as a unit does, and takes the same 4
                 // for it. Collision is physics, not a rule about who is attackable: it is the one way
                 // to hurt a Destroy structure, and the reason a Protect structure is dangerous to
                 // fight next to (DECISIONS.md D-033).

@@ -8,7 +8,7 @@ number: 206
 name: The Second Shove
 description: Walls and pits set one tile apart. The first shove only staggers; the Stagger is what makes the second one lethal, and it expires at end of round.
 design: Hazard Pressure 6 of 10 — the chain.
-design: Three L-shaped cells: a wall on one axis, a pit one tile away on the other. Shove into the wall for 2 and a Stagger; the Stagger makes the NEXT displacement travel one tile further, which is exactly the tile that beats a Footing token. Stagger clears at end of round, so both halves of the chain have to happen inside one round, with two different units.
+design: Three L-shaped cells: a wall on one axis, a pit one tile away on the other. Shove into the wall for 4 and a Stagger; the Stagger makes the NEXT displacement travel one tile further, which is exactly the tile that beats a Footing token. Stagger clears at end of round, so both halves of the chain have to happen inside one round, with two different units.
 design: No high ground here on purpose: this fight is entirely about the horizontal.
 
 spawn g = Grappler

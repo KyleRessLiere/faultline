@@ -40,7 +40,7 @@ Fight 1 — the control group.
 Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
 
 
-The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 2 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
+The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 4 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
 
 
 **Asks:** Does a shove beat a swing?
@@ -173,7 +173,7 @@ AA...ln
 `the-shrine`
 
 
-Two Raiders walk two lanes at a six-hit-point shrine and never once look at you. Shove them off it, or lose it.
+Two Raiders walk two lanes at a twelve-hit-point shrine and never once look at you. Shove them off it, or lose it.
 
 
 The Raiders do not care about you. They walk at the shrine and claw it, and nothing you do to them personally makes them stop wanting to. That is the whole fantasy: the pressure is the clock of their walk, and displacement is the natural answer to a thing that will not fight back — shove them off the lane, pull them into the pits, collide them into their own escort.
@@ -211,13 +211,13 @@ wave 3 = r@3,0 h@5,0
 `break-the-gate`
 
 
-An eight-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
+A sixteen-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
 
 
 docs/CURATED_SET.md §1 fight 6 — Destroy. The review's worst opener, reborn.
 
 
-The gate is an 8 HP structure that attacks cannot touch at all. The only thing that hurts it is a collision — 2 per slam, four slams — so to win you have to throw bodies at it, which means the enemy is your ammunition. That is the game's thesis stated as a win condition.
+The gate is a 16 HP structure that attacks cannot touch at all. The only thing that hurts it is a collision — 4 per slam, four slams — so to win you have to throw bodies at it, which means the enemy is your ammunition. That is the game's thesis stated as a win condition.
 
 
 The Warden under the gate is the complication: Move 0, so unlike the Anchors it replaced it will still be standing in the gap on round 4. It is push-resistant, but a STAGGERED Warden moves — so collide a Husk from the reinforcement waves into him and he becomes the battering ram.
@@ -286,13 +286,13 @@ AA.h.l.
 `quarry-king`
 
 
-Fourteen hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
+Twenty-eight hit points and three tokens no shove can spend. Slam his own escort into him, make him fight on the rim, then put him in the hole.
 
 
 The campaign finale. Everything at once, against one body.
 
 
-He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it. Three tokens no shove can spend, stripped two ways — slam his own escort into him (2 apiece, one token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane east, so a King crawling at you the short way pays a token a round for it. At 7 HP he becomes Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
+He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it. Three tokens no shove can spend, stripped two ways — slam his own escort into him (4 apiece, one token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane east, so a King crawling at you the short way pays a token a round for it. At 14 HP he becomes Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
 
 
 9×7 board · enemies: 6× Husk, 2× Lobber, 1× QuarryKing · objective: `kill-all`
@@ -530,7 +530,7 @@ AA.l.O...BB
 > Retired: Duplicates `high-road` with more furniture; its Lobber takes zero actions in eight rounds.
 
 
-A ridge worth plus one damage and a fall on either side. The whole enemy roster exists to take you off it.
+A ridge worth plus two damage and a fall on either side. The whole enemy roster exists to take you off it.
 
 
 Board topology 5 — an elevation spine with a broken pit trough beside it.
@@ -690,7 +690,7 @@ AA...^..h
 > Retired: Half the roster (Anchor + one Stalker) takes zero actions in eight rounds; `hz-04` states the same inversion and plays.
 
 
-The narrow corridor is the only place a Stalker cannot shove you, and it dead-ends into six hit points of Anchor.
+The narrow corridor is the only place a Stalker cannot shove you, and it dead-ends into twelve hit points of Anchor.
 
 
 Board topology 9 — a hazard field with one wall-lined rail through it.
@@ -812,7 +812,7 @@ A belt of spikes with one gap. Cross it and bleed, queue for the gap and lose a 
 Hazard Pressure 2 of 10 — the route tax.
 
 
-A spike belt cuts the board in half with exactly one clean gap. Walking spikes costs 1 movement and 1 damage and does not Stagger; being SHOVED onto them costs 3 and does. Player B starts north of the belt, alone with both Lobbers, which is the clock.
+A spike belt cuts the board in half with exactly one clean gap. Walking spikes costs 1 movement and 2 damage and does not Stagger; being SHOVED onto them costs 6 and does. Player B starts north of the belt, alone with both Lobbers, which is the clock.
 
 
 Crossing IS the win: the far row is row 0, and 0,0 is the corner directly north of Player A up column 0 — five tiles and one belt of spikes away. Player B is already north of the belt but boxed in by the walls at 3,1 and 5,1 with a Lobber sitting on 6,0, so B's route to the same corner runs the length of row 0 past both Lobbers.
@@ -855,7 +855,7 @@ A four-tile ledge no shove can push you onto and the Anchor can never climb — 
 Hazard Pressure 3 of 10 — elevation cuts both ways.
 
 
-Nothing can be shoved UP onto the ledge — the lip collides — and the Anchor's Move 1 cannot pay the 2 movement to climb it, so the ledge is genuinely a fortress against it. But a Grappler prefers targets standing on HighGround, a pull off the ledge costs 1 fall damage and KEEPS TRAVELLING, and the pit at (2,1) is one step down from it.
+Nothing can be shoved UP onto the ledge — the lip collides — and the Anchor's Move 1 cannot pay the 2 movement to climb it, so the ledge is genuinely a fortress against it. But a Grappler prefers targets standing on HighGround, a pull off the ledge costs 2 fall damage and KEEPS TRAVELLING, and the pit at (2,1) is one step down from it.
 
 
 **Asks:** Is the fortress tile safe?
@@ -966,7 +966,7 @@ Walls and pits set one tile apart. The first shove only staggers; the Stagger is
 Hazard Pressure 6 of 10 — the chain.
 
 
-Three L-shaped cells: a wall on one axis, a pit one tile away on the other. Shove into the wall for 2 and a Stagger; the Stagger makes the NEXT displacement travel one tile further, which is exactly the tile that beats a Footing token. Stagger clears at end of round, so both halves of the chain have to happen inside one round, with two different units.
+Three L-shaped cells: a wall on one axis, a pit one tile away on the other. Shove into the wall for 4 and a Stagger; the Stagger makes the NEXT displacement travel one tile further, which is exactly the tile that beats a Footing token. Stagger clears at end of round, so both halves of the chain have to happen inside one round, with two different units.
 
 
 No high ground here on purpose: this fight is entirely about the horizontal.
@@ -1126,7 +1126,7 @@ Two queues of Husks with a pit at the head of each. Bodies are hazards too — a
 Hazard Pressure 10 of 10 — the other unit is terrain.
 
 
-A displacement that runs into another unit is a collision: 2 damage to BOTH of them and a Stagger on BOTH. Two Husks queued in a column are therefore one shove from being two corpses, and anything bigger comes out of the collision Staggered and travelling one tile further next time — with the pits at the head of each column waiting for it.
+A displacement that runs into another unit is a collision: 4 damage to BOTH of them and a Stagger on BOTH. Two Husks queued in a column are therefore one shove from being two corpses, and anything bigger comes out of the collision Staggered and travelling one tile further next time — with the pits at the head of each column waiting for it.
 
 
 **Asks:** Is the other unit terrain?
@@ -1646,7 +1646,7 @@ A gets a Threadcaster and a Wardbearer; B gets three attackers. A's job is to mo
 Asymmetry 4 — one player is pure support.
 
 
-A's whole roster is a rope and a shield. The shield is now an action rather than an aura, so every round A chooses between Spear Thrust's 3 damage across two tiles, weighted to the far one and Guard Stance's cover — it cannot do both. B's roster is the entire kill order.
+A's whole roster is a rope and a shield. The shield is now an action rather than an aura, so every round A chooses between Spear Thrust's 6 damage across two tiles, weighted to the far one and Guard Stance's cover — it cannot do both. B's roster is the entire kill order.
 
 
 **Asks:** Can a roster that cannot kill still win the fight?
@@ -1844,7 +1844,7 @@ Two Archers and two Threadcasters, and nobody who can stand in front of anyone. 
 Asymmetry 9 — missing tools. No Vanguard and no Wardbearer anywhere.
 
 
-Four units, four HP each, sixteen hit points on the whole board. Nothing shoves 2, and with no Wardbearer there is no Guard Stance and so no body to hide behind.
+Four units, eight HP each, thirty-two hit points on the whole board. Nothing shoves 2, and with no Wardbearer there is no Guard Stance and so no body to hide behind.
 
 
 **Asks:** Can a party with no front line hold spacing?
@@ -2001,7 +2001,7 @@ AA.......
 > Retired: the "is elevation worth 2 movement" question survives inside both
 
 
-The Archer climbs the ridge free and hits for three. Everyone else pays two movement, and the Grappler grabs whoever is standing up there first.
+The Archer climbs the ridge free and hits for six. Everyone else pays two movement, and the Grappler grabs whoever is standing up there first.
 
 
 Combat Manoeuvre 3 — the ridge.
@@ -2331,7 +2331,7 @@ Bull Rush is Push 2, and push resistance 1 turns that into exactly 1 tile. The d
 Reel is a Pull, and push resistance never reads a Pull. Player B can drag it clear from the far side.
 
 
-Paying the toll is the third option: 6 HP and 2 damage a round to whoever stands next to it.
+Paying the toll is the third option: 12 HP and 4 damage a round to whoever stands next to it.
 
 
 7×7 board · enemies: 1× Husk, 1× Lobber, 1× Warden
@@ -2360,13 +2360,13 @@ A#.h.^.
 > Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
-A Perch races you for the ridge and fires for 2 once it is up there. Take the high ground first or fight uphill all battle.
+A Perch races you for the ridge and fires for 4 once it is up there. Take the high ground first or fight uphill all battle.
 
 
 The question: what is the high ground worth when something else wants it?
 
 
-The Perch spawns one tile from a ledge and nothing is in range 3 of it, so round 1 is the climb: Move 2 pays the +1 entry cost exactly. From round 2 it shoots for 2 instead of 1, and it will not come down while anything is in range — the Archer's favourite tile is now a contested objective. A Lesser Grappler works the other side of the same idea: HighGround outranks even the Archer in its target preference, so whoever climbs gets yanked off — but only from 2 tiles, not 3.
+The Perch spawns one tile from a ledge and nothing is in range 3 of it, so round 1 is the climb: Move 2 pays the +1 entry cost exactly. From round 2 it shoots for 4 instead of 2, and it will not come down while anything is in range — the Archer's favourite tile is now a contested objective. A Lesser Grappler works the other side of the same idea: HighGround outranks even the Archer in its target preference, so whoever climbs gets yanked off — but only from 2 tiles, not 3.
 
 
 7×9 board · enemies: 1× LesserGrappler, 1× Perch
@@ -2403,10 +2403,10 @@ A Bulwark turns an enemy crowd into a formation — adjacent allies cannot be di
 The question: what is left of your best trick when they bring the counter to it?
 
 
-A shove into another unit is 2 damage to BOTH and the best value in the game. The two Husks on the north edge are two tiles apart with a Bulwark tucked behind the left one, which caps that Husk's displacement at 1 — so a Bull Rush that would normally slam it into its neighbour for a double stagger stops one tile short and touches nothing. Kill the Bulwark and the same shove works again; that restoration is the whole lesson and it fits inside two rounds.
+A shove into another unit is 4 damage to BOTH and the best value in the game. The two Husks on the north edge are two tiles apart with a Bulwark tucked behind the left one, which caps that Husk's displacement at 1 — so a Bull Rush that would normally slam it into its neighbour for a double stagger stops one tile short and touches nothing. Kill the Bulwark and the same shove works again; that restoration is the whole lesson and it fits inside two rounds.
 
 
-Note that Hold caps distance, not damage: a push of exactly 1 into a body still collides for 2.
+Note that Hold caps distance, not damage: a push of exactly 1 into a body still collides for 4.
 
 
 Two Vanguards on side A so the shove is always available and the denial is always visible.
@@ -2450,7 +2450,7 @@ No pits. No spikes. Nothing on this map deals damage except the units. Three sho
 The Harrier scores a shove by how much further from its nearest ally the target lands, and it refuses any shove that does not move the target at all. It never uses the wall.
 
 
-The ordinary Stalker has no pit and no spikes, so it falls to the third tier of its ladder and shoves you into the board edge for 2 and a Stagger. Every round. That edge is always available, which is why it is the most reliable damage in the enemy roster on a unit documented as dealing none.
+The ordinary Stalker has no pit and no spikes, so it falls to the third tier of its ladder and shoves you into the board edge for 4 and a Stagger. Every round. That edge is always available, which is why it is the most reliable damage in the enemy roster on a unit documented as dealing none.
 
 
 The Blunted Stalker has that tier switched off. Same speed, same shove, and on this board it does nothing whatsoever. That is the fix, not a bug.
@@ -2485,16 +2485,16 @@ AA.st..
 > Retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 
-Five Runts at 1 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
+Five Runts at 2 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
 
 
 The question: does the collision-into-another-unit double kill scale, or does a swarm just take longer?
 
 
-Five Runts. 1 HP each, Move 4 — as fast as a Stalker, so a Runt three tiles away is a Runt in your face. Every one of them dies to 2 collision damage, to 3 from spikes, and to the single point of fall damage off the ledge at the bottom right. They spawn in pairs and they close in a clump, which is exactly the shape a shove punishes hardest: one Vanguard basic attack aimed down a line of two is two kills for one action, no ability spent.
+Five Runts. 2 HP each, Move 4 — as fast as a Stalker, so a Runt three tiles away is a Runt in your face. Every one of them dies to 4 collision damage, to 6 from spikes, and to the 2 damage of a fall off the ledge at the bottom right. They spawn in pairs and they close in a clump, which is exactly the shape a shove punishes hardest: one Vanguard basic attack aimed down a line of two is two kills for one action, no ability spent.
 
 
-The Heavy Husk on the south edge is the control: same plan, 3 HP, and it walks out of the collision that kills everything around it. Two Vanguards on side A so there is never an excuse to swing instead of shove.
+The Heavy Husk on the south edge is the control: same plan, 6 HP, and it walks out of the collision that kills everything around it. Two Vanguards on side A so there is never an excuse to swing instead of shove.
 
 
 7×7 board · enemies: 5× Runt, 1× HeavyHusk
@@ -2529,7 +2529,7 @@ A Colossus that Push 1 and Push 2 both fail to move. Pull is unaffected — brin
 The question: what do you do when the board is not a weapon?
 
 
-Push resistance 2. Push 1 does nothing and Push 2 does nothing, so the Vanguard's basic shove and Bull Rush are both dead against it as openers — the two verbs this game normally answers everything with. Only a Stagger unlocks it: staggered, Bull Rush is an effective Push 3 and moves it exactly 1. Pull is untouched, because resistance is a Push rule and not a weight rule. The Threadcaster is therefore the answer, and the pit sitting on row 0 two tiles east of the Colossus is the payoff — Reel resolves every tile on the way, so a pull along that row puts 10 HP over the lip.
+Push resistance 2. Push 1 does nothing and Push 2 does nothing, so the Vanguard's basic shove and Bull Rush are both dead against it as openers — the two verbs this game normally answers everything with. Only a Stagger unlocks it: staggered, Bull Rush is an effective Push 3 and moves it exactly 1. Pull is untouched, because resistance is a Push rule and not a weight rule. The Threadcaster is therefore the answer, and the pit sitting on row 0 two tiles east of the Colossus is the payoff — Reel resolves every tile on the way, so a pull along that row puts 20 HP over the lip.
 
 
 The Mobile Anchor is the second lesson in the same sentence: the shrug you can ignore at Move 1 arrives at Move 2 while the fight is still on.

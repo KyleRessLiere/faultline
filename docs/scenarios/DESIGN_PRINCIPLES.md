@@ -12,10 +12,10 @@ badly under-used:
 
 | Displacement outcome | Damage | Why it is interesting |
 |---|---|---|
-| Into a **wall** or the board edge | 2, and Staggered | Available on every map. No terrain gimmick required. |
-| Into **another unit** | **2 to BOTH**, both Staggered | Turns a crowd into a liability. The best value in the game and the most overlooked. |
-| Onto **spikes** | 3, stops there, Staggered | A hard stop, not a kill. Survivable and repeatable. |
-| Off **high ground** | 1, and the shove **continues** | Chains into another outcome — this is a setup, not a finisher. |
+| Into a **wall** or the board edge | 4, and Staggered | Available on every map. No terrain gimmick required. |
+| Into **another unit** | **4 to BOTH**, both Staggered | Turns a crowd into a liability. The best value in the game and the most overlooked. |
+| Onto **spikes** | 6, stops there, Staggered | A hard stop, not a kill. Survivable and repeatable. |
+| Off **high ground** | 2, and the shove **continues** | Chains into another outcome — this is a setup, not a finisher. |
 | Into a **pit** | Clinging, then permanent | The finisher. Should feel rare and decisive. |
 
 If a battle would still work with the pits filled in, it is probably a better battle.
@@ -23,7 +23,7 @@ If a battle would still work with the pits filled in, it is probably a better ba
 ## 2. Stagger is the combo system
 
 Any unit that takes collision or spike damage is Staggered, and the **next** displacement against it
-travels one tile further. That means a first shove that "only" deals 2 sets up a second that reaches
+travels one tile further. That means a first shove that "only" deals 4 sets up a second that reaches
 something worse. Maps should give the players room to notice this and set it up deliberately.
 
 Collision damage lands on **both** parties, so shoving one enemy into another staggers two units at
@@ -43,10 +43,10 @@ usually the enemy placement, not the terrain.
 
 It already does four distinct things, and most maps use none of them:
 
-- Ranged attacks **from** it deal +1.
+- Ranged attacks **from** it deal +2.
 - Climbing costs an extra movement point — **except** for the Archer, who climbs free.
 - A unit **cannot be shoved up onto it**; the ledge collides like a wall.
-- Being shoved **off** it costs 1 and the displacement keeps going.
+- Being shoved **off** it costs 2 and the displacement keeps going.
 
 That is a position worth fighting over, a class that owns it, a defensive edge, and a chained
 punishment. Build maps where holding the high ground is the question.

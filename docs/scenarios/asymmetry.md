@@ -7,6 +7,14 @@ sizes, between the two sides of the board.
 Every file lives at `src/Faultline.Core/Fights/Data/as-NN-*.fight`. All ten parse with **zero
 errors**. Lints are listed per battle and are deliberate.
 
+> **Written at the pre-doubling scale.** Hit points, damage and healing were all multiplied by two
+> after this batch was designed, so every such figure below — a 7-HP body, a 2-damage collision, a
+> 6-HP Wardbearer — is half of what the game now uses. The asymmetries themselves are untouched: the
+> rescale was pure, so a roster that could absorb two hits still absorbs two hits, and every
+> conclusion drawn here holds. Read the numbers as relative and take `GAMEPLAY.md` for the current
+> absolutes. Counts did not double and read exactly as written — push and pull distances, ranges,
+> movement points, Pluck costs, roster sizes, enemy counts and board dimensions.
+
 Two rules that drive most of what follows, because they are easy to misremember:
 
 - **Wardbearer Hold caps a displacement at 1 — it does not cancel it.** A Stalker's Push 1 is

@@ -4,6 +4,14 @@ A verdict on every authored battle: the five campaign fights plus the five batch
 against `DESIGN_PRINCIPLES.md`, `GAMEPLAY.md` and `Rules/Ai.cs`, and driven headlessly through
 `Game.Start` + `Game.NextEnemyCommand` with passive players for eight rounds.
 
+> **Judged at the pre-doubling scale.** Every hit-point and damage figure quoted below is half of what
+> the game now uses: hit points, damage and healing were all multiplied by two after this review was
+> written. That does not move a single verdict. The rescale was pure, so every ratio the verdicts turn
+> on — how many swings a body absorbs, whether a collision finishes a Husk, which enemy outlives which
+> — is exactly as it was. Read the numbers as relative and take `GAMEPLAY.md` for the current
+> absolutes. Counts never doubled and read as written: ranges, push and pull distances, movement
+> points, Pluck costs, round limits, roster sizes and board dimensions all still mean what they say.
+
 ## Summary
 
 | Verdict | Count |

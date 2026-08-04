@@ -15,6 +15,15 @@ Everything here comes from two sources gathered on 2026-08-02, plus code verific
 implementation. *Reported* — a human's impression, not independently confirmed. *Hypothesis* — my
 inference, and the weakest kind of claim here.
 
+**The scale is worth marking as well.** All of this was gathered at the **pre-doubling scale**: hit
+points, damage and healing were each multiplied by two after these runs, so every such figure below —
+every damage total, every share table, every hits-to-kill — is half of the current one. No finding
+changes because of it. The rescale was pure, which means the proportions the findings are actually
+built on survive exactly: 87% of damage taken from attacks is still 87%, and a board that removed
+half a squad still removes half a squad. Take `GAMEPLAY.md` for the current absolutes and read these
+as relative. Counts did not double and stand as written — ranges, displacement distances, movement
+points, Pluck costs, turn limits, run lengths and the number of runs themselves.
+
 ---
 
 ## How the harness works, and what it cannot tell you

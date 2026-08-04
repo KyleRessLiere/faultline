@@ -178,7 +178,7 @@ namespace Faultline.Core
                         Ability.StaggerShot,
                         UnitKind.Archer,
                         "Stagger Shot",
-                        "Range 3. Deals 1 damage and pushes the target 1 tile directly away from you.",
+                        "Range 3. Deals 2 damage and pushes the target 1 tile directly away from you.",
                         AbilityTargeting.Enemy,
                         3, 2, 1, false, MinRange: 2),
                 },
@@ -201,8 +201,8 @@ namespace Faultline.Core
                         Ability.SpearThrust,
                         UnitKind.Wardbearer,
                         "Spear Thrust",
-                        "The two tiles directly ahead. An enemy in the adjacent tile takes 1 damage; "
-                        + "one in the tile beyond takes 2 — the tip is the sweet spot. Nothing is displaced.",
+                        "The two tiles directly ahead. An enemy in the adjacent tile takes 2 damage; "
+                        + "one in the tile beyond takes 4 — the tip is the sweet spot. Nothing is displaced.",
                         AbilityTargeting.Line,
                         2, 0, 0, false)
                     {

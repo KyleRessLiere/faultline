@@ -5,6 +5,14 @@ Every one of them is built around a property of the *board*, not of the enemy li
 bridge, a coil, a split, a ridge, a pillar, three lanes, a dead end, a rail, a corridor. The enemy
 composition on each map exists to make that shape matter.
 
+> **Written at the pre-doubling scale.** Every hit-point and damage number in this file is half the
+> current one — hit points, damage and healing were all multiplied by two after these ten maps were
+> cut. Nothing about the shapes changes with it. The rescale was pure, so a collision that traded
+> evenly still trades evenly and every claim made here about topology stands. Read the figures as
+> relative and take `GAMEPLAY.md` for the current absolutes. The counts these maps are actually built
+> on never doubled and are correct as printed: movement costs, push and pull distances, ranges, Pluck
+> costs and the grid dimensions themselves.
+
 ## The rules these maps are designed against
 
 Everything below is behaviour in `Rules/Ai.cs`, `Rules/Movement.cs` and `Displacement/`, not the

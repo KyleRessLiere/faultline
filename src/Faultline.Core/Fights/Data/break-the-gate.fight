@@ -13,9 +13,9 @@
 id: break-the-gate
 number: 6
 name: Break the Gate
-description: An eight-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
+description: A sixteen-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
 design: docs/CURATED_SET.md §1 fight 6 — Destroy. The review's worst opener, reborn.
-design: The gate is an 8 HP structure that attacks cannot touch at all. The only thing that hurts it is a collision — 2 per slam, four slams — so to win you have to throw bodies at it, which means the enemy is your ammunition. That is the game's thesis stated as a win condition.
+design: The gate is a 16 HP structure that attacks cannot touch at all. The only thing that hurts it is a collision — 4 per slam, four slams — so to win you have to throw bodies at it, which means the enemy is your ammunition. That is the game's thesis stated as a win condition.
 design: The Warden under the gate is the complication: Move 0, so unlike the Anchors it replaced it will still be standing in the gap on round 4. It is push-resistant, but a STAGGERED Warden moves — so collide a Husk from the reinforcement waves into him and he becomes the battering ram.
 
 spawn l = Lobber

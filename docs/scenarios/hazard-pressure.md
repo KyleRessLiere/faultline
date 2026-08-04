@@ -7,6 +7,14 @@ and a Stagger. Spikes are 3. A pit is the whole unit, for the whole run.
 Each battle asks a different question about that claim. They are ordered so the arithmetic
 accumulates — 201 teaches the one rule that makes pits fussy, and 210 assumes you know all of it.
 
+> **Written at the pre-doubling scale.** The damage figures in the paragraph above, and everywhere
+> below, are half the current ones — hit points, damage and healing were each multiplied by two after
+> this batch was authored. The batch's whole claim is a comparison, and comparisons survive a pure
+> rescale untouched: terrain still out-damages attacks by exactly the margin stated, and every
+> conclusion drawn here holds. Read the numbers as relative and take `GAMEPLAY.md` for the current
+> absolutes. Nothing about the token arithmetic moves either — Footing counts, effective push
+> distances, `d` and `n`, ranges, movement points and Pluck costs never doubled and read as written.
+
 ---
 
 ## The physics these boards are cut against

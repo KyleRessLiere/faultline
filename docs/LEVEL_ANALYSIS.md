@@ -10,6 +10,15 @@ Everything here was gathered on 2026-08-02 by `tools/Faultline.Playtest`.
 **Claims are marked.** *Measured* — from a run. *Verified in code* — the implementation was read.
 *Hypothesis* — inference, and the weakest kind of claim here.
 
+**The scale is marked too.** This was measured at the **pre-doubling scale**: every hit-point and
+damage figure recorded below is half of what the game now uses, because hit points, damage and
+healing were all multiplied by two after these runs were taken. Nothing measured here is invalidated
+by that. The rescale was pure, so every ratio — hits-to-kill, damage taken against damage dealt, the
+share of the squad's health a board removes — is unchanged, and so is every conclusion, including
+which levels are unfinishable and why. Read the absolutes against `GAMEPLAY.md` and the numbers here
+as relative. Counts never doubled and are exact as recorded: ranges, push and pull distances,
+movement points, Pluck costs, round limits and board dimensions.
+
 ---
 
 ## How this was produced, and what changed about the method

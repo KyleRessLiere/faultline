@@ -91,8 +91,8 @@ namespace Faultline.Core
         public static string DescriptionOf(VerveSpend spend) => spend switch
         {
             VerveSpend.WreckingWeight =>
-                "Your next push this activation travels 1 further and deals 1 damage on contact, "
-                + "on top of anything it collides into.",
+                "Your next push this activation travels 1 further and deals " + ContactDamage
+                + " damage on contact, on top of anything it collides into.",
             VerveSpend.Cast =>
                 "Pluck an enemy from up to " + Throw.GrabRange
                 + " tiles away, over anything in between, and set it down beside you. Nothing "

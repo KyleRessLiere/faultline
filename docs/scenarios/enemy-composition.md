@@ -7,6 +7,14 @@ to break the *combination* rather than to kill the units in health order.
 Files: `src/Faultline.Core/Fights/Data/ec-01-*.fight` … `ec-10-*.fight`, numbered 301–310.
 All ten parse with **zero errors**; lints are listed per battle and are deliberate.
 
+> **Written at the pre-doubling scale.** Every hit-point and damage number here — the 6-HP Anchor, the
+> Grappler's 2-per-collision, the 4 a party in a line eats each round — is half the current one. Hit
+> points, damage and healing were all multiplied by two after these boards were built. None of the
+> combinations change. The rescale was pure, so the arithmetic still balances against itself and every
+> claim about what sets up what survives intact. Read the figures as relative and take `GAMEPLAY.md`
+> for the current absolutes. Counts did not double and are exact as written: activation order,
+> displacement distances, ranges, movement points, Pluck costs and enemy counts.
+
 ---
 
 ## The behaviour these boards are built on

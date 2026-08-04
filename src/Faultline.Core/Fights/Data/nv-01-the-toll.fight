@@ -8,7 +8,7 @@ design: The question: what do you do about a thing that will not move?
 design: Player A is bottled behind a wall with exactly one way out, and a Warden is standing in it. Move 0 means the planner never even looks for a tile to walk to: its intent is Hold in round 1, Hold in round 2, and Hold in round 6. Every other enemy on this board closes; this one does not. Two counterplays are live on row 3 and both use the stat block honestly.
 design: Bull Rush is Push 2, and push resistance 1 turns that into exactly 1 tile. The door opens.
 design: Reel is a Pull, and push resistance never reads a Pull. Player B can drag it clear from the far side.
-design: Paying the toll is the third option: 6 HP and 2 damage a round to whoever stands next to it.
+design: Paying the toll is the third option: 12 HP and 4 damage a round to whoever stands next to it.
 retired: bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set
 
 spawn w = Warden
