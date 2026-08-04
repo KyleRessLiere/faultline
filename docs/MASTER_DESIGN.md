@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03p** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03q** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,12 @@ Last design session: 2026-08-03.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (q) — LOCKED: Bull Rush 3 → 2 AP (move ≤1 then charge ≤3; threat 4 — deliberate,
+  the chaser's reach: one past his walk, one short of the Archer's shot band). Rationale: the
+  signature competed with "just walk 3"; a cost should create a decision, full-pool created
+  only a sacrifice. Archer's 4-at-range-for-1 stands — her payment is the positional ledger
+  (min range, dead zone, mobility tax, Perch), settled and not reopened. Rescue stays 3
+  (full pool).
 2026-08-03 (p) — V1 REWARD POOLS drafted into §8.6 (tuning expected, content not law): mod
   lists per spender (3 each), Second Wind conditions (2/class), tactical unlocks (5), the
   permanent legendary catalog (2/class + Third Slot, each naming the law it breaks; Bulwark
@@ -251,8 +257,8 @@ Pass is a bare pass.
 
 **Action costs:** basic attacks 1 · Stagger Shot 1 · Spear Thrust 1 · Guard Stance 1 · Fisher's
 flick 1 · **Reel 2** · kick-in 0 · interact 1 · **Rescue 3 (full pool — drop everything; reach
-3 preserved)** · **Bull Rush 3 (full pool, no pre-move — his charge was always priced as
-everything)** · any Pluck spend 0.
+3 preserved)** · **Bull Rush 2 (move ≤1 first is legal; charge ≤3 unchanged — threat 4, the
+chaser's deliberate reach: one past his walk, one short of the Archer's shot band)** · any Pluck spend 0.
 
 **Design law (appended to §2 in spirit): pools are grammar.** The AP pool is uniform across all
 player ducks — differentiation lives in ACTION COSTS and EARNED upgrades (Camp's +1 AP pick,
