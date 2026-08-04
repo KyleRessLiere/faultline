@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03n** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03p** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,27 @@ Last design session: 2026-08-03.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (p) — V1 REWARD POOLS drafted into §8.6 (tuning expected, content not law): mod
+  lists per spender (3 each), Second Wind conditions (2/class), tactical unlocks (5), the
+  permanent legendary catalog (2/class + Third Slot, each naming the law it breaks; Bulwark
+  Oath and Quick Preen on probation), 4 new events (Ferryman Strait, Nesting Thief, Duckling
+  Lost, Marsh Light), and Act 1 destination payouts (high-road gilt = pick 1 of 2 permanent
+  legendaries; Sunken Cache = pick 1 of 2 legendary consumables).
+2026-08-03 (o) — LOCKED (council-reviewed): the full run/progression system. Visible lane-graph
+  acts (~7 columns, 2-3 wide) with typed node icons; comfort gradient (unequal lanes, risk buys
+  rarity as geography, reward density visible); map movement by BLIND VOTE + seeded coin on
+  splits, no re-votes; camps are GAMEPLAY-ONLY (stat lines purged — mods, kit surgery, Second
+  Winds, tactical unlocks, consumables; NO legendaries in camps — legendaries are destinations:
+  Molt, marked nodes, Strait bargains); events split OFFERS (walkable) / STRAITS (every exit
+  priced); first curse WATERLOGGED (dead slot, removal is investment; curses = the legendary
+  tier's dark mirror, each breaks one law in the bad direction); CONSUMABLES (1 pocket/duck,
+  0 AP free-timing) incl. LEGENDARY consumables (one-shot rule-breaks: Drift Scroll, Second
+  Wind Whistle, Stone Feather, Peddler's Coin, Bottled Current). Council amendments adopted:
+  Old Current bounded (first trigger/fight; unlimited form banked as legendary), bodily
+  consent (your duck's costs need your yes), first-Strait herald + act-1 Offers skew,
+  generator proof log + one offer-card surface, harness event stances + gradient telemetry.
+  V1 SCOPE: the existing campaign REMAPS as Act 1 (graph in §8); implementation sequences
+  BEHIND stall diagnosis / cb-06 tune / multi-seed table (Playtest Gate condition).
 2026-08-03 (n) — LOCKED (council verdict 4-1): the Husk JOSTLES its kin, it does not wound
   them — Shoulder vs an ally is full displacement, ZERO contact damage; board consequences
   still apply whole (wall collision 4+Stagger, drain Clinging — the tile never checks
@@ -393,44 +414,128 @@ inheritance; a lost run passes the generation with whoever sailed home). Bosses 
 boss + one per middle territory. Downed return Bedraggled (§3); swept are gone with their Pluck
 and tricks. A fully-swept side ends the run. Collision damage stays allegiance-blind.
 
-# 8.5 · The Camp, the Map, and the Molt (in-run progression)
+# 8.5 · The Map, the Camp, and the Molt (in-run progression — locked o)
 
-**Philosophy (ruled): options open early, income catches up later — the squeeze between is the
-game. Healing is geography: you route to it, you never menu to it.**
+**A run's act is a VISIBLE lane graph** (~7 columns, 2–3 nodes wide, ~11–13 nodes; a run plays
+~7): Start → middle columns → **the boss, always rendered at the end of every lane**. No fog.
+Every node wears its type: swords (kill-all) · shield (defend) · broken gate (raid) · hourglass
+(survive) · skull (elite) · `?` (event) · campfire (Rest) · boss sigil. **Lanes are unequal by
+design — the comfort gradient:** a safer lane (more campfires, plainer fights) vs a hungry lane
+(elites, maybe zero mid-lane Rest, visibly richer rewards — a gilt edge means a legendary is
+LITERALLY there, promise not probability). Floors: the pre-boss column always holds a Rest
+reachable from every lane; HP-priced events never spawn on zero-Rest lanes; act 1's `?`s skew
+Offers and the run's first Strait announces its nature in one line. Crossing edges are sparse
+(1–2 per act) — commitment is the flavor. Generator is seeded per run seed, constraint-driven,
+and must emit a proof log (which constraint bound where).
 
-**The Camp (after every combat node): pick 1 of 2 drawn offers. Pure power — no heal option.**
-Offers draw from one rarity pool; **the node you just cleared sets the odds** (standard fight:
-common/uncommon · elite or risky event: legendary chances · Molt: guaranteed big pick).
+**Moving is a VOTE:** both players blind-pick a door (masked-pick flow), reveal; match moves,
+split flips the seeded coin; **no re-votes** (the Peddler's Coin consumable is the licensed
+exception). The vote governs where we go; **bodily consent governs what we pay** — a duck's
+event costs require its owner's yes, whatever the vote said.
 
-| Tier | Contents |
+**The Camp (after every combat node): pick 1 of 2 — GAMEPLAY ONLY, never stat lines** (the
+stats tier is purged; "durability and power live inside decisions" enforced at last). The pool:
+- **Modify** — mods on owned spenders (cheaper / stronger / economy axes).
+- **Learn / Replace / Swap** — kit surgery (slot 2 fillable from act 1; swap needs kit-hook tags).
+- **Second Wind conditions** (promoted from Molt-exclusive) — new ways a duck earns Pluck.
+- **Tactical unlocks** — one-sentence rule additions per duck ("brambles cost this duck 1 AP").
+- **Consumables** — see below.
+**No legendaries in camps.** Legendaries are DESTINATIONS: the Molt, gilt-marked map nodes
+(Sunken Cache prizes, hungry-lane terminals, elite spoils where the map says so), and Strait
+bargains. Drop is always free; curses are the licensed exception.
+
+**Consumables:** each duck has **1 pocket**; use is 0 AP, free-timing in its own activation,
+one-shot. Tactical pool (camps/events): Dried Minnow (gain 2 Pluck now) · Bramble Salve (heal 3
+— legal ONLY as a carried one-shot competing for the pocket; if every pocket carries one, price
+it out of camps, never add slots) · Old Rope (rescue an adjacent clinger as a free action —
+doomed-cling's "no possible rescuer" check must include held Ropes) · Duck Feather Charm
+(refill Footing 1) · Crate of Debris (place debris on an adjacent open tile).
+**Legendary consumables (destinations only): one-shot rule-breaks, the crime printed on the
+item.** Drift Scroll (place one of your ducks on any open tile — a PLACEMENT, not a
+displacement: no throw semantics, no Footing counter, boss shell-tokens don't block it; landing
+hazards apply) · Second Wind Whistle (the activation doesn't end after its action — full AP
+refresh, once ever) · Stone Feather (this duck cannot be displaced until its next activation —
+gradients-law broken for one held breath) · Peddler's Coin (re-flip any one coin toss after
+seeing it) · Bottled Current (next Cast or Reel costs 0 Pluck).
+
+**Events — Offers and Straits.** Known-stakes final form: **no hidden dice; declared dice and
+forced bargains are legal** — every option and price printed before choosing; you are never
+owed a GOOD option. Offers have a walk-away line (in-voice, a scene not a cancel). Straits
+price every exit. V1 pool: **Molting Pool** (pay 4 HP now → +2 max HP; blocked at lethal) ·
+**The Old Current** (pay 6 HP → +1 AP for the activation after fulfilling this duck's charge
+condition, FIRST trigger each fight; the unlimited form is banked as a legendary) · **The
+Tinkerer's Raft** (a free mod — the Tinkerer picks, shown before you accept) · **The Toll Gate**
+(Offer: skip a column by fighting NOW, roster on the sign) · **The Sunken Cache** (Offer: an
+elite-grade guard between you and a printed legendary prize) · **The Peddler's Bargain**
+(Strait: a random spender from your visible class pool AND **WATERLOGGED**). Event-fights are
+authored .fight files from the trials pool, never generated.
+
+**Curses — the legendary tier's dark mirror; each breaks one law in the bad direction,
+removable at a price.** WATERLOGGED: occupies a spender slot, does nothing, cannot be dropped
+(the licensed exception to free-drop); removal = a camp pick ("scrape it off") or a Rest spent
+on it instead of heal-or-forge. Requires an open slot to be inflicted; both full → the event
+shows a printed alternate face. Un-scraped curses carry into Generations as story.
+
+**Rest nodes — the only healing:** heal ~half OR forge (a guaranteed strong camp-tier pick) OR
+scrape a curse. Preen remains the lone in-fight exception. **The Molt (boss reward):** full
+heal rides the boss Rest + the guaranteed big pick — Second Wind, Deep Mastery (3rd mod slot),
+Broad Back (cap 7), Fresh Slot Learn (3rd spender slot — camps can no longer grant it).
+
+**Harness contract:** policies take fixed event stances (decline-all baseline; one accept-all
+variant); votes are self-agreeing so coins never fire in baseline runs; per-lane clear
+telemetry is the gradient's pricing instrument. **Implementation sequences behind the Playtest
+Gate:** stall diagnosis → cb-06 tune → multi-seed three-way → then the map build.
+
+# 8.6 · V1 reward pools (content, not law — numbers expect tuning)
+
+**Mods (the Modify pool — 3 per spender, cheaper/stronger/economy):**
+| Spender | Mods |
 |---|---|
-| **Common** | stat modifiers (+2 max HP, +1 Move, +1 Footing/fight — per-duck caps stand), Pluck economy (start fights with 1 banked, small refunds) |
-| **Uncommon** | ability modifiers (cheaper / stronger / economy axes), Learn (new spender into an open slot), alternative Pluck generation (additional class-bound charge conditions — moved from Molt-exclusive into the pool), Pluck cap +1, Replace, Swap (kit-hook tags) |
-| **Legendary** | rule-breakers: each legendary breaks ONE law the game otherwise enforces, sourced from the parked list (Friendly Cast — Cast targets allies; Follow Through — move 2 after causing a collision; Kestrel Step — the Archer's paid kiting; Point Blank — Double Nock ignores min range from high ground; stance-persistence; catalog to be drafted ~2 per class). Also: 3rd slot unlock, cap +2, a spender arriving pre-modded |
+| Wrecking Weight | *Heavier* — contact damage 4 · *Freight* — +2 distance instead of +1 · *Echo* — if the charged push collides, refund 1 Pluck |
+| Cast | *Light Line* — cost 2 · *Long Rod* — grab range 4 · *Big Splash* — the landing also deals 2 to enemies adjacent to the landing tile |
+| Double Nock | *Fletcher's Rhythm* — cost 3 · *Long Draw* — both shots range 4 · *Hunter's Refund* — a killing shot refunds 1 |
+| Preen | *Thorough* — also clears his Stagger · *Neighborly* — may target an adjacent ally · *Quick* — cost 2 **(probation vs the negative-sum invariant)** |
 
-**Capacity:** 3 spender slots max per duck — slots 1–2 fillable from act 1; **slot 3 is itself a
-legendary/Molt unlock.** 2 mod slots per spender (3rd via Molt). **Drop is always free. One
-legendary per duck** — it becomes the duck's epithet; a duckling inheriting a parent's legendary
-is a natural Generations variant recipe.
+**Second Wind conditions (camp-tier; additional class-bound income):**
+Vanguard — *+1 when he Staggers an enemy* · *+1 when Bull Rush connects* ·· Fisher — *Chum the
+Water: +1 when an enemy she displaced this round is killed by anyone* · *+1 first time each
+round an enemy ends a displacement adjacent to her* ·· Archer — *+1 on kills at range 3* ·
+*+1 first time each fight she ends a round on high ground* ·· Wardbearer — *+1 when Guard
+Stance expires unabsorbed (patience pays)* · *+1 when the Spear's tip tile hits*.
 
-**The Map (per act, Spire-style):** branching nodes, 2–3 doors visible — Fight / Elite / ?
-Event / Rest / act Boss. **Healing exists only at Rest nodes**, and a Rest is a choice: **heal
-the party (~half) OR forge (a guaranteed uncommon / mastery pick)** — the campfire decision, at
-campfires. Routing to a Rest costs whatever the other doors offered. Preen remains the only
-in-fight healing — the Wardbearer is the party's only medic between campfires. Events (`?`)
-offer choices with KNOWN stakes — telegraphed outcomes, never hidden dice; deadlocks between
-players resolve by the coin-flip ceremony. (Door counts, elite frequency, event list, and the
-spoils-draft camp variant: workshop — not yet ruled.)
+**Tactical unlocks (per duck, one sentence each):** *Sure-Footed* — brambles cost this duck
+1 AP · *Climber* — high ground costs this duck 1 AP · *Steady Hands* — Rescue costs this duck
+2 AP · *Long Boot* — may Kick-in at range 2 · *Deep Pockets* — a second consumable pocket
+(rare).
 
-**The Molt (boss reward, after each act):** the guaranteed legendary-grade pick — Second Wind
-(additional charge condition), Deep Mastery (3rd mod slot), Broad Back (cap +2), Fresh Slot
-Learn (slot 3 + a spender with one free mod). Two Molts before the Locks. Full heal rides the
-act-boss Rest.
+**Permanent legendary catalog (destinations only; one per duck = its epithet; the broken law
+printed on each):**
+| Class | Legendary | The crime |
+|---|---|---|
+| Vanguard | **Follow Through** — move 2 after causing a collision | no movement after acting |
+| Vanguard | **Aftershock** — his collisions deal 2 to every enemy adjacent to the impact | impacts strike one body |
+| Archer | **Kestrel Step** — move 2 after shooting | no movement after acting |
+| Archer | **Point Blank** — minimum range ignored entirely | the dead zone |
+| Fisher | **Friendly Cast** — Cast may target allies (throw semantics; landing hazards apply) | abilities target enemies |
+| Fisher | **Twin Lines** — one Reel pulls two enemies on the same line | one target per action |
+| Wardbearer | **Deep Roots** — Guard Stance persists through his next activation (he may act while it holds) | stance timing |
+| Wardbearer | **Bulwark Oath** — once per fight, grant an adjacent ally 1 Footing | Footing scarcity **(probation)** |
+| Any | **Third Slot** — unlock spender slot 3 | the two-slot cap |
 
-**Hard rules:** upgrades never touch BASIC attack or collision numbers; spender-effect mods may
-scale within the ladder, never exceeding 6, all Pluck-gated. Stat picks capped per duck; drawn
-camp offers differ in category where possible. **If spirals prove unrecoverable in playtest, the
-dial is Rest-node frequency on the map — never a menu heal.**
+**Events, four more (joining §8.5's six):**
+**The Ferryman** (Strait) — the crossing is paid: EVERY duck pays 3 HP, OR one duck of your
+choice empties its Pluck meter to 0. Pick the poison; both faces printed. · **The Nesting
+Thief** (Offer) — a magpie has your kind's things: fight (event pool) to take back a shown
+legendary consumable; walk away and it keeps it. · **The Duckling Lost** (Offer) — an escort
+vignette: a neutral duckling unit must survive the fight; reward a consumable and a Generations
+story tag ("the ones who went back"). · **The Marsh Light** (Offer) — follow it: arrive at ANY
+node of your choice in the next column, but every duck arrives at −2 HP. Route freedom, priced
+in blood.
+
+**Act 1 destination payouts (v1):** high-road (Elite, gilt) — **pick 1 of 2 permanent
+legendaries** (seeded draw, both shown). · Sunken Cache — **pick 1 of 2 legendary consumables**
+(shown on the sign beside the guard roster). · Toll Gate — the reward IS the skipped column. ·
+Quarry King — the Molt, as ruled.
 
 # 9 · World & tone
 
