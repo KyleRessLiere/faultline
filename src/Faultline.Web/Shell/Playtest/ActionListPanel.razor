@@ -17,9 +17,10 @@
 
 @if (Session.SelectedUnit is not null)
 {
-    @* Deliberately not class="actions": app.css carries a global .actions from the old action bar
-       that lays its children out as a wrapping flex row, and a section that inherits it puts the
-       action rows beside the preview instead of above it. *@
+    @* Named action-list, not actions: app.css used to carry a global .actions from the old action
+       bar that laid its children out as a wrapping flex row, which put these rows beside the
+       preview instead of above it. That global is gone now, but the specific name stays - a
+       component that owns its own layout should not answer to a page-wide selector. *@
     <div class="action-list">
         <p class="section-head">Actions <span class="section-note">move, then act — an action ends the activation</span></p>
 

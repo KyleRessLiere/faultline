@@ -439,13 +439,6 @@ h2 {
 
 /* Action bar */
 
-.actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-    margin: 0 0 .7rem;
-}
-
 button.mode {
     background: #262a33;
     border: 1px solid var(--line);
