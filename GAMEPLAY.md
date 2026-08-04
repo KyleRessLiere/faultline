@@ -7,15 +7,22 @@ The other docs answer different questions:
 
 | Doc | Answers |
 |---|---|
-| `AGENT_BRIEF.md` | What the game is *meant* to be, and what it is still growing into. The spec; wins over everything. |
+| **`docs/MASTER_DESIGN.md`** | **What the game is *meant* to be. The design authority.** Inbound-only — never edited here. |
+| `AGENT_BRIEF.md` | The original brief the project grew out of, and the M1–M6 acceptance list. **Historical**, not authority. |
 | `docs/archive/AGENT_BRIEF_v1.md` | The original MVP brief. D-001 to D-029 argue with *this*, not the current one. |
 | **`GAMEPLAY.md`** | **What the game *is*, today.** Updated in the same change as the rules it describes. |
 | `DECISIONS.md` | Why the two differ, wherever they do. |
 | `FIGHT_FORMAT.md` | How to author a battle. The `.fight` file reference — characters, keys, errors, lints. |
 | `CHANGELOG.md` | When things landed. |
 
-If this file and `AGENT_BRIEF.md` disagree, that is either a bug or a missing `DECISIONS.md` entry —
-flag it, don't quietly pick one.
+**The hierarchy is `docs/MASTER_DESIGN.md` (intent) > `GAMEPLAY.md` (as-built) > `DECISIONS.md`
+(why they differ).** `AGENT_BRIEF.md` is historical: where it and MASTER_DESIGN disagree, MASTER_DESIGN
+is the intent and the brief is the record of how we got here. If this file and MASTER_DESIGN disagree,
+that is either unbuilt design or a missing `DECISIONS.md` entry — flag it, never quietly pick one.
+
+*(This block said AGENT_BRIEF was "the spec; wins over everything" for months after MASTER_DESIGN
+took over, and `tools/export_handoff.py` copied the claim into every generated handoff — so the
+wrong hierarchy was being taught to each new session. Fixed together.)*
 
 **Milestones built: M1 (rules skeleton), M2 (displacement), M3 (enemy AI), M5 (Verve).** The collapse
 clock and the commander cards are not built. Momentum is not either, and never will be — Verve
