@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03q** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03s** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,20 @@ Last design session: 2026-08-03.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (s) — PROPOSAL recorded (council-endorsed unanimously, incl. the Thesis-Keeper's
+  first no-reservation endorsement — NOT yet locked, designer holding): "The Four Waters" —
+  every progression moment declares a station: the Current (camps: offers drift past, snatch
+  one, the rest washes downstream), the Dive (the Still Pond's forge: head under, held
+  breath), the Raft & the Road (events: the only station where someone talks to you), the
+  Nest (the Molt, later town/Generations: picks woven into what the ducklings hatch in).
+  Constants if adopted: one offer-card component under all wrappers (flat + legible on
+  focus), stations are presentation over unchanged commands, paint ships on the art track
+  behind the Playtest Gate; station ASSIGNMENTS would lock immediately so UI sessions stop
+  guessing. See §8.7.
+2026-08-03 (r) — Tone lock: Rest nodes are PONDS, not campfires — ducks rest on still water
+  (map icon: a calm pond; "more campfires on the safe lane" reads "more ponds"; Rest screen
+  fiction: glide on, tuck the head, heal or forge at the Still Pond). Display/fiction only —
+  node type identifier stays Rest per §15 decoupling.
 2026-08-03 (q) — LOCKED: Bull Rush 3 → 2 AP (move ≤1 then charge ≤3; threat 4 — deliberate,
   the chaser's reach: one past his walk, one short of the Archer's shot band). Rationale: the
   signature competed with "just walk 3"; a cost should create a decision, full-pool created
@@ -425,8 +439,8 @@ and tricks. A fully-swept side ends the run. Collision damage stays allegiance-b
 **A run's act is a VISIBLE lane graph** (~7 columns, 2–3 nodes wide, ~11–13 nodes; a run plays
 ~7): Start → middle columns → **the boss, always rendered at the end of every lane**. No fog.
 Every node wears its type: swords (kill-all) · shield (defend) · broken gate (raid) · hourglass
-(survive) · skull (elite) · `?` (event) · campfire (Rest) · boss sigil. **Lanes are unequal by
-design — the comfort gradient:** a safer lane (more campfires, plainer fights) vs a hungry lane
+(survive) · skull (elite) · `?` (event) · **a still pond (Rest)** · boss sigil. **Lanes are unequal by
+design — the comfort gradient:** a safer lane (more ponds, plainer fights) vs a hungry lane
 (elites, maybe zero mid-lane Rest, visibly richer rewards — a gilt edge means a legendary is
 LITERALLY there, promise not probability). Floors: the pre-boss column always holds a Rest
 reachable from every lane; HP-priced events never spawn on zero-Rest lanes; act 1's `?`s skew
@@ -482,8 +496,8 @@ removable at a price.** WATERLOGGED: occupies a spender slot, does nothing, cann
 on it instead of heal-or-forge. Requires an open slot to be inflicted; both full → the event
 shows a printed alternate face. Un-scraped curses carry into Generations as story.
 
-**Rest nodes — the only healing:** heal ~half OR forge (a guaranteed strong camp-tier pick) OR
-scrape a curse. Preen remains the lone in-fight exception. **The Molt (boss reward):** full
+**Rest nodes — the Still Pond, the only healing:** ducks glide on and tuck their heads — heal
+~half OR forge (a guaranteed strong camp-tier pick) OR scrape a curse. Preen remains the lone in-fight exception. **The Molt (boss reward):** full
 heal rides the boss Rest + the guaranteed big pick — Second Wind, Deep Mastery (3rd mod slot),
 Broad Back (cap 7), Fresh Slot Learn (3rd spender slot — camps can no longer grant it).
 
@@ -542,6 +556,33 @@ in blood.
 legendaries** (seeded draw, both shown). · Sunken Cache — **pick 1 of 2 legendary consumables**
 (shown on the sign beside the guard roster). · Toll Gate — the reward IS the skipped column. ·
 Quarry King — the Molt, as ruled.
+
+# 8.7 · PROPOSAL — The Four Waters (pick-scene stations; council-endorsed, not locked)
+
+**Status: proposal.** Every progression moment would declare a duck-fiction station, so the
+scene itself teaches which economy the player is in — four registers of one substance, the
+game's stakes told in states of water:
+
+1. **The Current** (camps): offers drift past on moving surface water; snatch one; the
+   unpicked washes downstream AFTER you choose. Surface-lit, drift loops, never timed — the
+   fiction IS the mechanic (seeded draw + discard made diegetic).
+2. **The Dive** (the Still Pond's forge): head under — murk, fish, held breath. The committed
+   pick, entered by SPENDING your Rest; the plunge-and-muffle transition is the "this one is
+   serious" signal.
+3. **The Raft & the Road** (events): characters and bargains — the Peddler's raft, the Toll
+   Gate, the Ferryman. The only station where someone talks to you; the shop fiction fenced
+   into events where currency-implication cannot leak into camps.
+4. **The Nest** (the Molt; later town/Generations): permanence — picks woven in; the nest you
+   feather is the one the ducklings hatch in (gives the Nesting Grounds their visual language
+   for free).
+
+**Constants (bind on adoption):** one offer-card component under all wrappers — any floating
+option resolves flat, lit, and legible on focus, identical across scenes; stations are pure
+presentation over unchanged commands (CampPickCommand does not know about fish); every future
+progression moment must declare or reuse a station; the Current's drift is the one wrapper
+where motion is load-bearing (budget it first; static-ship the others); paint ships on the art
+track behind the Playtest Gate. Fish carry permanents, bubbles hold consumables — caught vs
+popped. If adopted, station ASSIGNMENTS lock immediately (they are design); art defers.
 
 # 9 · World & tone
 
