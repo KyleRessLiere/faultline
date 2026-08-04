@@ -178,7 +178,7 @@
     }
 
     private bool Aiming =>
-        Session.AimingCast || Session.AimingRescue
+        Session.AimingCast || Session.AimingRescue || Session.AimingPocket
         || (Session.Mode == ActionMode.Ability && Session.ArmedAbility is not null);
 
     /// <summary>The outcome sentence, or nothing when the preview is switched off.</summary>
@@ -254,6 +254,7 @@
             Session.ToggleRescue(target);
         }
 
+        Session.ClearPocketAim();
         Session.SetMode(ActionMode.Move);
     }
 

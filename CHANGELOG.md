@@ -1,5 +1,24 @@
 # Changelog
 
+## A Crate of Debris can be placed — one-shots are aimed on the board
+
+- **Fixes a reported bug (D-136).** Pressing a pocket item with more than one legal use did
+  **nothing**: `UsePocket` submitted only when Core offered exactly one command, and the item itself
+  was disabled whenever there were several. A Crate of Debris beside open ground offers one command
+  per adjacent tile, so it could never be placed from the control a player actually presses.
+- **The board aims it now.** Pressing the item arms `ActionMode.Pocket`; the tiles come out of the
+  same `Targets` map an ability, a cast and a rescue use, the board lights them, hovering one says
+  what it does, and clicking one places the debris. An Old Rope lights the hanging allies first and
+  the side they come up on second — and skips straight to the side when only one is hanging.
+- **The sidebar's column of coordinate buttons is gone.** One aiming surface, so the board and the
+  panel can never disagree about what is on offer. What is left is the line saying what the lit
+  tiles are asking for, and a Cancel.
+- **Nothing in `Faultline.Core` changed.** `Consumables.DebrisTiles` and `Game.LegalCommands` were
+  right the whole time; the fault was entirely in the shell.
+- **No path leaves the item pressed with nothing happening and nothing said** — a `[Theory]` over
+  all five one-shots pins it, and `tools/ui-checks/pocket-check.mjs` plays an Act 1 run until a camp
+  deals a Crate, then presses it and places it in a real browser.
+
 ## The camp has a screen — the run can leave it again
 
 - **Fixes a live blocker.** A won fight put the run at `RunPhase.AtCamp` and nothing on any screen
@@ -14,8 +33,8 @@
 - **A duck with nothing on the table says why**: a full spender is dealt no mods, a full pocket no
   one-shots, read off `DuckLoadout`.
 - **The pocket is on the battle screen**, beside the Pluck meter: the one-shot's name, its rule text,
-  a **0 AP** badge, the reason on it when it cannot come out, and a button per Core-offered target for
-  the two items that need aiming.
+  a **0 AP** badge, and the reason on it when it cannot come out. The two items that need aiming were
+  first shipped with a list of coordinate buttons here; they are aimed on the board instead (D-136).
 - **The save carries `at-camp` and every duck's loadout (D-134).** Neither was being written: a reload
   at a camp walked the run back onto the fight it had just won, and a duck came back stripped of
   everything the camps had given it. `at-vote` moved out of the map-only block for the same reason.

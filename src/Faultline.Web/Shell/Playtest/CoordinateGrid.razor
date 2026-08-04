@@ -335,6 +335,14 @@
             return;
         }
 
+        // An Old Rope aims twice for the same reason Cast does — who first, then which side they
+        // come up on — so the first click chooses rather than commits. Everything else in the
+        // pocket names a tile and is committed by Session.Targets below, like any other aim.
+        if (Session.AimPocketAt(coord))
+        {
+            return;
+        }
+
         // Aiming a cast takes the click first, in the order it aims: pick the enemy, then the tile.
         if (Session.AimingCast)
         {

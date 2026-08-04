@@ -8,9 +8,10 @@
    the badge is an AP badge because that genuinely is the budget it does not empty.
 
    Nothing here decides whether it may be used: the row comes from ActionRows, which reads
-   Consumables.Legal through the session's legal list, and every target button below submits a
-   command Core handed over. An item that needs aiming is not aimed here; its legal targets are
-   listed and the click picks one. *@
+   Consumables.Legal through the session's legal list, and pressing it submits a command Core handed
+   over. An item with more than one use is *aimed on the board* — the same surface an ability, a
+   cast and a rescue are aimed with. It used to be a column of coordinate buttons here, and pressing
+   the item itself did nothing at all (D-136). *@
 
 @if (Unit is { } unit && unit.Loadout.Pocket is { } item && Row is { } row)
 {
@@ -21,8 +22,8 @@
         </p>
 
         <button type="button"
-                class="item @(row.Available ? string.Empty : "short")"
-                disabled="@(!row.Available || Targets.Count > 1)"
+                class="item @(row.Available ? string.Empty : "short") @(Session.AimingPocket ? "armed" : string.Empty)"
+                disabled="@(!row.Available)"
                 title="@row.Name — @row.Effect"
                 @onclick="Use">
             <span class="item-head">
@@ -36,23 +37,13 @@
             }
         </button>
 
-        @* An Old Rope needs somebody to haul and somewhere to put them; a Crate needs a tile. Core
-           returns one command per legal combination, so the choices are listed rather than aimed —
-           there is nothing for this file to work out. *@
-        @if (row.Available && Targets.Count > 1)
+        @* The board carries the choice; this line only says what the highlighted tiles mean. There
+           is deliberately no second list of coordinates beside it — one surface for aiming, so the
+           board and the sidebar can never disagree about what is on offer. *@
+        @if (Session.AimingPocket)
         {
             <p class="aim">@AimText(item)</p>
-            <ul class="targets">
-                @foreach (var target in Targets)
-                {
-                    var command = target;
-                    <li>
-                        <button type="button" class="target" @onclick="() => Session.Submit(command)">
-                            @Label(command)
-                        </button>
-                    </li>
-                }
-            </ul>
+            <button type="button" class="cancel" @onclick="Use">Cancel</button>
         }
     </div>
 }
@@ -82,30 +73,24 @@
         }
     }
 
-    /// <summary>Every use Core is offering for this duck's pocket right now.</summary>
-    private IReadOnlyList<UseConsumableCommand> Targets => Session.PocketCommands;
-
+    /// <summary>
+    /// Presses the item. Never a no-op: one legal use fires, several arm the board, and pressing it
+    /// again while armed puts it away. <see cref="GameSession.UsePocket"/> owns all three.
+    /// </summary>
     private void Use() => Session.UsePocket();
 
-    private static string AimText(Consumable item) => item switch
+    /// <summary>What the highlighted tiles are asking for, at whichever stage the aim is at.</summary>
+    private string AimText(Consumable item)
     {
-        Consumable.OldRope => "Pick who to haul out, and the tile to set them down on.",
-        _ => "Pick the tile.",
-    };
-
-    /// <summary>
-    /// What one target button says: who is being hauled and where they land, or the tile a crate goes
-    /// on. Coordinates are <see cref="BoardCoords"/>' labels, never Core's zero-based pair.
-    /// </summary>
-    private string Label(UseConsumableCommand command)
-    {
-        string where = command.To is { } tile ? BoardCoords.Of(tile) : string.Empty;
-
-        if (command.TargetId is { } who && State.FindUnit(who) is { } unit)
+        if (Session.PocketPicksWho)
         {
-            return unit.Name + " → " + where;
+            return "Click whoever to haul out — they are lit on the board.";
         }
 
-        return where;
+        return item switch
+        {
+            Consumable.OldRope => "Click the side to set them down on — lit on the board.",
+            _ => "Click a lit tile on the board to place it.",
+        };
     }
 }

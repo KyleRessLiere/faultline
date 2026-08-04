@@ -23,4 +23,15 @@ public enum ActionMode
 
     /// <summary>Kicking a clinging enemy off the ledge.</summary>
     Finish = 5,
+
+    /// <summary>
+    /// The one-shot in the duck's pocket, when there is more than one way to use it.
+    /// </summary>
+    /// <remarks>
+    /// A mode rather than a list beside the board, because a one-shot that needs aiming is aimed:
+    /// the Crate picks a tile and the Rope picks who to haul, and both are choices the board can
+    /// draw. It used to be a column of coordinate buttons in the sidebar, and pressing the item
+    /// itself did nothing at all — see D-136.
+    /// </remarks>
+    Pocket = 6,
 }

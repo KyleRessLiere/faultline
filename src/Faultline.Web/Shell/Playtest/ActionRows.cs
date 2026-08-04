@@ -412,7 +412,7 @@ public static class ActionRows
 
         yield return new ActionRow(
             ActionKind.Pocket,
-            ActionMode.Move,
+            ActionMode.Pocket,
             CampCatalogue.NameOf(item),
             CampCatalogue.SummaryOf(item),
             available,
@@ -420,7 +420,7 @@ public static class ActionRows
             Activation.Free,
             reason,
             "One-shot. Free timing inside this duck's own activation, and it does not end it.",
-            false,
+            session.AimingPocket,
             Block: available ? TargetingBlock.None : Block(state, unit));
     }
 

@@ -415,6 +415,7 @@ public sealed class GameSession
         Untouched = false;
         ClearCast();
         ClearRescue();
+        ClearPocketAim();
 
         if (_run is not null)
         {
@@ -761,11 +762,12 @@ public sealed class GameSession
         Mode = ActionMode.Move;
         ArmedAbility = null;
 
-        // A half-aimed cast or rescue is aimed at a position that is about to stop existing. It used
-        // to survive a rewind, which left the board drawing landing tiles for a grab that had been
-        // taken back.
+        // A half-aimed cast, rescue or one-shot is aimed at a position that is about to stop
+        // existing. It used to survive a rewind, which left the board drawing landing tiles for a
+        // grab that had been taken back.
         ClearCast();
         ClearRescue();
+        ClearPocketAim();
 
         // Keyed to what the player asked for, not to whether a recorder happens to exist: a new
         // fight in a session that is recording is a new fight that records.
@@ -1387,6 +1389,8 @@ public sealed class GameSession
                     return "Haul the clinging ally out. Costs your action — and closes your move.";
                 case FinishClingingCommand:
                     return "Kick it off the ledge — gone for the run. Free action.";
+                case UseConsumableCommand use:
+                    return DescribePocket(unit, use);
                 default:
                     return null;
             }
@@ -1417,17 +1421,139 @@ public sealed class GameSession
     /// <summary>Whether the selected duck may use what is in its pocket this instant.</summary>
     public bool CanUsePocket => PocketCommands.Count > 0;
 
+    /// <summary>True while a one-shot is being aimed on the board.</summary>
+    /// <remarks>
+    /// Keyed to the selection as well as the mode: with nothing selected the pocket section is
+    /// drawing whatever duck the inspector is reading, and an armed badge on that one would be
+    /// pointing at an aim it does not own.
+    /// </remarks>
+    public bool AimingPocket => Mode == ActionMode.Pocket && Selected is not null;
+
     /// <summary>
-    /// Submits the one-shot when there is exactly one way to use it. An item that needs a target
-    /// picks one first — the section draws a button per Core-offered target and submits that.
+    /// Who an Old Rope is aimed at, once the ally has been chosen. Null for an item that aims at
+    /// tiles only, and null in the first stage of aiming a Rope at one of several hanging allies.
     /// </summary>
+    public UnitId? PocketTarget { get; private set; }
+
+    /// <summary>
+    /// Which stage the aim is at: true while the click still chooses <em>who</em> rather than where.
+    /// </summary>
+    public bool PocketPicksWho =>
+        AimingPocket && PocketTarget is null && PocketCommands.Any(u => u.TargetId is not null);
+
+    /// <summary>
+    /// Presses the one-shot. <b>Never a no-op.</b> One way to use it submits it; several enter
+    /// aiming so the board can draw them; pressing it again while aiming puts it away.
+    /// </summary>
+    /// <remarks>
+    /// It used to submit only when Core offered exactly one command and do nothing at all otherwise,
+    /// which made a Crate of Debris beside open ground unusable from the obvious control — the
+    /// choice was a column of coordinate buttons in the sidebar and the item itself was dead
+    /// (D-136). Aiming is the same surface an ability uses: <see cref="Mode"/> plus
+    /// <see cref="Targets"/>, highlighted on the board, committed by clicking a tile.
+    /// </remarks>
     public void UsePocket()
     {
         var commands = PocketCommands;
+
+        // Nothing to press. The row is disabled and carries Core's own reason, so this is only
+        // reachable by code — never by a player looking at a live button.
+        if (commands.Count == 0)
+        {
+            return;
+        }
+
         if (commands.Count == 1)
         {
             Submit(commands[0]);
+            return;
         }
+
+        if (AimingPocket)
+        {
+            ClearPocketAim();
+            Changed?.Invoke();
+            return;
+        }
+
+        Mode = ActionMode.Pocket;
+        ArmedAbility = null;
+        Hovered = null;
+
+        // One hanging ally is not a choice, so a Rope with exactly one skips straight to the side
+        // it sets them down on. Making the player click the only candidate first would be ceremony.
+        PocketTarget = SoleTarget(commands);
+        Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// Takes a board click as the first half of a two-stage pocket aim — which hanging ally the Rope
+    /// hauls — and says whether it did.
+    /// </summary>
+    /// <remarks>
+    /// The same shape as <see cref="AimCastAt"/>: an item that aims at a unit and then at a tile
+    /// cannot commit on the first click, so that click chooses instead of submitting. False leaves
+    /// the click to whatever else the board would have done with it.
+    /// </remarks>
+    /// <param name="coord">Tile clicked.</param>
+    /// <returns>Whether the click was consumed by the aim.</returns>
+    public bool AimPocketAt(Coord coord)
+    {
+        if (!PocketPicksWho)
+        {
+            return false;
+        }
+
+        foreach (var use in PocketCommands)
+        {
+            if (use.TargetId is { } id
+                && State.FindUnit(id) is { IsOnBoard: true } ally
+                && ally.Position == coord)
+            {
+                PocketTarget = id;
+                Hovered = null;
+                Changed?.Invoke();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Stops aiming the pocket, whether the one-shot was used or the aim abandoned.</summary>
+    public void ClearPocketAim()
+    {
+        if (Mode == ActionMode.Pocket)
+        {
+            Mode = DefaultModeFor(SelectedUnit);
+        }
+
+        PocketTarget = null;
+    }
+
+    /// <summary>The one unit every offered use names, or null when they name none or several.</summary>
+    private static UnitId? SoleTarget(IReadOnlyList<UseConsumableCommand> commands)
+    {
+        UnitId? only = null;
+
+        foreach (var use in commands)
+        {
+            if (use.TargetId is not { } id)
+            {
+                return null;
+            }
+
+            if (only is null)
+            {
+                only = id;
+            }
+            else if (only.Value != id)
+            {
+                return null;
+            }
+        }
+
+        return only;
     }
 
     /// <summary>Tiles the current player may deploy onto.</summary>
@@ -1512,10 +1638,40 @@ public sealed class GameSession
                 case FinishClingingCommand finish when mode == ActionMode.Finish:
                     Add(map, finish.ClingingId, finish);
                     break;
+
+                case UseConsumableCommand use when mode == ActionMode.Pocket:
+                    AddPocket(map, use);
+                    break;
             }
         }
 
         return map;
+    }
+
+    // Which tile issues a one-shot is the item's own shape, read off the command Core handed over:
+    // a Crate names a tile and nothing else, a Rope names somebody and a tile. The Rope's two
+    // halves are two clicks — the ally's own tile first, then the side she comes up on — so the
+    // first stage draws whoever is hanging and the second draws the cone.
+    private void AddPocket(Dictionary<Coord, Command> map, UseConsumableCommand use)
+    {
+        if (use.TargetId is { } targetId)
+        {
+            if (PocketTarget is null)
+            {
+                Add(map, targetId, use);
+                return;
+            }
+
+            if (targetId != PocketTarget.Value)
+            {
+                return;
+            }
+        }
+
+        if (use.To is { } tile)
+        {
+            map[tile] = use;
+        }
     }
 
     // Which tiles issue this command is decided by the ability's shape, never by which of the
@@ -1711,6 +1867,30 @@ public sealed class GameSession
         return displacement is null ? head : head + ", " + Describe(descriptor.PullsToAdjacent ? "reel in" : "push", displacement);
     }
 
+    /// <summary>
+    /// What emptying the pocket onto this tile would do. Every figure is Core's — the crate's hit
+    /// points come from <see cref="Consumables.DebrisHp"/>, never from a number written here.
+    /// </summary>
+    private string DescribePocket(Unit unit, UseConsumableCommand use)
+    {
+        string name = unit.Loadout.Pocket is { } item ? CampCatalogue.NameOf(item) : "the one-shot";
+
+        if (PocketPicksWho)
+        {
+            var hanging = use.TargetId is { } id ? State.FindUnit(id) : null;
+            return hanging is null
+                ? name + " — pick who to haul out."
+                : name + " — haul " + hanging.Name + " out, then pick the side.";
+        }
+
+        if (use.TargetId is { } targetId && State.FindUnit(targetId) is { } ally)
+        {
+            return "Haul " + ally.Name + " out and set them down here. Costs no points.";
+        }
+
+        return name + " — a blocker with " + Consumables.DebrisHp(State) + " hit points, here. Costs no points.";
+    }
+
     private string Describe(string verb, DisplacementPreview? preview)
     {
         if (preview is null)
@@ -1839,6 +2019,7 @@ public sealed class GameSession
         FinishClingingCommand f => f.UnitId,
         EndActivationCommand e => e.UnitId,
         DeployCommand d => d.UnitId,
+        UseConsumableCommand u => u.UnitId,
         _ => UnitId.None,
     };
 }

@@ -149,12 +149,13 @@ in this file when the question comes back.
 | D-129 | [§8.6's twelve mods, eight Second Winds, four unlocks and five consumables ship. Deep Pockets, the legendary consumables and Learn/Replace/Swap do not.](#d-129-86s-twelve-mods-eight-second-winds-four-unlocks-and-five-consumables-ship-deep-pockets-the-legendary-consumables-and-learnreplaceswap-do-not) | 2026-08-04 |  |
 | D-130 | [Quick Preen ships at cost 2, unflagged: the negative-sum invariant is about the heal, not the price.](#d-130-quick-preen-ships-at-cost-2-unflagged-the-negative-sum-invariant-is-about-the-heal-not-the-price) | 2026-08-04 |  |
 | D-131 | [Old Rope makes any living ally holding one a "possible rescuer" for the doomed-cling sweep, without asking whether it could reach.](#d-131-old-rope-makes-any-living-ally-holding-one-a-possible-rescuer-for-the-doomed-cling-sweep-without-asking-whether-it-could-reach) | 2026-08-04 |  |
-| D-132 | [A camp offer arrives already bound to its duck, so the camp screen names the duck and offers no way to change it. There is no target-duck selector.](#d-132-a-camp-offer-arrives-already-bound-to-its-duck-so-the-camp-screen-names-the-duck-and-offers-no-way-to-change-it-there-is-no-target-duck-selector) | unreleased |  |
-| D-133 | [The camp is picked on one screen with both tables shown and each player confirming their own. It does not borrow the vote's masked-pick ceremony.](#d-133-the-camp-is-picked-on-one-screen-with-both-tables-shown-and-each-player-confirming-their-own-it-does-not-borrow-the-votes-masked-pick-ceremony) | unreleased |  |
-| D-134 | [The run save writes `at-camp` and each duck's loadout. Neither was being written, so a camp and everything the camps had given the squad were lost on reload.](#d-134-the-run-save-writes-at-camp-and-each-ducks-loadout-neither-was-being-written-so-a-camp-and-everything-the-camps-had-given-the-squad-were-lost-on-reload) | unreleased |  |
-| D-135 | [The run log prints display names. Five lines were spelling `UnitKind` straight, so the Fisher appeared on screen as "Threadcaster".](#d-135-the-run-log-prints-display-names-five-lines-were-spelling-unitkind-straight-so-the-fisher-appeared-on-screen-as-threadcaster) | unreleased |  |
+| D-132 | [A camp offer arrives already bound to its duck, so the camp screen names the duck and offers no way to change it. There is no target-duck selector.](#d-132-a-camp-offer-arrives-already-bound-to-its-duck-so-the-camp-screen-names-the-duck-and-offers-no-way-to-change-it-there-is-no-target-duck-selector) | 2026-08-04 |  |
+| D-133 | [The camp is picked on one screen with both tables shown and each player confirming their own. It does not borrow the vote's masked-pick ceremony.](#d-133-the-camp-is-picked-on-one-screen-with-both-tables-shown-and-each-player-confirming-their-own-it-does-not-borrow-the-votes-masked-pick-ceremony) | 2026-08-04 |  |
+| D-134 | [The run save writes `at-camp` and each duck's loadout. Neither was being written, so a camp and everything the camps had given the squad were lost on reload.](#d-134-the-run-save-writes-at-camp-and-each-ducks-loadout-neither-was-being-written-so-a-camp-and-everything-the-camps-had-given-the-squad-were-lost-on-reload) | 2026-08-04 |  |
+| D-135 | [The run log prints display names. Five lines were spelling `UnitKind` straight, so the Fisher appeared on screen as "Threadcaster".](#d-135-the-run-log-prints-display-names-five-lines-were-spelling-unitkind-straight-so-the-fisher-appeared-on-screen-as-threadcaster) | 2026-08-04 |  |
+| D-136 | [A one-shot that needs aiming is aimed on the board, in the same surface abilities and rescues use. Pressing the item is never a no-op, and the sidebar's coordinate list is gone.](#d-136-a-one-shot-that-needs-aiming-is-aimed-on-the-board-in-the-same-surface-abilities-and-rescues-use-pressing-the-item-is-never-a-no-op-and-the-sidebars-coordinate-list-is-gone) | unreleased |  |
 
-**134 rulings.**
+**135 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3048,3 +3049,43 @@ shipped and no test looked at it.
 **Rejected: renaming the enum member.** That is precisely what §15 exists to avoid — it would churn
 every command log, every fixture and every ruling that cites `UnitKind.Threadcaster` by name, in
 exchange for nothing a player can see. A pinning test now walks all five event lines.
+
+**D-136 — A one-shot that needs aiming is aimed on the board, in the same surface abilities and
+rescues use. Pressing the item is never a no-op, and the sidebar's coordinate list is gone.**
+
+Reported as "Crate of Debris cannot be placed". It could not: `GameSession.UsePocket` submitted only
+when Core offered **exactly one** command, and a Crate beside open ground offers one per adjacent
+tile. `PocketSection` drew those as a column of coordinate buttons in the sidebar and **disabled the
+item itself** whenever there were several — so a player who pressed the obvious control got nothing,
+no highlight and no sentence. Core was right throughout: `Consumables.DebrisTiles` and
+`Game.LegalCommands` had the tiles all along, and nothing in Core changed here.
+
+Pressing the item now arms `ActionMode.Pocket`. The tiles come out of the same `Targets` map every
+other aim uses, the board lights them and paints them with the same class, hovering one reads its
+outcome through `PreviewText`, and clicking one submits the command Core handed over. An Old Rope
+aims twice — who, then which side they come up on — exactly as Cast (D-091) and Rescue (D-093) do;
+with one ally hanging it skips the first stage, because one candidate is not a choice.
+
+**The sidebar list is dropped, not kept beside it.** Board-first is the house rule — the board
+carries the outcome and the sidebar supports it — and a second surface offering the same choice is
+what produced this bug: the list was the only way to use the item and it was nowhere near where the
+player was looking. What is left beside the meter is one line saying what the lit tiles are asking
+for, and a Cancel.
+
+**Rejected: keeping the list and merely enabling the item to open it.** That leaves two places a
+target can be picked from and two places for them to disagree, which is the failure mode CLAUDE.md
+names for the fourth parallel mechanism. **Rejected: making the item fire its first legal command.**
+Choosing where a wall goes is the decision; picking one for the player is worse than doing nothing.
+
+**Why the tests missed it, which matters as much as the fix.** The 30 Core `ConsumableTests` ask
+`Consumables.Legal` and `Consumables.Use` and both answered correctly — they prove the rule exists,
+never that a player can reach it. The 8 `PocketUiTests` went further and **pinned the bug as
+intended**: `AnItemThatNeedsATarget_ListsCoresOwnCommands_AndNothingElse` asserted that
+`session.UsePocket()` leaves the pocket full ("a choice still to be made is a choice, so the primary
+button does not fire one blindly") and counted `class="target"` buttons in the sidebar. Both
+assertions were true of a screen nobody could use. No test in either suite asked what the *board*
+does when the item is pressed, and no browser check ever pressed one. The new rule is the one the
+suite was missing: **no path leaves the item pressed with nothing happening and nothing said** —
+a `[Theory]` over all five one-shots, plus `tools/ui-checks/pocket-check.mjs`, which plays an Act 1
+run until a camp deals a Crate, walks the carrier somewhere with room, presses the item and clicks a
+lit tile.
