@@ -338,13 +338,30 @@ public static class PlaytestText
             : "—";
     }
 
-    /// <summary>What an objective structure is and how it can be hurt.</summary>
+    /// <summary>What a structure is and how it can be hurt.</summary>
+    /// <remarks>
+    /// The damage figures interpolate Core's constants rather than retyping them (D-112). This text
+    /// used to claim a Destroy structure was "immune to attacks", which D-060 had already stopped
+    /// being true: every structure takes <see cref="Objectives.AttackDamageToStructure"/> from a
+    /// swing and <see cref="Displacement.CollisionDamage"/> from a slam.
+    /// </remarks>
     /// <param name="structure">Structure to describe.</param>
     /// <returns>A tooltip sentence.</returns>
-    public static string Structure(Structure structure) =>
-        structure.Role == ObjectiveKind.Protect
-            ? $"Protect this — {structure.Hp}/{structure.MaxHp} HP. Enemies claw at it from adjacent tiles."
-            : $"Destroy this — {structure.Hp}/{structure.MaxHp} HP. Immune to attacks; only collision damage counts.";
+    public static string Structure(Structure structure)
+    {
+        string hurt = $"An attack takes {Objectives.AttackDamageToStructure}; a collision takes "
+            + $"{Displacement.CollisionDamage}.";
+
+        if (structure.IsBlocker)
+        {
+            return $"Breakable blocker — {structure.Hp}/{structure.MaxHp} HP. Break it to open the tile. "
+                + hurt;
+        }
+
+        return structure.Role == ObjectiveKind.Protect
+            ? $"Protect this — {structure.Hp}/{structure.MaxHp} HP. Enemies claw at it from adjacent tiles. {hurt}"
+            : $"Destroy this — {structure.Hp}/{structure.MaxHp} HP. {hurt}";
+    }
 
     /// <summary>
     /// Names as a person would say them: "A", "A or B", "A, B or C".

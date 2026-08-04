@@ -724,9 +724,11 @@ and `ById()` still resolves it so it stays playable when selected (D-039). **27 
 battles are retired; 38 are active.**
 
 **Structures are drawn on the board.** `S` and `D` mark where a `protect` or `destroy` structure
-stands. The terrain underneath is Open. The mark must agree with the `objective:` line's tile and
-kind, or the file does not load — the coordinate is authored twice so the parser can notice when the
-two drift apart (D-040).
+stands, and `X` marks a breakable blocker. The terrain underneath is Open in all three cases. An `S`
+or `D` must agree with the `objective:` line's tile and kind, or the file does not load — the
+coordinate is authored twice so the parser can notice when the two drift apart (D-040). An `X` is
+authored once, on the grid, and takes its hit points from the board-wide `blocker-hp:` key; an `X`
+with no key, or a key with no `X`, is an error (D-114).
 
 ### Building a fight without writing one
 
@@ -939,9 +941,24 @@ and finally the turn limit.
 
 **Structures** are board state, not units (D-035). A structure blocks its tile like a unit, and when
 it is destroyed the tile clears — which can open a route. Protect defaults to 12 HP and Destroy to 16,
-both authorable. A Protect structure can be attacked; a Destroy structure cannot, and **collision is
-the only thing that hurts it** — 4 per slam, so four slams for a default 16 HP. Because collision is
-universal physics, shoving an enemy into a structure you are guarding damages it too.
+both authorable. **Every structure is attackable and an attack takes exactly 2 off it**, whatever the
+weapon and whoever swung it (D-060); **a collision lands its full 4**, so the board stays the better
+answer without being the only one. Because collision is universal physics, shoving an enemy into a
+structure you are guarding damages it too.
+
+In practice only two things a player has reach masonry at all: a **collision**, and the Wardbearer's
+**Spear Thrust**, which is the only attack aimed at a tile rather than at a unit. A basic attack
+names a target unit and so can never be pointed at a structure.
+
+**Breakable blockers** are structures that are nobody's objective (D-114). A board writes one as `X`
+on the grid with a `blocker-hp: N` key; the terrain underneath is Open, so the tile is ordinary floor
+once the masonry is down. They are the same physics as an objective structure — they occupy their
+tile, take 2 from an attack and 4 from a collision, and leave rubble that stops blocking — and differ
+in exactly one way: **bringing one down neither wins nor loses the fight, and no enemy ever besieges
+one.** A 6 HP blocker is three Spear Thrusts, or one shove plus one thrust.
+
+`broken-bridge` is the board that has them: two 6 HP blockers at `(2,2)` and `(4,4)`, one over each
+crossing of the trench. Until one falls the two halves of that board cannot reach each other.
 
 Enemies do not yet path toward a Protect structure. Instead an enemy that **ends its activation
 adjacent** to one claws at it (D-036) — a stand-in until the planner learns about structures. The

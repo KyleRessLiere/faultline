@@ -70,6 +70,24 @@ namespace Faultline.Core
         public IReadOnlyList<Coord> ProtectedZone { get; init; } = new Coord[0];
 
         /// <summary>
+        /// Tiles carrying a breakable blocker, in row-major order — the <c>X</c> marks on the grid.
+        /// Empty for every board that has none, which is nearly all of them.
+        /// </summary>
+        /// <remarks>
+        /// A blocker is a <see cref="Structure"/> that is nobody's objective: it stands in the way,
+        /// it can be brought down, and its rubble opens the tile. That is why it is authored here and
+        /// not on the <c>objective:</c> line — a wall you can break is terrain with hit points, not a
+        /// win condition (DECISIONS.md D-114).
+        /// </remarks>
+        public IReadOnlyList<Coord> Blockers { get; init; } = new Coord[0];
+
+        /// <summary>
+        /// Hit points every blocker on this board starts with, from the <c>blocker-hp:</c> key. Zero
+        /// when the board has no blockers.
+        /// </summary>
+        public int BlockerHp { get; init; }
+
+        /// <summary>
         /// What winning means. Defaults to <see cref="Objective.KillAll"/>, so a file with no
         /// <c>objective:</c> key plays exactly as it did before objectives existed.
         /// </summary>
@@ -191,6 +209,7 @@ namespace Faultline.Core
                 && string.Equals(Description, other.Description, StringComparison.Ordinal)
                 && string.Equals(RetiredReason, other.RetiredReason, StringComparison.Ordinal)
                 && TurnLimit == other.TurnLimit
+                && BlockerHp == other.BlockerHp
                 && Board.Equals(other.Board)
                 && Objective.Equals(other.Objective)
                 && Same(DesignNotes, other.DesignNotes)
@@ -200,6 +219,7 @@ namespace Faultline.Core
                 && Same(RosterB, other.RosterB)
                 && Same(Enemies, other.Enemies)
                 && Same(ProtectedZone, other.ProtectedZone)
+                && Same(Blockers, other.Blockers)
                 && Same(FootingGrants, other.FootingGrants)
                 && SameWaves(Waves, other.Waves);
         }
@@ -215,6 +235,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Description ?? string.Empty);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(RetiredReason ?? string.Empty);
                 hash = (hash * 31) + TurnLimit;
+                hash = (hash * 31) + BlockerHp;
                 hash = (hash * 31) + Board.GetHashCode();
                 hash = (hash * 31) + Objective.GetHashCode();
                 hash = Fold(hash, DesignNotes);
@@ -224,6 +245,7 @@ namespace Faultline.Core
                 hash = Fold(hash, RosterB);
                 hash = Fold(hash, Enemies);
                 hash = Fold(hash, ProtectedZone);
+                hash = Fold(hash, Blockers);
                 hash = Fold(hash, FootingGrants);
 
                 foreach (var wave in Waves)

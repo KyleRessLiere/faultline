@@ -31,6 +31,19 @@ namespace Faultline.Core
         /// <summary>Whether the fight wants this kept alive or brought down.</summary>
         public ObjectiveKind Role { get; init; } = ObjectiveKind.Protect;
 
+        /// <summary>
+        /// True for a <b>breakable blocker</b>: masonry that is in the way and nobody's objective.
+        /// Bringing one down neither wins nor loses the fight — it opens the tile it stood on.
+        /// </summary>
+        /// <remarks>
+        /// A blocker is the same physics as an objective structure and deliberately reuses it: it
+        /// occupies its tile, it takes the flat chip from an attack and the full amount from a
+        /// collision, and its rubble stops blocking. What it is <em>not</em> is a win condition, so
+        /// <see cref="Objectives.AnyStructureStanding"/> ignores it and the enemy has no reason to
+        /// besiege it. That separation is the whole of the flag (DECISIONS.md D-114).
+        /// </remarks>
+        public bool IsBlocker { get; init; }
+
         /// <summary>True while the structure still blocks its tile.</summary>
         public bool IsStanding => Hp > 0;
 
@@ -44,6 +57,6 @@ namespace Faultline.Core
         /// What is left is whose objective the thing is: the enemy besieges what the players defend,
         /// and has no reason to help them bring down a structure they were sent to destroy.
         /// </remarks>
-        public bool IsSiegeTarget => Role == ObjectiveKind.Protect;
+        public bool IsSiegeTarget => !IsBlocker && Role == ObjectiveKind.Protect;
     }
 }

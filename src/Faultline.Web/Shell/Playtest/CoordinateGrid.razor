@@ -104,7 +104,7 @@
                     else if (State.StructureAt(cell) is { } structure)
                     {
                         <span class="art structure" title="@PlaytestText.Structure(structure)">
-                            @(structure.Role == ObjectiveKind.Protect ? "▣" : "▩")
+                            @StructureGlyph(structure)
                         </span>
                         <span class="hp">@structure.Hp/@structure.MaxHp</span>
                     }
@@ -449,6 +449,13 @@
         GameSession.CanInspect(unit)
         && !IsDeployTarget(coord)
         && !Session.Targets.ContainsKey(coord);
+
+    /// <summary>
+    /// Which slab a structure draws as. A breakable blocker gets its own so it does not read as the
+    /// fight's objective, which it is not (D-114).
+    /// </summary>
+    private static string StructureGlyph(Structure structure) =>
+        structure.IsBlocker ? "▦" : structure.Role == ObjectiveKind.Protect ? "▣" : "▩";
 
     private string CellClass(Coord coord, Unit? unit)
     {

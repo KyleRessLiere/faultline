@@ -31,6 +31,13 @@ namespace Faultline.Core
         /// </summary>
         public const char StructureDestroy = 'D';
 
+        /// <summary>
+        /// A breakable blocker: masonry standing on the tile, with the hit points the
+        /// <c>blocker-hp:</c> key gives it. The terrain underneath is Open, so when the blocker comes
+        /// down the tile is ordinary floor and the way through opens (DECISIONS.md D-114).
+        /// </summary>
+        public const char Blocker = 'X';
+
         /// <summary>Parses a fight file.</summary>
         /// <param name="text">Whole file contents.</param>
         /// <returns>The fight when it is playable, plus every error and lint found.</returns>
@@ -141,7 +148,7 @@ namespace Faultline.Core
                     issues.Add(new FightIssue(
                         FightIssueCode.MalformedLine,
                         "'" + symbol[0] + "' already means something on the board (terrain . # O ^ H, deploy slot A B, "
-                        + "or structure mark S D). Pick another letter for this spawn — lower-case reads best.",
+                        + "structure mark S D, or blocker X). Pick another letter for this spawn — lower-case reads best.",
                         lineNo));
                     return;
                 }
@@ -229,6 +236,19 @@ namespace Faultline.Core
                 case "protected": header.Protected = value; header.ProtectedLine = lineNo; break;
                 case "footing": header.Footing = value; header.FootingLine = lineNo; break;
                 case "objective": header.Objective = value; header.ObjectiveLine = lineNo; break;
+                case "blocker-hp":
+                    header.HasBlockerHp = true;
+                    header.BlockerHpLine = lineNo;
+                    if (!int.TryParse(value, out int blockerHp))
+                    {
+                        issues.Add(new FightIssue(FightIssueCode.BadValue, "'" + value + "' is not a number.", lineNo));
+                    }
+                    else
+                    {
+                        header.BlockerHp = blockerHp;
+                    }
+
+                    break;
                 case "turn-limit":
                     if (!int.TryParse(value, out int limit))
                     {
@@ -253,7 +273,7 @@ namespace Faultline.Core
                     issues.Add(new FightIssue(
                         FightIssueCode.UnknownKey,
                         "Unknown key '" + key + "'. Known keys: id, name, description, design, retired, "
-                        + "number, roster a, roster b, objective, turn-limit, protected, footing, board.",
+                        + "number, roster a, roster b, objective, turn-limit, blocker-hp, protected, footing, board.",
                         lineNo));
                     break;
             }
@@ -657,6 +677,16 @@ namespace Faultline.Core
                         continue;
                     }
 
+                    // A breakable blocker stands on Open floor, so the tile is walkable the moment
+                    // the masonry is rubble. Writing Wall underneath would make the crossing it
+                    // guards impossible to open, which is the whole point of the mark (D-114).
+                    if (c == Blocker)
+                    {
+                        built.Blockers.Add(at);
+                        tiles.Add(TileType.Open);
+                        continue;
+                    }
+
                     if (header.Spawns.TryGetValue(c, out var kind))
                     {
                         built.Spawns.Add(new EnemySpawn(kind, at));
@@ -676,7 +706,7 @@ namespace Faultline.Core
                     issues.Add(new FightIssue(
                         code,
                         "Character '" + c + "' at " + at + " is not terrain (. # O ^ H), a deploy slot (A B), "
-                        + "a structure mark (S D), or a declared spawn. Add 'spawn " + c
+                        + "a structure mark (S D), a breakable blocker (X), or a declared spawn. Add 'spawn " + c
                         + " = <UnitKind>' above the board.",
                         lineNo));
                     fatal = true;
@@ -743,6 +773,7 @@ namespace Faultline.Core
             var objective = ReadObjective(header.Objective, header.ObjectiveLine, board, issues);
 
             CheckStructureMarks(grid.StructureMarks, objective, issues);
+            CheckBlockers(grid.Blockers, header, boardStartLine, issues);
 
             return new FightDefinition
             {
@@ -759,11 +790,48 @@ namespace Faultline.Core
                 DeploymentZoneB = grid.ZoneB,
                 Enemies = grid.Spawns,
                 ProtectedZone = protectedZone,
+                Blockers = grid.Blockers,
+                BlockerHp = grid.Blockers.Count > 0 ? header.BlockerHp : 0,
                 FootingGrants = footing,
                 Objective = objective,
                 TurnLimit = header.TurnLimit,
                 Waves = waves,
             };
+        }
+
+        /// <summary>
+        /// Checks the <c>X</c> marks against the <c>blocker-hp:</c> key. Unlike a structure mark,
+        /// there is nothing to cross-check a coordinate against — a blocker is authored once, on the
+        /// grid — so the only thing that can disagree is whether it has hit points at all.
+        /// </summary>
+        private static void CheckBlockers(
+            List<Coord> blockers,
+            Header header,
+            int boardStartLine,
+            List<FightIssue> issues)
+        {
+            if (blockers.Count > 0 && header.BlockerHp < 1)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.BlockerHpMissing,
+                    blockers.Count + " breakable blocker(s) marked '" + Blocker + "' on the board, but "
+                    + (header.HasBlockerHp
+                        ? "'blocker-hp:' asks for " + header.BlockerHp + " hit point(s)."
+                        : "there is no 'blocker-hp:' key.")
+                    + " Add 'blocker-hp: <n>' with 1 or more, or use '" + BoardLayout.Wall
+                    + "' for a wall that cannot be broken.",
+                    header.HasBlockerHp ? header.BlockerHpLine : boardStartLine));
+                return;
+            }
+
+            if (blockers.Count == 0 && header.HasBlockerHp)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.BlockerHpUnused,
+                    "'blocker-hp:' gives hit points to blockers, but no '" + Blocker
+                    + "' appears on the board. Mark one, or delete the key.",
+                    header.BlockerHpLine));
+            }
         }
 
         /// <summary>
@@ -1304,7 +1372,7 @@ namespace Faultline.Core
 
         private static bool IsReserved(char c) =>
             c == DeployA || c == DeployB || c == StructureProtect || c == StructureDestroy
-            || TryParseTile(c, out _);
+            || c == Blocker || TryParseTile(c, out _);
 
         private static bool TryParseTile(char c, out TileType tile)
         {
@@ -1382,6 +1450,12 @@ namespace Faultline.Core
 
             public int TurnLimitLine { get; set; }
 
+            public bool HasBlockerHp { get; set; }
+
+            public int BlockerHp { get; set; }
+
+            public int BlockerHpLine { get; set; }
+
             public List<RawWave> Waves { get; } = new List<RawWave>();
 
             public Dictionary<char, UnitKind> Spawns { get; } = new Dictionary<char, UnitKind>();
@@ -1415,6 +1489,8 @@ namespace Faultline.Core
             public List<EnemySpawn> Spawns { get; } = new List<EnemySpawn>();
 
             public List<StructureMark> StructureMarks { get; } = new List<StructureMark>();
+
+            public List<Coord> Blockers { get; } = new List<Coord>();
 
             public HashSet<char> UsedSpawnChars { get; } = new HashSet<char>();
         }

@@ -135,6 +135,45 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Everything the fight puts on the board with hit points: the objective's structure, then
+        /// every breakable blocker the grid marked, in that order.
+        /// </summary>
+        /// <remarks>
+        /// One list, because a blocker is the same physics as an objective structure and every rule
+        /// that already reads <see cref="GameState.Structures"/> should treat it identically. Only
+        /// the win condition tells them apart, and that is what <see cref="Structure.IsBlocker"/> is
+        /// for (DECISIONS.md D-114).
+        /// </remarks>
+        /// <param name="fight">The fight being started.</param>
+        /// <returns>Every structure the fight starts with.</returns>
+        public static IReadOnlyList<Structure> Build(FightDefinition fight)
+        {
+            if (fight is null)
+            {
+                throw new ArgumentNullException(nameof(fight));
+            }
+
+            var structures = new List<Structure>(Build(fight.Objective ?? Objective.KillAll));
+
+            foreach (var tile in fight.Blockers)
+            {
+                structures.Add(new Structure
+                {
+                    At = tile,
+                    Hp = fight.BlockerHp,
+                    MaxHp = fight.BlockerHp,
+
+                    // Bring it down, so every rules-text surface that reads the role says the true
+                    // thing about what to do with it. IsBlocker is what stops it also *winning*.
+                    Role = ObjectiveKind.Destroy,
+                    IsBlocker = true,
+                });
+            }
+
+            return structures;
+        }
+
+        /// <summary>
         /// Takes hit points off a structure and emits what happened. Every point of damage a
         /// structure ever takes funnels through here, so rubble is produced in exactly one place.
         /// </summary>
@@ -409,13 +448,18 @@ namespace Faultline.Core
         }
 
         /// <summary>True while any objective structure still stands.</summary>
+        /// <remarks>
+        /// Breakable blockers do not count. This question decides whether a Protect fight has been
+        /// lost or a Destroy fight won, and a wall somebody knocked through to get across the map is
+        /// neither (DECISIONS.md D-114).
+        /// </remarks>
         /// <param name="state">Current state.</param>
-        /// <returns>Whether at least one structure has hit points left.</returns>
+        /// <returns>Whether at least one objective structure has hit points left.</returns>
         public static bool AnyStructureStanding(GameState state)
         {
             foreach (var structure in state.Structures)
             {
-                if (structure.IsStanding)
+                if (structure.IsStanding && !structure.IsBlocker)
                 {
                     return true;
                 }

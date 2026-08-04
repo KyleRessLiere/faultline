@@ -128,6 +128,14 @@ namespace Faultline.Core
                 AppendKey(text, "turn-limit", fight.TurnLimit.ToString(CultureInfo.InvariantCulture));
             }
 
+            // Written whenever the board carries an X, because the mark alone does not say how much
+            // masonry it is; a board with no blockers writes no key and round-trips byte-identically.
+            if (fight.Blockers is not null && fight.Blockers.Count > 0)
+            {
+                text.Append(Newline);
+                AppendKey(text, "blocker-hp", fight.BlockerHp.ToString(CultureInfo.InvariantCulture));
+            }
+
             if (fight.ProtectedZone is not null && fight.ProtectedZone.Count > 0)
             {
                 text.Append(Newline);
@@ -183,6 +191,14 @@ namespace Faultline.Core
                 foreach (var tile in fight.Objective.Tiles)
                 {
                     grid[Index(board, tile, "objective structure")] = mark;
+                }
+            }
+
+            if (fight.Blockers is not null)
+            {
+                foreach (var tile in fight.Blockers)
+                {
+                    grid[Index(board, tile, "breakable blocker")] = FightParser.Blocker;
                 }
             }
 
@@ -319,15 +335,17 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// The nine characters that already mean something on the board — five terrain, two deploy
-        /// slots, two structure marks. A spawn letter would win the parser's matching race against
-        /// terrain, so <see cref="FightParser"/> rejects these outright.
+        /// The ten characters that already mean something on the board — five terrain, two deploy
+        /// slots, two structure marks and the breakable blocker. A spawn letter would win the
+        /// parser's matching race against terrain, so <see cref="FightParser"/> rejects these
+        /// outright.
         /// </summary>
         private static bool IsReserved(char c) =>
             c == FightParser.DeployA
             || c == FightParser.DeployB
             || c == FightParser.StructureProtect
             || c == FightParser.StructureDestroy
+            || c == FightParser.Blocker
             || c == BoardLayout.Open
             || c == BoardLayout.Wall
             || c == BoardLayout.Pit

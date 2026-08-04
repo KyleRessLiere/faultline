@@ -121,18 +121,19 @@ in this file when the question comes back.
 | D-101 | [A Footing grant adds tokens; it never takes an archetype's own away.](#d-101-a-footing-grant-adds-tokens-it-never-takes-an-archetypes-own-away) | 2026-08-03 |  |
 | D-102 | [The Warden is a door you break down, not a door that never opens.](#d-102-the-warden-is-a-door-you-break-down-not-a-door-that-never-opens) | 2026-08-03 |  |
 | D-103 | [The activation order is published as a strip of portraits, and a portrait is an inspection handle.](#d-103-the-activation-order-is-published-as-a-strip-of-portraits-and-a-portrait-is-an-inspection-handle) | 2026-08-04 |  |
-| D-104 | [The Great Doubling: every hit point, every point of damage and every point of healing is multiplied by two.](#d-104-the-great-doubling-every-hit-point-every-point-of-damage-and-every-point-of-healing-is-multiplied-by-two) | unreleased |  |
-| D-105 | [A player activation is three action points, and everything is bought out of the one purse.](#d-105-a-player-activation-is-three-action-points-and-everything-is-bought-out-of-the-one-purse) | unreleased |  |
-| D-106 | [A rescue is a fused move-and-grab costing the whole AP pool, and it can fail with the pool already spent.](#d-106-a-rescue-is-a-fused-move-and-grab-costing-the-whole-ap-pool-and-it-can-fail-with-the-pool-already-spent) | unreleased |  |
-| D-107 | [The purse and the legs are different questions: `Activation.Remaining` is not `Unit.MoveRemaining`.](#d-107-the-purse-and-the-legs-are-different-questions-activationremaining-is-not-unitmoveremaining) | unreleased |  |
-| D-108 | [The Archer's minimum range does not apply when she is shooting downhill, which MASTER_DESIGN had said all along and the code had never done.](#d-108-the-archers-minimum-range-does-not-apply-when-she-is-shooting-downhill-which-masterdesign-had-said-all-along-and-the-code-had-never-done) | unreleased |  |
-| D-109 | [A downed duck returns Bedraggled: a quarter of its maximum, and no round-1 activation.](#d-109-a-downed-duck-returns-bedraggled-a-quarter-of-its-maximum-and-no-round-1-activation) | unreleased |  |
-| D-110 | [Stagger Shot's "same minimum range" means the same rule, exception included.](#d-110-stagger-shots-same-minimum-range-means-the-same-rule-exception-included) | unreleased |  |
-| D-111 | [The Warden could never take its rescue slot: a latent D-072 violation, fixed by asking whether a unit has *spent* movement rather than whether it has any left.](#d-111-the-warden-could-never-take-its-rescue-slot-a-latent-d-072-violation-fixed-by-asking-whether-a-unit-has-spent-movement-rather-than-whether-it-has-any-left) | unreleased |  |
-| D-112 | [No display string retypes a rule number; it interpolates the constant that holds it.](#d-112-no-display-string-retypes-a-rule-number-it-interpolates-the-constant-that-holds-it) | unreleased |  |
-| D-113 | [A side has exactly one colour token, declared at `:root`, and the playtest palette may not draw a side.](#d-113-a-side-has-exactly-one-colour-token-declared-at-root-and-the-playtest-palette-may-not-draw-a-side) | unreleased |  |
+| D-104 | [The Great Doubling: every hit point, every point of damage and every point of healing is multiplied by two.](#d-104-the-great-doubling-every-hit-point-every-point-of-damage-and-every-point-of-healing-is-multiplied-by-two) | 2026-08-04 |  |
+| D-105 | [A player activation is three action points, and everything is bought out of the one purse.](#d-105-a-player-activation-is-three-action-points-and-everything-is-bought-out-of-the-one-purse) | 2026-08-04 |  |
+| D-106 | [A rescue is a fused move-and-grab costing the whole AP pool, and it can fail with the pool already spent.](#d-106-a-rescue-is-a-fused-move-and-grab-costing-the-whole-ap-pool-and-it-can-fail-with-the-pool-already-spent) | 2026-08-04 |  |
+| D-107 | [The purse and the legs are different questions: `Activation.Remaining` is not `Unit.MoveRemaining`.](#d-107-the-purse-and-the-legs-are-different-questions-activationremaining-is-not-unitmoveremaining) | 2026-08-04 |  |
+| D-108 | [The Archer's minimum range does not apply when she is shooting downhill, which MASTER_DESIGN had said all along and the code had never done.](#d-108-the-archers-minimum-range-does-not-apply-when-she-is-shooting-downhill-which-masterdesign-had-said-all-along-and-the-code-had-never-done) | 2026-08-04 |  |
+| D-109 | [A downed duck returns Bedraggled: a quarter of its maximum, and no round-1 activation.](#d-109-a-downed-duck-returns-bedraggled-a-quarter-of-its-maximum-and-no-round-1-activation) | 2026-08-04 |  |
+| D-110 | [Stagger Shot's "same minimum range" means the same rule, exception included.](#d-110-stagger-shots-same-minimum-range-means-the-same-rule-exception-included) | 2026-08-04 |  |
+| D-111 | [The Warden could never take its rescue slot: a latent D-072 violation, fixed by asking whether a unit has *spent* movement rather than whether it has any left.](#d-111-the-warden-could-never-take-its-rescue-slot-a-latent-d-072-violation-fixed-by-asking-whether-a-unit-has-spent-movement-rather-than-whether-it-has-any-left) | 2026-08-04 |  |
+| D-112 | [No display string retypes a rule number; it interpolates the constant that holds it.](#d-112-no-display-string-retypes-a-rule-number-it-interpolates-the-constant-that-holds-it) | 2026-08-04 |  |
+| D-113 | [A side has exactly one colour token, declared at `:root`, and the playtest palette may not draw a side.](#d-113-a-side-has-exactly-one-colour-token-declared-at-root-and-the-playtest-palette-may-not-draw-a-side) | 2026-08-04 |  |
+| D-114 | [A wall that has to come down is masonry with hit points, not a turn limit: `broken-bridge`'s two crossings become breakable blockers of 6.](#d-114-a-wall-that-has-to-come-down-is-masonry-with-hit-points-not-a-turn-limit-broken-bridges-two-crossings-become-breakable-blockers-of-6) | unreleased |  |
 
-**112 rulings.**
+**113 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2262,3 +2263,67 @@ surface/side combinations — which sees the truth but only for the screens it v
 either check alone.** The original bug was three declarations each of which passed inspection
 individually; only comparing rendered surfaces to one another would have found it, and only the
 source rule stops the next one being written.
+
+**D-114 — A wall that has to come down is masonry with hit points, not a turn limit: `broken-bridge`'s
+two crossings become breakable blockers of 6.**
+Supersedes nothing. Extends D-033 (a structure is board state, not a unit) and D-060 (an attack chips
+any structure for a flat 2) to a structure that is nobody's objective.
+
+**What forced it:** `--connectivity` reported `broken-bridge` as the only board of 38 with "a split
+the objective cannot cross", and the three evaluator policies had been sitting on it at **round 61**
+for two sessions with eight legal moves, Guard Stance and End activation, against an enemy declaring
+`Hold`. The trench row `OO.O.OO` leaves exactly two open tiles, and each was sealed on one side by a
+wall — `(2,2)` above `(2,3)`, `(4,4)` below `(4,3)` — so neither was a crossing. Movement is four-way
+over walkable tiles, so the board was two boards. With **Kill All and no turn limit**, a squad whose
+other half was down could **neither win nor lose**: not a hard fight, a fight with no terminating
+state at all. Recorded against `docs/LEVEL_ANALYSIS.md` §"Stop 1" and the stalemate class D-067
+named.
+
+**The two walls become blockers with 6 hit points.** A blocker is drawn `X` on the grid, takes its
+hit points from a board-wide `blocker-hp:` key, and stands on **Open** terrain — so the tile is
+ordinary floor the moment the masonry is rubble, which is the only sense in which "breakable" means
+anything.
+
+**Rejected: deleting one of the walls**, which is what `docs/handoffs/2026-08-02-level-analysis.md`
+proposed and what the connectivity tool's phrasing invites. It fixes the arithmetic and throws away
+the board: a trench with a permanently open crossing is a corridor, and the thing that made this
+battle worth keeping — a one-tile choke with a drain on each side — is only a choke while getting to
+it costs something.
+
+**Rejected: adding a turn limit.** It converts a fight with no agency into a *loss* with no agency,
+which is worse and not better: the player would now be told they had failed at a board that never
+offered them a move. A clock is the right answer to a fight that drags; it is never the answer to a
+fight that cannot end.
+
+**Rejected: giving the blocker its own type.** It is a `Structure` with one bool. Everything already
+true of masonry — it occupies its tile, a displacement into it collides for
+`Displacement.CollisionDamage`, an attack chips it for `Objectives.AttackDamageToStructure`, its
+rubble stops blocking — is exactly what a blocker needs, and a parallel type would have been a second
+copy of all of it. `Structure.IsBlocker` says the one thing that differs: **it is nobody's win
+condition.** `Objectives.AnyStructureStanding` skips it, so a Protect fight cannot be lost by
+knocking a wall through, and `IsSiegeTarget` is false, so nothing besieges it.
+
+**Rejected: authoring the blocker's tile twice**, the way `S`/`D` are cross-checked against the
+`objective:` line (D-040). That duplication buys something there — the objective needs the coordinate
+for its win condition, so two statements of it can disagree and the parser's job is to notice. A
+blocker's coordinate exists in one place, the grid, so writing it again would create the drift the
+check was invented to catch. What *can* disagree is whether the thing has hit points at all, and both
+directions are errors: an `X` with no `blocker-hp:`, and a `blocker-hp:` with no `X`.
+
+**The arithmetic is the design, and it is narrower than it looks.** Six is three attacks or one shove
+plus one attack — but a basic attack names a *unit*, so the only things a player has that reach
+masonry are a **collision** (4) and the Wardbearer's **Spear Thrust** (2, flat, whatever the card
+says), which is the one attack aimed at a tile. So a crossing is three thrusts, or a shove and a
+thrust, or two Fisher pulls that haul an enemy into it — and the last of those hurts the enemy for 4
+a time as well. That the board answer beats the sword answer here is D-060 doing exactly what it was
+written to do.
+
+**Left alone: the drains.** `(1,3)` `(3,3)` `(5,3)` `(6,3)` stay where they are. The crossing is one
+tile wide with a hole on either side, which is `docs/scenarios/DESIGN_PRINCIPLES.md` §1's shove
+geometry and the reason the battle is worth repairing rather than retiring.
+
+**Pinned by a Core-side flood fill, not by the tool.** `BrokenBridgeTests` walks the board four ways
+over walkable tiles with nothing standing on them and asserts **two islands while the blockers stand,
+one once either falls**, plus a played-out line in which a squad stranded on the north side breaks
+through and finishes the fight. The connectivity check existed in `tools/Faultline.Playtest` and had
+been reporting this for two sessions; a report nobody is obliged to read is not a guard.

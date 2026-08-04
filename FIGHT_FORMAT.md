@@ -54,11 +54,12 @@ increases to the right, `y` increases downward. So the first character of the fi
 | `B` | Player B deploy slot (tile underneath is Open) |
 | `S` | The tile a `protect` structure stands on (tile underneath is Open) |
 | `D` | The tile a `destroy` structure stands on (tile underneath is Open) |
+| `X` | A breakable blocker, with the hit points `blocker-hp:` gives it (tile underneath is Open) |
 | any other letter | an enemy, declared by a `spawn` line above the board |
 
 Each character in the board is checked in this order: `A`, then `B`, then declared spawn letters,
-then terrain. Because a spawn letter would otherwise win that race, **the nine characters that
-already mean something — `.` `#` `O` `^` `H` `A` `B` `S` `D` — cannot be used as spawn symbols.** Declaring
+then terrain. Because a spawn letter would otherwise win that race, **the ten characters that
+already mean something — `.` `#` `O` `^` `H` `A` `B` `S` `D` `X` — cannot be used as spawn symbols.** Declaring
 `spawn H = Husk` is a `MalformedLine` error rather than a board that silently loses its high ground.
 
 Spawn letters are case-sensitive, so `spawn h` declares `h`, not `H`. Lower-case reads best and
@@ -83,6 +84,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `footing:` | no | Footing tokens this fight grants. Space-separated `target=count`; target is a side (`a`, `b`, `enemy`) or a unit kind. Omitted means nobody has any. |
 | `objective:` | no | What winning means. `<kind> [tiles...] [for <n>] [hp <n>]`. Kinds: `kill-all` (default), `survive`, `hold`, `reach`, `protect`, `destroy`. |
 | `turn-limit:` | no | Round cap, 1 or more. Reaching it loses the fight unless the objective wins on expiry. |
+| `blocker-hp:` | when the board uses `X` | Hit points every breakable blocker on this board starts with. 1 or more. |
 | `wave <n> = <c>@<x>,<y> ...` | no | Enemies arriving at the start of round `n`, one line per round. Letters come from `spawn` lines. |
 | `spawn <c> = <UnitKind>` | when the board uses enemy letters | Declares one board letter as an enemy kind. |
 | `board:` | **yes** | Starts the board block. |
@@ -169,6 +171,41 @@ authored twice on purpose — the format's job is to notice when the two drift a
 
 The mark is optional on input, so files written before it existed still load. `FightWriter` always
 emits it.
+
+## Breakable blockers
+
+A `#` is masonry nothing can ever get through. An `X` is masonry with hit points:
+
+```
+blocker-hp: 6
+
+board:
+  h.X....
+  OO.O.OO
+  ....X..
+```
+
+Every `X` on the board is a blocker and they all get the same hit points — one number for the board,
+the way `turn-limit:` is one number. The **terrain underneath an `X` is Open**, so when the blocker
+comes down the tile is ordinary floor and whatever it was sealing is open. Writing `#` underneath
+would make the thing unbreakable in the only sense that matters.
+
+A blocker is the same physics as an objective structure and none of its win condition:
+
+- It **occupies its tile**. Nothing walks onto it and anything displaced into it collides.
+- **An attack chips it for 2** whatever the weapon (D-060); **a collision lands its full 4.** So 6
+  hit points is three attacks, or one shove plus one attack.
+- **Bringing one down neither wins nor loses the fight** — it is nobody's objective. An enemy never
+  besieges one either.
+- **Its rubble stops blocking**, exactly as a destroyed structure's does.
+
+Only two things a player has actually touch masonry: the Wardbearer's Spear Thrust, which is the one
+attack aimed at a tile rather than at a unit, and a collision — so *shoving something into the
+blocker* is the fast answer and the interesting one. Design accordingly: a blocker sealing a choke is
+a question about the board, not a chore.
+
+An `X` with no `blocker-hp:` is an error, and so is a `blocker-hp:` with no `X`. Neither can be
+right, and both are the kind of mistake that reads fine.
 
 ### Retiring a battle
 
@@ -291,12 +328,12 @@ silently absent.
 
 | Code | Triggered by | Fix |
 |---|---|---|
-| `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain or a deploy slot. |
-| `UnknownKey` | A key not in the header-key table above. | Fix the typo. The known keys are `id`, `name`, `description`, `design`, `number`, `roster a`, `roster b`, `objective`, `turn-limit`, `protected`, `footing`, `retired`, plus `spawn`, `wave` and `board:`. |
+| `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B` `S` `D` `X`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain or a deploy slot. |
+| `UnknownKey` | A key not in the header-key table above. | Fix the typo. The known keys are `id`, `name`, `description`, `design`, `number`, `roster a`, `roster b`, `objective`, `turn-limit`, `blocker-hp`, `protected`, `footing`, `retired`, plus `spawn`, `wave` and `board:`. |
 | `MissingRequiredField` | `id:` or `name:` absent or blank. | Add it. Reported against line 0 — it is about the file, not a line. |
 | `BoardMissing` | The file is empty, there is no `board:` line, or `board:` is followed by no indented rows. | Add `board:` and indent the rows beneath it. |
 | `BoardRagged` | A board row is a different width from the first row. | Make every row the same length. Watch for a stray trailing character or an indented comment. |
-| `BoardUnknownChar` | A non-letter board character that is not `. # O ^ H`. | Use a legal terrain character. `0` is not `O`. |
+| `BoardUnknownChar` | A non-letter board character that is not `. # O ^ H`. | Use a legal terrain character. `0` is not `O`, and a breakable blocker is `X`. |
 | `SpawnCharUndefined` | A letter on the board with no matching `spawn` line. | Add `spawn <letter> = <UnitKind>` above the board. |
 | `DuplicateSpawnChar` | The same spawn letter declared twice. | Delete one, or use a different letter for the second kind. |
 | `UnknownUnitKind` | A name in a roster or a `spawn` line that is not a `UnitKind`. | Check the spelling against `UnitKind` — the four player classes and every enemy archetype, `/bestiary` lists them all. |
@@ -308,6 +345,8 @@ silently absent.
 | `FootingCountNegative` | A `footing:` grant asking for a negative number of tokens. | Use zero or more. To give a target none, leave it out entirely. |
 | `StructureMarkWithoutObjective` | An `S` or `D` on a board whose objective builds no structure. | Add `objective: protect x,y` / `destroy x,y`, or take the mark off the board. |
 | `StructureMarkMismatch` | An `S` or `D` on a tile the `objective:` line does not name, or whose letter disagrees with the objective's kind. | Make the mark and the objective name the same tile; `S` for protect, `D` for destroy. |
+| `BlockerHpMissing` | An `X` on the board with no `blocker-hp:` key, or one asking for fewer than 1 hit point. | Add `blocker-hp: <n>`, or use `#` for a wall that cannot be broken. |
+| `BlockerHpUnused` | A `blocker-hp:` key on a board with no `X`. | Mark a blocker, or delete the key. A dead declaration is always a mistake. |
 | `RetiredReasonMissing` | A `retired:` key with no reason after it. | Say why. Name the battle it duplicates, or what stopped working. |
 | `BadValue` | `number:` is not an integer, or a `protected:` token is not `x,y`. | Use a bare integer; use `3,4` with no spaces. |
 | `SpawnCharUnused` | A `spawn` letter declared but never placed on the board. | Place it, or delete the declaration. This is an **error**, not a lint — a dead declaration is always a mistake. |

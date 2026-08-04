@@ -1,5 +1,20 @@
 # Changelog
 
+## Broken Bridge can end: the crossings are breakable
+
+- **`broken-bridge` was a board with no terminating state**, and is not one now. Its two trench
+  crossings were each sealed by a wall, so the map was two disconnected halves under a Kill All
+  objective with no turn limit — unwinnable and unloseable once one side's squad was down. The walls
+  at `(2,2)` and `(4,4)` are now **breakable blockers of 6 hit points**: three Spear Thrusts, or one
+  shove plus one thrust, or two Fisher pulls that haul an enemy into the masonry. The drains stay, so
+  the crossing is still one tile wide with a hole on each side (D-114).
+- **The `.fight` format gained `X` and `blocker-hp:`.** A blocker is a `Structure` that is nobody's
+  objective: same occupancy, same 2-from-an-attack and 4-from-a-collision, same rubble that stops
+  blocking — but bringing one down neither wins nor loses the fight, and no enemy besieges it. An `X`
+  with no `blocker-hp:` and a `blocker-hp:` with no `X` are both errors.
+- **The inspector stopped claiming a Destroy structure is "immune to attacks".** D-060 made every
+  structure attackable for a flat 2 and the text had not moved; it now interpolates the constants.
+
 ## The session's rulings land in DECISIONS.md
 
 - **D-104 to D-113 written up** — the Great Doubling, the Action Point turn, the fused rescue, the

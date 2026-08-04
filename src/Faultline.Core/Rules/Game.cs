@@ -102,7 +102,7 @@ namespace Faultline.Core
                 Fight = fight,
                 Board = fight.Board,
                 Units = units,
-                Structures = Objectives.Build(objective),
+                Structures = Objectives.Build(fight),
                 Reinforcements = pending,
                 Round = 0,
                 Phase = Phase.Deployment,
@@ -145,12 +145,24 @@ namespace Faultline.Core
                 return unit;
             }
 
+            // The ceiling first, because the carried hit points are clamped to it: a duck that bought
+            // +2 max at a Molting Pool and is carrying 16 would otherwise be trimmed to the base
+            // class's 14 on the way in (MASTER_DESIGN §8.5).
+            unit = WithRaisedMax(unit, loadout.MaxHpFor(team, slot));
             unit = WithCarriedVerve(WithCarriedHp(unit, loadout.HpFor(team, slot)), loadout.VerveFor(team, slot));
 
             // Set at Start rather than at deployment: it has to be true while the player is choosing
             // where to put it, which is the whole point of marking it on the deployment card.
             return loadout.IsBedraggled(team, slot) ? unit with { Bedraggled = true } : unit;
         }
+
+        /// <summary>
+        /// Raises a unit's ceiling to what the run is carrying for it. Only ever upward: a run has no
+        /// way to lower a maximum, and a loadout that named a smaller one would be a stale save
+        /// silently nerfing a class rather than an intended change.
+        /// </summary>
+        private static Unit WithRaisedMax(Unit unit, int? maxHp) =>
+            maxHp is null || maxHp.Value <= unit.MaxHp ? unit : unit with { MaxHp = maxHp.Value };
 
         /// <summary>
         /// Opens a unit on the hit points a run is carrying for it. Clamped to the archetype's

@@ -298,8 +298,12 @@ with an error that says why. Worth knowing before trusting any archived log acro
 
 ## What to do next, in the order it matters
 
-1. **Connect `broken-bridge`.** Delete the wall at `(2,2)` or `(4,4)`. Until then node 3 ends every
-   run, and it ends it by freezing rather than losing. A design call, deliberately not taken here.
+1. ~~**Connect `broken-bridge`.** Delete the wall at `(2,2)` or `(4,4)`. Until then node 3 ends every
+   run, and it ends it by freezing rather than losing. A design call, deliberately not taken here.~~
+   **Done, differently — D-114.** The two walls became **breakable blockers of 6 hit points** rather
+   than being deleted: deleting one turns the trench into a corridor, and the one-tile choke with a
+   drain on each side is the reason the board is worth keeping. `--connectivity` now reports 0 splits
+   and no policy stalls on this board.
 2. **Give kill-all boards a turn limit, or make an unreachable objective a loss.** The split map is
    one bug; a fight that can neither be won nor lost is a whole class of bug, and `--connectivity`
    now catches the map half of it in CI-able form.

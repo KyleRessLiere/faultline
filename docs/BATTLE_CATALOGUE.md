@@ -4,8 +4,9 @@ Every authored battle, generated from the `.fight` files themselves so it cannot
 the boards it describes. Regenerate with `python tools/build_catalogue.py`.
 
 Grids are the board exactly as authored: `.` open, `#` wall, `O` pit, `^` spikes, `H` high
-ground, `A`/`B` the two deployment zones, and any other letter an enemy from that battle's
-legend. A unit never starts on a hazard — the tile under a deploy slot or a spawn is Open.
+ground, `X` a breakable blocker, `A`/`B` the two deployment zones, and any other letter an
+enemy from that battle's legend. A unit never starts on a hazard — the tile under a deploy
+slot or a spawn is Open.
 
 Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were
 proposals; `docs/archive/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a
@@ -105,10 +106,19 @@ AA...h.
 `broken-bridge`
 
 
-A trench of pits splits the map; a Grappler fishes for people across it, and a pull whose line crosses a pit drops you straight in.
+A trench of drains splits the map, and the two ways over it are blocked. Break the masonry to open a crossing, then hold a one-tile choke with a hole on either side.
 
 
 Fight 3 — the trench.
+
+
+The two crossings are barricaded rather than walled. Each blocker has 6 hit points, and the only things that touch masonry are the Wardbearer's Spear Thrust — 2 a swing, whatever the number on the card — and a collision, which lands its full 4. So a crossing costs three thrusts, or one shove plus one thrust. Hauling a Husk into the barricade with the Fisher's line does it in two pulls and hurts the Husk as much as the wall.
+
+
+This board used to be two boards. The trench row leaves exactly two open tiles, and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
+
+
+Keep the drains where they are. The crossing is one tile wide with a hole on each side, so whoever holds it is one sideways shove from the bottom of the trench — and so is whatever walks up to contest it.
 
 
 **Asks:** What does a pull line do when it crosses a pit?
@@ -116,7 +126,7 @@ Fight 3 — the trench.
 **Verdict:** KEEP — The simplest statement of the trench-and-fisherman shape; the campaign version.
 
 
-7×7 board · enemies: 2× Husk, 1× Grappler, 1× Stalker
+7×7 board · enemies: 2× Husk, 1× Grappler, 1× Stalker · breakable blockers: 6 HP each
 
 | A | B |
 |---|---|
@@ -127,9 +137,9 @@ Legend: `g` Grappler, `h` Husk, `s` Stalker
 ```
 ..g...B
 .....BB
-h.#....
+h.X....
 OO.O.OO
-....#..
+....X..
 A....s.
 AA..h..
 ```

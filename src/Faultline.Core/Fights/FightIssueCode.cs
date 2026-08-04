@@ -86,6 +86,18 @@ namespace Faultline.Core
         /// <summary>An <c>S</c> or <c>D</c> mark on a board whose objective builds no structure at all.</summary>
         StructureMarkWithoutObjective = 23,
 
+        /// <summary>
+        /// An <c>X</c> breakable blocker on the board with no <c>blocker-hp:</c> key, or one that
+        /// asks for fewer than one hit point. Masonry with no hit points is a wall spelled wrong.
+        /// </summary>
+        BlockerHpMissing = 24,
+
+        /// <summary>
+        /// A <c>blocker-hp:</c> key on a board with no <c>X</c> on it. A dead declaration, exactly as
+        /// <see cref="SpawnCharUnused"/> is.
+        /// </summary>
+        BlockerHpUnused = 25,
+
         // ---- Lints: playable, but it breaks a guideline in AGENT_BRIEF §2 -------------------
 
         /// <summary>Brief §2 specifies a 7x7 grid.</summary>

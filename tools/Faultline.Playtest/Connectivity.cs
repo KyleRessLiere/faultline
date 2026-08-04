@@ -16,6 +16,13 @@ namespace Faultline.Playtest;
 /// Walkability is Core's own <see cref="Movement.IsWalkable"/>, so a pit is a hole rather than a
 /// tile — which is the whole point on a board built around a trench.
 /// </para>
+/// <para>
+/// <b>A breakable blocker is deliberately not a partition.</b> It stands on Open terrain and its
+/// rubble stops blocking, so a board it seals is one place the players can get to — the crossing
+/// costs them something to open, which is a design, not a defect (D-114). Teaching this report to
+/// treat blockers as walls would make it cry wolf about every board that has one. What it still
+/// catches is the thing it was written for: terrain with no way through at all.
+/// </para>
 /// </remarks>
 public static class Connectivity
 {

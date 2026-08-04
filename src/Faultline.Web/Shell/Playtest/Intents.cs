@@ -65,9 +65,11 @@ public static class Intents
 
         // An attack that names no unit is a claw at the objective structure — the only thing on the
         // board an enemy swings at that is not somebody. Core says so by leaving TargetId null.
+        // A breakable blocker does not count: nothing besieges one, and badging a swing at scenery
+        // "objective" would say the fight is about a wall it is not about (D-114).
         if (intent.Action == IntentAction.Attack && intent.TargetId is null)
         {
-            return state is null || state.Structures.Count > 0
+            return state is null || HasObjectiveStructure(state)
                 ? IntentCategory.Objective
                 : IntentCategory.Attack;
         }
@@ -81,6 +83,21 @@ public static class Intents
             IntentAction.Rescue => IntentCategory.Rescue,
             _ => IntentCategory.Defend,
         };
+    }
+
+    // True when something on the board is the fight's own structure, as opposed to a wall that
+    // happens to have hit points.
+    private static bool HasObjectiveStructure(GameState state)
+    {
+        foreach (var structure in state.Structures)
+        {
+            if (!structure.IsBlocker)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>The glyph on the badge.</summary>

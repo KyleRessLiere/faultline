@@ -145,26 +145,26 @@ else
         else if (Subject.Kind == InspectKind.Structure && Subject.Structure is { } structure)
         {
             <div class="head">
-                <span class="art structure">@(structure.Role == ObjectiveKind.Protect ? "▣" : "▩")</span>
+                <span class="art structure">@StructureGlyph(structure)</span>
                 <span class="ident">
-                    <strong class="name">
-                        @(structure.Role == ObjectiveKind.Protect ? "Protected structure" : "Target structure")
-                    </strong>
+                    <strong class="name">@StructureName(structure)</strong>
                     <span class="side">@BoardCoords.Of(structure.At)</span>
                 </span>
             </div>
 
             <dl class="stats">
                 <div><dt>HP</dt><dd>@structure.Hp / @structure.MaxHp</dd></div>
-                <div><dt>Objective</dt><dd>@ObjectiveWord(structure)</dd></div>
+                <div><dt>@(structure.IsBlocker ? "In the way" : "Objective")</dt><dd>@ObjectiveWord(structure)</dd></div>
             </dl>
 
             <ul class="rules">
                 <li>
                     <span class="rule-head">Attacks</span>
-                    @(structure.Role == ObjectiveKind.Protect
-                        ? "Enemies claw at it from an adjacent tile for " + Objectives.AttackDamageToStructure + " a time."
-                        : "Immune to attacks — only a collision counts.")
+                    @("Any attack takes " + Objectives.AttackDamageToStructure
+                        + " off it, whatever swung it."
+                        + (structure.IsSiegeTarget
+                            ? " Enemies claw at it from an adjacent tile for the same."
+                            : string.Empty))
                 </li>
                 <li>
                     <span class="rule-head">Collision</span>
@@ -235,7 +235,17 @@ else
         Intents.CategoryOf(Intents.For(State, unit.Id), State);
 
     private static string ObjectiveWord(Structure structure) =>
-        structure.Role == ObjectiveKind.Protect ? "keep it standing" : "bring it down";
+        structure.IsBlocker
+            ? "break it to open the tile — the fight is not about it"
+            : structure.Role == ObjectiveKind.Protect ? "keep it standing" : "bring it down";
+
+    private static string StructureName(Structure structure) =>
+        structure.IsBlocker
+            ? "Breakable blocker"
+            : structure.Role == ObjectiveKind.Protect ? "Protected structure" : "Target structure";
+
+    private static string StructureGlyph(Structure structure) =>
+        structure.IsBlocker ? "▦" : structure.Role == ObjectiveKind.Protect ? "▣" : "▩";
 
     private static string DamageWord(TileType terrain)
     {
@@ -245,13 +255,13 @@ else
 
     /// <summary>
     /// What the fight's own damage figures say a blow on this structure does. Read off Core's
-    /// constants rather than retyped: the two numbers are the whole reason a Destroy objective plays
-    /// differently from a Protect one.
+    /// constants rather than retyped (D-112), and the same two numbers for every structure since
+    /// D-060 made the flat chip source-blind.
     /// </summary>
     private static string Predicted(Structure structure) =>
-        structure.Role == ObjectiveKind.Protect
-            ? Objectives.AttackDamageToStructure + " a claw · " + Displacement.CollisionDamage + " a collision"
-            : Displacement.CollisionDamage + " a collision · nothing else touches it";
+        Objectives.AttackDamageToStructure
+        + (structure.IsSiegeTarget ? " a claw · " : " an attack · ")
+        + Displacement.CollisionDamage + " a collision";
 
     /// <summary>
     /// A pip's class: lit while unspent, hollow once gone, and "going" for the ones an action the
