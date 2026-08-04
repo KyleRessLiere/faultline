@@ -310,6 +310,105 @@ public class AbilityTests
     }
 
     [Fact]
+    // D-126, MASTER_DESIGN §3: two of the three points, not the whole pool. The number lives in the
+    // cost table and nowhere else, which is what makes the pre-move rules below fall out of it.
+    public void BullRush_CostsTwoOfTheThreePoints()
+    {
+        Assert.Equal(2, Activation.CostOf(Ability.BullRush));
+        Assert.Equal(Activation.BullRushCost, Activation.CostOf(Ability.BullRush));
+        Assert.True(Activation.CostOf(Ability.BullRush) < Activation.FullPool);
+    }
+
+    [Fact]
+    // Inverts the old full-pool pin. There was never a rule forbidding the pre-move — only the
+    // price — so at 2 the movement-first grammar allows one tile of run-up with nothing added.
+    public void BullRush_AfterOneTileOfWalking_IsLegalAndStillCharges()
+    {
+        var state = BoardBuilder.Open(9, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 4, 0, hp: 12)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+        var husk = state.Find(UnitKind.Husk);
+
+        var walked = state.Then(new MoveCommand(vanguard.Id, new Coord(1, 0)));
+        Assert.Equal(Activation.CostOf(Ability.BullRush), Activation.Remaining(walked.Get(vanguard.Id)));
+
+        var charge = new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right);
+        TestPlay.AssertLegal(walked, charge);
+
+        var result = walked.Step(charge);
+
+        // Charge mechanics untouched: up to 3 in a line, stop adjacent, first enemy pushed 2.
+        Assert.Equal(new Coord(3, 0), result.NewState.Get(vanguard.Id).Position);
+        Assert.Equal(new Coord(6, 0), result.NewState.Get(husk.Id).Position);
+    }
+
+    [Fact]
+    // The other side of the same price: 3 - 2 = 1, and 1 < 2. Two tiles of walking is still enough
+    // to lose the charge, which is what keeps the threat range at 4 rather than 5.
+    public void BullRush_AfterTwoTilesOfWalking_IsUnaffordable()
+    {
+        var state = BoardBuilder.Open(9, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 5, 0, hp: 12)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard);
+
+        var walked = state.Then(new MoveCommand(vanguard.Id, new Coord(2, 0)));
+        var moved = walked.Get(vanguard.Id);
+
+        Assert.Equal(1, Activation.Remaining(moved));
+        Assert.False(Activation.CanAfford(moved, Activation.CostOf(Ability.BullRush)));
+        Assert.Equal(1, Activation.Shortfall(moved, Activation.CostOf(Ability.BullRush)));
+
+        var charge = new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right);
+        TestPlay.AssertNotLegal(walked, charge);
+        TestPlay.AssertIllegal(walked, charge);
+    }
+
+    [Fact]
+    // The chaser's reach, deliberately: one past his walk, one short of the Archer's shot band.
+    public void BullRush_ThreatensFourTiles_OneOfWalkAndThreeOfCharge()
+    {
+        var atFour = BoardBuilder.Open(10, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 4, 0, hp: 12)
+            .Build();
+
+        var vanguard = atFour.Find(UnitKind.Vanguard);
+        var reached = atFour.Find(UnitKind.Husk);
+
+        var hit = atFour
+            .Then(new MoveCommand(vanguard.Id, new Coord(1, 0)))
+            .Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
+
+        Assert.True(hit.Has<UnitPushed>());
+        Assert.Equal(new Coord(6, 0), hit.NewState.Get(reached.Id).Position);
+
+        var atFive = BoardBuilder.Open(10, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 5, 0, hp: 12)
+            .Build();
+
+        var chaser = atFive.Find(UnitKind.Vanguard);
+        var safe = atFive.Find(UnitKind.Husk);
+
+        // One tile of walk is all the pool affords, and three of charge stops a tile short. The
+        // reposition itself is still legal — the game never decides what is useful — it simply
+        // touches nobody.
+        var missed = atFive
+            .Then(new MoveCommand(chaser.Id, new Coord(1, 0)))
+            .Step(new AbilityCommand(chaser.Id, Ability.BullRush, null, Direction.Right));
+
+        Assert.False(missed.Has<UnitPushed>());
+        Assert.Equal(new Coord(5, 0), missed.NewState.Get(safe.Id).Position);
+        Assert.Equal(new Coord(4, 0), missed.NewState.Get(chaser.Id).Position);
+    }
+
+    [Fact]
     public void BullRush_ShovingAnEnemyIntoAPit_LeavesItClinging()
     {
         var state = BoardBuilder.Rows("....O.")

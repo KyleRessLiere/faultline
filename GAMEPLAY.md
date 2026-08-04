@@ -109,7 +109,7 @@ A player unit activates with **3 action points**, and *everything* comes out of 
 | Basic attack, or the pull/push half of one | **1** |
 | Stagger Shot, Spear Thrust, Guard Stance, the Fisher's flick, interact | **1** |
 | **Reel** | **2** |
-| **Bull Rush** | **3** — the whole pool |
+| **Bull Rush** | **2** — one tile of run-up left over (D-126) |
 | **Rescue** | **3** — the whole pool, run-up fused in |
 | Finishing a clinging unit, and every Pluck spend | **0** |
 
@@ -120,8 +120,11 @@ turn asks you to unlearn.
 
 Two rules fall out of the pricing with nothing extra written down:
 
-- **Bull Rush has no pre-move**, because at 3 there is nothing left to pre-move with. It charges up
-  to 3 on its own; a pre-move would silently have made the Vanguard's threat 5.
+- **Bull Rush leaves exactly one tile of pre-move**, because at 2 there is one point spare.
+  **Walk 1, then charge 3: the Vanguard's threat range is 4** (D-126). Walk **two** and the charge is
+  gone — 1 point left against a cost of 2 — which is what stops the threat reaching 5. The charge
+  itself is unchanged: up to 3 tiles in a straight line, the first enemy reached is pushed 2, and he
+  stops adjacent to it.
 - **Reel leaves exactly one tile of approach**, which is the whole shape of the Fisher's turn.
 
 **An attack owed by Double Nock is free.** The mod bought those attack actions when the Pluck was
@@ -409,7 +412,7 @@ available — *out of reach*, or *the pool is already spent* once she has moved.
 
 | Class | HP | Move | Basic attack | Ability |
 |---|---|---|---|---|
-| Vanguard | 14 | 3 | melee, 2 dmg **+ push 1** | **Bull Rush** — charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Costs **both halves** (D-015) — which since D-097 is what every action costs, so this is no longer a special case. |
+| Vanguard | 14 | 3 | melee, 2 dmg **+ push 1** | **Bull Rush** — **2 AP**; charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Like every action it closes the move half (D-097), and at 2 it leaves one tile of run-up, so his threat range is **4** (D-126). |
 | Archer | 8 | 3 | range **2-3**, 4 dmg | **Stagger Shot** — range **2-3**, 2 dmg + push 1 away. Also climbs HighGround for free. |
 | **Fisher** | 8 | 3 | range **3**, 2 dmg **or pull 1** | **Reel** — range **4**, pull one enemy all the way to adjacent, resolving every tile. Nothing between her and it is consulted — no line of sight, no lane check; the line flies over rock and body alike (D-010). *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **14** | 3 | melee, 2 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **4** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 2. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
@@ -540,6 +543,11 @@ Footing, so it composes with all of them (D-076). An Anchor still shrugs a tile 
 plain push 1 becomes 0 and his charged push 2 becomes 1. The contact damage lands *before* the shove
 and stacks with everything after it: a charged basic attack into a wall is **2 attack + 2 contact + 4
 collision = 8**. A target killed by the first two never travels.
+
+**"The next push" includes a Bull Rush's shove.** The charge's push is an ordinary push, so an armed
+Vanguard's charge arrives at **push 3 with 2 contact damage** and disarms on the way through. Since
+D-126 he can arm, walk a tile and charge in the same activation — the spend is free-timing and costs
+no points.
 
 **Cast** is a third displacement verb, `Throw` (D-091). **The grab is a lob**: she reaches up to 3
 tiles and nothing in between is consulted — not walls, not bodies, not hazards — so a Lobber hiding

@@ -357,8 +357,8 @@ namespace Faultline.Core
                             continue;
                         }
 
-                        // Priced per ability, not per action: Reel at 2 and Bull Rush at the whole
-                        // pool drop off the list at different points in the same activation.
+                        // Priced per ability, not per action: an attack at 1 and Reel or Bull Rush at
+                        // 2 drop off the list at different points in the same activation.
                         if (!Activation.CanAfford(unit, Activation.CostOf(descriptor.Ability)))
                         {
                             continue;
@@ -971,8 +971,9 @@ namespace Faultline.Core
 
             // D-097: an action closes the move half, whatever is left in the budget. This subsumes
             // D-015's special case for Bull Rush — it is no longer the only ability that costs the
-            // movement, it is simply the one that was honest about it first, and under the AP turn
-            // its full-pool price is what makes "no pre-move" fall out with no extra rule.
+            // movement, it is simply the one that was honest about it first. D-126 then dropped its
+            // price to 2, and because "no pre-move" was never anything but the price, one tile of
+            // run-up became legal here with nothing else to change.
             state = state.WithUnit(Activation.Spend(unit, Activation.CostOf(command.Ability)));
 
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);

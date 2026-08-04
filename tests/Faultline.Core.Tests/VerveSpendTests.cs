@@ -211,6 +211,34 @@ public class VerveSpendTests
     }
 
     [Fact]
+    // "His next push" means the next push, and a Bull Rush's shove is a push. Nothing in
+    // ResolveCharge mentions Wrecking Weight — it composes because the charge hands Displacement
+    // the pusher's id — so this pins behaviour that is otherwise only implied by an argument.
+    // Newly reachable in one activation now that the charge costs 2 (D-126): the spend is free, so
+    // arm, walk a tile, and charge.
+    public void WreckingWeight_AppliesToABullRushsShove()
+    {
+        var state = BoardBuilder.Open(9, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 18)
+            .Build();
+
+        var vanguard = state.Find(UnitKind.Vanguard).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+        state = state.WithUnit(state.Get(vanguard) with { Verve = Verve.Cap });
+
+        var armed = state.Then(new SpendVerveCommand(vanguard, VerveSpend.WreckingWeight));
+        var result = armed.Step(new AbilityCommand(vanguard, Ability.BullRush, null, Direction.Right));
+
+        // The descriptor's 2 plus the charged tile, and the contact bite with no attack behind it.
+        Assert.Equal(
+            AbilityDescriptor.For(Ability.BullRush).Push + Verve.ContactDistanceBonus,
+            result.Single<UnitPushed>().Distance);
+        Assert.Equal(18 - Verve.ContactDamage, result.NewState.Get(husk).Hp);
+        Assert.False(result.NewState.Get(vanguard).WreckingWeightArmed);
+    }
+
+    [Fact]
     public void AnArmedPushNeverTaken_ExpiresWithTheActivation_AndTheVerveIsStillGone()
     {
         var state = ArmedVanguard(out var vanguard);

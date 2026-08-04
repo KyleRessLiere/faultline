@@ -3,159 +3,49 @@
 campaign	faultline
 seed	1
 player	random-c
-1	0	Threadcaster	Deploy	u1	(0,5)
-2	0	Archer	Deploy	u3	(6,1)
-3	0	Vanguard	Deploy	u0	(0,6)
-4	0	Wardbearer	Deploy	u2	(6,2)
-5	0	Threadcaster	Move	u1	(2,6)	(1,5)>(2,5)>(2,6)
-6	0	Threadcaster	End	u1
-7	0	Wardbearer	Move	u2	(5,2)	(5,2)
-8	0	Wardbearer	Move	u2	(4,1)	(5,1)>(4,1)
-9	0	Wardbearer	End	u2
-10	0	Vanguard	Ability	u0	BullRush	dir=Up
-11	0	Archer	Move	u3	(4,0)	(6,0)>(5,0)>(4,0)
-12	0	Archer	Attack	u3	u4	Damage
-13	0	Vanguard	Move	u0	(0,6)	(0,6)
-14	0	Vanguard	Move	u0	(1,5)	(0,5)>(1,5)
-15	0	Vanguard	Ability	u0	BullRush	dir=Left
-16	0	Wardbearer	Move	u2	(2,1)	(3,1)>(2,1)
-17	0	Wardbearer	Ability	u2	GuardStance	-
-18	0	Threadcaster	Move	u1	(4,5)	(3,6)>(3,5)>(4,5)
-19	0	Threadcaster	Ability	u1	Reel	target=u5
-20	0	Archer	Move	u3	(3,1)	(4,1)>(3,1)
-21	0	Archer	Attack	u3	u6	Damage
-22	0	Threadcaster	Attack	u1	u7	Damage
-23	0	Archer	Move	u3	(2,2)	(3,2)>(2,2)
-24	0	Archer	Ability	u3	StaggerShot	target=u7
-25	0	Vanguard	Move	u0	(1,5)	(1,5)
-26	0	Vanguard	Ability	u0	BullRush	dir=Down
-27	0	Wardbearer	Move	u2	(1,1)	(1,1)
-28	0	Wardbearer	End	u2
-29	0	Threadcaster	Move	u1	(4,4)	(4,4)
-30	0	Threadcaster	Move	u1	(4,3)	(4,3)
-31	0	Threadcaster	Move	u1	(4,4)	(4,4)
-32	0	Threadcaster	Attack	u1	u5	Damage
-33	0	Archer	Move	u3	(5,2)	(3,2)>(4,2)>(5,2)
-34	0	Archer	End	u3
-35	0	Vanguard	Move	u0	(3,6)	(2,6)>(3,6)
-36	0	Vanguard	Move	u0	(4,6)	(4,6)
-37	0	Vanguard	Ability	u0	BullRush	dir=Up
-38	0	Wardbearer	Move	u2	(2,1)	(2,1)
-39	0	Wardbearer	Ability	u2	GuardStance	-
-40	0	Vanguard	Move	u0	(5,5)	(4,4)>(5,4)>(5,5)
-41	0	Vanguard	Ability	u0	BullRush	dir=Down
-42	0	Archer	Ability	u3	StaggerShot	target=u5
-43	1	Vanguard	Deploy	u0	(0,5)
-44	1	Wardbearer	Deploy	u2	(7,0)
-45	1	Threadcaster	Deploy	u1	(1,6)
-46	1	Archer	Deploy	u3	(8,0)
-47	1	Vanguard	Move	u0	(1,5)	(1,5)
-48	1	Vanguard	Ability	u0	BullRush	dir=Up
-49	1	Archer	Attack	u3	u7	Damage
-50	1	Threadcaster	Move	u1	(0,4)	(1,5)>(1,4)>(0,4)
-51	1	Threadcaster	End	u1
-52	1	Wardbearer	Attack	u2	u5	Damage
-53	1	Vanguard	Move	u0	(2,5)	(2,3)>(2,4)>(2,5)
-54	1	Vanguard	Ability	u0	BullRush	dir=Left
-55	1	Archer	Move	u3	(6,1)	(8,1)>(7,1)>(6,1)
-56	1	Archer	End	u3
-57	1	Threadcaster	Move	u1	(1,2)	(0,3)>(0,2)>(1,2)
-58	1	Threadcaster	Ability	u1	Reel	target=u8
-59	1	Wardbearer	Ability	u2	GuardStance	-
-60	1	Vanguard	Move	u0	(0,4)	(0,4)
-61	1	Vanguard	Move	u0	(0,2)	(0,3)>(0,2)
-62	1	Vanguard	Ability	u0	BullRush	dir=Up
-63	1	Archer	Move	u3	(7,3)	(6,2)>(7,2)>(7,3)
-64	1	Archer	Attack	u3	u9	Damage
-65	1	Threadcaster	Move	u1	(3,3)	(2,2)>(3,2)>(3,3)
-66	1	Threadcaster	Attack	u1	u8	Damage
-67	1	Wardbearer	Attack	u2	u5	Damage
-68	1	Threadcaster	Move	u1	(4,5)	(4,3)>(4,4)>(4,5)
-69	1	Threadcaster	End	u1
-70	1	Archer	Move	u3	(5,3)	(6,3)>(5,3)
-71	1	Archer	Move	u3	(5,4)	(5,4)
-72	1	Archer	End	u3
-73	1	Vanguard	Move	u0	(0,2)	(0,1)>(0,2)
-74	1	Vanguard	Move	u0	(0,1)	(0,1)
-75	1	Vanguard	Ability	u0	BullRush	dir=Up
-76	1	Wardbearer	Move	u2	(8,1)	(8,0)>(8,1)
-77	1	Wardbearer	Move	u2	(8,2)	(8,2)
-78	1	Wardbearer	Ability	u2	GuardStance	-
-79	1	Vanguard	Move	u0	(2,0)	(1,0)>(2,0)
-80	1	Vanguard	Move	u0	(1,0)	(1,0)
-81	1	Vanguard	Ability	u0	BullRush	dir=Left
-82	1	Archer	Move	u3	(6,5)	(6,4)>(6,5)
-83	1	Archer	End	u3
-84	1	Wardbearer	Move	u2	(8,1)	(8,1)
-85	1	Wardbearer	Move	u2	(7,1)	(7,1)
-86	1	Wardbearer	Move	u2	(7,2)	(7,2)
-87	1	Wardbearer	Ability	u2	GuardStance	-
-88	1	Vanguard	Move	u0	(0,3)	(0,1)>(0,2)>(0,3)
-89	1	Vanguard	Ability	u0	BullRush	dir=Up
-90	1	Wardbearer	Move	u2	(8,2)	(8,2)
-91	1	Wardbearer	Ability	u2	GuardStance	-
-92	1	Archer	Move	u3	(6,6)	(6,6)
-93	1	Archer	Move	u3	(6,5)	(6,5)
-94	1	Archer	End	u3
-95	1	Vanguard	Ability	u0	BullRush	dir=Right
-96	1	Archer	Move	u3	(7,6)	(7,5)>(7,6)
-97	1	Archer	End	u3
-98	1	Wardbearer	Move	u2	(8,0)	(8,1)>(8,0)
-99	1	Wardbearer	End	u2
-100	1	Vanguard	Move	u0	(4,0)	(4,0)
-101	1	Vanguard	Ability	u0	BullRush	dir=Left
-102	1	Wardbearer	Move	u2	(5,0)	(7,0)>(6,0)>(5,0)
-103	1	Wardbearer	End	u2
-104	1	Vanguard	Move	u0	(1,1)	(1,1)
-105	1	Vanguard	Move	u0	(1,0)	(1,0)
-106	1	Vanguard	Ability	u0	BullRush	dir=Right
-107	1	Wardbearer	Move	u2	(7,0)	(6,0)>(7,0)
-108	1	Wardbearer	Move	u2	(6,0)	(6,0)
-109	1	Wardbearer	Ability	u2	GuardStance	-
-110	1	Vanguard	Ability	u0	BullRush	dir=Down
-111	1	Wardbearer	Move	u2	(5,0)	(5,0)
-112	1	Wardbearer	Move	u2	(6,1)	(6,0)>(6,1)
-113	1	Wardbearer	Ability	u2	GuardStance	-
-114	1	Vanguard	Move	u0	(4,1)	(4,2)>(4,1)
-115	1	Vanguard	Move	u0	(3,1)	(3,1)
-116	1	Vanguard	Ability	u0	BullRush	dir=Right
-117	1	Vanguard	Move	u0	(4,1)	(4,1)
-118	1	Vanguard	Ability	u0	BullRush	dir=Down
-119	1	Vanguard	Move	u0	(6,5)	(5,4)>(6,4)>(6,5)
-120	1	Vanguard	Ability	u0	BullRush	dir=Right
-121	1	Vanguard	Ability	u0	BullRush	dir=Down
-122	1	Vanguard	Move	u0	(7,4)	(8,5)>(8,4)>(7,4)
-123	1	Vanguard	End	u0
-124	1	Vanguard	Move	u0	(4,4)	(6,4)>(5,4)>(4,4)
-125	1	Vanguard	End	u0
-126	1	Vanguard	Move	u0	(5,4)	(5,4)
-127	1	Vanguard	Ability	u0	BullRush	dir=Up
-128	1	Vanguard	Move	u0	(5,4)	(5,2)>(5,3)>(5,4)
-129	1	Vanguard	Ability	u0	BullRush	dir=Left
-130	1	Vanguard	Ability	u0	BullRush	dir=Left
-131	1	Vanguard	Move	u0	(2,5)	(1,4)>(2,4)>(2,5)
-132	1	Vanguard	Ability	u0	BullRush	dir=Down
-133	1	Vanguard	Move	u0	(1,6)	(1,6)
-134	1	Vanguard	Move	u0	(1,4)	(1,5)>(1,4)
-135	1	Vanguard	Attack	u0	u8	Damage
-136	2	Vanguard	Deploy	u0	(1,6)
-137	2	Archer	Deploy	u3	(6,0)
-138	2	Threadcaster	Deploy	u1	(0,6)
-139	2	Wardbearer	Deploy	u2	(5,1)
-140	2	Vanguard	Move	u0	(2,6)	(2,6)
-141	2	Vanguard	Move	u0	(1,5)	(2,5)>(1,5)
-142	2	Vanguard	End	u0
-143	2	Wardbearer	Attack	u2	u4	Damage
-144	2	Threadcaster	Move	u1	(0,4)	(0,5)>(0,4)
-145	2	Threadcaster	Move	u1	(0,5)	(0,5)
-146	2	Threadcaster	Ability	u1	Reel	target=u5
-147	2	Archer	Move	u3	(6,1)	(6,1)
-148	2	Archer	Ability	u3	StaggerShot	target=u4
-149	2	Threadcaster	Move	u1	(0,3)	(0,4)>(0,3)
-150	2	Threadcaster	Move	u1	(0,4)	(0,4)
-151	2	Threadcaster	Ability	u1	Reel	target=u5
-152	2	Archer	Move	u3	(6,3)	(6,2)>(6,3)
-153	2	Archer	End	u3
-154	2	Archer	Move	u3	(6,2)	(6,2)
-155	2	Archer	Move	u3	(6,0)	(6,1)>(6,0)
-156	2	Archer	End	u3
+1	0	Vanguard	Deploy	u0	(1,6)
+2	0	Wardbearer	Deploy	u2	(6,0)
+3	0	Threadcaster	Deploy	u1	(0,5)
+4	0	Archer	Deploy	u3	(6,1)
+5	0	Vanguard	Ability	u0	BullRush	dir=Right
+6	0	Wardbearer	Move	u2	(5,2)	(5,0)>(5,1)>(5,2)
+7	0	Wardbearer	End	u2
+8	0	Threadcaster	Move	u1	(1,5)	(1,5)
+9	0	Threadcaster	Move	u1	(1,4)	(1,4)
+10	0	Threadcaster	Attack	u1	u5	Damage
+11	0	Archer	Move	u3	(6,2)	(6,2)
+12	0	Archer	End	u3
+13	0	Vanguard	Move	u0	(2,6)	(3,6)>(2,6)
+14	0	Vanguard	Move	u0	(1,6)	(1,6)
+15	0	Vanguard	End	u0
+16	0	Wardbearer	Move	u2	(4,4)	(4,2)>(4,3)>(4,4)
+17	0	Wardbearer	End	u2
+18	0	Threadcaster	Attack	u1	u5	Damage
+19	0	Archer	Move	u3	(6,0)	(6,1)>(6,0)
+20	0	Archer	Move	u3	(5,0)	(5,0)
+21	0	Archer	End	u3
+22	0	Vanguard	Move	u0	(1,5)	(1,5)
+23	0	Vanguard	Move	u0	(0,5)	(0,5)
+24	0	Vanguard	End	u0
+25	0	Archer	Move	u3	(5,2)	(5,1)>(5,2)
+26	0	Archer	Move	u3	(4,2)	(4,2)
+27	0	Archer	End	u3
+28	0	Wardbearer	Move	u2	(6,5)	(5,4)>(5,5)>(6,5)
+29	0	Wardbearer	End	u2
+30	0	Vanguard	End	u0
+31	0	Archer	Move	u3	(5,0)	(4,1)>(4,0)>(5,0)
+32	0	Archer	End	u3
+33	0	Wardbearer	End	u2
+34	0	Vanguard	Ability	u0	BullRush	dir=Right
+35	0	Archer	Move	u3	(4,1)	(5,1)>(4,1)
+36	0	Archer	Move	u3	(4,0)	(4,0)
+37	0	Archer	End	u3
+38	0	Wardbearer	End	u2
+39	0	Vanguard	Ability	u0	BullRush	dir=Right
+40	0	Wardbearer	Move	u2	(4,4)	(5,5)>(5,4)>(4,4)
+41	0	Wardbearer	End	u2
+42	0	Vanguard	Move	u0	(1,6)	(0,6)>(1,6)
+43	0	Vanguard	End	u0
+44	0	Wardbearer	Ability	u2	GuardStance	-
+45	0	Wardbearer	Ability	u2	GuardStance	-
+46	0	Wardbearer	Attack	u2	u7	Damage

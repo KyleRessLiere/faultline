@@ -106,7 +106,7 @@ public sealed record ActionRow(
 /// </summary>
 /// <remarks>
 /// <b>Nothing is filtered out for being unhelpful.</b> A Bull Rush down an empty lane is a legal
-/// three-tile reposition that costs the whole pool, and it stays on the list — the game does not
+/// three-tile reposition that costs 2 of the 3 points, and it stays on the list — the game does not
 /// decide what is useful, and a row that vanishes when the designer disapproves of it teaches a
 /// player a rule that does not exist. <see cref="Summary"/> may say the lane is empty; that is
 /// information, not gating.

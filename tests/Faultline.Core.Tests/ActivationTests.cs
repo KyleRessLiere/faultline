@@ -195,6 +195,21 @@ public class ActivationTests
     }
 
     [Fact]
+    // D-126 moved Bull Rush off the full-pool price. The rescue did not move with it: "drop
+    // everything" is still literally the whole pool, and this is the assertion that fails if the
+    // two are ever collapsed back into one constant.
+    public void CostTable_BullRushIsTwo_AndTheRescueIsStillTheWholePool()
+    {
+        Assert.Equal(3, Activation.PlayerPool);
+        Assert.Equal(Activation.PlayerPool, Activation.FullPool);
+        Assert.Equal(2, Activation.CostOf(Ability.BullRush));
+        Assert.Equal(2, Activation.CostOf(Ability.Reel));
+        Assert.Equal(1, Activation.CostOf(Ability.StaggerShot));
+        Assert.Equal(1, Activation.CostOf(Ability.SpearThrust));
+        Assert.Equal(1, Activation.CostOf(Ability.GuardStance));
+    }
+
+    [Fact]
     public void Activation_EndingEarly_IsReportedAsPassed()
     {
         var state = TwoOnTwoOnTwo();

@@ -1,5 +1,21 @@
 # Changelog
 
+## Bull Rush costs 2
+
+- **Bull Rush is 2 AP, not the whole pool (D-126, MASTER_DESIGN Design Log (q)).** One tile of
+  pre-move is now legal, so the Vanguard's threat range is **4** — one past his own walk, one short
+  of the Archer's 2-3 band. Walking **two** still costs him the charge (3 - 2 = 1, against a cost of
+  2), which is what holds the number at 4. The charge itself is untouched: up to 3 tiles in a line,
+  first enemy pushed 2, stop adjacent. **Rescue is still the whole pool.**
+- **The change is one line of data.** `Activation.CostOf` is the only place the price lived; no
+  special case anywhere enforced "no pre-move", which is exactly what D-105 (g) claimed and had
+  never been tested from the other side.
+- **Wrecking Weight applies to a Bull Rush's shove, and is now pinned** — an armed charge is push 3
+  with 2 contact damage. Not new behaviour; newly common, because the free-timing spend now fits in
+  the same activation as a walk and a charge.
+- **`docs/playtest/` re-baselined at "post-rush-2"**, and now reports attack damage by class rather
+  than Archer-against-everyone. The committed logs had been generated before the AP turn landed.
+
 ## An Act 1 run can leave column 1
 
 - **A run at a fork no longer offers the fight it just won (D-125).** Winning `first-contact` on the

@@ -61,9 +61,9 @@ public sealed class ActionRowTests
     [Fact]
     public void ABullRushIntoEmptyGround_StaysOnTheList()
     {
-        // The designer's ruling: a charge down an empty lane is a legal three-tile reposition that
-        // costs the whole pool, and the game does not decide what is useful. A row that vanished
-        // when nobody was in the lane would be teaching a rule that does not exist.
+        // The designer's ruling: a charge down an empty lane is a legal three-tile reposition, and
+        // the game does not decide what is useful. A row that vanished when nobody was in the lane
+        // would be teaching a rule that does not exist.
         var session = Deployed();
         var vanguard = SelectKind(session, UnitKind.Vanguard);
         if (vanguard is null)
@@ -74,7 +74,50 @@ public sealed class ActionRowTests
         var rush = ActionRows.For(session).SingleOrDefault(r => r.Ability == Ability.BullRush);
 
         Assert.NotNull(rush);
-        Assert.Equal(Activation.FullPool, rush!.Cost);
+
+        // D-126: 2, off Core's table, and never the full pool again.
+        Assert.Equal(Activation.CostOf(Ability.BullRush), rush!.Cost);
+        Assert.Equal(2, rush.Cost);
+        Assert.Equal("2 " + ActionPoints.Label, rush.Badge);
+    }
+
+    [Fact]
+    public void AVanguardWithOnePointLeft_KeepsTheBullRushChipAt2_AndSaysHowShortItIs()
+    {
+        var session = Deployed();
+        var vanguard = SelectKind(session, UnitKind.Vanguard);
+        if (vanguard is null)
+        {
+            return;
+        }
+
+        // Walk to one point left: 3 - 2 = 1, and the charge wants 2.
+        var walk = session.Legal.OfType<MoveCommand>().FirstOrDefault(m =>
+            m.UnitId == vanguard.Id
+            && Movement.TryGetMove(session.State, session.State.UnitById(vanguard.Id), m.To, out var option)
+            && option.Cost == Activation.PlayerPool - 1);
+
+        Assert.NotNull(walk);
+        session.Submit(walk!);
+
+        var moved = session.State.UnitById(vanguard.Id);
+        Assert.Equal(1, Activation.Remaining(moved));
+
+        var rush = ActionRows.For(session).Single(r => r.Ability == Ability.BullRush);
+
+        Assert.False(rush.Available);
+
+        // The chip keeps the price — the price is the reason the button is greyed.
+        Assert.Equal(2, rush.Cost);
+        Assert.Equal("2 " + ActionPoints.Label, rush.Badge);
+
+        // Recomputed from the table, not spelled: shortfall 1 against a cost of 2.
+        Assert.Equal(
+            ActionPoints.Reason(
+                ActionPoints.Price(moved, Ability.BullRush), TargetingBlock.None, 0),
+            rush.Reason);
+        Assert.Equal("1 " + ActionPoints.Label + " short", rush.Reason);
+        Assert.Equal("Move 1 tile less to afford this.", rush.Hint);
     }
 
     [Fact]

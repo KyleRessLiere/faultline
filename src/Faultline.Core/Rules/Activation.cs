@@ -44,11 +44,26 @@ namespace Faultline.Core
         public const int ReelCost = 2;
 
         /// <summary>
-        /// Rescue and Bull Rush: the whole pool, which is what "no pre-move" means without needing a
-        /// second rule to say so. Bull Rush charges up to 3 on its own; a pre-move would silently
-        /// have extended the Vanguard's threat to 5.
+        /// Rescue: the whole pool. "Drop everything" is the price, which is what makes the run-up
+        /// have to live inside the verb rather than in front of it (D-106).
         /// </summary>
+        /// <remarks>
+        /// Bull Rush was priced here until D-126 and no longer is — see <see cref="BullRushCost"/>.
+        /// Nothing else may be added to this constant to mean "expensive": it is the rescue's price,
+        /// and a second ability sharing it is how "the full pool" quietly became a tier.
+        /// </remarks>
         public const int FullPool = PlayerPool;
+
+        /// <summary>
+        /// Bull Rush — two of the three, leaving exactly one tile of run-up (MASTER_DESIGN §3, D-126).
+        /// </summary>
+        /// <remarks>
+        /// The charge itself is unchanged at 3 tiles, so the price sets the threat range: one tile of
+        /// walk plus three of charge is <b>4</b>. Nothing else says "no pre-move" — the old
+        /// prohibition was never a rule, only the full-pool price, so lowering the price is the whole
+        /// change.
+        /// </remarks>
+        public const int BullRushCost = 2;
 
         /// <summary>Kicking in a clinging unit, and any Pluck spend — free-timing, priced at nothing.</summary>
         public const int Free = 0;
@@ -69,7 +84,7 @@ namespace Faultline.Core
         /// <returns>Its cost in action points.</returns>
         public static int CostOf(Ability ability) => ability switch
         {
-            Ability.BullRush => FullPool,
+            Ability.BullRush => BullRushCost,
             Ability.Reel => ReelCost,
             _ => ActionCost,
         };

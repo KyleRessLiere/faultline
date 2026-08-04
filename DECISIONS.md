@@ -142,9 +142,10 @@ in this file when the question comes back.
 | D-122 | [Nothing occupies a layout row between the turn-order strip and the board; a system message is a toast drawn over the board, or it moves into a region that already exists.](#d-122-nothing-occupies-a-layout-row-between-the-turn-order-strip-and-the-board-a-system-message-is-a-toast-drawn-over-the-board-or-it-moves-into-a-region-that-already-exists) | 2026-08-04 |  |
 | D-123 | [Leaving a battle is a reload, and the wordmark is the door.](#d-123-leaving-a-battle-is-a-reload-and-the-wordmark-is-the-door) | 2026-08-04 |  |
 | D-124 | [PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id is unchanged.](#d-124-pluck-is-the-name-on-screen-every-code-identifier-namespace-storage-key-and-campaign-id-is-unchanged) | 2026-08-04 |  |
-| D-125 | [A screen offers what `Campaign.LegalRunCommands` offers, never what a node's type implies; and the save carries `AtVote`, because a fork is a position a reload must not lose.](#d-125-a-screen-offers-what-campaignlegalruncommands-offers-never-what-a-nodes-type-implies-and-the-save-carries-atvote-because-a-fork-is-a-position-a-reload-must-not-lose) | unreleased |  |
+| D-125 | [A screen offers what `Campaign.LegalRunCommands` offers, never what a node's type implies; and the save carries `AtVote`, because a fork is a position a reload must not lose.](#d-125-a-screen-offers-what-campaignlegalruncommands-offers-never-what-a-nodes-type-implies-and-the-save-carries-atvote-because-a-fork-is-a-position-a-reload-must-not-lose) | 2026-08-04 |  |
+| D-126 | [Bull Rush costs 2 AP, not the whole pool; one tile of pre-move is legal and the Vanguard's threat range is 4.](#d-126-bull-rush-costs-2-ap-not-the-whole-pool-one-tile-of-pre-move-is-legal-and-the-vanguards-threat-range-is-4) | unreleased |  |
 
-**124 rulings.**
+**125 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2733,3 +2734,67 @@ found and recorded here rather than fixed in a bug session — teaching the harn
 question (which door does a headless run take?) and belongs with the balance work that reads its
 numbers. `RunAdvanceSeamTests` and `RunAdvanceBandTests` close the coverage gap meanwhile: both
 shapes of campaign, cleared by playing the board, pinned side by side.
+
+**D-126 — Bull Rush costs 2 AP, not the whole pool; one tile of pre-move is legal and the Vanguard's
+threat range is 4.**
+**Supersedes D-105 (e) and (g)** for Bull Rush only — the cost-table line and the "no pre-move"
+consequence drawn from it. Everything else in D-105 stands, including the rescue's full-pool price,
+which is untouched. Locked by MASTER_DESIGN Design Log **(q)**, 2026-08-03, and §3's action-cost
+table.
+
+**What forced it:** the design log's own words — *the signature competed with "just walk 3"*. At the
+full pool the Vanguard's choice each activation was between a 3-tile walk and a 3-tile charge that
+also shoved, taken from the same three points, with the charge additionally forfeiting every option
+that came after it. A price that leaves nothing over does not create a decision; it creates a
+sacrifice, and the harness bore this out — the two policies that read Core's previews and price
+options, `board-first` and `blade-first`, charged 7 times each across a whole campaign while taking
+63 ordinary swings. **At 2 there is a point left**, and the shape of the turn changes from "charge or
+move" to "how far do I walk before I charge".
+
+**The threat number is the ruling, not a side effect.** 1 walk + 3 charge = **4**: one past his own
+walk, and one short of the Archer's 2–3 shot band, so a Vanguard who commits still cannot reach the
+tile she is standing on from outside her answer. Walking **two** costs the charge outright — 3 − 2 = 1
+against a cost of 2 — which is what holds the number at 4 rather than letting it drift to 5.
+
+**Rejected: keeping 3 and adding a pre-move clause.** D-105 (g)'s whole point was that a rule falling
+out of a price cannot drift away from the price. Writing "may move 1 first" as its own sentence would
+have re-created exactly the special case that ruling dissolved, and it would have had to be re-argued
+every time the pool moved.
+
+**Rejected: 1 AP.** It would have made the charge the cheapest way to cross the board — 3 tiles of
+travel plus a shove for the price of a basic attack, with 2 points still in hand — and the Vanguard's
+threat would have reached 5. The design log asks for a decision, not a discount.
+
+**Rejected: touching the charge itself.** Range, push distance and stop-adjacent are unchanged, and
+the existing charge-mechanics tests pass without being edited. The ruling is one number.
+
+**Implementation is one line of data**, which is the evidence that the old behaviour really was
+nothing but the price. `Activation.CostOf(Ability.BullRush)` now returns the new
+`Activation.BullRushCost = 2` instead of `FullPool`; no special case anywhere blocked the pre-move,
+`Abilities.PreviewCharge` never consulted the purse, and every "no pre-move" mention in Core was a
+comment. `FullPool` is now the rescue's price alone, and its doc comment says so — a second ability
+sharing that constant is how "the full pool" quietly becomes a tier.
+
+**Wrecking Weight already applies to the charge's shove, and is now pinned.** The charge hands
+`Displacement` the pusher's id, so the armed +1 tile and 2 contact damage compose through the same
+path a basic attack's push takes: an armed charge is push 3 with a bite. Nothing in `ResolveCharge`
+mentions the spender, so this was behaviour implied only by an argument;
+`WreckingWeight_AppliesToABullRushsShove` now asserts it. The interaction is newly reachable inside a
+single activation — the spend is free-timing, so arm, walk one, charge. **Not a new ruling**: it is
+what "the next push this activation" has always meant, recorded here because the price change made it
+common enough to be noticed.
+
+**Flagged for the designer, not decided here: the UI reason string.** The implementation prompt asked
+that a greyed Bull Rush read **"Need 2 AP"**. The shipped convention for an unaffordable Action Point
+row is **"1 AP short"** (`ActionPoints.Reason`), paired with the hint *"Move 1 tile less to afford
+this."* — it names the *gap*, which is the number a player can act on, and it is the wording every AP
+action in the game uses. Changing it is a UI-wide wording change that ruling (q) does not ask for, so
+it was **not** made: the cost chip reads **2 AP** and the reason reads **1 AP short**, both recomputed
+from the cost table, and `AVanguardWithOnePointLeft_KeepsTheBullRushChipAt2_AndSaysHowShortItIs` pins
+both. If "Need 2 AP" is wanted it is a separate ruling about every priced row, and should arrive as
+one.
+
+**Harness re-baselined at "post-rush-2"** — `docs/playtest/`, which was last generated before the AP
+turn landed and whose committed logs still contained a walk-2-then-charge that the 3 AP price had
+since made illegal. It cannot walk a mapped run (D-125), so every number in it is the linear ten
+(`CampaignLibrary.Faultline`).
