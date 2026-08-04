@@ -131,6 +131,30 @@ public static class TestPlay
     /// <summary>Convenience for building a coordinate.</summary>
     public static Coord At(int x, int y) => new(x, y);
 
+    // ---- camp loadouts, hung on a board fixture ----------------------------------------------------
+    // A camp gives these out at the run layer; a rule test about what one *does* wants it on the board
+    // without a run around it. Same records the run would carry in, set directly.
+
+    /// <summary>The board with a mod fitted to one unit's spender.</summary>
+    public static GameState WithMod(this GameState state, UnitId id, Mod mod) =>
+        state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.With(mod) });
+
+    /// <summary>The board with an extra Pluck condition on one unit.</summary>
+    public static GameState WithWind(this GameState state, UnitId id, SecondWind wind) =>
+        state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.With(wind) });
+
+    /// <summary>The board with a tactical unlock on one unit.</summary>
+    public static GameState WithUnlock(this GameState state, UnitId id, Unlock unlock) =>
+        state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.With(unlock) });
+
+    /// <summary>The board with something in one unit's pocket.</summary>
+    public static GameState WithPocket(this GameState state, UnitId id, Consumable item) =>
+        state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.WithPocket(item) });
+
+    /// <summary>The board with one unit's meter set, for a test that needs it able to spend.</summary>
+    public static GameState WithVerve(this GameState state, UnitId id, int verve) =>
+        state.WithUnit(state.Get(id) with { Verve = verve });
+
     /// <summary>
     /// The next unit on the active team that can actually spend its activation. Clinging and
     /// Bedraggled units take no slot, so they are skipped here just as Core skips them.

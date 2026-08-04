@@ -32,8 +32,36 @@ namespace Faultline.Core
         /// <summary>Damage a Wrecking Weight push deals on contact, on top of anything it collides into.</summary>
         public const int ContactDamage = 2;
 
+        /// <summary>Contact damage once the <see cref="Mod.Heavier"/> mod is fitted (MASTER_DESIGN §8.6).</summary>
+        public const int HeavierContactDamage = 4;
+
         /// <summary>Extra tiles a Wrecking Weight push asks for, before Stagger, resistance and Footing.</summary>
         public const int ContactDistanceBonus = 1;
+
+        /// <summary>Extra tiles once <see cref="Mod.Freight"/> is fitted — "+2 instead of +1".</summary>
+        public const int FreightDistanceBonus = 2;
+
+        /// <summary>Pluck an <see cref="Mod.Echo"/> or <see cref="Mod.HuntersRefund"/> hands back.</summary>
+        public const int ModRefund = 1;
+
+        /// <summary>Cast's cost once <see cref="Mod.LightLine"/> is fitted.</summary>
+        public const int LightLineCost = 2;
+
+        /// <summary>Double Nock's cost once <see cref="Mod.FletchersRhythm"/> is fitted.</summary>
+        public const int FletchersRhythmCost = 3;
+
+        /// <summary>
+        /// Preen's cost once <see cref="Mod.Quick"/> is fitted. On probation against the negative-sum
+        /// invariant (MASTER_DESIGN §8.6): the invariant, asserted in ScaleTests, is that a Preen
+        /// never buys back more than one collision — a statement about <see cref="PreenHeal"/> and
+        /// not about the price. The mod changes the price and leaves the invariant standing.
+        /// </summary>
+        public const int QuickPreenCost = 2;
+
+        /// <summary>
+        /// The band <see cref="SecondWind.LongKill"/> pays out at: a kill at exactly this range.
+        /// </summary>
+        public const int LongKillRange = 3;
 
         /// <summary>Hit points Preen puts back, never past the unit's maximum.</summary>
         public const int PreenHeal = 4;
@@ -50,7 +78,7 @@ namespace Faultline.Core
         /// </remarks>
         public const int LongPullTiles = 3;
 
-        /// <summary>What a spend costs.</summary>
+        /// <summary>What a spend costs, before any mod the spender carries.</summary>
         /// <param name="spend">The spend.</param>
         /// <returns>Its cost in Verve.</returns>
         public static int CostOf(VerveSpend spend) => spend switch
@@ -61,6 +89,78 @@ namespace Faultline.Core
             VerveSpend.Preen => 3,
             _ => 0,
         };
+
+        /// <summary>
+        /// What a spend costs <em>this</em> duck: the printed price, or the price a cheaper-axis mod
+        /// has bought down (MASTER_DESIGN §8.6).
+        /// </summary>
+        /// <remarks>
+        /// The mod overwrites the price rather than discounting it, because §8.6 states each as an
+        /// absolute — "cost 2", not "-1". A discount would compound the day a second cheaper mod is
+        /// written, and the pool is explicitly one cheaper mod per spender.
+        /// </remarks>
+        /// <param name="spend">The spend.</param>
+        /// <param name="unit">The unit spending, whose loadout is consulted.</param>
+        /// <returns>Its cost in Verve for this unit.</returns>
+        public static int CostOf(VerveSpend spend, Unit? unit)
+        {
+            if (unit is null)
+            {
+                return CostOf(spend);
+            }
+
+            return spend switch
+            {
+                VerveSpend.Cast when unit.Has(Mod.LightLine) => LightLineCost,
+                VerveSpend.DoubleNock when unit.Has(Mod.FletchersRhythm) => FletchersRhythmCost,
+                VerveSpend.Preen when unit.Has(Mod.Quick) => QuickPreenCost,
+                _ => CostOf(spend),
+            };
+        }
+
+        /// <summary>
+        /// Contact damage a Wrecking Weight push deals for this pusher — 4 with
+        /// <see cref="Mod.Heavier"/> fitted.
+        /// </summary>
+        /// <param name="pusher">Unit whose armed push is landing.</param>
+        /// <returns>Hit points the contact takes.</returns>
+        public static int ContactDamageFor(Unit? pusher) =>
+            pusher is not null && pusher.Has(Mod.Heavier) ? HeavierContactDamage : ContactDamage;
+
+        /// <summary>
+        /// Extra tiles a Wrecking Weight push asks for from this pusher — 2 with
+        /// <see cref="Mod.Freight"/> fitted.
+        /// </summary>
+        /// <param name="pusher">Unit whose armed push is landing.</param>
+        /// <returns>Tiles added to the request.</returns>
+        public static int ContactDistanceBonusFor(Unit? pusher) =>
+            pusher is not null && pusher.Has(Mod.Freight) ? FreightDistanceBonus : ContactDistanceBonus;
+
+        /// <summary>
+        /// Puts Pluck on a meter from something that is not a charge condition — a mod's refund, or a
+        /// one-shot out of a pocket. Capped like every other gain, and reported when the cap ate it.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unitId">Unit gaining.</param>
+        /// <param name="amount">Points to add; non-positive amounts do nothing.</param>
+        /// <param name="source">What handed it over, for the log.</param>
+        /// <param name="events">Sink for the resulting events.</param>
+        /// <returns>The state with the meter updated.</returns>
+        public static GameState Gain(
+            GameState state, UnitId unitId, int amount, VerveSource source, List<GameEvent> events)
+        {
+            if (state is null || events is null || amount <= 0)
+            {
+                return state!;
+            }
+
+            for (int i = 0; i < amount; i++)
+            {
+                state = Bank(state, unitId, source, events);
+            }
+
+            return state;
+        }
 
         /// <summary>
         /// The one spend a class has, or <c>null</c> for a class with none. A unit never chooses
@@ -125,6 +225,10 @@ namespace Faultline.Core
             // and shove a guard and that is one absorb, not two (D-095).
             foreach (var guardId in Absorbed(state, events, produced))
             {
+                // Recorded on the unit as well as banked, because a stance is judged "unabsorbed"
+                // long after the blow — at the moment it expires, which is the Patience condition
+                // (MASTER_DESIGN §8.6).
+                state = state.WithUnit(state.UnitById(guardId) with { GuardAbsorbed = true });
                 state = Bank(state, guardId, VerveSource.Guard, events);
             }
 
@@ -138,7 +242,9 @@ namespace Faultline.Core
                 state = Bank(state, earnerId, source, events);
             }
 
-            return state;
+            // The camps' own listeners run last and on the same window, so a Second Wind is an extra
+            // reading of the stream rather than a second charging system.
+            return CampListeners.Fire(state, events, produced);
         }
 
         /// <summary>Puts one point on a unit's meter, or reports it wasted against the cap.</summary>
@@ -281,7 +387,7 @@ namespace Faultline.Core
 
             if (SpendFor(unit.Kind) != spend
                 || unit.HasSpentVerve
-                || unit.Verve < CostOf(spend)
+                || unit.Verve < CostOf(spend, unit)
                 || !unit.IsOnBoard
                 || unit.Clinging
                 || unit.HasActivated
@@ -305,10 +411,47 @@ namespace Faultline.Core
                 VerveSpend.Cast => Throw.Grabbable(state, unit).Count > 0,
 
                 // Nothing to patch up at full health. Offering it would be offering a unit the
-                // chance to burn three points on nothing.
-                VerveSpend.Preen => unit.Hp < unit.MaxHp,
+                // chance to burn three points on nothing — and with Neighborly fitted the same test
+                // has to look next door, or the mod would be unusable whenever he is unhurt.
+                VerveSpend.Preen => unit.Hp < unit.MaxHp || PreenTargets(state, unit).Count > 0,
                 _ => false,
             };
+        }
+
+        /// <summary>
+        /// The allies a Preen could be spent on instead of the spender: the adjacent, hurt ones, and
+        /// only with <see cref="Mod.Neighborly"/> fitted (MASTER_DESIGN §8.6). Empty otherwise.
+        /// </summary>
+        /// <remarks>
+        /// A full-health ally is not on the list for the same reason a full-health Wardbearer is not
+        /// offered Preen at all: the points would buy nothing.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">The Wardbearer spending.</param>
+        /// <returns>Legal ally targets, in unit-id order.</returns>
+        public static IReadOnlyList<UnitId> PreenTargets(GameState state, Unit unit)
+        {
+            var targets = new List<UnitId>();
+            if (state is null || unit is null || !unit.Has(Mod.Neighborly) || !unit.IsOnBoard)
+            {
+                return targets;
+            }
+
+            foreach (var candidate in state.Units)
+            {
+                if (candidate.Id == unit.Id
+                    || !candidate.IsOnBoard
+                    || candidate.Team.IsHostileTo(unit.Team)
+                    || candidate.Hp >= candidate.MaxHp
+                    || !candidate.Position.IsAdjacentTo(unit.Position))
+                {
+                    continue;
+                }
+
+                targets.Add(candidate.Id);
+            }
+
+            return targets;
         }
 
         /// <summary>
@@ -330,7 +473,7 @@ namespace Faultline.Core
             Coord? to = null)
         {
             var unit = state.UnitById(unitId);
-            int cost = CostOf(spend);
+            int cost = CostOf(spend, unit);
             int remaining = unit.Verve - cost;
 
             state = state.WithUnit(unit with { Verve = remaining, HasSpentVerve = true });
@@ -350,7 +493,7 @@ namespace Faultline.Core
                         : Throw.Resolve(state, unitId, targetId.Value, to.Value, events);
 
                 case VerveSpend.Preen:
-                    return Preen(state, unitId, events);
+                    return Preen(state, unitId, targetId ?? unitId, events);
 
                 default:
                     return state;
@@ -367,9 +510,20 @@ namespace Faultline.Core
         /// fills when the Wardbearer takes hits meant for somebody else. What he heals is bounded by
         /// what he soaked, which the harness asserts rather than assumes.
         /// </remarks>
-        private static GameState Preen(GameState state, UnitId unitId, List<GameEvent> events)
+        private static GameState Preen(
+            GameState state, UnitId unitId, UnitId targetId, List<GameEvent> events)
         {
-            var unit = state.UnitById(unitId);
+            var spender = state.UnitById(unitId);
+
+            // Thorough is on the spender and shakes off the spender's own Stagger, whoever the heal
+            // went to: §8.6 words it "also clears *his* Stagger".
+            if (spender.Has(Mod.Thorough) && spender.Staggered)
+            {
+                state = state.WithUnit(spender with { Staggered = false });
+                spender = state.UnitById(unitId);
+            }
+
+            var unit = state.UnitById(targetId);
             int healed = unit.MaxHp - unit.Hp;
             if (healed > PreenHeal)
             {
@@ -382,7 +536,7 @@ namespace Faultline.Core
             }
 
             state = state.WithUnit(unit with { Hp = unit.Hp + healed });
-            events.Add(new UnitHealed(unitId, healed, unit.Hp + healed, unit.Position));
+            events.Add(new UnitHealed(targetId, healed, unit.Hp + healed, unit.Position));
             return state;
         }
 
@@ -486,7 +640,7 @@ namespace Faultline.Core
         /// The unit responsible for the board consequences at <paramref name="index"/>: the actor of
         /// the nearest preceding action in the same command.
         /// </summary>
-        private static bool Causer(IReadOnlyList<GameEvent> events, int index, out UnitId causerId)
+        internal static bool Causer(IReadOnlyList<GameEvent> events, int index, out UnitId causerId)
         {
             for (int i = index - 1; i >= 0; i--)
             {

@@ -118,6 +118,8 @@ namespace Faultline.Core
             VerveCharged => nameof(VerveCharged),
             UnitHealed => nameof(UnitHealed),
             VerveSpent => nameof(VerveSpent),
+            ConsumableUsed => nameof(ConsumableUsed),
+            DebrisPlaced => nameof(DebrisPlaced),
             FightWon => nameof(FightWon),
             FightLost => nameof(FightLost),
             ObjectiveDeclared => nameof(ObjectiveDeclared),
@@ -242,6 +244,12 @@ namespace Faultline.Core
             UnitHealed e => "patched up +" + Number(e.Amount) + " at " + e.At
                 + ", hp " + Number(e.RemainingHp),
 
+            ConsumableUsed e => "uses " + CampCatalogue.NameOf(e.Item) + " at " + e.At
+                + (e.To.HasValue ? " on " + e.To.Value : string.Empty)
+                + ", pocket empty",
+
+            DebrisPlaced e => "drops debris on " + e.At + " with " + Number(e.Hp) + " hp",
+
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
             FightLost e => "fight " + Number(e.FightNumber) + " lost, " + Clean(e.Reason),
@@ -326,6 +334,8 @@ namespace Faultline.Core
             VerveCharged e => e.UnitId,
             UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,
+            ConsumableUsed e => e.UnitId,
+            DebrisPlaced e => e.UnitId,
             StructureAttacked e => e.AttackerId,
             ReinforcementScheduled e => e.UnitId,
             ReinforcementArrived e => e.UnitId,

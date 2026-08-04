@@ -62,6 +62,16 @@ namespace Faultline.Core
             VerveSource.HighGround => "high ground",
             VerveSource.Guard => "guard stance",
             VerveSource.LongPull => "a long haul",
+            VerveSource.Stagger => "a rattled enemy",
+            VerveSource.Charge => "a charge that connected",
+            VerveSource.Chum => "chum in the water",
+            VerveSource.Undertow => "an enemy dragged in close",
+            VerveSource.LongKill => "a kill at range",
+            VerveSource.Roost => "a round ended on the roost",
+            VerveSource.Patience => "patience",
+            VerveSource.SpearTip => "the spear's tip",
+            VerveSource.Refund => "a refund",
+            VerveSource.Pocket => "something out of a pocket",
             _ => source.ToString(),
         };
     }

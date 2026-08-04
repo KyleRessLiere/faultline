@@ -43,6 +43,18 @@ namespace Faultline.Core
         public int BonusMaxHp { get; init; }
 
         /// <summary>
+        /// Everything the camps have hung on this duck: mods, extra Pluck conditions, rule unlocks
+        /// and whatever is in its pocket (MASTER_DESIGN §8.5).
+        /// </summary>
+        /// <remarks>
+        /// Survives a downing. Being downed costs three quarters of your health and a slot, and the
+        /// Bedraggled return brings the duck back with everything a camp gave it — the loadout is not
+        /// part of the price, and a duck that came back stripped of it would be a duck the run had
+        /// quietly rolled back.
+        /// </remarks>
+        public DuckLoadout Loadout { get; init; } = DuckLoadout.Empty;
+
+        /// <summary>
         /// Maximum hit points: the archetype's ceiling plus whatever this run has added to it. The
         /// base is read from the template rather than stored, so a stat change to a class cannot
         /// leave a run holding a stale ceiling.
@@ -93,6 +105,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + (int)Status;
                 hash = (hash * 31) + Verve;
                 hash = (hash * 31) + BonusMaxHp;
+                hash = (hash * 31) + Loadout.GetHashCode();
                 return hash;
             }
         }
@@ -107,6 +120,7 @@ namespace Faultline.Core
             && Hp == other.Hp
             && Status == other.Status
             && Verve == other.Verve
-            && BonusMaxHp == other.BonusMaxHp;
+            && BonusMaxHp == other.BonusMaxHp
+            && Loadout.Equals(other.Loadout);
     }
 }

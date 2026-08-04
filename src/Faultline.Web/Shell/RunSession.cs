@@ -74,6 +74,17 @@ public sealed class RunSession : IRunBoardDriver
     public IReadOnlyList<string> Journal => _journal;
 
     /// <summary>
+    /// How the last fight ended, until the next one begins — or <c>null</c> before the first.
+    /// </summary>
+    /// <remarks>
+    /// Remembered rather than read off <see cref="LastEvents"/>, because a won fight is no longer the
+    /// last thing that happened: the Camp stands between it and the next node (MASTER_DESIGN §8.5),
+    /// so a band that asked only the last command would stop reporting the fight the moment the cards
+    /// were dealt. Cleared when a fight begins, which is the moment the summary stops being true.
+    /// </remarks>
+    public FightResolved? LastResolution { get; private set; }
+
+    /// <summary>
     /// True when the run came back out of storage inside a fight, so that fight went back to
     /// deployment (DECISIONS.md D-050). Stays true while the run is still on that node.
     /// </summary>
@@ -105,6 +116,15 @@ public sealed class RunSession : IRunBoardDriver
 
     /// <summary>True when the node the run is on is asking it a question — a campfire, an event.</summary>
     public bool AtChoice => State is { Phase: RunPhase.AtChoice };
+
+    /// <summary>True when the run is at a Camp with both players' cards on the table.</summary>
+    public bool AtCamp => State is { Phase: RunPhase.AtCamp };
+
+    /// <summary>
+    /// The camp's two-per-player draw, or <c>null</c> when the run is not at one. Dealt by Core from
+    /// the run RNG, never by this session.
+    /// </summary>
+    public CampTable? Camp => AtCamp ? Faultline.Core.Camp.Draw(State!) : null;
 
     /// <summary>Everything legal from here, straight from Core.</summary>
     public IReadOnlyList<RunCommand> Legal =>
@@ -146,6 +166,7 @@ public sealed class RunSession : IRunBoardDriver
             _journal.Clear();
             _commands.Clear();
             _logFromStart = false;
+            LastResolution = null;
         }
 
         Loaded = true;
@@ -172,6 +193,7 @@ public sealed class RunSession : IRunBoardDriver
         _journal.Clear();
         _commands.Clear();
         _logFromStart = true;
+        LastResolution = null;
         _pushed = null;
         _restoredNode = null;
         Problem = null;
@@ -198,6 +220,7 @@ public sealed class RunSession : IRunBoardDriver
         _journal.Clear();
         _commands.Clear();
         _logFromStart = false;
+        LastResolution = null;
         _session.DetachRun();
         Changed?.Invoke();
     }
@@ -219,6 +242,27 @@ public sealed class RunSession : IRunBoardDriver
 
     /// <summary>Spends the campfire on healing — the only thing a v1 campfire can be spent on.</summary>
     public void Heal() => Apply(new RestHealCommand());
+
+    /// <summary>
+    /// Sends both players' camp picks to Core as one command, which applies them and moves the run on.
+    /// </summary>
+    /// <remarks>
+    /// Both picks travel together because they are simultaneous and independent (MASTER_DESIGN §8.5):
+    /// each player's cards are drawn from their own ducks, so there is no order for one to resolve in
+    /// front of the other and no half-picked state to send one into. The table is Core's, redealt
+    /// from the run RNG, so this session cannot hand the squad a card the seed did not deal.
+    /// </remarks>
+    /// <param name="pickA">Index of Player A's card, or -1 when they were dealt none.</param>
+    /// <param name="pickB">Index of Player B's card, or -1 when they were dealt none.</param>
+    public void PickCamp(int pickA, int pickB)
+    {
+        if (Camp is not { } table)
+        {
+            return;
+        }
+
+        Apply(new CampPickCommand(table, pickA, pickB));
+    }
 
     /// <summary>
     /// Takes an event's offer, with one named duck paying for it.
@@ -354,6 +398,7 @@ public sealed class RunSession : IRunBoardDriver
         _journal.Clear();
         _pushed = null;
         Problem = null;
+        LastResolution = null;
 
         var start = Campaign.Start(campaign, seed);
         State = start.NewState;
@@ -527,6 +572,15 @@ public sealed class RunSession : IRunBoardDriver
         foreach (var e in events)
         {
             _journal.Add(RunEventText.Describe(e));
+
+            if (e is FightResolved resolved)
+            {
+                LastResolution = resolved;
+            }
+            else if (e is FightBegan)
+            {
+                LastResolution = null;
+            }
         }
     }
 

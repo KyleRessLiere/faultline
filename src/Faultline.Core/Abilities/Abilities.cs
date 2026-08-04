@@ -562,7 +562,9 @@ namespace Faultline.Core
         // enemy round it is meant to cover happens after the round it was declared in.
         private static GameState ResolveStance(GameState state, Unit unit, List<GameEvent> events)
         {
-            var guarding = state.UnitById(unit.Id) with { Guarding = true };
+            // The absorbed mark opens clean with the stance: "expires unabsorbed" is a question about
+            // this stance, not about every stance the unit has ever held (MASTER_DESIGN §8.6).
+            var guarding = state.UnitById(unit.Id) with { Guarding = true, GuardAbsorbed = false };
             events.Add(new GuardStanceChanged(guarding.Id, guarding.Position, true));
             return state.WithUnit(guarding);
         }

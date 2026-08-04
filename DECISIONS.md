@@ -143,9 +143,14 @@ in this file when the question comes back.
 | D-123 | [Leaving a battle is a reload, and the wordmark is the door.](#d-123-leaving-a-battle-is-a-reload-and-the-wordmark-is-the-door) | 2026-08-04 |  |
 | D-124 | [PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id is unchanged.](#d-124-pluck-is-the-name-on-screen-every-code-identifier-namespace-storage-key-and-campaign-id-is-unchanged) | 2026-08-04 |  |
 | D-125 | [A screen offers what `Campaign.LegalRunCommands` offers, never what a node's type implies; and the save carries `AtVote`, because a fork is a position a reload must not lose.](#d-125-a-screen-offers-what-campaignlegalruncommands-offers-never-what-a-nodes-type-implies-and-the-save-carries-atvote-because-a-fork-is-a-position-a-reload-must-not-lose) | 2026-08-04 |  |
-| D-126 | [Bull Rush costs 2 AP, not the whole pool; one tile of pre-move is legal and the Vanguard's threat range is 4.](#d-126-bull-rush-costs-2-ap-not-the-whole-pool-one-tile-of-pre-move-is-legal-and-the-vanguards-threat-range-is-4) | unreleased |  |
+| D-126 | [Bull Rush costs 2 AP, not the whole pool; one tile of pre-move is legal and the Vanguard's threat range is 4.](#d-126-bull-rush-costs-2-ap-not-the-whole-pool-one-tile-of-pre-move-is-legal-and-the-vanguards-threat-range-is-4) | 2026-08-04 |  |
+| D-127 | [The Camp is a phase on the run seam, not a node on the map; it follows every won Fight or Elite and never the boss.](#d-127-the-camp-is-a-phase-on-the-run-seam-not-a-node-on-the-map-it-follows-every-won-fight-or-elite-and-never-the-boss) | unreleased |  |
+| D-128 | [A camp's table is derived from the run RNG cursor and never stored; the command records both the draw and the pick.](#d-128-a-camps-table-is-derived-from-the-run-rng-cursor-and-never-stored-the-command-records-both-the-draw-and-the-pick) | unreleased |  |
+| D-129 | [§8.6's twelve mods, eight Second Winds, four unlocks and five consumables ship. Deep Pockets, the legendary consumables and Learn/Replace/Swap do not.](#d-129-86s-twelve-mods-eight-second-winds-four-unlocks-and-five-consumables-ship-deep-pockets-the-legendary-consumables-and-learnreplaceswap-do-not) | unreleased |  |
+| D-130 | [Quick Preen ships at cost 2, unflagged: the negative-sum invariant is about the heal, not the price.](#d-130-quick-preen-ships-at-cost-2-unflagged-the-negative-sum-invariant-is-about-the-heal-not-the-price) | unreleased |  |
+| D-131 | [Old Rope makes any living ally holding one a "possible rescuer" for the doomed-cling sweep, without asking whether it could reach.](#d-131-old-rope-makes-any-living-ally-holding-one-a-possible-rescuer-for-the-doomed-cling-sweep-without-asking-whether-it-could-reach) | unreleased |  |
 
-**125 rulings.**
+**130 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2798,3 +2803,158 @@ one.
 turn landed and whose committed logs still contained a walk-2-then-charge that the 3 AP price had
 since made illegal. It cannot walk a mapped run (D-125), so every number in it is the linear ten
 (`CampaignLibrary.Faultline`).
+
+**D-127 — The Camp is a phase on the run seam, not a node on the map; it follows every won Fight or
+Elite and never the boss.**
+
+MASTER_DESIGN §8.5 calls it a node, and the implementation prompt asked for a `CampNode`. It is built
+as a **phase** — `RunPhase.AtCamp`, resolved by `Campaign.ApplyRun` directly, exactly as a
+`VoteCommand` is — because a camp follows *every* combat node. Putting one in the lane graph would
+mean generating a camp after every fight in every lane, roughly doubling the graph to express
+something the seam already knows, and the generator's constraints (D-116) would then have to be
+taught to ignore half their own nodes. The argument is the vote's argument: this is about what happens
+*between* nodes, and the node just left has no opinion about it.
+
+**What forced it:** §8.5's "after every combat node" and §8.6's pools arriving together, with nothing
+in the map format to hang a camp on. The nodes are authored; the camp is not a place you choose to go.
+
+**The boss runs no camp.** §8.5 says "after every combat node"; the implementation prompt says "after
+every Fight/Elite node". The narrower reading is taken, and it is a ruling rather than a shortcut: the
+boss's reward is **the Molt**, which is unbuilt, and dealing it a corridor fight's two cards would
+quietly price the act's last fight the same as its first. It also keeps the last blow of the act and
+the act ending in one step — `ActCleared` immediately follows the winning command, which is what
+`RunMapTests.TheBoss_EndsTheActWithAnHonestlyLabelledTally` has always asserted.
+
+**Rejected: a `CampNode` record with a handler, entered like a rest.** It buys nothing: the handler
+would have no node of its own to be registered against, and `CampaignNodeHandlers` would gain a type
+that never appears in a campaign's node list. A registry entry for something no map can contain is a
+lie about what the map can hold.
+
+**Rejected: making the camp optional or skippable.** §8.5 is explicit that camps are the reward. A
+decline button is a button whose only use is a misclick, so the legal list holds picks and nothing
+else, and `LegalRunCommands` at a camp is every ordered pair of cards.
+
+**What it cost elsewhere.** A won fight no longer lands on the next node, so three test drivers and
+one shell fixture learned to settle a camp on the way past (`RunFixture.SettleCamp`, `MapFixture`,
+`RunAdvanceSeamTests.PlayOn`, `RunAdvanceBandTests`). The band's "Fight won" summary used to be read
+off the last command's events, which the camp displaced — it is now remembered on `RunSession` until
+the next fight begins, which is the honest reading of "how the last fight ended" either way.
+
+**D-128 — A camp's table is derived from the run RNG cursor and never stored; the command records both
+the draw and the pick.**
+
+`Camp.Draw(RunState)` is a pure function of `RunState.RngState` and the squad. Nothing about the camp
+lives on `RunState` beyond the phase: a save records `at-camp: yes`, a restore deals the same two
+cards, and a replay deals them again. The cursor moves only when the picks land, so the offers a
+player is looking at and the offers Core will validate against are the same computation, not two
+copies of one.
+
+**What forced it:** the alternative is holding the drawn table on the state, which means hand-written
+equality for it, a mutation in `StateEqualityCoverageTests`, a field in `RunSave`, and a second thing
+that can disagree with the seed. The run RNG already had exactly one consumer (the split-vote coin)
+and a documented pattern; this follows it.
+
+**The command carries the whole table**, not just two indices — `CampPickCommand(CampTable Drawn, int
+PickA, int PickB)`. Core recomputes and refuses a command whose recorded draw is not the one it would
+have dealt, which is `MoveCommand.Path`'s rule (D-097) one level up: the log is the save format, and a
+log entry reading "index 1" would record a decision without recording what was decided between.
+
+**Player A is dealt before Player B.** That is an ordering of *draws*, not of *picks*: the two pools
+are disjoint by construction — each player draws from their own ducks — so the order changes nothing
+about what either can be handed. The picks themselves are simultaneous and independent, which is why
+one command carries both. An earlier draft of the prompt said "resolved in initiative order" and was
+corrected; the corrected reading is what is built.
+
+**D-129 — §8.6's twelve mods, eight Second Winds, four unlocks and five consumables ship. Deep
+Pockets, the legendary consumables and Learn/Replace/Swap do not.**
+
+The v1 pool is built verbatim where it could be, and the gaps are named rather than approximated.
+
+**Built:** all twelve mods (three per spender, two slots per duck), all eight Second Wind conditions
+(two per class, class-bound and asserted so), four of the five tactical unlocks, and all five tactical
+consumables. Each mod is a conditional at the rule it modifies — `Verve.CostOf(spend, unit)`,
+`Movement.StepCost`, `Throw.GrabRangeFor`, `Pits.KickRangeFor`, `Activation.RescueCost` — never a
+parallel rulebook. Each Second Wind is a listener on the finished event stream, in
+`Camp/CampListeners.cs`, which is the shape `Verve.Charge` already had (D-073).
+
+**Not built, and why:**
+
+- **Deep Pockets** (a second consumable pocket). The pocket is `DuckLoadout.Pocket` — one slot, by
+  construction. A second is a rework of the pocket rather than one conditional at one rule site, and
+  every "use your pocket" surface would have to learn to ask *which*. It is deliberately not a value
+  of the `Unlock` enum, so it cannot be dealt.
+- **Legendary consumables** (Drift Scroll, Second Wind Whistle, Stone Feather, Peddler's Coin, Bottled
+  Current). §8.5 puts them at destinations only, and no destination pays anything (D-118).
+- **Learn / Replace / Swap.** Kit surgery needs a multi-spender slot surface to pick into. It is not a
+  value of `OfferCategory`, for the same reason: a category that can never be drawn would make "no
+  offer outside the implemented set" an assertion about nothing.
+
+**Three §8.6 rows were ambiguous and are implemented literally, flagged here:**
+
+1. **"Long Draw — both shots range 4."** Read as an absolute (4, not +1) and as covering **the whole
+   activation the Double Nock was spent in**, keyed off `Unit.HasSpentVerve`. Keying off
+   `Unit.ExtraAttacks` would have widened the first shot and not the second, which makes the mod's own
+   sentence false. It widens **basic attacks only**, not Stagger Shot — "shots" is the bow, and
+   Stagger Shot's range is its own printed number.
+2. **"Long Shot — +1 on kills at range 3."** Read as **exactly** 3, not "3 or more". The Archer's
+   printed range is 3, so the two readings only differ once **Long Draw** is also fitted — at which
+   point a kill at 4 pays nothing. That is the literal text and it may well be wrong; it is flagged
+   for the designer rather than widened here.
+3. **"Thorough — also clears his Stagger."** *His* — the spender's, not the target's. With
+   **Neighborly** also fitted the two mods can point at different ducks, and the pronoun decides:
+   Thorough shakes off the Wardbearer's own Stagger whoever the heal went to.
+
+**Two capacity filters are rulings, not plumbing.** A duck whose spender is full is dealt no mods
+(§8.6's slot ceiling); a duck whose pocket is full is dealt no consumables (§8.5's one pocket). The
+design states the first and implies the second. An offer that cannot be taken is not an offer, and the
+alternative — dealing it and refusing the pick — puts a dead card on a table of two.
+
+**Neighborly closed a hole it did not open.** `Game.ApplySpendVerve` validated Cast's aim and nothing
+else, so a Preen carrying a `TargetId` was accepted unexamined — a hurt Wardbearer with no mod at all
+could have pointed one at an ally and healed them. Unreachable before this change, because nothing
+ever put a target on a Preen; it is now checked against `Verve.PreenTargets`, which is empty without
+the mod.
+
+**Rejected: a single flat "gift" enum across all four pools.** The effects are read at rule sites
+(`unit.Has(Mod.Heavier)`), and a flat enum would mean every rule site asking a category question
+before its own. Four typed enums plus `CampOffer(Duck, Category, Value)` keeps the draw generic and
+the rules specific.
+
+**D-130 — Quick Preen ships at cost 2, unflagged: the negative-sum invariant is about the heal, not
+the price.**
+
+§8.6 marks *Quick* "(probation vs the negative-sum invariant)". The invariant is
+`ScaleTests.Preen_NeverBuysBackMoreThanOneCollision` — `Verve.PreenHeal <= Displacement.CollisionDamage`,
+4 <= 4 — and it is a statement about **how much a Preen buys back**, which the mod does not touch. It
+changes what a Preen **costs**. The invariant is green at cost 2 and the mod ships enabled; no flag,
+no disabled path.
+
+**What this does change**, and what the probation was presumably about: at 2 the Wardbearer reaches
+Preen sooner and more often, so the *rate* of healing rises even though the amount per spend does not.
+That is a tuning question about the meter's income, not an invariant, and there is no assertion in the
+repo it violates. Flagged for the designer as the number to watch if attrition stops biting.
+
+**Rejected: shipping it behind a flag anyway.** A disabled mod is a row in the pool that can never be
+dealt, which is the same failure as an undrawable category — and the instruction was to disable it
+*if the invariant fails*. It does not fail.
+
+**D-131 — Old Rope makes any living ally holding one a "possible rescuer" for the doomed-cling sweep,
+without asking whether it could reach.**
+
+§8.5 requires the doomed-cling check to "include held Ropes". `Pits.ResolveDoomed` asks a coarse
+question — has this side anybody standing who is not themselves on a ledge — and sweeps when the
+answer is no (D-081). The Rope now widens it: a side with **any living unit carrying an Old Rope** is
+not doomed, whether or not that unit is itself clinging.
+
+**What forced it:** the prompt's own correction. An earlier draft mused about a **reachability**
+reading — is there a Rope-holder who could actually get adjacent — and it was corrected to the
+adjacency reading. Reachability was rejected for a second reason too: `ResolveDoomed` runs after every
+command, and its job is to answer "is this already hopeless" cheaply. A pathfinding sweep inside it
+would be a slower second copy of the rescue rules, and the two would drift.
+
+**The literal reading has a strange corner, recorded rather than papered over.** Because the coarse
+check already counts every *standing* ally, the Rope clause only ever bites for allies who are
+themselves clinging — and a clinging duck cannot use its Rope. So the practical effect is that a side
+of nothing but clingers, one of whom carries a Rope, is not swept early; it is voided at end of round
+instead (D-016). That is a delay, not a rescue. It is what the words say, it costs nothing, and
+narrowing it would be inventing a clause the design did not write.

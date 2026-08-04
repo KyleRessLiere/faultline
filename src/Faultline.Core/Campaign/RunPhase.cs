@@ -26,5 +26,13 @@ namespace Faultline.Core
         /// ever entered at a time, and which one it is comes from <see cref="RunState.CurrentNode"/>.
         /// </summary>
         AtChoice = 4,
+
+        /// <summary>
+        /// At a Camp: a fight was won, both players have been dealt 1 of 2, and the only legal
+        /// commands are <see cref="CampPickCommand"/>s — both picks at once, simultaneous and
+        /// independent (MASTER_DESIGN §8.5). There is no skip on the list, because declining a reward
+        /// is not a decision. The camp sits on the run seam, ahead of the next vote.
+        /// </summary>
+        AtCamp = 5,
     }
 }

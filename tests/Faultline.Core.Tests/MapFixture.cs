@@ -164,8 +164,10 @@ internal static class MapFixture
             {
                 command = new EnterNodeCommand();
             }
-            else if (run.Phase == RunPhase.AtChoice)
+            else if (run.Phase == RunPhase.AtChoice || run.Phase == RunPhase.AtCamp)
             {
+                // The camp is a real stop between a won fight and the next door (MASTER_DESIGN §8.5).
+                // A driver that is not about the camp takes the first card and walks on.
                 command = Campaign.LegalRunCommands(run)[0];
             }
             else

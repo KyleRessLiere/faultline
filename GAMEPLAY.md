@@ -1022,13 +1022,126 @@ Named here so the gap between intent and build stays visible, not to promise a d
   is a `?` the map could route a run into (D-120).
 - **Straits** — events where every exit is priced. The shape exists in the model; no Strait is
   authored.
-- **Legendaries, consumables and the pick-one-of-two surface**, so no reward mark is payable, and the
-  act's only differentiated destination is the one thing a renderer must not draw.
+- **Legendaries**, so no reward mark is payable, and the act's only differentiated destination is the
+  one thing a renderer must not draw. The **tactical** consumables are built and are handed out at
+  camps — see [The Camp](#the-camp--pick-1-of-2-after-every-won-fight); the **legendary** ones are
+  not.
+- **The camp's offer-card screen.** Core deals the cards, lists the picks and applies them; the shell
+  can settle a camp (`RunSession.PickCamp`) but draws nothing for it yet, so a camp reached in the
+  browser is a stop with no cards on screen.
 - **The Molt.**
 - **Forge and curse-scraping** at the campfire.
 - **`RunUnit.Owner`.** Consent is structural rather than checked, and stays that way until the Dock
   draft (D-121).
 - **The Peddler's Coin**, the one licensed re-flip. When it lands it re-flips the coin, not the vote.
+
+## The Camp — pick 1 of 2 after every won fight
+
+After every **Fight or Elite node that ends in a win**, the run stops at a **Camp**. Each player is
+dealt **two cards** and takes **one**. Gameplay only: there are no stat lines in the pool and nowhere
+to put one (MASTER_DESIGN §8.5). **There is no skip** — camps are the reward, and the legal list holds
+nothing but picks.
+
+**Not after the boss.** A boss node runs no camp: its reward is the Molt, which is not built, and a
+camp there would price the act's last fight the same as a corridor fight (D-127).
+
+**The two draws are simultaneous and independent.** Player A's cards come from Player A's ducks and
+Player B's from Player B's — the default split (D-092), so **A holds the Vanguard and the Fisher, B
+the Wardbearer and the Archer**. Nothing is shared, so there is no contention and no initiative order.
+Both picks travel on one `CampPickCommand`, exactly as both votes travel on one `VoteCommand`.
+
+| | |
+|---|---|
+| Phase | `RunPhase.AtCamp`, between the won fight and the next vote |
+| Cards per player | **2**, and the pick is **1** |
+| Constraint | a player's two cards **differ in category** wherever the pool allows |
+| Duplicate cards | never — a card is drawn out and cannot be drawn again in the same deal |
+| Seeded from | the **run RNG** (`RunState.RngState`), the same cursor a split vote's coin flips |
+| Stored | **nothing** — the table is a pure function of the cursor and the squad, so a save, a restore and a replay all deal the same two cards |
+| Recorded | the command carries **the whole table and both picks**; Core refuses a command whose recorded table is not the one the seed would have dealt |
+| Empty pool | when neither player has anything left to be offered, no camp opens and the run walks on |
+| Events | `CampOffered` (the table) then one `CampTaken` per player, in player order |
+
+### What is in the v1 pool
+
+Four categories are drawable: **Modify**, **Second Wind**, **Tactical unlock**, **Consumable**. §8.5's
+fifth — **Learn / Replace / Swap** — is *not* built and is not a value the enum holds, so it can never
+be dealt.
+
+**Mods — 3 per spender, and a duck's spender holds 2 of them.** A mod offer is never dealt for a duck
+whose spender is full, and never for a class the mod does not fit. The third slot is the Molt's *Deep
+Mastery*, which is not built, so **2 is the whole ceiling today**.
+
+| Spender | Mod | What it does now |
+|---|---|---|
+| Wrecking Weight (Vanguard) | **Heavier** | contact damage **4** instead of 2 |
+| | **Freight** | **+2** distance instead of +1 |
+| | **Echo** | if the charged push **collides**, refund **1** Pluck (`VerveSource.Refund`) |
+| Cast (Fisher) | **Light Line** | cost **2** instead of 3 |
+| | **Long Rod** | grab range **4** instead of 3 |
+| | **Big Splash** | the landing also deals **2** to every enemy adjacent to the landing tile |
+| Double Nock (Archer) | **Fletcher's Rhythm** | cost **3** instead of 4 |
+| | **Long Draw** | both shots range **4** — while the spend is live this activation |
+| | **Hunter's Refund** | a **killing shot** refunds **1** Pluck |
+| Preen (Wardbearer) | **Thorough** | also clears **his own** Stagger |
+| | **Neighborly** | may heal an **adjacent hurt ally** instead of himself, for the same 4 |
+| | **Quick** | cost **2** instead of 3 |
+
+**Second Wind conditions — 2 per class, class-bound like every other charge.** Each pays **+1** and
+carries its own `VerveSource`, so the log says which condition paid.
+
+| Class | Condition | Fires when |
+|---|---|---|
+| Vanguard | **Rattle** | he Staggers an enemy |
+| | **Impact** | Bull Rush connects — the charge reaches a body |
+| Fisher | **Chum the Water** | an enemy **she displaced this round** is killed **by anyone** |
+| | **Undertow** | **first time each round** an enemy ends a displacement adjacent to her |
+| Archer | **Long Shot** | a kill at range **exactly 3** |
+| | **Roost** | **first time each fight** she ends a round on high ground |
+| Wardbearer | **Patience** | Guard Stance expires having absorbed **nothing** |
+| | **Spear Tip** | Spear Thrust hits its **tip tile** — an enemy exactly 2 tiles ahead |
+
+A condition held by the wrong class pays nothing: the listener checks the class as well as the card.
+
+**Tactical unlocks — one sentence each, per duck, one conditional at one rule site.**
+
+| Unlock | Rule |
+|---|---|
+| **Sure-Footed** | brambles cost this duck **1 AP** instead of 2. The **damage** for entering is unchanged. |
+| **Climber** | high ground costs this duck **1 AP** instead of 2 |
+| **Steady Hands** | rescue costs this duck **2 AP** instead of the whole pool — so it may walk one tile first. It still ends the activation. |
+| **Long Boot** | may kick a clinger in at range **2** instead of 1 |
+
+§8.6's fifth, **Deep Pockets** (a second consumable pocket), is **not built**: the pocket is one slot
+by construction, and a second one is a rework of the pocket rather than a conditional at a rule site.
+
+**Consumables — one pocket per duck.** Use is **0 AP, free-timing inside that duck's own activation,
+one-shot**. It costs neither half of the activation and does not end it. A used one-shot is spent for
+the rest of the run — the pocket is the one thing in a loadout a fight can change, and the board hands
+it back emptied.
+
+| One-shot | What it does |
+|---|---|
+| **Dried Minnow** | gain **2** Pluck now, capped at 5. Only offered below the cap. |
+| **Bramble Salve** | heal **3**, **never past the maximum**. Only offered while hurt. |
+| **Old Rope** | rescue an **adjacent** clinger as a free action, to any legal drop tile |
+| **Duck Feather Charm** | **+1** Footing token |
+| **Crate of Debris** | place debris on an **adjacent open** tile — a breakable blocker with the board's own blocker hit points, or one collision's worth when the board declares none. Not onto a drain, brambles or high ground. |
+
+**Old Rope changes the doomed-cling sweep.** A side that is nothing but hands on ledges is normally
+swept the instant it becomes hopeless (D-081). **Any living ally holding an Old Rope counts as a
+possible rescuer**, so that side is not swept — the Rope's only demand is adjacency, and the check
+takes the design at its word rather than pathfinding (D-131).
+
+### What a camp does not do
+
+- **No stat lines, no heal, no legendaries.** The stats tier is purged; healing is the campfire's and
+  Preen's; legendaries are destinations.
+- **No skip.** Declining a reward is not a decision worth a button.
+- **Learn / Replace / Swap** (kit surgery), **Deep Pockets**, the **legendary consumables** (Drift
+  Scroll, Second Wind Whistle, Stone Feather, Peddler's Coin, Bottled Current) and **destination
+  payouts** are all unbuilt and undrawable.
+- **No screen.** Core deals and applies; the offer-card surface is the next pass.
 
 ## Fight 1 — "Kill All"
 

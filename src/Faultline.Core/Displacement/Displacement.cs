@@ -129,15 +129,20 @@ namespace Faultline.Core
             // Wrecking Weight, spent earlier this activation: the shove asks for one more tile and
             // bites on contact. The extra tile is added to the request, before Stagger, resistance
             // and Footing, so it composes with all three rather than sidestepping them (D-076).
+            // Echo (MASTER_DESIGN §8.6) refunds a point when *this* charged push collides, so whether
+            // the shove was the armed one has to survive down to the stop below.
+            bool echoes = false;
+
             if (kind == DisplacementKind.Push && by.HasValue)
             {
                 var pusher = state.FindUnit(by.Value);
                 if (pusher is not null && pusher.WreckingWeightArmed)
                 {
-                    distance += Verve.ContactDistanceBonus;
+                    distance += Verve.ContactDistanceBonusFor(pusher);
+                    echoes = pusher.Has(Mod.Echo);
                     state = state.WithUnit(pusher with { WreckingWeightArmed = false });
                     state = Combat.ApplyDamage(
-                        state, targetId, Verve.ContactDamage, DamageSource.Attack, events);
+                        state, targetId, Verve.ContactDamageFor(pusher), DamageSource.Attack, events);
 
                     before = state.UnitById(targetId);
                     if (!before.IsOnBoard)
@@ -193,6 +198,15 @@ namespace Faultline.Core
             {
                 case DisplacementStop.Collision:
                     events.Add(new Collision(targetId, sim.Destination, sim.ObstacleId, CollisionDamage));
+
+                    // The mod's whole text: "if the charged push collides, refund 1 Pluck". Paid at
+                    // the stop rather than at the arming, so a charged push that hit nothing pays
+                    // nothing back.
+                    if (echoes && by.HasValue)
+                    {
+                        state = Verve.Gain(state, by.Value, Verve.ModRefund, VerveSource.Refund, events);
+                    }
+
                     break;
                 case DisplacementStop.Spikes:
                     events.Add(new SpikeHit(targetId, sim.Destination, SpikeDamage, false));

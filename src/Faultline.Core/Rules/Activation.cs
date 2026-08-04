@@ -55,6 +55,26 @@ namespace Faultline.Core
         public const int FullPool = PlayerPool;
 
         /// <summary>
+        /// Rescue's price for a duck carrying <see cref="Unlock.SteadyHands"/> (MASTER_DESIGN §8.6).
+        /// </summary>
+        public const int SteadyHandsRescueCost = 2;
+
+        /// <summary>
+        /// What a rescue costs <em>this</em> unit: the whole pool, or two of the three with Steady
+        /// Hands fitted.
+        /// </summary>
+        /// <remarks>
+        /// The rescue still ends the activation whatever it cost — the verb is "drop everything", and
+        /// the leftover point buys nothing. What the cheaper price actually changes is the gate: a
+        /// Steady Hands duck may have already walked a tile and still set off, where anybody else has
+        /// to have the pool untouched (D-106's fusion, priced down).
+        /// </remarks>
+        /// <param name="unit">Unit that would rescue.</param>
+        /// <returns>The cost in action points.</returns>
+        public static int RescueCost(Unit? unit) =>
+            unit is not null && unit.Has(Unlock.SteadyHands) ? SteadyHandsRescueCost : FullPool;
+
+        /// <summary>
         /// Bull Rush — two of the three, leaving exactly one tile of run-up (MASTER_DESIGN §3, D-126).
         /// </summary>
         /// <remarks>

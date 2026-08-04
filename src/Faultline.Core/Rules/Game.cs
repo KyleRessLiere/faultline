@@ -151,6 +151,13 @@ namespace Faultline.Core
             unit = WithRaisedMax(unit, loadout.MaxHpFor(team, slot));
             unit = WithCarriedVerve(WithCarriedHp(unit, loadout.HpFor(team, slot)), loadout.VerveFor(team, slot));
 
+            // The camps' gifts ride in whole. Nothing here inspects them: a mod is read at the rule
+            // it modifies, so carrying it is copying it.
+            if (loadout.CampFor(team, slot) is { } camp)
+            {
+                unit = unit with { Loadout = camp };
+            }
+
             // Set at Start rather than at deployment: it has to be true while the player is choosing
             // where to put it, which is the whole point of marking it on the deployment card.
             return loadout.IsBedraggled(team, slot) ? unit with { Bedraggled = true } : unit;
@@ -253,6 +260,9 @@ namespace Faultline.Core
                     break;
                 case SpendVerveCommand spend:
                     next = ApplySpendVerve(state, spend, events);
+                    break;
+                case UseConsumableCommand use:
+                    next = ApplyUseConsumable(state, use, events);
                     break;
                 case EndActivationCommand end:
                     next = ApplyEndActivation(state, end, events);
@@ -404,17 +414,36 @@ namespace Faultline.Core
                             }
                         }
                     }
+                    else if (spend.Value == VerveSpend.Preen)
+                    {
+                        // Preen aims at nobody by default and at an adjacent ally with Neighborly
+                        // fitted (MASTER_DESIGN §8.6). Both are on the list, because patching
+                        // himself is still a decision the mod does not take away.
+                        if (unit.Hp < unit.MaxHp)
+                        {
+                            commands.Add(new SpendVerveCommand(unit.Id, spend.Value));
+                        }
+
+                        foreach (var allyId in Verve.PreenTargets(state, unit))
+                        {
+                            commands.Add(new SpendVerveCommand(unit.Id, spend.Value, allyId));
+                        }
+                    }
                     else
                     {
                         commands.Add(new SpendVerveCommand(unit.Id, spend.Value));
                     }
                 }
 
+                // A one-shot costs neither half either, and is not once-per-activation but
+                // once-ever — so it sits beside the spend rather than under the action gate.
+                commands.AddRange(Consumables.Legal(state, unit));
+
                 // The rescue is fused and costs the whole pool (superseding D-082), so what is on
                 // offer is one command per route *and* drop tile: the run-up is part of the verb, and
                 // which side somebody comes up on is still a real decision. Offered only with the
                 // pool intact - having moved first is exactly what makes it unaffordable.
-                if (!unit.HasActed && Activation.CanAfford(unit, Activation.FullPool))
+                if (!unit.HasActed && Activation.CanAfford(unit, Activation.RescueCost(unit)))
                 {
                     foreach (var clinging in state.Units)
                     {
@@ -620,6 +649,10 @@ namespace Faultline.Core
                     HasActed = false,
                     Staggered = false,
                     Bedraggled = state.Units[i].Bedraggled && recovering,
+
+                    // "First time each round" is a per-round latch and clears with the rest of them.
+                    // The per-fight mask deliberately does not.
+                    SecondWindRoundUsed = 0,
                 };
             }
 
@@ -991,8 +1024,9 @@ namespace Faultline.Core
             // inside the command rather than in front of it.
             Require(!rescuer.HasActed, "A rescue costs the whole activation, and this one has acted.");
             Require(
-                Activation.CanAfford(rescuer, Activation.FullPool),
-                "A rescue costs the whole pool, and this activation has already spent some of it.");
+                Activation.CanAfford(rescuer, Activation.RescueCost(rescuer)),
+                "A rescue costs " + Activation.RescueCost(rescuer)
+                + " action points, and this activation has already spent too many of them.");
 
             var clinging = state.UnitById(command.ClingingId);
             Require(Pits.IsEligibleRescuer(rescuer, clinging), "That unit cannot be rescued by this one.");
@@ -1121,6 +1155,19 @@ namespace Faultline.Core
                     "That is not a tile the cast unit can be set down on.");
             }
 
+            // A Preen aimed at somebody else is Neighborly's doing and nobody else's. CanSpend
+            // answers "is this spender available", which a hurt Wardbearer passes on his own account
+            // — so without this an unmodded Preen could be pointed at an ally and would quietly heal
+            // them (MASTER_DESIGN §8.6).
+            if (command.Spend == VerveSpend.Preen
+                && command.TargetId is { } patient
+                && patient != command.UnitId)
+            {
+                Require(
+                    Contains(Verve.PreenTargets(state, unit), patient),
+                    "That ally is not somewhere this Preen can reach.");
+            }
+
             // Retort reads Guard Stance, and taking the activation slot is what drops it (D-058), so
             // the spend is worked out first and the slot taken after. Every other spend is unaffected
             // by the order.
@@ -1129,6 +1176,46 @@ namespace Faultline.Core
             spent = CommitActivation(spent, spent.UnitById(command.UnitId), events);
 
             return AfterAction(spent, command.UnitId, events);
+        }
+
+        /// <summary>
+        /// Empties a duck's pocket. Free-timing and 0 AP: it takes the activation slot, because it
+        /// happens inside the duck's own activation, and spends neither half of it.
+        /// </summary>
+        /// <remarks>
+        /// It deliberately does not run through <see cref="AfterAction"/>'s both-halves-spent check
+        /// on its own account — a duck that used its Rope has done nothing with its turn yet — but it
+        /// does go through it, because using a Rope can win the fight and the check is where that is
+        /// noticed.
+        /// </remarks>
+        private static GameState ApplyUseConsumable(
+            GameState state, UseConsumableCommand command, List<GameEvent> events)
+        {
+            var unit = state.UnitById(command.UnitId);
+            Require(Consumables.TimingAllows(state, unit), "That duck cannot use its pocket right now.");
+
+            // Judged against the offer list rather than the timing alone. A one-shot is gone once it
+            // is used, so "this would buy nothing" — a Minnow at the cap, a Salve at full health — has
+            // to be a refusal and not merely an omission from the list; otherwise a stale UI can throw
+            // the item away on a player's behalf.
+            bool offered = false;
+            foreach (var candidate in Consumables.Legal(state, unit))
+            {
+                if (candidate.Equals(command))
+                {
+                    offered = true;
+                    break;
+                }
+            }
+
+            Require(offered, "That is not something this duck's pocket can do right now.");
+
+            // The slot is taken first, so a Wardbearer who opens his activation with a Salve drops the
+            // stance in the same order he would have dropped it doing anything else (D-058).
+            state = CommitActivation(state, unit, events);
+            state = Consumables.Use(state, command, events);
+
+            return AfterAction(state, command.UnitId, events);
         }
 
         private static UnitId? ActorOf(Command command) => command switch
@@ -1140,6 +1227,7 @@ namespace Faultline.Core
             RescueCommand c => c.UnitId,
             FinishClingingCommand c => c.UnitId,
             SpendVerveCommand c => c.UnitId,
+            UseConsumableCommand c => c.UnitId,
             EndActivationCommand c => c.UnitId,
             _ => null,
         };

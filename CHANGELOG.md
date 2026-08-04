@@ -1,5 +1,39 @@
 # Changelog
 
+## The Camp — pick 1 of 2 after every won fight
+
+- **A won Fight or Elite now stops the run at a Camp (D-127, MASTER_DESIGN §8.5).** Each player is
+  dealt **two cards** from their own ducks and takes **one** — simultaneous and independent, both
+  picks on one `CampPickCommand`, and **no skip**. The boss runs no camp: its reward is the Molt.
+- **The table is dealt from the run RNG and never stored (D-128).** `Camp.Draw` is a pure function of
+  the cursor and the squad, so a save, a restore and a replay all deal the same two cards. The command
+  carries the whole draw as well as the picks, and Core refuses a table the seed would not have dealt.
+- **Gameplay only.** A player's two cards differ in category wherever the pool allows; a full spender
+  is dealt no mods and a full pocket no consumables.
+- **All twelve §8.6 mods ship (D-129).** Heavier (contact 4) · Freight (+2 distance) · Echo (refund 1
+  on a colliding charged push) · Light Line (Cast 2) · Long Rod (grab 4) · Big Splash (2 to everything
+  beside the landing) · Fletcher's Rhythm (Double Nock 3) · Long Draw (both shots range 4) · Hunter's
+  Refund (a killing shot refunds 1) · Thorough (clears his own Stagger) · Neighborly (Preen an
+  adjacent hurt ally) · Quick (Preen 2). **Two mod slots per duck.**
+- **All eight Second Wind conditions ship**, class-bound and asserted so: Rattle · Impact · Chum the
+  Water · Undertow · Long Shot · Roost · Patience · Spear Tip. Each is a listener on the finished event
+  stream with its own `VerveSource`.
+- **Four tactical unlocks ship**: Sure-Footed (brambles 1 AP) · Climber (high ground 1 AP) · Steady
+  Hands (rescue 2 AP, so one tile of run-up is affordable) · Long Boot (kick-in at range 2). **Deep
+  Pockets is deferred** — a second pocket is a rework of the pocket, not a conditional.
+- **Five tactical consumables ship**, one pocket per duck, use is **0 AP, free-timing, one-shot**:
+  Dried Minnow (+2 Pluck) · Bramble Salve (heal 3, capped) · Old Rope (free-action adjacent rescue) ·
+  Duck Feather Charm (+1 Footing) · Crate of Debris (a breakable blocker on an adjacent open tile).
+  **Legendary consumables are not built** — they are destinations.
+- **Old Rope changes the doomed-cling sweep (D-131).** Any living ally holding one counts as a
+  possible rescuer, so a side of nothing but clingers is no longer swept early.
+- **Quick Preen ships enabled (D-130).** The negative-sum invariant is about `PreenHeal`, not the
+  price, and it is green at cost 2.
+- **A camp survives a reload**: the save records `at-camp: yes` and every duck's loadout, and
+  `Campaign.Restore` takes an `atCamp` flag.
+- **No offer screen yet.** Core deals, lists and applies; `RunSession.PickCamp` settles one, but the
+  shell draws no cards. That is the next pass.
+
 ## Bull Rush costs 2
 
 - **Bull Rush is 2 AP, not the whole pool (D-126, MASTER_DESIGN Design Log (q)).** One tile of

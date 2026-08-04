@@ -16,6 +16,37 @@ namespace Faultline.Core
         public const int HighGroundBonus = 2;
 
         /// <summary>
+        /// The range both shots reach while <see cref="Mod.LongDraw"/> is live (MASTER_DESIGN §8.6,
+        /// "both shots range 4"). Stated as an absolute, exactly as the pool words it, rather than as
+        /// a bonus that would compound with anything else that ever touches the bow.
+        /// </summary>
+        public const int LongDrawRange = 4;
+
+        /// <summary>
+        /// How far this unit's basic attack reaches right now: its profile's range, widened for the
+        /// two shots a Long Draw'd Double Nock buys.
+        /// </summary>
+        /// <remarks>
+        /// "Both shots" is the whole activation the spend was made in, not the owed shot alone.
+        /// <see cref="Unit.ExtraAttacks"/> is spent by the first of the two, so keying off it would
+        /// have widened the first shot and not the second — the reading that makes the mod's own
+        /// sentence false.
+        /// </remarks>
+        /// <param name="attacker">Unit taking the shot.</param>
+        /// <returns>Its attack range in tiles.</returns>
+        public static int RangeOf(Unit attacker)
+        {
+            var template = attacker.Template;
+            int range = template.Attack == AttackKind.Melee ? 1 : template.Range;
+
+            bool longDraw = attacker.Has(Mod.LongDraw)
+                && attacker.HasSpentVerve
+                && Verve.SpendFor(attacker.Kind) == VerveSpend.DoubleNock;
+
+            return longDraw && LongDrawRange > range ? LongDrawRange : range;
+        }
+
+        /// <summary>
         /// Whether <paramref name="attacker"/> may basic-attack <paramref name="target"/>, and for
         /// how much.
         /// </summary>
@@ -47,7 +78,7 @@ namespace Faultline.Core
                 return false;
             }
 
-            int range = template.Attack == AttackKind.Melee ? 1 : template.Range;
+            int range = RangeOf(attacker);
             int distance = attacker.Position.DistanceTo(target.Position);
             if (distance > range)
             {

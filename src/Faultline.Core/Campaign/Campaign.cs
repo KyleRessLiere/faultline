@@ -105,10 +105,25 @@ namespace Faultline.Core
                 return Result(ResolveVote(state, vote, voteContext), voteContext);
             }
 
+            // The camp is the engine's business for the same reason the vote is: it sits on the seam
+            // between the node just left and the next one, and the node just left has no opinion
+            // about it (MASTER_DESIGN §8.5, D-127).
+            if (command is CampPickCommand pick)
+            {
+                var campContext = new RunContext();
+                return Result(Camp.Resolve(state, pick, campContext), campContext);
+            }
+
             if (state.Phase == RunPhase.AtVote)
             {
                 throw new InvalidOperationException(
                     "The run is between columns and the only thing it takes is a vote.");
+            }
+
+            if (state.Phase == RunPhase.AtCamp)
+            {
+                throw new InvalidOperationException(
+                    "The run is at a camp and the only thing it takes is a pick. There is no skip.");
             }
 
             var node = state.CurrentNode
@@ -155,6 +170,11 @@ namespace Faultline.Core
             if (state.Phase == RunPhase.AtVote)
             {
                 return Votes(state);
+            }
+
+            if (state.Phase == RunPhase.AtCamp)
+            {
+                return Camp.LegalPicks(state);
             }
 
             var node = state.CurrentNode;
@@ -382,6 +402,7 @@ namespace Faultline.Core
             RunPhase.AtNode => "standing on a node it has not entered",
             RunPhase.InFight => "in a fight",
             RunPhase.AtChoice => "being asked a question by the node it is on",
+            RunPhase.AtCamp => "at a camp with both players' cards on the table",
             RunPhase.Complete => "over",
             _ => phase.ToString(),
         };
@@ -438,7 +459,13 @@ namespace Faultline.Core
         /// a run restored onto it as <see cref="RunPhase.AtNode"/> would be handed the fight it just
         /// won to fight again, and the fork would never arrive (DECISIONS.md D-125).
         /// </param>
-        /// <returns>The run, standing on its node — or at its fork.</returns>
+        /// <param name="atCamp">
+        /// True when the run was standing at a camp with its picks still to make. The camp's table is
+        /// not stored, because it is a pure function of <paramref name="rngState"/> and the squad — so
+        /// restoring the phase restores the same two cards. Without it the run would be handed the
+        /// node it has already cleared, exactly as with <paramref name="atVote"/> (D-127).
+        /// </param>
+        /// <returns>The run, standing on its node — or at its fork, or at its camp.</returns>
         /// <exception cref="ArgumentException">
         /// The squad does not match the campaign's, or <paramref name="atVote"/> is claimed somewhere
         /// no fork exists.
@@ -452,7 +479,8 @@ namespace Faultline.Core
             RunOutcome outcome,
             MapState? mapState = null,
             int? rngState = null,
-            bool atVote = false)
+            bool atVote = false,
+            bool atCamp = false)
         {
             if (campaign is null)
             {
@@ -548,6 +576,7 @@ namespace Faultline.Core
                 Outcome = ending,
                 Phase = ending != RunOutcome.InProgress ? RunPhase.Complete
                     : waiting ? RunPhase.AtVote
+                    : atCamp ? RunPhase.AtCamp
                     : RunPhase.AtNode,
                 Fight = null,
                 Bindings = Array.Empty<RunBinding>(),

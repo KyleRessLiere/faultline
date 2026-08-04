@@ -53,6 +53,16 @@ namespace Faultline.Core
         /// </summary>
         public IReadOnlyList<bool> BedraggledB { get; init; } = Array.Empty<bool>();
 
+        /// <summary>
+        /// What the camps have given each slot of <see cref="FightDefinition.RosterA"/>, in order.
+        /// </summary>
+        public IReadOnlyList<DuckLoadout> CampA { get; init; } = Array.Empty<DuckLoadout>();
+
+        /// <summary>
+        /// What the camps have given each slot of <see cref="FightDefinition.RosterB"/>, in order.
+        /// </summary>
+        public IReadOnlyList<DuckLoadout> CampB { get; init; } = Array.Empty<DuckLoadout>();
+
         /// <summary>Hit points for one slot, or <c>null</c> to leave it at full health.</summary>
         /// <param name="team">Which player's roster.</param>
         /// <param name="slot">Index within that roster.</param>
@@ -89,6 +99,16 @@ namespace Faultline.Core
         /// <returns>Whether the slot returns Bedraggled.</returns>
         public bool IsBedraggled(Team team, int slot) =>
             At(team == Team.PlayerA ? BedraggledA : team == Team.PlayerB ? BedraggledB : null, slot);
+
+        /// <summary>What the camps gave the duck in this slot, or <c>null</c> for a slot with none.</summary>
+        /// <param name="team">Which player's roster.</param>
+        /// <param name="slot">Index within that roster.</param>
+        /// <returns>The duck's camp loadout, or null.</returns>
+        public DuckLoadout? CampFor(Team team, int slot)
+        {
+            var list = team == Team.PlayerA ? CampA : team == Team.PlayerB ? CampB : null;
+            return list is not null && slot >= 0 && slot < list.Count ? list[slot] : null;
+        }
 
         private static int? At(IReadOnlyList<int>? list, int slot) =>
             list is not null && slot >= 0 && slot < list.Count ? list[slot] : (int?)null;

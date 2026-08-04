@@ -258,7 +258,7 @@ public sealed class RunAdvanceSeamTests
             {
                 command = new EnterNodeCommand();
             }
-            else if (run.Phase == RunPhase.AtChoice)
+            else if (run.Phase == RunPhase.AtChoice || run.Phase == RunPhase.AtCamp)
             {
                 command = Campaign.LegalRunCommands(run)[0];
             }

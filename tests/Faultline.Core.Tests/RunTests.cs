@@ -409,7 +409,11 @@ public class RunTests
 
         Assert.Contains(log, c => c is EnterNodeCommand);
         Assert.Contains(log, c => c is PlayCommand);
-        Assert.All(log, c => Assert.True(c is EnterNodeCommand or PlayCommand));
+
+        // The camp is on the same stream and nowhere else (MASTER_DESIGN §8.5): its draw and both
+        // picks ride on one CampPickCommand, so a run's whole history is still one list.
+        Assert.Contains(log, c => c is CampPickCommand);
+        Assert.All(log, c => Assert.True(c is EnterNodeCommand or PlayCommand or CampPickCommand));
     }
 
     [Fact]
@@ -589,8 +593,11 @@ public class RunTests
         var run = RunFixture.StartedInFirstFight(out _);
         run = RunFixture.WinTheFight(run);
 
+        // The RNG cursor is part of what a save holds: the camp after that fight drew from it, so a
+        // restore that left it at the seed would deal the next camp the same cards twice.
         var restored = Campaign.Restore(
-            run.Campaign, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome);
+            run.Campaign, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome,
+            rngState: run.RngState);
 
         Assert.Equal(run.GetHashCode(), restored.GetHashCode());
         Assert.Equal(run, restored);

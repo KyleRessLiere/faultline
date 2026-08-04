@@ -99,6 +99,54 @@ namespace Faultline.Core
         /// </summary>
         public bool Bedraggled { get; init; }
 
+        /// <summary>
+        /// What the camps have given this duck, carried onto the board by the run (MASTER_DESIGN
+        /// §8.5). Empty for enemies and for any fight played outside a run.
+        /// </summary>
+        /// <remarks>
+        /// The rule sites read it directly — <see cref="Verve.CostOf(VerveSpend, Unit)"/>,
+        /// <see cref="Movement.StepCost"/>, <see cref="Pits.CanFinish"/> and the rest — so a mod is
+        /// one conditional at the rule it modifies rather than a parallel rulebook.
+        /// </remarks>
+        public DuckLoadout Loadout { get; init; } = DuckLoadout.Empty;
+
+        /// <summary>
+        /// Which <see cref="SecondWind"/> conditions have already paid out this <em>round</em>, as a
+        /// bit per condition. Cleared when a round begins.
+        /// </summary>
+        /// <remarks>
+        /// A bitmask rather than a flag per condition because "first time each round" is a property
+        /// of a condition, not of the class — and a second latched condition must not have to find a
+        /// second field.
+        /// </remarks>
+        public int SecondWindRoundUsed { get; init; }
+
+        /// <summary>
+        /// Which <see cref="SecondWind"/> conditions have already paid out this <em>fight</em>, as a
+        /// bit per condition. Never cleared while the fight runs.
+        /// </summary>
+        public int SecondWindFightUsed { get; init; }
+
+        /// <summary>
+        /// True once the Guard Stance this unit is holding has actually absorbed something. Read when
+        /// the stance expires, which is the only moment "unabsorbed" can be judged.
+        /// </summary>
+        public bool GuardAbsorbed { get; init; }
+
+        /// <summary>
+        /// Who last displaced this unit, and in which round — the two facts Chum the Water needs when
+        /// somebody else lands the kill.
+        /// </summary>
+        /// <remarks>
+        /// Recorded on the victim rather than as a list on the Fisher. A list on a unit would compare
+        /// by reference under the record's generated equality and quietly break replay; two scalars
+        /// on the thing that was moved say the same thing and cannot.
+        /// </remarks>
+        public UnitId? DisplacedBy { get; init; }
+
+        /// <summary>The round <see cref="DisplacedBy"/> refers to. Zero when it has never been moved.</summary>
+        public int DisplacedInRound { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 
@@ -184,6 +232,21 @@ namespace Faultline.Core
 
         /// <summary>True when the unit is alive and standing on the board.</summary>
         public bool IsOnBoard => IsAlive && IsDeployed;
+
+        /// <summary>Whether this duck's spender carries a mod.</summary>
+        /// <param name="mod">Mod to look for.</param>
+        /// <returns>Whether it is fitted.</returns>
+        public bool Has(Mod mod) => Loadout.Has(mod);
+
+        /// <summary>Whether this duck earns Pluck from an extra condition.</summary>
+        /// <param name="wind">Condition to look for.</param>
+        /// <returns>Whether it is held.</returns>
+        public bool Has(SecondWind wind) => Loadout.Has(wind);
+
+        /// <summary>Whether this duck carries a rule unlock.</summary>
+        /// <param name="unlock">Unlock to look for.</param>
+        /// <returns>Whether it is held.</returns>
+        public bool Has(Unlock unlock) => Loadout.Has(unlock);
 
         /// <summary>Creates a unit at full health from its archetype template.</summary>
         /// <param name="id">Stable identifier.</param>

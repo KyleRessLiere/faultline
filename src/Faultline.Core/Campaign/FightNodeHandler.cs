@@ -177,6 +177,10 @@ namespace Faultline.Core
                     Hp = status == RunUnitStatus.Ready ? onBoard.Hp : 0,
                     Status = status,
                     Verve = status == RunUnitStatus.Voided ? 0 : onBoard.Verve,
+
+                    // The pocket is the one thing in the loadout a fight can change: a one-shot used
+                    // on the board is spent for the run, so the board's loadout is the truth here.
+                    Loadout = onBoard.Loadout,
                 };
 
                 squad.Add(carried);
@@ -206,7 +210,17 @@ namespace Faultline.Core
                 return Campaign.Lose(next, "The whole squad was lost.", context);
             }
 
-            return Campaign.Advance(next with { Phase = RunPhase.AtNode }, context);
+            // MASTER_DESIGN §8.5: the Camp follows a won Fight or Elite, and it sits on the seam —
+            // after the fight, before the next vote. Camp.Open walks straight past it when there is
+            // nothing left to offer either player.
+            //
+            // The boss is deliberately not one of them. Its reward is the Molt, which is a
+            // destination and is not built; handing out a camp card there would quietly make the
+            // boss pay the same as a corridor fight, and would put a stop between the last blow of
+            // the act and the act ending.
+            return node.Boss
+                ? Campaign.Advance(next with { Phase = RunPhase.AtNode }, context)
+                : Camp.Open(next with { Phase = RunPhase.AtNode }, node.FightId, context);
         }
 
         /// <summary>
@@ -232,6 +246,8 @@ namespace Faultline.Core
             var verveB = new List<int>();
             var bedraggledA = new List<bool>();
             var bedraggledB = new List<bool>();
+            var campA = new List<DuckLoadout>();
+            var campB = new List<DuckLoadout>();
 
             // Campaign boards have their sides resolved here rather than read off the file: every
             // one of them rosters the same four classes and only disagrees about who holds which,
@@ -246,8 +262,8 @@ namespace Faultline.Core
                 DefaultTeams.Split(fielded, out wantA, out wantB);
             }
 
-            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, maxA, verveA, bedraggledA);
-            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, maxB, verveB, bedraggledB);
+            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, maxA, verveA, bedraggledA, campA);
+            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, maxB, verveB, bedraggledB, campB);
 
             adapted = fight with { RosterA = rosterA, RosterB = rosterB };
             loadout = new SquadLoadout
@@ -260,6 +276,8 @@ namespace Faultline.Core
                 VerveB = verveB,
                 BedraggledA = bedraggledA,
                 BedraggledB = bedraggledB,
+                CampA = campA,
+                CampB = campB,
             };
 
             // Ids are assigned by Game.Start in roster order, side A then side B, so the binding's
@@ -283,7 +301,8 @@ namespace Faultline.Core
             List<int> hp,
             List<int> maxHp,
             List<int> verve,
-            List<bool> bedraggled)
+            List<bool> bedraggled,
+            List<DuckLoadout> camp)
         {
             foreach (var kind in roster)
             {
@@ -319,6 +338,10 @@ namespace Faultline.Core
                 // is a unit that cannot climb back out of the hole it just fell into.
                 verve.Add(unit.Verve);
                 bedraggled.Add(unit.ReturnsBedraggled);
+
+                // The camps' gifts are not part of what a downing costs, so this is unconditional
+                // where the hit points above are not: a Bedraggled duck walks back on with its mods.
+                camp.Add(unit.Loadout);
                 bindings.Add(new RunBinding(unit.Id, UnitId.None, team));
             }
         }

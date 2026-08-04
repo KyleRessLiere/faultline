@@ -199,9 +199,20 @@ namespace Faultline.Core
                 return false;
             }
 
+            int distance = attacker.Position.DistanceTo(clinging.Position);
             return attacker.Team.IsHostileTo(clinging.Team)
-                && attacker.Position.IsAdjacentTo(clinging.Position);
+                && distance >= 1
+                && distance <= KickRangeFor(attacker);
         }
+
+        /// <summary>The reach a Long Boot gives the kick-in (MASTER_DESIGN §8.6).</summary>
+        public const int LongBootKickRange = 2;
+
+        /// <summary>How far this unit can kick somebody off a ledge — 1, or 2 with a Long Boot.</summary>
+        /// <param name="attacker">Unit doing the kicking.</param>
+        /// <returns>Its kick-in reach in tiles.</returns>
+        public static int KickRangeFor(Unit? attacker) =>
+            attacker is not null && attacker.Has(Unlock.LongBoot) ? LongBootKickRange : 1;
 
         /// <summary>Removes a unit from the run permanently.</summary>
         /// <param name="state">Current state.</param>
@@ -264,8 +275,9 @@ namespace Faultline.Core
                 return state!;
             }
 
-            bool enemiesDoomed = !AnyStanding(state, enemy: true) && !AnyPendingArrival(state);
-            bool playersDoomed = !AnyStanding(state, enemy: false);
+            bool enemiesDoomed =
+                !AnyStanding(state, enemy: true) && !AnyRope(state, enemy: true) && !AnyPendingArrival(state);
+            bool playersDoomed = !AnyStanding(state, enemy: false) && !AnyRope(state, enemy: false);
 
             if (!enemiesDoomed && !playersDoomed)
             {
@@ -296,6 +308,32 @@ namespace Faultline.Core
             {
                 bool side = enemy ? unit.Team == Team.Enemy : unit.Team.IsPlayer();
                 if (side && unit.IsOnBoard && !unit.Clinging)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// A living unit on this side with an Old Rope in its pocket — a possible rescuer that the
+        /// standing test alone does not see.
+        /// </summary>
+        /// <remarks>
+        /// MASTER_DESIGN §8.5 requires the doomed-cling check to "include held Ropes". Read
+        /// literally: <em>any living allied unit holding a Rope</em> counts, because the Rope is a
+        /// free action rather than an activation and its only demand is adjacency. It is deliberately
+        /// not a reachability question — that reading was considered and dropped, because the check
+        /// exists to answer "is this already hopeless" quickly and a pathfinding sweep in it would be
+        /// a second, slower copy of the rescue rules (D-127).
+        /// </remarks>
+        private static bool AnyRope(GameState state, bool enemy)
+        {
+            foreach (var unit in state.Units)
+            {
+                bool side = enemy ? unit.Team == Team.Enemy : unit.Team.IsPlayer();
+                if (side && unit.IsAlive && unit.Loadout.Pocket == Consumable.OldRope)
                 {
                     return true;
                 }

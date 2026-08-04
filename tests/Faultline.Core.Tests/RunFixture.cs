@@ -18,9 +18,13 @@ internal static class RunFixture
     internal static RunState Start(int seed = Seed) =>
         Campaign.Start(CampaignLibrary.Faultline, seed).NewState;
 
-    /// <summary>Enters the current node and returns the state after it.</summary>
+    /// <summary>
+    /// Enters the current node and returns the state after it, settling any camp standing in the way
+    /// with its first legal pick — a won fight leaves the run at one, and a test about the node after
+    /// it should not have to spell that out.
+    /// </summary>
     internal static RunState Enter(RunState run) =>
-        Campaign.ApplyRun(run, new EnterNodeCommand()).NewState;
+        Campaign.ApplyRun(SettleCamp(run), new EnterNodeCommand()).NewState;
 
     /// <summary>A run inside its first fight, with the Vanguard's run id handed back.</summary>
     internal static RunState StartedInFirstFight(out RunUnitId vanguard) =>
@@ -121,6 +125,12 @@ internal static class RunFixture
     }
 
     /// <summary>Wins the fight in progress and returns the run standing on the next node.</summary>
+    /// <remarks>
+    /// A won fight lands the run at its Camp (MASTER_DESIGN §8.5), which is a real stop and not a
+    /// formality — so this settles it with the first legal pick and hands back the node beyond it.
+    /// A test that is about the camp drives it itself; every other run test is about what comes
+    /// after, and would otherwise have to spell the pick out to get there.
+    /// </remarks>
     internal static RunState WinTheFight(RunState run)
     {
         var step = EndFightInAWin(run);
@@ -132,7 +142,24 @@ internal static class RunFixture
                 + step.NewState.Fight!.Round + ".");
         }
 
-        return step.NewState;
+        return SettleCamp(step.NewState);
+    }
+
+    /// <summary>Takes the first legal camp pick, if the run is standing at one.</summary>
+    internal static RunState SettleCamp(RunState run)
+    {
+        if (run.Phase != RunPhase.AtCamp)
+        {
+            return run;
+        }
+
+        var legal = Campaign.LegalRunCommands(run);
+        if (legal.Count == 0)
+        {
+            throw new InvalidOperationException("The run is at a camp that offers no pick.");
+        }
+
+        return Campaign.ApplyRun(run, legal[0]).NewState;
     }
 
     /// <summary>Plays forward, winning every fight, until the run is standing on a rest.</summary>
@@ -250,6 +277,18 @@ internal static class RunFixture
             if (run.Phase == RunPhase.AtNode)
             {
                 command = new EnterNodeCommand();
+            }
+            else if (run.Fight is null)
+            {
+                // Between boards — at a camp, or at a fork. Both take exactly one kind of command
+                // and neither has an enemy to plan for.
+                var between = Campaign.LegalRunCommands(run);
+                if (between.Count == 0)
+                {
+                    break;
+                }
+
+                command = between[0];
             }
             else
             {

@@ -33,8 +33,7 @@ public static class PlaytestFlow
     /// <summary>How the run says the fight ended, read off the event rather than off the board.</summary>
     /// <param name="runs">The run session.</param>
     /// <returns>The resolution event, when there is one.</returns>
-    public static FightResolved? Resolution(RunSession runs) =>
-        runs.LastEvents.OfType<FightResolved>().FirstOrDefault();
+    public static FightResolved? Resolution(RunSession runs) => runs.LastResolution;
 
     /// <summary>The display name of a fight the run is about to play.</summary>
     /// <param name="fightId">Fight id.</param>

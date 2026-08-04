@@ -176,6 +176,10 @@ namespace Faultline.Core
             FinishClingingCommand c => Join("Finish", c.UnitId.ToString(), c.ClingingId.ToString()),
             EndActivationCommand c => Join("End", c.UnitId.ToString()),
             SpendVerveCommand c => Join("Spend", c.UnitId.ToString(), c.Spend.ToString(), SpendAim(c)),
+
+            // The pocket names no item: a duck has one, so which one comes out is the loadout's
+            // answer and not the log's (see UseConsumableCommand).
+            UseConsumableCommand c => Join("Pocket", c.UnitId.ToString(), PocketAim(c)),
             _ => Join("Unknown", command is null ? "?" : command.GetType().Name),
         };
 
@@ -229,6 +233,9 @@ namespace Faultline.Core
 
                 case "Spend":
                     return ParseSpend(fields, offset);
+
+                case "Pocket":
+                    return ParsePocket(fields, offset);
 
                 default:
                     return null;
@@ -346,6 +353,43 @@ namespace Faultline.Core
             }
 
             return new SpendVerveCommand(ParseUnit(Field(fields, offset + 1)), spend, target, to);
+        }
+
+        private static Command ParsePocket(IReadOnlyList<string> fields, int offset)
+        {
+            UnitId? target = null;
+            Coord? to = null;
+
+            foreach (var part in Field(fields, offset + 2).Split(';'))
+            {
+                if (part.StartsWith("target=", StringComparison.Ordinal))
+                {
+                    target = ParseUnit(part.Substring(7));
+                }
+                else if (part.StartsWith("to=", StringComparison.Ordinal))
+                {
+                    to = ParseTile(part.Substring(3));
+                }
+            }
+
+            return new UseConsumableCommand(ParseUnit(Field(fields, offset + 1)), target, to);
+        }
+
+        private static string PocketAim(UseConsumableCommand command)
+        {
+            var parts = new List<string>(2);
+
+            if (command.TargetId.HasValue)
+            {
+                parts.Add("target=" + command.TargetId.Value);
+            }
+
+            if (command.To.HasValue)
+            {
+                parts.Add("to=" + command.To.Value);
+            }
+
+            return parts.Count == 0 ? CombatLog.NoActor : string.Join(";", parts);
         }
 
         private static string SpendAim(SpendVerveCommand command)

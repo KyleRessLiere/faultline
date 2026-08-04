@@ -223,6 +223,7 @@ public class StateEqualityCoverageTests
                 ["Status"] = u => u with { Status = RunUnitStatus.Downed },
                 ["Verve"] = u => u with { Verve = u.Verve + 1 },
                 ["BonusMaxHp"] = u => u with { BonusMaxHp = u.BonusMaxHp + 2 },
+                ["Loadout"] = u => u with { Loadout = u.Loadout.With(Unlock.Climber) },
             };
 
         internal static readonly IReadOnlyDictionary<string, Func<FightDefinition, FightDefinition>> Fight =

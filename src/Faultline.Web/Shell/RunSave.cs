@@ -81,6 +81,17 @@ public sealed record RunSave
     public bool AtVote { get; init; }
 
     /// <summary>
+    /// True when the run was standing at a Camp with its picks still to make.
+    /// </summary>
+    /// <remarks>
+    /// Carried for exactly the reason <see cref="AtVote"/> is: the node under a camp has already been
+    /// cleared, so a run restored onto it as <see cref="RunPhase.AtNode"/> would be handed the fight
+    /// it just won. The camp's two cards are <em>not</em> stored — they are a pure function of the
+    /// run RNG cursor and the squad, so restoring <see cref="RngState"/> deals them again (D-127).
+    /// </remarks>
+    public bool AtCamp { get; init; }
+
+    /// <summary>
     /// The run RNG's cursor as it stood, or <c>null</c> for a record written before votes existed.
     /// Restored so the next split vote does not re-flip a coin this run has already flipped; when it
     /// is absent Core falls back to the seed, which is where an unflipped run starts.
@@ -111,6 +122,7 @@ public sealed record RunSave
             Route = state.MapState?.Route ?? (IReadOnlyList<string>)Array.Empty<string>(),
             ActCleared = state.MapState?.Completed ?? false,
             AtVote = state.Phase == RunPhase.AtVote,
+            AtCamp = state.Phase == RunPhase.AtCamp,
             RngState = state.RngState,
         };
     }
@@ -142,7 +154,8 @@ public sealed record RunSave
                     Completed = ActCleared,
                 },
             RngState,
-            AtVote);
+            AtVote,
+            AtCamp);
 
     /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
     /// <returns>The stored text.</returns>
@@ -264,6 +277,8 @@ public sealed record RunSave
                 && string.Equals(cleared, "yes", StringComparison.Ordinal),
             AtVote = fields.TryGetValue("at-vote", out var voting)
                 && string.Equals(voting, "yes", StringComparison.Ordinal),
+            AtCamp = fields.TryGetValue("at-camp", out var camping)
+                && string.Equals(camping, "yes", StringComparison.Ordinal),
             RngState = fields.TryGetValue("rng", out var rng)
                 && int.TryParse(rng, NumberStyles.Integer, CultureInfo.InvariantCulture, out int cursor)
                     ? cursor
@@ -293,7 +308,97 @@ public sealed record RunSave
             Status = status,
             Verve = Optional(parts, 4),
             BonusMaxHp = Optional(parts, 5),
+            Loadout = ParseLoadout(parts.Length > 6 ? parts[6] : string.Empty),
         };
+    }
+
+    /// <summary>
+    /// What the camps gave one duck, as one space-free token: <c>m0,3|w1|u2|p4</c>, and a bare
+    /// <c>-</c> for a duck carrying nothing.
+    /// </summary>
+    /// <remarks>
+    /// Positional and appended, like every field before it, so a record written before camps existed
+    /// still reads — <see cref="ParseUnit"/> needs four and takes seven. Indices rather than names,
+    /// because these are enum members and the file is not a document anybody edits by hand.
+    /// </remarks>
+    private static string LoadoutText(DuckLoadout loadout)
+    {
+        if (loadout is null || loadout.IsEmpty)
+        {
+            return "-";
+        }
+
+        var text = new StringBuilder();
+        text.Append('m').Append(Numbers(loadout.Mods));
+        text.Append("|w").Append(Numbers(loadout.SecondWinds));
+        text.Append("|u").Append(Numbers(loadout.Unlocks));
+        text.Append("|p").Append(loadout.Pocket is { } pocket ? Number((int)pocket) : string.Empty);
+        return text.ToString();
+    }
+
+    private static string Numbers<T>(IReadOnlyList<T> values)
+        where T : struct
+    {
+        var parts = new List<string>(values.Count);
+        foreach (var value in values)
+        {
+            parts.Add(Number(Convert.ToInt32(value, CultureInfo.InvariantCulture)));
+        }
+
+        return string.Join(",", parts);
+    }
+
+    private static DuckLoadout ParseLoadout(string token)
+    {
+        if (token.Length == 0 || string.Equals(token, "-", StringComparison.Ordinal))
+        {
+            return DuckLoadout.Empty;
+        }
+
+        var loadout = DuckLoadout.Empty;
+
+        foreach (var part in token.Split('|'))
+        {
+            if (part.Length == 0)
+            {
+                continue;
+            }
+
+            char kind = part[0];
+            var body = part.Substring(1);
+
+            if (kind == 'p')
+            {
+                if (int.TryParse(body, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pocket)
+                    && Enum.IsDefined(typeof(Consumable), pocket))
+                {
+                    loadout = loadout.WithPocket((Consumable)pocket);
+                }
+
+                continue;
+            }
+
+            foreach (var raw in body.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (!int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+                {
+                    continue;
+                }
+
+                // A value this build does not know is dropped rather than guessed at, the same way an
+                // unreadable unit line is: a duck restored with somebody else's mod is worse than one
+                // restored without it.
+                loadout = kind switch
+                {
+                    'm' when Enum.IsDefined(typeof(Mod), value) => loadout.With((Mod)value),
+                    'w' when Enum.IsDefined(typeof(SecondWind), value) => loadout.With((SecondWind)value),
+                    'u' when Enum.IsDefined(typeof(Unlock), value) => loadout.With((Unlock)value),
+                    _ => loadout,
+                };
+            }
+        }
+
+        return loadout;
     }
 
     /// <summary>A trailing positional field, or zero when the record predates it.</summary>

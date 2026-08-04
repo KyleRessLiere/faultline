@@ -185,6 +185,7 @@ public sealed class RunAdvanceBandTests
         runs.Enter();
         Assert.True(runs.InFight);
         PlayItOut(runs);
+        SettleCamp(runs);
 
         Assert.False(runs.InFight);
         Assert.Equal(1, runs.State!.FightsWon);
@@ -199,10 +200,31 @@ public sealed class RunAdvanceBandTests
         runs.Enter();
         Assert.True(runs.InFight);
         PlayItOut(runs);
+        SettleCamp(runs);
 
         Assert.False(runs.InFight);
         Assert.Equal(1, runs.State!.FightsWon);
         return (runs, session);
+    }
+
+    /// <summary>
+    /// Takes the first card on each side of the camp a won fight opens (MASTER_DESIGN §8.5). These
+    /// tests are about the band beyond the camp; the camp itself is tested in Core.
+    /// </summary>
+    private static void SettleCamp(RunSession runs)
+    {
+        if (!runs.AtCamp)
+        {
+            return;
+        }
+
+        var table = runs.Camp!;
+        runs.PickCamp(
+            table.OffersA.Count == 0 ? CampPickCommand.NoPick : 0,
+            table.OffersB.Count == 0 ? CampPickCommand.NoPick : 0);
+
+        Assert.Null(runs.Problem);
+        Assert.False(runs.AtCamp);
     }
 
     private static async Task<(RunSession Runs, GameSession Session)> NewSession(string campaignId)

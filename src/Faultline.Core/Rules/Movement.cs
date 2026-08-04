@@ -154,18 +154,20 @@ namespace Faultline.Core
         public static int StepCost(TileType tile, Unit unit)
         {
             // Brief §2: climbing onto HighGround costs +1, except for the Archer. Under the AP
-            // turn that surcharge is denominated in AP like every other one (MASTER_DESIGN §3).
+            // turn that surcharge is denominated in AP like every other one (MASTER_DESIGN §3), and
+            // the Climber unlock buys one duck out of it entirely (MASTER_DESIGN §8.6).
             if (tile == TileType.HighGround && !unit.Template.FreeClimb)
             {
-                return Activation.ClimbCost;
+                return unit.Has(Unlock.Climber) ? Activation.StepCost : Activation.ClimbCost;
             }
 
             // Brambles cost double to wade into, for AP users only (MASTER_DESIGN §3). Enemies keep
             // movement-point semantics, so terrain prices them exactly as it always did. The damage
-            // for entering is unchanged and separate — this is the price of the step, not the wound.
+            // for entering is unchanged and separate — this is the price of the step, not the wound,
+            // which is why Sure-Footed makes a duck quick through brambles and not immune to them.
             if (tile == TileType.Spikes && Activation.UsesActionPoints(unit))
             {
-                return Activation.BrambleCost;
+                return unit.Has(Unlock.SureFooted) ? Activation.StepCost : Activation.BrambleCost;
             }
 
             return Activation.StepCost;

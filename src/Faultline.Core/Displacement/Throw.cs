@@ -31,6 +31,21 @@ namespace Faultline.Core
         /// <summary>How far off the Fisher can pluck somebody. The grab is a lob and ignores everything between.</summary>
         public const int GrabRange = 3;
 
+        /// <summary>Grab range once the <see cref="Mod.LongRod"/> mod is fitted (MASTER_DESIGN §8.6).</summary>
+        public const int LongRodGrabRange = 4;
+
+        /// <summary>
+        /// What <see cref="Mod.BigSplash"/> deals to every enemy adjacent to the landing tile, on top
+        /// of whatever the ground did to the unit that landed.
+        /// </summary>
+        public const int SplashDamage = 2;
+
+        /// <summary>How far off this Fisher can pluck somebody — 4 with Long Rod fitted.</summary>
+        /// <param name="thrower">The Fisher.</param>
+        /// <returns>Her grab range.</returns>
+        public static int GrabRangeFor(Unit? thrower) =>
+            thrower is not null && thrower.Has(Mod.LongRod) ? LongRodGrabRange : GrabRange;
+
         /// <summary>
         /// How far from the Fisher a target may be put down: her four orthogonal tiles and nothing
         /// else. She reaches out a long way and brings them in close.
@@ -94,7 +109,7 @@ namespace Faultline.Core
                 }
 
                 int distance = thrower.Position.DistanceTo(unit.Position);
-                if (distance == 0 || distance > GrabRange)
+                if (distance == 0 || distance > GrabRangeFor(thrower))
                 {
                     continue;
                 }
@@ -177,7 +192,53 @@ namespace Faultline.Core
                 before.Position.DistanceTo(destination),
                 throwerId));
 
-            return Land(state, targetId, destination, events);
+            state = Land(state, targetId, destination, events);
+
+            // Big Splash (MASTER_DESIGN §8.6): the landing itself is the weapon. Resolved after the
+            // ground has had its say, so a target dropped into brambles takes the brambles and its
+            // neighbours take the splash — and in the fixed direction order, because two neighbours
+            // dying is two deaths and a renderer needs them in a reproducible one.
+            return thrower.Has(Mod.BigSplash)
+                ? Splash(state, throwerId, destination, events)
+                : state;
+        }
+
+        /// <summary>
+        /// What <see cref="Mod.BigSplash"/> adds: <see cref="SplashDamage"/> to every enemy standing
+        /// next to the landing tile.
+        /// </summary>
+        /// <remarks>
+        /// Enemies of the <em>thrower</em>, not of the unit that landed — a Fisher who has learned to
+        /// throw an ally (a legendary that is not built) must not splash her own side, and the rule
+        /// reads the same either way if it is written from her side to begin with.
+        /// </remarks>
+        private static GameState Splash(
+            GameState state, UnitId throwerId, Coord landing, List<GameEvent> events)
+        {
+            var thrower = state.UnitById(throwerId);
+
+            foreach (var direction in Directions.All)
+            {
+                var tile = landing.Step(direction);
+                var occupant = state.UnitAt(tile);
+
+                if (occupant is null || !occupant.IsOnBoard || !thrower.Team.IsHostileTo(occupant.Team))
+                {
+                    continue;
+                }
+
+                events.Add(new UnitAttacked(
+                    throwerId,
+                    occupant.Id,
+                    thrower.Position,
+                    tile,
+                    Guard.Mitigate(state, occupant.Id, SplashDamage, DamageSource.Attack),
+                    false));
+
+                state = Combat.ApplyDamage(state, occupant.Id, SplashDamage, DamageSource.Attack, events);
+            }
+
+            return state;
         }
 
         /// <summary>
