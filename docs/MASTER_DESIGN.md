@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03j** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03k** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,12 @@ Last design session: 2026-08-03.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (k) — Intake confirmations: Bedraggled clears at ROUND 1 END (the "first legal
+  activation" phrasing had no referent — builder's catch, builder's pick, confirmed); §14 #8
+  updated (shover dies pre-gate at seed 1; the live stall is broken-bridge on the three
+  evaluator policies); reload-vs-skipped-slot gap recorded as #12, closes with D-050's
+  seed+command-log saves. Doubling doc-drift straggler #3 (GAMEPLAY attrition table) fixed
+  repo-side.
 2026-08-03 (j) — LOCKED (rescue rulings, from repo intake questions): rescue reach is priced
   in AP like all movement — no terrain waiver, no special case (a drain ringed by brambles IS
   harder to reach; the board mattering). Rescue can fail mid-route: damage en route resolves
@@ -147,7 +153,9 @@ lethal attack, above all else). Voided/Swept (permanent for the run; out of the 
 (round up, min 1: 14→4, 8→2)** and **skips its first activation** (deploys normally; its first
 slot does not exist — the side has one fewer activation in round 1). Deployment UI marks
 Bedraggled units loudly; round-1 enemy targeting treats them like any other unit — no AI
-preference for the wounded. Pluck and learned abilities intact.
+preference for the wounded. Pluck and learned abilities intact. **The state clears at round 1's
+end** — from round 2 the duck is simply wounded; the flag's only teeth are the omitted slot, so
+it dies with the round that contained the omission.
 
 **Doomed-cling resolution:** when no standing enemy remains AND no pending reinforcement wave
 could arrive to rescue, all clinging enemies are swept immediately and the fight resolves (waves
@@ -415,10 +423,14 @@ Behemoth/multi-tile enemies (flagship later); drain-plugging.
 5. Rest-node frequency per act map (the anti-spiral dial).
 6. Spear Thrust vs two Anchors in a line (anchors-court) — watch for trivialization.
 7. Storefront subtitle + PLUCK ownability check — owed before public use.
-8. broken-bridge stall: board's fault or policy's? (handoff's exact next step)
+8. broken-bridge stall on the three evaluator policies (board-first/blade-first/preserver):
+   board's fault or policy's? (shover no longer reaches its old gate stall at seed 1 — this is
+   the live one)
 9. Rarity odds per source — tuning number, post-playtest.
 10. Legendary catalog draft (~2 per class) — workshop.
 11. Spoils-draft camp variant (3 revealed / 2 taken / 1 lost, low-HP picks first) — workshop.
+12. Mid-fight reload restores Bedraggled's quarter HP but returns the skipped slot — known gap,
+    closes when saves become seed+command-log (D-050's own stated fix; recorded, not papered).
 
 # 15 · Naming
 
