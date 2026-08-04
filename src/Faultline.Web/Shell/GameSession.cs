@@ -1399,6 +1399,37 @@ public sealed class GameSession
             ? null
             : Legal.OfType<EndActivationCommand>().FirstOrDefault(e => e.UnitId == Selected.Value);
 
+    /// <summary>
+    /// Every way the selected duck could empty its pocket right now, straight off Core's legal list.
+    /// </summary>
+    /// <remarks>
+    /// Read off <see cref="StepResult.LegalNext"/> rather than worked out from the item and the
+    /// board, for the same reason <see cref="VerveSpendCommand"/> is: half of a one-shot's legality
+    /// is invisible on the unit — an Old Rope needs somebody hanging within reach and a Crate needs
+    /// an open tile beside it — and a shell that re-derived it would be a second, disagreeing copy
+    /// of <see cref="Consumables.Legal"/>.
+    /// </remarks>
+    public IReadOnlyList<UseConsumableCommand> PocketCommands =>
+        Selected is null
+            ? Array.Empty<UseConsumableCommand>()
+            : Legal.OfType<UseConsumableCommand>().Where(u => u.UnitId == Selected.Value).ToList();
+
+    /// <summary>Whether the selected duck may use what is in its pocket this instant.</summary>
+    public bool CanUsePocket => PocketCommands.Count > 0;
+
+    /// <summary>
+    /// Submits the one-shot when there is exactly one way to use it. An item that needs a target
+    /// picks one first — the section draws a button per Core-offered target and submits that.
+    /// </summary>
+    public void UsePocket()
+    {
+        var commands = PocketCommands;
+        if (commands.Count == 1)
+        {
+            Submit(commands[0]);
+        }
+    }
+
     /// <summary>Tiles the current player may deploy onto.</summary>
     public IReadOnlyDictionary<Coord, DeployCommand> DeployTargets =>
         Legal.OfType<DeployCommand>()

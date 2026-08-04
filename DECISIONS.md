@@ -144,13 +144,17 @@ in this file when the question comes back.
 | D-124 | [PLUCK is the name on screen; every code identifier, namespace, storage key and campaign id is unchanged.](#d-124-pluck-is-the-name-on-screen-every-code-identifier-namespace-storage-key-and-campaign-id-is-unchanged) | 2026-08-04 |  |
 | D-125 | [A screen offers what `Campaign.LegalRunCommands` offers, never what a node's type implies; and the save carries `AtVote`, because a fork is a position a reload must not lose.](#d-125-a-screen-offers-what-campaignlegalruncommands-offers-never-what-a-nodes-type-implies-and-the-save-carries-atvote-because-a-fork-is-a-position-a-reload-must-not-lose) | 2026-08-04 |  |
 | D-126 | [Bull Rush costs 2 AP, not the whole pool; one tile of pre-move is legal and the Vanguard's threat range is 4.](#d-126-bull-rush-costs-2-ap-not-the-whole-pool-one-tile-of-pre-move-is-legal-and-the-vanguards-threat-range-is-4) | 2026-08-04 |  |
-| D-127 | [The Camp is a phase on the run seam, not a node on the map; it follows every won Fight or Elite and never the boss.](#d-127-the-camp-is-a-phase-on-the-run-seam-not-a-node-on-the-map-it-follows-every-won-fight-or-elite-and-never-the-boss) | unreleased |  |
-| D-128 | [A camp's table is derived from the run RNG cursor and never stored; the command records both the draw and the pick.](#d-128-a-camps-table-is-derived-from-the-run-rng-cursor-and-never-stored-the-command-records-both-the-draw-and-the-pick) | unreleased |  |
-| D-129 | [§8.6's twelve mods, eight Second Winds, four unlocks and five consumables ship. Deep Pockets, the legendary consumables and Learn/Replace/Swap do not.](#d-129-86s-twelve-mods-eight-second-winds-four-unlocks-and-five-consumables-ship-deep-pockets-the-legendary-consumables-and-learnreplaceswap-do-not) | unreleased |  |
-| D-130 | [Quick Preen ships at cost 2, unflagged: the negative-sum invariant is about the heal, not the price.](#d-130-quick-preen-ships-at-cost-2-unflagged-the-negative-sum-invariant-is-about-the-heal-not-the-price) | unreleased |  |
-| D-131 | [Old Rope makes any living ally holding one a "possible rescuer" for the doomed-cling sweep, without asking whether it could reach.](#d-131-old-rope-makes-any-living-ally-holding-one-a-possible-rescuer-for-the-doomed-cling-sweep-without-asking-whether-it-could-reach) | unreleased |  |
+| D-127 | [The Camp is a phase on the run seam, not a node on the map; it follows every won Fight or Elite and never the boss.](#d-127-the-camp-is-a-phase-on-the-run-seam-not-a-node-on-the-map-it-follows-every-won-fight-or-elite-and-never-the-boss) | 2026-08-04 |  |
+| D-128 | [A camp's table is derived from the run RNG cursor and never stored; the command records both the draw and the pick.](#d-128-a-camps-table-is-derived-from-the-run-rng-cursor-and-never-stored-the-command-records-both-the-draw-and-the-pick) | 2026-08-04 |  |
+| D-129 | [§8.6's twelve mods, eight Second Winds, four unlocks and five consumables ship. Deep Pockets, the legendary consumables and Learn/Replace/Swap do not.](#d-129-86s-twelve-mods-eight-second-winds-four-unlocks-and-five-consumables-ship-deep-pockets-the-legendary-consumables-and-learnreplaceswap-do-not) | 2026-08-04 |  |
+| D-130 | [Quick Preen ships at cost 2, unflagged: the negative-sum invariant is about the heal, not the price.](#d-130-quick-preen-ships-at-cost-2-unflagged-the-negative-sum-invariant-is-about-the-heal-not-the-price) | 2026-08-04 |  |
+| D-131 | [Old Rope makes any living ally holding one a "possible rescuer" for the doomed-cling sweep, without asking whether it could reach.](#d-131-old-rope-makes-any-living-ally-holding-one-a-possible-rescuer-for-the-doomed-cling-sweep-without-asking-whether-it-could-reach) | 2026-08-04 |  |
+| D-132 | [A camp offer arrives already bound to its duck, so the camp screen names the duck and offers no way to change it. There is no target-duck selector.](#d-132-a-camp-offer-arrives-already-bound-to-its-duck-so-the-camp-screen-names-the-duck-and-offers-no-way-to-change-it-there-is-no-target-duck-selector) | unreleased |  |
+| D-133 | [The camp is picked on one screen with both tables shown and each player confirming their own. It does not borrow the vote's masked-pick ceremony.](#d-133-the-camp-is-picked-on-one-screen-with-both-tables-shown-and-each-player-confirming-their-own-it-does-not-borrow-the-votes-masked-pick-ceremony) | unreleased |  |
+| D-134 | [The run save writes `at-camp` and each duck's loadout. Neither was being written, so a camp and everything the camps had given the squad were lost on reload.](#d-134-the-run-save-writes-at-camp-and-each-ducks-loadout-neither-was-being-written-so-a-camp-and-everything-the-camps-had-given-the-squad-were-lost-on-reload) | unreleased |  |
+| D-135 | [The run log prints display names. Five lines were spelling `UnitKind` straight, so the Fisher appeared on screen as "Threadcaster".](#d-135-the-run-log-prints-display-names-five-lines-were-spelling-unitkind-straight-so-the-fisher-appeared-on-screen-as-threadcaster) | unreleased |  |
 
-**130 rulings.**
+**134 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2958,3 +2962,89 @@ themselves clinging — and a clinging duck cannot use its Rope. So the practica
 of nothing but clingers, one of whom carries a Rope, is not swept early; it is voided at end of round
 instead (D-016). That is a delay, not a rescue. It is what the words say, it costs nothing, and
 narrowing it would be inventing a clause the design did not write.
+
+**D-132 — A camp offer arrives already bound to its duck, so the camp screen names the duck and
+offers no way to change it. There is no target-duck selector.**
+
+The implementation prompt asked for a "target-duck selector where the offer is duck-bound — a mod
+names its spender, an unlock names its duck". There is nothing to select. `CampCatalogue.EligibleFor`
+draws **per squad member**, and `Camp.DrawFor` pools those per-duck lists before the seed takes two:
+"Sure-Footed for the Vanguard" and "Sure-Footed for the Fisher" are two different cards, and the run
+RNG chose between them at the moment it dealt. `CampOffer.Duck` is a field on the card, not a blank on
+it.
+
+So the screen **names** the binding — a mod says whose spender it bolts onto, a Second Wind says who
+earns from it, an unlock and a one-shot say whose they are — and offers no control that moves it.
+
+**Rejected: adding a selector anyway.** It would have to answer "which of my ducks could take this
+card", which is `CampCatalogue.EligibleFor`'s question asked a second time in Blazor, and the answer
+would not be the one Core had dealt. `Camp.Resolve` refuses a `CampPickCommand` whose recorded table
+is not the one the cursor would deal, so a card moved onto another duck could not be submitted at all
+— the selector would be a control whose only possible outcome is a refusal.
+
+**What the screen does instead, for the question the selector was reaching for.** "Why is there no mod
+on this table" is a real question with a rule for an answer: a full spender contributes no mods
+(§8.6's slot ceiling) and a full pocket contributes no consumables (§8.5's one pocket). The strip
+under the cards reads both off `DuckLoadout` — `SpenderIsFull`, `Pocket` — and says which. An offer
+that cannot be taken is not offered, and now it is not silently absent either.
+
+**D-133 — The camp is picked on one screen with both tables shown and each player confirming their
+own. It does not borrow the vote's masked-pick ceremony.**
+
+A fork is one decision two people make about the same thing, so `VoteFlow` masks the first pick and
+sequences the second. A camp is not that shape: each player's two cards are drawn from their own ducks
+(§8.5, *simultaneous and independent*), so there is nothing for A's pick to spoil about B's and no
+order in which one has to resolve in front of the other. `CampFlow` therefore shows both tables at
+once, takes the picks in either order, and gives each player a confirm of their own; the single
+`CampPickCommand` goes when the second confirm lands.
+
+**What forced it:** the camp shipped in Core with no picking surface at all. A run that won
+`first-contact` reached `RunPhase.AtCamp` with nothing on any screen able to leave it, and the camp is
+mandatory — the run was dead in the water. A live blocker, not a polish item.
+
+**A player dealt nothing is confirmed by the flow rather than asked.** `CampPickCommand.NoPick` is the
+absence of a table, never a decline, so waiting for a press from a player with no cards would deadlock
+the camp. There is no skip and no decline anywhere on the surface: camps are the reward, and turning
+one down is not a decision worth a button (§8.5). Both an xUnit test and a Playwright check assert
+that the words *skip*, *decline*, *pass on* and *walk away* appear nowhere on the drawn screen.
+
+**Rejected: a "Break camp" button after both confirms.** Three presses for two decisions, and the
+third has no other outcome than the one it is already committed to. The second confirm sends it.
+
+**D-134 — The run save writes `at-camp` and each duck's loadout. Neither was being written, so a camp
+and everything the camps had given the squad were lost on reload.**
+
+`RunSave` already had an `AtCamp` field and already passed it to `Campaign.Restore`; `Render` never
+emitted the line, so `Parse` never found one. `LoadoutText` existed, was documented, and was called by
+nothing — the `unit:` line stopped at six positional fields. A reload at a camp therefore walked the
+run back onto `RunPhase.AtNode` and offered it the fight it had just won, which is **D-125 exactly,
+one phase later**; and a duck three camps deep came back carrying nothing.
+
+**`at-vote` moved out of the route block with it.** Both lines were written only when
+`Route.Count > 0`, i.e. only for act-map runs. The linear ten runs camps after its fights too, so on
+that shape the phase was dropped by geometry. Both are unconditional now; `Parse` already read them
+unconditionally, so records written before this still load.
+
+**Why nothing caught it:** every test that stood at a later phase got there by writing a save and
+reading it back, which round-trips exactly the fields the writer writes and no others — the same blind
+spot D-125 named, still open one ruling later. The camp tests reach the camp by **playing**
+`first-contact` to a win (`CampPlayer` drives `RunSession` one legal command at a time, and
+`tools/ui-checks/camp-check.mjs` does the same through a browser); the one test that restores is the
+one about restoring.
+
+**D-135 — The run log prints display names. Five lines were spelling `UnitKind` straight, so the
+Fisher appeared on screen as "Threadcaster".**
+
+MASTER_DESIGN §15 decouples identifiers from display names and rests the whole arrangement on one
+rule: **no user-facing string may spell an internal identifier.** `RunEventText` broke it five times —
+the fielding line, the three carried-out lines and the campfire's — by interpolating `UnitKind`
+directly, and `StatusBand`, the campaign page's squad list and the act map's heal and payer lists did
+the same in markup. A player who won a fight read "Threadcaster 8/8 carried forward" in the band.
+
+All nine now go through `Naming.Of(UnitKind)`. Found while verifying the camp end to end, which is the
+argument for driving the real screen: the string had been on the post-victory band since the run layer
+shipped and no test looked at it.
+
+**Rejected: renaming the enum member.** That is precisely what §15 exists to avoid — it would churn
+every command log, every fixture and every ruling that cites `UnitKind.Threadcaster` by name, in
+exchange for nothing a player can see. A pinning test now walks all five event lines.

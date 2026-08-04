@@ -1,0 +1,115 @@
+/* The pocket, beside the meter. Styled as one card and not as a row of the action list, for the
+   same reason the spender is: it is bought with neither of the activation's halves, and a control
+   that looked like the others would be a lie about which budget it empties. */
+
+.pocket {
+    border-top: 1px solid var(--pt-border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-gap);
+    padding-top: var(--pt-gap);
+}
+
+.section-head {
+    align-items: baseline;
+    display: flex;
+    font-size: .68rem;
+    justify-content: space-between;
+    letter-spacing: .1em;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.section-note {
+    color: var(--pt-text-dim);
+    font-size: .62rem;
+    letter-spacing: .08em;
+}
+
+.item {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    color: var(--pt-text);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    padding: .5rem .6rem;
+    text-align: left;
+    width: 100%;
+}
+
+.item:hover:not(:disabled) {
+    border-color: var(--pt-amber);
+}
+
+.item:disabled {
+    cursor: default;
+}
+
+.item.short {
+    opacity: .6;
+}
+
+.item-head {
+    align-items: center;
+    display: flex;
+    gap: .4rem;
+    justify-content: space-between;
+}
+
+.item-name {
+    font-weight: 600;
+}
+
+/* An Action Point badge, deliberately: the number it carries is zero, and that is the fact. */
+.badge.ap {
+    background: rgba(37, 131, 255, .16);
+    border-radius: 4px;
+    color: var(--pt-blue);
+    font-size: .66rem;
+    letter-spacing: .05em;
+    padding: .1rem .35rem;
+    white-space: nowrap;
+}
+
+.item-effect {
+    color: var(--pt-text-dim);
+    font-size: .76rem;
+    line-height: 1.4;
+}
+
+.reason {
+    color: var(--pt-yellow);
+    font-size: .68rem;
+}
+
+.aim {
+    color: var(--pt-text-dim);
+    font-size: .7rem;
+    margin: 0;
+}
+
+.targets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.target {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    color: var(--pt-text);
+    cursor: pointer;
+    font-size: .7rem;
+    padding: .2rem .45rem;
+}
+
+.target:hover {
+    border-color: var(--pt-amber);
+}

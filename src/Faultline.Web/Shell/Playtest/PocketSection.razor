@@ -1,0 +1,111 @@
+@inherits PlaytestPanel
+
+@* What is in the duck's one pocket, drawn beside the meter because it is the other thing this duck
+   is holding that the activation's Action Point pool does not own.
+
+   0 AP, free timing inside its own activation, one-shot (MASTER_DESIGN §8.5). The zero is on the
+   badge rather than suppressed — "costs nothing" is the whole reason a player reaches for it — and
+   the badge is an AP badge because that genuinely is the budget it does not empty.
+
+   Nothing here decides whether it may be used: the row comes from ActionRows, which reads
+   Consumables.Legal through the session's legal list, and every target button below submits a
+   command Core handed over. An item that needs aiming is not aimed here; its legal targets are
+   listed and the click picks one. *@
+
+@if (Unit is { } unit && unit.Loadout.Pocket is { } item && Row is { } row)
+{
+    <div class="pocket">
+        <p class="section-head">
+            Pocket
+            <span class="section-note">one-shot</span>
+        </p>
+
+        <button type="button"
+                class="item @(row.Available ? string.Empty : "short")"
+                disabled="@(!row.Available || Targets.Count > 1)"
+                title="@row.Name — @row.Effect"
+                @onclick="Use">
+            <span class="item-head">
+                <span class="item-name">@row.Name</span>
+                <span class="badge ap" title="@row.Hint">@row.Badge</span>
+            </span>
+            <span class="item-effect">@row.Effect</span>
+            @if (row.Reason.Length > 0)
+            {
+                <span class="reason" title="@row.Hint">@row.Reason</span>
+            }
+        </button>
+
+        @* An Old Rope needs somebody to haul and somewhere to put them; a Crate needs a tile. Core
+           returns one command per legal combination, so the choices are listed rather than aimed —
+           there is nothing for this file to work out. *@
+        @if (row.Available && Targets.Count > 1)
+        {
+            <p class="aim">@AimText(item)</p>
+            <ul class="targets">
+                @foreach (var target in Targets)
+                {
+                    var command = target;
+                    <li>
+                        <button type="button" class="target" @onclick="() => Session.Submit(command)">
+                            @Label(command)
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The duck the inspector is about, when a player owns it — the same subject the meter and the
+    /// action list use, so all three can never end up describing different ducks.
+    /// </summary>
+    private Unit? Unit =>
+        ActionRows.Subject(Session) is { } unit && unit.Team.IsPlayer() ? unit : null;
+
+    /// <summary>The pocket as the action list models it, so the row here and the rows below agree.</summary>
+    private ActionRow? Row
+    {
+        get
+        {
+            foreach (var row in ActionRows.For(Session))
+            {
+                if (row.Kind == ActionKind.Pocket)
+                {
+                    return row;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>Every use Core is offering for this duck's pocket right now.</summary>
+    private IReadOnlyList<UseConsumableCommand> Targets => Session.PocketCommands;
+
+    private void Use() => Session.UsePocket();
+
+    private static string AimText(Consumable item) => item switch
+    {
+        Consumable.OldRope => "Pick who to haul out, and the tile to set them down on.",
+        _ => "Pick the tile.",
+    };
+
+    /// <summary>
+    /// What one target button says: who is being hauled and where they land, or the tile a crate goes
+    /// on. Coordinates are <see cref="BoardCoords"/>' labels, never Core's zero-based pair.
+    /// </summary>
+    private string Label(UseConsumableCommand command)
+    {
+        string where = command.To is { } tile ? BoardCoords.Of(tile) : string.Empty;
+
+        if (command.TargetId is { } who && State.FindUnit(who) is { } unit)
+        {
+            return unit.Name + " → " + where;
+        }
+
+        return where;
+    }
+}

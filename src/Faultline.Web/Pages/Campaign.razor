@@ -1,5 +1,6 @@
 @page "/campaign"
 @layout MainLayout
+@implements IDisposable
 @inject RunSession Runs
 @inject NavigationManager Nav
 
@@ -71,9 +72,9 @@
                         {
                             <li class="@SquadClass(unit)">
                                 <span class="art inline">
-                                    <UnitArt Kind="unit.Kind" Label="@unit.Kind.ToString()" />
+                                    <UnitArt Kind="unit.Kind" Label="@Naming.Of(unit.Kind)" />
                                 </span>
-                                <span class="squad-name">@unit.Kind</span>
+                                <span class="squad-name">@Naming.Of(unit.Kind)</span>
                                 <span class="squad-hp">@HpText(unit)</span>
                                 @if (unit.Status == RunUnitStatus.Downed)
                                 {
@@ -196,6 +197,11 @@
                 </ul>
             </section>
         }
+
+        @* The camp stands between a won fight and the next node, whichever shape the run is walking
+           (MASTER_DESIGN §8.5) — so it is drawn here, above the road, rather than inside either of
+           the two things that draw a road. It draws nothing unless Core says the run is at one. *@
+        <CampPanel />
 
         @if (Mapped)
         {
@@ -349,6 +355,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // The page's own panels — the squad, the "Just now" list, the run log — are read off the
+        // session rather than off whichever button was pressed, and a command can now be sent from
+        // a child: the camp resolves inside CampPanel. Without this subscription the page kept
+        // drawing the events of the step before, which is a screen quietly telling a player the run
+        // is somewhere it is not.
+        Runs.Changed += Redraw;
+
         await Runs.LoadAsync();
         if (Run is not null)
         {
@@ -356,6 +369,10 @@
             _campaignId = Run.Campaign.Id;
         }
     }
+
+    public void Dispose() => Runs.Changed -= Redraw;
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
 
     private static FightDefinition? Fight(string id) =>
         CuratedSet.Active().TryGetValue(id, out var fight) ? fight : null;

@@ -166,7 +166,7 @@ else
                         @if (unit.IsAvailable)
                         {
                             <li>
-                                @unit.Kind — @unit.Hp/@unit.MaxHp, back
+                                @Naming.Of(unit.Kind) — @unit.Hp/@unit.MaxHp, back
                                 @MapRestNodeHandler.HealFor(unit.MaxHp)
                             </li>
                         }
@@ -187,7 +187,7 @@ else
                         var who = payer;
                         <li>
                             <button class="action secondary" @onclick="() => Pay(who.Id)">
-                                @who.Kind pays — @who.Hp/@who.MaxHp → @(who.Hp - offer.HpCost)/@(who.MaxHp + offer.MaxHpGain)
+                                @Naming.Of(who.Kind) pays — @who.Hp/@who.MaxHp → @(who.Hp - offer.HpCost)/@(who.MaxHp + offer.MaxHpGain)
                             </button>
                         </li>
                     }

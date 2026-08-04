@@ -21,17 +21,21 @@ public static class RunEventText
         RunStarted s => $"Run started — {s.CampaignName}, {Num(s.Nodes)} nodes, seed {Num(s.Seed)}.",
         NodeEntered n => $"Node {Num(n.Index + 1)}: {n.Description}.",
         FightBegan f => $"Fight #{Num(f.Number)} {f.Name} begins with {Num(f.Fielded)} of the squad.",
-        UnitFielded u => $"{u.Kind} fields as {u.UnitId} [{EventText.Side(u.Team)}] on {Num(u.Hp)}/{Num(u.MaxHp)}"
+        // Display names, never the identifier: the Fisher is UnitKind.Threadcaster in the code and
+        // has never been one on a screen (MASTER_DESIGN §15). These four lines used to print the
+        // enum, which is exactly the bypass Naming exists to close.
+        UnitFielded u => $"{Naming.Of(u.Kind)} fields as {u.UnitId} [{EventText.Side(u.Team)}] on "
+            + $"{Num(u.Hp)}/{Num(u.MaxHp)}"
             + (u.Returning ? " — bedraggled: no activation slot in round 1." : "."),
         FightResolved r => $"{r.FightId} {Outcome(r.Outcome)} on round {Num(r.Round)}.",
         UnitCarried c => c.Status switch
         {
-            RunUnitStatus.Voided => $"{c.Kind} is gone for the run.",
-            RunUnitStatus.Downed => $"{c.Kind} went down — back next fight bedraggled on "
+            RunUnitStatus.Voided => $"{Naming.Of(c.Kind)} is gone for the run.",
+            RunUnitStatus.Downed => $"{Naming.Of(c.Kind)} went down — back next fight bedraggled on "
                 + $"{Num(c.FieldingHp)}/{Num(c.MaxHp)}, missing its first activation.",
-            _ => $"{c.Kind} carries {Num(c.Hp)}/{Num(c.MaxHp)} out.",
+            _ => $"{Naming.Of(c.Kind)} carries {Num(c.Hp)}/{Num(c.MaxHp)} out.",
         },
-        UnitRested u => $"{u.Kind} restored {Num(u.From)} → {Num(u.To)}"
+        UnitRested u => $"{Naming.Of(u.Kind)} restored {Num(u.From)} → {Num(u.To)}"
             + (u.WasDowned ? ", and is standing again." : "."),
         MapMoved m => m.FromNodeId.Length == 0
             ? $"The act opens at {m.ToNodeId} — column {Num(m.Column + 1)}, {Lane(m.Lane)}."
@@ -43,8 +47,18 @@ public static class RunEventText
               + $"{(v.Coin == 0 ? "A" : "B")} and the run takes {v.ChosenNodeId}."
             : $"Agreed — both picked {v.ChosenNodeId}. No coin.",
         EventOffered o => $"{o.Name} — {o.Prompt}",
+
+        // The camp, in the log. What was on the table and what came off it, in the catalogue's own
+        // words — a line that reworded the rule would be the second copy of the pool that
+        // CampCatalogue exists to prevent.
+        CampOffered c => c.Table.IsEmpty
+            ? "Camp — nothing left to deal, so the run walks straight through it."
+            : $"Camp after {c.FightId} — {c.Table}.",
+        CampTaken t => $"Player {EventText.Side(t.Player)} takes {t.Name} for the "
+            + $"{Naming.Of(t.Kind)} — {t.Summary}",
+
         EventDeclined d => d.WalkAwayLine,
-        MaxHpRaised r => $"{r.Kind} paid {Num(r.HpFrom - r.HpTo)} and came away bigger: "
+        MaxHpRaised r => $"{Naming.Of(r.Kind)} paid {Num(r.HpFrom - r.HpTo)} and came away bigger: "
             + $"{Num(r.HpFrom)}/{Num(r.MaxFrom)} → {Num(r.HpTo)}/{Num(r.MaxTo)}.",
 
         // The promise rule in the log, exactly as on the map: while nothing can pay the mark, the

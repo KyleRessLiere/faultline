@@ -181,21 +181,28 @@ public sealed record RunSave
             // and no '>' in it, so the separator needs no escaping.
             text.Append("route: ").Append(string.Join(">", Route)).Append('\n');
             text.Append("act-cleared: ").Append(ActCleared ? "yes" : "no").Append('\n');
-            text.Append("at-vote: ").Append(AtVote ? "yes" : "no").Append('\n');
         }
+
+        // Outside the route block, and both of them, because neither phase belongs to the graph: the
+        // linear ten runs camps after its fights too, and a camp written down only for map runs is a
+        // camp that a reload on the other shape silently walks past — back onto the node the run had
+        // already cleared, which is the exact trap D-125 named.
+        text.Append("at-vote: ").Append(AtVote ? "yes" : "no").Append('\n');
+        text.Append("at-camp: ").Append(AtCamp ? "yes" : "no").Append('\n');
 
         foreach (var unit in Squad)
         {
-            // id, kind, carried hp, status, then the two a map run adds: the meter it is carrying and
-            // the ceiling this run has bought it. Positional and appended, so a record written before
-            // the map shipped still reads — ParseUnit needs four and takes six.
+            // id, kind, carried hp, status, then the meter it is carrying, the ceiling this run has
+            // bought it, and what the camps have hung on it. Positional and appended, so a record
+            // written before any of the three still reads — ParseUnit needs four and takes seven.
             text.Append("unit: ")
                 .Append(Number(unit.Id.Value)).Append(' ')
                 .Append(unit.Kind).Append(' ')
                 .Append(Number(unit.Hp)).Append(' ')
                 .Append(unit.Status).Append(' ')
                 .Append(Number(unit.Verve)).Append(' ')
-                .Append(Number(unit.BonusMaxHp))
+                .Append(Number(unit.BonusMaxHp)).Append(' ')
+                .Append(LoadoutText(unit.Loadout))
                 .Append('\n');
         }
 

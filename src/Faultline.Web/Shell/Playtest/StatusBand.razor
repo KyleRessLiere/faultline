@@ -32,9 +32,9 @@
                         {
                             <li class="@(carried.Status == RunUnitStatus.Voided ? "voided" : carried.Status == RunUnitStatus.Downed ? "downed" : string.Empty)">
                                 <span class="art">
-                                    <UnitArt Kind="carried.Kind" Label="@carried.Kind.ToString()" />
+                                    <UnitArt Kind="carried.Kind" Label="@Naming.Of(carried.Kind)" />
                                 </span>
-                                <strong>@carried.Kind</strong>
+                                <strong>@Naming.Of(carried.Kind)</strong>
                                 @if (carried.Status == RunUnitStatus.Voided)
                                 {
                                     <span class="badge voided">voided — gone for the run</span>
@@ -58,6 +58,17 @@
                     else if (run.Outcome == RunOutcome.Won)
                     {
                         <p class="instruction">Run complete — @run.FightsWon fights won.</p>
+                    }
+                    else if (Runs.AtCamp)
+                    {
+                        @* A camp follows every won combat node and is not optional: the run cannot
+                           move until both picks are in (MASTER_DESIGN §8.5). Naming the next fight
+                           here would be naming a node the run has not been offered yet. *@
+                        <p class="instruction">
+                            Cleared. Camp first — one card each, dealt from your own ducks, and there
+                            is no skipping it.
+                        </p>
+                        <div class="row"><a class="act primary" href="campaign">Break out the cards</a></div>
                     }
                     else if (Runs.AtVote)
                     {

@@ -1,5 +1,30 @@
 # Changelog
 
+## The camp has a screen — the run can leave it again
+
+- **Fixes a live blocker.** A won fight put the run at `RunPhase.AtCamp` and nothing on any screen
+  could pick a card, so the run could not advance at all. The offer-card surface is built once, at
+  `Shell/RunMap/CampPanel.razor`, and events and Straits will reuse it (D-133).
+- **Both players' tables, side by side, from `Camp.Draw` alone.** Every card carries its name, its
+  category, its §8.6 rule text verbatim from `CampCatalogue`, and **the duck it is bound to** — an
+  offer arrives bound, so there is no target selector and there was never one to build (D-132).
+- **Pick in either order; each player confirms their own.** One `CampPickCommand` goes when the second
+  confirm lands, and the run moves on to its fork. **No skip control exists** — asserted in xUnit and
+  in the browser.
+- **A duck with nothing on the table says why**: a full spender is dealt no mods, a full pocket no
+  one-shots, read off `DuckLoadout`.
+- **The pocket is on the battle screen**, beside the Pluck meter: the one-shot's name, its rule text,
+  a **0 AP** badge, the reason on it when it cannot come out, and a button per Core-offered target for
+  the two items that need aiming.
+- **The save carries `at-camp` and every duck's loadout (D-134).** Neither was being written: a reload
+  at a camp walked the run back onto the fight it had just won, and a duck came back stripped of
+  everything the camps had given it. `at-vote` moved out of the map-only block for the same reason.
+- **The run log prints display names (D-135).** Five lines and four markup sites were spelling
+  `UnitKind`, so the Fisher read as "Threadcaster" on the post-victory band.
+- **`tools/ui-checks/camp-check.mjs`** clears `first-contact` **by playing it in a browser**, reaches
+  the camp, picks both, votes and starts the next fight — never by restoring a save into a later
+  phase, which is the blind spot D-125 named and D-134 fell into anyway.
+
 ## The Camp — pick 1 of 2 after every won fight
 
 - **A won Fight or Elite now stops the run at a Camp (D-127, MASTER_DESIGN §8.5).** Each player is

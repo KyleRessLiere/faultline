@@ -124,8 +124,9 @@
     private bool Commandable => ActionRows.IsCommandable(Session);
 
     /// <summary>
-    /// Every row except the class spender, which the Pluck section above draws instead — it is
-    /// bought with a different currency and belongs beside the meter that pays for it.
+    /// Every row except the two the sections above draw instead: the class spender, which is bought
+    /// with a different currency and belongs beside the meter that pays for it, and the pocket,
+    /// which is bought with neither half of the activation.
     /// </summary>
     private IReadOnlyList<ActionRow> Rows
     {
@@ -134,7 +135,7 @@
             var rows = new List<ActionRow>();
             foreach (var row in ActionRows.For(Session))
             {
-                if (row.Kind != ActionKind.Spend)
+                if (row.Kind != ActionKind.Spend && row.Kind != ActionKind.Pocket)
                 {
                     rows.Add(row);
                 }

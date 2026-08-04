@@ -186,17 +186,79 @@ public sealed class RunPersistenceTests
         Assert.Contains("seed: 4242\n", text);
         Assert.Contains("node: 6\n", text);
 
-        // Six positional values per member now: the four the linear ten always wrote, then the meter
-        // and the ceiling a map run can change. Appended rather than reshaped, so a record written
-        // before the map shipped still reads — see the four-field Parse test above.
-        Assert.Contains("unit: 0 Vanguard 3 Ready 0 0\n", text);
-        Assert.Contains("unit: 3 Wardbearer 0 Voided 0 0\n", text);
+        // Seven positional values per member now: the four the linear ten always wrote, then the
+        // meter and the ceiling a map run can change, then what the camps have hung on the duck —
+        // a bare '-' while that is nothing. Appended rather than reshaped, so a record written
+        // before any of the three still reads — see the four-field Parse test above.
+        Assert.Contains("unit: 0 Vanguard 3 Ready 0 0 -\n", text);
+        Assert.Contains("unit: 3 Wardbearer 0 Voided 0 0 -\n", text);
 
         // The run RNG's cursor rides along, so a restored run does not re-flip a coin it has spent.
         Assert.Contains("rng: ", text);
 
+        // Both phases the node under them has already been cleared, and both written for every
+        // shape: a linear run camps after its fights too, and a camp the save drops is a run
+        // restored onto the fight it just won (D-125).
+        Assert.Contains("at-vote: no\n", text);
+        Assert.Contains("at-camp: no\n", text);
+
         // A linear campaign has no graph, so it writes no route at all rather than an empty one.
         Assert.DoesNotContain("route:", text);
+    }
+
+    /// <summary>
+    /// What the camps gave a duck rides in the save, as one space-free token per member, and comes
+    /// back the same. A loadout that vanished across a reload would be a run quietly rolled back.
+    /// </summary>
+    [Fact]
+    public void ADucksLoadout_IsWrittenAsOneTokenAndReadBackWhole()
+    {
+        var run = Campaign.Start(CampaignLibrary.Faultline, Seed).NewState;
+        var vanguard = run.Squad.First(u => u.Kind == UnitKind.Vanguard);
+
+        var loaded = run.WithUnit(vanguard with
+        {
+            Loadout = DuckLoadout.Empty
+                .With(Mod.Heavier)
+                .With(Mod.Echo)
+                .With(SecondWind.StaggerAnEnemy)
+                .With(Unlock.Climber)
+                .WithPocket(Consumable.OldRope),
+        });
+
+        var text = RunSave.Of("0000000000000000003", loaded).Render();
+
+        // One token, no spaces in it, so the positional unit line still parses by splitting on space.
+        var line = text.Split('\n').First(l => l.StartsWith("unit: 0 ", StringComparison.Ordinal));
+        Assert.Equal(8, line.Split(' ').Length);
+
+        var read = RunSave.Parse(text)!.Restore();
+
+        Assert.Equal(
+            loaded.FindUnit(vanguard.Id)!.Loadout,
+            read.FindUnit(vanguard.Id)!.Loadout);
+
+        // And a duck carrying nothing writes a bare dash rather than an empty tangle of separators.
+        Assert.Contains("unit: 1 ", text);
+        Assert.True(read.Squad.Where(u => u.Id != vanguard.Id).All(u => u.Loadout.IsEmpty));
+    }
+
+    /// <summary>
+    /// A camp is a phase the save has to carry, for the reason a fork is: the node under it has
+    /// already been cleared (D-125).
+    /// </summary>
+    [Fact]
+    public void ACampIsWrittenDown_SoAReloadDoesNotWalkBackOntoTheClearedNode()
+    {
+        var run = Campaign.Start(CampaignLibrary.Act1, Seed).NewState;
+        var camped = Campaign.Restore(
+            CampaignLibrary.Act1, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome,
+            run.MapState, run.RngState, atVote: false, atCamp: true);
+
+        var text = RunSave.Of("0000000000000000004", camped).Render();
+
+        Assert.Contains("at-camp: yes\n", text);
+        Assert.Equal(RunPhase.AtCamp, RunSave.Parse(text)!.Restore().Phase);
     }
 
     /// <summary>A map run's position is its route, and the route makes the trip whole and in order.</summary>

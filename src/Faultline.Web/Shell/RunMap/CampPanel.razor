@@ -1,0 +1,249 @@
+@implements IDisposable
+@inject RunSession Runs
+
+@* The camp (MASTER_DESIGN §8.5): after every combat node, each player picks 1 of 2. Both tables are
+   on screen at once and either player may go first — the two draws come from two separate squads, so
+   there is nothing for one pick to spoil about the other, and nothing to mask.
+
+   Everything drawn here comes off Camp.Draw and the catalogue behind it. The name and the rule text
+   are CampOffer.Name and CampOffer.Summary verbatim: no number on a card is typed in this file, and
+   no sentence on one is a paraphrase (D-112).
+
+   THE OFFER IS ALREADY BOUND. CampCatalogue.EligibleFor draws per duck, so the seed picked the duck
+   at the same moment it picked the card — "Sure-Footed for the Vanguard" and "Sure-Footed for the
+   Fisher" are two different cards. The card therefore NAMES its duck and offers no way to move it: a
+   selector here would be a way to hand the squad a card the run never dealt (D-132).
+
+   THERE IS NO SKIP. Camps are the reward and declining one is not a decision worth a button (§8.5).
+   A player dealt nothing at all is confirmed by the flow rather than asked, because there is no
+   table in front of them to decline. *@
+
+@if (Runs.AtCamp && Runs.Camp is { } table)
+{
+<section class="panel camp">
+    <header class="camp-head">
+        <h2>Camp</h2>
+        <p class="note">
+            @Won Pick one each — gameplay only, and there are no stat lines in here. Both tables are
+            dealt from your own ducks, so neither pick waits on the other; the run moves on once both
+            are in.
+        </p>
+    </header>
+
+    @if (Runs.Problem is not null)
+    {
+        <p class="warn">@Runs.Problem</p>
+    }
+
+    <div class="tables">
+        @foreach (var player in Players)
+        {
+            var side = player;
+            var cards = CampCards.For(Run, table, side);
+
+            <div class="table side-@SideClass(side) @(Flow.Confirmed(side) ? "locked" : "open")"
+                 data-side="@SideClass(side)">
+                <p class="table-head">
+                    <span class="who">@Label(side)</span>
+                    <span class="state">@StateOf(side)</span>
+                </p>
+
+                @if (cards.Count == 0)
+                {
+                    @* Not a decline, and it does not read as one: this player's ducks are carrying
+                       everything the camp could offer them, so there was nothing to deal. *@
+                    <p class="empty">
+                        Nothing was dealt to this side — every pool their ducks could draw from is
+                        exhausted. There is nothing here to take and nothing to turn down.
+                    </p>
+                }
+                else
+                {
+                    <ol class="offers">
+                        @foreach (var card in cards)
+                        {
+                            var offer = card;
+                            <li>
+                                <button type="button"
+                                        class="offer @CampCards.Class(offer.Category) @(Flow.Selected(side) == offer.Index ? "picked" : string.Empty)"
+                                        data-offer="@offer.Index"
+                                        disabled="@Flow.Confirmed(side)"
+                                        title="@offer.Name — @offer.Summary"
+                                        @onclick="() => Select(side, offer.Index)">
+                                    <span class="offer-head">
+                                        <span class="icon @CampCards.Class(offer.Category)" aria-hidden="true">@offer.Glyph</span>
+                                        <span class="offer-name">@offer.Name</span>
+                                        <span class="category">@offer.CategoryName</span>
+                                    </span>
+
+                                    @* The duck the card is bound to, on the card. A mod names the
+                                       spender it bolts onto; an unlock names the duck it changes. *@
+                                    <span class="bound">
+                                        <span class="art">
+                                            <UnitArt Kind="offer.Kind" Label="@offer.DuckName" />
+                                        </span>
+                                        <span class="bound-text">@offer.Bound</span>
+                                    </span>
+
+                                    <span class="offer-rule">@offer.Summary</span>
+                                </button>
+                            </li>
+                        }
+                    </ol>
+
+                    @* One confirm per player, and no third button beside it. *@
+                    @if (Flow.Confirmed(side))
+                    {
+                        <p class="confirmed" role="status">
+                            Locked in — @NameOfPick(cards, side).
+                        </p>
+                        <button type="button" class="action secondary" @onclick="() => Reopen(side)">
+                            Change it
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="action confirm"
+                                disabled="@(Flow.Selected(side) is null)"
+                                @onclick="() => Confirm(side)">
+                            @(Flow.Selected(side) is null
+                                ? "Pick a card"
+                                : "Take " + NameOfPick(cards, side))
+                        </button>
+                    }
+                }
+
+                @* Why a duck has nothing on this table, said rather than left as a mystery. Both
+                   figures are read off the loadout — a full spender offers no mods, a full pocket
+                   offers no one-shots — and neither is worked out here. *@
+                <ul class="ducks">
+                    @foreach (var duck in CampCards.DucksFor(Run, side))
+                    {
+                        <li class="@(duck.Offers == 0 ? "spent" : string.Empty)">
+                            <span class="duck-name">@duck.Name</span>
+                            @if (duck.Reason.Length > 0)
+                            {
+                                <span class="duck-reason">@duck.Reason</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</section>
+}
+
+@code {
+    private readonly CampFlow _own = new();
+
+    /// <summary>
+    /// The picking ceremony, when the host wants to own it. Left unset the panel keeps its own —
+    /// which is what the app does. A parameter for the same reason the vote's is: a harness has to
+    /// be able to take a pick without a mouse.
+    /// </summary>
+    [Parameter]
+    public CampFlow? Ceremony { get; set; }
+
+    private CampFlow Flow => Ceremony ?? _own;
+
+    private RunState? Run => Runs.State;
+
+    private static readonly Team[] Sides = { Team.PlayerA, Team.PlayerB };
+
+    private static IReadOnlyList<Team> Players => Sides;
+
+    /// <summary>The fight this camp follows, when the session still remembers it.</summary>
+    private string Won =>
+        Runs.LastResolution is { Outcome: FightOutcome.Won } resolved
+            ? "Cleared " + resolved.FightId + "."
+            : "The fight is cleared.";
+
+    protected override void OnInitialized()
+    {
+        Runs.Changed += OnRunChanged;
+        Sync();
+    }
+
+    protected override void OnParametersSet() => Sync();
+
+    public void Dispose() => Runs.Changed -= OnRunChanged;
+
+    private void OnRunChanged()
+    {
+        Sync();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Opens the ceremony exactly while Core says there is a camp, and shuts it the moment Core says
+    /// there is not. That is the whole of "a camp is picked at once": the surface exists only while
+    /// <see cref="RunPhase.AtCamp"/> does, and Core never returns to that phase for the same node.
+    /// </summary>
+    private void Sync()
+    {
+        if (Runs.AtCamp && Runs.Camp is { } table)
+        {
+            Flow.Begin(table);
+        }
+        else
+        {
+            Flow.Close();
+        }
+    }
+
+    private void Select(Team player, int index)
+    {
+        Flow.Select(player, index);
+        StateHasChanged();
+    }
+
+    private void Reopen(Team player)
+    {
+        Flow.Reopen(player);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Takes one player's confirmation, and sends the camp the moment both are in — one
+    /// <see cref="CampPickCommand"/> carrying both picks, because there is no half-picked state in
+    /// Core for one of them to arrive into.
+    /// </summary>
+    private void Confirm(Team player)
+    {
+        Flow.Confirm(player);
+
+        if (Flow.Ready)
+        {
+            Runs.PickCamp(Flow.PickA, Flow.PickB);
+            return;
+        }
+
+        StateHasChanged();
+    }
+
+    private static string SideClass(Team player) => player == Team.PlayerA ? "a" : "b";
+
+    private static string Label(Team player) => player == Team.PlayerA ? "Player A" : "Player B";
+
+    private string StateOf(Team player)
+    {
+        if (Flow.Count(player) == 0)
+        {
+            return "nothing dealt";
+        }
+
+        return Flow.Confirmed(player) ? "locked in" : "picking";
+    }
+
+    private string NameOfPick(IReadOnlyList<CampCard> cards, Team player)
+    {
+        if (Flow.Selected(player) is not { } index || index >= cards.Count)
+        {
+            return string.Empty;
+        }
+
+        return cards[index].Name;
+    }
+}

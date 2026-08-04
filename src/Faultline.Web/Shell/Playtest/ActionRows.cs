@@ -44,6 +44,9 @@ public enum ActionKind
 
     /// <summary>Ending the activation without acting.</summary>
     Wait = 6,
+
+    /// <summary>The one-shot in the duck's pocket.</summary>
+    Pocket = 7,
 }
 
 /// <summary>
@@ -181,6 +184,7 @@ public static class ActionRows
         rows.AddRange(BasicRows(session, unit, state));
         rows.AddRange(AbilityRows(session, unit, state));
         rows.AddRange(SpendRows(session, unit));
+        rows.AddRange(PocketRows(session, unit, state));
         rows.AddRange(ClingingRows(session, unit, state));
 
         if (session.EndCommand is not null)
@@ -376,6 +380,60 @@ public static class ActionRows
             armed,
             Spend: spend);
     }
+
+    /// <summary>
+    /// The one-shot in the duck's pocket, priced at nothing. Drawn whenever there is one, greyed
+    /// with its reason when it cannot come out — a pocket that vanished while the duck could not use
+    /// it would hide the thing the player is planning the activation around.
+    /// </summary>
+    /// <remarks>
+    /// <b>0 AP, free-timing, one-shot</b> (MASTER_DESIGN §8.5). The zero is drawn rather than
+    /// suppressed for the reason <see cref="ActionPoints.Price"/> gives: "0 AP" is the whole reason a
+    /// player reaches for it. Whether it may be used is <see cref="Consumables.Legal"/>'s answer,
+    /// arriving through <see cref="GameSession.CanUsePocket"/>; nothing here decides it.
+    /// </remarks>
+    private static IEnumerable<ActionRow> PocketRows(GameSession session, Unit unit, GameState state)
+    {
+        if (unit.Loadout.Pocket is not { } item)
+        {
+            yield break;
+        }
+
+        var priced = ActionPoints.Price(unit, Activation.Free);
+        bool available = session.CanUsePocket;
+
+        // The same reason-sibling every other row carries, and deliberately not a second mechanism
+        // beside it: the price when the pool cannot cover it — which at zero it always can — and
+        // Core's block after. A duck being read rather than commanded has its reason replaced with
+        // NotYoursReason by For(), which is the wrong-activation case and is already answered.
+        string reason = available
+            ? string.Empty
+            : ActionPoints.Reason(priced, Block(state, unit), 0);
+
+        yield return new ActionRow(
+            ActionKind.Pocket,
+            ActionMode.Move,
+            CampCatalogue.NameOf(item),
+            CampCatalogue.SummaryOf(item),
+            available,
+            CostKind.ActionPoints,
+            Activation.Free,
+            reason,
+            "One-shot. Free timing inside this duck's own activation, and it does not end it.",
+            false,
+            Block: available ? TargetingBlock.None : Block(state, unit));
+    }
+
+    /// <summary>
+    /// Why Core is not offering the pocket, in Core's own vocabulary: the timing is wrong, or the
+    /// timing is right and the one-shot would buy nothing. Both come back as
+    /// <see cref="TargetingBlock.Unavailable"/> — <see cref="ActionPoints.BlockText"/> owns the
+    /// words, and this owns nothing but which of them applies.
+    /// </summary>
+    private static TargetingBlock Block(GameState state, Unit unit) =>
+        Consumables.TimingAllows(state, unit) && Consumables.Legal(state, unit).Count > 0
+            ? TargetingBlock.None
+            : TargetingBlock.Unavailable;
 
     private static IEnumerable<ActionRow> ClingingRows(GameSession session, Unit unit, GameState state)
     {
