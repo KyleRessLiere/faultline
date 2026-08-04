@@ -1,7 +1,8 @@
 @inherits PlaytestPanel
 
 @* The meter, what fills it, and the one named thing it buys. Drawn only for a duck the player is
-   commanding — an enemy holds no meter and never will.
+   commanding — an enemy holds no meter and never will — and drawn as a section of the inspector
+   rather than a panel of its own, because it is a fact about that duck.
 
    There is deliberately no generic "activate your charge" control. A meter with an anonymous button
    on it is a meter nobody can plan around: the whole point of the spender is that it is a named,
@@ -9,13 +10,13 @@
 
 @if (Unit is { } unit && Verve.SpendFor(unit.Kind) is { } spend)
 {
-    <div class="pt-panel pluck">
-        <h2>
+    <div class="pluck">
+        <p class="section-head">
             @Naming.Meter
-            <span class="count">@unit.Verve/@Verve.Cap</span>
-        </h2>
+            <span class="section-note">@unit.Verve/@Verve.Cap</span>
+        </p>
 
-        <div class="pt-body">
+        <div class="pluck-body">
             <div class="meter @(unit.Verve >= Verve.CostOf(spend) ? "ready" : string.Empty)"
                  title="@PlaytestText.VerveTitle(unit)"
                  role="meter"

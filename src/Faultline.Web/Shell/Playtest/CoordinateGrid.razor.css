@@ -1,7 +1,17 @@
-/* The stage is a size container, so the board can be told "as big as fits" in one expression
-   instead of being measured in JavaScript. --fit is the largest square cell that fits both the
-   width and the height once the coordinate gutter is taken off; --zoom multiplies it, and the
-   stage scrolls when that overflows. */
+/* The board's size is computed, not chosen. The stage is a size container, so the region's own
+   width and height are readable in one expression instead of being measured in JavaScript:
+
+       fit  = min((regionW - gutter) / cols, (regionH - gutter) / rows)
+       cell = fit x zoom
+
+   --fit is therefore the largest square cell that fits both ways, and the board it builds is
+   min(regionW, regionH) on a square map — which is the whole of the region's shorter side. The
+   track counts are the board's own (Board.Width/Height, not a constant 7), so a 9x7 and an 11x9
+   each fill the region they are given.
+
+   Because it is expressed against the container rather than against a measurement, a resize
+   recomputes it with no code involved. --zoom is 1.00 unless somebody has deliberately left the
+   fit, and the stage scrolls when a hand-set zoom overflows. */
 
 .stage {
     align-items: center;
@@ -64,7 +74,7 @@
 
 .cell {
     align-items: center;
-    background-color: #242c38;
+    background-color: #1d2430;
     border: 2px solid transparent;
     color: var(--pt-text);
     cursor: default;
@@ -87,10 +97,14 @@
 }
 
 /* Terrain. Each one carries a pattern as well as a colour, so the board still reads when the
-   colours do not — a hatch is a wall whether or not you can tell grey from green. */
+   colours do not — a hatch is a wall whether or not you can tell grey from green.
+
+   Open ground is the darkest thing on the board and the hazards are the brightest, so what a player
+   has to look at stands out from what they are walking over. The tiles are still flat colour —
+   illustrated terrain is a separate pass — but the contrast order is the one it will keep. */
 
 .cell.open {
-    background-color: #242c38;
+    background-color: #1d2430;
 }
 
 .cell.wall {
@@ -111,15 +125,15 @@
 }
 
 .cell.spikes {
-    background-color: #7c3229;
+    background-color: #8b382c;
     background-image: repeating-linear-gradient(
-        135deg, rgba(255, 220, 200, .22) 0 2px, transparent 2px 6px);
+        135deg, rgba(255, 220, 200, .26) 0 2px, transparent 2px 6px);
 }
 
 .cell.high {
-    background-color: #3f5a37;
+    background-color: #486a3e;
     background-image: repeating-linear-gradient(
-        0deg, rgba(255, 255, 255, .12) 0 1px, transparent 1px 6px);
+        0deg, rgba(255, 255, 255, .14) 0 1px, transparent 1px 6px);
 }
 
 .cell.cracked {

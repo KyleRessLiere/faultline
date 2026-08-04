@@ -1,15 +1,16 @@
 @inherits PlaytestPanel
 
-@* A slim band between the header and the turn strip, for the two or three things that are true of
-   the whole board rather than of any one unit: somebody is over the edge, somebody is coming back
-   bedraggled, the fight has ended, the run wants an answer.
+@* A slim band under the turn strip, for the two or three things that are true of the whole board
+   rather than of any one unit: somebody is over the edge, somebody is coming back bedraggled, the
+   fight has ended, the run wants an answer.
 
    It reserves no space when it has nothing to say — an always-present strip teaches a player to
    stop reading it, which is exactly the wrong habit for the one line that can cost a duck.
 
-   It does NOT say whose turn it is, which round it is, or what the acting unit has left. Those live
-   in the turn-order strip and the action list now (D-103); two places answering "who is next" is how
-   they end up disagreeing. *@
+   It does NOT say whose turn it is, which round it is, what the acting unit has left, or who is
+   being placed. Those live in the turn-order strip and the action list now (D-103); two places
+   answering "who is next" is how they end up disagreeing, and during deployment the two answers were
+   costing the board two stacked bands of its height. *@
 
 @if (HasContent)
 {
@@ -143,17 +144,6 @@
                         </p>
                     </div>
                 }
-
-                <div class="block deploy">
-                    <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
-                        @PlaytestText.Team(State.ActiveTeam) places @PendingDeployName.
-                    </p>
-                    <p class="instruction">Click a highlighted deployment tile in your corner.</p>
-
-                    @* The threat overlay is per-enemy on hover rather than painted over the board
-                       (D-089), which makes it worth one line to say it is there at all. *@
-                    <p class="hint">Hover an enemy to see everywhere it could reach on round 1.</p>
-                </div>
             }
         }
     </div>
@@ -187,7 +177,7 @@
         || ShowOutcome
         || Paddling.Count > 0
         || Recovering.Count > 0
-        || Deploying;
+        || (Deploying && BedraggledOnDeck.Count > 0);
 
     /// <summary>Who could still get to a hanging ally this activation, in Core's own reckoning.</summary>
     private string RescuersLine
@@ -229,11 +219,6 @@
 
     private string RunEnding =>
         Runs.LastEvents.OfType<RunLost>().FirstOrDefault()?.Reason ?? "The run ends here.";
-
-    private string PendingDeployName =>
-        Session.PendingDeployUnit is null
-            ? "a unit"
-            : State.UnitById(Session.PendingDeployUnit.Value).Name;
 
     private void ContinueRun() => Runs.Enter();
 }

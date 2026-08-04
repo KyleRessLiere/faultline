@@ -1,8 +1,35 @@
 /* Pluck is purple-amber and nothing else on this screen is: the whole point of the feather badge is
    that a player can tell at a glance which of their two budgets a button empties. */
 
+/* A section of the inspector, in the same shape as the action list's: a rule, a tracked label, and
+   the body flush under it. Not a panel — the meter is a fact about the duck being read. */
 .pluck {
+    border-top: 1px solid var(--pt-border-soft);
     flex: 0 0 auto;
+    margin-top: 8px;
+    padding-top: 7px;
+}
+
+.section-head {
+    align-items: baseline;
+    color: var(--pt-text-dim);
+    display: flex;
+    font-size: 10.5px;
+    font-weight: 600;
+    gap: 6px;
+    justify-content: space-between;
+    letter-spacing: .1em;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+}
+
+.section-note {
+    color: var(--pt-amber);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: none;
 }
 
 .meter {

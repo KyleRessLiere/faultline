@@ -1,10 +1,16 @@
 @inherits PlaytestPanel
 
-@* The legend and the controls, in one strip below the board. Everything here is presentation: not
-   one control submits a command or changes a rule.
+@* The legend and the controls, in one flat row below the board — the tiles' meanings on the left,
+   how the board is being looked at on the right. Everything here is presentation: not one control
+   submits a command or changes a rule.
 
    Hovering a legend item picks out every tile of that kind on the board — the fastest way to answer
-   "where are the drains on this map" without counting squares. *@
+   "where are the drains on this map" without counting squares.
+
+   Fit is the state the board is in unless somebody left it: the size is computed from the region,
+   so the zoom pair is an override rather than the normal way to size the board. Which of the two is
+   in force is on the buttons, because a percentage that is being ignored is worse than no
+   percentage at all. *@
 
 <div class="board-controls">
     <ul class="legend" aria-label="Terrain">
@@ -62,25 +68,26 @@
             Grid on
         </button>
 
-        <span class="zoom">
+        <span class="zoom @(View.Fit ? "off" : string.Empty)">
             <button type="button"
                     class="tool icon"
                     disabled="@(!View.CanZoomOut)"
-                    title="Zoom out"
+                    title="Zoom out. Takes the board off its fit."
                     aria-label="Zoom out"
                     @onclick="View.ZoomOut">−</button>
-            <span class="zoom-value">@View.Zoom%</span>
+            <span class="zoom-value">@(View.Fit ? "fit" : View.Zoom + "%")</span>
             <button type="button"
                     class="tool icon"
                     disabled="@(!View.CanZoomIn)"
-                    title="Zoom in"
+                    title="Zoom in. Takes the board off its fit."
                     aria-label="Zoom in"
                     @onclick="View.ZoomIn">+</button>
         </span>
 
         <button type="button"
-                class="tool"
-                title="Back to the size that fits the board's box."
+                class="tool @(View.Fit ? "on" : string.Empty)"
+                aria-pressed="@View.Fit"
+                title="Fill the region with the board, and keep filling it as the window changes. The default."
                 @onclick="View.FitBoard">
             Fit board
         </button>

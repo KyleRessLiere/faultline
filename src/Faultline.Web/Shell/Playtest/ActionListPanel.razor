@@ -9,21 +9,20 @@
    Nothing is filtered out for being unhelpful. A Bull Rush down an empty lane is a legal three-tile
    reposition costing the whole pool, and it stays on the list: the game does not decide what is
    useful, and a row that vanishes when a designer disapproves of it teaches a rule that does not
-   exist. The summary line may say the lane is empty. That is information, not gating. *@
+   exist. The summary line may say the lane is empty. That is information, not gating.
 
-<div class="pt-panel actions">
-    <h2>
-        Actions
-        <span class="count">Move, then act. An action ends activation.</span>
-    </h2>
+   It has no frame, no heading and no region of its own: it is drawn inside the inspector, for the
+   duck the inspector is already about, and it draws nothing at all when there is no such duck. An
+   ACTIONS panel standing empty beside an empty inspector was two boxes saying "click something". *@
 
-    <div class="pt-body">
-        @if (Session.SelectedUnit is null)
-        {
-            <p class="hint">Select one of your units on the board to give it orders.</p>
-        }
-        else
-        {
+@if (Session.SelectedUnit is not null)
+{
+    @* Deliberately not class="actions": app.css carries a global .actions from the old action bar
+       that lays its children out as a wrapping flex row, and a section that inherits it puts the
+       action rows beside the preview instead of above it. *@
+    <div class="action-list">
+        <p class="section-head">Actions <span class="section-note">move, then act — an action ends the activation</span></p>
+
             <p class="summary">@ActionRows.Summary(Session)</p>
 
             @if (Locked)
@@ -105,9 +104,8 @@
             }
 
             <p class="preview @(PreviewText is null ? "idle" : string.Empty)">@(PreviewText ?? IdleText)</p>
-        }
     </div>
-</div>
+}
 
 @code {
     /// <summary>

@@ -5,11 +5,20 @@
     flex: 0 1 auto;
 }
 
+/* Nothing pointed at: one line on the page surface. No frame, no heading, no reserved box. */
+.empty-hint {
+    color: var(--pt-text-dim);
+    flex: 0 0 auto;
+    font-size: 12px;
+    margin: 0;
+    padding: 2px 4px;
+}
+
 .head {
     align-items: center;
     display: flex;
-    gap: 9px;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 6px;
 }
 
 .art {
@@ -19,11 +28,11 @@
     border-radius: 6px;
     display: flex;
     flex: 0 0 auto;
-    font-size: 22px;
-    height: 42px;
+    font-size: 19px;
+    height: 36px;
     justify-content: center;
     line-height: 1;
-    width: 42px;
+    width: 36px;
 }
 
 .art.team-a { border-color: color-mix(in srgb, var(--a) 70%, var(--pt-border)); }
@@ -32,18 +41,18 @@
 
 /* A terrain swatch stands in for a portrait when the subject is a tile — the same patterns the
    board and the legend use, so all three read as one drawing. */
-.art.terrain.open { background: #242c38; }
+.art.terrain.open { background: #1d2430; }
 .art.terrain.wall {
     background-color: #59637a;
     background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, .34) 0 3px, transparent 3px 6px);
 }
 .art.terrain.pit { background: #05070b; }
 .art.terrain.spikes {
-    background-color: #7c3229;
+    background-color: #8b382c;
     background-image: repeating-linear-gradient(135deg, rgba(255, 220, 200, .3) 0 2px, transparent 2px 6px);
 }
 .art.terrain.high {
-    background-color: #3f5a37;
+    background-color: #486a3e;
     background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, .18) 0 1px, transparent 1px 5px);
 }
 .art.terrain.cracked {
@@ -77,9 +86,9 @@
 
 .stats {
     display: grid;
-    gap: 4px;
+    gap: 3px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: 0 0 8px;
+    margin: 0 0 6px;
 }
 
 .stats > div {
@@ -280,7 +289,6 @@
     font-size: 24px;
 }
 
-/* Nothing selected is a line, not an empty box. */
 .hint {
     color: var(--pt-text-dim);
     font-size: 11.5px;

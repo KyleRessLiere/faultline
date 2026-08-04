@@ -10,6 +10,10 @@
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
+    /* Docked at the foot of the column, not floating in the middle of it: the panels above are sized
+       by their content, and the space they do not use belongs above the dev strip rather than below
+       the inspector. */
+    margin-top: auto;
     min-height: 0;
     overflow: hidden;
 }
@@ -19,7 +23,7 @@
 }
 
 .dev.shut {
-    height: 40px;
+    height: 36px;
 }
 
 .dev.open {

@@ -1,9 +1,32 @@
 /* Fourth in the emphasis order: louder than the objective, quieter than the selection outline on
    the board. The one thing that must never be quiet is the reason a row is greyed. */
 
-.actions {
-    flex: 1 1 auto;
-    min-height: 0;
+/* A section of the inspector, not a panel: a rule above it and a tracked label, the same shape the
+   rest of the sidebar uses for a heading, at a size that says "part of this card". */
+.action-list {
+    border-top: 1px solid var(--pt-border-soft);
+    margin-top: 8px;
+    padding-top: 7px;
+}
+
+.section-head {
+    align-items: baseline;
+    color: var(--pt-text-dim);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 10.5px;
+    font-weight: 600;
+    gap: 6px;
+    letter-spacing: .1em;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+}
+
+.section-note {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: .02em;
+    text-transform: none;
 }
 
 .summary {

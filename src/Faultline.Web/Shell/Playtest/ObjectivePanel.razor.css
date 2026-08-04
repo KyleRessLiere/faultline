@@ -2,10 +2,16 @@
    visual weight — it is the thing you check between decisions, not the thing you make them with.
    Gold is progress, red is the loss condition, and nothing here is allowed a third accent. */
 
+/* Compact: the objective is checked between decisions, not made with, so it gets the least height
+   of anything in the sidebar that is always drawn. */
+.objective {
+    flex: 0 0 auto;
+}
+
 .objective .goal {
-    font-size: 13px;
-    line-height: 1.4;
-    margin: 0 0 8px;
+    font-size: 12.5px;
+    line-height: 1.35;
+    margin: 0 0 6px;
 }
 
 /* Urgency is a border rather than a colour swap: the panel still has to be readable. */
@@ -20,12 +26,14 @@
     transition: box-shadow 160ms ease-out;
 }
 
+/* Pips and the count they stand for on one line — the number is what the pips mean, and stacking
+   them spends a row of the sidebar on saying it twice. */
 .progress {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 4px 8px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .pips {
@@ -87,15 +95,17 @@
 
 .progress-label {
     color: var(--pt-text-dim);
-    font-size: 11.5px;
+    flex: 0 0 auto;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .clock {
     color: var(--pt-text-dim);
-    font-size: 12px;
+    font-size: 11.5px;
     font-variant-numeric: tabular-nums;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
 }
 
 .clock.tight {
@@ -108,20 +118,20 @@
     border-top: 1px solid var(--pt-border-soft);
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding-top: 8px;
+    gap: 1px;
+    padding-top: 6px;
 }
 
 .loss-head {
     color: var(--pt-red);
-    font-size: 11px;
-    letter-spacing: .06em;
+    font-size: 10px;
+    letter-spacing: .08em;
     text-transform: uppercase;
 }
 
 .loss-text {
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 12.5px;
+    line-height: 1.35;
 }
 
 .paddling {
@@ -139,14 +149,14 @@
 
 .details {
     border-top: 1px solid var(--pt-border-soft);
-    margin-top: 8px;
-    padding-top: 6px;
+    margin-top: 6px;
+    padding-top: 5px;
 }
 
 .details > summary {
     color: var(--pt-text-dim);
     cursor: pointer;
-    font-size: 11.5px;
+    font-size: 11px;
     list-style: none;
     user-select: none;
 }

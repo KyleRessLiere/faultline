@@ -5,8 +5,21 @@
    structure — is read here, and the panel branches on Inspection.Resolve rather than on four
    half-overlapping session fields.
 
-   Nothing in this panel gives an order. The action list below it does that. *@
+   With nothing pointed at, this is one line and no box. An empty framed panel with a heading on it
+   claims a fifth of the sidebar to say nothing, and a screen full of boxes waiting to be filled reads
+   as broken rather than as ready.
 
+   The meter and the action list render *inside* it, for a duck the player is commanding — there is
+   no separate actions region. What a duck can do is part of reading that duck, and a permanent
+   ACTIONS panel spent the same height on "select one of your units" that the inspector was already
+   spending on "click any unit". *@
+
+@if (Subject.Kind == InspectKind.None)
+{
+    <p class="empty-hint">Click any unit, tile or structure to read it.</p>
+}
+else
+{
 <div class="pt-panel inspector">
     <h2>
         Inspector
@@ -64,6 +77,11 @@
             {
                 <p class="status">@flags</p>
             }
+
+            @* The meter it holds and the orders it can be given, in the panel that is already about
+               this duck. Both draw nothing for a duck that has neither. *@
+            <PluckSection />
+            <ActionListPanel />
         }
         else if (Subject.Kind == InspectKind.Enemy && Subject.Unit is { } foe)
         {
@@ -178,14 +196,9 @@
                 </li>
             </ul>
         }
-        else
-        {
-            @* A slim line, not an empty panel: a box with nothing in it reads as broken, and a
-               sentence that says what to click reads as an invitation. *@
-            <p class="hint">Click any unit, tile or structure to read it.</p>
-        }
     </div>
 </div>
+}
 
 @code {
     private InspectSubject Subject => Inspection.Resolve(Session);

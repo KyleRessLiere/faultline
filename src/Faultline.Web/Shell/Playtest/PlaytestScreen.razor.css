@@ -18,8 +18,10 @@
     display: grid;
     flex: 1 1 auto;
     gap: var(--pt-gap);
-    /* One sidebar, 430–560px, full height. Everything else is the board's. */
-    grid-template-columns: minmax(0, 1fr) minmax(430px, 480px);
+    /* The sidebar is a fixed column, not a fluid one: it holds the same panels whatever the window
+       is doing, and everything it does not take belongs to the board. A fluid sidebar spends the
+       board's width on whitespace at exactly the sizes where the board wants it most. */
+    grid-template-columns: minmax(0, 1fr) clamp(430px, 30vw, 560px);
     min-height: 0;
     padding: var(--pt-gap);
 }
@@ -54,7 +56,7 @@
 
 @media (max-width: 1500px) {
     .pt-main {
-        grid-template-columns: minmax(0, 1fr) minmax(400px, 430px);
+        grid-template-columns: minmax(0, 1fr) 430px;
     }
 }
 
@@ -64,7 +66,7 @@
     }
 
     .pt-main {
-        grid-template-columns: minmax(0, 1fr) minmax(360px, 400px);
+        grid-template-columns: minmax(0, 1fr) 380px;
     }
 }
 

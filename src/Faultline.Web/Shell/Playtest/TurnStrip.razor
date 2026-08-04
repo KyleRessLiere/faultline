@@ -6,14 +6,18 @@
 
    Every scrap of order logic is Core's: StripCards reads TurnOrder.Upcoming and this draws it.
 
+   One band, the same height, in both phases. Deployment shows the squad instead of the order and
+   carries its one instruction line inside the band — the alternative was two stacked text panels
+   above the board saying between them what one muted line says, paid for out of the board's height.
+
    Clicking a card *reads* it and never gives an order. Friendly activation happens by clicking the
    duck on the board, and the caption below says so — a control that changes meaning depending on
    whose card it is would be the opposite of a tutorial. *@
 
-<div class="strip-bar">
+<div class="strip-bar @(Deploying ? "deploying" : string.Empty)">
     <div class="now team-@PlaytestText.TeamClass(State.ActiveTeam)">
-        <span class="round">Round @State.Round</span>
-        <span class="actor">@PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() TO ACT</span>
+        <span class="round">@RoundLabel</span>
+        <span class="actor">@ActorLabel</span>
     </div>
 
     @if (Cards.Count == 0)
@@ -100,7 +104,7 @@
                         }
                         else if (card.State == StripState.Done)
                         {
-                            <span class="badge done" aria-label="Activation spent">✓</span>
+                            <span class="badge done" aria-label="@(Deploying ? "Placed" : "Activation spent")">✓</span>
                         }
                         else if (card.Intent != IntentCategory.None)
                         {
@@ -109,7 +113,7 @@
                         }
                         else if (card.IsCurrent)
                         {
-                            <span class="badge now">now</span>
+                            <span class="badge now">@(Deploying ? "next" : "now")</span>
                         }
                     </button>
                 </li>
@@ -117,14 +121,35 @@
         </ol>
     }
 
-    <p class="caption">Clicking a card reads it. It never gives an order — select on the board.</p>
+    <p class="caption">@Caption</p>
 </div>
 
 @code {
-    private IReadOnlyList<StripCard> Cards => StripCards.Build(State);
+    /// <summary>True while the squads are still being put down.</summary>
+    private bool Deploying => State.Phase == Phase.Deployment;
 
-    private string EmptyText => State.Phase == Phase.Deployment
-        ? "The order is published once deployment finishes."
+    private IReadOnlyList<StripCard> Cards => Deploying
+        ? StripCards.Deployment(State, Session.PendingDeployUnit)
+        : StripCards.Build(State);
+
+    /// <summary>What the band is counting: a round, or the placements before the first one.</summary>
+    private string RoundLabel => Deploying ? "Deployment" : "Round " + State.Round;
+
+    private string ActorLabel => Deploying
+        ? PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " PLACES"
+        : PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " TO ACT";
+
+    /// <summary>
+    /// The one instruction line, inside the band. During deployment it is what to click and what the
+    /// hover is for — the two things a player needs before the first placement, and the reason
+    /// neither needs a panel of its own above the board.
+    /// </summary>
+    private string Caption => Deploying
+        ? "Click a highlighted deployment tile in your corner. Hover an enemy to see everywhere it could reach on round 1."
+        : "Clicking a card reads it. It never gives an order — select on the board.";
+
+    private string EmptyText => Deploying
+        ? "Nobody left to place."
         : "No activations left to publish.";
 
     /// <summary>
@@ -169,6 +194,18 @@
         {
             return $"{PlaytestText.Team(card.Team)}'s slot in round {card.Round}. "
                 + $"Either of {Candidates(card)} may take it — that choice is the player's, so the order cannot name one.";
+        }
+
+        // Deployment says where a duck is, not what it is about to do: there is no order yet, and a
+        // card that claimed one would be publishing a fact the game does not have.
+        if (Deploying)
+        {
+            return card.State switch
+            {
+                StripState.Current => $"{unit.Name} — the next placement puts this one down.",
+                StripState.Done => $"{unit.Name} is placed, at {BoardCoords.Of(unit.Position)}.",
+                _ => $"{unit.Name} is still to be placed.",
+            };
         }
 
         // The whole intent sentence, not the badge's glyph: the badge says where to look and this

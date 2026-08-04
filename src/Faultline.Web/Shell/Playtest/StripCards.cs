@@ -164,6 +164,48 @@ public static class StripCards
         return cards;
     }
 
+    /// <summary>
+    /// The roster during deployment: one portrait per duck either player still owes the board, plus
+    /// the ones already down, so the band that publishes the order in a fight publishes the squad
+    /// before one. The strip is the same band in both phases and never a different shape.
+    /// </summary>
+    /// <param name="state">Board to read.</param>
+    /// <param name="pending">The unit the next placement click will put down, when there is one.</param>
+    /// <returns>The cards, in draw order. Empty outside the deployment phase.</returns>
+    /// <remarks>
+    /// Drawn in <see cref="GameState.Units"/> order, which is the order Core offers the placements
+    /// in. The two sides alternate as each one places (Core's own rule), and <b>this must not invent
+    /// an interleaving to draw</b> — it shows who is still owed and which one is being placed now,
+    /// both of which are facts, and claims no sequence beyond them.
+    /// </remarks>
+    public static IReadOnlyList<StripCard> Deployment(GameState? state, UnitId? pending)
+    {
+        var cards = new List<StripCard>();
+        if (state is null || state.Phase != Phase.Deployment)
+        {
+            return cards;
+        }
+
+        int seq = 1;
+
+        foreach (var unit in state.Units)
+        {
+            if (!unit.Team.IsPlayer() || unit.Voided)
+            {
+                continue;
+            }
+
+            var kind = pending is { } next && unit.Id == next
+                ? StripState.Current
+                : unit.IsDeployed ? StripState.Done : StripState.Upcoming;
+
+            cards.Add(Card(state, seq++, state.Round, false, false, kind,
+                ActivationSkip.None, unit.Team, unit.Id, unit, NoUnits));
+        }
+
+        return cards;
+    }
+
     private static StripCard Card(
         GameState state,
         int sequence,

@@ -138,9 +138,20 @@ public sealed class PlaytestView
     /// <summary>Board zoom as a percentage of the size that fits the panel.</summary>
     public int Zoom { get; private set; } = 100;
 
-    /// <summary>Zoom as a CSS multiplier, e.g. <c>1.20</c>.</summary>
+    /// <summary>
+    /// Whether the board is sized to fill the region it is given rather than to a hand-set zoom.
+    /// </summary>
+    /// <remarks>
+    /// The default, and the state the screen comes back to. Fitting is done in CSS from the region's
+    /// own width and height and the board's own track counts, so it is recomputed on every resize
+    /// without anything here measuring a pixel. Pressing zoom in or out is the deliberate override
+    /// that turns it off; <see cref="FitBoard"/> turns it back on.
+    /// </remarks>
+    public bool Fit { get; private set; } = true;
+
+    /// <summary>Zoom as a CSS multiplier, e.g. <c>1.20</c>. Always <c>1.00</c> while fitting.</summary>
     public string ZoomFactor =>
-        (Zoom / 100m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        ((Fit ? 100 : Zoom) / 100m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>Turns the tile separators on or off.</summary>
     public void ToggleGridLines()
@@ -176,29 +187,37 @@ public sealed class PlaytestView
     /// <summary>Zooms out one step.</summary>
     public void ZoomOut() => SetZoom(Zoom - ZoomStep);
 
-    /// <summary>Returns to the size that fits the panel.</summary>
-    public void ResetZoom() => SetZoom(100);
+    /// <summary>Returns to the size that fits the region. The same thing as <see cref="FitBoard"/>.</summary>
+    public void ResetZoom() => FitBoard();
 
-    /// <summary>Sets the zoom, clamped to the allowed range.</summary>
+    /// <summary>Sets the zoom, clamped to the allowed range. Hand-setting it stops the fit.</summary>
     /// <param name="percent">Requested zoom percentage.</param>
     public void SetZoom(int percent)
     {
         int clamped = percent < MinZoom ? MinZoom : percent > MaxZoom ? MaxZoom : percent;
-        if (clamped == Zoom)
+        if (clamped == Zoom && !Fit)
         {
             return;
         }
 
         Zoom = clamped;
+
+        // A hand-set size is an override, and an override that a resize silently undid would be a
+        // control that does not work. Fitting resumes only when it is asked for.
+        Fit = false;
         Persist();
     }
 
     /// <summary>
-    /// Puts the board back to the size that fits its box. The same thing as
-    /// <see cref="ResetZoom"/> — named for what a player is asking for rather than for the field it
-    /// happens to write.
+    /// Puts the board back to filling its region, and drops any hand-set zoom. This is the state the
+    /// screen starts in: the board's size is computed from the region rather than chosen.
     /// </summary>
-    public void FitBoard() => ResetZoom();
+    public void FitBoard()
+    {
+        Zoom = 100;
+        Fit = true;
+        Persist();
+    }
 
     // ---- Remembering how it was left -----------------------------------------------------------
 
@@ -231,6 +250,7 @@ public sealed class PlaytestView
         string.Join(
             ";",
             "zoom=" + Zoom.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "fit=" + Flag(Fit),
             "grid=" + Flag(GridLines),
             "range=" + Flag(RangePreview),
             "threat=" + Flag(ThreatView),
@@ -264,6 +284,9 @@ public sealed class PlaytestView
                 case "zoom" when int.TryParse(value, System.Globalization.NumberStyles.Integer,
                     System.Globalization.CultureInfo.InvariantCulture, out int zoom):
                     Zoom = zoom < MinZoom ? MinZoom : zoom > MaxZoom ? MaxZoom : zoom;
+                    break;
+                case "fit":
+                    Fit = value == "1";
                     break;
                 case "grid":
                     GridLines = value == "1";

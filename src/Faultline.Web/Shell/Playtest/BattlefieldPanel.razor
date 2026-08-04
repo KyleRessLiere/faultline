@@ -1,8 +1,9 @@
 @inherits PlaytestPanel
-@* The board and the two strips that belong to it. Everything above the legend is the grid's; the
-   panel's own job is to hand the grid a box to fit itself into. *@
+@* The board's region. Deliberately unframed: a border and a padding around the board is a border
+   and a padding taken off the board, and the board is the screen. The panel's whole job is to hand
+   the grid the box it fits itself into. *@
 
-<div class="pt-panel battlefield">
+<div class="battlefield">
     @if (Runs.Problem is not null)
     {
         <p class="banner warn">@Runs.Problem</p>
@@ -44,8 +45,6 @@
             </ul>
         </div>
     }
-
-    <BoardControls />
 </div>
 
 @code {

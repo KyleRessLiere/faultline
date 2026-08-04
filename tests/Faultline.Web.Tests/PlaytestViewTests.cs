@@ -33,6 +33,55 @@ public sealed class PlaytestViewTests
         Assert.False(view.ThreatView);
         Assert.False(view.BoardOnly);
         Assert.Equal(100, view.Zoom);
+
+        // The board fills the region it is given unless somebody deliberately leaves that, which is
+        // why the screen never opens on a small board in a large space.
+        Assert.True(view.Fit);
+    }
+
+    [Fact]
+    public void ZoomingIsAnOverride_AndFitBoardPutsItBack()
+    {
+        var view = new PlaytestView();
+
+        view.ZoomIn();
+        Assert.False(view.Fit);
+        Assert.Equal(100 + PlaytestView.ZoomStep, view.Zoom);
+
+        view.FitBoard();
+        Assert.True(view.Fit);
+        Assert.Equal(100, view.Zoom);
+    }
+
+    [Fact]
+    public void WhileFitting_TheZoomFactorIsOne_WhateverTheStoredZoomSays()
+    {
+        // The multiplier the board is drawn with must agree with the state the controls report, or
+        // the percentage on screen describes a size the board is not.
+        var view = new PlaytestView();
+        view.SetZoom(150);
+        Assert.Equal("1.50", view.ZoomFactor);
+
+        view.FitBoard();
+        Assert.Equal("1.00", view.ZoomFactor);
+    }
+
+    [Fact]
+    public void TheFitSurvivesAReload_AndSoDoesAnOverride()
+    {
+        var written = new PlaytestView();
+        written.SetZoom(130);
+
+        var read = new PlaytestView();
+        read.Apply(written.Encode());
+
+        Assert.False(read.Fit);
+        Assert.Equal(130, read.Zoom);
+
+        written.FitBoard();
+        read.Apply(written.Encode());
+
+        Assert.True(read.Fit);
     }
 
     [Fact]

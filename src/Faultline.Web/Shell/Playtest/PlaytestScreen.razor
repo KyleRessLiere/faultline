@@ -2,10 +2,16 @@
 @inject PlaytestNotes Notes
 @inject BoardAnimator Animator
 
-@* The battle screen. A header across the top, then the board region on the left — round status and
-   the activation strip above it, the legend and the view controls below — and one sidebar down the
-   right carrying the objective, the inspector, the meter and its spender, the action list, and the
-   developer tools.
+@* The battle screen. Four bands down the left and one sidebar down the right, and that is the whole
+   vertical rhythm: header, the activation strip, the board, and one row carrying the legend and the
+   view controls. Nothing else is allowed a band of its own — the status band draws only when it has
+   something to say and reserves no height when it does not.
+
+   The board is the point of the screen, so it is given every pixel the four fixed bands do not
+   take: it is sized by the region rather than by a zoom setting, and the region is what is left.
+
+   The sidebar carries the objective, the inspector — which is where the meter and the action list
+   render, for a duck the player has selected — and the developer tools docked at its foot.
 
    This component owns the layout and the enemy-activation tick and nothing else. Every panel reads
    the session for itself, so no piece of game state is copied into a component. *@
@@ -15,19 +21,19 @@
 
     <div class="pt-main">
         <section class="pt-stage">
-            <StatusBand />
             <TurnStrip />
+            <StatusBand />
 
             @* The board is the primary element and takes what is left of the height. Everything a
                player decides with is drawn on it; the sidebar supports it. *@
             <BattlefieldPanel />
+
+            <BoardControls />
         </section>
 
         <aside class="pt-side">
             <ObjectivePanel />
             <InspectorPanel />
-            <PluckSection />
-            <ActionListPanel />
             <DevPanel />
         </aside>
     </div>

@@ -1,14 +1,13 @@
-.pt-panel.battlefield {
-    background: var(--pt-bg-panel);
-    border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius);
+/* No frame, no padding, no background: the board sits directly on the page surface and every pixel
+   of this region is the board's. */
+.battlefield {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
-    padding: 8px;
 }
 
 .banner {

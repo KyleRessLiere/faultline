@@ -145,6 +145,55 @@ public sealed class BattleScreenTests
         Assert.Empty(StripCards.Build(session.State));
     }
 
+    [Fact]
+    public void DuringDeployment_TheStripShowsTheRoster_WithTheOneBeingPlacedMarked()
+    {
+        // The band is the same band in both phases. Before there is an order to publish it publishes
+        // the squad, so the screen does not spend a second panel above the board saying who is next.
+        var session = new GameSession();
+        session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
+
+        Assert.Equal(Phase.Deployment, session.State.Phase);
+
+        var cards = StripCards.Deployment(session.State, session.PendingDeployUnit);
+
+        Assert.NotEmpty(cards);
+        Assert.All(cards, c => Assert.True(c.Team.IsPlayer()));
+        Assert.Equal(1, cards.Count(c => c.State == StripState.Current));
+        Assert.Equal(session.PendingDeployUnit, cards.Single(c => c.State == StripState.Current).UnitId);
+
+        for (int i = 0; i < cards.Count; i++)
+        {
+            Assert.Equal(i + 1, cards[i].Sequence);
+        }
+    }
+
+    [Fact]
+    public void APlacedDuck_ReadsAsDone_AndOneStillOwedReadsAsUpcoming()
+    {
+        var session = new GameSession();
+        session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
+
+        var placed = session.PendingDeployUnit;
+        session.Submit(session.Legal.OfType<DeployCommand>().First());
+
+        var cards = StripCards.Deployment(session.State, session.PendingDeployUnit);
+
+        Assert.Equal(StripState.Done, cards.Single(c => c.UnitId == placed).State);
+        Assert.Contains(cards, c => c.State == StripState.Upcoming);
+    }
+
+    [Fact]
+    public void TheDeploymentRoster_IsEmptyOnceTheFightHasStarted()
+    {
+        // One builder per phase, and neither draws in the other's: a roster on a live board would be
+        // a second answer to "who acts next", which is exactly what the strip exists to prevent.
+        var session = Deployed();
+
+        Assert.NotEqual(Phase.Deployment, session.State.Phase);
+        Assert.Empty(StripCards.Deployment(session.State, session.PendingDeployUnit));
+    }
+
     // ---- The inspector -------------------------------------------------------------------------
 
     [Fact]
