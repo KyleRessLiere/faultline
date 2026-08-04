@@ -78,7 +78,7 @@ namespace Faultline.Core
                         // The planner has no player to ask which side to set an ally down on, so it
                         // takes the fixed-order default. Reproducible, which is what its rescues have
                         // to be (D-082).
-                        case IntentAction.Rescue when !enemy.HasMoved
+                        case IntentAction.Rescue when !enemy.HasSpentMovement
                             && Pits.CanRescue(state, enemy, target)
                             && Pits.DefaultRescueDestination(state, enemy) is { } landing:
                             return new RescueCommand(enemy.Id, target.Id, landing);
@@ -514,8 +514,13 @@ namespace Faultline.Core
         private static EnemyIntent? PlanRescue(GameState state, Unit enemy, UnitId? locked)
         {
             // Brief §2: a rescue is the entire activation, both halves. An enemy that has already
-            // spent either would be declaring a plan Game.Apply is going to refuse.
-            if (enemy.HasMoved || enemy.HasActed)
+            // spent either has no whole activation left to give.
+            //
+            // HasSpentMovement, not HasMoved: "has no movement left" and "has spent its movement"
+            // are the same question only for a unit with legs. The Warden has Move 0, so HasMoved
+            // was true for it before it did anything, and the slot every list carries was refused to
+            // the one archetype built to stand still beside its friends.
+            if (enemy.HasSpentMovement || enemy.HasActed)
             {
                 return null;
             }

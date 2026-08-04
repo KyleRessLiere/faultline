@@ -372,6 +372,25 @@
     font-size: 10px;
 }
 
+/* Why the button is off, beside the price rather than instead of it. Pushed to the far end of the
+   head so the name and the cost keep their places whether or not there is a reason to show. */
+.reason {
+    color: var(--pt-yellow);
+    font-size: 10px;
+    margin-left: auto;
+    opacity: 1;
+    text-align: right;
+}
+
+/* Same treatment as an unaffordable button, for the same reason: a button greyed with no
+   explanation teaches nothing, and "no legal target" is as real a cause as "cannot pay". */
+.mode.blocked,
+.mode.blocked:disabled {
+    border-style: dashed;
+    color: var(--pt-text-dim);
+    opacity: .72;
+}
+
 /* An unaffordable button greys itself whether or not Core has disabled it — the pool, not the
    shell, is what says it cannot be paid for, and the shell decides no legality. It greys less hard
    than a merely unavailable button because it has something to say: the number and the hint are the

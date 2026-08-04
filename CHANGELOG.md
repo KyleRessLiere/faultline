@@ -1,5 +1,20 @@
 # Changelog
 
+## The Warden can rescue, Stagger Shot follows the bow downhill, and greyed buttons say why
+
+- **The rescue slot now asks whether an enemy has *spent* its movement, not whether it has any
+  left.** The Warden has Move 0, so the old question was true of it before it did anything and the
+  slot every priority list carries was denied to the one archetype built to stand still beside its
+  friends. An enemy that has actually walked a tile still cannot rescue.
+- **Stagger Shot inherits the bow's high-ground exception**, not just its number: from a ledge she
+  may shove the enemy directly below her, and adjacent on the same ledge or on the flat is refused as
+  before. `Combat.ShootingDownhill` is public and is the only copy of the rule.
+- **Actions that are unavailable now say why.** A button with no legal target greys like an
+  unaffordable one and carries its reason beside its cost — "too close — minimum range 2", "no target
+  in range", "already adjacent — nothing to pull". The summary reads "2 AP left — nothing in range,
+  move or pass" when the whole row is dead, and adds what a step would buy when one would open a
+  target. All of it from new Core queries (`Targeting`), none of it computed in the shell.
+
 ## Bedraggled — a downing costs tempo, not just hit points
 
 - **A downed duck now returns at a quarter of its maximum, rounded up, minimum 1** — Vanguard and

@@ -161,6 +161,21 @@ namespace Faultline.Core
         /// </remarks>
         public bool HasMoved => MoveRemaining <= 0;
 
+        /// <summary>
+        /// True once this activation's movement has been started or shut — a tile walked, or an
+        /// action that closed the move half.
+        /// </summary>
+        /// <remarks>
+        /// Not the same question as <see cref="HasMoved"/>, and the difference is the whole reason
+        /// this exists. <c>HasMoved</c> asks whether the unit can still walk; this asks whether it
+        /// has spent anything yet. They agree for everything with legs and come apart for a Move-0
+        /// archetype: the Warden's budget is empty before it does anything, so <c>HasMoved</c> is
+        /// vacuously true for it from the first instant of every activation. A rule that costs the
+        /// <em>whole</em> activation — the rescue slot — has to ask this one, or the archetype whose
+        /// entire job is standing beside something can never take it.
+        /// </remarks>
+        public bool HasSpentMovement => MoveClosed || MoveSpent > 0;
+
         /// <summary>Display name.</summary>
         public string Name => Template.Name;
 

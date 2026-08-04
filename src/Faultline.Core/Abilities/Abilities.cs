@@ -98,7 +98,20 @@ namespace Faultline.Core
                 }
 
                 int distance = unit.Position.DistanceTo(candidate.Position);
-                if (distance == 0 || distance > descriptor.Range || distance < descriptor.MinRange)
+                if (distance == 0 || distance > descriptor.Range)
+                {
+                    continue;
+                }
+
+                // MASTER_DESIGN §4 gives Stagger Shot "the same min range" as the bow, and the
+                // ambiguity is whether that means the same number or the same rule. The same rule,
+                // exception included: it is the same bow and the same arc, and the exception is
+                // about the arc. Splitting them would mean that from a ledge she may shoot the enemy
+                // below but not shove it — a distinction with no fiction behind it that every player
+                // would have to memorise. The ledge should teach one rule, not two.
+                //
+                // Combat owns the exception; this asks it rather than repeating it.
+                if (distance < descriptor.MinRange && !Combat.ShootingDownhill(state, unit, candidate))
                 {
                     continue;
                 }

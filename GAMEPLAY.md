@@ -62,8 +62,21 @@ Perch still fires at what is standing on top of it.
 **One exception: from HighGround she may shoot an adjacent enemy standing lower.** The dead zone is
 about the bow's arc, and firing down off a ledge does not have one — she is shooting down at them
 rather than bending a bow around a body in her face. **Adjacent on the same ledge is still too
-close**, which is what stops the exception from quietly deleting the rule. This is basic shot only;
-Stagger Shot still refuses every adjacent tile, high ground or not — see the note in DECISIONS.
+close**, which is what stops the exception from quietly deleting the rule.
+
+**Stagger Shot obeys the same rule, exception included** — not merely the same number. From a ledge
+she may put 2 damage and a 1-tile shove into the enemy directly below her; on the same ledge, or on
+the flat, the adjacent tile is refused exactly as the basic shot's is. It is the same bow and the
+same arc, and a ledge from which she may shoot the enemy below but not shove it would be two rules
+where the fiction has one.
+
+**The interface says which rule refused a shot.** An action with no legal target is greyed with the
+reason beside its cost — "too close — minimum range 2" for the dead zone, "no target in range"
+otherwise — and when a single step would open one, the summary says how much movement that costs.
+Every one of those answers comes from a Core query (`Targeting.BlockOn`, `Targeting.HasAnyTarget`,
+`Targeting.MoveNeededToTarget`); the shell chooses only the wording. On high ground over a lower
+adjacent enemy the reason disappears and the target is offered, so the ledge teaches the exception at
+the moment it applies.
 
 ## Round structure
 
@@ -610,8 +623,11 @@ have now parted company: the player version fused with its run-up when the AP tu
 enemy version did not, because enemies are exempt from the AP economy entirely. An enemy still has
 to already be adjacent. Its terms:
 
-- It costs **the entire activation**, both halves. An enemy that has already moved or acted this
-  round cannot rescue.
+- It costs **the entire activation**, both halves. An enemy that has already **spent** a point of
+  movement, or acted, cannot rescue. *Spent*, not *exhausted*: the **Warden has Move 0** and has
+  therefore spent nothing at the start of its activation, so it takes the slot like anybody else.
+  This used to read "has no movement left", which was vacuously true of the Warden from its first
+  instant and silently denied the rescue slot to the one archetype built to stand beside its friends.
 - It needs **an empty tile to pull the ally onto**, exactly as a player rescue does.
 - The ally comes out of the pit and stops clinging.
 

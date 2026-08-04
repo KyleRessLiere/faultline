@@ -75,11 +75,16 @@ namespace Faultline.Core
         /// Whether this shot is taken from a ledge at somebody standing lower, which is what lifts
         /// the minimum range (MASTER_DESIGN §4).
         /// </summary>
+        /// <remarks>
+        /// Public, and the only copy of the rule: <see cref="Abilities"/>' target search asks this
+        /// rather than re-deriving the elevation test, so the bow's dead zone and Stagger Shot's
+        /// cannot drift apart. A second copy of a rule is a rule with a fork in it.
+        /// </remarks>
         /// <param name="state">Current state.</param>
         /// <param name="attacker">Attacking unit.</param>
         /// <param name="target">Unit being shot at.</param>
         /// <returns>Whether the attacker is above the target.</returns>
-        private static bool ShootingDownhill(GameState state, Unit attacker, Unit target) =>
+        public static bool ShootingDownhill(GameState state, Unit attacker, Unit target) =>
             state.Board.At(attacker.Position) == TileType.HighGround
             && state.Board.At(target.Position) != TileType.HighGround;
 

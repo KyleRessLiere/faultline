@@ -175,6 +175,59 @@ public class ArcherMinimumRangeTests
         TestPlay.AssertIllegal(state, new AttackCommand(archer.Id, husk.Id));
     }
 
+    // "The same min range" (MASTER_DESIGN §4) reads as the same *rule*, exception included: it is the
+    // same bow and the same arc, and the exception is about the arc. A ledge from which she may shoot
+    // the enemy below but not shove it would be two rules where the fiction has one.
+    [Fact]
+    public void StaggerShot_FromHighGround_AlsoReachesTheEnemyStandingRightBelowHer()
+    {
+        var state = BoardBuilder.Rows("H.....", "......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+        var shot = AbilityDescriptor.For(Ability.StaggerShot);
+
+        Assert.Equal(1, archer.Position.DistanceTo(husk.Position));
+        Assert.Contains(husk.Id, Abilities.LegalTargets(state, archer, shot));
+
+        var after = state.Then(new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
+
+        Assert.Equal(12 - shot.Damage, after.Get(husk.Id).Hp);
+        Assert.Equal(new Coord(1 + shot.Push, 0), after.Get(husk.Id).Position);
+    }
+
+    // And the same half that keeps the basic shot's exception honest keeps this one honest: level
+    // with her on the ledge, the bow still has nowhere to go.
+    [Fact]
+    public void StaggerShot_OnTheSameLedge_IsStillTooClose()
+    {
+        var state = BoardBuilder.Rows("HH....", "......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        Assert.DoesNotContain(
+            husk.Id,
+            Abilities.LegalTargets(state, archer, AbilityDescriptor.For(Ability.StaggerShot)));
+        TestPlay.AssertIllegal(state, new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
+    }
+
+    // Nothing else moved. Stagger Shot is the only ability in the game with a minimum range at all,
+    // so lifting it downhill cannot have loosened anything else by accident.
+    [Fact]
+    public void StaggerShotIsTheOnlyAbilityWithAMinimumRange()
+    {
+        Assert.Equal(
+            new[] { Ability.StaggerShot },
+            AbilityDescriptor.All().Where(d => d.MinRange > 0).Select(d => d.Ability).ToArray());
+    }
+
     private static GameState Board(int enemyAt) =>
         BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Archer, 0, 0)

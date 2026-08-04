@@ -88,7 +88,25 @@ public static class ActionPoints
     /// <param name="unit">Unit that is acting.</param>
     /// <returns>One sentence.</returns>
     /// <exception cref="ArgumentNullException">The unit is null.</exception>
-    public static string Summary(Unit unit)
+    public static string Summary(Unit unit) => Summary(unit, true, null);
+
+    /// <summary>
+    /// The same sentence, told what the action row actually looks like. "2 AP left — move or pick an
+    /// action" is a lie to somebody whose every action is greyed, and it was the sentence an Archer
+    /// got while a Lobber stood on her toes.
+    /// </summary>
+    /// <param name="unit">Unit that is acting.</param>
+    /// <param name="hasTarget">
+    /// Whether anything the unit brings can be aimed at something, from
+    /// <see cref="Targeting.HasAnyTarget"/>. Never worked out here.
+    /// </param>
+    /// <param name="moveOpens">
+    /// The cheapest walk that would open one, from <see cref="Targeting.MoveNeededToTarget"/>, or
+    /// null when walking does not help.
+    /// </param>
+    /// <returns>One sentence.</returns>
+    /// <exception cref="ArgumentNullException">The unit is null.</exception>
+    public static string Summary(Unit unit, bool hasTarget, int? moveOpens)
     {
         if (unit is null)
         {
@@ -111,6 +129,18 @@ public static class ActionPoints
         if (left <= 0)
         {
             return "0 " + Label + " left — nothing else this activation.";
+        }
+
+        if (!hasTarget)
+        {
+            string blocked = left + " " + Label + " left — nothing in range, move or pass.";
+
+            // The inverse hint, at the exact moment of confusion: the way out of a dead action row
+            // is usually one step, and a player standing in the Archer's dead zone has no way to
+            // discover that from a row of greyed buttons.
+            return moveOpens is > 0 && moveOpens <= left
+                ? blocked + " " + moveOpens + " " + Label + " of movement opens a target."
+                : blocked;
         }
 
         return left + " " + Label + " left — move or pick an action.";
@@ -167,6 +197,38 @@ public static class ActionPoints
     /// <returns>The priced button, or null for a unit that is not on the AP economy.</returns>
     public static Priced? Price(Unit? unit, Ability ability) =>
         Price(unit, Activation.CostOf(ability));
+
+    /// <summary>
+    /// Core's targeting block in the player's words, and the one place the dead zone is named. The
+    /// number comes from the stat block or the descriptor, never from a literal here.
+    /// </summary>
+    /// <param name="block">Why Core says there is nothing to aim at.</param>
+    /// <param name="minRange">The minimum range that refused it, or 0 when none did.</param>
+    /// <returns>A short phrase, empty when nothing is blocking.</returns>
+    public static string BlockText(TargetingBlock block, int minRange) => block switch
+    {
+        TargetingBlock.TooClose => minRange > 0
+            ? "too close — minimum range " + minRange
+            : "too close",
+        TargetingBlock.OutOfRange => "no target in range",
+        TargetingBlock.NoRoomToPull => "already adjacent — nothing to pull",
+        TargetingBlock.Unavailable => "not available",
+        _ => string.Empty,
+    };
+
+    /// <summary>
+    /// Why a button is greyed, in one phrase: the price when the pool cannot cover it, otherwise
+    /// Core's targeting block. An action can be both, and the price is the one the player can act on
+    /// this instant — they cannot un-spend the AP, but they can still walk.
+    /// </summary>
+    /// <param name="priced">The button's price, or null for a unit off the AP economy.</param>
+    /// <param name="block">Why Core says there is nothing to aim at.</param>
+    /// <param name="minRange">The minimum range that refused it, or 0 when none did.</param>
+    /// <returns>A short phrase, empty when the action is usable.</returns>
+    public static string Reason(Priced? priced, TargetingBlock block, int minRange) =>
+        priced is { Affordable: false } unpayable
+            ? unpayable.Shortfall + " " + Label + " short"
+            : BlockText(block, minRange);
 
     /// <summary>
     /// "Move 2 less to afford this" — but only when moving is what put it out of reach. Something the

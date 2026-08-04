@@ -303,6 +303,48 @@ public class EnemyRescueTests
         Assert.Equal(state.Rescue(new UnitId(1), new UnitId(0)), Ai.Plan(state, state.Get(new UnitId(1))));
     }
 
+    /// <summary>
+    /// The Warden has Move 0 — it never walks anywhere. For as long as the rescue slot asked
+    /// <see cref="Unit.HasMoved"/>, which is "has no movement left", that was vacuously true for it
+    /// from the first instant of every activation, and the one archetype whose entire job is standing
+    /// beside something could never take the slot every priority list carries.
+    /// </summary>
+    [Fact]
+    public void AMoveZeroEnemy_AdjacentToAClingingAlly_StillTakesItsRescueSlot()
+    {
+        var state = Lip(UnitKind.Warden, playerX: 4);
+
+        var warden = state.Get(new UnitId(1));
+        Assert.Equal(0, warden.Move);
+
+        var intent = Ai.Declare(state, warden);
+
+        Assert.Equal(IntentAction.Rescue, intent.Action);
+        Assert.Equal(new UnitId(0), intent.TargetId);
+        Assert.Equal(state.Rescue(warden.Id, new UnitId(0)), Ai.Plan(state, warden));
+
+        var result = state.Step(Ai.Plan(state, warden));
+        var rescued = result.Single<Rescued>();
+
+        Assert.Equal(new UnitId(0), rescued.UnitId);
+        Assert.False(result.NewState.Get(new UnitId(0)).Clinging);
+    }
+
+    /// <summary>
+    /// The other half of the same distinction: an enemy that has actually spent a tile of its
+    /// movement has started its activation and no longer has the whole of it to give.
+    /// </summary>
+    [Fact]
+    public void AnEnemyThatHasAlreadyWalkedAtile_NoLongerTakesTheRescueSlot()
+    {
+        var state = Lip(UnitKind.Husk, playerX: 4);
+
+        var walked = state.WithUnit(state.Get(new UnitId(1)) with { MoveSpent = 1 });
+
+        Assert.NotEqual(IntentAction.Rescue, Ai.Declare(walked, walked.Get(new UnitId(1))).Action);
+        Assert.IsNotType<RescueCommand>(Ai.Plan(walked, walked.Get(new UnitId(1))));
+    }
+
     // ---- what the rescue rules already refused, and still do ------------------------------------
 
     [Fact]

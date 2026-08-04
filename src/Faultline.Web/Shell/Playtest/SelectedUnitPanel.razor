@@ -42,7 +42,12 @@
                     </span>
                     <span class="ap-count">@ActionPoints.Count(unit)</span>
                 </div>
-                <p class="ap-summary">@ActionPoints.Summary(unit)</p>
+                <p class="ap-summary">
+                    @ActionPoints.Summary(
+                        unit,
+                        Targeting.HasAnyTarget(State, unit),
+                        Targeting.MoveNeededToTarget(State, unit))
+                </p>
             }
             else
             {
@@ -108,11 +113,14 @@
                 @foreach (var option in ActionOptions())
                 {
                     var priced = option.Cost is { } cost ? ActionPoints.Price(unit, cost) : null;
+                    var reason = ActionPoints.Reason(priced, option.Block, option.MinRange);
 
                     @* An action the pool cannot cover is greyed with its number still on it: the
-                       cost is the reason it is greyed, so hiding the cost hides the reason. *@
+                       cost is the reason it is greyed, so hiding the cost hides the reason. An action
+                       with nothing to aim at is greyed the same way and says so — it used to render
+                       as an ordinary button that highlighted nothing when pressed. *@
                     <button type="button"
-                            class="mode @(IsOn(option) ? "on" : string.Empty) @(priced is { Affordable: false } ? "unaffordable" : string.Empty)"
+                            class="mode @(IsOn(option) ? "on" : string.Empty) @(priced is { Affordable: false } ? "unaffordable" : string.Empty) @(option.Block != TargetingBlock.None ? "blocked" : string.Empty)"
                             disabled="@(!option.Available)"
                             @onclick="() => Arm(option)">
                         <span class="mode-head">
@@ -123,6 +131,10 @@
                                       title="@(price.Chip + (price.Affordable ? string.Empty : " — " + price.Shortfall + " short"))">
                                     @price.Chip
                                 </span>
+                            }
+                            @if (reason.Length > 0)
+                            {
+                                <span class="reason">@reason</span>
                             }
                         </span>
                         <span class="mode-effect">@option.Effect</span>
@@ -170,7 +182,8 @@
     /// One button in the action row. <paramref name="Ability"/> is set only for an ability, because a
     /// unit may bring several and the mode alone no longer says which one a button arms.
     /// <paramref name="Cost"/> is null for Move, which is priced a tile at a time on the board
-    /// rather than as one number on a button.
+    /// rather than as one number on a button. <paramref name="Block"/> and <paramref name="MinRange"/>
+    /// come straight off <see cref="Targeting"/> — the shell decides no legality here, only wording.
     /// </summary>
     private sealed record ActionOption(
         ActionMode Mode,
@@ -179,7 +192,9 @@
         bool Available,
         Ability? Ability = null,
         UnitId? Clinging = null,
-        int? Cost = null);
+        int? Cost = null,
+        TargetingBlock Block = TargetingBlock.None,
+        int MinRange = 0);
 
     private bool IsOn(ActionOption option) =>
         option.Clinging is { } clinging
@@ -246,7 +261,9 @@
                 "Attack",
                 effect,
                 Session.IsAvailable(ActionMode.Attack),
-                Cost: Activation.ActionCost);
+                Cost: Activation.ActionCost,
+                Block: Targeting.BlockOn(State, unit, AttackMode.Damage),
+                MinRange: template.MinRange);
         }
 
         if (template.CanPullWithBasic)
@@ -256,7 +273,8 @@
                 "Pull",
                 $"range {template.Range} · pull {template.BasicPull}",
                 Session.IsAvailable(ActionMode.Pull),
-                Cost: Activation.ActionCost);
+                Cost: Activation.ActionCost,
+                Block: Targeting.BlockOn(State, unit, AttackMode.Pull));
         }
 
         // One button per ability the archetype brings, not one button called "the ability": the
@@ -272,7 +290,9 @@
                 ability.Effect,
                 usable,
                 ability.Ability,
-                Cost: Activation.CostOf(ability.Ability));
+                Cost: Activation.CostOf(ability.Ability),
+                Block: Targeting.BlockOn(State, unit, ability),
+                MinRange: ability.MinRange);
         }
 
         // D-083: a rescue is listed whenever an ally is hanging, whether or not this unit can do
