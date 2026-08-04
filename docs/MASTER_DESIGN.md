@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03k** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03l** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,15 @@ Last design session: 2026-08-03.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (l) — LOCKED: battle-screen information architecture (§7.5) — one fact, one home,
+  the board is the preferred home. Four regions: situation left-top (objective + turn-order
+  strip absorbing the turn summary), 7×7 board center (intents drawn on-grid; standalone
+  intents panel deleted), ONE tabless inspector right (selected-unit panel and tab row
+  deleted; enemy priority lists collapse behind "How it decides ▸" — the AI decision-trace's
+  reserved socket), dev panel bottom-right (tabs Battles/State/AI/Replay/Overlays, expandable;
+  no log tab — logging is automatic; no notes tab — feature removed; absent in release
+  builds). AP badges and Pluck feather badges visually distinct; no generic "activate Pluck"
+  action may exist. Board size REAFFIRMED 7×7 — a mockup drew 6×6; art never overrules the doc.
 2026-08-03 (k) — Intake confirmations: Bedraggled clears at ROUND 1 END (the "first legal
   activation" phrasing had no referent — builder's catch, builder's pick, confirmed); §14 #8
   updated (shover dies pre-gate at seed 1; the live stall is broken-bridge on the three
@@ -275,9 +284,40 @@ win** — objective only; turn-limit expiry is a loss; enemies + debris are ammu
 Regalia-to-be) hovers/inspects exactly like an enemy — HP, damage-rule lines, objective state,
 inclusion in push previews and intent arrows, bestiary entry. One Inspectable surface.
 
-**Objective panel:** persistent, positioned **to the LEFT of the board** — first thing read —
-showing the goal in plain words, live progress (bar + numbers), the loss condition with equal
-billing, and reacting visibly at the moment progress changes.
+**Objective panel:** persistent, top of the situation column — first thing read — showing the
+goal in plain words, live progress (pips + numbers), the loss condition with equal billing
+(never in a tooltip), and reacting visibly at the moment progress changes.
+
+# 7.5 · Battle-screen information architecture (locked l)
+
+**Law: every fact has exactly one home, and the board is the preferred home.** Four regions:
+
+- **The situation** (left-top): objective panel, then the **turn-order strip** — round + active
+  player block, portrait cards per activation slot (current enlarged; enemies carry intent
+  badges; done dimmed; defeated crossed out; a Bedraggled skipped slot renders as a visible
+  "recovering" gap, never silent absence). The strip ABSORBS the turn summary. Hover a portrait
+  = full intent sentence + board highlight; click = inspect only — activation happens on the
+  board.
+- **The board** (center, 7×7 — reaffirmed; a mockup drew 6×6 and art never overrules the doc):
+  coordinates visible; enemy intents drawn on-grid (paths, arrows, target highlights — the
+  standalone intents panel is deleted); movement and ability previews carry outcomes on the
+  board ("→ 4" at the collision); consistent team colors everywhere (A blue, B green, enemies
+  red).
+- **One inspector** (right, tabless — the old selected-unit panel and tab row are deleted):
+  shows whatever is selected. Friendly duck: stats + AP as cur/max with pips (hover-preview of
+  post-action AP) + Pluck section (5-segment meter, charge condition in short form, full text
+  on hover) + action list. Enemy: state, declared intent + predicted outcome, one flavor line,
+  priority list COLLAPSED behind "How it decides ▸" — this accordion is the reserved socket for
+  the AI decision-trace feature. Terrain and structures inspect here too (inspection parity).
+  Empty selection = a slim hint, never an empty panel.
+- **Dev panel** (bottom-right, internal builds only; absent from release): collapsed row by
+  default; tabs Battles / State / AI (trace home) / Replay / Overlays; expandable to a large
+  overlay for real dev work. **No log tab** (logging is automatic, always-on) and **no notes
+  tab** (playtest-notes feature removed).
+
+**Cost-badge law:** AP badges (blue) and Pluck badges (feather) are visually distinct
+everywhere; a Pluck spender never implies an AP cost; **no generic "activate Pluck charge"
+action may exist** — the named class spender is the only Pluck control.
 
 # 8 · The run — three acts, three zones, three bosses
 
