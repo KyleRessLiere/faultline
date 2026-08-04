@@ -59,6 +59,12 @@ tile next to her, so closing on her is a real answer rather than a slower way of
 is her feet: step back, then shoot. Nothing else on either side has a minimum — an enemy Lobber or
 Perch still fires at what is standing on top of it.
 
+**One exception: from HighGround she may shoot an adjacent enemy standing lower.** The dead zone is
+about the bow's arc, and firing down off a ledge does not have one — she is shooting down at them
+rather than bending a bow around a body in her face. **Adjacent on the same ledge is still too
+close**, which is what stops the exception from quietly deleting the rule. This is basic shot only;
+Stagger Shot still refuses every adjacent tile, high ground or not — see the note in DECISIONS.
+
 ## Round structure
 
 1. **Deployment.** Players alternate placing units into opposite corners — A bottom-left, B top-right.

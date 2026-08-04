@@ -56,7 +56,13 @@ namespace Faultline.Core
 
             // D-099: a bow needs room. Only the Archer states a minimum, and hers is what makes
             // closing on her a real answer rather than a slower way of dying.
-            if (distance < template.MinRange)
+            //
+            // MASTER_DESIGN §4 carves one exception out of it: from a ledge she may take an adjacent
+            // target on lower ground. The dead zone is about the arc, and shooting downhill does not
+            // have one - she is firing down at them, not trying to bend a bow around a body in her
+            // face. Adjacent on the *same* ledge is still too close, which is what keeps the exception
+            // from quietly deleting the rule.
+            if (distance < template.MinRange && !ShootingDownhill(state, attacker, target))
             {
                 return false;
             }
@@ -64,6 +70,18 @@ namespace Faultline.Core
             damage = template.Damage + (IsElevatedShot(state, attacker) ? HighGroundBonus : 0);
             return true;
         }
+
+        /// <summary>
+        /// Whether this shot is taken from a ledge at somebody standing lower, which is what lifts
+        /// the minimum range (MASTER_DESIGN §4).
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="attacker">Attacking unit.</param>
+        /// <param name="target">Unit being shot at.</param>
+        /// <returns>Whether the attacker is above the target.</returns>
+        private static bool ShootingDownhill(GameState state, Unit attacker, Unit target) =>
+            state.Board.At(attacker.Position) == TileType.HighGround
+            && state.Board.At(target.Position) != TileType.HighGround;
 
         /// <summary>
         /// Whether the attacker may use the pull half of its basic attack instead of the damage half.

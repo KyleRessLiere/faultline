@@ -127,6 +127,54 @@ public class ArcherMinimumRangeTests
         Assert.False(UnitTemplate.For(UnitKind.Vanguard).HasMinRange);
     }
 
+    // MASTER_DESIGN §4's exception, which shipped unbuilt: the dead zone is about the bow's arc, and
+    // there is no arc to bend when she is firing down off a ledge.
+    [Fact]
+    public void FromHighGround_SheMayShootTheEnemyStandingRightBelowHer()
+    {
+        var state = BoardBuilder.Rows("H.....", "......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        Assert.Equal(1, archer.Position.DistanceTo(husk.Position));
+        Assert.True(Combat.CanAttack(state, archer, husk, out _));
+        TestPlay.AssertLegal(state, new AttackCommand(archer.Id, husk.Id));
+    }
+
+    // The half that keeps the exception from eating the rule. Level with her on the same ledge is
+    // still somebody in her face, and the bow still has nowhere to go.
+    [Fact]
+    public void OnTheSameLedge_AdjacentIsStillTooClose()
+    {
+        var state = BoardBuilder.Rows("HH....", "......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 1, 0, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        Assert.False(Combat.CanAttack(state, archer, husk, out _));
+        TestPlay.AssertIllegal(state, new AttackCommand(archer.Id, husk.Id));
+    }
+
+    // And the ordinary case is untouched: on the flat, adjacent is the dead zone it always was.
+    [Fact]
+    public void OnFlatGround_AdjacentIsStillRejected()
+    {
+        var state = Board(1);
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        Assert.False(Combat.CanAttack(state, archer, husk, out _));
+        TestPlay.AssertIllegal(state, new AttackCommand(archer.Id, husk.Id));
+    }
+
     private static GameState Board(int enemyAt) =>
         BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Archer, 0, 0)
