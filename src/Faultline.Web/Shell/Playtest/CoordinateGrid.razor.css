@@ -157,12 +157,12 @@
 
 .cell.threat::before {
     background: repeating-linear-gradient(
-        -45deg, rgba(255, 98, 104, .30) 0 4px, transparent 4px 9px);
+        -45deg, color-mix(in srgb, var(--enemy) 30%, transparent) 0 4px, transparent 4px 9px);
 }
 
 .cell.in-range.threat::before {
     background:
-        repeating-linear-gradient(-45deg, rgba(255, 98, 104, .30) 0 4px, transparent 4px 9px),
+        repeating-linear-gradient(-45deg, color-mix(in srgb, var(--enemy) 30%, transparent) 0 4px, transparent 4px 9px),
         rgba(37, 131, 255, .16);
 }
 
@@ -330,9 +330,11 @@
     text-align: center;
 }
 
-.team-a { color: var(--pt-blue); }
-.team-b { color: var(--pt-cyan); }
-.team-e { color: var(--pt-red); }
+/* The board is a team surface like any other, and for a while it was the loudest one getting it
+   wrong: it drew Player B in --pt-cyan, which is the aiming/deploy accent, not a side. */
+.team-a { color: var(--player-a); }
+.team-b { color: var(--player-b); }
+.team-e { color: var(--enemy); }
 
 .hp {
     color: rgba(242, 245, 248, .82);
@@ -435,8 +437,8 @@
 /* One enemy's reach, while you hover it (D-089). A flat wash with a ring, deliberately not a
    diagonal hatch: spikes terrain is already a 135deg hatch and the two were indistinguishable. */
 .cell.threat-from::after {
-    background: rgba(255, 98, 104, .34);
-    box-shadow: inset 0 0 0 1px rgba(255, 98, 104, .65);
+    background: color-mix(in srgb, var(--enemy) 34%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--enemy) 65%, transparent);
     content: "";
     inset: 0;
     pointer-events: none;
@@ -555,7 +557,7 @@
    board where every arrow is loud says only "something is coming", which nobody can plan against.
    Dotted rather than solid so an intent never reads as terrain. */
 .cell.intent::after {
-    border: 1px dotted rgba(255, 98, 104, .38);
+    border: 1px dotted color-mix(in srgb, var(--enemy) 38%, transparent);
     content: "";
     inset: 3px;
     pointer-events: none;
@@ -563,18 +565,18 @@
 }
 
 .cell.intent.lit::after {
-    border: 2px dotted rgba(255, 98, 104, .95);
-    box-shadow: inset 0 0 12px rgba(255, 64, 68, .28);
+    border: 2px dotted color-mix(in srgb, var(--enemy) 95%, transparent);
+    box-shadow: inset 0 0 12px color-mix(in srgb, var(--enemy) 28%, transparent);
 }
 
 /* What a plan is aimed at. A ring, so the tile still says what terrain it is. */
 .cell.intent-target {
-    box-shadow: inset 0 0 0 2px rgba(255, 98, 104, .7);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--enemy) 70%, transparent);
 }
 
 /* The badge above an enemy token: which way to look, not the whole telegraph. */
 .token-intent {
-    color: rgba(255, 98, 104, .72);
+    color: color-mix(in srgb, var(--enemy) 72%, transparent);
     font-size: 11px;
     left: 50%;
     line-height: 1;
@@ -585,8 +587,8 @@
 }
 
 .token-intent.lit {
-    color: var(--e);
-    text-shadow: 0 0 6px rgba(255, 64, 68, .9);
+    color: var(--enemy);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--enemy) 90%, transparent);
 }
 
 /* ---- Legend hover ------------------------------------------------------------------------- */

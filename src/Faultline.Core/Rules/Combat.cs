@@ -171,7 +171,10 @@ namespace Faultline.Core
             return tiles;
         }
 
-        /// <summary>True when a ranged attacker is standing on HighGround. Brief §2: such shots deal +1.</summary>
+        /// <summary>
+        /// True when a ranged attacker is standing on HighGround. Brief §2: such shots deal
+        /// <see cref="HighGroundBonus"/> more.
+        /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="attacker">Attacking unit.</param>
         /// <returns>Whether the HighGround damage bonus applies.</returns>

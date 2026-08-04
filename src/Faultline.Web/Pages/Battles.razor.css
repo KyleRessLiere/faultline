@@ -57,7 +57,7 @@ a.action {
 }
 
 .fight-card.broken {
-    border-color: var(--e);
+    border-color: var(--enemy);
 }
 
 .fight-card header {
@@ -128,7 +128,7 @@ ul.issues {
 }
 
 .issues.errors {
-    color: var(--e);
+    color: var(--enemy);
 }
 
 .issues.lints {
@@ -163,7 +163,7 @@ ul.issues {
 }
 
 .tag.custom {
-    color: var(--b);
+    color: var(--good);
 }
 
 .tag.slot {

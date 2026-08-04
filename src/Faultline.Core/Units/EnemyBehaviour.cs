@@ -18,10 +18,22 @@ namespace Faultline.Core
     /// rules text.
     /// </summary>
     /// <remarks>
-    /// Numbers are never retyped here: every figure in the prose is interpolated from
-    /// <see cref="UnitTemplate"/> at construction, so a stat change moves the text with it. Adding a
+    /// <para>
+    /// Numbers are never retyped here: every figure in the prose is interpolated from the place the
+    /// rule keeps it — <see cref="UnitTemplate"/> for a stat, <see cref="Displacement"/> for what the
+    /// board does to you, <see cref="Combat.HighGroundBonus"/> for the ledge, <see cref="Activation"/>
+    /// for what a step costs, <see cref="PathField.OccupiedPenalty"/> for what a body costs to route
+    /// through. A rescale then moves the text with the rule instead of leaving it a round behind, which
+    /// is exactly what four rounds of x2 stragglers were (D-104 lineage). Adding a
     /// new enemy is adding one entry to <see cref="Build"/> — no UI file changes, and
     /// <c>EnemyBehaviourTests</c> fails until the entry exists.
+    /// </para>
+    /// <para>
+    /// <b>Every fragment of a concatenation carries its own <c>$</c>.</b> A continuation without one
+    /// prints its braces verbatim, and the compiler does not care: the Runt's quirk shipped the literal
+    /// text <c>{runt.MaxHp}</c> to the player for exactly that reason. <c>EnemyBehaviourTests</c> now
+    /// asserts no behaviour string contains a brace at all.
+    /// </para>
     /// </remarks>
     /// <param name="Kind">Archetype this describes.</param>
     /// <param name="Role">One line: what this thing is for.</param>
@@ -305,7 +317,8 @@ namespace Faultline.Core
                     ("Shoot from where it stands",
                      $"With no player unit adjacent and one within range {lobber.Range}, it shoots the nearest "
                      + $"for {lobber.Damage} and does not move. Fired from HighGround the shot is "
-                     + $"{lobber.Damage + Combat.HighGroundBonus} instead — the +1 ranged bonus is not a player-only rule."),
+                     + $"{lobber.Damage + Combat.HighGroundBonus} instead — the +{Combat.HighGroundBonus} "
+                     + "ranged bonus is not a player-only rule."),
                     ("Break contact before anything else",
                      "If any player unit is adjacent, it retreats to the reachable tile that maximises the "
                      + "distance to the nearest player unit, ties broken by the greater total distance to all "
@@ -414,7 +427,8 @@ namespace Faultline.Core
                 new[]
                 {
                     $"No attack ({stalker.Damage} damage). Every wound it causes is the board's — a pit voids "
-                    + "you outright, a wall or board edge is 2 and a Stagger, spikes are 3.",
+                    + $"you outright, a wall or board edge is {Displacement.CollisionDamage} and a Stagger, "
+                    + $"spikes are {Displacement.SpikeDamage}.",
                     "A hazard tile with a unit already standing on it does not count. That is an ordinary "
                     + "collision, not a hazard, so the Stalker looks elsewhere entirely.",
                     "Its step-2 search counts walls and the off-board edge as hazards, so on a walled board it "
@@ -465,8 +479,11 @@ namespace Faultline.Core
                 {
                     $"Pull it. Push resistance only reads Pushes — the Threadcaster's Reel drags it "
                     + "the whole way out of the gap it is plugging and the door is open.",
-                    $"Or pay the toll: {warden.MaxHp} HP is two Archer shots ({archer.Damage} each) "
-                    + "plus a swing, and it cannot follow whoever slipped past while you did it.",
+                    // Ceiling division rather than a typed-out count: the shot count is a consequence
+                    // of two stats and has to move when either of them does.
+                    $"Or pay the toll: {warden.MaxHp} HP is "
+                    + $"{(warden.MaxHp + archer.Damage - 1) / archer.Damage} Archer shots "
+                    + $"({archer.Damage} each), and it cannot follow whoever slipped past while you did it.",
                 });
 
             table[UnitKind.Perch] = new EnemyBehaviour(
@@ -478,7 +495,8 @@ namespace Faultline.Core
                     ("Shoot from where it stands",
                      $"With no player unit adjacent and one within range {perch.Range}, it shoots the "
                      + $"nearest without moving — {perch.Damage} normally, {perch.Damage + Combat.HighGroundBonus} if it is "
-                     + "standing on HighGround. The +1 ranged bonus is not a player-only rule."),
+                     + $"standing on HighGround. The +{Combat.HighGroundBonus} ranged bonus is not a "
+                     + "player-only rule."),
                     ("Break contact before anything else",
                      "A player unit adjacent and the shot is off: it retreats to the reachable tile "
                      + "that maximises the distance to the nearest player unit, exactly as a Lobber "
@@ -486,8 +504,9 @@ namespace Faultline.Core
                     ("Otherwise climb",
                      $"Off HighGround with a ledge it can route to, it walks toward the nearest one — "
                      + $"real path distance, so a wall is a detour — and fires on arrival if that puts "
-                     + $"someone in range {perch.Range}. Move {perch.Move} pays the +1 climb cost, so "
-                     + "stepping onto an adjacent ledge is its entire move."),
+                     + $"someone in range {perch.Range}. Move {perch.Move} pays the "
+                     + $"{Activation.ClimbCost} a ledge costs to enter, so stepping onto an adjacent "
+                     + "one is its entire move."),
                     ("Otherwise hold the ledge, or advance to the band",
                      $"Standing on HighGround with nothing in range it holds — it will not give the "
                      + $"tile up. Off HighGround with no ledge reachable it falls back to the Lobber's "
@@ -497,7 +516,8 @@ namespace Faultline.Core
                     $"{perch.MaxHp} HP. It is the flimsiest thing on the enemy side and it is standing "
                     + "in the most visible spot on the board.",
                     "It cannot be shoved *up* onto a ledge — the lip collides like a wall — but it can "
-                    + "be shoved *off* one, for 1 fall damage, with the displacement continuing.",
+                    + $"be shoved *off* one, for {Displacement.FallDamage} fall damage, with the "
+                    + "displacement continuing.",
                     "Elevation stops being free real estate. A Perch on the ridge is the Archer's tile, "
                     + "already occupied, and it hits as hard from up there as an Archer does from the flat.",
                 },
@@ -508,7 +528,8 @@ namespace Faultline.Core
                     $"Stand next to it. Adjacent it never shoots, only runs, and at Move {perch.Move} "
                     + "carrying a climb cost it does not get far.",
                     "Shove it off the ledge and it does not climb back while anything is in range: it "
-                    + "will stand on the flat and shoot for one less.",
+                    + $"will stand on the flat and shoot for {perch.Damage} instead of "
+                    + $"{perch.Damage + Combat.HighGroundBonus}.",
                 });
 
             table[UnitKind.Bulwark] = new EnemyBehaviour(
@@ -531,10 +552,11 @@ namespace Faultline.Core
                     + $"(D-019). The {wardbearer.Name} used to carry the identical rule and no longer "
                     + "does (D-058), so this is the only hold aura left in the game.",
                     "It reads as a direct answer to the best interaction in the game. A shove into "
-                    + "another unit is 2 damage to both; next to a Bulwark, that shove travels 1 tile "
-                    + "and often reaches nothing at all.",
+                    + $"another unit is {Displacement.CollisionDamage} damage to both; next to a "
+                    + "Bulwark, that shove travels 1 tile and often reaches nothing at all.",
                     "Hold caps distance, not damage. A push of exactly 1 into a body still collides and "
-                    + "still deals 2 to both — the cap only bites on a shove that wanted to travel further.",
+                    + $"still deals {Displacement.CollisionDamage} to both — the cap only bites on a "
+                    + "shove that wanted to travel further.",
                     $"{bulwark.MaxHp} HP at Move {bulwark.Move}: tougher than the chaff it babysits and "
                     + "slower than all of it.",
                 },
@@ -603,10 +625,12 @@ namespace Faultline.Core
                 new[]
                 {
                     $"One collision kills it outright: a shove into a wall, the board edge or another "
-                    + "unit is 2 damage and it has {runt.MaxHp}. One spike tile is 3.",
+                    + $"unit is {Displacement.CollisionDamage} damage and it has {runt.MaxHp}. One "
+                    + $"spike tile is {Displacement.SpikeDamage}.",
                     "A shove into another Runt is a double kill, and it costs a basic attack rather "
                     + "than an ability.",
-                    "It is the only unit that dies to a single point of fall damage off HighGround.",
+                    $"A shove off HighGround is {Displacement.FallDamage} fall damage, which is its "
+                    + $"whole {runt.MaxHp} HP: it is the only unit in the game the drop alone kills.",
                 },
                 new[]
                 {
@@ -739,13 +763,15 @@ namespace Faultline.Core
                      + "adjacent (D-022). Identical list to the Husk's — the only change is the hit points.")),
                 new[]
                 {
-                    $"{heavyHusk.MaxHp} HP survives one collision (2 damage) and one Archer shot "
-                    + $"({archer.Damage}). It does not survive both, and it does not survive spikes ("
-                    + "3 damage) at all.",
-                    "It breaks the double-kill: two Heavy Husks in a line are a shove for 2 apiece and "
-                    + "two Staggered survivors, not two corpses.",
+                    $"{heavyHusk.MaxHp} HP survives one collision ({Displacement.CollisionDamage} "
+                    + $"damage) and one Archer shot ({archer.Damage}). It does not survive both, and it "
+                    + $"does not survive spikes ({Displacement.SpikeDamage} damage) at all.",
+                    $"It breaks the double-kill: two Heavy Husks in a line are a shove for "
+                    + $"{Displacement.CollisionDamage} apiece and two Staggered survivors, not two corpses.",
                     $"A {vanguard.Name} swing ({vanguard.Damage}) plus its push into something solid is "
-                    + $"exactly {vanguard.Damage + 2} — still one short of killing it outright.",
+                    + $"exactly {vanguard.Damage + Displacement.CollisionDamage}, which is all "
+                    + $"{heavyHusk.MaxHp} of its hit points: a bare shove leaves it standing, the "
+                    + "swing and the shove together kill it outright.",
                 },
                 new[]
                 {
@@ -799,8 +825,8 @@ namespace Faultline.Core
                     ("Otherwise walk at the nearest structure",
                      $"Spends up to Move {raider.Move} closing on the nearest Protect structure by the "
                      + "same breadth-first path field every other archetype walks by (D-029) — a wall "
-                     + "is a detour, a body is a toll of 2, and it claws in the same activation if the "
-                     + "walk ends adjacent."),
+                     + $"is a detour, a body is a toll of {PathField.OccupiedPenalty}, and it claws in "
+                     + "the same activation if the walk ends adjacent."),
                     ("Otherwise stand still",
                      "With no Protect structure standing anywhere — a shrine already in rubble, or a "
                      + "board that never had one — its list runs out and it holds. It re-checks every "
@@ -858,7 +884,8 @@ namespace Faultline.Core
                     + "Bull Rush and Reel all move him nowhere — and the token is not spent doing it (D-039).",
                     "A token is stripped by a collision he suffers, or by ending a round orthogonally "
                     + "next to a pit. He cannot be moved, so the way to strip him is to slam something "
-                    + "else into him: a shoved Husk deals 2 to both and costs him a token.",
+                    + $"else into him: a shoved Husk deals {Displacement.CollisionDamage} to both and "
+                    + "costs him a token.",
                     $"The swap at {king.EnrageAt} HP is a whole stat block, not a buff: Move {king.Move} "
                     + $"becomes Move {kingEnraged.Move} and the Bull Rush branch appears. He re-declares "
                     + "his intent on the spot, so the telegraph never lies about which King you are "
@@ -870,9 +897,10 @@ namespace Faultline.Core
                 },
                 new[]
                 {
-                    "Bring bodies to him. Every Husk you shove into the King is 2 damage to each of them "
-                    + "and one token off the boss — the best-value interaction in the game, pointed at "
-                    + $"the only {king.MaxHp} HP target in it.",
+                    $"Bring bodies to him. Every Husk you shove into the King is "
+                    + $"{Displacement.CollisionDamage} damage to each of them and one token off the "
+                    + "boss — the best-value interaction in the game, pointed at the only "
+                    + $"{king.MaxHp} HP target in it.",
                     "Fight him on the rim. Ending a round beside a pit costs him a token whether or not "
                     + "you touched him, so the ground does a third of the stripping for free.",
                     $"Spend the Move {king.Move} phase. One tile a round is an enormous gift: strip tokens "

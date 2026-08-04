@@ -414,7 +414,7 @@ namespace Faultline.Core
                     affectedId = e.UnitId;
 
                     // Either end counts: shoving an enemy into a wall and shoving an ally into an
-                    // enemy both put a point on the board, and both take the full two damage.
+                    // enemy both put a point on the board, and both take the full collision damage.
                     alsoAffectedId = e.ObstacleId;
                     source = VerveSource.Collision;
                     break;

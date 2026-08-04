@@ -1401,7 +1401,7 @@ namespace Faultline.Core
         private const int HazardRankEdge = 2;
 
         // Brief §2 names "Pit/Spikes/board edge"; a wall sits with the edge because the brief also
-        // says the board edge acts as a wall, so both produce the identical 2-damage collision.
+        // says the board edge acts as a wall, so both produce the identical Displacement.CollisionDamage.
         private static int HazardRank(GameState state, Coord tile)
         {
             if (!state.Board.InBounds(tile))

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Faultline.Core;
 
 namespace Faultline.Core.Tests;
@@ -203,6 +204,145 @@ public class EnemyBehaviourTests
         }
     }
 
+    // ---- the prose cannot drift from the rule constants either ---------------------------------
+
+    /// <summary>
+    /// The bug this exists for: a concatenated fragment that lost its <c>$</c> prefix compiles
+    /// perfectly and ships the literal text <c>{runt.MaxHp}</c> to the player. Nothing in the
+    /// language catches it, and nothing in a shape test catches it either, because the string is
+    /// non-empty and reads almost right. A brace is never wanted in bestiary prose, so its presence
+    /// is the whole signal.
+    /// </summary>
+    [Fact]
+    public void NoBehaviourString_ShipsAnUninterpolatedPlaceholder()
+    {
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            foreach (var fragment in Fragments(behaviour))
+            {
+                Assert.False(
+                    fragment.IndexOf('{') >= 0 || fragment.IndexOf('}') >= 0,
+                    $"{behaviour.Kind} ships a brace to the player — a concatenated fragment is "
+                    + $"missing its $ prefix:\n{fragment}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every rule number the bestiary quotes, checked against the constant that actually holds it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The x2 rescale produced four rounds of stragglers because display strings were hand-written
+    /// per file: the code moved, the prose did not, and nothing failed. The structural fix is
+    /// interpolation — <c>EnemyBehaviour</c> now reads <see cref="Displacement.CollisionDamage"/> and
+    /// friends rather than retyping them — and this is the guard that makes the next relapse loud.
+    /// </para>
+    /// <para>
+    /// It reads the finished strings, so it does not care <em>how</em> the number got there. A phrase
+    /// re-typed as a literal that happens to be right today fails here the moment the constant moves,
+    /// which is the case the four previous rounds were made of. Each row is a phrase shape the
+    /// bestiary actually uses; adding prose in a new shape means adding a row.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void EveryRuleNumberInTheProse_MatchesTheConstantThatHoldsIt()
+    {
+        (string Pattern, int Expected, string Source)[] rules =
+        {
+            (@"(\d+)\s+fall damage", Displacement.FallDamage, "Displacement.FallDamage"),
+            (@"spike tile is (\d+)", Displacement.SpikeDamage, "Displacement.SpikeDamage"),
+            (@"spikes are (\d+)", Displacement.SpikeDamage, "Displacement.SpikeDamage"),
+            (@"spikes \((\d+) damage\)", Displacement.SpikeDamage, "Displacement.SpikeDamage"),
+            (@"collision \((\d+) damage\)", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"board edge is (\d+)", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"another unit is (\d+) damage", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"deals (\d+) to both", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"(\d+) damage to both", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"(\d+) damage to each", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"shove for (\d+) apiece", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
+            (@"\+(\d+) ranged", Combat.HighGroundBonus, "Combat.HighGroundBonus"),
+            (@"toll of (\d+)", PathField.OccupiedPenalty, "PathField.OccupiedPenalty"),
+            (@"pays the (\d+) a ledge costs", Activation.ClimbCost, "Activation.ClimbCost"),
+        };
+
+        int checks = 0;
+
+        foreach (var behaviour in EnemyBehaviour.All())
+        {
+            string text = Text(behaviour);
+
+            foreach (var rule in rules)
+            {
+                foreach (Match match in Regex.Matches(text, rule.Pattern))
+                {
+                    checks++;
+                    Assert.True(
+                        int.Parse(match.Groups[1].Value) == rule.Expected,
+                        $"{behaviour.Kind} quotes \"{match.Value}\" but {rule.Source} is "
+                        + $"{rule.Expected}. Interpolate the constant instead of retyping it.");
+                }
+            }
+        }
+
+        // A silent zero would mean the phrases were reworded out from under the guard rather than
+        // corrected, which is the failure this test is least able to see for itself.
+        Assert.True(checks >= rules.Length, $"only {checks} rule numbers were found in the bestiary.");
+    }
+
+    /// <summary>
+    /// The two claims the rescale made outright false, pinned to the arithmetic they describe rather
+    /// than to the sentence that was written once. A number can be corrected and still leave the
+    /// sentence around it lying, which is what "still one short of killing it outright" did: the
+    /// figure was stale and the conclusion drawn from it had inverted.
+    /// </summary>
+    [Theory]
+    [InlineData(UnitKind.HeavyHusk)]
+    [InlineData(UnitKind.Runt)]
+    public void TheLethalityClaims_AgreeWithTheArithmeticTheyDescribe(UnitKind kind)
+    {
+        var template = UnitTemplate.For(kind);
+        string text = Text(EnemyBehaviour.For(kind));
+
+        if (kind == UnitKind.HeavyHusk)
+        {
+            int opener = UnitTemplate.For(UnitKind.Vanguard).Damage + Displacement.CollisionDamage;
+
+            Assert.Contains($"exactly {opener}", text);
+            Assert.Equal(
+                opener >= template.MaxHp,
+                Regex.IsMatch(text, @"kills? it outright"));
+            Assert.DoesNotContain("short of killing", text);
+            return;
+        }
+
+        Assert.Equal(
+            Displacement.FallDamage >= template.MaxHp,
+            text.Contains("the drop alone kills"));
+        Assert.DoesNotContain("single point of fall damage", text);
+    }
+
+    /// <summary>
+    /// The Warden's "pay the toll" line quotes a shot count, which is a consequence of two stats and
+    /// was wrong at both scales. It must be the smallest number of shots that actually gets there.
+    /// </summary>
+    [Fact]
+    public void TheWardensTollLine_QuotesTheShotCountItActuallyTakes()
+    {
+        var warden = UnitTemplate.For(UnitKind.Warden);
+        var match = Regex.Match(
+            Text(EnemyBehaviour.For(UnitKind.Warden)), @"(\d+) Archer shots \((\d+) each\)");
+
+        Assert.True(match.Success, "the Warden no longer states what it costs to shoot down.");
+
+        int shots = int.Parse(match.Groups[1].Value);
+        int each = int.Parse(match.Groups[2].Value);
+
+        Assert.Equal(UnitTemplate.For(UnitKind.Archer).Damage, each);
+        Assert.True(shots * each >= warden.MaxHp, $"{shots} shots of {each} do not fell {warden.MaxHp} HP.");
+        Assert.True((shots - 1) * each < warden.MaxHp, $"{shots} shots of {each} is one more than it takes.");
+    }
+
     [Fact]
     public void ArchetypesWithNoAttack_SayThatTheyDealNoDamage()
     {
@@ -317,6 +457,30 @@ public class EnemyBehaviourTests
         parts.AddRange(behaviour.Quirks);
         parts.AddRange(behaviour.Counterplay);
         return string.Join(" ", parts);
+    }
+
+    /// <summary>Every string a UI would render for this enemy, one at a time.</summary>
+    private static IEnumerable<string> Fragments(EnemyBehaviour behaviour)
+    {
+        yield return behaviour.Role;
+        yield return behaviour.Summary;
+        yield return behaviour.AttackLine;
+
+        foreach (var step in behaviour.Priorities)
+        {
+            yield return step.Label;
+            yield return step.Detail;
+        }
+
+        foreach (var quirk in behaviour.Quirks)
+        {
+            yield return quirk;
+        }
+
+        foreach (var line in behaviour.Counterplay)
+        {
+            yield return line;
+        }
     }
 
     [Fact]

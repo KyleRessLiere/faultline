@@ -35,9 +35,9 @@
     width: 36px;
 }
 
-.art.team-a { border-color: color-mix(in srgb, var(--a) 70%, var(--pt-border)); }
-.art.team-b { border-color: color-mix(in srgb, var(--b) 70%, var(--pt-border)); }
-.art.team-e { border-color: color-mix(in srgb, var(--e) 70%, var(--pt-border)); }
+.art.team-a { border-color: color-mix(in srgb, var(--player-a) 70%, var(--pt-border)); }
+.art.team-b { border-color: color-mix(in srgb, var(--player-b) 70%, var(--pt-border)); }
+.art.team-e { border-color: color-mix(in srgb, var(--enemy) 70%, var(--pt-border)); }
 
 /* A terrain swatch stands in for a portrait when the subject is a tile — the same patterns the
    board and the legend use, so all three read as one drawing. */
@@ -77,8 +77,8 @@
     font-size: 11px;
 }
 
-.side.team-a { color: var(--a); }
-.side.team-b { color: var(--b); }
+.side.team-a { color: var(--player-a); }
+.side.team-b { color: var(--player-b); }
 
 .side.epithet {
     font-style: italic;
@@ -184,8 +184,8 @@
 
 /* The declared plan. Red, like every other telegraph on this screen. */
 .intent-block {
-    background: color-mix(in srgb, var(--e) 10%, var(--pt-bg-raised));
-    border-left: 3px solid var(--e);
+    background: color-mix(in srgb, var(--enemy) 10%, var(--pt-bg-raised));
+    border-left: 3px solid var(--enemy);
     border-radius: 0 4px 4px 0;
     margin-bottom: 8px;
     padding: 5px 8px;
@@ -193,7 +193,7 @@
 
 .intent-head {
     align-items: center;
-    color: var(--e);
+    color: var(--enemy);
     display: flex;
     font-size: 10px;
     gap: 5px;

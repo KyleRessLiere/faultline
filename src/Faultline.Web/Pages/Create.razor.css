@@ -44,7 +44,7 @@
 }
 
 .loaded-banner.info {
-    border-left-color: var(--a);
+    border-left-color: var(--accent);
 }
 
 .banner-head {
@@ -68,14 +68,14 @@
     max-width: 100ch;
 }
 
-.roundtrip.ok  { color: var(--b); }
-.roundtrip.off { color: var(--e); }
+.roundtrip.ok  { color: var(--good); }
+.roundtrip.off { color: var(--enemy); }
 
 /* Overwrite confirmation — destructive, so it interrupts rather than sits in a status line. */
 
 .confirm {
     background: rgba(255, 107, 107, .08);
-    border: 1px solid var(--e);
+    border: 1px solid var(--enemy);
     border-radius: 5px;
     margin-bottom: .7rem;
     padding: .6rem .7rem;
@@ -207,8 +207,8 @@ button.brush.on {
 .sw.pit    { background: #0b0c10; border: 1px solid #333; }
 .sw.spikes { background: #6d3a2f; }
 .sw.high   { background: #3f4b3a; }
-.sw.slot-a { background: transparent; border: 1px dashed var(--a); }
-.sw.slot-b { background: transparent; border: 1px dashed var(--b); }
+.sw.slot-a { background: transparent; border: 1px dashed var(--player-a); }
+.sw.slot-b { background: transparent; border: 1px dashed var(--player-b); }
 .sw.eraser { background: transparent; border: 1px solid var(--muted); }
 
 .brush-art {
@@ -252,12 +252,12 @@ button.pcell {
 .pcell.cracked { background: #2b303a; }
 
 .pcell.zone-a {
-    outline: 2px dashed var(--a);
+    outline: 2px dashed var(--player-a);
     outline-offset: -4px;
 }
 
 .pcell.zone-b {
-    outline: 2px dashed var(--b);
+    outline: 2px dashed var(--player-b);
     outline-offset: -4px;
 }
 
@@ -275,8 +275,8 @@ button.pcell {
     pointer-events: none;
 }
 
-.slot.a { color: var(--a); }
-.slot.b { color: var(--b); }
+.slot.a { color: var(--player-a); }
+.slot.b { color: var(--player-b); }
 
 /* Validation */
 
@@ -286,9 +286,9 @@ button.pcell {
     margin: 0 0 .4rem;
 }
 
-.verdict.good { color: var(--b); }
+.verdict.good { color: var(--good); }
 .verdict.warn { color: #d9b45f; }
-.verdict.bad  { color: var(--e); }
+.verdict.bad  { color: var(--enemy); }
 
 ul.issues {
     font-size: .74rem;
@@ -310,7 +310,7 @@ ul.issues li {
     padding: .05rem .35rem;
 }
 
-.issues.errors { color: var(--e); }
+.issues.errors { color: var(--enemy); }
 .issues.lints  { color: #d9b45f; }
 
 .status-line {
@@ -389,7 +389,7 @@ button.roster-chip {
 }
 
 button.roster-chip:hover {
-    border-color: var(--e);
+    border-color: var(--enemy);
 }
 
 .chip-art {
@@ -426,7 +426,7 @@ button.roster-chip:hover {
 }
 
 .class-art {
-    color: var(--a);
+    color: var(--accent);
     display: inline-block;
     height: 30px;
     line-height: 0;

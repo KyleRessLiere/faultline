@@ -1,5 +1,22 @@
 # Changelog
 
+## The bestiary reads its numbers off the rules, and a side has one colour
+
+- **The Runt's quirk stopped printing `{runt.MaxHp}` at the player.** A concatenated fragment had
+  lost its `$`, which compiles fine and ships the braces. Every bestiary string now interpolates the
+  constant that holds the number — `Displacement.CollisionDamage`, `SpikeDamage`, `FallDamage`,
+  `Combat.HighGroundBonus`, `Activation.ClimbCost`, `PathField.OccupiedPenalty` — rather than
+  retyping it, and eleven figures left behind by the ×2 rescale are correct again. Two of them said
+  things the game does not do: a Vanguard opener is *lethal* to a Heavy Husk rather than one short,
+  and a fall is 2 rather than "a single point". Tests assert no behaviour string contains a brace,
+  and that every rule number quoted in the prose equals the constant it describes.
+- **Player B is the named green, on every surface.** `--player-a`, `--player-b` and `--enemy` are
+  declared once at `:root` and are the only place a side's colour is chosen; `--a`/`--b`/`--e` are
+  gone, and the board and status band no longer borrow `--pt-cyan` and `--pt-green`. Enemy telegraph
+  marks read the token instead of a hard-coded red. `tools/ui-checks/team-colour-check.mjs` drives
+  the real screen and compares rendered colours across board, strip and inspector; `TeamColourTests`
+  holds the same line in CI without a browser.
+
 ## The Warden can rescue, Stagger Shot follows the bow downhill, and greyed buttons say why
 
 - **The rescue slot now asks whether an enemy has *spent* its movement, not whether it has any

@@ -45,9 +45,9 @@
     line-height: 1.15;
 }
 
-.now.team-a .actor { color: var(--a); }
-.now.team-b .actor { color: var(--b); }
-.now.team-e .actor { color: var(--e); }
+.now.team-a .actor { color: var(--player-a); }
+.now.team-b .actor { color: var(--player-b); }
+.now.team-e .actor { color: var(--enemy); }
 
 .strip {
     align-items: center;
@@ -249,8 +249,8 @@
 /* Intent badges are red because every enemy telegraph on this screen is red — the strip, the
    on-board arrow and the target ring all read as one thing. */
 .badge.intent {
-    background: color-mix(in srgb, var(--e) 24%, transparent);
-    color: var(--e);
+    background: color-mix(in srgb, var(--enemy) 24%, transparent);
+    color: var(--enemy);
     font-size: 10px;
     padding: 0 5px;
 }
@@ -258,13 +258,13 @@
 /* ---- Card states -------------------------------------------------------------------------- */
 
 /* Friendly upcoming: the owner's colour on the border and nothing else. */
-.card.upcoming.team-a .face { border-color: color-mix(in srgb, var(--a) 60%, var(--pt-border)); }
-.card.upcoming.team-b .face { border-color: color-mix(in srgb, var(--b) 60%, var(--pt-border)); }
-.card.slot.team-a .face { border-color: color-mix(in srgb, var(--a) 40%, var(--pt-border)); }
-.card.slot.team-b .face { border-color: color-mix(in srgb, var(--b) 40%, var(--pt-border)); }
+.card.upcoming.team-a .face { border-color: color-mix(in srgb, var(--player-a) 60%, var(--pt-border)); }
+.card.upcoming.team-b .face { border-color: color-mix(in srgb, var(--player-b) 60%, var(--pt-border)); }
+.card.slot.team-a .face { border-color: color-mix(in srgb, var(--player-a) 40%, var(--pt-border)); }
+.card.slot.team-b .face { border-color: color-mix(in srgb, var(--player-b) 40%, var(--pt-border)); }
 
 .card.enemy .face {
-    border-color: color-mix(in srgb, var(--e) 65%, var(--pt-border));
+    border-color: color-mix(in srgb, var(--enemy) 65%, var(--pt-border));
 }
 
 /* Current: brightest blue on the screen, enlarged, glowing. Nothing else competes with it. */

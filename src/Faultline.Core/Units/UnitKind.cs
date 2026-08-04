@@ -126,7 +126,7 @@ namespace Faultline.Core
         /// <summary>Range 1 only.</summary>
         Melee = 1,
 
-        /// <summary>Ranged; gains +1 damage when fired from HighGround.</summary>
+        /// <summary>Ranged; gains <see cref="Combat.HighGroundBonus"/> damage from HighGround.</summary>
         Ranged = 2,
     }
 }

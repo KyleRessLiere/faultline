@@ -291,7 +291,7 @@ requested distance
   + 1   if the target is Staggered   (and the Stagger is consumed)
   - N   the target's push resistance, on a Push: 1 for Anchor, Mobile Anchor and Warden;
         2 for the Colossus   (D-018, D-030)
-  → 1   capped, if an ally with a hold aura stands adjacent — Wardbearer or Bulwark   (D-031)
+  → 1   capped, if an ally with a hold aura stands adjacent — the Bulwark, and only it   (D-031, D-058)
   - 1   if the target spends a Footing token
   = effective distance   (never below 0)
 ```
@@ -427,10 +427,10 @@ nowhere to reel it to.
 | Lobber | 6 | 2 | range 3, 2 dmg | **hits for 4 from HighGround** — the +2 ranged bonus is not player-only |
 | Anchor | 12 | 1 | melee, 4 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
 | Grappler | 10 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
-| Stalker | 8 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **Wardbearer Hold does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1 |
+| Stalker | 8 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **A hold aura does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1. A Wardbearer in Guard Stance does stop it (D-058) |
 | Warden | 12 | **0** | melee, 4 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. **2 negating Footing tokens** — nothing shoves or pulls it while they stand; a collision it suffers takes one; break both and it moves like anybody (D-102) |
 | Perch | 6 | 2 | range 3, 2 dmg | seeks the nearest reachable HighGround and **hits for 4 from it**; once up, it does not come down |
-| Bulwark | 10 | 2 | melee, 2 dmg | **hold aura** — adjacent allies cannot be displaced more than 1. The Wardbearer's rule exactly; does not protect itself |
+| Bulwark | 10 | 2 | melee, 2 dmg | **hold aura** — adjacent allies cannot be displaced more than 1; does not protect itself. **The only hold aura left in the game** — the Wardbearer's copy went with the rest of its old kit (D-058) |
 | Harrier | 8 | 4 | **melee, push 1** | no damage. Shoves to **maximise the target's distance from its nearest ally**, and refuses any shove that would not move it — so it never uses walls or the edge |
 | Runt | 2 | 4 | melee, 2 dmg | dies to one collision, one spike tile, or one fall |
 | Colossus | 20 | 1 | melee, 6 dmg | **push resistance 2.** Push 1 → nothing; Push 2 → nothing; a Staggered Bull Rush moves it 1. **Pull is unaffected** |
@@ -620,7 +620,7 @@ straight-line distance, and attack range still ignores walls (D-010).
 
 The Grappler's pull and the Stalker's shove are ordinary commands Core accepts, resolved by the same
 displacement code a player's push runs through — collisions, spikes, pits, Stagger, Anchor
-resistance, Wardbearer Hold and Footing all apply identically (Brief §6 prior 2).
+resistance, the Bulwark's hold aura and Footing all apply identically (Brief §6 prior 2).
 
 ### Enemies pull their own out of pits
 

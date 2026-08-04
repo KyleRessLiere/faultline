@@ -8,12 +8,32 @@
     --line: #333944;
     --text: #e6e8ec;
     --muted: #98a0ae;
-    --a: #5aa9ff;
-    --b: #58d0a0;
-    --e: #ff6b6b;
+    /* Team identity. One hue per side, declared once, and the only place a side's colour is
+       chosen — every surface that draws a side reads these and nothing else.
 
-    /* The playtest screen's palette. Kept here rather than in a component so every panel of the
-       dashboard reads the same tokens and the screen looks like one thing. */
+       They live in :root rather than beside the component that needs them because Blazor's
+       scoped CSS cannot see another component's variables: a token declared inside
+       CoordinateGrid.razor.css is invisible to StatusBand.razor.css, which is exactly how
+       Player B ended up drawn in three hues at once — teal on the board (--pt-cyan), olive in
+       the status band (--pt-green) and mint in the strip (--b). Each of the three looked fine
+       on its own, which is why no test caught it and why this comment exists. Player B is the
+       named green; if a surface wants a side's colour, it takes it from here. */
+    --player-a: #5aa9ff;
+    --player-b: #58d0a0;
+    --enemy: #ff6268;
+
+    /* Semantic accents. Deliberately their own names even where the hue matches a side's:
+       "this fight was won" is not "this is Player B", and the two have to stay free to
+       diverge without one of them dragging the other along. */
+    --accent: var(--player-a);
+    --good: var(--player-b);
+    --danger: var(--enemy);
+
+    /* The playtest screen's palette: affordances, never sides. None of these may be used to draw a
+       team — that is what --player-a/--player-b/--enemy above are for, and every time one of these
+       has been borrowed for a side the sides have stopped agreeing with each other. --pt-blue is
+       the action-point and current-activation accent; --pt-cyan is aiming, deploy and Cast;
+       --pt-green is the rescue landing and the done badge; --pt-red is danger and loss. */
     --pt-bg-app: #0f131a;
     --pt-bg-panel: #171c24;
     --pt-bg-raised: #1c222c;
@@ -170,7 +190,7 @@ h2 {
 }
 
 .chip.link:hover {
-    border-color: var(--a);
+    border-color: var(--accent);
 }
 
 .chip.fight-chip {
@@ -182,9 +202,9 @@ h2 {
     text-decoration: none;
 }
 
-.chip.team-a { border-color: var(--a); color: var(--a); }
-.chip.team-b { border-color: var(--b); color: var(--b); }
-.chip.team-e { border-color: var(--e); color: var(--e); }
+.chip.team-a { border-color: var(--player-a); color: var(--player-a); }
+.chip.team-b { border-color: var(--player-b); color: var(--player-b); }
+.chip.team-e { border-color: var(--enemy); color: var(--enemy); }
 
 /* Board */
 
@@ -243,7 +263,7 @@ h2 {
 }
 
 .cell.targetable {
-    border-color: var(--e);
+    border-color: var(--enemy);
 }
 
 .cell.selected {
@@ -251,7 +271,7 @@ h2 {
 }
 
 .cell.clinging {
-    outline: 2px dashed var(--e);
+    outline: 2px dashed var(--enemy);
     outline-offset: -5px;
 }
 
@@ -275,9 +295,9 @@ h2 {
     height: 100%;
 }
 
-.team-a { color: var(--a); }
-.team-b { color: var(--b); }
-.team-e { color: var(--e); }
+.team-a { color: var(--player-a); }
+.team-b { color: var(--player-b); }
+.team-e { color: var(--enemy); }
 
 .pips {
     display: flex;
@@ -292,7 +312,7 @@ h2 {
     display: inline-block;
 }
 
-.pip.cling { background: var(--e); }
+.pip.cling { background: var(--enemy); }
 .pip.stagger { background: #ffd166; }
 .pip.nofooting { background: var(--muted); }
 
@@ -364,8 +384,8 @@ h2 {
     font-size: 1rem;
 }
 
-.outcome.won  { color: var(--b); }
-.outcome.lost { color: var(--e); }
+.outcome.won  { color: var(--good); }
+.outcome.lost { color: var(--danger); }
 
 .halves {
     list-style: none;
@@ -430,9 +450,9 @@ h2 {
     background: rgba(255, 209, 102, .1);
 }
 
-.units td.team-a { color: var(--a); font-weight: 700; }
-.units td.team-b { color: var(--b); font-weight: 700; }
-.units td.team-e { color: var(--e); font-weight: 700; }
+.units td.team-a { color: var(--player-a); font-weight: 700; }
+.units td.team-b { color: var(--player-b); font-weight: 700; }
+.units td.team-e { color: var(--enemy); font-weight: 700; }
 
 .units tr.cling-row td { color: #ffd166; }
 .units td.flags { color: var(--muted); font-size: .72rem; }
@@ -590,8 +610,8 @@ button.mode.on {
     scroll-margin-top: 1rem;
 }
 
-.beast.enemy  { border-top-color: var(--e); }
-.beast.player { border-top-color: var(--a); }
+.beast.enemy  { border-top-color: var(--enemy); }
+.beast.player { border-top-color: var(--accent); }
 
 .beast header {
     align-items: center;
@@ -677,7 +697,7 @@ ol.priority li {
 ol.priority li::before {
     background: #2b303a;
     border-radius: 3px;
-    color: var(--e);
+    color: var(--enemy);
     content: counter(step);
     font-size: .68rem;
     font-weight: 700;
@@ -735,18 +755,18 @@ ul.quirks li:last-child {
 
 .block.counter {
     background: rgba(88, 208, 160, .06);
-    border-left: 2px solid var(--b);
+    border-left: 2px solid var(--good);
     border-radius: 0 4px 4px 0;
     margin-top: auto;
     padding: .5rem .6rem;
 }
 
 .block.counter h3 {
-    color: var(--b);
+    color: var(--good);
 }
 
 .block.counter ul.quirks li::before {
-    color: var(--b);
+    color: var(--good);
 }
 
 /* The board's enemy inspector: the same card, plus the live half and a way out of it. */
@@ -759,7 +779,7 @@ ul.quirks li:last-child {
 
 .beast.dossier {
     border: none;
-    border-top: 3px solid var(--e);
+    border-top: 3px solid var(--enemy);
     border-radius: 6px;
 }
 
@@ -776,19 +796,19 @@ ul.quirks li:last-child {
 }
 
 .dossier-close:hover {
-    border-color: var(--e);
-    color: var(--e);
+    border-color: var(--enemy);
+    color: var(--enemy);
 }
 
 .block.live {
     background: rgba(255, 107, 107, .07);
-    border-left: 2px solid var(--e);
+    border-left: 2px solid var(--enemy);
     border-radius: 0 4px 4px 0;
     padding: .5rem .6rem;
 }
 
 .block.live h3 {
-    color: var(--e);
+    color: var(--enemy);
 }
 
 ul.live-facts {
@@ -825,7 +845,7 @@ ul.live-facts span {
 }
 
 .dossier-link {
-    color: var(--a);
+    color: var(--accent);
     font-size: .76rem;
     text-decoration: none;
 }
@@ -846,12 +866,12 @@ ul.live-facts span {
 }
 
 .chip.design-chip:hover {
-    border-color: var(--a);
+    border-color: var(--accent);
 }
 
 .chip.design-chip.on {
-    border-color: var(--a);
-    color: var(--a);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .design-panel {
@@ -863,7 +883,7 @@ ul.live-facts span {
 .design-card {
     background: var(--panel);
     border-radius: 6px;
-    border-top: 3px solid var(--a);
+    border-top: 3px solid var(--accent);
     display: flex;
     flex-direction: column;
     gap: .6rem;
@@ -906,7 +926,7 @@ ul.live-facts span {
 
 .block.design-notes {
     background: rgba(90, 169, 255, .06);
-    border-left: 2px solid var(--a);
+    border-left: 2px solid var(--accent);
     border-radius: 0 4px 4px 0;
     padding: .5rem .6rem;
 }
@@ -946,8 +966,8 @@ button.inspect-link {
 }
 
 button.inspect-link:hover {
-    border-bottom-color: var(--e);
-    color: var(--e);
+    border-bottom-color: var(--enemy);
+    color: var(--enemy);
 }
 
 .intents button.inspect-link {

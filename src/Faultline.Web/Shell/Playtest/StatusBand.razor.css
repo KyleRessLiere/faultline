@@ -70,9 +70,9 @@
     margin: 0 0 3px;
 }
 
-.who.team-a { color: var(--pt-blue); }
-.who.team-b { color: var(--pt-green); }
-.who.team-e { color: var(--pt-red); }
+.who.team-a { color: var(--player-a); }
+.who.team-b { color: var(--player-b); }
+.who.team-e { color: var(--enemy); }
 
 .instruction {
     color: var(--pt-text-dim);
@@ -101,8 +101,8 @@
     margin: 0 0 6px;
 }
 
-.outcome.won { color: var(--pt-cyan); }
-.outcome.lost { color: var(--pt-red); }
+.outcome.won { color: var(--good); }
+.outcome.lost { color: var(--danger); }
 
 h3 {
     color: var(--pt-text-dim);

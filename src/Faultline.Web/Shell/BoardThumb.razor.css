@@ -28,11 +28,11 @@
     line-height: 1;
 }
 
-.slot.a { color: var(--a); }
-.slot.b { color: var(--b); }
+.slot.a { color: var(--player-a); }
+.slot.b { color: var(--player-b); }
 
 .pin {
     display: block;
     line-height: 0;
-    color: var(--e);
+    color: var(--enemy);
 }

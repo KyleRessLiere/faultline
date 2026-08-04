@@ -59,8 +59,8 @@ code {
     text-decoration: none;
 }
 
-.jump-link.enemy:hover  { border-color: var(--e); color: var(--e); }
-.jump-link.player:hover { border-color: var(--a); color: var(--a); }
+.jump-link.enemy:hover  { border-color: var(--enemy); color: var(--enemy); }
+.jump-link.player:hover { border-color: var(--accent); color: var(--accent); }
 
 .group {
     margin-bottom: 1.75rem;
