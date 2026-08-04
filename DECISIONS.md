@@ -131,9 +131,16 @@ in this file when the question comes back.
 | D-111 | [The Warden could never take its rescue slot: a latent D-072 violation, fixed by asking whether a unit has *spent* movement rather than whether it has any left.](#d-111-the-warden-could-never-take-its-rescue-slot-a-latent-d-072-violation-fixed-by-asking-whether-a-unit-has-spent-movement-rather-than-whether-it-has-any-left) | 2026-08-04 |  |
 | D-112 | [No display string retypes a rule number; it interpolates the constant that holds it.](#d-112-no-display-string-retypes-a-rule-number-it-interpolates-the-constant-that-holds-it) | 2026-08-04 |  |
 | D-113 | [A side has exactly one colour token, declared at `:root`, and the playtest palette may not draw a side.](#d-113-a-side-has-exactly-one-colour-token-declared-at-root-and-the-playtest-palette-may-not-draw-a-side) | 2026-08-04 |  |
-| D-114 | [A wall that has to come down is masonry with hit points, not a turn limit: `broken-bridge`'s two crossings become breakable blockers of 6.](#d-114-a-wall-that-has-to-come-down-is-masonry-with-hit-points-not-a-turn-limit-broken-bridges-two-crossings-become-breakable-blockers-of-6) | unreleased |  |
+| D-114 | [A wall that has to come down is masonry with hit points, not a turn limit: `broken-bridge`'s two crossings become breakable blockers of 6.](#d-114-a-wall-that-has-to-come-down-is-masonry-with-hit-points-not-a-turn-limit-broken-bridges-two-crossings-become-breakable-blockers-of-6) | 2026-08-04 |  |
+| D-115 | [A run's act is a graph in Core, and the linear ten stays shipped beside it.](#d-115-a-runs-act-is-a-graph-in-core-and-the-linear-ten-stays-shipped-beside-it) | unreleased |  |
+| D-116 | [Act 1 is hand-authored, and the constraint generator is acts-2-and-3 work.](#d-116-act-1-is-hand-authored-and-the-constraint-generator-is-acts-2-and-3-work) | unreleased |  |
+| D-117 | [A vote is one command carrying both picks, because a half-voted state is where a re-vote comes from.](#d-117-a-vote-is-one-command-carrying-both-picks-because-a-half-voted-state-is-where-a-re-vote-comes-from) | unreleased |  |
+| D-118 | [Reward marks are typed references with a `Payable` flag, and are paid by nobody.](#d-118-reward-marks-are-typed-references-with-a-payable-flag-and-are-paid-by-nobody) | unreleased |  |
+| D-119 | [The act map's campfire is its own node type and heals half, rounded up, per duck.](#d-119-the-act-maps-campfire-is-its-own-node-type-and-heals-half-rounded-up-per-duck) | unreleased |  |
+| D-120 | [The Molting Pool is the whole v1 event tier, and bodily consent is enforced at the command surface.](#d-120-the-molting-pool-is-the-whole-v1-event-tier-and-bodily-consent-is-enforced-at-the-command-surface) | unreleased |  |
+| D-121 | [HELD: `RunUnit.Owner`, so bodily consent can be checked rather than assumed.](#d-121-held-rununitowner-so-bodily-consent-can-be-checked-rather-than-assumed) | unreleased | *held* |
 
-**113 rulings.**
+**120 rulings.**
 
 <!-- toc:end -->
 ---
@@ -2327,3 +2334,232 @@ over walkable tiles with nothing standing on them and asserts **two islands whil
 one once either falls**, plus a played-out line in which a squad stranded on the north side breaks
 through and finishes the fight. The connectivity check existed in `tools/Faultline.Playtest` and had
 been reporting this for two sessions; a report nobody is obliged to read is not a guard.
+
+**D-115 — A run's act is a graph in Core, and the linear ten stays shipped beside it.**
+Supersedes nothing. Extends the run layer D-049 to D-053 built, and is the ruling every later map
+entry (D-116 to D-121) sits on top of.
+
+**What forced it:** MASTER_DESIGN §8.5 draws an act as a *visible lane graph* — columns of typed
+nodes, sparse doors, unequal lanes, a crossing, a boss at the end of every lane. The run engine walked
+an ordered list. A list can express "the next fight"; it cannot express a door, and everything §8.5
+asks for is about doors.
+
+**`CampaignDefinition.Map` is the fork, and the campaign id is the flag.** `Map` null means the
+ordered `Nodes` list; `Map` non-null means the graph, and `IsMapped` is the single field every branch
+in the run engine reads and says so out loud. Which one a run walks is which id it was started with —
+`faultline` (the linear ten) or `act-1-warrens` — and **both are in `CampaignLibrary.All()`**, both
+selectable, fielding the same four classes.
+
+**Rejected: replacing the linear campaign.** It is the only sequence anyone has playtest numbers for.
+Every harness table, `docs/LEVEL_ANALYSIS.md`, and every finding in `docs/PLAYTEST_FINDINGS.md` is
+measured against those ten boards in that order. Retiring it before the map has been played even once
+would have thrown all of that away to save one nullable field — and the map's own numbers would then
+have had nothing to be compared against.
+
+**Rejected: a second run engine for the graph.** `MapNode.ToCampaignNode()` projects a map node onto
+the node seam that already existed, so `Campaign.ApplyRun`, the handler table, `Restore` and the
+replay contract walk both shapes. The graph added `AdvanceOnMap` and the vote; it added no second
+`Game.Start`, no second squad-binding path and no second save format. A parallel engine would have
+meant every later rule being written twice and drifting on the third.
+
+**The cost, recorded rather than discovered later.** `CampaignDefinition.Length` is 0 for a mapped
+campaign — a graph has no length — and `RunState.NodeIndex` on a mapped run counts steps taken rather
+than indexing anything. So `Restore` cannot ask "is this past the end?" of a mapped run and reads
+`MapState.Completed` instead: whether the act is over is a fact the save carries, not one an index can
+be compared against.
+
+**D-116 — Act 1 is hand-authored, and the constraint generator is acts-2-and-3 work.**
+Supersedes nothing. Scopes the generator §8.5 asks for.
+
+**What forced it:** §8.5 asks for a seeded, constraint-driven generator that emits a proof log saying
+which constraint bound where. Act 1 is the teaching zone and is always first (§10), which makes it the
+one board sequence the whole game is tuned against.
+
+**Rejected: generating Act 1 too.** It would make *"the fight after the shrine"* a thing nobody can
+point at. Every playtest note, every difficulty complaint and every board ruling would have had to
+name a seed before it named a board, and the act whose job is to teach would have been the act nobody
+could describe twice.
+
+**The constraints are not skipped; they are relocated.** `ActMap.Validate()` returns one sentence per
+structural fault — a door that does not step exactly one column forward, a node with no door into it,
+a node that cannot reach the boss, more than one terminal, a terminal that is not the boss, a combat
+node naming no fight, an event node naming no event. The authored map returns none of them
+(`ActMapTests.Act1_Validates`), and two tests hand it deliberately broken maps so the linter is proven
+to fail rather than assumed to. **The generator therefore inherits an acceptance test** instead of
+being written against a blank page.
+
+**Rejected: leaving the constraints in prose until the generator exists.** The failure mode of a
+hand-written graph is not a crash — it is a door that leads nowhere and a lane that quietly cannot
+reach the boss, both of which read as correct data until someone walks them.
+
+Pinned the same way, by test and not by care: seven columns; every column one to three wide; the
+pre-boss campfire reachable from every lane; the HP-priced event never on a zero-campfire lane; and
+exactly one crossing, which is the `?` in column 3.
+
+**D-117 — A vote is one command carrying both picks, because a half-voted state is where a re-vote
+comes from.**
+Supersedes nothing. Implements §8.5's masked pick.
+
+**What forced it:** §8.5 — both players pick blind, a match moves, a split flips a seeded coin, and
+**there are no re-votes.**
+
+**Rejected: two commands, one pick each.** It creates a state in which one pick is recorded and the
+other is not, and that is exactly the state a re-vote is taken from — the one a player asks to change
+their pick from, and the one a renderer has to decide whether to display. The design forbids re-votes,
+so the state must not exist. `VoteCommand(ChoiceA, ChoiceB)` arrives already decided, `RunPhase.AtVote`
+is entered once per fork, and `ResolveVote` has no path back into it.
+
+**Blindness is the picking surface's job, not the rules'.** Core cannot enforce that one player did
+not watch the other choose; that is a property of a masked-pick flow. Modelling a "hidden" pick in the
+rules would have been a promise the model cannot keep, and the moment the rules hear about a vote is
+the moment it is already settled.
+
+**The coin.** On a split, `Campaign.ResolveVote` draws `new SeededRng(state.RngState).Next(2)`, and
+**coin 0 takes Player A's door**, coin 1 Player B's. It is the first real seeded draw the run layer
+has ever made. The cursor is written straight back onto `RunState.RngState`, so a replay of the same
+log flips the same coins in the same order and lands on the same route — and `Restore` carries the
+cursor, because a restored run that reset it would repeat a flip.
+
+**Rejected: drawing the coin from the fight seed.** Fights are still started from `RunState.Seed`, so
+a coin flip does not reshuffle the enemies behind the next door. A shared cursor would have made the
+contents of a board depend on how many times the party had disagreed on the way to it, which is a
+hidden coupling nobody would think to look for.
+
+**A single-door column is walked, not voted on.** `AdvanceOnMap` moves and records a `MapMoved` with
+`voted: false`. **Rejected: offering a one-option vote for uniformity.** A vote with one option is a
+fake button; the masked-pick ceremony is about a choice, and where there is none the run simply moves
+and the command log stays honest about what was actually decided.
+
+**D-118 — Reward marks are typed references with a `Payable` flag, and are paid by nobody.**
+Supersedes nothing. Applies §8.5's promise rule to §8.6's payouts.
+
+**What forced it:** §8.6 gives Act 1 exactly two payouts — the high road's `legendary-pick-1-of-2` and
+the Sunken Cache's `legendary-consumable-pick-1-of-2`. There is no legendary catalog, no consumable
+pocket and no pick-one-of-two surface in this build.
+
+**Rejected: leaving the marks off the map until legendaries land.** The act map's whole gradient is
+"risk buys rarity as geography"; a map with no marks on it is not a smaller version of the design, it
+is a different design, and the authored graph would have had to be re-authored rather than extended.
+Recording the mark now means the map is *already correct* when the payout systems arrive, and it means
+"which lane is richer" is a question about a field rather than about somebody's memory.
+
+**Rejected: paying something else in the meantime** — a heal, a stat point, anything standing in.
+§8.5's promise rule is that a gilt edge means a legendary is *literally there*: promise, not
+probability. A substitute payout teaches the player the wrong thing about what the mark means, and the
+correction later reads as a nerf.
+
+So `RewardMark(Kind, Pick, From)` is data, `Payable` is `false`, and `FightNodeHandler` emits a
+`RewardPromised` event carrying the flag rather than granting anything. **The flag is on the mark and
+not in a renderer** so that the honest thing to draw — nothing at all, while the run cannot pay — is a
+fact the mark states rather than a fact each screen has to know.
+
+**Pinned by a reflection test**, `ActMapTests.RewardMarks_HaveNoPayoutCodePath`: no method anywhere in
+Core takes a `RewardMark` and returns a `RunState`, a `RunUnit` or a `GameState`. **Rejected:
+asserting it in prose.** The failure mode is somebody adding the payout in the obvious place a year
+from now; a test that reads the type graph notices, and a paragraph does not.
+
+**The consequence, recorded because it is a design cost and not an implementation detail:** v1's map
+has no visible stakes. Act 1's only differentiated destination is the one thing a renderer must not
+draw, so a route vote currently has nothing on screen to prefer one door over another. That closes
+when legendaries land, and not before.
+
+**D-119 — The act map's campfire is its own node type and heals half, rounded up, per duck.**
+**Does not supersede D-053.** D-053's full-heal rest is unchanged and still runs the linear campaign.
+
+**What forced it:** §8.5's campfire heals *about half*. D-053's `RestNode` heals every fieldable unit
+to full, and the linear ten is tuned around that. Two different rules, both wanted, both shipped.
+
+`MapRestNode` and `MapRestNodeHandler`: `HealFor(maxHp) = (maxHp + 1) / 2` — **half the ceiling,
+rounded up, applied per duck off its own maximum.** Integer arithmetic throughout, rounded up so odd
+ceilings do not quietly heal less than half. A Vanguard on 14 gets 7; a Vanguard that bought a raise at
+the Molting Pool has a ceiling of 16 and gets 8. A downed duck stands up on half its ceiling and its
+mark clears — the campfire ends the downing, it does not also make the downing good. A voided duck is
+left where it is: D-053's one permanent loss stays permanent.
+
+**Rejected: one record with two behaviours** — a `RestNode` that heals full in a list campaign and
+half on a map. That is a rest whose rule depends on how it was reached, which is **the D-092 trap in a
+different costume**: the same node fielding different rules depending on the route in is precisely the
+class of bug that ruling exists to prevent, and it would have been invisible in a diff.
+
+**Rejected: changing `RestNode` to half and letting the linear ten inherit it.** The linear ten is the
+tuned build (D-115). Silently re-tuning it in the same change that introduced the map would have made
+both sets of numbers unreadable — nobody could then say whether a harder run was the graph or the
+halved rest.
+
+**The cost is written down rather than left to be found:** when the linear campaign retires,
+`RestNode` and its handler retire with it, and this entry is where that is recorded.
+
+**Rejected: offering forge and curse-scraping greyed out.** The campfire offers healing and nothing
+else, and `Step` refuses anything else *by name*, saying that forge and curse-scraping are not built.
+A menu of one honest option beats a menu of three where two lie — the same reasoning as the promise
+rule in D-118.
+
+**D-120 — The Molting Pool is the whole v1 event tier, and bodily consent is enforced at the command
+surface.**
+Supersedes nothing. Builds §8.5's events tier; the consent half is held open by D-121.
+
+**What forced it:** §8.5 and §8.6 name ten events between them. Nine of them price things this build
+has no model for — Pluck spending, mods, curses, columns skipped, neutral units, free routing,
+legendary consumables. One of them, the Molting Pool, prices hit points, which this build has.
+
+**Rejected: stubbing the other nine as ids.** An id in a library with no handler behind it is a
+promise the map could route a run into. A `?` that resolves to nothing is strictly worse than a `?`
+that is not on the map, because the first one ships.
+
+**Rejected: a generalised `Effect` field on `EventDefinition`.** It would be a guess at nine shapes
+from one example. The record holds exactly the two numbers the one shipped event charges — `HpCost` 4,
+`MaxHpGain` 2 — and each future event brings its own field with the system that gives it meaning.
+
+**Consent, structurally.** §8.5 says a duck's event costs require its owner's yes, and nothing in the
+model says which player owns which duck (`RunBinding.Team` is per-fight and changes board to board).
+So consent is enforced where it can be: **a payment names one duck, and there is no party-wide
+accept.** `LegalSteps` enumerates one `EventPayCommand` per duck that can afford the price, so every
+legal payment is one specific duck's, and the surface issuing it is responsible for having asked that
+duck's owner. **Rejected: a party-level accept command** — that is exactly the shape that lets a party
+vote a duck into bleeding, which is the thing §8.5's clause exists to forbid.
+
+**The lethal block.** `EventDefinition.CanPay` requires `Hp - HpCost >= 1` and refuses a downed or
+voided duck outright: **a duck that cannot survive the price is never offered as a payer.** The pool
+takes blood, not ducks. Walking away is free and is a legal command because the pool is an *Offer*; a
+*Strait* prices every exit, and `LegalSteps` throws rather than inventing a walk-away for one that
+nobody can pay.
+
+**`RunUnit.BonusMaxHp` holds the raise as a bonus, not an absolute**, and `MaxHp` is the archetype's
+ceiling plus the bonus, read from the template every time. **Rejected: storing the raised ceiling.** An
+absolute would freeze the class's base number into the save the moment a duck took one upgrade, so a
+later balance change to the archetype would reach every duck in the run *except* the ones that had
+improved — the wrong ones exactly.
+
+Because the ceiling is derived, the raise reaches everything that reads it, which is why those are
+formulas and not tables: the campfire heals 8 instead of 7 (D-119), and Bedraggled's `ceil(MaxHp / 4)`
+reads 16 rather than 14 — which returns the same 4 for a Vanguard, and 5 once a second pool takes it
+to 18.
+
+**The two lines of voice are this repo's, not the doc's.** The Molting Pool's prompt and its walk-away
+line were authored here, are the only content in the map core that did not come from MASTER_DESIGN,
+and are **placeholders for the tone pass rather than a ruling.** Recorded so nobody later cites them
+as design.
+
+**D-121 — HELD: `RunUnit.Owner`, so bodily consent can be checked rather than assumed.**
+Held open by D-120, which enforces consent structurally in its absence.
+
+D-120 makes every event payment name one duck because nothing in the model says which player owns
+which duck. `RunBinding.Team` is the wrong grain for the question: a binding is a board-long fact that
+changes from fight to fight, and ownership is a run-long one.
+
+**Held, not built. The unblocking trigger is the Dock draft.** Ownership is a fact a draft *creates* —
+who picked which duck, and when — so building the field before the draft exists means guessing at the
+draft's shape and then living with the guess.
+
+**What lands when it does:** `RunUnit.Owner`, and `EventNodeHandler.Step` refusing a payment signed by
+the wrong player. Consent stops being a property of whoever built the picking surface and becomes a
+rule the engine can enforce, which is where §8.5 wants it.
+
+**Rejected: adding an owner now, defaulted by squad index.** It would *look* like consent while being
+an arbitrary alternation nothing had chosen, and the first real draft would immediately contradict it.
+A field that is wrong is worse than a field that is absent, because code starts reading it — and the
+code that reads it would be the code that enforces consent.
+
+Recorded as HELD rather than dropped in `IDEAS.md` because it was actively considered and consciously
+parked, and per CLAUDE.md a held idea with its trigger written down is a decision; without one it is
+just a thing someone forgot.

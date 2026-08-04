@@ -757,14 +757,19 @@ contract, the state is immutable, and **the seed plus the ordered command log re
 run and an identical hash** — combat commands included, because they travel to the fight wrapped in a
 `PlayCommand` and there is only ever one stream to record.
 
-A **campaign is data**: an id, a squad, and a list of nodes. There are exactly two node types.
+A **campaign is data**: an id, a squad, and *either* an ordered list of nodes *or* an **act map** — a
+graph of nodes with doors between them. Two campaigns ship, one of each shape, and which one a run
+walks is the id it was started with (see [The act map](#the-act-map--a-run-as-a-graph) below). Four
+node types have handlers, and a test pins that number.
 
-| Node | What it does |
-| --- | --- |
-| **Fight** | Plays a fight. A win advances to the next node; a loss ends the run. |
-| **Rest** | Restores every unit that can still be fielded, and advances. |
+| Node | What it does | Where |
+| --- | --- | --- |
+| **Fight** | Plays a fight. A win advances to the next node; a loss ends the run. | both |
+| **Rest** | Restores every unit that can still be fielded to **full**, and advances. | linear campaign |
+| **Map rest** | The act map's **campfire**: heals **half** a duck's ceiling, rounded up. | act map |
+| **Event** | Prints an offer and its prices, then takes a payment or a walk-away. | act map |
 
-The shipped campaign is **twelve nodes: fights 1–4, a rest, fights 5–8, a rest, fights 9–10** — the
+The shipped **linear** campaign is **twelve nodes: fights 1–4, a rest, fights 5–8, a rest, fights 9–10** — the
 `docs/archive/CURATED_SET.md` §1 spine with a checkpoint after the fourth and the eighth. The rests sit where
 the two hardest jumps are: fight 5 is the first objective that is not a kill, and fight 9 is a hold
 going into the boss.
@@ -781,6 +786,7 @@ going into the boss.
   everything but voided (D-053). A rested unit is therefore *not* Bedraggled: a rest is still the
   clean return, and this ruling only governs what happens when there is no rest between the downing
   and the next fight. It clears nothing else; a rest is not a phase with choices in it.
+  **On the act map a campfire is a different node and heals half, not full** (D-119) — see below.
 
 ### Bedraggled — the downed return
 
@@ -837,7 +843,170 @@ run command record if it takes input, and a handler; **nothing in `ApplyRun` cha
 fixed at type-load and never written to at run time, because a registry that could be added to
 mid-run would be exactly the hidden state replay determinism forbids.
 
-Two node types ship, and a test pins that number: a third is a change worth seeing in a diff.
+Four node types ship — Fight, Rest, Map rest, Event — and a test pins that number
+(`CampaignNodeHandlers.Count`): a fifth is a change worth seeing in a diff.
+
+## The act map — a run as a graph
+
+**This section describes the v1 subset, which is smaller than the design intends.** Everything below
+is built and tested; everything the design asks for that is *not* built is named as such at the end.
+
+### Two campaigns ship, and the id is the flag
+
+| Campaign id | Shape | What it plays |
+| --- | --- | --- |
+| `faultline` | An ordered list of 12 nodes | The linear ten fights with two full-heal rests — the tuned build every playtest number is measured against |
+| `act-1-warrens` | An act map: 12 nodes in 7 columns | Act 1 — "The Warrens" |
+
+`CampaignDefinition.Map` is the fork: `null` means the list, non-null means the graph, and `IsMapped`
+is the one field the run engine branches on. Both campaigns are in `CampaignLibrary.All()`, both field
+the same four classes (Vanguard, Archer, Fisher, Wardbearer), and **starting a run with one id is the
+only thing that decides which shape it walks.** The linear ten is not replaced and not deprecated
+(D-115).
+
+Everything above about attrition, Bedraggled, voiding and the node seam applies to both.
+
+### Act 1 — twelve nodes, seven columns, a run visits seven
+
+Hand-authored, not generated (D-116). Doors always step **exactly one column forward**, so a run
+stands on exactly one node per column and finishes on seven of the twelve.
+
+| Col | Safe lane | Neutral | Hungry lane |
+| --- | --- | --- | --- |
+| 1 | | **First Contact** — fight, `first-contact` | |
+| 2 | **Bait and Break** — fight, `cb-06-bait-and-break` | | **The Teeth** — fight, `the-teeth` |
+| 3 | **The Shrine** — fight, `the-shrine` | **?** — event, the Molting Pool (**the crossing**) | **Broken Bridge** — fight, `broken-bridge` |
+| 4 | **Camp** — campfire | | **High Road** — elite, `high-road`, marked `legendary-pick-1-of-2` |
+| 5 | **Break the Gate** — fight, `break-the-gate` | | **The Trench** — fight, `hz-09-the-trench` |
+| 6 | | **Camp** — campfire | |
+| 7 | | **The Quarry King** — boss, `quarry-king` | |
+
+Fifteen doors join them:
+
+- column 1 opens onto both column-2 fights;
+- **Bait and Break** → the Shrine *or* the pool; **the Teeth** → the pool *or* Broken Bridge;
+- **the Shrine** → Camp only; **Broken Bridge** → the High Road only;
+- **the pool** → Camp *or* the High Road — it is the act's **single crossing**, the one node with a
+  door into both lanes, so the column-2 vote is a real commitment and there is exactly one place to
+  change your mind;
+- Camp → Break the Gate; the High Road → the Trench; both column-5 fights → the pre-boss Camp; the
+  pre-boss Camp → the Quarry King.
+
+Three structural facts are pinned by tests rather than by care: **the pre-boss campfire is reachable
+from every lane and is the only way to the boss**; **the HP-priced event is never on a lane with no
+campfire** (from the pool, a Camp is always one door away); and **the hungry lane has no mid-lane
+campfire and carries the act's only reward mark.**
+
+A route therefore plays **four to six fights**: four at fewest (pool then Camp), six at most (the
+Teeth → Broken Bridge → High Road → the Trench, plus the opener and the boss). Nine distinct boards
+sit on the graph, which is the linear ten minus `hold-the-gate`; that board is off the act and is now
+tagged in `EventFightPool` instead, while the linear campaign still fields it.
+
+`ActMap.Validate()` is the constraint linter and returns one sentence per structural fault — a door
+that does not step one column, a node with no way in, a node that cannot reach the boss, more than one
+terminal, a combat node naming no fight. Act 1 returns none.
+
+### Walking, voting, and the coin
+
+At the end of a node the run looks at the doors out of it.
+
+- **One door: the run walks it.** No vote, no command, no prompt. A one-option vote is a fake button
+  (D-117). On Act 1 that is every column except 1, 2 and the pool.
+- **Two doors: the run enters `AtVote`** and the *only* legal commands are votes.
+
+A vote is **one command carrying both picks** — `VoteCommand(ChoiceA, ChoiceB)` — because a state
+where one pick is in and the other is not is the state a re-vote comes from. Blindness is the picking
+surface's job; the rules hear about a vote only once it is already decided. `AtVote` is entered once
+per fork and never returned to: **there are no re-votes.**
+
+| Vote | What happens |
+| --- | --- |
+| **Both picks match** | The run moves to that node. No coin is drawn and the run RNG is untouched. |
+| **The picks split** | A seeded coin decides: `SeededRng(RngState).Next(2)`. **Coin 0 takes Player A's door**, coin 1 takes Player B's. The cursor advances and is written back onto the run. |
+
+This is **the only draw the run layer makes.** It comes from the run RNG cursor (`RunState.RngState`,
+opened on the run seed), not from the fight seed — fights are still started from `RunState.Seed`, so a
+coin flip does not reshuffle the enemies behind the next door. A save carries the cursor; replaying a
+seed plus its command log flips the same coins in the same order and reaches the same route.
+
+A vote naming a door that is not there is refused by name. On Act 1 a run votes at most three times:
+leaving column 1, leaving column 2, and leaving the pool.
+
+### The campfire — half, rounded up, per duck
+
+The act map's Camp is `MapRestNode`, a **different node type** from the linear campaign's full-heal
+rest, which is unchanged (D-053, D-119).
+
+- **Heal = `ceil(MaxHp / 2)`**, computed **per duck off its own ceiling**, and capped at that ceiling.
+  A Vanguard or Wardbearer on 14 heals **7**; an Archer or Fisher on 8 heals **4**; a duck that bought
+  a raise at the Molting Pool has a ceiling of 16 and heals **8**.
+- A **downed** duck stands up on half its ceiling and the downed mark clears — so it is not
+  Bedraggled in the next fight. The campfire ends the downing; it does not make the downing good.
+- A **voided** duck is untouched. Voiding is still the run's one permanent loss.
+- A duck already at full is skipped, and nothing is reported for it.
+- **Healing is the only option.** The campfire refuses any other command by name: forge and
+  curse-scraping are not built, and are not offered greyed out.
+
+### The Molting Pool — the whole event tier
+
+One event exists (D-120). It sits at Act 1's crossing and is an **Offer**, meaning it can be walked
+away from for nothing.
+
+| | |
+| --- | --- |
+| **Terms** | Printed in full — prompt, cost, gain and walk-away line — *before* any choice is legal. Nothing is drawn and nothing is hidden. |
+| **Price** | **4 HP now**, from one named duck. |
+| **Gain** | **+2 maximum HP for the rest of the run**, on that same duck. |
+| **Lethal block** | A duck may pay only if it would be left on **1 HP or more** — so 5 HP is the floor. A duck that cannot survive the price **is not offered as a payer at all.** The pool takes blood, not ducks. |
+| **Downed or voided** | Cannot pay, ever. |
+| **Consent** | Every legal payment names **one specific duck**. There is no party-wide accept, so the party cannot vote a duck into bleeding. |
+| **Walking away** | Free, legal, and reported. The run advances with nothing spent and nothing gained. |
+
+The raise is held as a **bonus**, not as a new absolute ceiling: `RunUnit.MaxHp` is the archetype's
+maximum plus whatever this run has added, so a later balance change to a class still reaches an
+upgraded duck. It survives fights, campfires and saves.
+
+**What the raised ceiling changes**, because both are formulas that read the ceiling:
+
+- **The campfire** heals 8 instead of 7 for a raised Vanguard.
+- **Bedraggled** returns `ceil(MaxHp / 4)`, so a 16-max duck comes back on **4** — the same 4 a
+  14-max Vanguard gets, since both quarters round to 4. A **second** pool takes the ceiling to 18 and
+  the return to **5**. One raise is worth more at the campfire than it is on the downed return.
+
+### What the map promises and does not pay
+
+The **High Road** is the act's one marked destination: an **elite** node carrying
+`legendary-pick-1-of-2`. Entering it emits a `RewardPromised` event whose `Payable` flag is **false**,
+and **nothing is granted** — there is no legendary catalog, no pick-one-of-two surface, and no method
+in Core turns a reward mark into anything a squad carries (D-118, pinned by a reflection test). An
+elite node is otherwise an ordinary fight on a harder board; it changes no rule.
+
+The **boss** ends the act. Clearing the Quarry King emits `ActCleared` with the route, the nodes
+visited, the route hash, `MoltAwarded: false`, and a tally line that says so out loud:
+
+> Act cleared. The Molt is not built: no reward is granted here yet (MASTER_DESIGN §8.5).
+
+Then the run is won. The Molt — the boss's full heal plus its guaranteed big pick — is unbuilt, and
+the ending reports the gap rather than dressing it.
+
+### Not built
+
+Named here so the gap between intent and build stays visible, not to promise a date:
+
+- **The constraint generator** and its proof log. Act 1 is hand-authored; `ActMap.Validate()` holds
+  the constraints a generator will have to satisfy (D-116).
+- **Acts 2 and 3.** One map ships.
+- **Nine of the ten events** the design names. They are not stubbed: an id with no handler behind it
+  is a `?` the map could route a run into (D-120).
+- **Straits** — events where every exit is priced. The shape exists in the model; no Strait is
+  authored.
+- **Legendaries, consumables and the pick-one-of-two surface**, so no reward mark is payable, and the
+  act's only differentiated destination is the one thing a renderer must not draw.
+- **The Molt.**
+- **Forge and curse-scraping** at the campfire.
+- **`RunUnit.Owner`.** Consent is structural rather than checked, and stays that way until the Dock
+  draft (D-121).
+- **The Peddler's Coin**, the one licensed re-flip. When it lands it re-flips the coin, not the vote.
 
 ## Fight 1 — "Kill All"
 
