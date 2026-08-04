@@ -1,5 +1,13 @@
 # Changelog
 
+## The session's rulings land in DECISIONS.md
+
+- **D-104 to D-113 written up** — the Great Doubling, the Action Point turn, the fused rescue, the
+  purse/legs split, the Archer's high-ground exception, Bedraggled, Stagger Shot's inherited
+  exception, the Warden's rescue slot, interpolated rule numbers and the one colour token per side —
+  clearing a backlog whose reasoning had been living in commit messages. D-053's return number and
+  D-082's rescue price are marked partly superseded; no code changed.
+
 ## The bestiary reads its numbers off the rules, and a side has one colour
 
 - **The Runt's quirk stopped printing `{runt.MaxHp}` at the player.** A concatenated fragment had
