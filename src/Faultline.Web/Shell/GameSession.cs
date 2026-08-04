@@ -202,6 +202,53 @@ public sealed class GameSession
     /// <summary>The inspected unit, resolved.</summary>
     public Unit? InspectedUnit => Inspected is null ? null : State.FindUnit(Inspected.Value);
 
+    /// <summary>
+    /// Tile the player has opened the inspector on, when they clicked ground rather than a body.
+    /// </summary>
+    /// <remarks>
+    /// A view, like <see cref="Inspected"/>: what a drain does to whoever is shoved onto it is a rule
+    /// a player has to be able to read <em>before</em> aiming at it, and the alternative to a panel
+    /// that says so is a tooltip nobody hovers in time.
+    /// </remarks>
+    public Coord? InspectedTile { get; private set; }
+
+    /// <summary>Reads a tile in the inspector. Never a command.</summary>
+    /// <param name="tile">Tile to read.</param>
+    public void InspectTile(Coord tile)
+    {
+        if (State.Board.InBounds(tile))
+        {
+            Inspected = null;
+            InspectedTile = tile;
+        }
+
+        Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// The enemy whose declared plan is being singled out on the board, from hovering its card in
+    /// the activation strip.
+    /// </summary>
+    /// <remarks>
+    /// Every intent is drawn at once and faintly; this one is drawn at full opacity. Painting them
+    /// all loudly is the same mistake the threat union made (D-089) — a board covered in red arrows
+    /// says only "something is coming", which is not a fact anybody can plan against.
+    /// </remarks>
+    public UnitId? Telegraphed { get; private set; }
+
+    /// <summary>Singles out one enemy's telegraph, or drops the singling out.</summary>
+    /// <param name="unitId">Enemy to highlight, or null for none.</param>
+    public void Telegraph(UnitId? unitId)
+    {
+        if (Telegraphed.Equals(unitId))
+        {
+            return;
+        }
+
+        Telegraphed = unitId;
+        Changed?.Invoke();
+    }
+
     /// <summary>Core's description of the inspected unit's archetype.</summary>
     public EnemyBehaviour? InspectedBehaviour =>
         InspectedUnit is null ? null : EnemyBehaviour.ForKind(InspectedUnit.Kind);
@@ -231,16 +278,18 @@ public sealed class GameSession
         if (CanInspect(State.FindUnit(id)))
         {
             Inspected = id;
+            InspectedTile = null;
             Tab = ReferenceTab.Unit;
         }
 
         Changed?.Invoke();
     }
 
-    /// <summary>Forgets the inspected unit, leaving the unit tab on its empty state.</summary>
+    /// <summary>Forgets whatever the inspector was reading, leaving it on its empty state.</summary>
     public void ClearInspection()
     {
         Inspected = null;
+        InspectedTile = null;
         Changed?.Invoke();
     }
 
@@ -477,6 +526,8 @@ public sealed class GameSession
         _chosen.Clear();
         Selected = null;
         Inspected = null;
+        InspectedTile = null;
+        Telegraphed = null;
         Tab = ReferenceTab.Abilities;
         Hovered = null;
         Mode = ActionMode.Move;
@@ -939,6 +990,142 @@ public sealed class GameSession
     }
 
     /// <summary>
+    /// What the hovered action would do, tile by tile, so the outcome can be drawn on the board
+    /// rather than only written beside it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Every figure is read out of a Core preview — <see cref="Combat.CanAttack"/>,
+    /// <see cref="Abilities.PreviewLine"/>, <see cref="Abilities.PreviewCharge"/>,
+    /// <see cref="Abilities.PreviewTarget"/> and <see cref="Displacement.PreviewAuto"/>. The shell
+    /// adds no arithmetic of its own; it only decides which tile each number belongs on.
+    /// </para>
+    /// <para>
+    /// The board carries the outcome and the panel supports it, not the other way round: an aim that
+    /// only reads correctly in a sentence beside the board is an aim the player has to look away to
+    /// understand.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<PreviewMark> PreviewMarks
+    {
+        get
+        {
+            var marks = new List<PreviewMark>();
+            var unit = SelectedUnit;
+
+            if (unit is null || Hovered is null || !Targets.TryGetValue(Hovered.Value, out var command))
+            {
+                return marks;
+            }
+
+            switch (command)
+            {
+                case AttackCommand { Mode: AttackMode.Damage } attack:
+                {
+                    var target = State.UnitById(attack.TargetId);
+                    Combat.CanAttack(State, unit, target, out int damage);
+                    Add(marks, target.Position, damage, DisplacementStop.RanOut, damage >= target.Hp);
+                    AddDisplacement(marks, HoveredDisplacement());
+                    break;
+                }
+
+                case AttackCommand:
+                    AddDisplacement(marks, HoveredDisplacement());
+                    break;
+
+                case AbilityCommand ability:
+                {
+                    var descriptor = AbilityDescriptor.For(ability.Ability);
+
+                    if (descriptor.Targeting == AbilityTargeting.Line && ability.Direction.HasValue)
+                    {
+                        foreach (var hit in Abilities.PreviewLine(State, unit, ability.Direction.Value, ability.Ability))
+                        {
+                            var struck = hit.UnitId is null ? null : State.FindUnit(hit.UnitId.Value);
+                            Add(marks, hit.At, hit.Damage, DisplacementStop.RanOut,
+                                struck is not null && hit.Damage >= struck.Hp);
+                        }
+
+                        break;
+                    }
+
+                    if (descriptor.Targeting == AbilityTargeting.Direction && ability.Direction.HasValue)
+                    {
+                        var charge = Abilities.PreviewCharge(State, unit, ability.Direction.Value);
+
+                        // The lane's own cost to the charger, on the tile it ends on. A dash that
+                        // hurts is still a legal dash, and the number is why a player takes it anyway.
+                        Add(marks, charge.Destination, charge.SelfDamage, DisplacementStop.RanOut, false);
+                        AddDisplacement(marks, charge.Contact);
+                        break;
+                    }
+
+                    if (ability.TargetId is { } targetId && State.FindUnit(targetId) is { } aimed)
+                    {
+                        Add(marks, aimed.Position, descriptor.Damage, DisplacementStop.RanOut,
+                            descriptor.Damage > 0 && descriptor.Damage >= aimed.Hp);
+                    }
+
+                    AddDisplacement(marks, HoveredDisplacement());
+                    break;
+                }
+            }
+
+            return marks;
+        }
+    }
+
+    private void AddDisplacement(List<PreviewMark> marks, DisplacementPreview? preview)
+    {
+        if (preview is null || preview.IsNoOp)
+        {
+            return;
+        }
+
+        Add(marks, preview.Destination, preview.DamageToUnit, preview.Stop, preview.WouldDown);
+
+        // A collision hurts both bodies, and the second one is the half a player forgets.
+        if (preview.ObstacleId is { } obstacleId
+            && State.FindUnit(obstacleId) is { } obstacle
+            && preview.DamageToObstacle > 0)
+        {
+            Add(marks, obstacle.Position, preview.DamageToObstacle, DisplacementStop.Collision,
+                preview.DamageToObstacle >= obstacle.Hp);
+        }
+
+        if (preview.StructureAt is { } structureAt && preview.DamageToStructure > 0)
+        {
+            Add(marks, structureAt, preview.DamageToStructure, DisplacementStop.Collision, false);
+        }
+    }
+
+    // One mark per tile: the loudest claim wins, so a tile that both takes a hit and is a landing
+    // reads as the hit rather than as two overlapping labels.
+    private static void Add(
+        List<PreviewMark> marks, Coord at, int damage, DisplacementStop stop, bool fatal)
+    {
+        if (damage <= 0 && stop is DisplacementStop.RanOut or DisplacementStop.Immovable)
+        {
+            return;
+        }
+
+        for (int i = 0; i < marks.Count; i++)
+        {
+            if (marks[i].At.Equals(at))
+            {
+                if (damage > marks[i].Damage)
+                {
+                    marks[i] = new PreviewMark(at, damage, stop, fatal);
+                }
+
+                return;
+            }
+        }
+
+        marks.Add(new PreviewMark(at, damage, stop, fatal));
+    }
+
+    /// <summary>
     /// Plain-language description of what the hovered action would do, built entirely from Core
     /// previews so it can never promise something the rules will not deliver.
     /// </summary>
@@ -1348,6 +1535,13 @@ public sealed class GameSession
         if (Inspected.HasValue && !(State.FindUnit(Inspected.Value)?.IsOnBoard ?? false))
         {
             Inspected = null;
+        }
+
+        // Same rule for the singled-out telegraph: an arrow drawn from a body that is no longer
+        // there is the loudest kind of lie a board can tell.
+        if (Telegraphed.HasValue && !(State.FindUnit(Telegraphed.Value)?.IsOnBoard ?? false))
+        {
+            Telegraphed = null;
         }
 
         // Core commits a unit to its activation on that unit's first command; follow it so the

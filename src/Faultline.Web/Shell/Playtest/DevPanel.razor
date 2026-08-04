@@ -1,0 +1,602 @@
+@inherits PlaytestPanel
+@inject DevPanelState Dev
+
+@* The developer panel: five drawers of things a playtester needs and a player must never see.
+
+   It draws nothing at all on a release build — not a strip, not a button, no markup. DevBuild is the
+   one gate, and DevPanelState refuses every mutation behind it, so there is no arrangement of stored
+   preferences that can bring this back on a shipped build.
+
+   Nothing here decides a rule. Every fact is read off Core or off the session, and the two controls
+   that change the board (start a battle, restart on a seed) go through GameSession like any other
+   caller would. *@
+
+@if (DevPanelState.Available)
+{
+    @if (Dev.Expanded)
+    {
+        @* Clicking away from an expanded drawer docks it rather than closing it, which is what the
+           gesture means: get this off the board, not throw the panel away. *@
+        <div class="backdrop" @onclick="Dev.Collapse"></div>
+    }
+
+    <div class="dev @(Dev.Open ? "open" : "shut") @(Dev.Expanded ? "expanded" : string.Empty)"
+         tabindex="-1"
+         @ref="_root"
+         @onkeydown="OnRootKeyDown">
+
+        @if (!Dev.Open)
+        {
+            <div class="strip">
+                <span class="badge">DEV</span>
+
+                @foreach (var tab in Order)
+                {
+                    var it = tab;
+                    <button type="button"
+                            class="jump"
+                            title="@Title(it)"
+                            @onclick="() => Dev.Show(it)">@Glyph(it) @Label(it)</button>
+                }
+
+                <span class="spacer"></span>
+
+                <button type="button"
+                        class="icon"
+                        title="Open the developer panel"
+                        aria-label="Open the developer panel"
+                        aria-expanded="false"
+                        @onclick="Dev.Toggle">›</button>
+            </div>
+        }
+        else
+        {
+            <div class="tabs" role="tablist" aria-label="Developer tools">
+                <span class="badge">DEV</span>
+
+                <button type="button" role="tab" id="dev-tab-battles"
+                        class="tab @On(DevTab.Battles)"
+                        aria-selected="@Selected(DevTab.Battles)"
+                        aria-controls="dev-tabpanel"
+                        tabindex="@TabIndex(DevTab.Battles)"
+                        title="@Title(DevTab.Battles)"
+                        @ref="_battles"
+                        @onclick="() => Dev.Show(DevTab.Battles)"
+                        @onkeydown="OnTabKeyDown">BATTLES</button>
+
+                <button type="button" role="tab" id="dev-tab-state"
+                        class="tab @On(DevTab.State)"
+                        aria-selected="@Selected(DevTab.State)"
+                        aria-controls="dev-tabpanel"
+                        tabindex="@TabIndex(DevTab.State)"
+                        title="@Title(DevTab.State)"
+                        @ref="_state"
+                        @onclick="() => Dev.Show(DevTab.State)"
+                        @onkeydown="OnTabKeyDown">STATE</button>
+
+                <button type="button" role="tab" id="dev-tab-ai"
+                        class="tab @On(DevTab.Ai)"
+                        aria-selected="@Selected(DevTab.Ai)"
+                        aria-controls="dev-tabpanel"
+                        tabindex="@TabIndex(DevTab.Ai)"
+                        title="@Title(DevTab.Ai)"
+                        @ref="_ai"
+                        @onclick="() => Dev.Show(DevTab.Ai)"
+                        @onkeydown="OnTabKeyDown">AI</button>
+
+                <button type="button" role="tab" id="dev-tab-replay"
+                        class="tab @On(DevTab.Replay)"
+                        aria-selected="@Selected(DevTab.Replay)"
+                        aria-controls="dev-tabpanel"
+                        tabindex="@TabIndex(DevTab.Replay)"
+                        title="@Title(DevTab.Replay)"
+                        @ref="_replay"
+                        @onclick="() => Dev.Show(DevTab.Replay)"
+                        @onkeydown="OnTabKeyDown">REPLAY</button>
+
+                <button type="button" role="tab" id="dev-tab-overlays"
+                        class="tab @On(DevTab.Overlays)"
+                        aria-selected="@Selected(DevTab.Overlays)"
+                        aria-controls="dev-tabpanel"
+                        tabindex="@TabIndex(DevTab.Overlays)"
+                        title="@Title(DevTab.Overlays)"
+                        @ref="_overlays"
+                        @onclick="() => Dev.Show(DevTab.Overlays)"
+                        @onkeydown="OnTabKeyDown">OVERLAYS</button>
+
+                <span class="spacer"></span>
+
+                <button type="button"
+                        class="icon"
+                        aria-pressed="@(Dev.Expanded ? "true" : "false")"
+                        title="@(Dev.Expanded ? "Put this drawer back in its dock (Escape)" : "Blow this drawer up over the board")"
+                        aria-label="Expand the developer panel"
+                        @onclick="Dev.ToggleExpanded">@(Dev.Expanded ? "⤡" : "⤢")</button>
+
+                <button type="button"
+                        class="icon"
+                        title="Collapse the developer panel"
+                        aria-label="Collapse the developer panel"
+                        aria-expanded="true"
+                        @onclick="Dev.Close">×</button>
+            </div>
+
+            <div class="pt-body dev-body"
+                 id="dev-tabpanel"
+                 role="tabpanel"
+                 aria-labelledby="@LabelledBy">
+                @switch (Dev.Tab)
+                {
+                    case DevTab.State:
+                        @RenderState
+                        break;
+
+                    case DevTab.Ai:
+                        @RenderAi
+                        break;
+
+                    case DevTab.Replay:
+                        @RenderReplay
+                        break;
+
+                    case DevTab.Overlays:
+                        @RenderOverlays
+                        break;
+
+                    default:
+                        @RenderBattles
+                        break;
+                }
+            </div>
+        }
+    </div>
+}
+
+@* ---- BATTLES: which board is loaded, on which seed --------------------------------------------- *@
+@code {
+    private RenderFragment RenderBattles => @<div class="drawer">
+        <div class="row">
+            <label class="lbl" for="dev-fight">Battle</label>
+            <select id="dev-fight" class="ctl grow" value="@_fightId" @onchange="OnPickFight">
+                <option value="">— pick a battle —</option>
+                @foreach (var entry in Playable)
+                {
+                    <option value="@entry.Fight!.Id">#@entry.Fight!.Number @entry.Fight!.Name@(entry.Lints.Count == 0 ? string.Empty : $" · {entry.Lints.Count} lint(s)")</option>
+                }
+            </select>
+        </div>
+
+        <div class="row">
+            <label class="lbl" for="dev-seed">Seed</label>
+            <input id="dev-seed" class="ctl num" type="number" @bind="_seed" @bind:event="oninput" />
+
+            @* Starting a one-off battle takes the board off any run that owns it. That is the same
+               thing the battle picker page does, and RunSession.ResumeBoard puts the run's fight back
+               when the player returns to it. *@
+            <button type="button" class="tool" disabled="@(_fightId.Length == 0)" @onclick="StartPicked">Start battle</button>
+            <button type="button" class="tool" title="Replay this same battle from a different seed." @onclick="RestartWithSeed">Restart with seed</button>
+        </div>
+
+        <p class="meta">
+            Loaded: @Session.Fight.Name (@Session.Fight.Id) · seed @Session.Seed
+            · @Session.State.Board.Width×@Session.State.Board.Height · round @Session.State.Round
+        </p>
+
+        @if (Session.InRun)
+        {
+            <p class="meta">
+                Run node @(Runs.State?.NodeIndex ?? 0): @(Runs.CurrentNode?.Describe() ?? "—")
+                · @Runs.Definition.Nodes.Count node(s) · phase @(Runs.State?.Phase.ToString() ?? "—")
+            </p>
+            <p class="meta warn">
+                Read-only: Core's run layer takes <code>EnterNodeCommand</code> and
+                <code>PlayCommand</code> and nothing that jumps, so there is no honest way to skip to
+                a node from here. Start the node's battle above as a one-off instead.
+            </p>
+        }
+    </div>;
+}
+
+@* ---- STATE: the raw board, read-only ----------------------------------------------------------- *@
+@code {
+    private RenderFragment RenderState => @<div class="drawer">
+        <h3 class="head">Inspecting</h3>
+        @{
+            var subject = Inspection.Resolve(Session);
+        }
+        @if (subject.Unit is { } unit)
+        {
+            <dl class="kv">
+                <div><dt>Kind</dt><dd>@subject.Kind</dd></div>
+                <div><dt>Unit</dt><dd>@unit.Name (@unit.Id)</dd></div>
+                <div><dt>Team</dt><dd>@unit.Team</dd></div>
+                <div><dt>Tile</dt><dd>@unit.Position · @subject.Terrain</dd></div>
+                <div><dt>HP</dt><dd>@unit.Hp/@unit.MaxHp</dd></div>
+                <div><dt>Move left</dt><dd>@unit.MoveRemaining</dd></div>
+                <div><dt>Flags</dt><dd>@Flags(unit)</dd></div>
+            </dl>
+        }
+        else if (subject.Kind != InspectKind.None)
+        {
+            <dl class="kv">
+                <div><dt>Kind</dt><dd>@subject.Kind</dd></div>
+                <div><dt>Tile</dt><dd>@(subject.Tile?.ToString() ?? "—")</dd></div>
+                <div><dt>Terrain</dt><dd>@subject.Terrain</dd></div>
+                <div><dt>Structure</dt><dd>@(subject.Structure is null ? "—" : $"{subject.Structure.Role} · {subject.Structure.Hp}/{subject.Structure.MaxHp} hp")</dd></div>
+            </dl>
+        }
+        else
+        {
+            <p class="meta">Nothing selected or inspected.</p>
+        }
+
+        <h3 class="head">GameState</h3>
+        <dl class="kv">
+            <div><dt>Round</dt><dd>@State.Round</dd></div>
+            <div><dt>Phase</dt><dd>@State.Phase</dd></div>
+            <div><dt>Active team</dt><dd>@State.ActiveTeam</dd></div>
+            <div><dt>Active unit</dt><dd>@(State.ActiveUnitId?.ToString() ?? "—")</dd></div>
+            <div><dt>Outcome</dt><dd>@State.Outcome</dd></div>
+            <div><dt>Units</dt><dd>@State.Units.Count (@State.UnitsOnBoard().Count() on board)</dd></div>
+            <div><dt>Structures</dt><dd>@State.Structures.Count</dd></div>
+            <div><dt>Intents</dt><dd>@State.Intents.Count</dd></div>
+            <div><dt>Queue</dt><dd>@Upcoming.Count activation(s)</dd></div>
+            <div><dt>Seed</dt><dd>@State.Seed</dd></div>
+            <div><dt>RNG cursor</dt><dd>@State.RngState</dd></div>
+
+            @* Core publishes no run-hash or determinism-digest API. GetHashCode is the closest thing
+               it has, and it is a value hash for equality — not a determinism contract, not stable
+               across processes or runtimes. Read it as "did this change", never as "is this the same
+               fight as yesterday's". *@
+            <div><dt>State hash</dt><dd title="GameState.GetHashCode() — a value hash, not a determinism contract.">@State.GetHashCode()</dd></div>
+        </dl>
+
+        <h3 class="head">Next up</h3>
+        @if (Upcoming.Count == 0)
+        {
+            <p class="meta">No activation order published — deployment, or the fight has resolved.</p>
+        }
+        else
+        {
+            <ol class="queue">
+                @foreach (var entry in Upcoming.Take(QueuePreview))
+                {
+                    <li>
+                        <span class="rd">r@(entry.Round)</span>
+                        <span class="who">@QueueName(entry)</span>
+                        <span class="meta">@entry.Team · @entry.Kind@(entry.Skip == ActivationSkip.None ? string.Empty : " · " + entry.Skip)</span>
+                    </li>
+                }
+            </ol>
+        }
+    </div>;
+}
+
+@* ---- AI: the declared plan, and the socket its reasoning will go in ----------------------------- *@
+@code {
+    private RenderFragment RenderAi => @<div class="drawer">
+        @{
+            var subject = Inspection.Resolve(Session);
+            var enemy = subject.Kind == InspectKind.Enemy ? subject.Unit : null;
+        }
+
+        @if (enemy is null)
+        {
+            <p class="meta">Click an enemy — on the board, in the turn order or in the intents list — to read its plan.</p>
+        }
+        else
+        {
+            <dl class="kv">
+                <div><dt>Enemy</dt><dd>@enemy.Name (@enemy.Id)</dd></div>
+                <div><dt>Declared</dt><dd>@Intents.Sentence(State, Intents.For(State, enemy.Id))</dd></div>
+                <div><dt>Category</dt><dd>@Intents.CategoryOf(Intents.For(State, enemy.Id), State)</dd></div>
+            </dl>
+        }
+
+        @* Deliberately empty. Core's planner publishes what it decided (EnemyIntent) and the static
+           clause list its archetype decides by (EnemyBehaviour.Priorities), but nothing per-decision
+           about *why* this clause won on this board — no scores, no rejected candidates, no trace.
+           Inventing one in the shell would be a second, disagreeing copy of the planner, so the
+           socket stays empty until Core can fill it. *@
+        <p class="soon">Decision trace coming soon.</p>
+    </div>;
+}
+
+@* ---- REPLAY: the command log out, a command log in, and one step back -------------------------- *@
+@code {
+    private RenderFragment RenderReplay => @<div class="drawer">
+        <h3 class="head">Export command log</h3>
+        <textarea class="box" rows="6" readonly
+                  @onkeydown:stopPropagation="true"
+                  @onkeypress:stopPropagation="true"
+                  @onkeyup:stopPropagation="true">@Session.RenderCombatLog()</textarea>
+        <p class="meta">
+            @Session.LogFileName · @Session.RecordedLineCount line(s)
+            · @(Session.Recording
+                ? Session.RecordingIsComplete
+                    ? "covers the whole fight"
+                    : "started mid-fight — will not replay from the seed"
+                : "recording is off")
+        </p>
+
+        <h3 class="head">Load replay</h3>
+        <textarea class="box" rows="4"
+                  placeholder="Paste a command log."
+                  value="@_replayText"
+                  @oninput="OnReplayInput"
+                  @onkeydown:stopPropagation="true"
+                  @onkeypress:stopPropagation="true"
+                  @onkeyup:stopPropagation="true"></textarea>
+        <div class="row">
+            <button type="button" class="tool" disabled="@(_replayText.Trim().Length == 0)" @onclick="ParseReplay">Parse</button>
+            @if (_replayStatus is not null)
+            {
+                <span class="meta status">@_replayStatus</span>
+            }
+        </div>
+
+        <h3 class="head">Step</h3>
+        <div class="row">
+            <button type="button" class="tool" disabled="@(!CanUndo)" title="Rewind to just before the last command a person chose." @onclick="Undo">Undo</button>
+            <span class="meta">@(Session.InRun ? "The run owns the command stream." : "Fight-level command log.")</span>
+        </div>
+    </div>;
+}
+
+@* ---- OVERLAYS: what the board paints ------------------------------------------------------------ *@
+@code {
+    private RenderFragment RenderOverlays => @<div class="drawer">
+        <div class="row wrap">
+            <button type="button"
+                    class="tool @(View.ShowTileIds ? "on" : string.Empty)"
+                    aria-pressed="@(View.ShowTileIds ? "true" : "false")"
+                    title="Print every tile's coordinate on it."
+                    @onclick="View.ToggleTileIds">Tile ids</button>
+
+            <button type="button"
+                    class="tool @(View.ShowPathCosts ? "on" : string.Empty)"
+                    aria-pressed="@(View.ShowPathCosts ? "true" : "false")"
+                    title="Print what each reachable tile costs the selected unit to stand on."
+                    @onclick="View.TogglePathCosts">Path costs</button>
+
+            <button type="button"
+                    class="tool @(View.ShowThreatUnion ? "on" : string.Empty)"
+                    aria-pressed="@(View.ShowThreatUnion ? "true" : "false")"
+                    title="Paint the whole enemy side's reach at once. Covered 47 of 49 tiles on fight 1 (D-089) — a debugging overlay, not a play aid."
+                    @onclick="View.ToggleThreatUnion">Threat union</button>
+
+            <button type="button"
+                    class="tool @(View.ShowApAudit ? "on" : string.Empty)"
+                    aria-pressed="@(View.ShowApAudit ? "true" : "false")"
+                    title="Print the selected unit's Action Point arithmetic beside it."
+                    @onclick="View.ToggleApAudit">AP audit</button>
+        </div>
+
+        <p class="meta">
+            Overlays are drawn by the board, never by this panel, and none of them can reach a rule.
+        </p>
+    </div>;
+}
+
+@code {
+    /// <summary>How many upcoming activations the state drawer previews.</summary>
+    private const int QueuePreview = 6;
+
+    private static readonly DevTab[] Order =
+    {
+        DevTab.Battles,
+        DevTab.State,
+        DevTab.Ai,
+        DevTab.Replay,
+        DevTab.Overlays,
+    };
+
+    private ElementReference _root;
+    private ElementReference _battles;
+    private ElementReference _state;
+    private ElementReference _ai;
+    private ElementReference _replay;
+    private ElementReference _overlays;
+
+    // Whether the root has already been focused for the expansion it is currently in. Focusing on
+    // every render would take the caret out of whatever the playtester was typing.
+    private bool _focused;
+
+    private string _fightId = string.Empty;
+    private int _seed = GameSession.DefaultSeed;
+    private string _replayText = string.Empty;
+    private string? _replayStatus;
+
+    private static IReadOnlyList<FightParseResult> Playable =>
+        GameSession.Library.Where(r => r.Ok).ToList();
+
+    private IReadOnlyList<ActivationEntry> Upcoming => TurnOrder.Upcoming(State);
+
+    private bool CanUndo => Session.InRun ? Runs.CanUndo : Session.CanUndo;
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Dev.Changed += Redraw;
+        _seed = Session.Seed;
+    }
+
+    /// <inheritdoc/>
+    public override void Dispose()
+    {
+        Dev.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Escape only returns an expanded drawer if the keystroke reaches the panel, and it only
+        // reaches the panel if the panel has focus. Taken once per expansion, given back on dock.
+        if (Dev.Expanded && !_focused)
+        {
+            _focused = true;
+            await _root.FocusAsync();
+        }
+        else if (!Dev.Expanded)
+        {
+            _focused = false;
+        }
+    }
+
+    private void OnRootKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            Dev.Collapse();
+        }
+    }
+
+    private async Task OnTabKeyDown(KeyboardEventArgs args)
+    {
+        int at = Array.IndexOf(Order, Dev.Tab);
+        int next = args.Key switch
+        {
+            "ArrowRight" or "ArrowDown" => (at + 1) % Order.Length,
+            "ArrowLeft" or "ArrowUp" => (at + Order.Length - 1) % Order.Length,
+            "Home" => 0,
+            "End" => Order.Length - 1,
+            _ => at,
+        };
+
+        if (next == at)
+        {
+            return;
+        }
+
+        Dev.Show(Order[next]);
+        await FocusAsync(Order[next]);
+    }
+
+    private ValueTask FocusAsync(DevTab tab) => tab switch
+    {
+        DevTab.State => _state.FocusAsync(),
+        DevTab.Ai => _ai.FocusAsync(),
+        DevTab.Replay => _replay.FocusAsync(),
+        DevTab.Overlays => _overlays.FocusAsync(),
+        _ => _battles.FocusAsync(),
+    };
+
+    private string On(DevTab tab) => Dev.Tab == tab ? "on" : string.Empty;
+
+    // Spelled out rather than left to a bool: ARIA wants the lower-case literals, and a bool
+    // attribute would be dropped from the markup entirely when it is false.
+    private string Selected(DevTab tab) => Dev.Tab == tab ? "true" : "false";
+
+    // Roving tabindex: one stop for the whole strip, and the arrow keys move within it.
+    private string TabIndex(DevTab tab) => Dev.Tab == tab ? "0" : "-1";
+
+    private string LabelledBy => Dev.Tab switch
+    {
+        DevTab.State => "dev-tab-state",
+        DevTab.Ai => "dev-tab-ai",
+        DevTab.Replay => "dev-tab-replay",
+        DevTab.Overlays => "dev-tab-overlays",
+        _ => "dev-tab-battles",
+    };
+
+    private static string Label(DevTab tab) => tab switch
+    {
+        DevTab.State => "State",
+        DevTab.Ai => "AI",
+        DevTab.Replay => "Replay",
+        DevTab.Overlays => "Overlays",
+        _ => "Battles",
+    };
+
+    private static string Glyph(DevTab tab) => tab switch
+    {
+        DevTab.State => "▤",
+        DevTab.Ai => "◈",
+        DevTab.Replay => "⟲",
+        DevTab.Overlays => "▦",
+        _ => "⚑",
+    };
+
+    private static string Title(DevTab tab) => tab switch
+    {
+        DevTab.State => "The raw GameState: round, phase, queue, RNG cursor, hash.",
+        DevTab.Ai => "What the enemy planner declared for the inspected enemy.",
+        DevTab.Replay => "Export the command log, parse one back, take a step back.",
+        DevTab.Overlays => "Debug overlays painted on the board.",
+        _ => "Load any authored battle on any seed.",
+    };
+
+    private static string Flags(Unit unit)
+    {
+        var flags = new List<string>();
+        if (unit.Staggered) { flags.Add("staggered"); }
+        if (unit.Clinging) { flags.Add("clinging"); }
+        if (!unit.IsOnBoard) { flags.Add("off board"); }
+        if (unit.HasMoved) { flags.Add("moved"); }
+
+        return flags.Count == 0 ? "—" : string.Join(", ", flags);
+    }
+
+    private string QueueName(ActivationEntry entry)
+    {
+        if (entry.UnitId is { } id)
+        {
+            return State.FindUnit(id)?.Name ?? id.ToString();
+        }
+
+        return entry.Candidates.Count == 0 ? "—" : entry.Candidates.Count + " candidate(s)";
+    }
+
+    private void OnPickFight(ChangeEventArgs args) => _fightId = args.Value?.ToString() ?? string.Empty;
+
+    private void StartPicked()
+    {
+        foreach (var entry in Playable)
+        {
+            if (entry.Fight!.Id == _fightId)
+            {
+                Session.StartFight(entry.Fight, _seed);
+                return;
+            }
+        }
+    }
+
+    private void RestartWithSeed() => Session.NewRun(_seed);
+
+    private void OnReplayInput(ChangeEventArgs args)
+    {
+        _replayText = args.Value?.ToString() ?? string.Empty;
+        _replayStatus = null;
+    }
+
+    private void ParseReplay()
+    {
+        // Parsed, never applied. Neither GameSession nor RunSession exposes a "play this log" entry
+        // point, and reaching in to submit the commands one at a time from here would be the shell
+        // driving a fight the run layer thinks it owns. Reporting what parsed is the honest half.
+        if (!RunRecord.TryParse(_replayText, out var record))
+        {
+            _replayStatus = "Could not parse that — a command line was not understood.";
+            return;
+        }
+
+        _replayStatus =
+            $"Parsed {record.Commands.Count} command(s) for {(record.FightId.Length == 0 ? "an unnamed fight" : record.FightId)} "
+            + $"on seed {record.Seed}; replaying is not wired yet.";
+    }
+
+    private void Undo()
+    {
+        if (Session.InRun)
+        {
+            Runs.Undo();
+            return;
+        }
+
+        Session.Undo();
+    }
+}

@@ -426,11 +426,18 @@ public sealed class CastAimingTests
         session.ToggleCast();
         session.AimCastAt(husk);
 
-        Assert.Equal("drain", PlaytestText.CastOutcome(session.State, new Coord(1, 1)));
+        // The words are PlaytestText.Terrain's, not this test's: it is the shell's stand-in for the
+        // display-name layer Core has for archetypes and spends but not yet for terrain, and a test
+        // that spelled the nouns itself would have to be edited again by the tone pass.
         Assert.Equal(
-            "spikes " + Displacement.SpikeDamage,
+            PlaytestText.Terrain(TileType.Pit).ToLowerInvariant(),
+            PlaytestText.CastOutcome(session.State, new Coord(1, 1)));
+        Assert.Equal(
+            PlaytestText.Terrain(TileType.Spikes).ToLowerInvariant() + " " + Displacement.SpikeDamage,
             PlaytestText.CastOutcome(session.State, new Coord(3, 1)));
-        Assert.Equal("open", PlaytestText.CastOutcome(session.State, new Coord(2, 2)));
+        Assert.Equal(
+            PlaytestText.Terrain(TileType.Open).ToLowerInvariant(),
+            PlaytestText.CastOutcome(session.State, new Coord(2, 2)));
     }
 
     [Fact]

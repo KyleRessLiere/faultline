@@ -1,0 +1,250 @@
+@inherits PlaytestPanel
+@inject ActionSpotlight Spotlight
+
+@* One inspector, no tabs. Whatever the player last pointed at — their own duck, an enemy, a tile, a
+   structure — is read here, and the panel branches on Inspection.Resolve rather than on four
+   half-overlapping session fields.
+
+   Nothing in this panel gives an order. The action list below it does that. *@
+
+<div class="pt-panel inspector">
+    <h2>
+        Inspector
+        <span class="count">@Heading</span>
+    </h2>
+
+    <div class="pt-body">
+        @if (Subject.Kind == InspectKind.Friendly && Subject.Unit is { } own)
+        {
+            <div class="head">
+                <span class="art team-@PlaytestText.TeamClass(own.Team)">
+                    <UnitArt Kind="own.Kind" Label="@own.Name" />
+                </span>
+                <span class="ident">
+                    <strong class="name">@own.Name</strong>
+                    <span class="side team-@PlaytestText.TeamClass(own.Team)">@PlaytestText.Team(own.Team)</span>
+                </span>
+            </div>
+
+            <dl class="stats">
+                <div><dt>HP</dt><dd>@own.Hp / @own.MaxHp</dd></div>
+                <div><dt>Move</dt><dd>@own.MoveRemaining / @own.Move</dd></div>
+                <div><dt>Footing</dt><dd>@own.Footing / @own.Template.Footing</dd></div>
+                @if (ActionPoints.Shows(own))
+                {
+                    <div><dt>@ActionPoints.Label</dt><dd>@ActionPoints.Remaining(own) / @ActionPoints.Pool(own)</dd></div>
+                }
+            </dl>
+
+            @* One pip per point of the pool: bright while unspent, hollow once gone, and dimmed for
+               the ones an action the player is merely hovering would take. The preview number comes
+               from the spotlight, which the action list writes and this reads — the row that is
+               hovered and the pips that answer it are two components, and neither owns the other. *@
+            @if (ActionPoints.Shows(own))
+            {
+                <div class="ap-row" title="@ActionPoints.Title(own)">
+                    <span class="ap-pips">
+                        @for (int i = 0; i < ActionPoints.Pool(own); i++)
+                        {
+                            <i class="ap-pip @PipClass(i, ActionPoints.Remaining(own), Spotlight.Preview(own))"></i>
+                        }
+                    </span>
+                    <span class="ap-count">@ActionPoints.Count(own)</span>
+                </div>
+            }
+            else
+            {
+                <ul class="halves">
+                    <li class="@(own.HasMoved ? "spent" : string.Empty)">Move @own.MoveRemaining/@own.Move</li>
+                    <li class="@(own.HasActed ? "spent" : string.Empty)">Action</li>
+                </ul>
+            }
+
+            @if (PlaytestText.Flags(own) is { Length: > 0 } flags)
+            {
+                <p class="status">@flags</p>
+            }
+        }
+        else if (Subject.Kind == InspectKind.Enemy && Subject.Unit is { } foe)
+        {
+            <div class="head">
+                <span class="art team-e"><UnitArt Kind="foe.Kind" Label="@foe.Name" /></span>
+                <span class="ident">
+                    <strong class="name">@foe.Name</strong>
+                    <span class="side epithet">@EnemyBehaviour.RoleFor(foe.Kind)</span>
+                </span>
+            </div>
+
+            <dl class="stats">
+                <div><dt>HP</dt><dd>@foe.Hp / @foe.MaxHp</dd></div>
+                <div><dt>Move</dt><dd>@foe.MoveRemaining / @foe.Move</dd></div>
+                <div><dt>Reach</dt><dd>@PlaytestText.Reach(foe)</dd></div>
+                <div><dt>Footing</dt><dd>@foe.Footing</dd></div>
+            </dl>
+
+            @if (PlaytestText.Flags(foe) is { Length: > 0 } foeFlags)
+            {
+                <p class="status">@foeFlags</p>
+            }
+
+            @* Intent telegraphs are rules-critical UI, not polish (CLAUDE.md), so the whole sentence
+               is on the panel rather than behind a hover. Core writes it; nothing here rewords it. *@
+            <div class="intent-block @Intents.Class(Category(foe))">
+                <span class="intent-head">
+                    <i class="intent-glyph">@Intents.Glyph(Category(foe))</i>
+                    Declared this round
+                </span>
+                <p class="intent-text">@Intents.Sentence(State, Intents.For(State, foe.Id))</p>
+            </div>
+
+            @if (EnemyBehaviour.ForKind(foe.Kind) is { } behaviour)
+            {
+                <p class="flavour">@behaviour.Summary</p>
+
+                @* Collapsed by default: the clause titles are the useful glance and the prose behind
+                   them is the study. Both matter, and putting the prose on screen unasked buries the
+                   plan under the reasoning for it. *@
+                <details class="decides">
+                    <summary>How it decides ›</summary>
+                    <ol class="priority">
+                        @foreach (var step in behaviour.Priorities)
+                        {
+                            <li>
+                                <span class="step-label">@step.Label</span>
+                                <span class="step-detail">@step.Detail</span>
+                            </li>
+                        }
+                    </ol>
+                </details>
+            }
+        }
+        else if (Subject.Kind == InspectKind.Structure && Subject.Structure is { } structure)
+        {
+            <div class="head">
+                <span class="art structure">@(structure.Role == ObjectiveKind.Protect ? "▣" : "▩")</span>
+                <span class="ident">
+                    <strong class="name">
+                        @(structure.Role == ObjectiveKind.Protect ? "Protected structure" : "Target structure")
+                    </strong>
+                    <span class="side">@BoardCoords.Of(structure.At)</span>
+                </span>
+            </div>
+
+            <dl class="stats">
+                <div><dt>HP</dt><dd>@structure.Hp / @structure.MaxHp</dd></div>
+                <div><dt>Objective</dt><dd>@ObjectiveWord(structure)</dd></div>
+            </dl>
+
+            <ul class="rules">
+                <li>
+                    <span class="rule-head">Attacks</span>
+                    @(structure.Role == ObjectiveKind.Protect
+                        ? "Enemies claw at it from an adjacent tile for " + Objectives.AttackDamageToStructure + " a time."
+                        : "Immune to attacks — only a collision counts.")
+                </li>
+                <li>
+                    <span class="rule-head">Collision</span>
+                    Debris driven into it lands in full: @Displacement.CollisionDamage damage.
+                </li>
+                <li>
+                    <span class="rule-head">Predicted</span>
+                    @Predicted(structure)
+                </li>
+            </ul>
+        }
+        else if (Subject.Kind == InspectKind.Terrain && Subject.Tile is { } tile)
+        {
+            <div class="head">
+                <span class="art terrain @EventText.TileClass(Subject.Terrain)" aria-hidden="true"></span>
+                <span class="ident">
+                    <strong class="name">@PlaytestText.Terrain(Subject.Terrain)</strong>
+                    <span class="side">@BoardCoords.Of(tile)</span>
+                </span>
+            </div>
+
+            <ul class="rules">
+                <li><span class="rule-head">Walk onto</span>@PlaytestText.TerrainWalk(Subject.Terrain)</li>
+                <li><span class="rule-head">Shoved onto</span>@PlaytestText.TerrainShoved(Subject.Terrain)</li>
+                <li><span class="rule-head">Damage</span>@DamageWord(Subject.Terrain)</li>
+                <li>
+                    <span class="rule-head">Stagger</span>
+                    @(PlaytestText.TerrainStaggers(Subject.Terrain) ? "yes" : "no")
+                </li>
+                <li>
+                    <span class="rule-head">Travel</span>
+                    @(PlaytestText.TerrainContinues(Subject.Terrain)
+                        ? "the shove continues"
+                        : "the shove stops here")
+                </li>
+            </ul>
+        }
+        else
+        {
+            @* A slim line, not an empty panel: a box with nothing in it reads as broken, and a
+               sentence that says what to click reads as an invitation. *@
+            <p class="hint">Click any unit, tile or structure to read it.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private InspectSubject Subject => Inspection.Resolve(Session);
+
+    private string Heading => Subject.Kind switch
+    {
+        InspectKind.Friendly or InspectKind.Enemy => Subject.Unit!.Name,
+        InspectKind.Structure => BoardCoords.Of(Subject.Structure!.At),
+        InspectKind.Terrain => BoardCoords.Of(Subject.Tile!.Value),
+        _ => "—",
+    };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Spotlight.Changed += Redraw;
+    }
+
+    public override void Dispose()
+    {
+        Spotlight.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+    private IntentCategory Category(Unit unit) =>
+        Intents.CategoryOf(Intents.For(State, unit.Id), State);
+
+    private static string ObjectiveWord(Structure structure) =>
+        structure.Role == ObjectiveKind.Protect ? "keep it standing" : "bring it down";
+
+    private static string DamageWord(TileType terrain)
+    {
+        int damage = PlaytestText.TerrainDamage(terrain);
+        return damage > 0 ? damage.ToString(System.Globalization.CultureInfo.InvariantCulture) : "none";
+    }
+
+    /// <summary>
+    /// What the fight's own damage figures say a blow on this structure does. Read off Core's
+    /// constants rather than retyped: the two numbers are the whole reason a Destroy objective plays
+    /// differently from a Protect one.
+    /// </summary>
+    private static string Predicted(Structure structure) =>
+        structure.Role == ObjectiveKind.Protect
+            ? Objectives.AttackDamageToStructure + " a claw · " + Displacement.CollisionDamage + " a collision"
+            : Displacement.CollisionDamage + " a collision · nothing else touches it";
+
+    /// <summary>
+    /// A pip's class: lit while unspent, hollow once gone, and "going" for the ones an action the
+    /// player is merely hovering would take.
+    /// </summary>
+    private static string PipClass(int index, int remaining, int preview)
+    {
+        if (index >= remaining)
+        {
+            return "spent";
+        }
+
+        return index >= preview ? "going" : "on";
+    }
+}

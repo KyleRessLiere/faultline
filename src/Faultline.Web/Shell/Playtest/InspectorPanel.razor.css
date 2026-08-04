@@ -1,0 +1,288 @@
+/* The inspector reads; it never commands. Third in the emphasis order, behind the board and the
+   current turn card, so nothing in here is louder than a selection outline. */
+
+.inspector {
+    flex: 0 1 auto;
+}
+
+.head {
+    align-items: center;
+    display: flex;
+    gap: 9px;
+    margin-bottom: 8px;
+}
+
+.art {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 6px;
+    display: flex;
+    flex: 0 0 auto;
+    font-size: 22px;
+    height: 42px;
+    justify-content: center;
+    line-height: 1;
+    width: 42px;
+}
+
+.art.team-a { border-color: color-mix(in srgb, var(--a) 70%, var(--pt-border)); }
+.art.team-b { border-color: color-mix(in srgb, var(--b) 70%, var(--pt-border)); }
+.art.team-e { border-color: color-mix(in srgb, var(--e) 70%, var(--pt-border)); }
+
+/* A terrain swatch stands in for a portrait when the subject is a tile — the same patterns the
+   board and the legend use, so all three read as one drawing. */
+.art.terrain.open { background: #242c38; }
+.art.terrain.wall {
+    background-color: #59637a;
+    background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, .34) 0 3px, transparent 3px 6px);
+}
+.art.terrain.pit { background: #05070b; }
+.art.terrain.spikes {
+    background-color: #7c3229;
+    background-image: repeating-linear-gradient(135deg, rgba(255, 220, 200, .3) 0 2px, transparent 2px 6px);
+}
+.art.terrain.high {
+    background-color: #3f5a37;
+    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, .18) 0 1px, transparent 1px 5px);
+}
+.art.terrain.cracked {
+    background-color: #2c3341;
+    background-image: repeating-linear-gradient(60deg, rgba(0, 0, 0, .5) 0 1px, transparent 1px 6px);
+}
+
+.ident {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.name {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.side {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+}
+
+.side.team-a { color: var(--a); }
+.side.team-b { color: var(--b); }
+
+.side.epithet {
+    font-style: italic;
+}
+
+.stats {
+    display: grid;
+    gap: 4px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 0 8px;
+}
+
+.stats > div {
+    align-items: baseline;
+    background: var(--pt-bg-raised);
+    border-radius: 4px;
+    display: flex;
+    gap: 6px;
+    justify-content: space-between;
+    padding: 3px 7px;
+}
+
+.stats dt {
+    color: var(--pt-text-dim);
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.stats dd {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* One pip per point of the pool. "going" is the preview a hovered action row asks for. */
+.ap-row {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.ap-pips {
+    display: flex;
+    gap: 4px;
+}
+
+.ap-pip {
+    background: var(--pt-blue);
+    border: 1px solid var(--pt-blue);
+    border-radius: 3px;
+    height: 13px;
+    transition: background-color .12s ease, opacity .12s ease;
+    width: 20px;
+}
+
+.ap-pip.going {
+    background: transparent;
+    border-style: dashed;
+    opacity: .8;
+}
+
+.ap-pip.spent {
+    background: transparent;
+    border-color: var(--pt-border);
+    opacity: .55;
+}
+
+.ap-count {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.halves {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+    margin: 0 0 6px;
+    padding: 0;
+}
+
+.halves li {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 2px 7px;
+}
+
+.halves li.spent {
+    opacity: .45;
+    text-decoration: line-through;
+}
+
+.status {
+    color: var(--pt-yellow);
+    font-size: 11px;
+    margin: 0 0 6px;
+}
+
+/* The declared plan. Red, like every other telegraph on this screen. */
+.intent-block {
+    background: color-mix(in srgb, var(--e) 10%, var(--pt-bg-raised));
+    border-left: 3px solid var(--e);
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 8px;
+    padding: 5px 8px;
+}
+
+.intent-head {
+    align-items: center;
+    color: var(--e);
+    display: flex;
+    font-size: 10px;
+    gap: 5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.intent-glyph {
+    font-size: 12px;
+    font-style: normal;
+}
+
+.intent-text {
+    font-size: 12px;
+    margin: 2px 0 0;
+}
+
+.flavour {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
+    font-style: italic;
+    margin: 0 0 8px;
+}
+
+.decides > summary {
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    list-style: none;
+    padding: 3px 0;
+    text-transform: uppercase;
+}
+
+.decides[open] > summary {
+    color: var(--pt-text);
+}
+
+.priority {
+    counter-reset: clause;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+}
+
+.priority li {
+    border-left: 2px solid var(--pt-border);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-left: 7px;
+}
+
+.step-label {
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.step-detail {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+}
+
+.rules {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rules li {
+    background: var(--pt-bg-raised);
+    border-radius: 4px;
+    font-size: 11.5px;
+    padding: 4px 7px;
+}
+
+.rule-head {
+    color: var(--pt-text-dim);
+    display: block;
+    font-size: 9.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.art.structure {
+    color: var(--pt-yellow);
+    font-size: 24px;
+}
+
+/* Nothing selected is a line, not an empty box. */
+.hint {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
+    margin: 0;
+}

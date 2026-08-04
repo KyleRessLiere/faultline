@@ -2,45 +2,34 @@
 @inject PlaytestNotes Notes
 @inject BoardAnimator Animator
 
-@* The playtest screen: a header bar, then three columns that between them fill the viewport. This
-   component owns the layout and the enemy-activation tick and nothing else — every panel reads the
-   session for itself, so no piece of game state is copied into a component. *@
+@* The battle screen. A header across the top, then the board region on the left — round status and
+   the activation strip above it, the legend and the view controls below — and one sidebar down the
+   right carrying the objective, the inspector, the meter and its spender, the action list, and the
+   developer tools.
+
+   This component owns the layout and the enemy-activation tick and nothing else. Every panel reads
+   the session for itself, so no piece of game state is copied into a component. *@
 
 <div class="pt-app @(View.BoardOnly ? "board-only" : string.Empty)">
-    <PlaytestHeader OnUndo="Undo" OnRestart="Restart" OnEndTurn="EndActivation" />
+    <BattleHeader OnUndo="Undo" OnRestart="Restart" />
 
     <div class="pt-main">
-        @* Left of the board and never in a menu: what the fight wants is not a thing to go looking
-           for (§3.5). It collapses above the board on narrow viewports rather than folding away.
+        <section class="pt-stage">
+            <StatusBand />
+            <TurnStrip />
 
-           The turn order and the selected unit sit here too, because both are read *while looking at
-           the board* rather than consulted between decisions: the strip answers "who goes next" and
-           the unit panel answers "what can this one do", and both were on the far side of the board
-           from the piece they describe. Whose turn it is and what that unit is are the two questions
-           a player asks continuously, so they belong against the board, not across the screen. *@
-        <section class="pt-col pt-col-objective">
-            <ObjectivePanel />
-            <TurnOrderPanel />
-            <SelectedUnitPanel />
-        </section>
-
-        <section class="pt-col pt-col-board">
+            @* The board is the primary element and takes what is left of the height. Everything a
+               player decides with is drawn on it; the sidebar supports it. *@
             <BattlefieldPanel />
         </section>
 
-        @* The reference panel is last and takes the slack: design notes and character sheets are
-           tabs inside it rather than panels of their own, so nothing above it ever moves. *@
-        <section class="pt-col pt-col-mid">
-            <TurnSummaryPanel />
-            <EnemyIntentsPanel />
-            <ReferencePanel />
-        </section>
-
-        <section class="pt-col pt-col-right">
-            <UnitsPanel />
-            <CombatLogPanel />
-            <PlaytestNotesPanel />
-        </section>
+        <aside class="pt-side">
+            <ObjectivePanel />
+            <InspectorPanel />
+            <PluckSection />
+            <ActionListPanel />
+            <DevPanel />
+        </aside>
     </div>
 </div>
 
@@ -67,6 +56,10 @@
     protected override async Task OnInitializedAsync()
     {
         await Animator.ReadPreferenceAsync();
+
+        // How the board is being looked at survives a reload. View only — not one field it restores
+        // can change a rule, a legal command or a replay.
+        await View.LoadAsync();
         await Runs.LoadAsync();
 
         // A reload lands here with a session the constructor built, not one the player chose. If a
@@ -77,10 +70,10 @@
             Runs.ResumeBoard();
         }
 
-        await Notes.LoadAsync();
-
-        // Picks a folder chosen in an earlier sitting back up, so the first note of the session goes
-        // to disk without anyone having to remember to re-point at it. Never prompts.
+        // Picks a folder chosen in an earlier sitting back up, so the fight log goes to disk without
+        // anyone having to remember to re-point at it. Never prompts. The note-taking UI is gone
+        // (the dev panel replaced it); the folder logging behind it is what fight logs are written
+        // through and stays.
         await Notes.Log.ResumeAsync();
 
         // Recording is on unless somebody turned it off, and turning it off is what you do to
@@ -117,17 +110,6 @@
         {
             StateHasChanged();
         }
-    }
-
-    private void EndActivation()
-    {
-        // Same rule as the board's tiles: no command leaves this screen while a sequence is playing.
-        if (Animator.Busy || Session.EndCommand is null)
-        {
-            return;
-        }
-
-        Session.Submit(Session.EndCommand);
     }
 
     private void Undo()

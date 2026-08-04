@@ -1,0 +1,208 @@
+@inherits PlaytestPanel
+@inject DevPanelState Dev
+
+@* One bar and one bar only: who we are, which board this is, and the four things that are not part
+   of playing the battle. Everything that answers a question about the *position* — round, side,
+   phase, objective, the activation being ended — was taken out of here on purpose. A header that
+   also reports the game is a second place to read the game, and two places disagree eventually. *@
+
+<header class="pt-header">
+    <div class="brand">
+        @* Drawn rather than lettered so the mark survives a rename: the wordmark beside it is the
+           only place the title is spelled. *@
+        <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="none" focusable="false">
+                <rect x="1.5" y="1.5" width="21" height="21" rx="5" class="logo-plate" />
+                <path d="M8 3.5 L13 10 L10 12 L16 20.5" class="logo-fault" />
+            </svg>
+        </span>
+
+        <span class="titles">
+            <span class="mark">Faultline</span>
+            <span class="context" title="@ContextTitle">@ContextLine</span>
+        </span>
+    </div>
+
+    <div class="controls">
+        <button type="button"
+                class="btn"
+                disabled="@(!CanUndo)"
+                title="@UndoTitle"
+                @onclick="OnUndo">
+            Undo
+        </button>
+
+        @* Asked rather than done. Restart throws the whole battle away, and it sits one pixel from
+           Undo — the two most similar-looking buttons on the screen with the least similar
+           consequences. The dialog is markup, not window.confirm: no JS interop in the shell. *@
+        <button type="button"
+                class="btn"
+                disabled="@Session.InRun"
+                title="@RestartTitle"
+                aria-haspopup="dialog"
+                @onclick="AskRestart">
+            Restart
+        </button>
+
+        @if (DevPanelState.Available)
+        {
+            <button type="button"
+                    class="btn @(Dev.Open ? "on" : string.Empty)"
+                    aria-pressed="@(Dev.Open ? "true" : "false")"
+                    title="Developer overlays and board tools. Internal builds only."
+                    @onclick="Dev.Toggle">
+                Dev
+            </button>
+        }
+
+        <div class="menu">
+            <button type="button"
+                    class="btn @(_settingsOpen ? "on" : string.Empty)"
+                    aria-expanded="@(_settingsOpen ? "true" : "false")"
+                    aria-haspopup="true"
+                    title="How the board is drawn. None of it changes the game."
+                    @onclick="ToggleSettings">
+                Settings
+            </button>
+
+            @if (_settingsOpen)
+            {
+                @* Only the view switches that are not already on the board's own toolbar. Zoom and
+                   the overlays stay where the thing they change is. *@
+                <div class="popover" role="group" aria-label="View settings">
+                    <button type="button"
+                            class="opt @(View.GridLines ? "on" : string.Empty)"
+                            aria-pressed="@(View.GridLines ? "true" : "false")"
+                            @onclick="View.ToggleGridLines">
+                        Grid lines
+                    </button>
+                    <button type="button"
+                            class="opt @(View.RangePreview ? "on" : string.Empty)"
+                            aria-pressed="@(View.RangePreview ? "true" : "false")"
+                            @onclick="View.ToggleRangePreview">
+                        Hover preview
+                    </button>
+                    <button type="button"
+                            class="opt @(View.BoardOnly ? "on" : string.Empty)"
+                            aria-pressed="@(View.BoardOnly ? "true" : "false")"
+                            @onclick="View.ToggleBoardOnly">
+                        Board only
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (_confirming)
+    {
+        <div class="scrim" @onclick="CancelRestart"></div>
+        <div class="confirm" role="dialog" aria-modal="true" aria-labelledby="restart-ask">
+            <p class="ask" id="restart-ask">Restart this battle?</p>
+            <p class="consequence">
+                The board goes back to deployment on seed @NextSeed. Everything that has happened —
+                every move, every hit, every note about how it went — is gone.
+            </p>
+            <div class="confirm-row">
+                <button type="button" class="btn" @onclick="CancelRestart">Cancel</button>
+                <button type="button" class="btn danger" @onclick="ConfirmRestart">Restart</button>
+            </div>
+        </div>
+    }
+</header>
+
+@code {
+    /// <summary>Raised when the player asks to take the last decision back.</summary>
+    [Parameter]
+    public EventCallback OnUndo { get; set; }
+
+    /// <summary>Raised once the player has confirmed the battle should start again.</summary>
+    [Parameter]
+    public EventCallback OnRestart { get; set; }
+
+    private bool _confirming;
+    private bool _settingsOpen;
+
+    private bool CanUndo => Session.InRun ? Runs.CanUndo : Session.CanUndo;
+
+    private string UndoTitle
+    {
+        get
+        {
+            if (CanUndo)
+            {
+                return "Take back the last thing you did — the fight replays from its seed without it.";
+            }
+
+            if (Session.InRun)
+            {
+                return Runs.UndoBlockedReason ?? "There is nothing to undo yet.";
+            }
+
+            return "There is nothing to undo yet.";
+        }
+    }
+
+    private string RestartTitle =>
+        Session.InRun
+            ? "A run's seed belongs to the run, not to this fight — restart from the campaign screen."
+            : "Start this battle again on the next seed.";
+
+    /// <summary>The seed the restart would land on, so the dialog can name it rather than imply it.</summary>
+    private string NextSeed => Number(Session.Seed + 1);
+
+    /// <summary>
+    /// The one muted line under the wordmark: where in the run, which board, which seed.
+    /// </summary>
+    private string ContextLine
+    {
+        get
+        {
+            var parts = new List<string>();
+
+            if (Session.InRun && Runs.State is { } run)
+            {
+                parts.Add("Run " + Number(RunNodeNumber) + "/" + Number(run.Campaign.Length));
+            }
+
+            parts.Add(Session.Fight.Name);
+            parts.Add("Seed " + Number(Session.Seed));
+
+            return string.Join(" · ", parts);
+        }
+    }
+
+    private string ContextTitle => Session.Fight.Id;
+
+    private int RunNodeNumber
+    {
+        get
+        {
+            var run = Runs.State;
+            if (run is null)
+            {
+                return 0;
+            }
+
+            return run.NodeIndex < run.Campaign.Length ? run.NodeIndex + 1 : run.Campaign.Length;
+        }
+    }
+
+    private void ToggleSettings() => _settingsOpen = !_settingsOpen;
+
+    private void AskRestart()
+    {
+        _settingsOpen = false;
+        _confirming = true;
+    }
+
+    private void CancelRestart() => _confirming = false;
+
+    private async Task ConfirmRestart()
+    {
+        _confirming = false;
+        await OnRestart.InvokeAsync();
+    }
+
+    private static string Number(int value) =>
+        value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+}

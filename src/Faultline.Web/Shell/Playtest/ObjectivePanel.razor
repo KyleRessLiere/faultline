@@ -1,9 +1,10 @@
 @inherits PlaytestPanel
+
 @* What this fight wants, how close it is, and what ends it badly — the last of those with the same
    billing as the first. Every number is read off Core's ObjectiveStatus, which reads the same state
-   the win check reads, so the bar cannot disagree with the rules a moment later. *@
+   the win check reads, so the pips cannot disagree with the rules a moment later. *@
 
-<div class="pt-panel objective @(Status.Urgent ? "urgent" : string.Empty)">
+<div class="pt-panel objective @(Status.Urgent ? "urgent" : string.Empty) @(_pulse ? "pulse" : string.Empty)">
     <h2>Objective</h2>
 
     <div class="pt-body">
@@ -11,15 +12,37 @@
 
         @if (Status.HasBar)
         {
-            @* The bar carries the numbers rather than sitting beside them: a bar with no figures is
-               a mood, and the figures are what a player actually counts on. *@
-            <div class="bar" role="progressbar"
-                 aria-valuenow="@Status.Progress"
-                 aria-valuemin="0"
-                 aria-valuemax="@Status.Target"
-                 aria-label="@Status.Label">
-                <span class="fill" style="--fill: @Percent"></span>
-                <span class="bar-label">@Status.Label</span>
+            @* Countable while it matters, measured once it stops being countable. Six pips is a
+               number a player reads at a glance; sixty is a texture, so past the cap this falls back
+               to a bar rather than pretending a wall of ticks is legible. *@
+            <div class="progress">
+                @if (Status.Target <= MaxPips)
+                {
+                    <span class="pips"
+                          role="progressbar"
+                          aria-valuenow="@Status.Progress"
+                          aria-valuemin="0"
+                          aria-valuemax="@Status.Target"
+                          aria-label="@Status.Label">
+                        @for (int i = 0; i < Status.Target; i++)
+                        {
+                            <i class="pip @(i < Status.Progress ? "on" : string.Empty) @(_pulse && i == _justFilled ? "just" : string.Empty)"></i>
+                        }
+                    </span>
+                }
+                else
+                {
+                    <span class="bar"
+                          role="progressbar"
+                          aria-valuenow="@Status.Progress"
+                          aria-valuemin="0"
+                          aria-valuemax="@Status.Target"
+                          aria-label="@Status.Label">
+                        <span class="fill" style="--fill: @Percent"></span>
+                    </span>
+                }
+
+                <span class="progress-label">@Status.Label</span>
             </div>
         }
 
@@ -28,6 +51,9 @@
             <p class="clock @(Status.Urgent ? "tight" : string.Empty)">@Status.Clock</p>
         }
 
+        @* Equal billing, never a tooltip and never behind a disclosure: most of these fights are
+           lost on a clock or a structure rather than on the thing the goal line mentions, and a
+           player who knows only how to win is playing half the battle. *@
         <div class="loss">
             <span class="loss-head">Lose if</span>
             <span class="loss-text">@Status.Loss</span>
@@ -43,10 +69,56 @@
                 }
             </div>
         }
+
+        @* Why this board exists, and which ground the objective means. Collapsed, because it is read
+           once before the first move and never again — but it is here rather than in a panel of its
+           own, so there is one place to look for what the designer meant. *@
+        <details class="details">
+            <summary>View details</summary>
+
+            <div class="detail-body">
+                @if (Session.Fight.Description is { Length: > 0 })
+                {
+                    <p class="detail-line">@Session.Fight.Description</p>
+                }
+
+                @foreach (var note in Session.Fight.DesignNotes)
+                {
+                    <p class="detail-line note">@note</p>
+                }
+
+                @if (Status.Tiles.Count > 0)
+                {
+                    <p class="tiles">
+                        <span class="tiles-head">Marked ground</span>
+                        <span class="tiles-list">@TileList</span>
+                    </p>
+                }
+
+                @if (Session.Fight.Description.Length == 0
+                    && Session.Fight.DesignNotes.Count == 0
+                    && Status.Tiles.Count == 0)
+                {
+                    <p class="detail-line empty">Nobody has written this battle up yet.</p>
+                }
+            </div>
+        </details>
     </div>
 </div>
 
 @code {
+    /// <summary>Most pips worth drawing before the row stops being countable and becomes a bar.</summary>
+    private const int MaxPips = 20;
+
+    /// <summary>How long the newly-filled pip and the panel border stay lit.</summary>
+    private const int PulseMs = 700;
+
+    private bool _disposed;
+    private bool _pulse;
+    private int _justFilled = -1;
+    private int _lastProgress = -1;
+    private string _lastFight = string.Empty;
+
     private ObjectiveStatus Status => ObjectiveStatus.For(State);
 
     private string Percent =>
@@ -54,4 +126,59 @@
 
     /// <summary>One line per clinging ally, naming the deadline rather than implying one.</summary>
     private IReadOnlyList<string> Paddling => PlaytestText.ClingingLines(State);
+
+    /// <summary>The objective's tiles as a person reads them off the board's edge.</summary>
+    private string TileList => string.Join(", ", Status.Tiles.Select(BoardCoords.Of));
+
+    /// <inheritdoc/>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        int progress = Status.Progress;
+        string fight = Session.Fight.Id;
+
+        // A new board is not progress. Resync silently, or restarting a Protect fight would flash
+        // the panel for going from "structure half down" back to "structure whole".
+        if (!string.Equals(fight, _lastFight, System.StringComparison.Ordinal))
+        {
+            _lastFight = fight;
+            _lastProgress = progress;
+            return;
+        }
+
+        if (progress == _lastProgress)
+        {
+            return;
+        }
+
+        bool forward = progress > _lastProgress;
+        _lastProgress = progress;
+
+        // Lit in place, not announced. A toast over the board would cover the thing that just moved,
+        // and the panel is already where a player looks to ask "how close am I".
+        _justFilled = forward ? progress - 1 : -1;
+        _pulse = true;
+        _ = PulseAsync();
+        StateHasChanged();
+    }
+
+    private async Task PulseAsync()
+    {
+        await Task.Delay(PulseMs);
+
+        if (_disposed)
+        {
+            return;
+        }
+
+        _pulse = false;
+        _justFilled = -1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <inheritdoc/>
+    public override void Dispose()
+    {
+        _disposed = true;
+        base.Dispose();
+    }
 }

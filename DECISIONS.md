@@ -119,9 +119,10 @@ in this file when the question comes back.
 | D-099 | [The Archer cannot shoot the tile next to her.](#d-099-the-archer-cannot-shoot-the-tile-next-to-her) | 2026-08-02 |  |
 | D-100 | [The Husk shoulders through a body in its way.](#d-100-the-husk-shoulders-through-a-body-in-its-way) | 2026-08-03 |  |
 | D-101 | [A Footing grant adds tokens; it never takes an archetype's own away.](#d-101-a-footing-grant-adds-tokens-it-never-takes-an-archetypes-own-away) | 2026-08-03 |  |
-| D-102 | [The Warden is a door you break down, not a door that never opens.](#d-102-the-warden-is-a-door-you-break-down-not-a-door-that-never-opens) | unreleased |  |
+| D-102 | [The Warden is a door you break down, not a door that never opens.](#d-102-the-warden-is-a-door-you-break-down-not-a-door-that-never-opens) | 2026-08-03 |  |
+| D-103 | [The activation order is published as a strip of portraits, and a portrait is an inspection handle.](#d-103-the-activation-order-is-published-as-a-strip-of-portraits-and-a-portrait-is-an-inspection-handle) | unreleased |  |
 
-**101 rulings.**
+**102 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1717,3 +1718,60 @@ claimed to be.
 displacement modifiers (D-091), so the Fisher keeps the inversion she already has against the
 Colossus and the King. Deliberate: every door in this game should have exactly one key that is not
 force.
+
+---
+
+**D-103 — The activation order is published as a strip of portraits, and a portrait is an inspection handle.**
+Intents have always said *what* each enemy will do (D-021, D-061) and nothing has ever said *when*.
+In a game that alternates Player A → enemy → Player B → enemy, "does the Anchor swing before or after
+my Wardbearer?" is the most decision-relevant fact on the board, and today a player derives it by
+counting bodies: `TurnSummaryPanel` says "Player A to act" and that is the whole of it. Pillar 3 —
+lethality is fine, surprise lethality is not — makes that a **telegraph gap**, not a missing luxury,
+and "the UI is the tutorial" finishes the argument. Pillar 4 wants it most: co-op lives in the action
+economy, and the strip is a picture of the action economy for two humans to coordinate across.
+
+**A true order exists to publish, on one side only.** `Game.ActivationCandidates` picks the
+activating enemy as the first pending unit in `state.Units` order — no planning, no tiebreak ladder —
+so the enemy queue is derivable from state alone. `AdvanceTurn` sets `ActiveTeam` and leaves
+`ActiveUnitId` null, because which of a player's two ducks goes is the player's free choice. So a
+future player entry is a **slot with its candidate set**, collapsing to a portrait only when one
+candidate remains or the player commits. Publishing a name there would be inventing a fact the game
+does not hold.
+
+**It reaches across the round seam** — the rest of this round plus the opening of the next. That seam
+is precisely where an enemy activating last and first takes two swings with nothing of yours between
+them, which is the oldest ambush in the genre and exactly what pillar 3 forbids being a surprise.
+**Rejected: the whole of next round.** Reinforcements arrive at round start before intents (D-037),
+so most of it is a guess, and a queue that reshuffles is worse than no queue — D-061's arrow does not
+lie and neither does this.
+
+**A clinging duck sits greyed in its place, marked skipped — as a display entry, not a pending slot.**
+`CanAct` is `IsOnBoard && !Clinging` and `HasPending` requires it, so a clinging unit is not pending
+and its side simply has one fewer activation; GAMEPLAY.md's "still holds an activation slot" is
+describing the fiction, not the code, and **that line is corrected rather than the code**. The strip
+shows the drain's real cost to your economy without changing what the drain costs. **Rejected:
+making it a genuine pending slot.** It would insert a dead player slot into the alternation, handing
+the enemy an extra interleave before the other player acts — a second, hidden punishment for falling
+in a pit that no ruling ever decided, bought at the price of a replay-affecting change to
+`AdvanceTurn`. The visible cost was the goal; the extra beating was not.
+
+**The order is a Core query, never shell arithmetic** — the same reason `ObjectiveStatus` exists, and
+CLAUDE.md's rule that legality questions move to Core rather than growing an `if` in `Faultline.Web`.
+Two copies of an activation order drift the day someone touches `AdvanceTurn`.
+
+**Clicking a portrait inspects; it never commands.** `GameSession.Select` is gated on `Selectable` —
+units the *active* player may act with — so it cannot serve an enemy portrait, nor your partner's
+duck during your own slot. The second, ungated selection already exists: `GameSession.Inspect` is a
+pure view that aims and submits nothing and already routes to the unit tab. But `CanInspect` is
+**enemy-only by design** — "player units are served by the action panel and are not inspected here" —
+so half the strip currently clicks into nothing.
+
+**So D-103 widens inspection to every unit on the board**, which is what §7's "one Inspectable
+surface" asked for and never got. Inspect is universal and read-only; Select stays gated on whose
+slot it is; where the clicked unit is one you may command, both fire and that coincidence is not a
+licence to merge them. **Rejected: routing player portraits to `Select` instead.** It makes the
+strip's behaviour depend on whose turn it is — the same portrait inspects or commands depending on
+the clock — and a control that changes meaning under you is the opposite of a tutorial.
+**Rejected: adding per-enemy reach shading to the click.** D-089 keeps threat painting per-enemy and
+on demand, which the strip now gives a proper selector for, but a reach fan under an intent arrow
+drowns the arrow.

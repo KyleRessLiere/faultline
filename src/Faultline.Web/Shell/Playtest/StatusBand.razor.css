@@ -1,0 +1,189 @@
+/* Slim, and absent when there is nothing to carry. No min-height, no placeholder, no empty border:
+   a strip that is always there is a strip that stops being read. */
+
+.band {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: var(--pt-gap);
+    padding: 0 12px 8px;
+}
+
+.block {
+    border-radius: var(--pt-radius);
+    flex: 1 1 260px;
+    min-width: 0;
+    padding: 7px 10px;
+}
+
+.block.resolved,
+.block.deploy {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+}
+
+/* A ledge is a private clock nothing else on this screen has. It stays up until it is resolved. */
+.urgent-banner {
+    background: rgba(255, 98, 104, .12);
+    border: 1px solid var(--pt-red);
+}
+
+.urgent-line {
+    color: var(--pt-red);
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+.urgent-help {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 0;
+}
+
+/* A missing activation is a cost, not an emergency — loud enough to place around, quieter than the
+   ledge's clock so the two never compete for the same alarm. */
+.bedraggled-banner {
+    background: rgba(232, 179, 65, .12);
+    border: 1px solid var(--pt-yellow);
+}
+
+.bedraggled-line {
+    color: var(--pt-yellow);
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+.bedraggled-help {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 0;
+}
+
+.who {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0 0 3px;
+}
+
+.who.team-a { color: var(--pt-blue); }
+.who.team-b { color: var(--pt-green); }
+.who.team-e { color: var(--pt-red); }
+
+.instruction {
+    color: var(--pt-text-dim);
+    font-size: 12px;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.instruction strong {
+    color: var(--pt-text);
+    font-weight: 600;
+}
+
+/* Quieter than an instruction: it tells you a tool exists, it is not a step. */
+.hint {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    font-style: italic;
+    margin: 4px 0 0;
+    opacity: .8;
+}
+
+.outcome {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 6px;
+}
+
+.outcome.won { color: var(--pt-cyan); }
+.outcome.lost { color: var(--pt-red); }
+
+h3 {
+    color: var(--pt-text-dim);
+    font-size: 10px;
+    letter-spacing: .1em;
+    margin: 8px 0 4px;
+    text-transform: uppercase;
+}
+
+.carried {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12px;
+    gap: 4px 14px;
+    list-style: none;
+    margin: 0 0 6px;
+    padding: 0;
+}
+
+.carried li {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 2px 0;
+}
+
+.carried li.voided {
+    color: var(--pt-text-dim);
+}
+
+.art {
+    display: inline-block;
+    height: 16px;
+    line-height: 0;
+    width: 16px;
+}
+
+.badge {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 3px;
+    color: var(--pt-text-dim);
+    font-size: 10px;
+    padding: 0 4px;
+}
+
+.badge.downed { border-color: var(--pt-yellow); color: var(--pt-yellow); }
+.badge.voided { border-color: var(--pt-red); color: var(--pt-red); }
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.act {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    color: var(--pt-text);
+    cursor: pointer;
+    display: inline-block;
+    font: inherit;
+    font-size: 11.5px;
+    padding: 4px 10px;
+    text-decoration: none;
+}
+
+.act:hover {
+    border-color: var(--pt-blue);
+}
+
+.act.primary {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+    color: #fff;
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+    .band {
+        padding: 0 8px 6px;
+    }
+}

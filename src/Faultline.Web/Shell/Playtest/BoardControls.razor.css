@@ -1,0 +1,152 @@
+/* One strip below the board: what the tiles mean on the left, how the board is being looked at on
+   the right. Quiet by design — these are the second-to-last thing in the emphasis order. */
+
+.board-controls {
+    align-items: center;
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    justify-content: space-between;
+    padding: 4px 8px;
+}
+
+.legend {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.item {
+    align-items: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    display: flex;
+    font-size: 11px;
+    gap: 5px;
+    padding: 2px 5px;
+    white-space: nowrap;
+}
+
+.item.static {
+    cursor: default;
+}
+
+.item:hover:not(.static),
+.item.on {
+    background: var(--pt-bg-raised);
+    border-color: var(--pt-border);
+    color: var(--pt-text);
+}
+
+/* The same swatches as the board, patterns and all, so the legend is a sample of the board rather
+   than a second drawing of it. */
+.sw {
+    border-radius: 2px;
+    display: inline-block;
+    flex: 0 0 auto;
+    height: 12px;
+    width: 12px;
+}
+
+.sw.open {
+    background-color: #242c38;
+    box-shadow: inset 0 0 0 1px rgba(8, 11, 16, .8);
+}
+
+.sw.wall {
+    background-color: #59637a;
+    background-image: repeating-linear-gradient(
+        45deg, rgba(0, 0, 0, .34) 0 2px, transparent 2px 4px);
+}
+
+.sw.pit {
+    background-color: #05070b;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .1);
+}
+
+.sw.spikes {
+    background-color: #7c3229;
+    background-image: repeating-linear-gradient(
+        135deg, rgba(255, 220, 200, .3) 0 1px, transparent 1px 4px);
+}
+
+.sw.high {
+    background-color: #3f5a37;
+    background-image: repeating-linear-gradient(
+        0deg, rgba(255, 255, 255, .18) 0 1px, transparent 1px 4px);
+}
+
+.sw.cracked {
+    background-color: #2c3341;
+    background-image: repeating-linear-gradient(
+        60deg, rgba(0, 0, 0, .5) 0 1px, transparent 1px 5px);
+}
+
+.sw.deploy {
+    background-color: #242c38;
+    border: 1px dashed var(--pt-cyan);
+}
+
+.tools {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tool {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 3px 8px;
+    white-space: nowrap;
+}
+
+.tool:hover:not(:disabled) {
+    color: var(--pt-text);
+}
+
+.tool:disabled {
+    cursor: default;
+    opacity: .4;
+}
+
+.tool.on {
+    background: color-mix(in srgb, var(--pt-blue) 22%, var(--pt-bg-raised));
+    border-color: var(--pt-blue);
+    color: var(--pt-text);
+}
+
+.tool.icon {
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 7px;
+}
+
+.zoom {
+    align-items: center;
+    display: flex;
+    gap: 3px;
+}
+
+.zoom-value {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    min-width: 38px;
+    text-align: center;
+}

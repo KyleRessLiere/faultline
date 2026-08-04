@@ -1,0 +1,285 @@
+@inherits PlaytestPanel
+@inject ActionSpotlight Spotlight
+@inject BoardAnimator Animator
+
+@* Everything the selected duck can do, priced, with the reason attached to whatever is greyed.
+   Every row comes from ActionRows, which reads Core's legal list and Core's cost table — nothing
+   here decides what is legal or what anything costs.
+
+   Nothing is filtered out for being unhelpful. A Bull Rush down an empty lane is a legal three-tile
+   reposition costing the whole pool, and it stays on the list: the game does not decide what is
+   useful, and a row that vanishes when a designer disapproves of it teaches a rule that does not
+   exist. The summary line may say the lane is empty. That is information, not gating. *@
+
+<div class="pt-panel actions">
+    <h2>
+        Actions
+        <span class="count">Move, then act. An action ends activation.</span>
+    </h2>
+
+    <div class="pt-body">
+        @if (Session.SelectedUnit is null)
+        {
+            <p class="hint">Select one of your units on the board to give it orders.</p>
+        }
+        else
+        {
+            <p class="summary">@ActionRows.Summary(Session)</p>
+
+            @if (Locked)
+            {
+                <p class="locked" role="status">
+                    @(Animator.Busy
+                        ? "The board is still showing what just happened."
+                        : "Activation spent — nothing left to give this one.")
+                </p>
+            }
+
+            <ul class="rows">
+                @foreach (var row in Rows)
+                {
+                    <li>
+                        <button type="button"
+                                class="row @RowClass(row)"
+                                disabled="@(!row.Available || Locked)"
+                                title="@Title(row)"
+                                @onclick="() => Press(row)"
+                                @onmouseover="() => Spotlight.Highlight(HoverCost(row))"
+                                @onfocus="() => Spotlight.Highlight(HoverCost(row))"
+                                @onmouseout="Spotlight.Clear"
+                                @onblur="Spotlight.Clear">
+                            <span class="row-head">
+                                <i class="icon" aria-hidden="true">@Icon(row)</i>
+                                <span class="row-name">@row.Name</span>
+                                @if (row.CostKind != CostKind.None)
+                                {
+                                    <span class="badge @row.BadgeClass">
+                                        @if (row.CostKind == CostKind.Pluck)
+                                        {
+                                            <i class="quill" aria-hidden="true">✦</i>
+                                        }
+                                        @row.Badge
+                                    </span>
+                                }
+                            </span>
+                            <span class="row-effect">@row.Effect</span>
+                            @if (row.Reason.Length > 0)
+                            {
+                                <span class="reason">@row.Reason</span>
+                            }
+                            @if (row.Hint.Length > 0)
+                            {
+                                <span class="hint-line">@row.Hint</span>
+                            }
+                        </button>
+                    </li>
+                }
+            </ul>
+
+            @* A stance aims at nothing, so there is no tile to click. It gets its own confirm button
+               rather than firing off the arming click, so choosing it and spending it stay two
+               separate decisions like every other action here. *@
+            @if (Session.SelfAbilityCommand is { } stance && Session.ArmedDescriptor is { } armed)
+            {
+                <button type="button" class="commit" disabled="@Locked" @onclick="() => Session.Submit(stance)">
+                    Use @armed.Name
+                </button>
+            }
+
+            @if (Session.Mode == ActionMode.Ability && Session.ArmedDescriptor is { } aiming)
+            {
+                <p class="rules">@aiming.Summary</p>
+            }
+
+            @if (Session.AimingRescue)
+            {
+                <p class="rules">Pick a side to set them down on — any open tile beside you.</p>
+            }
+
+            @* Cancel restores the state before the arming click. It exists for every aimed action,
+               not only the ones with a second stage: an armed action the player changed their mind
+               about should not have to be un-armed by finding some other button to press. *@
+            @if (Aiming)
+            {
+                <button type="button" class="cancel" @onclick="Cancel">Cancel</button>
+            }
+
+            <p class="preview @(PreviewText is null ? "idle" : string.Empty)">@(PreviewText ?? IdleText)</p>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Every row except the class spender, which the Pluck section above draws instead — it is
+    /// bought with a different currency and belongs beside the meter that pays for it.
+    /// </summary>
+    private IReadOnlyList<ActionRow> Rows
+    {
+        get
+        {
+            var rows = new List<ActionRow>();
+            foreach (var row in ActionRows.For(Session))
+            {
+                if (row.Kind != ActionKind.Spend)
+                {
+                    rows.Add(row);
+                }
+            }
+
+            return rows;
+        }
+    }
+
+    /// <summary>
+    /// Whether controls are locked. Same rule the board's tiles keep: no command leaves this screen
+    /// while a sequence is playing, and none leaves it once the activation has been closed.
+    /// </summary>
+    private bool Locked =>
+        Animator.Busy || (Session.SelectedUnit is { } unit && unit.HasActed);
+
+    private bool Aiming =>
+        Session.AimingCast || Session.AimingRescue
+        || (Session.Mode == ActionMode.Ability && Session.ArmedAbility is not null);
+
+    /// <summary>The outcome sentence, or nothing when the preview is switched off.</summary>
+    private string? PreviewText => View.RangePreview ? Session.PreviewText : null;
+
+    private string IdleText => View.RangePreview
+        ? "Hover a highlighted tile to see what it does."
+        : "Range preview is off — turn it back on under the board.";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Animator.Changed += Redraw;
+    }
+
+    public override void Dispose()
+    {
+        Animator.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+    /// <summary>Only an Action Point price drains the pip row; a meter spend leaves it alone.</summary>
+    private static int? HoverCost(ActionRow row) =>
+        row.CostKind == CostKind.ActionPoints ? row.Cost : null;
+
+    private void Press(ActionRow row)
+    {
+        Spotlight.Clear();
+
+        switch (row.Kind)
+        {
+            case ActionKind.Wait when Session.EndCommand is { } end:
+                Session.Submit(end);
+                return;
+
+            case ActionKind.Spend when row.Spend == VerveSpend.Cast:
+                Session.ToggleCast();
+                return;
+
+            case ActionKind.Spend:
+                Session.SpendVerve();
+                return;
+
+            // A rescue picks a side afterwards, so its button arms rather than fires — the board
+            // draws the cone and the click on it commits (D-093).
+            case ActionKind.Rescue when row.Clinging is { } clinging:
+                Session.ToggleRescue(clinging);
+                return;
+        }
+
+        if (row.Ability is { } ability)
+        {
+            Session.SetAbility(ability);
+            return;
+        }
+
+        Session.SetMode(row.Mode);
+    }
+
+    private void Cancel()
+    {
+        // Back to walking, which is where an activation starts. Nothing has been submitted, so
+        // there is nothing to take back in Core — only the aim.
+        if (Session.AimingCast)
+        {
+            Session.ToggleCast();
+        }
+
+        if (Session.RescueTarget is { } target)
+        {
+            Session.ToggleRescue(target);
+        }
+
+        Session.SetMode(ActionMode.Move);
+    }
+
+    private string RowClass(ActionRow row)
+    {
+        var classes = new List<string> { row.Kind.ToString().ToLowerInvariant() };
+
+        if (row.Armed)
+        {
+            classes.Add("armed");
+        }
+
+        if (!row.Available)
+        {
+            classes.Add("blocked");
+        }
+
+        // A push that the armed spend would carry is outlined, so "which of these does my charge
+        // apply to" is answered on the buttons rather than in the rules text.
+        if (Carries(row))
+        {
+            classes.Add("carried");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    /// <summary>
+    /// Whether an armed Wrecking Weight would ride on this row. Read off the unit's own flag and the
+    /// row's push, never re-derived: what a spend modifies is a rule and it is Core's.
+    /// </summary>
+    private bool Carries(ActionRow row)
+    {
+        if (Session.SelectedUnit is not { WreckingWeightArmed: true } unit)
+        {
+            return false;
+        }
+
+        if (row.Ability is { } ability)
+        {
+            return AbilityDescriptor.For(ability).Push > 0;
+        }
+
+        return row.Mode == ActionMode.Attack && unit.Template.AttackPush > 0;
+    }
+
+    private string Title(ActionRow row)
+    {
+        if (row.Reason.Length > 0)
+        {
+            return row.Name + " — " + row.Reason + ". " + row.Effect;
+        }
+
+        return row.Name + " — " + row.Effect;
+    }
+
+    /// <summary>A glyph per kind of row. Presentation only; nothing reads it back.</summary>
+    private static string Icon(ActionRow row) => row.Kind switch
+    {
+        ActionKind.Move => "→",
+        ActionKind.Basic => row.Mode == ActionMode.Pull ? "⇤" : "⚔",
+        ActionKind.Ability => "✷",
+        ActionKind.Rescue => "⤴",
+        ActionKind.Finish => "⤓",
+        ActionKind.Spend => "✦",
+        _ => "⏸",
+    };
+}

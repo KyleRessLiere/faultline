@@ -1,5 +1,10 @@
+/* Restrained on purpose. This panel sits below the board, the acting unit and the action list in
+   visual weight — it is the thing you check between decisions, not the thing you make them with.
+   Gold is progress, red is the loss condition, and nothing here is allowed a third accent. */
+
 .objective .goal {
     font-size: 13px;
+    line-height: 1.4;
     margin: 0 0 8px;
 }
 
@@ -8,17 +13,65 @@
     box-shadow: inset 0 0 0 1px var(--pt-red);
 }
 
+/* The panel says "that counted" by lighting its own edge for a beat. No toast, no overlay — the
+   board is mid-animation and must not be covered by the scoreboard. */
+.objective.pulse {
+    box-shadow: inset 0 0 0 1px var(--pt-yellow);
+    transition: box-shadow 160ms ease-out;
+}
+
+.progress {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin-bottom: 8px;
+}
+
+.pips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.pip {
+    background: transparent;
+    border: 1px solid var(--pt-border);
+    border-radius: 2px;
+    display: inline-block;
+    height: 11px;
+    width: 11px;
+}
+
+.pip.on {
+    background: var(--pt-yellow);
+    border-color: var(--pt-yellow);
+}
+
+/* Only the pip that just landed animates. Filling the whole row every time would make a one-step
+   change look like the objective had been completed. */
+.pip.just {
+    animation: pip-land 700ms ease-out;
+}
+
+@keyframes pip-land {
+    0%   { box-shadow: 0 0 0 0 rgba(232, 179, 65, .7); transform: scale(1.5); }
+    40%  { transform: scale(1); }
+    100% { box-shadow: 0 0 0 6px rgba(232, 179, 65, 0); transform: scale(1); }
+}
+
+/* Past twenty, ticks stop being countable and a bar is the honest drawing. */
 .bar {
     background: rgba(242, 245, 248, .1);
     border-radius: 4px;
-    height: 18px;
-    margin-bottom: 8px;
+    display: block;
+    flex: 1 1 120px;
+    height: 10px;
     overflow: hidden;
-    position: relative;
 }
 
 .fill {
-    background: var(--pt-cyan);
+    background: var(--pt-yellow);
     display: block;
     height: 100%;
     /* The tick is the point: progress must be seen moving as the hit lands. */
@@ -26,20 +79,16 @@
     width: var(--fill, 0%);
 }
 
-.objective.urgent .fill {
+.objective.urgent .fill,
+.objective.urgent .pip.on {
     background: var(--pt-red);
+    border-color: var(--pt-red);
 }
 
-.bar-label {
-    align-items: center;
-    color: var(--pt-text);
-    display: flex;
-    font-size: 11px;
+.progress-label {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
     font-variant-numeric: tabular-nums;
-    inset: 0;
-    justify-content: center;
-    mix-blend-mode: difference;
-    position: absolute;
 }
 
 .clock {
@@ -72,6 +121,7 @@
 
 .loss-text {
     font-size: 13px;
+    line-height: 1.4;
 }
 
 .paddling {
@@ -87,6 +137,78 @@
     margin: 0 0 2px;
 }
 
+.details {
+    border-top: 1px solid var(--pt-border-soft);
+    margin-top: 8px;
+    padding-top: 6px;
+}
+
+.details > summary {
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    font-size: 11.5px;
+    list-style: none;
+    user-select: none;
+}
+
+.details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.details > summary::before {
+    content: "▸ ";
+}
+
+.details[open] > summary::before {
+    content: "▾ ";
+}
+
+.details > summary:hover {
+    color: var(--pt-text);
+}
+
+.detail-body {
+    padding: 6px 0 2px;
+}
+
+.detail-line {
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0 0 6px;
+}
+
+.detail-line.note {
+    border-left: 2px solid var(--pt-border);
+    color: var(--pt-text-dim);
+    padding-left: 7px;
+}
+
+.detail-line.empty {
+    color: var(--pt-text-dim);
+    font-style: italic;
+}
+
+.tiles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+}
+
+.tiles-head {
+    color: var(--pt-text-dim);
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.tiles-list {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .fill { transition: none; }
+    .pip.just { animation: none; }
+    .objective.pulse { transition: none; }
 }

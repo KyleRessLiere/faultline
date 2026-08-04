@@ -1,6 +1,9 @@
 /* The screen fills the window and never scrolls it: every panel that can outgrow its box scrolls
-   inside itself instead. min-height: 0 on the grid and flex children is what makes that work — a
-   flex child defaults to min-height: auto and refuses to shrink below its content. */
+   inside itself instead. min-height: 0 on the grid and on flex children is what makes that work — a
+   flex child defaults to min-height: auto and refuses to shrink below its content.
+
+   Desktop-first, laid out to fit 1920x1080 without scrolling. The board takes roughly two thirds of
+   the width and whatever height the strip and the controls leave it. */
 
 .pt-app {
     background: var(--pt-bg-app);
@@ -15,25 +18,15 @@
     display: grid;
     flex: 1 1 auto;
     gap: var(--pt-gap);
-    /* Widened from 15fr when the turn order and the selected unit moved in beside the objective:
-       the strip is a row of portraits and squeezing it into the narrowest column would make it
-       scroll from the first round. The middle column gave up the room, having lost two panels. */
-    grid-template-columns: minmax(0, 20fr) minmax(0, 45fr) minmax(0, 16fr) minmax(0, 19fr);
+    /* One sidebar, 430–560px, full height. Everything else is the board's. */
+    grid-template-columns: minmax(0, 1fr) minmax(430px, 480px);
     min-height: 0;
     padding: var(--pt-gap);
 }
 
-.pt-app.board-only .pt-main {
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.pt-app.board-only .pt-col-mid,
-.pt-app.board-only .pt-col-right,
-.pt-app.board-only .pt-col-objective {
-    display: none;
-}
-
-.pt-col {
+/* Board column: status band, activation strip, board, then the legend and controls the board
+   panel carries at its own foot. */
+.pt-stage {
     display: flex;
     flex-direction: column;
     gap: var(--pt-gap);
@@ -41,8 +34,28 @@
     min-width: 0;
 }
 
-.pt-col-board {
+.pt-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-gap);
+    min-height: 0;
     min-width: 0;
+    overflow: hidden;
+}
+
+/* Full-board mode hides the sidebar and gives the whole window to the position. */
+.pt-app.board-only .pt-main {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.pt-app.board-only .pt-side {
+    display: none;
+}
+
+@media (max-width: 1500px) {
+    .pt-main {
+        grid-template-columns: minmax(0, 1fr) minmax(400px, 430px);
+    }
 }
 
 @media (max-width: 1200px) {
@@ -51,13 +64,12 @@
     }
 
     .pt-main {
-        grid-template-columns: minmax(0, 15fr) minmax(0, 45fr) minmax(0, 20fr) minmax(0, 20fr);
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 400px);
     }
 }
 
-/* Battlefield first: the board takes the full width and the panels fall in beneath it in two
-   columns. Below this width the page is allowed to scroll — a dashboard this dense has nowhere
-   left to go. */
+/* Below this the two columns stack and the page is allowed to scroll — a dashboard this dense has
+   nowhere left to go, and mobile is explicitly out of scope. */
 @media (max-width: 950px) {
     .pt-app {
         height: auto;
@@ -66,21 +78,10 @@
     }
 
     .pt-main {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .pt-col-objective {
-        grid-column: 1 / -1;
-        order: -1;
-    }
-
-    .pt-col-board {
-        grid-column: 1 / -1;
-        height: 68vh;
-    }
-
-    .pt-col-mid,
-    .pt-col-right {
-        min-height: 0;
+    .pt-stage {
+        height: 72vh;
     }
 }

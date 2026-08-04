@@ -10,7 +10,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton<GameSession>(
     sp => new GameSession(sp.GetRequiredService<SessionLog>()));
-builder.Services.AddSingleton<PlaytestView>();
+// Given browser storage so that how the board is being looked at survives a reload. View only —
+// nothing it remembers can change a rule, a legal command or a replay.
+builder.Services.AddSingleton<PlaytestView>(
+    sp => new PlaytestView(sp.GetRequiredService<FightFiles>()));
+builder.Services.AddSingleton<DevPanelState>(
+    sp => new DevPanelState(sp.GetRequiredService<FightFiles>()));
+builder.Services.AddSingleton<ActionSpotlight>();
 builder.Services.AddSingleton<FightFiles>();
 builder.Services.AddSingleton<CustomFightStore>();
 builder.Services.AddSingleton<SessionLog>();

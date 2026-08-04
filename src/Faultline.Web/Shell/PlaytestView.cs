@@ -33,11 +33,92 @@ public sealed class PlaytestView
     /// <summary>How far one press of zoom in or out moves.</summary>
     public const int ZoomStep = 10;
 
+    /// <summary>localStorage key the view preferences are kept under.</summary>
+    public const string StorageKey = "faultline.view";
+
+    private readonly FightFiles? _files;
+
     private GameState? _threatFor;
     private IReadOnlyCollection<Coord> _threat = Array.Empty<Coord>();
 
+    /// <summary>Creates a view with no storage behind it, for a test or a headless caller.</summary>
+    public PlaytestView()
+    {
+    }
+
+    /// <summary>Creates a view that remembers how it was left.</summary>
+    /// <param name="files">Browser storage. Optional — a null one simply never persists.</param>
+    public PlaytestView(FightFiles? files) => _files = files;
+
     /// <summary>Raised whenever something on this view changed, so the screen can redraw.</summary>
     public event Action? Changed;
+
+    // ---- Debug overlays (internal builds only; the dev panel is the only thing that sets them) ---
+
+    /// <summary>Whether every tile prints its coordinate.</summary>
+    public bool ShowTileIds { get; private set; }
+
+    /// <summary>Whether every reachable tile prints what it costs to stand on.</summary>
+    public bool ShowPathCosts { get; private set; }
+
+    /// <summary>Whether the whole enemy side's reach is painted at once, rather than one on hover.</summary>
+    /// <remarks>
+    /// Off by default and kept in the dev panel on purpose. The union covered 47 of 49 tiles on
+    /// fight 1 (D-089): as a play aid it says only "somewhere is dangerous", which is why it is a
+    /// debugging overlay and not a control on the board.
+    /// </remarks>
+    public bool ShowThreatUnion { get; private set; }
+
+    /// <summary>Whether the selected unit's Action Point arithmetic is printed beside it.</summary>
+    public bool ShowApAudit { get; private set; }
+
+    /// <summary>Turns the tile-id overlay on or off.</summary>
+    public void ToggleTileIds()
+    {
+        ShowTileIds = !ShowTileIds;
+        Persist();
+    }
+
+    /// <summary>Turns the path-cost overlay on or off.</summary>
+    public void TogglePathCosts()
+    {
+        ShowPathCosts = !ShowPathCosts;
+        Persist();
+    }
+
+    /// <summary>Turns the whole-side threat union on or off.</summary>
+    public void ToggleThreatUnion()
+    {
+        ShowThreatUnion = !ShowThreatUnion;
+        Persist();
+    }
+
+    /// <summary>Turns the Action Point audit on or off.</summary>
+    public void ToggleApAudit()
+    {
+        ShowApAudit = !ShowApAudit;
+        Persist();
+    }
+
+    // ---- Legend hover -------------------------------------------------------------------------
+
+    /// <summary>
+    /// The terrain the legend is hovering, so the board can pick out every tile of that kind.
+    /// </summary>
+    public TileType? HighlightedTerrain { get; private set; }
+
+    /// <summary>Picks out one terrain kind on the board, or stops picking one out.</summary>
+    /// <param name="tile">Terrain to highlight, or null.</param>
+    public void HighlightTerrain(TileType? tile)
+    {
+        if (Nullable.Equals(HighlightedTerrain, tile))
+        {
+            return;
+        }
+
+        HighlightedTerrain = tile;
+        Notify();
+    }
 
     /// <summary>Whether the board draws separating lines between tiles.</summary>
     public bool GridLines { get; private set; } = true;
@@ -65,21 +146,21 @@ public sealed class PlaytestView
     public void ToggleGridLines()
     {
         GridLines = !GridLines;
-        Notify();
+        Persist();
     }
 
     /// <summary>Turns the hover preview on or off.</summary>
     public void ToggleRangePreview()
     {
         RangePreview = !RangePreview;
-        Notify();
+        Persist();
     }
 
     /// <summary>Turns the enemy threat overlay on or off.</summary>
     public void ToggleThreatView()
     {
         ThreatView = !ThreatView;
-        Notify();
+        Persist();
     }
 
     /// <summary>Gives the board the whole window, or gives the dashboard back.</summary>
@@ -109,7 +190,115 @@ public sealed class PlaytestView
         }
 
         Zoom = clamped;
+        Persist();
+    }
+
+    /// <summary>
+    /// Puts the board back to the size that fits its box. The same thing as
+    /// <see cref="ResetZoom"/> — named for what a player is asking for rather than for the field it
+    /// happens to write.
+    /// </summary>
+    public void FitBoard() => ResetZoom();
+
+    // ---- Remembering how it was left -----------------------------------------------------------
+
+    /// <summary>
+    /// Restores the view preferences from an earlier sitting. View only: not one field here can
+    /// change a rule, a legal command or a hash, so a corrupt or missing key costs nothing but the
+    /// defaults.
+    /// </summary>
+    /// <returns>A task that completes once the stored preferences have been applied, or skipped.</returns>
+    public async Task LoadAsync()
+    {
+        if (_files is null)
+        {
+            return;
+        }
+
+        string? stored = await _files.GetAsync(StorageKey);
+        if (string.IsNullOrWhiteSpace(stored))
+        {
+            return;
+        }
+
+        Apply(stored!);
         Notify();
+    }
+
+    /// <summary>The preferences as one storable line. Public so a test can round-trip it.</summary>
+    /// <returns>The encoded preferences.</returns>
+    public string Encode() =>
+        string.Join(
+            ";",
+            "zoom=" + Zoom.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "grid=" + Flag(GridLines),
+            "range=" + Flag(RangePreview),
+            "threat=" + Flag(ThreatView),
+            "ids=" + Flag(ShowTileIds),
+            "costs=" + Flag(ShowPathCosts),
+            "union=" + Flag(ShowThreatUnion),
+            "apaudit=" + Flag(ShowApAudit));
+
+    /// <summary>Applies an encoded line. Unknown or malformed fields are left at their defaults.</summary>
+    /// <param name="stored">A line produced by <see cref="Encode"/>.</param>
+    public void Apply(string stored)
+    {
+        if (stored is null)
+        {
+            return;
+        }
+
+        foreach (var part in stored.Split(';'))
+        {
+            int at = part.IndexOf('=');
+            if (at <= 0)
+            {
+                continue;
+            }
+
+            string key = part.Substring(0, at).Trim();
+            string value = part.Substring(at + 1).Trim();
+
+            switch (key)
+            {
+                case "zoom" when int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out int zoom):
+                    Zoom = zoom < MinZoom ? MinZoom : zoom > MaxZoom ? MaxZoom : zoom;
+                    break;
+                case "grid":
+                    GridLines = value == "1";
+                    break;
+                case "range":
+                    RangePreview = value == "1";
+                    break;
+                case "threat":
+                    ThreatView = value == "1";
+                    break;
+                case "ids":
+                    ShowTileIds = value == "1";
+                    break;
+                case "costs":
+                    ShowPathCosts = value == "1";
+                    break;
+                case "union":
+                    ShowThreatUnion = value == "1";
+                    break;
+                case "apaudit":
+                    ShowApAudit = value == "1";
+                    break;
+            }
+        }
+    }
+
+    private static string Flag(bool on) => on ? "1" : "0";
+
+    private void Persist()
+    {
+        Notify();
+
+        // Deliberately not awaited: the board must not wait on browser storage to redraw, and a
+        // failed write costs a preference, never a position.
+        _ = _files?.SetAsync(StorageKey, Encode());
     }
 
     /// <summary>Whether zooming in would change anything.</summary>
@@ -130,7 +319,7 @@ public sealed class PlaytestView
     /// </remarks>
     public IReadOnlyCollection<Coord> ThreatTiles(GameState? state)
     {
-        if (!ThreatView || state is null)
+        if ((!ThreatView && !ShowThreatUnion) || state is null)
         {
             return Array.Empty<Coord>();
         }

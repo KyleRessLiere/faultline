@@ -1,0 +1,239 @@
+@inherits PlaytestPanel
+
+@* A slim band between the header and the turn strip, for the two or three things that are true of
+   the whole board rather than of any one unit: somebody is over the edge, somebody is coming back
+   bedraggled, the fight has ended, the run wants an answer.
+
+   It reserves no space when it has nothing to say — an always-present strip teaches a player to
+   stop reading it, which is exactly the wrong habit for the one line that can cost a duck.
+
+   It does NOT say whose turn it is, which round it is, or what the acting unit has left. Those live
+   in the turn-order strip and the action list now (D-103); two places answering "who is next" is how
+   they end up disagreeing. *@
+
+@if (HasContent)
+{
+    <div class="band">
+        @if (ShowResolution && Runs.State is { } run)
+        {
+            @if (Resolution is { } resolved)
+            {
+                <div class="block resolved">
+                    <p class="outcome @(resolved.Outcome == FightOutcome.Won ? "won" : "lost")">
+                        @(resolved.Outcome == FightOutcome.Won
+                            ? $"Fight won on round {resolved.Round}."
+                            : $"Fight lost on round {resolved.Round}.")
+                    </p>
+
+                    <h3>Carried out</h3>
+                    <ul class="carried">
+                        @foreach (var carried in Runs.LastEvents.OfType<UnitCarried>())
+                        {
+                            <li class="@(carried.Status == RunUnitStatus.Voided ? "voided" : carried.Status == RunUnitStatus.Downed ? "downed" : string.Empty)">
+                                <span class="art">
+                                    <UnitArt Kind="carried.Kind" Label="@carried.Kind.ToString()" />
+                                </span>
+                                <strong>@carried.Kind</strong>
+                                @if (carried.Status == RunUnitStatus.Voided)
+                                {
+                                    <span class="badge voided">voided — gone for the run</span>
+                                }
+                                else if (carried.Status == RunUnitStatus.Downed)
+                                {
+                                    <span class="badge downed">downed — returns bedraggled on @carried.FieldingHp/@carried.MaxHp, no round-1 slot</span>
+                                }
+                                else
+                                {
+                                    <span class="badge">@carried.Hp/@carried.MaxHp carried forward</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+
+                    @if (run.Outcome == RunOutcome.Lost)
+                    {
+                        <p class="instruction">@RunEnding</p>
+                    }
+                    else if (run.Outcome == RunOutcome.Won)
+                    {
+                        <p class="instruction">Run complete — @run.FightsWon fights won.</p>
+                    }
+                    else if (run.CurrentNode is FightNode nextFight)
+                    {
+                        <p class="instruction">
+                            Next: <strong>@PlaytestFlow.NameOf(nextFight.FightId)</strong>
+                        </p>
+                        <div class="row">
+                            <button type="button" class="act primary" @onclick="ContinueRun">Play the next fight</button>
+                            <a class="act" href="campaign">Back to the run</a>
+                        </div>
+                    }
+                    else if (run.CurrentNode is RestNode)
+                    {
+                        <p class="instruction">Next: <strong>a rest</strong> — it restores everything that can still be fielded.</p>
+                        <div class="row"><a class="act primary" href="campaign">Take the rest</a></div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="block resolved">
+                    <p class="instruction">This run is standing between fights.</p>
+                    <div class="row"><a class="act primary" href="campaign">Back to the run</a></div>
+                </div>
+            }
+        }
+        else if (ShowOutcome)
+        {
+            <div class="block resolved">
+                <p class="outcome @(State.Outcome == FightOutcome.Won ? "won" : "lost")">
+                    @(State.Outcome == FightOutcome.Won ? "Fight won." : "Fight lost.")
+                </p>
+                <p class="instruction">Restart in the header to play it again on the next seed.</p>
+            </div>
+        }
+        else
+        {
+            @* Persistent, not a toast: while somebody is over the edge it is the most important fact
+               on the screen, and it names the deadline rather than implying one (D-083). The units
+               that could still get there are listed, because "somebody is dying" without "and you
+               can reach them" is only half of what a player needs. *@
+            @if (Paddling.Count > 0)
+            {
+                <div class="block urgent-banner" role="status">
+                    @foreach (var line in Paddling)
+                    {
+                        <p class="urgent-line">@line</p>
+                    }
+
+                    <p class="urgent-help">@RescuersLine</p>
+                </div>
+            }
+
+            @* Said once, in round 1, because that is the only round the state exists in. The strip
+               shows the same fact as a gap; this is the sentence version, and between them neither
+               player can reach their second activation wondering where the first one went. *@
+            @if (Recovering.Count > 0)
+            {
+                <div class="block bedraggled-banner" role="status">
+                    @foreach (var line in Recovering)
+                    {
+                        <p class="bedraggled-line">@line</p>
+                    }
+                </div>
+            }
+
+            @if (Deploying)
+            {
+                @* Loud, and before the tile is clicked. A duck that owes its side an activation is a
+                   duck you place differently, and agency before injury (D-080) means that cost
+                   belongs on screen at the moment of the choice — against the threat overlay, not
+                   after it. *@
+                @if (BedraggledOnDeck is { Count: > 0 } waiting)
+                {
+                    <div class="block bedraggled-banner" role="status">
+                        @foreach (var unit in waiting)
+                        {
+                            <p class="bedraggled-line">
+                                <strong>@unit.Name</strong> — @PlaytestText.BedraggledLabel(unit)
+                            </p>
+                        }
+                        <p class="bedraggled-help">
+                            It is an ordinary unit otherwise: it can be hit, shoved, swept and rescued while it waits.
+                        </p>
+                    </div>
+                }
+
+                <div class="block deploy">
+                    <p class="who team-@PlaytestText.TeamClass(State.ActiveTeam)">
+                        @PlaytestText.Team(State.ActiveTeam) places @PendingDeployName.
+                    </p>
+                    <p class="instruction">Click a highlighted deployment tile in your corner.</p>
+
+                    @* The threat overlay is per-enemy on hover rather than painted over the board
+                       (D-089), which makes it worth one line to say it is there at all. *@
+                    <p class="hint">Hover an enemy to see everywhere it could reach on round 1.</p>
+                </div>
+            }
+        }
+    </div>
+}
+
+@code {
+    /// <summary>True when a run owns the board and its fight has already resolved.</summary>
+    private bool ShowResolution => Session.InRun && FightIsOver;
+
+    /// <summary>True when a one-off fight has ended and nothing but a restart follows.</summary>
+    private bool ShowOutcome =>
+        !ShowResolution && ShowBoard && State.Outcome != FightOutcome.InProgress;
+
+    /// <summary>True when there is a live board to say anything about.</summary>
+    private bool InPlay => !ShowResolution && !ShowOutcome && ShowBoard;
+
+    private bool Deploying => InPlay && State.Phase == Phase.Deployment;
+
+    private IReadOnlyList<string> Paddling =>
+        InPlay ? PlaytestText.ClingingLines(State) : System.Array.Empty<string>();
+
+    private IReadOnlyList<string> Recovering =>
+        InPlay ? PlaytestText.BedraggledLines(State) : System.Array.Empty<string>();
+
+    /// <summary>
+    /// Whether the band has anything worth a strip of screen. False renders nothing at all — no
+    /// wrapper, no padding, no reserved row.
+    /// </summary>
+    private bool HasContent =>
+        ShowResolution
+        || ShowOutcome
+        || Paddling.Count > 0
+        || Recovering.Count > 0
+        || Deploying;
+
+    /// <summary>Who could still get to a hanging ally this activation, in Core's own reckoning.</summary>
+    private string RescuersLine
+    {
+        get
+        {
+            var names = new List<string>();
+
+            foreach (var clinging in State.Units)
+            {
+                if (!clinging.Clinging || !clinging.IsAlive || !clinging.Team.IsPlayer())
+                {
+                    continue;
+                }
+
+                foreach (var unit in State.Units)
+                {
+                    if (unit.Team.IsPlayer()
+                        && !unit.HasActivated
+                        && Pits.CanReachToRescue(State, unit, clinging)
+                        && !names.Contains(unit.Name))
+                    {
+                        names.Add(unit.Name);
+                    }
+                }
+            }
+
+            return names.Count == 0
+                ? "Nobody can reach them this round."
+                : PlaytestText.Names(names) + " can reach them — highlighted on the board.";
+        }
+    }
+
+    /// <summary>Every Bedraggled duck still waiting to be placed, so both placements are informed.</summary>
+    private IReadOnlyList<Unit> BedraggledOnDeck =>
+        State.Units.Where(u => u.Bedraggled && u.IsAlive && u.Team.IsPlayer()).ToList();
+
+    private FightResolved? Resolution => PlaytestFlow.Resolution(Runs);
+
+    private string RunEnding =>
+        Runs.LastEvents.OfType<RunLost>().FirstOrDefault()?.Reason ?? "The run ends here.";
+
+    private string PendingDeployName =>
+        Session.PendingDeployUnit is null
+            ? "a unit"
+            : State.UnitById(Session.PendingDeployUnit.Value).Name;
+
+    private void ContinueRun() => Runs.Enter();
+}

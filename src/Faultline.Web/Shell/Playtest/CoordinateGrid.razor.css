@@ -534,3 +534,129 @@
 .ap-tile.surcharge {
     color: var(--pt-red);
 }
+
+/* ---- Declared enemy plans, on the board ---------------------------------------------------- */
+
+/* Every plan is drawn faintly and the singled-out one at full opacity. The lesson is D-089's: a
+   board where every arrow is loud says only "something is coming", which nobody can plan against.
+   Dotted rather than solid so an intent never reads as terrain. */
+.cell.intent::after {
+    border: 1px dotted rgba(255, 98, 104, .38);
+    content: "";
+    inset: 3px;
+    pointer-events: none;
+    position: absolute;
+}
+
+.cell.intent.lit::after {
+    border: 2px dotted rgba(255, 98, 104, .95);
+    box-shadow: inset 0 0 12px rgba(255, 64, 68, .28);
+}
+
+/* What a plan is aimed at. A ring, so the tile still says what terrain it is. */
+.cell.intent-target {
+    box-shadow: inset 0 0 0 2px rgba(255, 98, 104, .7);
+}
+
+/* The badge above an enemy token: which way to look, not the whole telegraph. */
+.token-intent {
+    color: rgba(255, 98, 104, .72);
+    font-size: 11px;
+    left: 50%;
+    line-height: 1;
+    pointer-events: none;
+    position: absolute;
+    top: 2px;
+    transform: translateX(-50%);
+}
+
+.token-intent.lit {
+    color: var(--e);
+    text-shadow: 0 0 6px rgba(255, 64, 68, .9);
+}
+
+/* ---- Legend hover ------------------------------------------------------------------------- */
+
+/* Hovering a legend swatch picks out every tile of that kind. A dashed white ring, because every
+   coloured ring on this board already means something. */
+.cell.legend-lit {
+    outline: 2px dashed rgba(242, 245, 248, .8);
+    outline-offset: -3px;
+}
+
+/* The tile whose rules are open in the inspector. */
+.cell.read {
+    outline: 2px solid rgba(66, 216, 197, .85);
+    outline-offset: -4px;
+}
+
+/* ---- Debug overlays (internal builds only) ------------------------------------------------- */
+
+.debug {
+    font-size: 8px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    pointer-events: none;
+    position: absolute;
+}
+
+.debug.id {
+    color: rgba(242, 245, 248, .45);
+    left: 2px;
+    top: 2px;
+}
+
+.debug.cost {
+    color: rgba(66, 216, 197, .75);
+    right: 2px;
+    top: 2px;
+}
+
+/* ---- The outcome, on the tile it lands on -------------------------------------------------- */
+
+/* The prediction the board carries. Loud on purpose: it is the single most decision-relevant thing
+   on the screen while an action is aimed, and it is read at a glance rather than studied. */
+.hit {
+    align-items: center;
+    background: rgba(6, 9, 14, .88);
+    border: 1px solid var(--pt-yellow);
+    border-radius: 9px;
+    bottom: 3px;
+    color: var(--pt-yellow);
+    display: flex;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    gap: 2px;
+    left: 50%;
+    line-height: 1.3;
+    padding: 0 5px;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 3;
+}
+
+.hit-icon {
+    font-size: 10px;
+    font-style: normal;
+}
+
+.hit.collision,
+.hit.spikes {
+    border-color: var(--pt-red);
+    color: var(--pt-red);
+}
+
+.hit.pit {
+    border-color: var(--pt-cyan);
+    color: var(--pt-cyan);
+}
+
+/* A blow that takes somebody off the board says so by filling in. */
+.hit.fatal {
+    background: var(--pt-red);
+    border-color: var(--pt-red);
+    color: #0b0d11;
+}

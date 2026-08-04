@@ -1,0 +1,194 @@
+@inherits PlaytestPanel
+
+@* The activation order, published (D-103), as a row of portrait cards above the board. Intents have
+   always said *what* each enemy will do and nothing has ever said *when* — and "does the Anchor
+   swing before or after my Wardbearer?" is the most decision-relevant fact on the board.
+
+   Every scrap of order logic is Core's: StripCards reads TurnOrder.Upcoming and this draws it.
+
+   Clicking a card *reads* it and never gives an order. Friendly activation happens by clicking the
+   duck on the board, and the caption below says so — a control that changes meaning depending on
+   whose card it is would be the opposite of a tutorial. *@
+
+<div class="strip-bar">
+    <div class="now team-@PlaytestText.TeamClass(State.ActiveTeam)">
+        <span class="round">Round @State.Round</span>
+        <span class="actor">@PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() TO ACT</span>
+    </div>
+
+    @if (Cards.Count == 0)
+    {
+        <p class="strip-empty">@EmptyText</p>
+    }
+    else
+    {
+        <ol class="strip" aria-label="Activation order">
+            @foreach (var card in Cards)
+            {
+                @if (card.RoundSeam)
+                {
+                    <li class="seam" aria-label="@($"Round {card.Round} begins")">
+                        <span class="seam-label">R@(card.Round)</span>
+                        @if (card.ReinforcementsDue)
+                        {
+                            @* Waves land at round start before intents (D-037). Where an arrival
+                               belongs in the order is undecided (MASTER_DESIGN §14), so this says the
+                               round is not the whole story and claims nothing about position. *@
+                            <span class="wave" title="A reinforcement wave lands at the start of this round. Its place in the order is not yet decided.">+wave</span>
+                        }
+                    </li>
+                }
+
+                <li class="card @StripCards.Class(card.State) team-@PlaytestText.TeamClass(card.Team)">
+                    <button type="button"
+                            class="face"
+                            disabled="@(!card.IsNamed)"
+                            title="@Title(card)"
+                            @onclick="() => Read(card)"
+                            @onmouseover="() => Session.Telegraph(TelegraphOf(card))"
+                            @onfocus="() => Session.Telegraph(TelegraphOf(card))"
+                            @onmouseout="() => Session.Telegraph(null)"
+                            @onblur="() => Session.Telegraph(null)">
+                        <span class="seq">@card.Sequence</span>
+
+                        <span class="art">
+                            @if (card.Unit is { } unit)
+                            {
+                                <UnitArt Kind="unit.Kind" Label="@unit.Name" />
+                            }
+                            else
+                            {
+                                <span class="slot-mark">?</span>
+                            }
+                        </span>
+
+                        <span class="who">@card.Name</span>
+                        <span class="owner">@PlaytestText.Team(card.Team)</span>
+
+                        @if (card.Unit is { } body)
+                        {
+                            <span class="hp">@body.Hp/@body.MaxHp</span>
+
+                            @* Resource pips: one per point of the meter for a class that holds one,
+                               so a reader can see a spender coming without selecting anybody. *@
+                            @if (Verve.SpendFor(body.Kind) is { } spender)
+                            {
+                                <span class="pips @(body.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty)"
+                                      title="@PlaytestText.VerveTitle(body)">
+                                    @for (int v = 0; v < Verve.Cap; v++)
+                                    {
+                                        <i class="pip @(v < body.Verve ? "on" : string.Empty)"></i>
+                                    }
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="candidates">@Candidates(card)</span>
+                        }
+
+                        @* One badge slot, and what fills it depends on what the card is. A gap says
+                           why it is a gap; an enemy says what it means to do; a spent slot says it is
+                           spent. Never all three, and never nothing. *@
+                        @if (card.Skip != ActivationSkip.None)
+                        {
+                            <span class="badge gap">@StripCards.GapLabel(card.Skip)</span>
+                        }
+                        else if (card.State == StripState.Defeated)
+                        {
+                            <span class="badge out">out</span>
+                        }
+                        else if (card.State == StripState.Done)
+                        {
+                            <span class="badge done" aria-label="Activation spent">✓</span>
+                        }
+                        else if (card.Intent != IntentCategory.None)
+                        {
+                            <span class="badge intent @Intents.Class(card.Intent)"
+                                  aria-label="@card.IntentText">@Intents.Glyph(card.Intent)</span>
+                        }
+                        else if (card.IsCurrent)
+                        {
+                            <span class="badge now">now</span>
+                        }
+                    </button>
+                </li>
+            }
+        </ol>
+    }
+
+    <p class="caption">Clicking a card reads it. It never gives an order — select on the board.</p>
+</div>
+
+@code {
+    private IReadOnlyList<StripCard> Cards => StripCards.Build(State);
+
+    private string EmptyText => State.Phase == Phase.Deployment
+        ? "The order is published once deployment finishes."
+        : "No activations left to publish.";
+
+    /// <summary>
+    /// Inspect always; select as well when this is a unit the active player may actually command.
+    /// The two are deliberately not merged: inspection is universal and read-only, selection is
+    /// gated on whose slot it is, and where a clicked card is one you may command both fire — that
+    /// coincidence is not a licence to merge them (D-103).
+    /// </summary>
+    private void Read(StripCard card)
+    {
+        if (card.UnitId is not { } id)
+        {
+            return;
+        }
+
+        Session.Inspect(id);
+
+        if (Session.Selectable.Contains(id))
+        {
+            Session.Select(id);
+        }
+    }
+
+    /// <summary>Which enemy's telegraph a hover singles out on the board, or none.</summary>
+    private static UnitId? TelegraphOf(StripCard card) =>
+        card.Unit is { Team: Team.Enemy } enemy ? enemy.Id : null;
+
+    private string Candidates(StripCard card)
+    {
+        var names = new List<string>();
+        foreach (var unit in card.Candidates)
+        {
+            names.Add(unit.Name);
+        }
+
+        return names.Count == 0 ? "—" : PlaytestText.Names(names);
+    }
+
+    private string Title(StripCard card)
+    {
+        if (card.Unit is not { } unit)
+        {
+            return $"{PlaytestText.Team(card.Team)}'s slot in round {card.Round}. "
+                + $"Either of {Candidates(card)} may take it — that choice is the player's, so the order cannot name one.";
+        }
+
+        // The whole intent sentence, not the badge's glyph: the badge says where to look and this
+        // says what is coming, for how much, and to whom.
+        if (card.IntentText.Length > 0)
+        {
+            return $"{unit.Name} — {card.IntentText}. Click to read it.";
+        }
+
+        return card.State switch
+        {
+            StripState.Recovering when card.Skip == ActivationSkip.Bedraggled =>
+                $"{unit.Name} is bedraggled and takes no activation this round — its side has one fewer. "
+                + "It is an ordinary unit otherwise: it can be hit, shoved and swept. Click to read it.",
+            StripState.Recovering =>
+                $"{unit.Name} is clinging and takes no activation — its side has one fewer this round. Click to read it.",
+            StripState.Defeated => $"{unit.Name} is off the board. Click to read it.",
+            StripState.Done => $"{unit.Name} has already activated this round. Click to read it.",
+            StripState.Current => $"{unit.Name} — acting now. Click to read it.",
+            _ => $"{unit.Name} — round {card.Round}. Click to read it.",
+        };
+    }
+}

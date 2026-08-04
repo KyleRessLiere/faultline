@@ -15,15 +15,18 @@
          @onmouseleave="() => Session.Hover(null)">
         <div class="axis corner" aria-hidden="true"></div>
 
+        @* Columns as letters, rows as one-based numbers, always on. Core addresses tiles as
+           zero-based coordinates and always will — this is the label a person reads off the edge,
+           and BoardCoords is the one place that decides it. *@
         @for (int x = 0; x < Width; x++)
         {
-            <div class="axis col">@x</div>
+            <div class="axis col">@BoardCoords.Column(x)</div>
         }
 
         @for (int y = 0; y < Height; y++)
         {
             int row = y;
-            <div class="axis row">@row</div>
+            <div class="axis row">@BoardCoords.Row(row)</div>
 
             @for (int x = 0; x < Width; x++)
             {
@@ -39,6 +42,14 @@
                         @onclick="() => OnCellClick(cell, unit)">
                     @if (unit is not null)
                     {
+                        @* The declared plan, above the token that holds it. Rules-critical UI, not
+                           polish (CLAUDE.md): what an enemy means to do belongs on the enemy. *@
+                        @if (IntentOf(unit) is { } plan)
+                        {
+                            <span class="token-intent @Intents.Class(Intents.CategoryOf(plan, State)) @(Session.Telegraphed == unit.Id ? "lit" : string.Empty)"
+                                  title="@Intents.Sentence(State, plan)">@Intents.Glyph(Intents.CategoryOf(plan, State))</span>
+                        }
+
                         <span class="art team-@PlaytestText.TeamClass(unit.Team)">
                             <UnitArt Kind="unit.Kind" Label="@unit.Name" />
                         </span>
@@ -126,6 +137,31 @@
                     {
                         <span class="ap-tile @(IsSurcharged(cell) ? "surcharge" : string.Empty)">@price</span>
                     }
+
+                    @* The outcome, on the tile it lands on. The board carries the prediction and the
+                       sidebar supports it — an aim that only reads correctly in a sentence beside the
+                       board is an aim the player has to look away to understand. *@
+                    @if (MarkAt(cell) is { } mark)
+                    {
+                        <span class="hit @mark.Class" title="@Session.PreviewText">
+                            @if (mark.Icon.Length > 0)
+                            {
+                                <i class="hit-icon" aria-hidden="true">@mark.Icon</i>
+                            }
+                            @mark.Label
+                        </span>
+                    }
+
+                    @* Debug overlays. Internal builds only, off by default, and drawn last so they
+                       sit over the paint rather than under it. *@
+                    @if (View.ShowTileIds)
+                    {
+                        <span class="debug id">@BoardCoords.Of(cell)</span>
+                    }
+                    @if (View.ShowPathCosts && CostLabel(cell) is { Length: > 0 } cost)
+                    {
+                        <span class="debug cost">@cost</span>
+                    }
                 </button>
             }
         }
@@ -180,6 +216,57 @@
             }
 
             return ids;
+        }
+    }
+
+    /// <summary>The plan an enemy has on record, or null. Nothing else on this board reads intents.</summary>
+    private EnemyIntent? IntentOf(Unit unit) =>
+        unit.Team == Team.Enemy ? Intents.For(State, unit.Id) : null;
+
+    /// <summary>
+    /// Every tile some enemy's declared plan touches, and how loudly to draw it. One entry per tile;
+    /// a tile in the singled-out enemy's plan wins over one in anybody else's, so hovering a strip
+    /// card lifts that plan out of the crowd rather than adding to it (D-089's lesson).
+    /// </summary>
+    private IReadOnlyDictionary<Coord, bool> IntentMarks
+    {
+        get
+        {
+            var marks = new Dictionary<Coord, bool>();
+
+            foreach (var intent in State.Intents)
+            {
+                bool lit = Session.Telegraphed == intent.UnitId;
+
+                foreach (var tile in Intents.Marks(intent))
+                {
+                    if (!marks.TryGetValue(tile, out bool already) || (lit && !already))
+                    {
+                        marks[tile] = lit;
+                    }
+                }
+            }
+
+            return marks;
+        }
+    }
+
+    /// <summary>Tiles the singled-out enemy means to strike, for the target ring.</summary>
+    private IReadOnlyCollection<Coord> IntentTargets
+    {
+        get
+        {
+            var tiles = new List<Coord>();
+
+            foreach (var intent in State.Intents)
+            {
+                if (Intents.TargetTile(intent) is { } tile && !tiles.Contains(tile))
+                {
+                    tiles.Add(tile);
+                }
+            }
+
+            return tiles;
         }
     }
 
@@ -276,12 +363,18 @@
             return;
         }
 
-        // Last, and only last: a click on an enemy means "inspect" exactly when it means nothing
-        // else. Attacking it always wins.
+        // Last, and only last: a click on a unit means "inspect" exactly when it means nothing else.
+        // Acting on it always wins.
         if (unit is not null)
         {
             Session.Inspect(unit.Id);
+            return;
         }
+
+        // Empty ground reads the ground. What a drain does to whoever is shoved onto it is a rule a
+        // player has to be able to look up before aiming at it, and a tooltip is not somewhere you
+        // can look something up.
+        Session.InspectTile(coord);
     }
 
     private bool IsDeployTarget(Coord coord) => Session.DeployTargets.ContainsKey(coord);
@@ -303,18 +396,50 @@
         return ActionPoints.TileLabel(State, unit, coord);
     }
 
+    /// <summary>
+    /// What the aimed action would do to this tile, or null. Suppressed with the rest of the hover
+    /// paint when the preview is switched off — a screenshot of the position should be the position.
+    /// </summary>
+    private PreviewMark? MarkAt(Coord coord)
+    {
+        if (!View.RangePreview)
+        {
+            return null;
+        }
+
+        foreach (var mark in Session.PreviewMarks)
+        {
+            if (mark.At.Equals(coord))
+            {
+                return mark;
+            }
+        }
+
+        return null;
+    }
+
     private bool IsSurcharged(Coord coord) =>
         Session.SelectedUnit is { } unit && ActionPoints.IsSurcharged(State, unit, coord);
 
-    private bool IsClickable(Coord coord, Unit? unit) =>
-        !Animator.Busy
-        && (IsDeployTarget(coord)
-            || Session.Targets.ContainsKey(coord)
-            || Session.CastLandings.ContainsKey(coord)
-            || Session.CastGrabTiles.Contains(coord)
-            || Session.RescueDestinations.ContainsKey(coord)
-            || (unit is not null && Session.Selectable.Contains(unit.Id))
-            || GameSession.CanInspect(unit));
+    /// <summary>
+    /// The running cost to stand on a tile, for the dev overlay. Core's answer, never added up here.
+    /// </summary>
+    private string CostLabel(Coord coord)
+    {
+        if (Session.SelectedUnit is not { } unit)
+        {
+            return string.Empty;
+        }
+
+        int? running = ActionPoints.RunningCost(State, unit, coord);
+        return running is null
+            ? string.Empty
+            : running.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // Every tile is clickable now: one that does nothing else reads its own terrain, which is a
+    // rule a player has to be able to look up rather than hover for.
+    private bool IsClickable(Coord coord, Unit? unit) => !Animator.Busy;
 
     /// <summary>
     /// Whether a click on this cell would open a dossier rather than do something. Inspection is
@@ -354,6 +479,29 @@
         if (HoveredThreat.Contains(coord))
         {
             classes.Add("threat-from");
+        }
+
+        // Every declared plan is drawn faintly; the one whose card is hovered is drawn at full
+        // opacity. Same lesson as the threat union: loud everywhere is the same as silent.
+        if (IntentMarks.TryGetValue(coord, out bool lit))
+        {
+            classes.Add(lit ? "intent lit" : "intent");
+        }
+
+        if (IntentTargets.Contains(coord))
+        {
+            classes.Add("intent-target");
+        }
+
+        // Hovering a legend swatch picks out every tile of that kind.
+        if (View.HighlightedTerrain is { } highlighted && State.Board.At(coord) == highlighted)
+        {
+            classes.Add("legend-lit");
+        }
+
+        if (Session.InspectedTile == coord)
+        {
+            classes.Add("read");
         }
 
         // Cast aims twice: who to pluck, then where to put them (D-091).
@@ -444,7 +592,10 @@
 
     private string Tooltip(Coord coord, Unit? unit)
     {
-        var terrain = State.Board.At(coord).ToString();
+        // Display names, never enum names: no user-facing string may spell an internal identifier
+        // (MASTER_DESIGN §15), and the tile label a person reads is BoardCoords', not Coord's.
+        string terrain = PlaytestText.Terrain(State.Board.At(coord));
+        string at = BoardCoords.Of(coord);
 
         if (unit is not null)
         {
@@ -453,14 +604,19 @@
                 : unit.Staggered ? ", staggered"
                 : string.Empty;
             string inspect = IsInspectOnly(coord, unit) ? " · click to inspect" : string.Empty;
-            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}{inspect}";
+
+            string plan = IntentOf(unit) is { } intent
+                ? " · " + Intents.Sentence(State, intent)
+                : string.Empty;
+
+            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {at}{plan}{inspect}";
         }
 
         if (State.StructureAt(coord) is { } structure)
         {
-            return $"{PlaytestText.Structure(structure)} — {terrain} {coord}";
+            return $"{PlaytestText.Structure(structure)} — {terrain} {at}";
         }
 
-        return $"{terrain} {coord}";
+        return $"{terrain} {at} — {PlaytestText.TerrainWalk(State.Board.At(coord))} Click to read it.";
     }
 }

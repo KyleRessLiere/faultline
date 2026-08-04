@@ -1,0 +1,294 @@
+/* The strip is the second-loudest thing on the screen after the board itself, and the current card
+   is the loudest thing in the strip. Everything else here is deliberately quieter than the board. */
+
+.strip-bar {
+    align-items: stretch;
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    display: grid;
+    grid-template-areas:
+        "now list"
+        "now caption";
+    grid-template-columns: minmax(120px, 140px) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    min-height: 0;
+}
+
+/* Left block: whose round it is, in that side's colour. */
+.now {
+    align-content: center;
+    border-right: 1px solid var(--pt-border-soft);
+    display: grid;
+    gap: 2px;
+    grid-area: now;
+    padding: 8px 10px;
+}
+
+.now .round {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.now .actor {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    line-height: 1.15;
+}
+
+.now.team-a .actor { color: var(--a); }
+.now.team-b .actor { color: var(--b); }
+.now.team-e .actor { color: var(--e); }
+
+.strip {
+    align-items: stretch;
+    display: flex;
+    gap: 5px;
+    grid-area: list;
+    list-style: none;
+    margin: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 7px 9px 4px;
+}
+
+.strip-empty {
+    color: var(--pt-text-dim);
+    font-size: 12px;
+    grid-area: list;
+    margin: 0;
+    padding: 14px 10px;
+}
+
+.caption {
+    color: var(--pt-text-dim);
+    font-size: 10.5px;
+    grid-area: caption;
+    margin: 0;
+    padding: 0 9px 6px;
+}
+
+/* The round seam. A thin rule with the round number on it, so the "acts last then first" ambush is
+   visible rather than something a player discovers by being hit twice. */
+.seam {
+    align-items: center;
+    border-left: 1px dashed var(--pt-border);
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    margin: 0 2px;
+    padding: 0 5px;
+}
+
+.seam-label {
+    color: var(--pt-text-dim);
+    font-size: 9.5px;
+    letter-spacing: .06em;
+}
+
+.wave {
+    background: color-mix(in srgb, var(--pt-amber) 22%, transparent);
+    border-radius: 3px;
+    color: var(--pt-amber);
+    font-size: 9px;
+    padding: 1px 3px;
+    white-space: nowrap;
+}
+
+.card {
+    flex: 0 0 auto;
+}
+
+.face {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 6px;
+    color: var(--pt-text);
+    cursor: pointer;
+    display: grid;
+    gap: 1px;
+    grid-template-columns: auto;
+    justify-items: center;
+    min-width: 68px;
+    padding: 5px 6px 4px;
+    position: relative;
+    transition: transform .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+.face:disabled {
+    cursor: default;
+}
+
+.seq {
+    color: var(--pt-text-dim);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    left: 4px;
+    position: absolute;
+    top: 2px;
+}
+
+.art {
+    align-items: center;
+    display: flex;
+    font-size: 17px;
+    height: 26px;
+    justify-content: center;
+    line-height: 1;
+}
+
+.slot-mark {
+    color: var(--pt-text-dim);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.who {
+    font-size: 11px;
+    font-weight: 600;
+    max-width: 82px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.owner,
+.candidates {
+    color: var(--pt-text-dim);
+    font-size: 9px;
+    letter-spacing: .04em;
+    max-width: 82px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hp {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+
+.pips {
+    display: flex;
+    gap: 1.5px;
+    margin-top: 1px;
+}
+
+.pip {
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--pt-amber) 55%, transparent);
+    border-radius: 50%;
+    height: 4px;
+    width: 4px;
+}
+
+.pip.on {
+    background: var(--pt-amber);
+}
+
+.pips.ready .pip.on {
+    box-shadow: 0 0 3px var(--pt-amber);
+}
+
+.badge {
+    border-radius: 3px;
+    font-size: 9px;
+    letter-spacing: .04em;
+    line-height: 1.4;
+    margin-top: 2px;
+    padding: 0 4px;
+}
+
+.badge.now {
+    background: var(--pt-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.badge.done {
+    background: color-mix(in srgb, var(--pt-green) 28%, transparent);
+    color: var(--pt-green);
+}
+
+.badge.out {
+    background: color-mix(in srgb, var(--pt-red) 22%, transparent);
+    color: var(--pt-red);
+}
+
+.badge.gap {
+    background: color-mix(in srgb, var(--pt-yellow) 20%, transparent);
+    color: var(--pt-yellow);
+}
+
+/* Intent badges are red because every enemy telegraph on this screen is red — the strip, the
+   on-board arrow and the target ring all read as one thing. */
+.badge.intent {
+    background: color-mix(in srgb, var(--e) 24%, transparent);
+    color: var(--e);
+    font-size: 11px;
+    padding: 0 5px;
+}
+
+/* ---- Card states -------------------------------------------------------------------------- */
+
+/* Friendly upcoming: the owner's colour on the border and nothing else. */
+.card.upcoming.team-a .face { border-color: color-mix(in srgb, var(--a) 60%, var(--pt-border)); }
+.card.upcoming.team-b .face { border-color: color-mix(in srgb, var(--b) 60%, var(--pt-border)); }
+.card.slot.team-a .face { border-color: color-mix(in srgb, var(--a) 40%, var(--pt-border)); }
+.card.slot.team-b .face { border-color: color-mix(in srgb, var(--b) 40%, var(--pt-border)); }
+
+.card.enemy .face {
+    border-color: color-mix(in srgb, var(--e) 65%, var(--pt-border));
+}
+
+/* Current: brightest blue on the screen, enlarged, glowing. Nothing else competes with it. */
+.card.current .face {
+    background: color-mix(in srgb, var(--pt-blue) 14%, var(--pt-bg-raised));
+    border-color: var(--pt-blue);
+    box-shadow: 0 0 0 1px var(--pt-blue), 0 0 14px color-mix(in srgb, var(--pt-blue) 45%, transparent);
+    transform: scale(1.08);
+    z-index: 1;
+}
+
+.card.done .face,
+.card.recovering .face {
+    opacity: .5;
+}
+
+/* A gap portrait, never a silent absence: both players have to be able to count the round's
+   activations at a glance, and a slot that quietly is not there cannot be counted. */
+.card.recovering .face {
+    border-style: dashed;
+}
+
+.card.defeated .face {
+    opacity: .42;
+}
+
+.card.defeated .who {
+    text-decoration: line-through;
+}
+
+.face:hover:not(:disabled) {
+    border-color: var(--pt-text-dim);
+}
+
+.card.current .face:hover {
+    border-color: var(--pt-blue);
+}
+
+@media (max-width: 1200px) {
+    .strip-bar {
+        grid-template-columns: minmax(108px, 120px) minmax(0, 1fr);
+    }
+
+    .face {
+        min-width: 60px;
+    }
+}

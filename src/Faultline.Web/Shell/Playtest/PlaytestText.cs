@@ -20,6 +20,78 @@ public static class PlaytestText
     /// <summary>The stance's rules text, for a tooltip.</summary>
     public static string GuardSummary => AbilityDescriptor.For(Ability.GuardStance).Summary;
 
+    /// <summary>
+    /// What a terrain kind is called on screen.
+    /// </summary>
+    /// <remarks>
+    /// <b>The one place the shell names terrain.</b> Core has no display-name layer for
+    /// <see cref="TileType"/> the way <see cref="Naming"/> has one for archetypes and spends — the
+    /// enum names are still Pit and Spikes, and MASTER_DESIGN's tone pass (Pit→Drain,
+    /// Spikes→Brambles) has not reached the code. So this stands in for the missing
+    /// <c>Naming.Of(TileType)</c>: when that arrives, this method becomes a one-line delegate rather
+    /// than a sweep through the markup.
+    /// </remarks>
+    /// <param name="tile">Terrain to name.</param>
+    /// <returns>Its display name.</returns>
+    public static string Terrain(TileType tile) => tile switch
+    {
+        TileType.Wall => "Wall",
+        TileType.Pit => "Drain",
+        TileType.Spikes => "Brambles",
+        TileType.HighGround => "High ground",
+        TileType.Cracked => "Cracked",
+        _ => "Open",
+    };
+
+    /// <summary>What walking onto this terrain does, in one line, with Core's own numbers.</summary>
+    /// <param name="tile">Terrain to describe.</param>
+    /// <returns>One line.</returns>
+    public static string TerrainWalk(TileType tile) => tile switch
+    {
+        TileType.Wall => "Cannot be entered.",
+        TileType.Pit => "Cannot be entered on purpose.",
+        TileType.Spikes => Activation.BrambleCost + " " + ActionPoints.Label + " to enter · "
+            + Displacement.SpikeWalkDamage + " damage.",
+        TileType.HighGround => Activation.ClimbCost + " " + ActionPoints.Label
+            + " to climb (free for a climber) · +" + Combat.HighGroundBonus + " on a ranged shot from here.",
+        TileType.Cracked => Activation.StepCost + " " + ActionPoints.Label + " to enter · it is going to give way.",
+        _ => Activation.StepCost + " " + ActionPoints.Label + " to enter.",
+    };
+
+    /// <summary>What being shoved onto this terrain does, in one line, with Core's own numbers.</summary>
+    /// <param name="tile">Terrain to describe.</param>
+    /// <returns>One line.</returns>
+    public static string TerrainShoved(TileType tile) => tile switch
+    {
+        TileType.Wall => Displacement.CollisionDamage + " damage and a stagger · the shove stops here.",
+        TileType.Pit => "Left clinging on the lip · the shove stops here.",
+        TileType.Spikes => Displacement.SpikeDamage + " damage and a stagger · the shove stops here.",
+        TileType.HighGround => "Cannot be shoved up onto it.",
+        _ => "No effect · the shove carries on.",
+    };
+
+    /// <summary>Damage this terrain deals to whoever is shoved onto it, or zero.</summary>
+    /// <param name="tile">Terrain to price.</param>
+    /// <returns>The damage.</returns>
+    public static int TerrainDamage(TileType tile) => tile switch
+    {
+        TileType.Wall => Displacement.CollisionDamage,
+        TileType.Spikes => Displacement.SpikeDamage,
+        _ => 0,
+    };
+
+    /// <summary>Whether being shoved onto this terrain staggers.</summary>
+    /// <param name="tile">Terrain to ask about.</param>
+    /// <returns>Whether it staggers.</returns>
+    public static bool TerrainStaggers(TileType tile) =>
+        tile is TileType.Wall or TileType.Spikes;
+
+    /// <summary>Whether a shove carries on across this terrain rather than stopping on it.</summary>
+    /// <param name="tile">Terrain to ask about.</param>
+    /// <returns>Whether travel continues.</returns>
+    public static bool TerrainContinues(TileType tile) =>
+        tile is TileType.Open or TileType.Cracked;
+
     /// <summary>The phase, as a person reads it.</summary>
     /// <param name="phase">Phase to name.</param>
     /// <returns>A display label.</returns>
@@ -199,10 +271,10 @@ public static class PlaytestText
     /// <returns>A short outcome, e.g. "spikes 3" or "drain".</returns>
     public static string CastOutcome(GameState state, Coord tile) => state.Board.At(tile) switch
     {
-        TileType.Spikes => "spikes " + Displacement.SpikeDamage,
-        TileType.Pit => "drain",
-        TileType.HighGround => "high ground",
-        _ => "open",
+        TileType.Spikes => Terrain(TileType.Spikes).ToLowerInvariant() + " " + Displacement.SpikeDamage,
+        TileType.Pit => Terrain(TileType.Pit).ToLowerInvariant(),
+        TileType.HighGround => Terrain(TileType.HighGround).ToLowerInvariant(),
+        _ => Terrain(TileType.Open).ToLowerInvariant(),
     };
 
     /// <summary>The status flags worth showing beside a unit.</summary>

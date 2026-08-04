@@ -1,0 +1,104 @@
+@inherits PlaytestPanel
+
+@* The legend and the controls, in one strip below the board. Everything here is presentation: not
+   one control submits a command or changes a rule.
+
+   Hovering a legend item picks out every tile of that kind on the board — the fastest way to answer
+   "where are the drains on this map" without counting squares. *@
+
+<div class="board-controls">
+    <ul class="legend" aria-label="Terrain">
+        @foreach (var tile in Legend)
+        {
+            <li>
+                <button type="button"
+                        class="item @(View.HighlightedTerrain == tile ? "on" : string.Empty)"
+                        title="@PlaytestText.TerrainWalk(tile) Shoved onto it: @PlaytestText.TerrainShoved(tile)"
+                        @onmouseover="() => View.HighlightTerrain(tile)"
+                        @onfocus="() => View.HighlightTerrain(tile)"
+                        @onmouseout="() => View.HighlightTerrain(null)"
+                        @onblur="() => View.HighlightTerrain(null)">
+                    <i class="sw @EventText.TileClass(tile)"></i>@PlaytestText.Terrain(tile)
+                </button>
+            </li>
+        }
+        <li>
+            <span class="item static" title="Where this side may place its squad before the fight starts.">
+                <i class="sw deploy"></i>Deployment
+            </span>
+        </li>
+    </ul>
+
+    <div class="tools">
+        <button type="button"
+                class="tool @(View.ThreatView ? "on" : string.Empty)"
+                aria-pressed="@View.ThreatView"
+                title="Hatch every tile a living enemy could reach and then hit — Core's own movement and range queries, nothing guessed."
+                @onclick="View.ToggleThreatView">
+            Threats
+        </button>
+
+        <button type="button"
+                class="tool @(View.RangePreview ? "on" : string.Empty)"
+                aria-pressed="@View.RangePreview"
+                title="Paint reach, the projected route and the outcome sentence while you hover."
+                @onclick="View.ToggleRangePreview">
+            Range preview
+        </button>
+
+        <button type="button"
+                class="tool @(View.ShowThreatUnion ? "on" : string.Empty)"
+                aria-pressed="@View.ShowThreatUnion"
+                title="Paint the whole enemy side's reach at once. Off by default: the union covers most of a small board and says only that somewhere is dangerous (D-089)."
+                @onclick="View.ToggleThreatUnion">
+            Threat preview
+        </button>
+
+        <button type="button"
+                class="tool @(View.GridLines ? "on" : string.Empty)"
+                aria-pressed="@View.GridLines"
+                title="Draw the separating line between tiles."
+                @onclick="View.ToggleGridLines">
+            Grid on
+        </button>
+
+        <span class="zoom">
+            <button type="button"
+                    class="tool icon"
+                    disabled="@(!View.CanZoomOut)"
+                    title="Zoom out"
+                    aria-label="Zoom out"
+                    @onclick="View.ZoomOut">−</button>
+            <span class="zoom-value">@View.Zoom%</span>
+            <button type="button"
+                    class="tool icon"
+                    disabled="@(!View.CanZoomIn)"
+                    title="Zoom in"
+                    aria-label="Zoom in"
+                    @onclick="View.ZoomIn">+</button>
+        </span>
+
+        <button type="button"
+                class="tool"
+                title="Back to the size that fits the board's box."
+                @onclick="View.FitBoard">
+            Fit board
+        </button>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// The terrain kinds a legend has to explain. Cracked is deliberately absent: it is produced
+    /// only at runtime by the collapse clock and no authored board fields it, so a swatch for it
+    /// would document a tile a player cannot yet meet.
+    /// </summary>
+    private static readonly TileType[] Legend =
+    {
+        TileType.Open,
+        TileType.Wall,
+        TileType.Pit,
+        TileType.Spikes,
+        TileType.HighGround,
+    };
+}
