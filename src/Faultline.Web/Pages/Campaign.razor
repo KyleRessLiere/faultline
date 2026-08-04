@@ -10,10 +10,14 @@
         <div>
             <h1>Faultline <span class="sub">the campaign</span></h1>
             <p class="note">
-                Twelve nodes in a fixed order — ten fights and two rests. There is no healing between
-                fights: a unit that finishes on 3 of 14 starts the next one on 3 of 14. A unit knocked
-                down comes back <strong>bedraggled</strong> — a quarter of its maximum, and no
-                activation slot in round 1; a unit swept down a drain is gone for the run.
+                Two shapes are shipped and both work. <strong>The linear ten</strong> is twelve nodes
+                in a fixed order — ten fights and two rests — and is the sequence the playtest numbers
+                are tuned against. <strong>Act 1 — the Warrens</strong> is the same fights on a lane
+                graph: twelve nodes over seven columns, and a run walks about seven of them.
+                Either way there is no healing between fights: a unit that finishes on 3 of 14 starts
+                the next one on 3 of 14. A unit knocked down comes back <strong>bedraggled</strong> —
+                a quarter of its maximum, and no activation slot in round 1; a unit swept down a drain
+                is gone for the run.
             </p>
         </div>
 
@@ -45,8 +49,9 @@
                 else
                 {
                     <p class="run-line">
+                        <span class="chip">@Run.Campaign.Name</span>
                         <span class="chip">Seed @Run.Seed</span>
-                        <span class="chip">Node @(NodeNumber) / @Nodes.Count</span>
+                        <span class="chip">@ProgressText</span>
                         <span class="chip">@Run.FightsWon / @FightCount fights won</span>
                         <span class="chip status-@StatusClass">@StatusLabel</span>
                     </p>
@@ -85,7 +90,14 @@
                         }
                     </ul>
 
-                    @if (Run.Outcome == RunOutcome.InProgress && CurrentNode is not null)
+                    @if (Mapped)
+                    {
+                        @* Where the run stands, what it may do and where it may go are all the map's
+                           to say. A second "Next" block beside the graph would be the same fact with
+                           two homes, and they would disagree the first time one of them was edited. *@
+                        <p class="note">The map below says where you are and what is next.</p>
+                    }
+                    else if (Run.Outcome == RunOutcome.InProgress && CurrentNode is not null)
                     {
                         <h3>Next</h3>
 
@@ -129,6 +141,16 @@
                 <h2>New run</h2>
 
                 <label class="seed">
+                    Shape
+                    <select class="campaign-pick" value="@_campaignId" @onchange="OnCampaignChanged">
+                        @foreach (var campaign in CampaignLibrary.All())
+                        {
+                            <option value="@campaign.Id">@campaign.Name</option>
+                        }
+                    </select>
+                </label>
+
+                <label class="seed">
                     Seed
                     <input type="number" value="@_seed" @onchange="OnSeedChanged" />
                 </label>
@@ -136,7 +158,7 @@
                 @if (_confirming)
                 {
                     <p class="warn">
-                        A run is in progress — node @NodeNumber of @Nodes.Count on seed @Run!.Seed.
+                        A run is in progress — @ProgressText on seed @Run!.Seed.
                         Starting a new one throws it away, damage, dead and all.
                     </p>
                     <button class="action danger" @onclick="StartConfirmed">Discard it and start over</button>
@@ -174,6 +196,13 @@
                 </ul>
             </section>
         }
+
+        @if (Mapped)
+        {
+            <ActMapPanel />
+        }
+        else
+        {
 
         <h2>The road</h2>
         <ol class="spine">
@@ -228,6 +257,8 @@
             }
         </ol>
 
+        }
+
         @if (Runs.Journal.Count > 0)
         {
             <details class="journal">
@@ -246,6 +277,7 @@
 @code {
     private int _seed = GameSession.DefaultSeed;
     private bool _confirming;
+    private string _campaignId = CampaignLibrary.FaultlineId;
 
     private RunState? Run => Runs.State;
 
@@ -253,10 +285,36 @@
 
     private CampaignNode? CurrentNode => Runs.CurrentNode;
 
+    /// <summary>True when this run walks a lane graph rather than a list.</summary>
+    private bool Mapped => Run?.Map is not null;
+
     /// <summary>How many of the nodes are fights, for the "n of ten" line.</summary>
     private int FightCount => Runs.Definition.FightIds().Count;
 
     private int NodeNumber => Run is null ? 0 : (Run.NodeIndex < Nodes.Count ? Run.NodeIndex + 1 : Nodes.Count);
+
+    /// <summary>
+    /// How far in, said the way the campaign's own shape says it: a list counts nodes off a total, a
+    /// graph counts columns, because a graph has no total to be a fraction of.
+    /// </summary>
+    private string ProgressText
+    {
+        get
+        {
+            if (Run is null)
+            {
+                return "not started";
+            }
+
+            if (Run.Map is { } map)
+            {
+                int column = Run.CurrentMapNode?.Column ?? 0;
+                return $"Column {column + 1} / {map.ColumnCount} — {Run.MapState?.Depth ?? 0} nodes walked";
+            }
+
+            return $"Node {NodeNumber} / {Nodes.Count}";
+        }
+    }
 
     private string StatusLabel => Run?.Outcome switch
     {
@@ -295,6 +353,7 @@
         if (Run is not null)
         {
             _seed = Run.Seed;
+            _campaignId = Run.Campaign.Id;
         }
     }
 
@@ -377,10 +436,19 @@
         await StartConfirmed();
     }
 
+    private void OnCampaignChanged(ChangeEventArgs args)
+    {
+        var id = args.Value?.ToString();
+        if (!string.IsNullOrEmpty(id))
+        {
+            _campaignId = id!;
+        }
+    }
+
     private async Task StartConfirmed()
     {
         _confirming = false;
-        await Runs.StartAsync(_seed);
+        await Runs.StartAsync(_seed, _campaignId);
     }
 
     private async Task Abandon()

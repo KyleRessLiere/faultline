@@ -185,8 +185,42 @@ public sealed class RunPersistenceTests
 
         Assert.Contains("seed: 4242\n", text);
         Assert.Contains("node: 6\n", text);
-        Assert.Contains("unit: 0 Vanguard 3 Ready\n", text);
-        Assert.Contains("unit: 3 Wardbearer 0 Voided\n", text);
+
+        // Six positional values per member now: the four the linear ten always wrote, then the meter
+        // and the ceiling a map run can change. Appended rather than reshaped, so a record written
+        // before the map shipped still reads — see the four-field Parse test above.
+        Assert.Contains("unit: 0 Vanguard 3 Ready 0 0\n", text);
+        Assert.Contains("unit: 3 Wardbearer 0 Voided 0 0\n", text);
+
+        // The run RNG's cursor rides along, so a restored run does not re-flip a coin it has spent.
+        Assert.Contains("rng: ", text);
+
+        // A linear campaign has no graph, so it writes no route at all rather than an empty one.
+        Assert.DoesNotContain("route:", text);
+    }
+
+    /// <summary>A map run's position is its route, and the route makes the trip whole and in order.</summary>
+    [Fact]
+    public void AMapRunsRoute_IsWrittenInOrderAndReadBack()
+    {
+        var run = Campaign.Start(CampaignLibrary.Act1, Seed).NewState;
+        var walked = run with
+        {
+            MapState = run.MapState!.MoveTo("c2-the-teeth").MoveTo("c3-molting-pool"),
+            RngState = 99,
+        };
+
+        var text = RunSave.Of("0000000000000000002", walked).Render();
+
+        Assert.Contains("route: c1-first-contact>c2-the-teeth>c3-molting-pool\n", text);
+        Assert.Contains("act-cleared: no\n", text);
+        Assert.Contains("rng: 99\n", text);
+
+        var read = RunSave.Parse(text)!;
+
+        Assert.Equal(walked.MapState.Route, read.Route);
+        Assert.Equal(99, read.RngState);
+        Assert.Equal(walked.MapState.RouteHash(), read.Restore().MapState!.RouteHash());
     }
 
     private static async Task<RunState> RoundTrip(RunState run)

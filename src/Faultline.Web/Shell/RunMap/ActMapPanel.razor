@@ -1,0 +1,509 @@
+@implements IDisposable
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* The act map (MASTER_DESIGN §8.5): the whole lane graph, columns left to right, every node wearing
+   its type, the boss drawn largest at the end of every lane. No fog — a map that hid nodes would be
+   a different design, and this one is "risk buys rarity as geography", which only works if you can
+   see the geography.
+
+   Every number, every door and every legality here is a Core query. MapCards turns the ActMap and
+   the MapState into cards; RunState.Phase says whether a fork is open; Campaign.LegalRunCommands
+   says who may pay an event. Nothing in this file decides what the game allows.
+
+   Two rules are load-bearing enough to say out loud:
+
+   THE SPOILER RULE. A roster preview is drawn only for a door one step away, and a distant node has
+   no roster on its card to draw — see MapCard.Roster. The map is not a spoiler sheet.
+
+   THE PROMISE RULE. A gilt edge means a legendary is LITERALLY there. Nothing in this build can pay
+   one, so RewardMark.Payable is false, so no gilt is drawn and nothing is promised — on the marked
+   node, in its hover, or anywhere else. The gilt sits behind the same flag as the payout so both
+   light up together. *@
+
+@if (Runs.Map is null)
+{
+    @* A run can be abandoned while this panel is still mounted, and the abandon fires Changed before
+       the page that hosts the panel has re-rendered without it. Nothing to draw is the honest answer
+       for that one frame; a graph drawn from no map would be a crash. *@
+    <p class="note">No run on a map.</p>
+}
+else
+{
+<section class="panel act-map">
+    <header class="map-head">
+        <h2>@Map.Name</h2>
+        <p class="note">
+            @Map.Nodes.Count nodes over @Map.ColumnCount columns; a run walks one lane through them
+            to the boss at the end. Lanes are unequal on purpose — the safe side has the campfire,
+            the hungry side has the elite.
+        </p>
+    </header>
+
+    <ol class="columns" aria-label="@Map.Name">
+        @for (int c = 0; c < Map.ColumnCount; c++)
+        {
+            var column = c;
+            <li class="column" data-column="@column">
+                <span class="column-num">@(column + 1)</span>
+                <ol class="nodes">
+                    @foreach (var card in CardsIn(column))
+                    {
+                        <li class="@NodeClass(card)" data-node="@card.NodeId">
+                            <span class="face" title="@Tooltip(card)">
+                                <span class="icon @MapCards.IconClass(card.Icon)" aria-hidden="true">@MapCards.Glyph(card.Icon)</span>
+                                <span class="node-label">@card.Label</span>
+                                <span class="node-type">@card.TypeName</span>
+                            </span>
+
+                            @if (card.ShowsRoster)
+                            {
+                                @* Only ever on a door one step away. There is no branch that could
+                                   draw this for a distant node, because a distant card has no
+                                   roster. *@
+                                <div class="roster">
+                                    <p class="roster-head">Through that door — @card.FightName</p>
+                                    <ul>
+                                        @foreach (var line in card.Roster)
+                                        {
+                                            <li>
+                                                <span class="count">@line.Count ×</span>
+                                                <span class="kind">@Naming.Of(line.Kind)</span>
+                                                <span class="when">@When(line)</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            @if (card.Gilt)
+                            {
+                                <p class="promise">@card.Promise</p>
+                            }
+                        </li>
+                    }
+                </ol>
+            </li>
+        }
+    </ol>
+
+    @if (Vote is not null)
+    {
+        <div class="vote-bar @(Flow.Masked ? "masked" : "revealed")">
+            @* The same band the deployment phase draws, doing the same job: one player at a time,
+               a name, an instruction, and the things to click. A second masking mechanism would have
+               been a second thing to learn for the same ceremony. *@
+            <div class="now team-@PickerClass">
+                <span class="round">Vote</span>
+                <span class="actor">@ActorLabel</span>
+            </div>
+
+            @if (!Flow.Revealed)
+            {
+                <ol class="doors">
+                    @foreach (string id in Flow.Doors)
+                    {
+                        var door = id;
+                        <li>
+                            <button type="button" class="door" @onclick="() => Pick(door)">
+                                <span class="icon @IconClassOf(door)" aria-hidden="true">@GlyphOf(door)</span>
+                                <span class="door-label">@LabelOf(door)</span>
+                                <span class="door-type">@TypeNameOf(door)</span>
+                            </button>
+                        </li>
+                    }
+                </ol>
+            }
+            else
+            {
+                <ol class="picks">
+                    <li class="pick a">Player A picked <strong>@LabelOf(Flow.PickA!)</strong></li>
+                    <li class="pick b">Player B picked <strong>@LabelOf(Flow.PickB!)</strong></li>
+                </ol>
+                <button class="action" @onclick="Cast">
+                    @(Flow.IsSplit ? "Split — flip the coin" : "Agreed — go")
+                </button>
+            }
+
+            <p class="caption">@Caption</p>
+        </div>
+    }
+
+    @if (Coin is { } settled)
+    {
+        <div class="coin @(settled.ByCoin ? "flip" : "agreed")">
+            @if (settled.ByCoin)
+            {
+                <span class="disc" aria-hidden="true">@(settled.Coin == 0 ? "A" : "B")</span>
+                <p>
+                    The picks split. The coin came up
+                    <strong>@(settled.Coin == 0 ? "Player A" : "Player B")</strong> —
+                    the run takes <strong>@LabelOf(settled.ChosenNodeId)</strong>. No re-votes.
+                </p>
+            }
+            else
+            {
+                <p>Both picked <strong>@LabelOf(settled.ChosenNodeId)</strong>. The coin stayed in the pocket.</p>
+            }
+        </div>
+    }
+
+    @if (Here is { } here && Run is { Outcome: RunOutcome.InProgress })
+    {
+        <div class="here">
+            <h3>You are here — @here.Label</h3>
+            <p class="here-type">@TypeNameOf(here.Id)</p>
+
+            @if (Runs.AtChoice && here.Type == MapNodeType.Rest)
+            {
+                <p class="note">
+                    Half its own ceiling back, rounded up, per duck. Forging and scraping a curse are
+                    not built, so the campfire offers the one thing it can actually do.
+                </p>
+                <ul class="heals">
+                    @foreach (var unit in Run.Squad)
+                    {
+                        @if (unit.IsAvailable)
+                        {
+                            <li>
+                                @unit.Kind — @unit.Hp/@unit.MaxHp, back
+                                @MapRestNodeHandler.HealFor(unit.MaxHp)
+                            </li>
+                        }
+                    }
+                </ul>
+                <button class="action" @onclick="Heal">Make camp</button>
+            }
+            else if (Runs.AtChoice && here.Type == MapNodeType.Event && Offer is { } offer)
+            {
+                <p class="prompt">@offer.Prompt</p>
+                <p class="note">
+                    @offer.HpCost HP now, @offer.MaxHpGain more maximum for the rest of the run.
+                    Whoever pays, pays with their own body — the vote does not decide that.
+                </p>
+                <ul class="payers">
+                    @foreach (var payer in Payers)
+                    {
+                        var who = payer;
+                        <li>
+                            <button class="action secondary" @onclick="() => Pay(who.Id)">
+                                @who.Kind pays — @who.Hp/@who.MaxHp → @(who.Hp - offer.HpCost)/@(who.MaxHp + offer.MaxHpGain)
+                            </button>
+                        </li>
+                    }
+                </ul>
+                @if (Walkable)
+                {
+                    <button class="action" @onclick="WalkAway">Walk away</button>
+                }
+            }
+            else if (Runs.AtVote)
+            {
+                <p class="note">This node is done. The column ahead has more than one door.</p>
+            }
+            else if (Run.Phase == RunPhase.AtNode || Runs.InFight)
+            {
+                <button class="action" @onclick="Enter">@EnterLabel(here)</button>
+            }
+        </div>
+    }
+    else if (Run is { Outcome: RunOutcome.Won })
+    {
+        <p class="outcome won">
+            The act is cleared. The Molt is not built, so nothing is granted here yet.
+        </p>
+    }
+    else if (Run is { Outcome: RunOutcome.Lost })
+    {
+        <p class="outcome lost">Run over.</p>
+    }
+</section>
+}
+
+@code {
+    private readonly VoteFlow _own = new();
+
+    /// <summary>
+    /// The masked-pick ceremony, when the host wants to own it. Left unset the panel keeps its own —
+    /// which is what the app does. A parameter because a pick is a hand-off between two people at
+    /// one screen, and a harness has to be able to take one without a mouse.
+    /// </summary>
+    [Parameter]
+    public VoteFlow? Ceremony { get; set; }
+
+    private RunState? Run => Runs.State;
+
+    /// <summary>The map being walked. This panel is only ever drawn for a run that has one.</summary>
+    private ActMap Map => Runs.Map!;
+
+    // Built once per change rather than once per read: the markup asks for it a dozen times a render
+    // and MapCards.Build walks the whole graph.
+    private IReadOnlyList<MapCard> _cards = Array.Empty<MapCard>();
+
+    private IReadOnlyList<MapCard> Cards => _cards;
+
+    private IEnumerable<MapCard> CardsIn(int column)
+    {
+        foreach (var card in _cards)
+        {
+            if (card.Column == column)
+            {
+                yield return card;
+            }
+        }
+    }
+
+    private VoteFlow Flow => Ceremony ?? _own;
+
+    /// <summary>The fork the run is standing at, or <c>null</c> when it is not standing at one.</summary>
+    private IReadOnlyList<string>? Vote => Runs.AtVote ? Run!.Doors() : null;
+
+    /// <summary>The node the run is standing on.</summary>
+    private MapNode? Here => Run?.CurrentMapNode;
+
+    /// <summary>
+    /// The last vote Core settled, for the coin. Read off the event rather than recomputed: which
+    /// way a split fell is the run RNG's business and a renderer must never guess it.
+    /// </summary>
+    private VoteResolved? Coin
+    {
+        get
+        {
+            foreach (var e in Runs.LastEvents)
+            {
+                if (e is VoteResolved resolved)
+                {
+                    return resolved;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>The event on the table, when the run is standing in one.</summary>
+    private EventDefinition? Offer =>
+        Here is { Type: MapNodeType.Event } node && node.EventId.Length > 0
+            ? EventLibrary.ById(node.EventId)
+            : null;
+
+    /// <summary>
+    /// Who may pay, straight off Core's legal list. Not a health check made here — the lethal block
+    /// is a rule, and the surface only draws the payments the rules already offered.
+    /// </summary>
+    private IReadOnlyList<RunUnit> Payers
+    {
+        get
+        {
+            var found = new List<RunUnit>();
+            foreach (var command in Runs.Legal)
+            {
+                if (command is EventPayCommand pay && Run?.FindUnit(pay.Payer) is { } unit)
+                {
+                    found.Add(unit);
+                }
+            }
+
+            return found;
+        }
+    }
+
+    /// <summary>Whether leaving without paying is on Core's list. Offers have it; Straits do not.</summary>
+    private bool Walkable
+    {
+        get
+        {
+            foreach (var command in Runs.Legal)
+            {
+                if (command is EventWalkAwayCommand)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    private string PickerClass => Flow.Picker switch
+    {
+        Team.PlayerA => "a",
+        Team.PlayerB => "b",
+        _ => "none",
+    };
+
+    private string ActorLabel => Flow.Stage switch
+    {
+        VoteStage.PickingA => "A PICKS",
+        VoteStage.PickingB => "B PICKS",
+        VoteStage.Revealed => "REVEALED",
+        _ => string.Empty,
+    };
+
+    private string Caption => Flow.Stage switch
+    {
+        VoteStage.PickingA => "Player A picks a door. Player B looks away — the pick stays masked until both are in.",
+        VoteStage.PickingB => "Player B picks, without seeing A's. Nothing on this screen says what A chose.",
+        VoteStage.Revealed => "Match moves; a split flips the seeded coin. Either way this fork is settled once — there are no re-votes.",
+        _ => string.Empty,
+    };
+
+    protected override void OnInitialized()
+    {
+        Runs.Changed += OnRunChanged;
+        Sync();
+    }
+
+    protected override void OnParametersSet() => Sync();
+
+    public void Dispose() => Runs.Changed -= OnRunChanged;
+
+    private void OnRunChanged()
+    {
+        Sync();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Opens the ceremony exactly when Core says a fork is open, and shuts it the moment Core says
+    /// it is not. That is the whole of "no re-votes" on this screen: the vote surface exists only
+    /// while <see cref="RunPhase.AtVote"/> does, and Core never returns to that phase.
+    /// </summary>
+    private void Sync()
+    {
+        if (Runs.Map is not { } map)
+        {
+            _cards = Array.Empty<MapCard>();
+            Flow.Close();
+            return;
+        }
+
+        _cards = MapCards.Build(map, Run?.MapState);
+
+        if (Runs.AtVote && Run is not null)
+        {
+            Flow.Open(Run.Doors());
+        }
+        else
+        {
+            Flow.Close();
+        }
+    }
+
+    private void Pick(string nodeId)
+    {
+        Flow.Pick(nodeId);
+        StateHasChanged();
+    }
+
+    private void Cast()
+    {
+        var vote = Flow.Command();
+        Runs.Vote(vote.ChoiceA, vote.ChoiceB);
+    }
+
+    private void Heal() => Runs.Heal();
+
+    private void Pay(RunUnitId payer) => Runs.PayEvent(payer);
+
+    private void WalkAway() => Runs.WalkAwayFromEvent();
+
+    private void Enter()
+    {
+        if (Runs.InFight)
+        {
+            Runs.ResumeBoard();
+            Nav.NavigateTo("play");
+            return;
+        }
+
+        Runs.Enter();
+
+        if (Runs.InFight)
+        {
+            Nav.NavigateTo("play");
+        }
+    }
+
+    private string EnterLabel(MapNode node) => node.Type switch
+    {
+        MapNodeType.Rest => "Sit down at the campfire",
+        MapNodeType.Event => "See what it wants",
+        MapNodeType.Boss => Runs.InFight ? "Back to the boss" : "Face " + node.Label,
+        _ => Runs.InFight ? "Back to the fight" : "Begin the fight",
+    };
+
+    /// <summary>Every class one node carries, assembled here rather than in the attribute.</summary>
+    private static string NodeClass(MapCard card)
+    {
+        var css = "node type-" + TypeClass(card.Type)
+            + " " + MapCards.StateClass(card.State)
+            + " lane-" + LaneClass(card.Lane);
+
+        if (card.IsBoss)
+        {
+            css += " boss";
+        }
+
+        // The promise rule, one last time: the gilt class is on the payable flag and nothing else.
+        if (card.Gilt)
+        {
+            css += " gilt";
+        }
+
+        return css;
+    }
+
+    private static string When(RosterLine line) =>
+        line.AtSetup ? "at setup" : "round " + line.Round;
+
+    /// <summary>The node's type as a class, so the map's own vocabulary reaches the stylesheet.</summary>
+    private static string TypeClass(MapNodeType type) => type switch
+    {
+        MapNodeType.Elite => "elite",
+        MapNodeType.Rest => "rest",
+        MapNodeType.Event => "event",
+        MapNodeType.Boss => "boss",
+        _ => "fight",
+    };
+
+    private static string LaneClass(MapLane lane) => lane switch
+    {
+        MapLane.Safe => "safe",
+        MapLane.Hungry => "hungry",
+        _ => "neutral",
+    };
+
+    private MapCard? CardFor(string nodeId)
+    {
+        foreach (var card in Cards)
+        {
+            if (string.Equals(card.NodeId, nodeId, StringComparison.Ordinal))
+            {
+                return card;
+            }
+        }
+
+        return null;
+    }
+
+    private string LabelOf(string nodeId) => CardFor(nodeId)?.Label ?? nodeId;
+
+    private string TypeNameOf(string nodeId) => CardFor(nodeId)?.TypeName ?? string.Empty;
+
+    private string GlyphOf(string nodeId) =>
+        CardFor(nodeId) is { } card ? MapCards.Glyph(card.Icon) : string.Empty;
+
+    private string IconClassOf(string nodeId) =>
+        CardFor(nodeId) is { } card ? MapCards.IconClass(card.Icon) : string.Empty;
+
+    /// <summary>
+    /// What hovering a node says. The type, always, for every node on the map. The roster is a door's
+    /// alone and is drawn as its own panel — never folded into a tooltip that a distant node would
+    /// also get.
+    /// </summary>
+    private static string Tooltip(MapCard card) =>
+        card.Label.Length > 0 && card.Label != card.TypeName
+            ? card.Label + " — " + card.TypeName
+            : card.TypeName;
+}

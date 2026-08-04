@@ -1,0 +1,403 @@
+/* The act map. Columns left to right, the boss largest and last.
+
+   Node size is one variable per state so "the boss is largest" is a fact of the stylesheet rather
+   than a coincidence of content: --node-size is 76px for an ordinary node, 92px for an elite, and
+   124px for the boss. A Playwright check measures the drawn boxes, because a rule about size that
+   nothing measures is a rule about a stylesheet. */
+
+.act-map {
+    --node-size: 76px;
+    overflow-x: auto;
+}
+
+.map-head h2 {
+    margin: 0 0 .3rem;
+}
+
+.map-head .note {
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.5;
+    margin: 0 0 1rem;
+    max-width: 70ch;
+}
+
+/* ---- The graph ------------------------------------------------------------------------------ */
+
+.columns {
+    align-items: stretch;
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0 0 1.25rem;
+    min-width: max-content;
+    padding: 0;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    position: relative;
+}
+
+/* The rail between columns: a run walks left to right and the map should look like it does. */
+.column:not(:last-child)::after {
+    background: var(--line);
+    content: "";
+    height: 2px;
+    left: 100%;
+    position: absolute;
+    top: 50%;
+    width: 1.5rem;
+}
+
+.column-num {
+    color: var(--muted);
+    font-size: .66rem;
+    letter-spacing: .1em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.nodes {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: .75rem;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.node {
+    position: relative;
+}
+
+.node .face {
+    align-items: center;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+    height: var(--node-size);
+    justify-content: center;
+    padding: .3rem;
+    text-align: center;
+    width: var(--node-size);
+}
+
+.node .icon {
+    font-size: calc(var(--node-size) * .3);
+    line-height: 1.1;
+}
+
+.node-label {
+    font-size: .68rem;
+    line-height: 1.15;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.node-type {
+    color: var(--muted);
+    font-size: .58rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+/* Elites are bigger than plain fights, and the boss is bigger than everything. */
+.node.type-elite {
+    --node-size: 92px;
+}
+
+.node.type-elite .face {
+    border-color: var(--pt-amber);
+}
+
+.node.boss {
+    --node-size: 124px;
+}
+
+.node.boss .face {
+    border-color: var(--enemy);
+    border-width: 3px;
+}
+
+.lane-hungry .face {
+    border-style: dashed;
+}
+
+/* ---- State ---------------------------------------------------------------------------------- */
+
+.node.ahead .face {
+    opacity: .55;
+}
+
+.node.visited .face {
+    background: #232a22;
+    border-color: var(--good);
+}
+
+.node.current .face {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(90, 169, 255, .28);
+}
+
+/* The glow is the door. Only a node one step away gets it. */
+.node.reachable .face {
+    animation: door-glow 1.6s ease-in-out infinite;
+    border-color: var(--pt-yellow);
+}
+
+@keyframes door-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232, 179, 65, .22); }
+    50%      { box-shadow: 0 0 12px 3px rgba(232, 179, 65, .45); }
+}
+
+/* The gilt edge. Drawn only when the mark is payable — which nothing in this build is — so this
+   rule is deliberately unreachable today and ships anyway, so that the day legendaries land the
+   edge and the payout light up together. */
+.node.gilt .face {
+    border-color: #d9b45a;
+    box-shadow: 0 0 10px 2px rgba(217, 180, 90, .4);
+}
+
+.promise {
+    color: #d9b45a;
+    font-size: .62rem;
+    margin: .25rem 0 0;
+    max-width: var(--node-size);
+}
+
+/* ---- The roster preview --------------------------------------------------------------------- */
+
+/* Present in the markup only for a door one step away, and revealed on hover. A distant node has no
+   roster element at all, so there is nothing here for it to reveal. */
+.roster {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 8px;
+    display: none;
+    font-size: .68rem;
+    left: 50%;
+    min-width: 190px;
+    padding: .5rem .6rem;
+    position: absolute;
+    top: calc(100% + .35rem);
+    transform: translateX(-50%);
+    z-index: 5;
+}
+
+.node:hover .roster,
+.node:focus-within .roster {
+    display: block;
+}
+
+.roster-head {
+    color: var(--muted);
+    font-size: .62rem;
+    letter-spacing: .04em;
+    margin: 0 0 .3rem;
+    text-transform: uppercase;
+}
+
+.roster ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.roster li {
+    display: flex;
+    gap: .35rem;
+    padding: .08rem 0;
+}
+
+.roster .count {
+    color: var(--enemy);
+}
+
+.roster .when {
+    color: var(--muted);
+    margin-left: auto;
+}
+
+/* ---- The vote band -------------------------------------------------------------------------- */
+
+/* The deployment band's shape, doing the deployment band's job: one player at a time, a name, an
+   instruction, and the things to click. */
+.vote-bar {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    margin-bottom: 1rem;
+    padding: .6rem .75rem;
+}
+
+.vote-bar .now {
+    align-items: baseline;
+    display: flex;
+    gap: .6rem;
+    margin-bottom: .5rem;
+}
+
+.vote-bar .round {
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.vote-bar .actor {
+    font-weight: 600;
+    letter-spacing: .08em;
+}
+
+.vote-bar .now.team-a .actor { color: var(--player-a); }
+.vote-bar .now.team-b .actor { color: var(--player-b); }
+
+.doors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.door {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border: 2px solid var(--pt-border);
+    border-radius: 8px;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+    min-width: 120px;
+    padding: .5rem .7rem;
+}
+
+.door:hover,
+.door:focus-visible {
+    border-color: var(--pt-yellow);
+}
+
+.door .icon { font-size: 1.15rem; }
+.door-label { font-size: .8rem; }
+.door-type { color: var(--muted); font-size: .6rem; text-transform: uppercase; }
+
+.picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    list-style: none;
+    margin: 0 0 .6rem;
+    padding: 0;
+}
+
+.pick {
+    border-left: 3px solid var(--line);
+    font-size: .82rem;
+    padding-left: .5rem;
+}
+
+.pick.a { border-left-color: var(--player-a); }
+.pick.b { border-left-color: var(--player-b); }
+
+.vote-bar .caption {
+    color: var(--muted);
+    font-size: .72rem;
+    margin: .5rem 0 0;
+}
+
+/* ---- The coin ------------------------------------------------------------------------------- */
+
+.coin {
+    align-items: center;
+    display: flex;
+    gap: .75rem;
+    font-size: .82rem;
+    margin-bottom: 1rem;
+}
+
+.coin p { margin: 0; }
+
+.coin .disc {
+    align-items: center;
+    background: radial-gradient(circle at 35% 30%, #f0d489, #b08a2e);
+    border-radius: 50%;
+    color: #2a2110;
+    display: flex;
+    font-weight: 700;
+    height: 34px;
+    justify-content: center;
+    width: 34px;
+}
+
+.coin.flip .disc {
+    animation: coin-flip .75s ease-out 1;
+}
+
+@keyframes coin-flip {
+    0%   { transform: rotateY(0deg) scale(.8); }
+    100% { transform: rotateY(1080deg) scale(1); }
+}
+
+/* ---- Where you are -------------------------------------------------------------------------- */
+
+.here {
+    border-top: 1px solid var(--line);
+    padding-top: .9rem;
+}
+
+.here h3 {
+    margin: 0 0 .2rem;
+}
+
+.here-type {
+    color: var(--muted);
+    font-size: .72rem;
+    letter-spacing: .06em;
+    margin: 0 0 .6rem;
+    text-transform: uppercase;
+}
+
+.here .prompt {
+    font-size: .86rem;
+    line-height: 1.55;
+    max-width: 66ch;
+}
+
+.here .note {
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.5;
+    max-width: 66ch;
+}
+
+.payers,
+.heals {
+    list-style: none;
+    margin: .5rem 0;
+    padding: 0;
+}
+
+.payers li,
+.heals li {
+    font-size: .8rem;
+    padding: .15rem 0;
+}
+
+.outcome {
+    font-size: .9rem;
+    margin-top: 1rem;
+}
+
+.outcome.won { color: var(--good); }
+.outcome.lost { color: var(--enemy); }

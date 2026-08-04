@@ -54,6 +54,28 @@ public sealed record RunSave
     /// <summary>The squad, in campaign order: kind, carried hit points and status.</summary>
     public IReadOnlyList<RunUnit> Squad { get; init; } = Array.Empty<RunUnit>();
 
+    /// <summary>
+    /// The nodes an act-map run has stood on, oldest first. Empty for a linear campaign, which has
+    /// no graph and whose <see cref="NodeIndex"/> is the whole of its position.
+    /// </summary>
+    /// <remarks>
+    /// The route rather than just the current node, because the route <em>is</em> the position on a
+    /// graph: two runs standing on the same campfire having come down different lanes are different
+    /// runs, and <see cref="MapState.RouteHash"/> — the number a determinism check compares — has to
+    /// tell them apart.
+    /// </remarks>
+    public IReadOnlyList<string> Route { get; init; } = Array.Empty<string>();
+
+    /// <summary>True when an act-map run had cleared its terminal node.</summary>
+    public bool ActCleared { get; init; }
+
+    /// <summary>
+    /// The run RNG's cursor as it stood, or <c>null</c> for a record written before votes existed.
+    /// Restored so the next split vote does not re-flip a coin this run has already flipped; when it
+    /// is absent Core falls back to the seed, which is where an unflipped run starts.
+    /// </summary>
+    public int? RngState { get; init; }
+
     /// <summary>Takes a snapshot of a live run.</summary>
     /// <param name="id">Storage id.</param>
     /// <param name="state">The run to write down.</param>
@@ -75,6 +97,9 @@ public sealed record RunSave
             Outcome = state.Outcome,
             WasInFight = state.Phase == RunPhase.InFight,
             Squad = state.Squad,
+            Route = state.MapState?.Route ?? (IReadOnlyList<string>)Array.Empty<string>(),
+            ActCleared = state.MapState?.Completed ?? false,
+            RngState = state.RngState,
         };
     }
 
@@ -90,7 +115,21 @@ public sealed record RunSave
         // they are a legal run — the squad matching the campaign, a finished run being Complete, a run
         // past its last node having won — is the rules' business.
         Campaign.Restore(
-            CampaignLibrary.ById(CampaignId), Seed, NodeIndex, Squad, FightsWon, Outcome);
+            CampaignLibrary.ById(CampaignId),
+            Seed,
+            NodeIndex,
+            Squad,
+            FightsWon,
+            Outcome,
+            Route.Count == 0
+                ? null
+                : new MapState
+                {
+                    CurrentNodeId = Route[Route.Count - 1],
+                    Route = Route,
+                    Completed = ActCleared,
+                },
+            RngState);
 
     /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
     /// <returns>The stored text.</returns>
@@ -105,15 +144,31 @@ public sealed record RunSave
         text.Append("outcome: ").Append(Outcome.ToString()).Append('\n');
         text.Append("in-fight: ").Append(WasInFight ? "yes" : "no").Append('\n');
 
+        if (RngState is int rng)
+        {
+            text.Append("rng: ").Append(Number(rng)).Append('\n');
+        }
+
+        if (Route.Count > 0)
+        {
+            // One line, the nodes in order, because the order is the fact. A node id has no spaces
+            // and no '>' in it, so the separator needs no escaping.
+            text.Append("route: ").Append(string.Join(">", Route)).Append('\n');
+            text.Append("act-cleared: ").Append(ActCleared ? "yes" : "no").Append('\n');
+        }
+
         foreach (var unit in Squad)
         {
-            // id, kind, carried hp, status — positional, because a squad member is four small
-            // values and a nested shape would be the only nested thing in the format.
+            // id, kind, carried hp, status, then the two a map run adds: the meter it is carrying and
+            // the ceiling this run has bought it. Positional and appended, so a record written before
+            // the map shipped still reads — ParseUnit needs four and takes six.
             text.Append("unit: ")
                 .Append(Number(unit.Id.Value)).Append(' ')
                 .Append(unit.Kind).Append(' ')
                 .Append(Number(unit.Hp)).Append(' ')
-                .Append(unit.Status)
+                .Append(unit.Status).Append(' ')
+                .Append(Number(unit.Verve)).Append(' ')
+                .Append(Number(unit.BonusMaxHp))
                 .Append('\n');
         }
 
@@ -188,6 +243,15 @@ public sealed record RunSave
             WasInFight = fields.TryGetValue("in-fight", out var inFight)
                 && string.Equals(inFight, "yes", StringComparison.Ordinal),
             Squad = squad,
+            Route = fields.TryGetValue("route", out var route) && route.Length > 0
+                ? route.Split(new[] { '>' }, StringSplitOptions.RemoveEmptyEntries)
+                : Array.Empty<string>(),
+            ActCleared = fields.TryGetValue("act-cleared", out var cleared)
+                && string.Equals(cleared, "yes", StringComparison.Ordinal),
+            RngState = fields.TryGetValue("rng", out var rng)
+                && int.TryParse(rng, NumberStyles.Integer, CultureInfo.InvariantCulture, out int cursor)
+                    ? cursor
+                    : (int?)null,
         };
     }
 
@@ -205,8 +269,23 @@ public sealed record RunSave
             return null;
         }
 
-        return new RunUnit { Id = new RunUnitId(id), Kind = kind, Hp = hp, Status = status };
+        return new RunUnit
+        {
+            Id = new RunUnitId(id),
+            Kind = kind,
+            Hp = hp,
+            Status = status,
+            Verve = Optional(parts, 4),
+            BonusMaxHp = Optional(parts, 5),
+        };
     }
+
+    /// <summary>A trailing positional field, or zero when the record predates it.</summary>
+    private static int Optional(string[] parts, int at) =>
+        at < parts.Length
+        && int.TryParse(parts[at], NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+            ? value
+            : 0;
 
     private static bool Known(string campaignId)
     {

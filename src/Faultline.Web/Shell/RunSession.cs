@@ -95,6 +95,22 @@ public sealed class RunSession : IRunBoardDriver
     public CampaignDefinition Definition => State?.Campaign ?? CampaignLibrary.Faultline;
 
     /// <summary>
+    /// The act map this run is walking, or <c>null</c> when it is walking the linear ten. Which of
+    /// the two a run is on is the campaign id it was started with, and nothing else.
+    /// </summary>
+    public ActMap? Map => State?.Map;
+
+    /// <summary>True when the run is standing at a fork with more than one door out.</summary>
+    public bool AtVote => State is { Phase: RunPhase.AtVote };
+
+    /// <summary>True when the node the run is on is asking it a question — a campfire, an event.</summary>
+    public bool AtChoice => State is { Phase: RunPhase.AtChoice };
+
+    /// <summary>Everything legal from here, straight from Core.</summary>
+    public IReadOnlyList<RunCommand> Legal =>
+        State is null ? Array.Empty<RunCommand>() : Campaign.LegalRunCommands(State);
+
+    /// <summary>
     /// True when the board the session is showing is this run's and still worth drawing: the fight in
     /// progress, or the board the last command finished on — including the winning one, which the run
     /// has already left behind (<see cref="RunStepResult.FinalBoard"/>).
@@ -136,14 +152,22 @@ public sealed class RunSession : IRunBoardDriver
         Changed?.Invoke();
     }
 
-    /// <summary>Throws away any current run and starts a new one on the shipped campaign.</summary>
+    /// <summary>Throws away any current run and starts a new one.</summary>
+    /// <remarks>
+    /// <paramref name="campaignId"/> is the flag, and the only one: the linear ten and Act 1's lane
+    /// graph are both shipped, both in <see cref="CampaignLibrary.All"/>, and which a run walks is
+    /// which id it was started with. It defaults to the linear ten because that is the sequence the
+    /// playtests are tuned against (MASTER_DESIGN §8).
+    /// </remarks>
     /// <param name="seed">Run seed.</param>
+    /// <param name="campaignId">Which campaign to walk.</param>
     /// <returns>A task that completes when the new run is stored.</returns>
-    public async Task StartAsync(int seed)
+    public async Task StartAsync(int seed, string? campaignId = null)
     {
         await _store.ClearAsync();
 
-        var result = Campaign.Start(CampaignLibrary.Faultline, seed);
+        var definition = CampaignLibrary.ById(campaignId ?? CampaignLibrary.FaultlineId);
+        var result = Campaign.Start(definition, seed);
 
         _journal.Clear();
         _commands.Clear();
@@ -180,6 +204,35 @@ public sealed class RunSession : IRunBoardDriver
 
     /// <summary>Enters the node the run is standing on: begins its fight, or takes its rest.</summary>
     public void Enter() => Apply(new EnterNodeCommand());
+
+    /// <summary>
+    /// Sends both blind picks to Core as one command, which reveals them and settles the fork.
+    /// </summary>
+    /// <remarks>
+    /// Both picks travel together because there is no half-voted state to send one into, and a fork
+    /// takes exactly one of these. Whether the picks match, and which way a split falls, is Core's —
+    /// the coin is the run RNG's only draw.
+    /// </remarks>
+    /// <param name="choiceA">The door Player A picked.</param>
+    /// <param name="choiceB">The door Player B picked.</param>
+    public void Vote(string choiceA, string choiceB) => Apply(new VoteCommand(choiceA, choiceB));
+
+    /// <summary>Spends the campfire on healing — the only thing a v1 campfire can be spent on.</summary>
+    public void Heal() => Apply(new RestHealCommand());
+
+    /// <summary>
+    /// Takes an event's offer, with one named duck paying for it.
+    /// </summary>
+    /// <remarks>
+    /// The payer is named because bodily consent is per duck (MASTER_DESIGN §8.5): the vote governs
+    /// where the run goes and never what a duck pays, so there is no command that accepts on the
+    /// party's behalf and this screen must have asked that duck's owner.
+    /// </remarks>
+    /// <param name="payer">The duck that pays.</param>
+    public void PayEvent(RunUnitId payer) => Apply(new EventPayCommand(payer));
+
+    /// <summary>Walks away from an Offer. Never legal at a Strait, and Core is the judge of which.</summary>
+    public void WalkAwayFromEvent() => Apply(new EventWalkAwayCommand());
 
     /// <inheritdoc/>
     public void Play(Command command) => Apply(new PlayCommand(command));
