@@ -46,7 +46,8 @@ public class FightFormatDocTests
         foreach (var key in new[]
         {
             "id", "name", "description", "design", "number", "roster a", "roster b",
-            "objective", "turn-limit", "protected", "footing", "retired", "spawn", "wave", "board",
+            "objective", "turn-limit", "blocker-hp", "protected", "footing", "retired", "spawn",
+            "wave", "board",
         })
         {
             Assert.True(

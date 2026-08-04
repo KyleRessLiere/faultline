@@ -31,10 +31,23 @@ namespace Faultline.Core
         public int Verve { get; init; }
 
         /// <summary>
-        /// Maximum hit points, read from the archetype rather than stored, so a stat change to a class
-        /// cannot leave a run holding a stale ceiling.
+        /// Hit points this run has added to the archetype's ceiling, and only this run. Raised by the
+        /// Molting Pool (MASTER_DESIGN §8.5) and never lowered.
         /// </summary>
-        public int MaxHp => UnitTemplate.For(Kind).MaxHp;
+        /// <remarks>
+        /// Held as the bonus rather than as an absolute ceiling on purpose. An absolute would freeze
+        /// the class's base number into the save the moment a duck took one upgrade, so a later
+        /// balance change to the archetype would apply to every duck in the run except the ones that
+        /// had improved — the wrong ones.
+        /// </remarks>
+        public int BonusMaxHp { get; init; }
+
+        /// <summary>
+        /// Maximum hit points: the archetype's ceiling plus whatever this run has added to it. The
+        /// base is read from the template rather than stored, so a stat change to a class cannot
+        /// leave a run holding a stale ceiling.
+        /// </summary>
+        public int MaxHp => UnitTemplate.For(Kind).MaxHp + BonusMaxHp;
 
         /// <summary>True while this unit can still be fielded — everything but voided.</summary>
         public bool IsAvailable => Status != RunUnitStatus.Voided;
@@ -79,6 +92,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + Hp;
                 hash = (hash * 31) + (int)Status;
                 hash = (hash * 31) + Verve;
+                hash = (hash * 31) + BonusMaxHp;
                 return hash;
             }
         }
@@ -92,6 +106,7 @@ namespace Faultline.Core
             && Kind == other.Kind
             && Hp == other.Hp
             && Status == other.Status
-            && Verve == other.Verve;
+            && Verve == other.Verve
+            && BonusMaxHp == other.BonusMaxHp;
     }
 }

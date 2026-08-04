@@ -13,6 +13,8 @@ public sealed class BoardBuilder
     private readonly List<string> _rows;
     private readonly List<Placement> _placements = new();
     private readonly List<ReinforcementWave> _waves = new();
+    private readonly List<Coord> _blockers = new();
+    private int _blockerHp;
     private Team? _activeTeam;
     private int _seed = 1;
     private Faultline.Core.Objective _objective = Faultline.Core.Objective.KillAll;
@@ -83,6 +85,14 @@ public sealed class BoardBuilder
             Tiles = tiles,
         };
 
+        return this;
+    }
+
+    /// <summary>Marks tiles as breakable blockers, each with the given hit points.</summary>
+    public BoardBuilder Blockers(int hp, params Coord[] tiles)
+    {
+        _blockerHp = hp;
+        _blockers.AddRange(tiles);
         return this;
     }
 
@@ -166,6 +176,8 @@ public sealed class BoardBuilder
             Objective = _objective,
             TurnLimit = _turnLimit,
             Waves = _waves,
+            Blockers = _blockers,
+            BlockerHp = _blockerHp,
         };
 
         return new GameState
@@ -175,7 +187,7 @@ public sealed class BoardBuilder
             Fight = fight,
             Board = board,
             Units = units,
-            Structures = Objectives.Build(_objective),
+            Structures = Objectives.Build(fight),
             Round = _round,
             Phase = Phase.Battle,
             ActiveTeam = active,

@@ -18,6 +18,8 @@ namespace Faultline.Core
             {
                 [typeof(FightNode)] = new FightNodeHandler(),
                 [typeof(RestNode)] = new RestNodeHandler(),
+                [typeof(MapRestNode)] = new MapRestNodeHandler(),
+                [typeof(EventNode)] = new EventNodeHandler(),
             };
 
         /// <summary>The handler for a node.</summary>

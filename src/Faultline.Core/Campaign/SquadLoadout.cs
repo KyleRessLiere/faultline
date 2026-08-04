@@ -20,6 +20,21 @@ namespace Faultline.Core
         /// <summary>Hit points for each slot of <see cref="FightDefinition.RosterB"/>, in order.</summary>
         public IReadOnlyList<int> HpB { get; init; } = Array.Empty<int>();
 
+        /// <summary>
+        /// Hit point ceiling for each slot of <see cref="FightDefinition.RosterA"/>, in order. Only
+        /// ever raises the archetype's own; a missing or lower entry leaves the template's number.
+        /// </summary>
+        /// <remarks>
+        /// Carried because a run can raise a ceiling — the Molting Pool's +2 (MASTER_DESIGN §8.5) —
+        /// and the fight would otherwise clamp the duck's carried hit points to the base class's
+        /// maximum. A 10/16 Vanguard would have walked on at 10/14 and the upgrade would have gone
+        /// missing at exactly the moment it mattered.
+        /// </remarks>
+        public IReadOnlyList<int> MaxHpA { get; init; } = Array.Empty<int>();
+
+        /// <summary>Hit point ceiling for each slot of <see cref="FightDefinition.RosterB"/>, in order.</summary>
+        public IReadOnlyList<int> MaxHpB { get; init; } = Array.Empty<int>();
+
         /// <summary>Verve for each slot of <see cref="FightDefinition.RosterA"/>, in order.</summary>
         public IReadOnlyList<int> VerveA { get; init; } = Array.Empty<int>();
 
@@ -43,6 +58,15 @@ namespace Faultline.Core
         /// <param name="slot">Index within that roster.</param>
         /// <returns>The carried hit points, or null.</returns>
         public int? HpFor(Team team, int slot) => At(team == Team.PlayerA ? HpA : team == Team.PlayerB ? HpB : null, slot);
+
+        /// <summary>
+        /// The ceiling this slot opens the fight on, or <c>null</c> to keep the archetype's own.
+        /// </summary>
+        /// <param name="team">Which player's roster.</param>
+        /// <param name="slot">Index within that roster.</param>
+        /// <returns>The raised ceiling, or null.</returns>
+        public int? MaxHpFor(Team team, int slot) =>
+            At(team == Team.PlayerA ? MaxHpA : team == Team.PlayerB ? MaxHpB : null, slot);
 
         /// <summary>Verve carried into this fight by one slot, or <c>null</c> for an empty meter.</summary>
         /// <param name="team">Which player's roster.</param>

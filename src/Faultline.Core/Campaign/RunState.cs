@@ -51,8 +51,58 @@ namespace Faultline.Core
         /// <summary>How many fights have been won so far.</summary>
         public int FightsWon { get; init; }
 
-        /// <summary>The node the run is standing on, or <c>null</c> past the end.</summary>
-        public CampaignNode? CurrentNode => Campaign.NodeAt(NodeIndex);
+        /// <summary>
+        /// Where the run stands on its act map, or <c>null</c> for a linear campaign that has none.
+        /// </summary>
+        public MapState? MapState { get; init; }
+
+        /// <summary>
+        /// The run RNG's cursor. Seeded from <see cref="Seed"/> when the run starts, and advanced by
+        /// every draw the run makes.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Exactly one thing draws from it: the coin a split <see cref="VoteCommand"/> flips. Nothing
+        /// else in the run layer is random, which is why the cursor can be one integer on the state
+        /// rather than a generator passed around — a run's whole random history is "how many coins
+        /// have been flipped, in what order".
+        /// </para>
+        /// <para>
+        /// Deliberately <em>not</em> what fights are seeded from. A fight opens on
+        /// <see cref="Seed"/>, so two runs that reached the same board by different routes fight the
+        /// same board (D-052), and a coin flip does not silently reshuffle the enemies behind the next
+        /// door.
+        /// </para>
+        /// </remarks>
+        public int RngState { get; init; }
+
+        /// <summary>The act map being walked, or <c>null</c> when the campaign is a linear list.</summary>
+        public ActMap? Map => Campaign.Map;
+
+        /// <summary>
+        /// The node the run is standing on, or <c>null</c> past the end. On an act map this is the
+        /// projection of the current <see cref="MapNode"/>; on a linear campaign it is the node at
+        /// <see cref="NodeIndex"/>.
+        /// </summary>
+        public CampaignNode? CurrentNode => Map is null
+            ? Campaign.NodeAt(NodeIndex)
+            : CurrentMapNode?.ToCampaignNode();
+
+        /// <summary>
+        /// The map node the run is standing on, or <c>null</c> when it is not walking a map.
+        /// </summary>
+        public MapNode? CurrentMapNode =>
+            Map is null || MapState is null ? null : Map.NodeAt(MapState.CurrentNodeId);
+
+        /// <summary>
+        /// The doors out of where the run stands, in authored order. Empty for a linear campaign and
+        /// at the act's terminal node.
+        /// </summary>
+        /// <returns>Ids of the nodes that can be voted for.</returns>
+        public IReadOnlyList<string> Doors() =>
+            Map is null || MapState is null
+                ? Array.Empty<string>()
+                : Map.Successors(MapState.CurrentNodeId);
 
         /// <summary>Squad members that can still be fielded.</summary>
         /// <returns>Everything not voided, in campaign order.</returns>
@@ -123,6 +173,8 @@ namespace Faultline.Core
                 || Phase != other.Phase
                 || Outcome != other.Outcome
                 || FightsWon != other.FightsWon
+                || RngState != other.RngState
+                || !Equals(MapState, other.MapState)
                 || !string.Equals(Campaign.Id, other.Campaign.Id, StringComparison.Ordinal)
                 || Campaign.Length != other.Campaign.Length
                 || Squad.Count != other.Squad.Count
@@ -165,6 +217,8 @@ namespace Faultline.Core
                 hash = (hash * 31) + (int)Phase;
                 hash = (hash * 31) + (int)Outcome;
                 hash = (hash * 31) + FightsWon;
+                hash = (hash * 31) + RngState;
+                hash = (hash * 31) + (MapState?.GetHashCode() ?? 0);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Campaign.Id);
                 hash = (hash * 31) + Campaign.Length;
                 foreach (var unit in Squad)

@@ -65,6 +65,48 @@ feedback says "the map choices feel arbitrary".
 Re-tagging it into the event-fight pool changes what the campaign fields, so it wants the D-092
 treatment and probably its own ruling rather than a data edit.
 
+*(Map-core session, follow-up:)* built as a **Core-side table** (`EventFightPool`), not a key in the
+`.fight` files, and the linear ten still fields `hold-the-gate` — so nothing about what an existing
+board fields changed, and the D-092 trap does not fire. What did change is that Act 1's graph has six
+combat nodes to the linear ten's ten, so `hold-the-gate` is off the act. It still wants the ruling.
+
+### The Molting Pool's two lines of voice were written in the repo
+
+§8.5 prints the Molting Pool's numbers (4 HP → +2 max, blocked at lethal) and says Offers have an
+in-voice walk-away line, but prints no line. The prompt and the walk-away line in
+`EventLibrary.MoltingPool` were **authored here** and are the only content in the map core that did
+not come from the doc. They are placeholders for the tone pass, not a ruling.
+
+### Bodily consent is enforced structurally, because ducks have no owner yet
+
+§8.5: "a duck's event costs require its owner's yes." Nothing in the model says which player owns
+which duck — `RunBinding.Team` is per-fight and changes board to board, and the Dock draft is
+unbuilt. So the engine's half of consent is that **a payment names one duck and there is no
+party-wide accept**: enumerate the legal commands at an event and every payment is one specific
+duck's. The surface issuing it is responsible for having asked that duck's owner. A real
+`RunUnit.Owner` should arrive with the Dock draft, and the event handler should then refuse a
+payment signed by the wrong player.
+
+### The act map's campfire heals half; the linear campaign's still heals full
+
+Two rest node types now exist (`MapRestNode`, `RestNode`) because §8.5's campfire and D-053's
+checkpoint are different rules and the linear ten is still the tuned build. Fine while both ship —
+but when the linear campaign retires, `RestNode` and its handler retire with it, and nobody will
+remember that is what they were for.
+
+### The v1 campfire and the v1 event pool are both one-option menus
+
+The campfire offers heal and nothing else (forge and curse-scraping are unbuilt); the event pool
+holds one event. Both are honest — no fake buttons — but a run currently meets its first *real*
+choice at the vote, and the two nodes that exist to be choices are not choices yet. Worth knowing
+before playtest feedback calls the map thin.
+
+### One Web test is order-dependent and flaky
+
+`DevLogTabTests.ExpandingEveryDrawer_IsWithinTheRememberedFlags` fails in a full-suite run and passes
+in isolation — reproduced at `45989cc` in a clean worktree, so it is not the map work. CLAUDE.md's
+testing standards forbid a test that depends on execution order; this one does.
+
 ---
 
 ## Known defects, filed not fixed

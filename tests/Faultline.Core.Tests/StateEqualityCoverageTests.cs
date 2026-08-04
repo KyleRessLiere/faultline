@@ -210,6 +210,8 @@ public class StateEqualityCoverageTests
                     Bindings = new[] { new RunBinding(new RunUnitId(0), new UnitId(0), Team.PlayerA) },
                 },
                 ["FightsWon"] = s => s with { FightsWon = s.FightsWon + 1 },
+                ["RngState"] = s => s with { RngState = s.RngState + 1 },
+                ["MapState"] = s => s with { MapState = MapState.At("c1-first-contact") },
             };
 
         internal static readonly IReadOnlyDictionary<string, Func<RunUnit, RunUnit>> SquadMember =
@@ -220,6 +222,7 @@ public class StateEqualityCoverageTests
                 ["Hp"] = u => u with { Hp = u.Hp - 1 },
                 ["Status"] = u => u with { Status = RunUnitStatus.Downed },
                 ["Verve"] = u => u with { Verve = u.Verve + 1 },
+                ["BonusMaxHp"] = u => u with { BonusMaxHp = u.BonusMaxHp + 2 },
             };
 
         internal static readonly IReadOnlyDictionary<string, Func<FightDefinition, FightDefinition>> Fight =
@@ -241,6 +244,8 @@ public class StateEqualityCoverageTests
                     Enemies = new[] { new EnemySpawn(UnitKind.Husk, new Coord(2, 2)) },
                 },
                 ["ProtectedZone"] = f => f with { ProtectedZone = new[] { new Coord(1, 1) } },
+                ["Blockers"] = f => f with { Blockers = new[] { new Coord(3, 1) } },
+                ["BlockerHp"] = f => f with { BlockerHp = f.BlockerHp + 1 },
                 ["Objective"] = f => f with { Objective = Objective.KillAll },
                 ["TurnLimit"] = f => f with { TurnLimit = f.TurnLimit + 1 },
                 ["Waves"] = f => f with { Waves = Array.Empty<ReinforcementWave>() },
@@ -314,6 +319,8 @@ public class FightRoundTripTests
                 Tiles = new[] { new Coord(3, 3) },
                 Hp = 5,
             },
+            Blockers = new[] { new Coord(2, 2) },
+            BlockerHp = 6,
             FootingGrants = new[] { FootingGrant.ForSide(Team.Enemy, 1), FootingGrant.ForKind(UnitKind.Husk, 2) },
             Waves = new[]
             {

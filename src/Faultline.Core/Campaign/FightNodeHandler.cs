@@ -56,6 +56,21 @@ namespace Faultline.Core
             context.RunEvents.Add(new FightBegan(
                 state.NodeIndex, fight.Id, fight.Number, fight.Name, bindings.Count));
 
+            // The map's gilt edge, reported and not paid. Nothing here grants anything: the mark is a
+            // typed reference to a pool that does not exist, and its Payable flag says so to whatever
+            // is listening (see RewardMark, and the promise rule in its remarks).
+            if (fightNode.Reward is RewardMark mark)
+            {
+                context.RunEvents.Add(new RewardPromised(
+                    state.MapState?.CurrentNodeId ?? string.Empty,
+                    fight.Id,
+                    mark.Id,
+                    mark.Kind,
+                    mark.Pick,
+                    mark.From,
+                    mark.Payable));
+            }
+
             foreach (var binding in bindings)
             {
                 var unit = state.FindUnit(binding.RunUnitId)!;
@@ -211,6 +226,8 @@ namespace Faultline.Core
             var rosterB = new List<UnitKind>();
             var hpA = new List<int>();
             var hpB = new List<int>();
+            var maxA = new List<int>();
+            var maxB = new List<int>();
             var verveA = new List<int>();
             var verveB = new List<int>();
             var bedraggledA = new List<bool>();
@@ -229,14 +246,16 @@ namespace Faultline.Core
                 DefaultTeams.Split(fielded, out wantA, out wantB);
             }
 
-            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, verveA, bedraggledA);
-            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, verveB, bedraggledB);
+            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, maxA, verveA, bedraggledA);
+            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, maxB, verveB, bedraggledB);
 
             adapted = fight with { RosterA = rosterA, RosterB = rosterB };
             loadout = new SquadLoadout
             {
                 HpA = hpA,
                 HpB = hpB,
+                MaxHpA = maxA,
+                MaxHpB = maxB,
                 VerveA = verveA,
                 VerveB = verveB,
                 BedraggledA = bedraggledA,
@@ -262,6 +281,7 @@ namespace Faultline.Core
             List<RunBinding> bindings,
             List<UnitKind> adaptedRoster,
             List<int> hp,
+            List<int> maxHp,
             List<int> verve,
             List<bool> bedraggled)
         {
@@ -289,6 +309,10 @@ namespace Faultline.Core
 
                 adaptedRoster.Add(kind);
                 hp.Add(unit.FieldingHp);
+
+                // A ceiling the run raised travels with the duck, or the fight would clamp its
+                // carried hit points back to the base class's maximum.
+                maxHp.Add(unit.MaxHp);
 
                 // Being downed costs three quarters of your health and a slot, and none of your
                 // Verve: the meter is the comeback resource, and a unit that returns stripped of it

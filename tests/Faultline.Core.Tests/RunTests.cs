@@ -462,13 +462,16 @@ public class RunTests
     }
 
     [Fact]
-    public void Seam_ThereAreExactlyTwoNodeTypes()
+    public void Seam_ThereAreExactlyFourNodeTypes()
     {
-        // Pinned deliberately. A third node type is a change worth noticing in a diff, not something
-        // that appears because a handler was added in passing.
-        Assert.Equal(2, CampaignNodeHandlers.Count);
+        // Pinned deliberately. A new node type is a change worth noticing in a diff, not something
+        // that appears because a handler was added in passing. It was two — fight and rest — until
+        // the act map arrived with its own campfire (half a heal, not a full one) and its events.
+        Assert.Equal(4, CampaignNodeHandlers.Count);
         Assert.True(CampaignNodeHandlers.IsRegistered(typeof(FightNode)));
         Assert.True(CampaignNodeHandlers.IsRegistered(typeof(RestNode)));
+        Assert.True(CampaignNodeHandlers.IsRegistered(typeof(MapRestNode)));
+        Assert.True(CampaignNodeHandlers.IsRegistered(typeof(EventNode)));
     }
 
     [Fact]

@@ -41,19 +41,34 @@ namespace Faultline.Core
                 squad.Add(RunUnit.Fresh(new RunUnitId(i), campaign.Squad[i]));
             }
 
+            var map = campaign.Map;
+            bool empty = map is null ? campaign.Length == 0 : map.NodeAt(map.StartNodeId) is null;
+
             var state = new RunState
             {
                 Seed = seed,
                 Campaign = campaign,
                 NodeIndex = 0,
                 Squad = squad,
-                Phase = campaign.Length == 0 ? RunPhase.Complete : RunPhase.AtNode,
-                Outcome = campaign.Length == 0 ? RunOutcome.Won : RunOutcome.InProgress,
+
+                // The run RNG opens on the seed. Nothing has drawn from it yet — the first draw a run
+                // ever makes is the coin a split vote flips (see RunState.RngState).
+                RngState = seed,
+                MapState = map is null ? null : MapState.At(map.StartNodeId),
+                Phase = empty ? RunPhase.Complete : RunPhase.AtNode,
+                Outcome = empty ? RunOutcome.Won : RunOutcome.InProgress,
             };
 
             var context = new RunContext();
             context.RunEvents.Add(new RunStarted(
-                campaign.Id, campaign.Name, seed, campaign.Length, squad));
+                campaign.Id, campaign.Name, seed, map is null ? campaign.Length : map.Nodes.Count, squad));
+
+            if (map is not null && !empty)
+            {
+                var start = map.NodeAt(map.StartNodeId)!;
+                context.RunEvents.Add(new MapMoved(
+                    string.Empty, start.Id, start.Type, start.Lane, start.Column, false));
+            }
 
             return Result(state, context);
         }
@@ -80,6 +95,20 @@ namespace Faultline.Core
             if (state.Phase == RunPhase.Complete)
             {
                 throw new InvalidOperationException("The run is over; it takes no more commands.");
+            }
+
+            // The vote is the engine's business, not a node handler's: it is about which node comes
+            // next, and the node just left has no opinion about that.
+            if (command is VoteCommand vote)
+            {
+                var voteContext = new RunContext();
+                return Result(ResolveVote(state, vote, voteContext), voteContext);
+            }
+
+            if (state.Phase == RunPhase.AtVote)
+            {
+                throw new InvalidOperationException(
+                    "The run is between columns and the only thing it takes is a vote.");
             }
 
             var node = state.CurrentNode
@@ -123,6 +152,11 @@ namespace Faultline.Core
                 throw new ArgumentNullException(nameof(state));
             }
 
+            if (state.Phase == RunPhase.AtVote)
+            {
+                return Votes(state);
+            }
+
             var node = state.CurrentNode;
             if (state.Phase == RunPhase.Complete || node is null)
             {
@@ -160,13 +194,19 @@ namespace Faultline.Core
             // just left, and a run standing on a rest holding the last fight's corpse would be a
             // state nothing can ask a sensible question about. A run that *ended* keeps its board —
             // see Lose — because that board is the ending.
-            var next = state with
+            var cleared = state with
             {
-                NodeIndex = state.NodeIndex + 1,
                 Phase = RunPhase.AtNode,
                 Bindings = Array.Empty<RunBinding>(),
                 Fight = null,
             };
+
+            if (cleared.Campaign.IsMapped)
+            {
+                return AdvanceOnMap(cleared, context);
+            }
+
+            var next = cleared with { NodeIndex = cleared.NodeIndex + 1 };
 
             if (next.NodeIndex < next.Campaign.Length)
             {
@@ -176,6 +216,175 @@ namespace Faultline.Core
             context.RunEvents.Add(new RunWon(next.FightsWon, next.Squad));
             return next with { Phase = RunPhase.Complete, Outcome = RunOutcome.Won };
         }
+
+        /// <summary>
+        /// Leaves a finished node on an act map: ends the act at a terminal, walks on when the column
+        /// offers one door, and opens the vote when it offers more.
+        /// </summary>
+        /// <remarks>
+        /// A single door is walked rather than voted on. A vote with one option is a fake button, and
+        /// the design's masked-pick ceremony is about a choice — where there is none, the run simply
+        /// moves and the command log stays honest about what was decided.
+        /// </remarks>
+        private static RunState AdvanceOnMap(RunState state, RunContext context)
+        {
+            var map = state.Campaign.Map!;
+            var mapState = state.MapState
+                ?? throw new InvalidOperationException("A mapped run has no map state.");
+
+            var doors = map.Successors(mapState.CurrentNodeId);
+
+            if (doors.Count == 0)
+            {
+                var terminal = map.NodeAt(mapState.CurrentNodeId);
+                var finished = mapState with { Completed = true };
+                var done = state with
+                {
+                    MapState = finished,
+                    Phase = RunPhase.Complete,
+                    Outcome = RunOutcome.Won,
+                };
+
+                // The tally, and the admission that it is one. The Molt is the boss reward and is not
+                // built, so nothing is granted here and the event says so rather than implying it.
+                context.RunEvents.Add(new ActCleared(
+                    map.Id,
+                    terminal?.FightId ?? string.Empty,
+                    done.FightsWon,
+                    finished.Route.Count,
+                    finished.RouteHash(),
+                    false,
+                    ActCleared.PlaceholderTally));
+
+                context.RunEvents.Add(new RunWon(done.FightsWon, done.Squad));
+                return done;
+            }
+
+            return doors.Count == 1
+                ? MoveTo(state, doors[0], false, context)
+                : state with { Phase = RunPhase.AtVote };
+        }
+
+        /// <summary>Steps the run onto a map node and records the step.</summary>
+        private static RunState MoveTo(RunState state, string toId, bool voted, RunContext context)
+        {
+            var map = state.Campaign.Map!;
+            var destination = map.NodeAt(toId)
+                ?? throw new InvalidOperationException("The map has no node '" + toId + "'.");
+
+            var from = state.MapState!.CurrentNodeId;
+            context.RunEvents.Add(new MapMoved(
+                from, destination.Id, destination.Type, destination.Lane, destination.Column, voted));
+
+            return state with
+            {
+                MapState = state.MapState.MoveTo(toId),
+                NodeIndex = state.NodeIndex + 1,
+                Phase = RunPhase.AtNode,
+            };
+        }
+
+        /// <summary>
+        /// Reveals both blind picks and settles them in one step: a match moves, a split flips the
+        /// seeded coin (MASTER_DESIGN §8.5). There is no path back into
+        /// <see cref="RunPhase.AtVote"/> afterwards, which is what "no re-votes" means in code.
+        /// </summary>
+        private static RunState ResolveVote(RunState state, VoteCommand vote, RunContext context)
+        {
+            if (state.Phase != RunPhase.AtVote)
+            {
+                throw new InvalidOperationException(
+                    "There is no door to vote on: the run is " + Describe(state.Phase)
+                    + ". A vote is taken once per fork and never again — there are no re-votes.");
+            }
+
+            var map = state.Campaign.Map!;
+            var from = state.MapState!.CurrentNodeId;
+            var doors = map.Successors(from);
+
+            if (!Contains(doors, vote.ChoiceA))
+            {
+                throw new InvalidOperationException(
+                    "Player A voted for '" + vote.ChoiceA + "', which is not a door out of '" + from + "'.");
+            }
+
+            if (!Contains(doors, vote.ChoiceB))
+            {
+                throw new InvalidOperationException(
+                    "Player B voted for '" + vote.ChoiceB + "', which is not a door out of '" + from + "'.");
+            }
+
+            string chosen;
+            bool byCoin;
+            int coin;
+            var next = state;
+
+            if (vote.IsAgreed)
+            {
+                chosen = vote.ChoiceA;
+                byCoin = false;
+                coin = -1;
+            }
+            else
+            {
+                // The one and only draw the run layer makes. The cursor lives on the state and is
+                // written straight back, so a replay of the same log flips the same coins in the same
+                // order and lands on the same route.
+                var rng = new SeededRng(state.RngState);
+                coin = rng.Next(2);
+                chosen = coin == 0 ? vote.ChoiceA : vote.ChoiceB;
+                byCoin = true;
+                next = state with { RngState = rng.State };
+            }
+
+            context.RunEvents.Add(new VoteResolved(
+                from, vote.ChoiceA, vote.ChoiceB, chosen, byCoin, coin));
+
+            return MoveTo(next, chosen, true, context);
+        }
+
+        /// <summary>Every vote that could be cast at the fork the run is standing at.</summary>
+        /// <remarks>
+        /// Every ordered pair of doors, because a vote is two picks and both are inputs. Agreements
+        /// and splits are both on the list: a split is a legal vote, it just costs a coin.
+        /// </remarks>
+        private static IReadOnlyList<RunCommand> Votes(RunState state)
+        {
+            var doors = state.Doors();
+            var votes = new List<RunCommand>(doors.Count * doors.Count);
+
+            foreach (string a in doors)
+            {
+                foreach (string b in doors)
+                {
+                    votes.Add(new VoteCommand(a, b));
+                }
+            }
+
+            return votes;
+        }
+
+        private static bool Contains(IReadOnlyList<string> ids, string id)
+        {
+            foreach (string candidate in ids)
+            {
+                if (string.Equals(candidate, id, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string Describe(RunPhase phase) => phase switch
+        {
+            RunPhase.AtNode => "standing on a node it has not entered",
+            RunPhase.InFight => "in a fight",
+            RunPhase.AtChoice => "being asked a question by the node it is on",
+            RunPhase.Complete => "over",
+            _ => phase.ToString(),
+        };
 
         /// <summary>Ends the run short. Called by a handler that has hit a dead end.</summary>
         /// <param name="state">State at the moment it ended.</param>
@@ -215,6 +424,14 @@ namespace Faultline.Core
         /// <param name="squad">The squad as it stood, in campaign order.</param>
         /// <param name="fightsWon">How many fights it had cleared.</param>
         /// <param name="outcome">Whether it had already ended.</param>
+        /// <param name="mapState">
+        /// Where it stood on its act map, for a mapped campaign. Ignored by a linear one; required by
+        /// a mapped one, because a graph has no "node 5" to fall back on.
+        /// </param>
+        /// <param name="rngState">
+        /// The run RNG's cursor as it stood. Defaults to the seed, which is where an unflipped run
+        /// starts — restore a run that has flipped coins without it and the next coin repeats one.
+        /// </param>
         /// <returns>The run, standing on its node.</returns>
         /// <exception cref="ArgumentException">The squad does not match the campaign's.</exception>
         public static RunState Restore(
@@ -223,7 +440,9 @@ namespace Faultline.Core
             int nodeIndex,
             IReadOnlyList<RunUnit> squad,
             int fightsWon,
-            RunOutcome outcome)
+            RunOutcome outcome,
+            MapState? mapState = null,
+            int? rngState = null)
         {
             if (campaign is null)
             {
@@ -255,7 +474,31 @@ namespace Faultline.Core
             }
 
             int index = nodeIndex < 0 ? 0 : nodeIndex;
-            bool past = index >= campaign.Length;
+
+            MapState? restoredMap = null;
+            bool past;
+
+            if (campaign.Map is ActMap map)
+            {
+                // A graph has no "past the end": whether the act is over is a fact the save carries,
+                // not one an index can be compared against.
+                restoredMap = mapState ?? MapState.At(map.StartNodeId);
+
+                if (map.NodeAt(restoredMap.CurrentNodeId) is null)
+                {
+                    throw new ArgumentException(
+                        "The save stands on '" + restoredMap.CurrentNodeId + "', which is not a node of map '"
+                        + map.Id + "'.",
+                        nameof(mapState));
+                }
+
+                past = restoredMap.Completed;
+            }
+            else
+            {
+                past = index >= campaign.Length;
+            }
+
             var ending = outcome != RunOutcome.InProgress
                 ? outcome
                 : past ? RunOutcome.Won : RunOutcome.InProgress;
@@ -271,6 +514,8 @@ namespace Faultline.Core
                 Phase = ending == RunOutcome.InProgress ? RunPhase.AtNode : RunPhase.Complete,
                 Fight = null,
                 Bindings = Array.Empty<RunBinding>(),
+                MapState = restoredMap,
+                RngState = rngState ?? seed,
             };
         }
 
