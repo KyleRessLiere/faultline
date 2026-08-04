@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03l** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-03n** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,28 @@ Last design session: 2026-08-03.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-03 (n) — LOCKED (council verdict 4-1): the Husk JOSTLES its kin, it does not wound
+  them — Shoulder vs an ally is full displacement, ZERO contact damage; board consequences
+  still apply whole (wall collision 4+Stagger, drain Clinging — the tile never checks
+  jerseys). Shoulder vs players unchanged (2 contact + consequences). Tie rule ships
+  regardless: trample only when STRICTLY cheaper than every non-trample route; equal cost
+  routes around. Precedent line written to stop future citation: abilities may carry
+  allegiance-shaped riders; BOARD RESOLUTION never does. Bloody-shoulder reserved as a named
+  Warrens elite/Heavy Husk trait. Dissent recorded (Thesis-Keeper: first allegiance-
+  conditional number in the physics layer). Also locked: enemy activation ORDER is published
+  at round start alongside intents (the strip's enemy slots are hard facts); future player
+  slots render as candidate cards ("Vanguard OR Fisher" stacked minis — the open choice shown
+  as open), resolving to the real portrait on activation; single-remaining-duck slots
+  auto-resolve; Bedraggled gaps render as the known dimmed portrait.
+2026-08-03 (m) — Intake rulings: the empty Bull Rush is LEGAL and OFFERED (real movement, the
+  Vanguard's expensive dash; the summary may inform — "no enemies in range, Bull Rush moves
+  only" — but the game never decides what's "useful", same law as the pathfinder). Moved-enemy
+  rescue tightening kept (code catching up to GAMEPLAY's existing sentence; enemy-untouched
+  guarantees refer to design intent, and the doc IS the intent). Warden was the lone D-072
+  violator (only Move-0 archetype; shipped incomplete — now fixed with its own DECISIONS
+  line). Inverse-hint wording quotes AP, not tiles (correct on exactly the climb case the hint
+  exists for). Noted: Stagger Shot is the game's only minimum-range ability — MinRange is a
+  proven, test-pinned mechanism with one consumer, awaiting any future second.
 2026-08-03 (l) — LOCKED: battle-screen information architecture (§7.5) — one fact, one home,
   the board is the preferred home. Four regions: situation left-top (objective + turn-order
   strip absorbing the turn summary), 7×7 board center (intents drawn on-grid; standalone
@@ -179,8 +201,21 @@ blind reveal; contested items each resolved by seeded coin flip. **Initiative bu
 first (cost — you reveal setup) and activate first (advantage).** Zones are claimable by either
 player; authors encouraged to make zones asymmetric.
 
-Round: intents declared (locked; re-plan only on invalidation, visibly) → activations alternate
-initiative-holder's unit / enemy / other player / enemy… → round end (Clinging, Stagger clears).
+Round: intents declared (locked; re-plan only on invalidation, visibly) **and enemy activation
+ORDER published with them** — which enemy fills each enemy slot is contract, not implementation
+detail → activations alternate initiative-holder's SLOT / enemy / other player's SLOT / enemy…
+→ round end (Clinging, Stagger clears). **A player slot is filled by choice at the moment it
+arrives** — the co-op reaction layer: pick whichever of your un-activated ducks the situation
+now demands. The strip shows this honestly: future player slots render as candidate cards (the
+un-activated ducks as stacked minis — the open choice shown as open), auto-resolving when one
+duck remains, snapping to the real portrait on activation; enemy slots and Bedraggled gaps are
+hard facts from round start.
+
+**The game never decides what is "useful":** legal actions are always offered — an empty Bull
+Rush is a real 3-AP repositioning and stays on the menu; the fastest path crosses brambles if
+it's fastest; deploying into shown danger is a choice. The UI informs (reasons on disabled
+buttons, outcomes on previews, "moves only" notes); it never gates on judgment. Mistakes and
+unorthodox plays belong to the player.
 
 **Activation — the Action Point turn (players only):** each duck activates with **3 AP**.
 Movement spends first at **1 AP per tile** (terrain surcharges unify into AP: brambles 2 AP to
@@ -247,10 +282,16 @@ non-displacement source (e.g. objective progress). Queued economy pass: Cast 3�
 # 6 · Enemies (doubled scale)
 
 Shipped roster (bestiary is canonical for numbers): **Husk 4 HP / Move 3 / melee 2 + SHOULDER** —
-a unit blocking its fastest path is pushed 1 perpendicular (+2 contact damage, full displacement
-consequences, any allegiance; costs the Husk +1 MP; resist applies — the Wardbearer is a rock in
-the stream; side chosen open-tile-first, fixed-order ties; both sides blocked = it stops). A bare
-collision (4) still kills a Husk outright — the double-kill teach survives the doubling. ·
+a unit blocking its path is pushed 1 perpendicular, but ONLY when trampling is STRICTLY cheaper
+than every non-trample route (equal cost routes around — no coin-flip cruelty). Vs players: +2
+contact damage plus full displacement consequences. **Vs its own allies: the jostle — full
+displacement, ZERO contact damage; board consequences still apply whole** (a shouldered ally
+still collides with walls for 4, still drops into drains — the tile never checks jerseys).
+Costs the Husk +1 MP; resist applies — the Wardbearer is a rock in the stream; side chosen
+open-tile-first, fixed-order ties; both blocked = it stops. **Precedent (council n, dissent
+recorded): abilities may carry allegiance-shaped riders; board resolution never does.** The
+bloody shoulder (contact damage vs allies too) is reserved as a named Warrens elite / Heavy
+Husk trait. A bare collision (4) still kills a Husk outright — the double-kill teach stands. ·
 Lobber 6/2 r3 arcing 2, retreats · Anchor 12/1 melee 4, resist 1 · Grappler 10/3 pull 2 r3,
 prefers HighGround/Archer, inert in melee · Stalker 8/4 push-1 toward hazards (drain > spikes >
 edge) · Warden 12/0 melee 4, resist 1 — the door · Perch 6/2 r3 dmg 2 (+2 from high ground),
