@@ -16,10 +16,34 @@ namespace Faultline.Core
         PlayerSlot = 1,
 
         /// <summary>
-        /// A clinging unit, shown in the place it would have gone. Display only: it is not pending
-        /// and takes no slot, so its side simply has one fewer activation.
+        /// A unit shown in the place it would have gone but is not taking. Display only: it is not
+        /// pending and takes no slot, so its side simply has one fewer activation. Why it is not
+        /// taking the slot is <see cref="ActivationEntry.Skip"/>.
         /// </summary>
         Skipped = 2,
+    }
+
+    /// <summary>
+    /// Why a <see cref="ActivationKind.Skipped"/> place is not a slot.
+    /// </summary>
+    /// <remarks>
+    /// One vocabulary rather than two. Clinging and Bedraggled cost their side an activation in
+    /// exactly the same way — the slot is omitted, not passed — and a strip that modelled them
+    /// separately would have grown a second gap that counts differently from the first.
+    /// </remarks>
+    public enum ActivationSkip
+    {
+        /// <summary>Not a skip. What every real slot carries.</summary>
+        None = 0,
+
+        /// <summary>Over the edge of a drain, and on a clock rather than a turn.</summary>
+        Clinging = 1,
+
+        /// <summary>
+        /// Walking off the last fight's downing, and missing round 1's activation for it. See
+        /// <see cref="Faultline.Core.Bedraggled"/>.
+        /// </summary>
+        Bedraggled = 2,
     }
 
     /// <summary>
@@ -44,6 +68,12 @@ namespace Faultline.Core
 
         /// <summary>Side the place belongs to.</summary>
         public Team Team { get; init; }
+
+        /// <summary>
+        /// Why a <see cref="ActivationKind.Skipped"/> place is not being taken.
+        /// <see cref="ActivationSkip.None"/> for every other kind.
+        /// </summary>
+        public ActivationSkip Skip { get; init; }
 
         /// <summary>
         /// The unit, when one is known: an enemy, a skipped clinging unit, or a player slot that has
@@ -91,6 +121,7 @@ namespace Faultline.Core
                 || IsCurrent != other.IsCurrent
                 || Kind != other.Kind
                 || Team != other.Team
+                || Skip != other.Skip
                 || !Nullable.Equals(UnitId, other.UnitId)
                 || ReinforcementsDue != other.ReinforcementsDue
                 || Candidates.Count != other.Candidates.Count)
@@ -117,6 +148,7 @@ namespace Faultline.Core
             hash.Add(IsCurrent);
             hash.Add(Kind);
             hash.Add(Team);
+            hash.Add(Skip);
             hash.Add(UnitId);
             hash.Add(ReinforcementsDue);
             foreach (var candidate in Candidates)

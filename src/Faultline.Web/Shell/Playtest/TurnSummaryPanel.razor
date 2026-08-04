@@ -17,6 +17,19 @@
            the screen, and it names the deadline rather than implying one (D-083). The units that
            could still get there are listed, because "somebody is dying" without "and you can reach
            them" is only half of what a player needs. *@
+        @* Said once, in round 1, because that is the only round the state exists in. The strip shows
+           the same fact as a gap; this is the sentence version, and between them neither player can
+           reach their second activation wondering where the first one went. *@
+        @if (PlaytestText.BedraggledLines(State) is { Count: > 0 } recovering)
+        {
+            <div class="bedraggled-banner" role="status">
+                @foreach (var line in recovering)
+                {
+                    <p class="bedraggled-line">@line</p>
+                }
+            </div>
+        }
+
         @if (PlaytestText.ClingingLines(State) is { Count: > 0 } paddling)
         {
             <div class="urgent-banner" role="status">
@@ -54,7 +67,7 @@
                             }
                             else if (carried.Status == RunUnitStatus.Downed)
                             {
-                                <span class="badge downed">downed — returns on @carried.FieldingHp/@carried.MaxHp</span>
+                                <span class="badge downed">downed — returns bedraggled on @carried.FieldingHp/@carried.MaxHp, no round-1 slot</span>
                             }
                             else
                             {
@@ -107,6 +120,24 @@
                 @PlaytestText.Team(State.ActiveTeam) places @PendingDeployName.
             </p>
             <p class="instruction">Click a highlighted deployment tile in your corner.</p>
+
+            @* Loud, and before the tile is clicked. A duck that owes its side an activation is a duck
+               you place differently, and agency before injury (D-080) means that cost belongs on
+               screen at the moment of the choice — against the threat overlay, not after it. *@
+            @if (BedraggledOnDeck is { Count: > 0 } waiting)
+            {
+                <div class="bedraggled-banner" role="status">
+                    @foreach (var unit in waiting)
+                    {
+                        <p class="bedraggled-line">
+                            <strong>@unit.Name</strong> — @PlaytestText.BedraggledLabel(unit)
+                        </p>
+                    }
+                    <p class="bedraggled-help">
+                        It is an ordinary unit otherwise: it can be hit, shoved, swept and rescued while it waits.
+                    </p>
+                </div>
+            }
 
             @* The threat overlay is per-enemy on hover rather than painted over the board (D-089),
                which makes it worth one line to say it is there at all. *@
@@ -205,6 +236,10 @@
         }
     }
 
+
+    /// <summary>Every Bedraggled duck still waiting to be placed, so both placements are informed.</summary>
+    private IReadOnlyList<Unit> BedraggledOnDeck =>
+        State.Units.Where(u => u.Bedraggled && u.IsAlive && u.Team.IsPlayer()).ToList();
 
     private FightResolved? Resolution => PlaytestFlow.Resolution(Runs);
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## Bedraggled — a downing costs tempo, not just hit points
+
+- **A downed duck now returns at a quarter of its maximum, rounded up, minimum 1** — Vanguard and
+  Wardbearer 4, Archer and Fisher 2 — superseding the half-return that shipped with the run layer.
+  It is a formula and not a table, so a raised ceiling raises the return.
+- **It skips its first activation.** The slot is *omitted*, not passed: the side simply has one fewer
+  activation in round 1, through the same dead-slot handling a clinging unit already uses. Not a
+  status — nothing applies it, nothing cleanses it, and nothing stacks it.
+- **Everything else about it is a normal unit** while it waits: damageable, displaceable, rescuable,
+  redirectable onto by Guard Stance, and swept by a drain into a permanent void like anyone else. Its
+  Pluck and everything it has learned come back with it — the meter is the comeback resource.
+- **Enemies cannot see it.** No priority-list clause keys on the state, and two tests hold that line:
+  one asserts the flag name appears in no planner source file, the other that flipping it changes no
+  declared intent on a whole board.
+- **Cleared when round 2 begins**, alongside Stagger. Exactly one activation is missing, ever, and
+  being downed again next fight costs the same quarter and no more.
+- **The strip draws the gap** with a dimmed portrait marked `recovering`, including when a side has no
+  slots at all — both ducks Bedraggled used to make that player vanish from the order. Deployment
+  marks them loudly on the card and the board token, so they are placed against the threat overlay as
+  an informed choice.
+
 ## Acting costs legs — the Action Point turn is wired through
 
 - Attacks and abilities are now **paid for out of the same three points movement spends**. Attack,

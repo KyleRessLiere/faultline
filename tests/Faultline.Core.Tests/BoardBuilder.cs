@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Faultline.Core;
 
 namespace Faultline.Core.Tests;
@@ -36,19 +37,22 @@ public sealed class BoardBuilder
     }
 
     /// <summary>Places a unit. Units are given ids in the order they are added.</summary>
-    public BoardBuilder Place(UnitKind kind, Team team, int x, int y, int? hp = null, int? footing = null)
+    public BoardBuilder Place(
+        UnitKind kind, Team team, int x, int y, int? hp = null, int? footing = null, bool bedraggled = false)
     {
-        _placements.Add(new Placement(kind, team, new Coord(x, y), hp, footing));
+        _placements.Add(new Placement(kind, team, new Coord(x, y), hp, footing, bedraggled));
         return this;
     }
 
     /// <summary>Places a player-A unit.</summary>
-    public BoardBuilder PlayerA(UnitKind kind, int x, int y, int? hp = null, int? footing = null) =>
-        Place(kind, Team.PlayerA, x, y, hp, footing);
+    public BoardBuilder PlayerA(
+        UnitKind kind, int x, int y, int? hp = null, int? footing = null, bool bedraggled = false) =>
+        Place(kind, Team.PlayerA, x, y, hp, footing, bedraggled);
 
     /// <summary>Places a player-B unit.</summary>
-    public BoardBuilder PlayerB(UnitKind kind, int x, int y, int? hp = null, int? footing = null) =>
-        Place(kind, Team.PlayerB, x, y, hp, footing);
+    public BoardBuilder PlayerB(
+        UnitKind kind, int x, int y, int? hp = null, int? footing = null, bool bedraggled = false) =>
+        Place(kind, Team.PlayerB, x, y, hp, footing, bedraggled);
 
     /// <summary>Places an enemy unit.</summary>
     public BoardBuilder Enemy(UnitKind kind, int x, int y, int? hp = null, int? footing = null) =>
@@ -128,10 +132,31 @@ public sealed class BoardBuilder
                 unit = unit with { Footing = placement.Footing.Value };
             }
 
+            if (placement.Bedraggled)
+            {
+                unit = unit with { Bedraggled = true };
+            }
+
             units.Add(unit);
         }
 
         var active = _activeTeam ?? (_placements.Count > 0 ? _placements[0].Team : Team.PlayerA);
+
+        // What BeginRound does after it opens on Player A: hand the slot to somebody who can actually
+        // take it. A fixture whose active side has nobody activatable — every unit clinging, or every
+        // unit Bedraggled — is a state the rules never produce, and a test built on one would be
+        // testing the builder.
+        if (!units.Any(u => u.Team == active && Game.CanActivate(u)))
+        {
+            foreach (var team in new[] { Team.PlayerA, Team.PlayerB, Team.Enemy })
+            {
+                if (units.Any(u => u.Team == team && Game.CanActivate(u)))
+                {
+                    active = team;
+                    break;
+                }
+            }
+        }
 
         var fight = new FightDefinition
         {
@@ -160,5 +185,6 @@ public sealed class BoardBuilder
         };
     }
 
-    private readonly record struct Placement(UnitKind Kind, Team Team, Coord At, int? Hp, int? Footing);
+    private readonly record struct Placement(
+        UnitKind Kind, Team Team, Coord At, int? Hp, int? Footing, bool Bedraggled = false);
 }

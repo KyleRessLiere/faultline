@@ -69,7 +69,10 @@
                             }
                             @if (entry.Kind == ActivationKind.Skipped)
                             {
-                                <span class="tag skipped">skipped</span>
+                                @* A gap with a dimmed portrait in it, never a silent absence: both
+                                   players have to be able to count the round's activations at a
+                                   glance, and a slot that quietly is not there cannot be counted. *@
+                                <span class="tag skipped">@SkipTag(entry)</span>
                             }
                             else if (entry.IsCurrent)
                             {
@@ -111,9 +114,21 @@
         }
     }
 
+    /// <summary>What the gap says it is. The two reasons a slot is missing are not the same fact.</summary>
+    private static string SkipTag(ActivationEntry entry) => entry.Skip switch
+    {
+        ActivationSkip.Bedraggled => "recovering",
+        _ => "skipped",
+    };
+
     private string EntryClass(ActivationEntry entry)
     {
         var classes = new List<string> { "entry", entry.Kind.ToString().ToLowerInvariant() };
+
+        if (entry.Skip != ActivationSkip.None)
+        {
+            classes.Add(entry.Skip.ToString().ToLowerInvariant());
+        }
 
         if (entry.IsCurrent)
         {
@@ -157,6 +172,9 @@
 
         return entry.Kind switch
         {
+            ActivationKind.Skipped when entry.Skip == ActivationSkip.Bedraggled =>
+                $"{unit.Name} is bedraggled and takes no activation this round — its side has one fewer. "
+                + "It is an ordinary unit otherwise: it can be hit, shoved and swept. Click to read it.",
             ActivationKind.Skipped =>
                 $"{unit.Name} is clinging and takes no activation — its side has one fewer this round. Click to read it.",
             _ => $"{unit.Name} — {when}. Click to read it.",

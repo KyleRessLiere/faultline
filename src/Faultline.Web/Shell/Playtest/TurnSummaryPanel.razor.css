@@ -147,6 +147,29 @@ h3 {
     margin: 0;
 }
 
+/* A missing activation is a cost, not an emergency — loud enough to place around, quieter than the
+   ledge's clock so the two never compete for the same alarm. */
+.bedraggled-banner {
+    background: rgba(232, 160, 62, .12);
+    border: 1px solid var(--pt-orange, var(--pt-yellow));
+    border-radius: var(--pt-radius);
+    margin-bottom: 8px;
+    padding: 7px 9px;
+}
+
+.bedraggled-line {
+    color: var(--pt-orange, var(--pt-yellow));
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+.bedraggled-help {
+    color: var(--pt-text-dim);
+    font-size: 11px;
+    margin: 0;
+}
+
 /* Quieter than an instruction: it tells you a tool exists, it is not a step. */
 .hint {
     color: var(--pt-text-dim);

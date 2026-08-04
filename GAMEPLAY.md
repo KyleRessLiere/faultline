@@ -149,6 +149,14 @@ than no queue.
 - **A clinging unit sits greyed in its place, marked skipped.** Display only: it takes no slot, so
   its side simply has one fewer activation. The strip shows the drain's cost to your action economy
   without changing what the drain costs.
+- **A Bedraggled unit sits in the same kind of gap, marked `recovering`** {D} a dimmed portrait, not a
+  silent absence, so both players can count round 1's activations at a glance. Same mechanism as the
+  clinging gap and the same vocabulary: `ActivationEntry.Kind` is `Skipped` and `ActivationEntry.Skip`
+  says which of the two it is. **The gap is shown even when the side has no slots at all** {D} both of
+  a player's ducks Bedraggled means that player never holds a slot in round 1, and would otherwise
+  have vanished from the strip entirely.
+- **The peeked round shows the slot coming back.** Bedraggled clears when round 2 begins, so the peek
+  clears it too — a peek that hid the returning slot would advertise a shortage that is about to end.
 - **A peeked round a wave lands in is marked**, and no arrival is placed in the order. Where an
   arrival belongs is undecided, and inventing a position would be a queue that lies.
 - Nothing is published during deployment or after the fight resolves.
@@ -442,7 +450,7 @@ it charges, including the pulse that banks nothing because the meter was already
 | Cap | **5** |
 | At the cap | the charge still fires, banks nothing, and is reported as wasted |
 | Between fights | carried on the squad member, exactly like hit points |
-| Downed | **keeps every point**, and returns with it on half health |
+| Downed | **keeps every point**, and returns with it Bedraggled — the meter is the comeback resource |
 | Voided | **gone with the unit** |
 | Reset | never — only spending will reduce it, and spending does not exist yet |
 | Enemies | never charge, from any source |
@@ -738,15 +746,53 @@ going into the boss.
 
 ### Attrition — the exact numbers
 
-**There is no healing between fights.** A unit that finishes a fight on 3 of 7 starts the next one on
-3 of 7. Two things, and only two, give hit points back:
+**There is no healing between fights.** A unit that finishes a fight on 3 of 14 starts the next one on
+3 of 14. Two things, and only two, give hit points back:
 
-- **A downed unit returns at half its maximum, rounded down.** Dropping to zero without being voided
-  leaves a unit **Downed**, and between fights it reads as exactly that: down, on nothing. When the
-  next fight begins it walks on at `MaxHp / 2` and is standing again. Vanguard 7 → **3**, Wardbearer
-  6 → **3**, Archer 4 → **2**, Fisher 4 → **2**.
+- **A downed unit returns Bedraggled.** Dropping to zero without being voided leaves a unit
+  **Downed**, and between fights it reads as exactly that: down, on nothing. When the next fight
+  begins it walks on **Bedraggled** — see below.
 - **A rest restores every living unit to full**, and clears the downed mark with it — "living" means
-  everything but voided (D-053). It clears nothing else; a rest is not a phase with choices in it.
+  everything but voided (D-053). A rested unit is therefore *not* Bedraggled: a rest is still the
+  clean return, and this ruling only governs what happens when there is no rest between the downing
+  and the next fight. It clears nothing else; a rest is not a phase with choices in it.
+
+### Bedraggled — the downed return
+
+A player unit that dropped to zero comes back into the **next** fight Bedraggled. Exact rules:
+
+| | |
+|---|---|
+| **Hit points** | `ceil(MaxHp / 4)`, minimum 1. A **formula**, so a raised ceiling raises the return. Vanguard 14 → **4**, Wardbearer 14 → **4**, Archer 8 → **2**, Fisher 8 → **2**. |
+| **Deployment** | **normal.** Full player control of placement, marked loudly on the card and the board token so it is placed against the threat overlay as an informed choice. |
+| **Round 1 activation** | **it does not exist.** The scheduler *omits* the slot; the side simply has one fewer activation that round. |
+| **Duration** | cleared when **round 2 begins**, alongside Stagger. Exactly one activation is missing, ever. |
+| **Everything else** | **a normal unit.** Damageable, displaceable, targetable, rescuable, redirectable onto by Guard Stance, killable, and swept by a drain like anyone else. |
+| **Meter and kit** | **intact.** Every point of Pluck and everything learned carries through. It cannot *spend* in round 1 only because it has no activation to spend in. |
+| **Downed again** | returns Bedraggled again next fight, **on the same quarter**. The penalty never compounds. |
+| **Enemy targeting** | **no preference, ever.** No priority-list clause may key on the state. |
+
+**It is not a status.** Nothing applies it, nothing cleanses it, no enemy can cause it, and it does
+not stack — so it is deliberately not modelled beside Stagger. The skipped activation is the same
+mechanism a clinging unit's skipped slot uses: `Game.CanActivate` says no, and `NextSlot` alternates
+over whoever is left. If **both** of a player's ducks are Bedraggled that player has **no
+activations in round 1**, which is legal and compacts through the existing dead-slot handling.
+
+**Enemies never read it.** The planner's priority lists cannot see the flag — a test asserts the flag
+name appears in no planner source file, and a second asserts that flipping it changes no declared
+intent anywhere on a whole board. The lethal-attack clause naturally finding a low-HP target is
+allowed and unchanged; a *named* preference for the wounded is not.
+
+**Swept still beats Bedraggled.** A Bedraggled duck shoved into a drain in round 1 clings and, unless
+rescued, is **voided** — permanently out of the run and out of the gene pool, exactly like anyone
+else. The two states are unrelated and the permanent one wins.
+
+**Known gap: a browser reload mid-fight returns the activation.** D-050 saves the seed, the node and
+the squad's carried hit points, and sends the half-played fight back to deployment. The state is
+derived at `FightNodeHandler.Enter`, which is also where the squad member stops reading as downed —
+so a fight re-entered after a reload fields the duck on the same quarter HP but *with* its round-1
+slot. The quarter survives the reload; the missing activation does not. It closes when the save
+becomes seed-plus-command-log, which is D-050's own stated fix.
 
 **A voided unit stays dead for the run.** Lost down a pit is the game's one permanent loss, and no
 rest brings it back. Its side simply fields one fewer unit in every later fight — the slot is dropped,

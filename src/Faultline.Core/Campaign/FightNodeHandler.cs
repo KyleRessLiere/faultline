@@ -213,6 +213,8 @@ namespace Faultline.Core
             var hpB = new List<int>();
             var verveA = new List<int>();
             var verveB = new List<int>();
+            var bedraggledA = new List<bool>();
+            var bedraggledB = new List<bool>();
 
             // Campaign boards have their sides resolved here rather than read off the file: every
             // one of them rosters the same four classes and only disagrees about who holds which,
@@ -227,11 +229,19 @@ namespace Faultline.Core
                 DefaultTeams.Split(fielded, out wantA, out wantB);
             }
 
-            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, verveA);
-            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, verveB);
+            BindSide(available, wantA, Team.PlayerA, bindings, rosterA, hpA, verveA, bedraggledA);
+            BindSide(available, wantB, Team.PlayerB, bindings, rosterB, hpB, verveB, bedraggledB);
 
             adapted = fight with { RosterA = rosterA, RosterB = rosterB };
-            loadout = new SquadLoadout { HpA = hpA, HpB = hpB, VerveA = verveA, VerveB = verveB };
+            loadout = new SquadLoadout
+            {
+                HpA = hpA,
+                HpB = hpB,
+                VerveA = verveA,
+                VerveB = verveB,
+                BedraggledA = bedraggledA,
+                BedraggledB = bedraggledB,
+            };
 
             // Ids are assigned by Game.Start in roster order, side A then side B, so the binding's
             // fight-local ids are known before the fight exists.
@@ -252,7 +262,8 @@ namespace Faultline.Core
             List<RunBinding> bindings,
             List<UnitKind> adaptedRoster,
             List<int> hp,
-            List<int> verve)
+            List<int> verve,
+            List<bool> bedraggled)
         {
             foreach (var kind in roster)
             {
@@ -279,9 +290,11 @@ namespace Faultline.Core
                 adaptedRoster.Add(kind);
                 hp.Add(unit.FieldingHp);
 
-                // Being downed costs half your health and none of your Verve: the meter is a record
-                // of how you have been playing, and getting knocked over is not an argument about it.
+                // Being downed costs three quarters of your health and a slot, and none of your
+                // Verve: the meter is the comeback resource, and a unit that returns stripped of it
+                // is a unit that cannot climb back out of the hole it just fell into.
                 verve.Add(unit.Verve);
+                bedraggled.Add(unit.ReturnsBedraggled);
                 bindings.Add(new RunBinding(unit.Id, UnitId.None, team));
             }
         }

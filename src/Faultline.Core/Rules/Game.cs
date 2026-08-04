@@ -50,18 +50,14 @@ namespace Faultline.Core
             {
                 var unit = WithGrantedFooting(
                     Unit.FromTemplate(new UnitId(nextId++), fight.RosterA[i], Team.PlayerA), fight);
-                units.Add(WithCarriedVerve(
-                    WithCarriedHp(unit, loadout?.HpFor(Team.PlayerA, i)),
-                    loadout?.VerveFor(Team.PlayerA, i)));
+                units.Add(FromLoadout(unit, loadout, Team.PlayerA, i));
             }
 
             for (int i = 0; i < fight.RosterB.Count; i++)
             {
                 var unit = WithGrantedFooting(
                     Unit.FromTemplate(new UnitId(nextId++), fight.RosterB[i], Team.PlayerB), fight);
-                units.Add(WithCarriedVerve(
-                    WithCarriedHp(unit, loadout?.HpFor(Team.PlayerB, i)),
-                    loadout?.VerveFor(Team.PlayerB, i)));
+                units.Add(FromLoadout(unit, loadout, Team.PlayerB, i));
             }
 
             var events = new List<GameEvent> { new FightStarted(fight.Number, fight.Name) };
@@ -135,9 +131,32 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Applies everything a run carries into one roster slot: hit points, Verve, and whether this
+        /// slot is a duck walking off the last fight's downing.
+        /// </summary>
+        /// <remarks>
+        /// One place rather than three nested calls at each call site, because the three arrived at
+        /// different times and were starting to read like an accident.
+        /// </remarks>
+        private static Unit FromLoadout(Unit unit, SquadLoadout? loadout, Team team, int slot)
+        {
+            if (loadout is null)
+            {
+                return unit;
+            }
+
+            unit = WithCarriedVerve(WithCarriedHp(unit, loadout.HpFor(team, slot)), loadout.VerveFor(team, slot));
+
+            // Set at Start rather than at deployment: it has to be true while the player is choosing
+            // where to put it, which is the whole point of marking it on the deployment card.
+            return loadout.IsBedraggled(team, slot) ? unit with { Bedraggled = true } : unit;
+        }
+
+        /// <summary>
         /// Opens a unit on the hit points a run is carrying for it. Clamped to the archetype's
         /// ceiling and to at least 1 — a run never fields a corpse, because a unit with nothing left
-        /// is either downed, and comes back at half, or voided, and does not come back at all.
+        /// is either downed, and comes back Bedraggled on a quarter, or voided, and does not come
+        /// back at all.
         /// </summary>
         private static Unit WithCarriedHp(Unit unit, int? hp)
         {
@@ -483,9 +502,16 @@ namespace Faultline.Core
         internal static bool SidePending(GameState state, Team team) => HasPending(state, team);
 
         /// <summary>Whether this unit could take an activation slot at all.</summary>
+        /// <remarks>
+        /// Public because "does this duck get a turn this round" is a question the renderer has to
+        /// answer to draw the board, and there are now two unrelated reasons the answer is no —
+        /// clinging and Bedraggled. A shell that reassembled the predicate out of the two flags would
+        /// be holding a copy of the alternation rule, and would be one flag behind the day a third
+        /// arrives.
+        /// </remarks>
         /// <param name="unit">Unit to ask about.</param>
-        /// <returns>On the board and not clinging.</returns>
-        internal static bool CanActivate(Unit unit) => CanAct(unit);
+        /// <returns>On the board, not clinging and not still recovering.</returns>
+        public static bool CanActivate(Unit unit) => unit is not null && CanAct(unit);
 
         private static IEnumerable<Unit> ActivationCandidates(GameState state)
         {
@@ -509,8 +535,12 @@ namespace Faultline.Core
             }
         }
 
-        // A clinging unit holds an activation slot but cannot spend it — Brief §2.
-        private static bool CanAct(Unit unit) => unit.IsOnBoard && !unit.Clinging;
+        // A clinging unit does not hold an activation slot — Brief §2 — and neither does a Bedraggled
+        // one. Both read here rather than anywhere downstream, because this single predicate is what
+        // NextSlot, AdvanceTurn and CanActivate all alternate on: a side simply has one fewer
+        // activation that round. The Bedraggled skip is that omission and nothing else — never a
+        // status a unit carries into its turn and burns (MASTER_DESIGN §3).
+        private static bool CanAct(Unit unit) => unit.IsOnBoard && !unit.Clinging && !unit.Bedraggled;
 
         private static bool CanDeployOnto(GameState state, Coord tile) =>
             state.Board.InBounds(tile)
@@ -561,6 +591,12 @@ namespace Faultline.Core
 
         private static GameState BeginRound(GameState state, List<GameEvent> events)
         {
+            // Bedraggled is spent by round 1 ending, and clears here with Stagger for the same reason
+            // Stagger does: "clears at round end" and "is gone when the next round opens" are the same
+            // instant, and one place that rewrites the per-round fields cannot disagree with itself.
+            // Round 1 itself opens through here too, so the test is the round being *entered*.
+            bool recovering = Bedraggled.SurvivesInto(state.Round + 1);
+
             var units = new Unit[state.Units.Count];
             for (int i = 0; i < state.Units.Count; i++)
             {
@@ -571,6 +607,7 @@ namespace Faultline.Core
                     MoveClosed = false,
                     HasActed = false,
                     Staggered = false,
+                    Bedraggled = state.Units[i].Bedraggled && recovering,
                 };
             }
 

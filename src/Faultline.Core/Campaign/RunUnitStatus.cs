@@ -9,14 +9,16 @@ namespace Faultline.Core
         Ready = 0,
 
         /// <summary>
-        /// Dropped to zero in a fight but not lost. Fields in the next fight at half its maximum,
-        /// rounded down, and a rest restores it fully.
+        /// Dropped to zero in a fight but not lost. Fields in the next fight
+        /// <see cref="Faultline.Core.Bedraggled"/> — a quarter of its maximum rounded up, and no slot
+        /// in round 1 — and a rest restores it fully instead (D-053).
         /// </summary>
         Downed = 1,
 
         /// <summary>
-        /// Gone down a pit. Out for the rest of the run — no fight fields it and no rest brings it
-        /// back. The one permanent loss the game has.
+        /// Swept down a drain. Out for the rest of the run — no fight fields it and no rest brings it
+        /// back, and it is out of the gene pool with it. The one permanent loss the game has, and
+        /// deliberately nothing to do with being downed.
         /// </summary>
         Voided = 2,
     }

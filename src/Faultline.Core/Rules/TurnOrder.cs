@@ -55,13 +55,20 @@ namespace Faultline.Core
             int round = state.Round;
             bool current = true;
 
-            // Clinging units are shown once each, beside their side's turn. Display only: they are
-            // not pending, so they never move the walk along.
+            // Clinging and Bedraggled units are shown once each, beside their side's turn. Display
+            // only: they are not pending, so they never move the walk along.
             var shownSkips = new List<UnitId>();
 
             while (true)
             {
                 var team = board.ActiveTeam;
+
+                // Shown before the pendingness check, not after. A side whose every unit is over the
+                // edge or still recovering has no slot left to hang them beside, and would have
+                // vanished from the strip entirely — which is precisely the silence the gap exists to
+                // replace. Both Bedraggled ducks on one side is the ordinary case for that.
+                AddSkipped(board, team, round, shownSkips, entries);
+
                 if (!Game.SidePending(board, team))
                 {
                     // The active side has nobody left; ask the rules who is next instead of guessing.
@@ -74,7 +81,6 @@ namespace Faultline.Core
                     continue;
                 }
 
-                AddSkipped(board, team, round, shownSkips, entries);
                 var taken = Take(board, team, round, current, entries);
                 current = false;
 
@@ -86,6 +92,16 @@ namespace Faultline.Core
                 }
 
                 board = board with { ActiveTeam = next, NextPlayerTeam = nextPlayer, ActiveUnitId = null };
+            }
+
+            // A side with no slots at all this round is never handed one, so the walk above never
+            // visits it and its gaps would have gone unseen — which is exactly the case the gap is
+            // for: both of a player's ducks Bedraggled, and that player silently absent from the
+            // strip. Swept up here, after the slots, rather than guessed at a position they do not
+            // have.
+            foreach (var team in new[] { Team.PlayerA, Team.PlayerB, Team.Enemy })
+            {
+                AddSkipped(state, team, round, shownSkips, entries);
             }
 
             Peek(state, board, round + 1, entries);
@@ -100,11 +116,18 @@ namespace Faultline.Core
         {
             // Exactly what BeginRound does to the fields this walk reads. Nothing else is simulated:
             // Stagger, Footing and the objective clock all resolve at the seam and none of them
-            // change who activates.
+            // change who activates. Bedraggled does, so it is cleared here on the same test BeginRound
+            // uses — otherwise the peeked round would hide a slot that is about to exist, which is the
+            // one thing worse than not peeking at all.
             var units = new Unit[board.Units.Count];
+            bool recovering = Faultline.Core.Bedraggled.SurvivesInto(round);
             for (int i = 0; i < board.Units.Count; i++)
             {
-                units[i] = board.Units[i] with { HasActivated = false };
+                units[i] = board.Units[i] with
+                {
+                    HasActivated = false,
+                    Bedraggled = board.Units[i].Bedraggled && recovering,
+                };
             }
 
             board = board with
@@ -215,15 +238,27 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Shows a side's clinging units beside its turn, once each. Not pending and not a slot: the
-        /// strip shows the drain's cost to the action economy without changing what the drain costs.
+        /// Shows a side's units that hold no slot beside its turn, once each — clinging, or still
+        /// Bedraggled. Not pending and not a slot: the strip shows what the drain and the last fight's
+        /// downing cost the action economy without changing what either of them costs.
         /// </summary>
         private static void AddSkipped(
             GameState board, Team team, int round, List<UnitId> shown, List<ActivationEntry> entries)
         {
             foreach (var unit in board.Units)
             {
-                if (unit.Team != team || !unit.Clinging || !unit.IsOnBoard || shown.Contains(unit.Id))
+                if (unit.Team != team || !unit.IsOnBoard || shown.Contains(unit.Id))
+                {
+                    continue;
+                }
+
+                // Clinging first when a Bedraggled duck is also over the edge: one of the two states
+                // has a deadline attached and the other is a bruise, and the reader needs the deadline.
+                var why = unit.Clinging ? ActivationSkip.Clinging
+                    : unit.Bedraggled ? ActivationSkip.Bedraggled
+                    : ActivationSkip.None;
+
+                if (why == ActivationSkip.None)
                 {
                     continue;
                 }
@@ -234,6 +269,7 @@ namespace Faultline.Core
                     Round = round,
                     Kind = ActivationKind.Skipped,
                     Team = team,
+                    Skip = why,
                     UnitId = unit.Id,
                 });
             }

@@ -80,6 +80,52 @@ public static class PlaytestText
     }
 
     /// <summary>
+    /// The loud label a Bedraggled duck carries on its deployment card and its board token.
+    /// </summary>
+    /// <remarks>
+    /// Said at placement, not after it: a duck that costs its side an activation is a duck you place
+    /// differently, and agency before injury (D-080) means the cost has to be on screen at the moment
+    /// of the choice rather than discovered in round 1. The number is Core's own return formula and
+    /// not the unit's current HP, so it still reads true after something has hit it.
+    /// </remarks>
+    /// <param name="unit">Unit to describe.</param>
+    /// <returns>The label, or empty when the unit is not Bedraggled.</returns>
+    public static string BedraggledLabel(Unit unit) =>
+        unit is null || !unit.Bedraggled
+            ? string.Empty
+            : "Bedraggled — returns at " + Faultline.Core.Bedraggled.ReturningHp(unit.MaxHp)
+                + " HP, misses round 1's first activation";
+
+    /// <summary>
+    /// One line per Bedraggled player unit, for the round-1 turn summary.
+    /// </summary>
+    /// <remarks>
+    /// Once, and only in round 1, because the state does not survive into round 2 — the missing slot
+    /// is a fact about this round and nothing else. The strip carries the same fact as a gap; this is
+    /// the sentence version, for the reader who counts activations in words.
+    /// </remarks>
+    /// <param name="state">Current state.</param>
+    /// <returns>The lines, empty when nobody is recovering.</returns>
+    public static IReadOnlyList<string> BedraggledLines(GameState state)
+    {
+        var lines = new List<string>();
+        if (state is null || state.Phase != Faultline.Core.Phase.Battle)
+        {
+            return lines;
+        }
+
+        foreach (var unit in state.Units)
+        {
+            if (unit.Bedraggled && unit.IsOnBoard && unit.Team.IsPlayer())
+            {
+                lines.Add(unit.Name + " is bedraggled — first activation skipped.");
+            }
+        }
+
+        return lines;
+    }
+
+    /// <summary>
     /// One line per clinging player unit, naming the deadline instead of implying one.
     /// </summary>
     /// <remarks>
@@ -169,6 +215,11 @@ public static class PlaytestText
         if (unit.Clinging)
         {
             flags.Add("clinging");
+        }
+
+        if (unit.Bedraggled)
+        {
+            flags.Add("bedraggled");
         }
 
         if (unit.Staggered)

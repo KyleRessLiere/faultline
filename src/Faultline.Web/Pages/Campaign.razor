@@ -11,8 +11,9 @@
             <h1>Faultline <span class="sub">the campaign</span></h1>
             <p class="note">
                 Twelve nodes in a fixed order — ten fights and two rests. There is no healing between
-                fights: a unit that finishes on 3 of 7 starts the next one on 3 of 7. A unit knocked
-                down comes back at half its maximum; a unit lost down a pit is gone for the run.
+                fights: a unit that finishes on 3 of 14 starts the next one on 3 of 14. A unit knocked
+                down comes back <strong>bedraggled</strong> — a quarter of its maximum, and no
+                activation slot in round 1; a unit swept down a drain is gone for the run.
             </p>
         </div>
 
@@ -72,7 +73,10 @@
                                 <span class="squad-hp">@HpText(unit)</span>
                                 @if (unit.Status == RunUnitStatus.Downed)
                                 {
-                                    <span class="tag downed">downed — returns on @unit.FieldingHp</span>
+                                    <span class="tag downed"
+                                          title="Bedraggled: quarter health, and no activation slot in round 1. Everything else about it is normal, and its @Naming.Meter and abilities are intact.">
+                                        downed — returns bedraggled on @unit.FieldingHp/@unit.MaxHp, no round-1 slot
+                                    </span>
                                 }
                                 else if (unit.Status == RunUnitStatus.Voided)
                                 {

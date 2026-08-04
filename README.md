@@ -279,12 +279,14 @@ round — the fight is about reading those intents and moving the board out from
 **`/campaign` — the run.** Twelve nodes: ten fights and two rests. Start one with a seed; a win
 advances, a loss ends the run.
 
-**There is no healing between fights.** A unit that finishes on 3 of 7 starts the next one on 3 of 7,
-so the squad list on the campaign screen is the thing to watch — it is the only place the cost of a
-fight is visible. A unit knocked to zero reads **downed** and walks back on at half its maximum,
-rounded down. A unit lost down a pit reads **voided** and is gone for the run; its side simply fields
-one fewer body from then on. The two rests, after the fourth fight and the eighth, restore everything
-that can still be fielded.
+**There is no healing between fights.** A unit that finishes on 3 of 14 starts the next one on 3 of
+14, so the squad list on the campaign screen is the thing to watch — it is the only place the cost of
+a fight is visible. A unit knocked to zero reads **downed** and walks back on **Bedraggled**: a
+quarter of its maximum rounded up (Vanguard and Wardbearer 4, Archer and Fisher 2), and it skips its
+first activation — its side simply has one fewer activation in round 1. It keeps every point of its
+meter and everything it has learned. A unit lost down a drain reads **voided** and is gone for the
+run; its side simply fields one fewer body from then on. The two rests, after the fourth fight and
+the eighth, restore everything that can still be fielded and clear the downed mark with it.
 
 Worth knowing while you play: **collision damage does not care whose unit it is.** Shoving your own
 Vanguard into a Husk is 2 to both, and those 2 follow the Vanguard into the next fight.

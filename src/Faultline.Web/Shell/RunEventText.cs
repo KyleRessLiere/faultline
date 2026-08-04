@@ -22,12 +22,13 @@ public static class RunEventText
         NodeEntered n => $"Node {Num(n.Index + 1)}: {n.Description}.",
         FightBegan f => $"Fight #{Num(f.Number)} {f.Name} begins with {Num(f.Fielded)} of the squad.",
         UnitFielded u => $"{u.Kind} fields as {u.UnitId} [{EventText.Side(u.Team)}] on {Num(u.Hp)}/{Num(u.MaxHp)}"
-            + (u.Returning ? " — back up at half strength." : "."),
+            + (u.Returning ? " — bedraggled: no activation slot in round 1." : "."),
         FightResolved r => $"{r.FightId} {Outcome(r.Outcome)} on round {Num(r.Round)}.",
         UnitCarried c => c.Status switch
         {
             RunUnitStatus.Voided => $"{c.Kind} is gone for the run.",
-            RunUnitStatus.Downed => $"{c.Kind} went down — back next fight on {Num(c.FieldingHp)}/{Num(c.MaxHp)}.",
+            RunUnitStatus.Downed => $"{c.Kind} went down — back next fight bedraggled on "
+                + $"{Num(c.FieldingHp)}/{Num(c.MaxHp)}, missing its first activation.",
             _ => $"{c.Kind} carries {Num(c.Hp)}/{Num(c.MaxHp)} out.",
         },
         UnitRested u => $"{u.Kind} restored {Num(u.From)} → {Num(u.To)}"

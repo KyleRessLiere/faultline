@@ -11,7 +11,10 @@ namespace Faultline.Core
     /// <param name="Team">Which player fields it in this fight.</param>
     /// <param name="Hp">Hit points it starts the fight on.</param>
     /// <param name="MaxHp">Its ceiling.</param>
-    /// <param name="Returning">True when this is a downed unit coming back at half strength.</param>
+    /// <param name="Returning">
+    /// True when this is a downed unit coming back <see cref="Bedraggled"/> — quarter health, and no
+    /// slot in round 1.
+    /// </param>
     public sealed record UnitFielded(
         RunUnitId RunUnitId,
         UnitId UnitId,

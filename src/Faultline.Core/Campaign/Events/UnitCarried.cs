@@ -10,10 +10,11 @@ namespace Faultline.Core
     /// <param name="MaxHp">Its ceiling.</param>
     /// <param name="Status">Standing, downed or voided.</param>
     /// <param name="FieldingHp">
-    /// What it will walk into the next fight on — its carried hit points, or half its maximum rounded
-    /// down if it was downed, or nothing if it was voided. Carried here rather than left as arithmetic
-    /// for the reader, because a renderer that computes <c>MaxHp / 2</c> to draw this event is holding
-    /// a copy of the rule (CLAUDE.md: a renderer must never need to work anything out to draw).
+    /// What it will walk into the next fight on — its carried hit points, the
+    /// <see cref="Bedraggled"/> return (a quarter of its maximum, rounded up) if it was downed, or
+    /// nothing if it was voided. Carried here rather than left as arithmetic for the reader, because a
+    /// renderer that works the quarter out to draw this event is holding a copy of the rule
+    /// (CLAUDE.md: a renderer must never need to work anything out to draw).
     /// </param>
     public sealed record UnitCarried(
         RunUnitId RunUnitId,

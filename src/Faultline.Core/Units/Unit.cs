@@ -92,6 +92,13 @@ namespace Faultline.Core
         /// </summary>
         public int ExtraAttacks { get; init; }
 
+        /// <summary>
+        /// True while this unit is walking off a downing in the previous fight. It takes no activation
+        /// slot in round 1 — the slot is omitted, not passed — and is cleared when round 2 begins.
+        /// Everything else about it is a normal unit. See <see cref="Faultline.Core.Bedraggled"/>.
+        /// </summary>
+        public bool Bedraggled { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 

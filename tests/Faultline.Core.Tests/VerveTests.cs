@@ -547,10 +547,10 @@ public class VerveRunTests
 
         run = RunFixture.Enter(run);
 
-        // Half health back, and every point of the meter. Being knocked over is not an argument
-        // about how you have been playing.
+        // A quarter of its health back, and every point of the meter. The meter is the comeback
+        // resource, and being knocked over is not an argument about how you have been playing.
         var fielded = RunFixture.OnBoard(run, vanguard);
-        Assert.Equal(UnitTemplate.For(UnitKind.Vanguard).MaxHp / 2, fielded.Hp);
+        Assert.Equal(Bedraggled.ReturningHp(UnitTemplate.For(UnitKind.Vanguard).MaxHp), fielded.Hp);
         Assert.Equal(4, fielded.Verve);
     }
 

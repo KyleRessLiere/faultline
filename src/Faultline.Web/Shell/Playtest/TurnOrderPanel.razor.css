@@ -81,12 +81,27 @@
     box-shadow: 0 0 0 1px var(--pt-yellow);
 }
 
-/* A clinging unit sits in the place it would have gone, greyed and labelled. It is display only —
-   it takes no slot, and its side simply has one fewer activation this round (D-103). */
+/* A unit that takes no slot sits in the place it would have gone, greyed and labelled. It is display
+   only — its side simply has one fewer activation this round (D-103). Two reasons reach it: over the
+   edge of a drain, or still recovering from the last fight. */
 .entry.skipped .portrait {
     border-style: dashed;
     filter: grayscale(1);
     opacity: .55;
+}
+
+/* The recovering gap is a visible hole with a portrait in it, not an absence. Wider than the drain's
+   gap and in its own colour, because it is a cost the player chose to accept at deployment rather
+   than a clock somebody else started. */
+.entry.bedraggled .portrait {
+    border-color: var(--pt-orange, var(--pt-yellow));
+    filter: grayscale(.75);
+    opacity: .62;
+}
+
+.entry.bedraggled .tag.skipped {
+    background: rgba(232, 160, 62, .22);
+    color: var(--pt-orange, var(--pt-yellow));
 }
 
 /* The peeked round is dimmer than this one: it is real, but it is further away. */

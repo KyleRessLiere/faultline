@@ -6,9 +6,9 @@ namespace Faultline.Core
     /// One member of a run's squad, and the damage it is carrying between fights.
     /// </summary>
     /// <remarks>
-    /// There is no healing between fights. A unit that finishes a fight on 3 of 7 starts the next one
-    /// on 3 of 7, and the only two things that ever give HP back are a <see cref="RestNode"/> and the
-    /// half-strength return a <see cref="RunUnitStatus.Downed"/> unit gets.
+    /// There is no healing between fights. A unit that finishes a fight on 3 of 14 starts the next one
+    /// on 3 of 14, and the only two things that ever give HP back are a <see cref="RestNode"/> and the
+    /// Bedraggled return a <see cref="RunUnitStatus.Downed"/> unit gets.
     /// </remarks>
     public sealed record RunUnit
     {
@@ -40,10 +40,17 @@ namespace Faultline.Core
         public bool IsAvailable => Status != RunUnitStatus.Voided;
 
         /// <summary>
-        /// What this unit walks into its next fight on: its carried HP, or half its maximum rounded
-        /// down if it was downed in the last one.
+        /// What this unit walks into its next fight on: its carried HP, or the Bedraggled return — a
+        /// quarter of its maximum, rounded up, minimum 1 — if it was downed in the last one.
         /// </summary>
-        public int FieldingHp => Status == RunUnitStatus.Downed ? MaxHp / 2 : Hp;
+        public int FieldingHp =>
+            Status == RunUnitStatus.Downed ? Faultline.Core.Bedraggled.ReturningHp(MaxHp) : Hp;
+
+        /// <summary>
+        /// True when the next fight this member is fielded in starts it
+        /// <see cref="Faultline.Core.Bedraggled"/>: quarter health, and no slot in round 1.
+        /// </summary>
+        public bool ReturnsBedraggled => Status == RunUnitStatus.Downed;
 
         /// <summary>A squad member at the start of a run: full health, standing.</summary>
         /// <param name="id">Identity for the run.</param>

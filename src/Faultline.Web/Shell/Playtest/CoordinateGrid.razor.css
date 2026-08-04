@@ -348,6 +348,27 @@
 .pip.stagger { background: var(--pt-yellow); }
 .pip.nofooting { background: var(--pt-text-dim); }
 .pip.guard { background: var(--pt-cyan); box-shadow: 0 0 0 1px var(--pt-text); }
+.pip.bedraggled { background: var(--pt-orange, var(--pt-yellow)); box-shadow: 0 0 0 1px var(--pt-bg, #000); }
+
+/* Loud during placement, because where you put a duck that owes its side an activation is the
+   decision the label exists for. */
+.bedraggled-tag {
+    background: var(--pt-orange, var(--pt-yellow));
+    border-radius: 2px;
+    color: #16181c;
+    font-size: clamp(5px, calc(var(--cell) * .12), 9px);
+    font-weight: 700;
+    letter-spacing: .04em;
+    line-height: 1.2;
+    padding: 0 2px;
+    position: relative;
+    text-transform: uppercase;
+    z-index: 2;
+}
+
+.cell.occupied.bedraggled {
+    box-shadow: inset 0 0 0 2px var(--pt-orange, var(--pt-yellow));
+}
 
 .marker {
     color: rgba(242, 245, 248, .72);

@@ -56,12 +56,24 @@
                                 }
                             </span>
                         }
-                        @if (unit.Clinging || unit.Staggered || unit.Guarding || unit.Footing == 0)
+                        @* Loud rather than a pip, and only while placement is still open: where you
+                           put a duck that owes its side an activation is the decision the label is
+                           for (D-080). Once the fight starts the token keeps a pip and the strip
+                           carries the gap. *@
+                        @if (unit.Bedraggled && State.Phase == Phase.Deployment)
+                        {
+                            <span class="bedraggled-tag" title="@PlaytestText.BedraggledLabel(unit)">bedraggled</span>
+                        }
+                        @if (unit.Clinging || unit.Staggered || unit.Guarding || unit.Bedraggled || unit.Footing == 0)
                         {
                             <span class="pips">
                                 @if (unit.Clinging)
                                 {
                                     <i class="pip cling" title="Clinging"></i>
+                                }
+                                @if (unit.Bedraggled)
+                                {
+                                    <i class="pip bedraggled" title="@PlaytestText.BedraggledLabel(unit)"></i>
                                 }
                                 @if (unit.Guarding)
                                 {
@@ -389,6 +401,11 @@
                 classes.Add("clinging");
             }
 
+            if (unit.Bedraggled)
+            {
+                classes.Add("bedraggled");
+            }
+
             if (Session.Selected == unit.Id)
             {
                 classes.Add("selected");
@@ -431,7 +448,10 @@
 
         if (unit is not null)
         {
-            string extra = unit.Clinging ? ", clinging" : unit.Staggered ? ", staggered" : string.Empty;
+            string extra = unit.Clinging ? ", clinging"
+                : unit.Bedraggled ? ", " + PlaytestText.BedraggledLabel(unit)
+                : unit.Staggered ? ", staggered"
+                : string.Empty;
             string inspect = IsInspectOnly(coord, unit) ? " · click to inspect" : string.Empty;
             return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {coord}{inspect}";
         }

@@ -44,7 +44,7 @@ public class RunTests
     }
 
     [Fact]
-    public void Run_ADownedUnitReturnsAtHalfMaxRoundedDown()
+    public void Run_ADownedUnitReturnsBedraggledAtAQuarterOfItsMaximum()
     {
         var run = RunFixture.StartedInFirstFight(out var vanguard);
         int max = run.FindUnit(vanguard)!.MaxHp;
@@ -56,10 +56,12 @@ public class RunTests
         // Between fights it reads as what it is: down, on nothing.
         Assert.Equal(RunUnitStatus.Downed, run.FindUnit(vanguard)!.Status);
         Assert.Equal(0, run.FindUnit(vanguard)!.Hp);
+        Assert.True(run.FindUnit(vanguard)!.ReturnsBedraggled);
 
         run = RunFixture.Enter(run);
 
-        Assert.Equal(max / 2, RunFixture.OnBoard(run, vanguard).Hp);
+        // Was MaxHp / 2 until the Bedraggled ruling (MASTER_DESIGN §3, locked 2026-08-02(d)).
+        Assert.Equal(Bedraggled.ReturningHp(max), RunFixture.OnBoard(run, vanguard).Hp);
         Assert.Equal(RunUnitStatus.Ready, run.FindUnit(vanguard)!.Status);
     }
 
@@ -68,13 +70,14 @@ public class RunTests
     [InlineData(UnitKind.Archer)]
     [InlineData(UnitKind.Threadcaster)]
     [InlineData(UnitKind.Wardbearer)]
-    public void Run_HalfOfAnOddMaximumRoundsDownForEveryClass(UnitKind kind)
+    public void Run_AQuarterOfTheMaximumRoundsUpForEveryClass(UnitKind kind)
     {
         int max = UnitTemplate.For(kind).MaxHp;
         var unit = RunUnit.Fresh(new RunUnitId(0), kind) with { Hp = 0, Status = RunUnitStatus.Downed };
 
-        Assert.Equal(max / 2, unit.FieldingHp);
-        Assert.True(unit.FieldingHp * 2 <= max, "half of " + max + " rounded up to " + unit.FieldingHp);
+        Assert.Equal(Bedraggled.ReturningHp(max), unit.FieldingHp);
+        Assert.True(unit.FieldingHp >= 1, "the return floor is 1, not " + unit.FieldingHp);
+        Assert.True(unit.FieldingHp * 4 >= max, "a quarter of " + max + " rounded down to " + unit.FieldingHp);
     }
 
     [Fact]
@@ -594,8 +597,8 @@ public class RunTests
     [Fact]
     public void Carrying_ReportsWhatTheUnitWillFieldAtSoNoRendererHasToWorkItOut()
     {
-        // A renderer computing MaxHp / 2 to draw this event is holding a copy of the half-return
-        // rule. The event carries the number instead.
+        // A renderer computing the quarter itself to draw this event is holding a copy of the
+        // Bedraggled return rule. The event carries the number instead.
         var run = RunFixture.StartedInFirstFight(out var vanguard);
         run = RunFixture.Deploy(run);
         run = RunFixture.HurtTo(run, vanguard, 0);
@@ -605,7 +608,7 @@ public class RunTests
 
         Assert.Equal(RunUnitStatus.Downed, carried.Status);
         Assert.Equal(0, carried.Hp);
-        Assert.Equal(carried.MaxHp / 2, carried.FieldingHp);
+        Assert.Equal(Bedraggled.ReturningHp(carried.MaxHp), carried.FieldingHp);
 
         // And it is the truth: that is what actually walks onto the next board.
         var next = RunFixture.Enter(step.NewState);
