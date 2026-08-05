@@ -57,6 +57,7 @@ namespace Faultline.Core
             UnitKind.Warden, UnitKind.Perch, UnitKind.Bulwark, UnitKind.Harrier, UnitKind.Runt,
             UnitKind.Colossus,
             UnitKind.LesserGrappler, UnitKind.BluntedStalker, UnitKind.HeavyHusk, UnitKind.MobileAnchor,
+            UnitKind.BracedHusk,
             // The objective enemies, last: they are the two that need something on the board other
             // than a player unit to have anything to do (docs/archive/CURATED_SET.md §5).
             UnitKind.Raider, UnitKind.QuarryKing,
@@ -445,8 +446,8 @@ namespace Faultline.Core
                     + "other; deny either and its whole priority list falls through to \"hold\".",
                     "Occupy the flanking tile yourself. A body on the tile it wants to stand on is as good as "
                     + "killing it for that round.",
-                    "A Footing token does not save you unless you spend it, and player units never spend one "
-                    + "automatically (D-026) — so a unit holding an unused token can still be shoved into a pit.",
+                    "Footing refuses the whole shove, drain and all — but you are asked, and a duck "
+                    + "whose owner declines goes in anyway. The prompt is the decision (D-147).",
                 });
 
             // ---- behaviour variants (docs/ENEMY_ROSTER.md) ------------------------------------
@@ -747,6 +748,38 @@ namespace Faultline.Core
                     + "which inverts the habit the ordinary Stalker teaches.",
                     "Stay more than 2 tiles from every pit and spike tile and its entire priority list "
                     + "falls through to holding position.",
+                });
+
+            var bracedHusk = UnitTemplate.For(UnitKind.BracedHusk);
+            table[UnitKind.BracedHusk] = new EnemyBehaviour(
+                UnitKind.BracedHusk,
+                "chaff that refuses the shove",
+                $"A Husk that plants its feet. Same {bracedHusk.MaxHp} HP, same Move "
+                + $"{bracedHusk.Move}, same {bracedHusk.Damage} damage — but {bracedHusk.Footing} "
+                + "Footing rather than none, so it refuses two whole displacements before anything "
+                + "moves it against its will.",
+                Steps(
+                    ("Hit what is already in reach",
+                     $"Adjacent player unit → attacked for {bracedHusk.Damage} without moving."),
+                    ("Otherwise close on the nearest",
+                     $"Move {bracedHusk.Move} toward the nearest player unit, attacking if the walk "
+                     + "ends adjacent (D-022). Identical list to the Husk's — the only change is the "
+                     + "Footing.")),
+                new[]
+                {
+                    "The reserved stacked-Footing fixture (D-144). It is fielded by no battle: it "
+                    + "exists so the instance model's stack rules have something to be tested "
+                    + "against, and putting it on a board is a design decision.",
+                    "Footing refuses, it does not shorten. Two tokens are two whole displacements "
+                    + "turned aside, impact included — and the drain-only auto-spend means it eats "
+                    + "everything that is not a drain, so the tokens are still there when it matters.",
+                },
+                new[]
+                {
+                    "Bait the tokens off it. The auto-spend is drain-only, so a cheap flick toward a "
+                    + "drain burns a refusal for nothing; two of those and the third shove lands.",
+                    "A collision it suffers strips a token without asking, so slamming something else "
+                    + "into it is the cheapest way through.",
                 });
 
             table[UnitKind.HeavyHusk] = new EnemyBehaviour(

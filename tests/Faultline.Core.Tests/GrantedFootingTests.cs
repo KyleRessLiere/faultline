@@ -22,20 +22,39 @@ public class GrantedFootingTests
 
         Assert.Equal(3, UnitTemplate.For(UnitKind.QuarryKing).Footing);
         Assert.Equal(3, king.Footing);
-        Assert.True(king.Template.FootingNegates);
     }
 
+    // Three refusals, not three tiles and not an unspendable wall. The arithmetic is untouched by
+    // them — Footing left it (D-143) — and each shove he turns aside costs him one.
     [Fact]
-    public void QuarryKing_WithHisTokensIntact_IgnoresEveryShove()
+    public void QuarryKing_ThreeTokensAreThreeRefusals()
     {
         var start = Game.Start(FightLibrary.ById("quarry-king"), seed: 1).NewState;
         var king = start.Units.First(u => u.Kind == UnitKind.QuarryKing);
 
-        foreach (int distance in new[] { 1, 2, 3 })
+        Assert.Equal(2, Displacement.EffectiveDistance(start, king, DisplacementKind.Push, 2, out _));
+
+        var state = start;
+        for (int spent = 1; spent <= 3; spent++)
         {
-            Assert.Equal(
-                0, Displacement.EffectiveDistance(start, king, DisplacementKind.Push, distance, false, out _));
+            var events = new System.Collections.Generic.List<GameEvent>();
+            var before = state.Get(king.Id).Position;
+            state = Displacement.Resolve(
+                state, king.Id, before + new Coord(-1, 0), DisplacementKind.Push, 1,
+                refused: true, events: events);
+
+            Assert.Equal(before, state.Get(king.Id).Position);
+            Assert.Equal(3 - spent, state.Get(king.Id).Footing);
         }
+
+        // Out of refusals, he shoves like anybody.
+        var last = new System.Collections.Generic.List<GameEvent>();
+        var start2 = state.Get(king.Id).Position;
+        state = Displacement.Resolve(
+            state, king.Id, start2 + new Coord(-1, 0), DisplacementKind.Push, 1,
+            refused: true, events: last);
+
+        Assert.NotEqual(start2, state.Get(king.Id).Position);
     }
 
     // The grant still does its own job for everybody else.

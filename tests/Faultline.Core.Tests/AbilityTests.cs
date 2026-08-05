@@ -195,7 +195,7 @@ public class AbilityTests
     }
 
     [Fact]
-    public void Reel_AnEnemyWithFooting_DigsInShortOfThePit()
+    public void Reel_AnEnemyWithFooting_RefusesTheDragOutright()
     {
         // Footing is scenario-granted, never automatic, so the Husk only has a token because this
         // fixture hands it one.
@@ -209,9 +209,12 @@ public class AbilityTests
 
         var result = state.Step(new AbilityCommand(caster.Id, Ability.Reel, husk.Id));
 
+        // Refusal is not shortening: the drag does not happen at all, so the Husk is exactly where
+        // it stood rather than one tile short of the drain.
         Assert.False(result.NewState.Get(husk.Id).Clinging);
-        Assert.Equal(new Coord(2, 0), result.NewState.Get(husk.Id).Position);
+        Assert.Equal(new Coord(3, 0), result.NewState.Get(husk.Id).Position);
         Assert.Single(result.All<FootingSpent>());
+        Assert.Single(result.All<DisplacementRefused>());
     }
 
     [Fact]

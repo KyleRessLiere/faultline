@@ -112,7 +112,7 @@ public class EnemyVariantTests
     [Fact]
     // D-102: no longer a permanent one-tile shrug. While its two tokens stand, nothing moves it at
     // all — and once they are gone it is an ordinary Move 0 body you shove out of the lane.
-    public void Warden_WithItsTokensStanding_IgnoresEveryShoveAndEveryPull()
+    public void Warden_HoldsTwoRefusals_WhichAreNotArithmetic()
     {
         var state = BoardBuilder.Open(7, 1)
             .PlayerA(UnitKind.Vanguard, 0, 0)
@@ -124,13 +124,24 @@ public class EnemyVariantTests
         Assert.Equal(2, warden.Footing);
         Assert.Equal(0, warden.Template.PushResistance);
 
+        // Footing left the arithmetic (D-143): the distance is the distance, and the tokens buy two
+        // whole refusals instead of shortening anything.
         foreach (int distance in new[] { 1, 2, 3 })
         {
             Assert.Equal(
-                0, Displacement.EffectiveDistance(state, warden, DisplacementKind.Push, distance, false, out _));
+                distance,
+                Displacement.EffectiveDistance(state, warden, DisplacementKind.Push, distance, out _));
             Assert.Equal(
-                0, Displacement.EffectiveDistance(state, warden, DisplacementKind.Pull, distance, false, out _));
+                distance,
+                Displacement.EffectiveDistance(state, warden, DisplacementKind.Pull, distance, out _));
         }
+
+        var events = new System.Collections.Generic.List<GameEvent>();
+        var after = Displacement.Resolve(
+            state, warden.Id, new Coord(0, 0), DisplacementKind.Push, 3, refused: true, events: events);
+
+        Assert.Equal(warden.Position, after.Get(warden.Id).Position);
+        Assert.Equal(1, after.Get(warden.Id).Footing);
     }
 
     // ================================================================================
@@ -307,7 +318,7 @@ public class EnemyVariantTests
         var vanguard = state.Find(UnitKind.Vanguard);
 
         Assert.True(Displacement.HasHold(state, husk));
-        Assert.Equal(1, Displacement.EffectiveDistance(state, husk, DisplacementKind.Push, 2, false, out _));
+        Assert.Equal(1, Displacement.EffectiveDistance(state, husk, DisplacementKind.Push, 2, out _));
 
         var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
 
@@ -328,7 +339,7 @@ public class EnemyVariantTests
 
         Assert.False(Displacement.HasHold(state, state.Get(husk.Id)));
         Assert.Equal(
-            2, Displacement.EffectiveDistance(state, state.Get(husk.Id), DisplacementKind.Push, 2, false, out _));
+            2, Displacement.EffectiveDistance(state, state.Get(husk.Id), DisplacementKind.Push, 2, out _));
 
         var result = state.Step(new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right));
 
@@ -343,7 +354,7 @@ public class EnemyVariantTests
 
         Assert.False(Displacement.HasHold(state, state.Get(bulwark.Id)));
         Assert.Equal(
-            2, Displacement.EffectiveDistance(state, state.Get(bulwark.Id), DisplacementKind.Push, 2, false, out _));
+            2, Displacement.EffectiveDistance(state, state.Get(bulwark.Id), DisplacementKind.Push, 2, out _));
     }
 
     [Fact]
@@ -599,8 +610,8 @@ public class EnemyVariantTests
         var state = ColossusInTheOpen();
         var colossus = state.Find(UnitKind.Colossus);
 
-        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 1, false, out _));
-        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 2, false, out _));
+        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 1, out _));
+        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 2, out _));
     }
 
     [Fact]
@@ -652,7 +663,7 @@ public class EnemyVariantTests
         var state = ColossusInTheOpen();
         var colossus = state.Find(UnitKind.Colossus) with { Staggered = true };
 
-        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 1, false, out _));
+        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 1, out _));
     }
 
     // Was Colossus_Pull_IsCompletelyUnaffectedByPushResistance. D-139 put Pull under the same
@@ -671,7 +682,7 @@ public class EnemyVariantTests
         var caster = state.Find(UnitKind.Threadcaster);
         var colossus = state.Find(UnitKind.Colossus);
 
-        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Pull, 2, false, out _));
+        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Pull, 2, out _));
 
         var result = state.Step(new AbilityCommand(caster.Id, Ability.Reel, colossus.Id));
 
@@ -945,11 +956,11 @@ public class EnemyVariantTests
 
         var anchor = state.Find(UnitKind.MobileAnchor);
 
-        Assert.Equal(0, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Push, 1, false, out _));
-        Assert.Equal(1, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Push, 2, false, out _));
+        Assert.Equal(0, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Push, 1, out _));
+        Assert.Equal(1, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Push, 2, out _));
 
         // D-139: the same tile comes off a Pull. It used to come off Pushes only.
-        Assert.Equal(1, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Pull, 2, false, out _));
+        Assert.Equal(1, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Pull, 2, out _));
     }
 
     [Fact]
@@ -1026,7 +1037,7 @@ public class EnemyVariantTests
             int expected = requested <= 0 ? 0 : System.Math.Max(0, requested - 2);
             Assert.Equal(
                 expected,
-                Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, requested, false, out _));
+                Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, requested, out _));
         }
     }
 }

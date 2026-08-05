@@ -64,6 +64,21 @@ namespace Faultline.Core
         /// <summary>Result so far.</summary>
         public FightOutcome Outcome { get; init; }
 
+        /// <summary>
+        /// The displacement instance waiting on its owner's refuse-or-let-it-land answer, or
+        /// <c>null</c> when nothing is outstanding. While it is set, the only legal command is the
+        /// <see cref="FootingRefuseCommand"/> that answers it — and the board has not moved, because
+        /// nothing of the raising command has run.
+        /// </summary>
+        public FootingPrompt? FootingPrompt { get; init; }
+
+        /// <summary>
+        /// Answers already given inside the command currently being applied, in the order they were
+        /// given. Cleared the moment that command finishes: an answer is scoped to the instance it
+        /// answers and never carries into the next one.
+        /// </summary>
+        public IReadOnlyList<FootingAnswer> FootingAnswers { get; init; } = new FootingAnswer[0];
+
         /// <summary>Units that are alive and standing on the board.</summary>
         /// <returns>The on-board units in id order.</returns>
         public IEnumerable<Unit> UnitsOnBoard()
@@ -227,6 +242,8 @@ namespace Faultline.Core
                 || NextPlayerTeam != other.NextPlayerTeam
                 || ActiveUnitId != other.ActiveUnitId
                 || Outcome != other.Outcome
+                || !Equals(FootingPrompt, other.FootingPrompt)
+                || FootingAnswers.Count != other.FootingAnswers.Count
                 || !Board.Equals(other.Board)
                 || Units.Count != other.Units.Count
                 || Intents.Count != other.Intents.Count
@@ -268,6 +285,14 @@ namespace Faultline.Core
                 }
             }
 
+            for (int i = 0; i < FootingAnswers.Count; i++)
+            {
+                if (!FootingAnswers[i].Equals(other.FootingAnswers[i]))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -304,6 +329,12 @@ namespace Faultline.Core
                 foreach (var pending in Reinforcements)
                 {
                     hash = (hash * 31) + pending.GetHashCode();
+                }
+
+                hash = (hash * 31) + (FootingPrompt?.GetHashCode() ?? 0);
+                foreach (var answer in FootingAnswers)
+                {
+                    hash = (hash * 31) + answer.GetHashCode();
                 }
 
                 return hash;

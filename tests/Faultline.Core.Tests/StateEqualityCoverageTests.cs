@@ -190,6 +190,16 @@ public class StateEqualityCoverageTests
                 ["ActiveUnitId"] = s => s with { ActiveUnitId = new UnitId(3) },
                 ["Intents"] = s => s with { Intents = Array.Empty<EnemyIntent>() },
                 ["Outcome"] = s => s with { Outcome = FightOutcome.Won },
+                ["FootingPrompt"] = s => s with
+                {
+                    FootingPrompt = new FootingPrompt(
+                        new UnitId(0), Team.PlayerA, DisplacementKind.Push, 2, 1, null,
+                        new EndActivationCommand(new UnitId(0))),
+                },
+                ["FootingAnswers"] = s => s with
+                {
+                    FootingAnswers = new[] { new FootingAnswer(new UnitId(0), true) },
+                },
             };
 
         internal static readonly IReadOnlyDictionary<string, Func<RunState, RunState>> Run =

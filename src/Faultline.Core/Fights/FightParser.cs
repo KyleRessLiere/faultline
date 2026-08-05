@@ -1142,16 +1142,6 @@ namespace Faultline.Core
                         header.FootingLine));
                     continue;
                 }
-
-                if (ReachesAPlayerWhoCannotSpendIt(fight, grant))
-                {
-                    issues.Add(new FightIssue(
-                        FightIssueCode.FootingGrantOnPlayers,
-                        "Footing grant '" + grant.Token + "' reaches a player unit. Player Footing has no "
-                        + "spend trigger (DECISIONS.md D-026), so the token is never used — grant it to "
-                        + "'enemy' or to an enemy archetype instead.",
-                        header.FootingLine));
-                }
             }
 
             AddObjectiveLints(fight, board, header, issues);
@@ -1238,32 +1228,6 @@ namespace Faultline.Core
                         header.ObjectiveLine));
                 }
             }
-        }
-
-        /// <summary>
-        /// True when this grant lands on a player unit that has no way to use it. An ordinary token is
-        /// spent to shorten a shove, and only the enemy's deterministic pit rule ever spends one; a
-        /// negating token is never spent at all, so it works on any side and is exempt.
-        /// </summary>
-        private static bool ReachesAPlayerWhoCannotSpendIt(FightDefinition fight, FootingGrant grant)
-        {
-            foreach (var kind in fight.RosterA)
-            {
-                if (grant.Covers(Team.PlayerA, kind) && !UnitTemplate.For(kind).FootingNegates)
-                {
-                    return true;
-                }
-            }
-
-            foreach (var kind in fight.RosterB)
-            {
-                if (grant.Covers(Team.PlayerB, kind) && !UnitTemplate.For(kind).FootingNegates)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>True when at least one unit in the fight would receive this grant.</summary>

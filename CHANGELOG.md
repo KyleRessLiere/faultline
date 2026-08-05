@@ -1,5 +1,31 @@
 # Changelog
 
+## Footing refuses whole displacements
+
+- **Footing counts instances, not tiles.** Spending it refuses one whole displacement — the target
+  does not move and nothing that displacement would have caused happens: no travel, no collision, no
+  hazard entry, no Stagger, and no Pluck for whoever threw it. It has left the distance arithmetic
+  entirely, which is now Stagger, then push resistance, then the Bulwark cap, then a floor of 0
+  (D-143).
+- **Footing is an integer stat per enemy** and stacks are the lever. Warden 2, Quarry King 3, and a
+  new **Braced Husk** at 2 as the reserved stacked fixture — fielded by no battle (D-144). The
+  negating-token variant rule is deleted: the Quarry King and the Warden now spend their Footing one
+  instance at a time like everybody else, on the same drain-only policy.
+- **Enemy auto-spend is still drain-only** and refuses the whole instance when it fires, which keeps
+  slam-fishing and the Fisher's bait line alive (D-145).
+- **The Cast threshold.** Refusing a Cast costs 2 Footing. At 2 or more the target may refuse and the
+  throw fails with her 3 Pluck spent and no refund; at exactly 1 it cannot, and the Cast overwhelms —
+  landing and stripping the last token. At 0 it simply lands. The squirm-divert rule is gone (D-146).
+  `Throw.Outlook` names which of the three worlds a preview is in.
+- **Players are asked.** A displacement aimed at a player unit holding Footing raises a refusal prompt
+  in Core: `GameState.FootingPrompt`, a `FootingChoiceRequested` event, and a `FootingRefuseCommand`
+  for each answer. No timeout, the prompt belongs to the owning player whatever slot raised it, and
+  both answers go in the command log so a fight with a prompt in it replays exactly (D-147). The modal
+  itself is UI and is not built here.
+- **Staged, not built:** "+1 Pluck on a refused Cast" and SURE CAST, both recorded as HELD with their
+  triggers (D-148).
+- The `FootingGrantOnPlayers` lint is retired — player Footing has a spend trigger now.
+
 ## The inspector stops covering the board
 
 - **The inspector owns a column, and the board is sized around it.** It used to overlay the board's

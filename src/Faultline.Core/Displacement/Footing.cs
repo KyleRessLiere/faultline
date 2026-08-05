@@ -4,43 +4,92 @@ using System.Collections.Generic;
 namespace Faultline.Core
 {
     /// <summary>
-    /// The negating Footing token — the variant spend rule <see cref="UnitTemplate.FootingNegates"/>
-    /// asks for, and the two things that take one away.
+    /// Footing under the instance model (MASTER_DESIGN §3 "Statuses", Design Log (t)): a stack of
+    /// whole refusals, not a pile of tiles.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An ordinary token is spent to shorten a displacement by a tile. A negating token is never
-    /// handed over: while any remain, <see cref="Displacement.EffectiveDistance"/> returns 0 for every
-    /// Push and Pull against the unit, and the token is still there afterwards. Nothing the players
-    /// aim at such a unit moves it — the fight is about stripping the tokens, not about out-shoving
-    /// them (docs/archive/CURATED_SET.md §5B, DECISIONS.md D-039).
+    /// Spending Footing <b>refuses one whole displacement instance</b>. The target does not move and
+    /// nothing that displacement would have caused happens — no tiles travelled, no collision, no
+    /// hazard entry, no Stagger from it. It is therefore <em>outside</em> the distance arithmetic
+    /// entirely: <see cref="Displacement.EffectiveDistance"/> knows nothing about it. Resistance
+    /// SHORTENS, Footing REFUSES; two sentences, no shared math.
     /// </para>
     /// <para>
-    /// Both strip triggers are events the engine already emits, so this is a listener and not a new
-    /// system: a collision the unit suffers, and ending a round on the lip of a pit.
+    /// The stack is an integer on the stat block, so a bestiary author can say "this one will cost
+    /// you properly to fish" by writing a 2 instead of a 1. It supersedes the old negating token
+    /// (D-039): a token that could never be spent made a stack of three mean exactly what a stack of
+    /// one meant, which is the opposite of a lever.
+    /// </para>
+    /// <para>
+    /// Two things still take a token away without a refusal being made: a collision the unit suffers,
+    /// and ending a round on the lip of a drain. Both are listeners on events the engine already
+    /// emits, and both are the counterplay that keeps a stacked fortress attackable.
     /// </para>
     /// </remarks>
     public static class Footing
     {
+        /// <summary>What refusing an ordinary Push or Pull costs.</summary>
+        public const int DisplacementCost = 1;
+
         /// <summary>
-        /// True when this unit's remaining Footing cancels displacement outright rather than
-        /// shortening it.
+        /// What refusing a Cast costs — the throw is too heavy to brace against cheaply
+        /// (MASTER_DESIGN §5, Design Log (t)).
         /// </summary>
-        /// <param name="unit">Unit to test.</param>
-        /// <returns>Whether a negating token is in force.</returns>
-        public static bool Negates(Unit unit)
+        public const int CastCost = 2;
+
+        /// <summary>Whether this unit holds enough Footing to refuse something priced at <paramref name="cost"/>.</summary>
+        /// <param name="unit">Unit that would refuse.</param>
+        /// <param name="cost">Price of the refusal.</param>
+        /// <returns>Whether the refusal is affordable.</returns>
+        public static bool CanRefuse(Unit? unit, int cost) =>
+            unit is not null && unit.IsAlive && cost > 0 && unit.Footing >= cost;
+
+        /// <summary>Whether this unit could refuse an ordinary Push or Pull.</summary>
+        /// <param name="unit">Unit that would refuse.</param>
+        /// <returns>Whether it holds a token to spend.</returns>
+        public static bool CanRefuseDisplacement(Unit? unit) => CanRefuse(unit, DisplacementCost);
+
+        /// <summary>Whether this unit could refuse a Cast — two tokens, never one.</summary>
+        /// <param name="unit">Unit that would refuse.</param>
+        /// <returns>Whether it holds the pair.</returns>
+        public static bool CanRefuseCast(Unit? unit) => CanRefuse(unit, CastCost);
+
+        /// <summary>
+        /// Takes the price of a refusal off a unit and says so. One spend per instance: the caller
+        /// asks once, and a two-token unit cannot refuse the same displacement twice.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unitId">Unit paying.</param>
+        /// <param name="cost">Tokens to take.</param>
+        /// <param name="events">Sink for the resulting <see cref="FootingSpent"/>.</param>
+        /// <returns>The state after the tokens were spent.</returns>
+        public static GameState Pay(GameState state, UnitId unitId, int cost, List<GameEvent> events)
         {
-            if (unit is null)
+            if (state is null)
             {
-                throw new ArgumentNullException(nameof(unit));
+                throw new ArgumentNullException(nameof(state));
             }
 
-            return unit.Template.FootingNegates && unit.Footing > 0;
+            if (events is null)
+            {
+                throw new ArgumentNullException(nameof(events));
+            }
+
+            var unit = state.FindUnit(unitId);
+            if (unit is null || cost <= 0 || unit.Footing < cost)
+            {
+                return state;
+            }
+
+            var paid = unit with { Footing = unit.Footing - cost };
+            events.Add(new FootingSpent(unitId, paid.Footing));
+            return state.WithUnit(paid);
         }
 
         /// <summary>
-        /// Takes one negating token off a unit and says so. A no-op for anything that does not carry
-        /// negating Footing, which is every archetype but one.
+        /// Knocks one token loose without a refusal being made — a collision the unit suffered, the
+        /// ground shaking beside a drain, or a Cast overwhelming its last token.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="unitId">Unit losing the token.</param>
@@ -59,7 +108,7 @@ namespace Faultline.Core
             }
 
             var unit = state.FindUnit(unitId);
-            if (unit is null || !unit.IsAlive || !Negates(unit))
+            if (unit is null || !unit.IsAlive || unit.Footing <= 0)
             {
                 return state;
             }
@@ -70,9 +119,9 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// The round-end strip: a unit carrying negating Footing that ends the round orthogonally
-        /// adjacent to a pit loses one token. The ground shakes a token loose whether or not anyone
-        /// touched it, which is what makes fighting the Quarry King next to the rim worth doing.
+        /// The round-end strip: a unit holding Footing that ends the round orthogonally adjacent to a
+        /// drain loses one token. The ground shakes a token loose whether or not anyone touched it,
+        /// which is what makes fighting a stacked enemy next to the rim worth doing.
         /// </summary>
         /// <param name="state">State as the round ends.</param>
         /// <param name="events">Sink for the resulting events.</param>
@@ -93,7 +142,7 @@ namespace Faultline.Core
 
             foreach (var unit in state.Units)
             {
-                if (!unit.IsOnBoard || !Negates(unit) || !IsBesidePit(state, unit.Position))
+                if (!unit.IsOnBoard || unit.Footing <= 0 || !IsBesidePit(state, unit.Position))
                 {
                     continue;
                 }
@@ -113,6 +162,37 @@ namespace Faultline.Core
             }
 
             return state;
+        }
+
+        /// <summary>
+        /// The standing answer a player already gave for this unit inside the command being applied,
+        /// or <c>null</c> when nobody has been asked yet.
+        /// </summary>
+        /// <remarks>
+        /// A player refusal is an interrupt, and an interrupt has to survive being replayed. The
+        /// answer is a command in the log; <see cref="Game"/> parks it here for the length of the
+        /// command it answers, and the displacement rules read it exactly as they read the enemy's
+        /// deterministic policy.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="targetId">Unit that was asked.</param>
+        /// <returns>Whether the owner refused, or null when unanswered.</returns>
+        public static bool? AnswerFor(GameState state, UnitId targetId)
+        {
+            if (state is null)
+            {
+                return null;
+            }
+
+            foreach (var answer in state.FootingAnswers)
+            {
+                if (answer.TargetId == targetId)
+                {
+                    return answer.Refused;
+                }
+            }
+
+            return null;
         }
 
         private static bool IsBesidePit(GameState state, Coord from)

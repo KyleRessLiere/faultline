@@ -111,6 +111,9 @@ namespace Faultline.Core
             Rescued => nameof(Rescued),
             Voided => nameof(Voided),
             FootingSpent => nameof(FootingSpent),
+            FootingChoiceRequested => nameof(FootingChoiceRequested),
+            DisplacementRefused => nameof(DisplacementRefused),
+            CastRefused => nameof(CastRefused),
             GuardStanceChanged => nameof(GuardStanceChanged),
             GuardIntercepted => nameof(GuardIntercepted),
             GuardShielded => nameof(GuardShielded),
@@ -210,6 +213,16 @@ namespace Faultline.Core
             Voided e => "voided at " + e.At + ", " + Clean(e.Reason) + ", gone for the run",
 
             FootingSpent e => "digs in, " + Number(e.Remaining) + " footing left",
+
+            FootingChoiceRequested e => "is asked whether to refuse " + e.Kind.ToString().ToLowerInvariant()
+                + " " + Number(e.Distance) + " at " + e.At + " for " + Number(e.Cost)
+                + " of its " + Number(e.Held) + " footing",
+
+            DisplacementRefused e => "refuses the " + e.Kind.ToString().ToLowerInvariant() + " outright at "
+                + e.At + " — nothing lands — " + Number(e.Remaining) + " footing left",
+
+            CastRefused e => "braces against the cast at " + e.At + " for " + Number(e.Cost)
+                + " footing, " + Number(e.Remaining) + " left — the throw fails",
 
             GuardStanceChanged e => e.Active
                 ? "takes guard stance at " + e.At + ", covering adjacent allies until its next activation"
@@ -327,6 +340,9 @@ namespace Faultline.Core
             Rescued e => e.UnitId,
             Voided e => e.UnitId,
             FootingSpent e => e.UnitId,
+            FootingChoiceRequested e => e.TargetId,
+            DisplacementRefused e => e.TargetId,
+            CastRefused e => e.TargetId,
             GuardStanceChanged e => e.UnitId,
             GuardIntercepted e => e.UnitId,
             GuardShielded e => e.UnitId,

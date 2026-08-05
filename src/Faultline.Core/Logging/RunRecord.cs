@@ -177,6 +177,12 @@ namespace Faultline.Core
             EndActivationCommand c => Join("End", c.UnitId.ToString()),
             SpendVerveCommand c => Join("Spend", c.UnitId.ToString(), c.Spend.ToString(), SpendAim(c)),
 
+            // Both answers are logged. "Nobody has answered yet" and "the owner declined" are
+            // different states, so a decline that left no line behind would replay as a different
+            // fight (D-147).
+            FootingRefuseCommand c => Join(
+                "Footing", c.TargetId.ToString(), c.Refuse ? "refuse" : "decline"),
+
             // The pocket names no item: a duck has one, so which one comes out is the loadout's
             // answer and not the log's (see UseConsumableCommand).
             UseConsumableCommand c => Join("Pocket", c.UnitId.ToString(), PocketAim(c)),
@@ -236,6 +242,11 @@ namespace Faultline.Core
 
                 case "Pocket":
                     return ParsePocket(fields, offset);
+
+                case "Footing":
+                    return new FootingRefuseCommand(
+                        ParseUnit(Field(fields, offset + 1)),
+                        string.Equals(Field(fields, offset + 2), "refuse", StringComparison.Ordinal));
 
                 default:
                     return null;

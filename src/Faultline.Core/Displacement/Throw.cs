@@ -20,10 +20,13 @@ namespace Faultline.Core
     /// deliberate rather than an oversight.
     /// </para>
     /// <para>
-    /// <b>Footing still helps, differently.</b> A token buys one tile back along the throw line
-    /// toward the thrower — digging in mid-flight is nonsense, but scrabbling short of where you
-    /// were aimed is not, and it keeps the token meaningful against the one displacement it cannot
-    /// otherwise resist.
+    /// <b>Footing is the one thing that answers it, and the price is printed on the card.</b>
+    /// Refusing a Cast costs <see cref="Footing.CastCost"/> — the throw is too heavy to brace
+    /// against cheaply. A target at two or more may refuse, and the throw simply fails with the
+    /// Fisher's Pluck spent and no refund; the boot pips are visible, so throwing into that is an
+    /// informed misplay. A target at <em>exactly one</em> cannot afford it: the Cast overwhelms,
+    /// landing and stripping the last token on the way through. "Below 2" is her hunted state
+    /// (MASTER_DESIGN §5, Design Log (t)). The old squirm-divert rule is dead.
     /// </para>
     /// </remarks>
     public static class Throw
@@ -51,9 +54,6 @@ namespace Faultline.Core
         /// else. She reaches out a long way and brings them in close.
         /// </summary>
         public const int LandingRadius = 1;
-
-        /// <summary>Tiles a Footing token buys back along the throw line.</summary>
-        public const int FootingShortens = 1;
 
         /// <summary>
         /// Every tile this thrower could put a target down on: in range, in bounds, walkable and
@@ -168,21 +168,34 @@ namespace Faultline.Core
             var thrower = state.UnitById(throwerId);
             var before = state.UnitById(targetId);
 
-            var destination = landing;
-            var shortened = Shortened(state, before, landing);
-            bool spendFooting = shortened is not null;
-
-            if (spendFooting)
+            // The Cast threshold (MASTER_DESIGN §5). Settled before the throw leaves her hand: a
+            // refused Cast never happens at all, so it charges her nothing — her Pluck is already
+            // spent and is not refunded.
+            if (Refuses(state, before, landing))
             {
-                destination = shortened!.Value;
-                var updated = before with { Footing = before.Footing - 1 };
-                state = state.WithUnit(updated);
-                events.Add(new FootingSpent(targetId, updated.Footing));
+                state = Footing.Pay(state, targetId, Footing.CastCost, events);
+                events.Add(new CastRefused(
+                    throwerId,
+                    targetId,
+                    before.Position,
+                    Footing.CastCost,
+                    state.UnitById(targetId).Footing));
+                return state;
             }
 
+            // Overwhelm: at exactly one token the target cannot afford the brace, and the throw takes
+            // the token with it. The strip happens even though the Cast succeeded — that is the whole
+            // point of "below 2 is her hunted state".
+            bool overwhelms = before.Footing > 0 && before.Footing < Footing.CastCost;
+            if (overwhelms)
+            {
+                state = Footing.Strip(state, targetId, events);
+            }
+
+            var destination = landing;
             state = state.WithUnit(state.UnitById(targetId) with { Position = destination });
 
-            // Distance is how far it actually travelled, so a shortened throw says so.
+            // Distance is how far it actually travelled.
             events.Add(new UnitPushed(
                 targetId,
                 before.Position,
@@ -280,104 +293,58 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Where a Footing token would put the target instead, or <c>null</c> when the token buys
-        /// nothing and is therefore not spent.
+        /// Which of the three worlds a Cast at this target and landing is in — what the targeting
+        /// preview says out loud before the points are spent.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The spec words this as shortening the throw "toward the Fisher", which held when she threw
-        /// people away from herself. She now grabs at range and lands them on her own doorstep, so
-        /// the flight travels toward her and one more tile toward her is the tile she is standing on.
-        /// The reading that leaves the token meaning anything is the literal one: the throw is
-        /// <em>shortened</em>, so it stops a tile early, back toward where the target was grabbed
-        /// from (D-091).
-        /// </para>
-        /// <para>
-        /// A short flight is rarely straight, so "a tile early" has two candidates — one per axis.
-        /// The larger offset gives first and x breaks a tie, and if that tile is occupied or a wall
-        /// the other is tried. Without the second try the token would do nothing whenever the first
-        /// candidate happened to be the Fisher herself, which is most diagonal throws.
-        /// </para>
-        /// <para>
-        /// Deterministic, and the same shape as the enemy's shove rule (Brief §2): spend only when it
-        /// changes the outcome for the better, never as a reflex.
-        /// </para>
-        /// </remarks>
         /// <param name="state">Current state.</param>
-        /// <param name="target">Unit being thrown, at its original tile.</param>
-        /// <param name="landing">Where it was aimed.</param>
-        /// <returns>The shortened tile, or null when no token is spent.</returns>
-        public static Coord? Shortened(GameState state, Unit target, Coord landing)
+        /// <param name="target">Unit being aimed at.</param>
+        /// <param name="landing">Tile it would be put down on.</param>
+        /// <returns>The outlook.</returns>
+        public static CastOutlook Outlook(GameState state, Unit? target, Coord landing)
         {
-            if (state is null || target is null || target.Footing <= 0 || target.Team != Team.Enemy)
+            if (state is null || target is null || target.Footing <= 0)
             {
-                return null;
+                return CastOutlook.Lands;
             }
 
-            int aimed = Harm(state, landing);
-
-            foreach (var candidate in ShortCandidates(target.Position, landing))
+            if (target.Footing < Footing.CastCost)
             {
-                if (candidate == landing || !IsLanding(state, candidate, target.Id))
-                {
-                    continue;
-                }
-
-                if (Harm(state, candidate) < aimed)
-                {
-                    return candidate;
-                }
+                return CastOutlook.Overwhelms;
             }
 
-            return null;
+            return Refuses(state, target, landing)
+                ? CastOutlook.Refused
+                : CastOutlook.LandsThroughFooting;
         }
 
         /// <summary>
-        /// The tiles one step short of the landing, along each axis of the flight, larger offset
-        /// first and x breaking a tie.
+        /// Whether the target refuses this Cast. It must be able to afford
+        /// <see cref="Footing.CastCost"/>, and it must want to: an enemy applies the same drain-only
+        /// policy it applies to a shove, so a Cast onto open ground is eaten and a Cast into a drain
+        /// is braced against.
         /// </summary>
-        /// <param name="from">Where the throw started: the target's own tile.</param>
-        /// <param name="landing">Where it was aimed.</param>
-        /// <returns>Up to two candidates, in a fixed order.</returns>
-        public static IReadOnlyList<Coord> ShortCandidates(Coord from, Coord landing)
+        /// <remarks>
+        /// A player unit is never a Cast target — <see cref="Grabbable"/> offers enemies only — so
+        /// there is no player prompt on this path. If a legendary ever lets her throw an ally, that
+        /// is the day it needs one.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="target">Unit being aimed at.</param>
+        /// <param name="landing">Tile it would be put down on.</param>
+        /// <returns>Whether the throw fails.</returns>
+        public static bool Refuses(GameState state, Unit? target, Coord landing)
         {
-            var candidates = new List<Coord>();
-
-            int dx = landing.X - from.X;
-            int dy = landing.Y - from.Y;
-
-            var alongX = new Coord(landing.X - System.Math.Sign(dx), landing.Y);
-            var alongY = new Coord(landing.X, landing.Y - System.Math.Sign(dy));
-
-            bool xFirst = System.Math.Abs(dx) >= System.Math.Abs(dy);
-
-            if (dx != 0)
+            if (state is null || !Footing.CanRefuseCast(target))
             {
-                candidates.Add(alongX);
+                return false;
             }
 
-            if (dy != 0)
+            if (target!.Team != Team.Enemy)
             {
-                if (xFirst)
-                {
-                    candidates.Add(alongY);
-                }
-                else
-                {
-                    candidates.Insert(0, alongY);
-                }
+                return Footing.AnswerFor(state, target.Id) ?? false;
             }
 
-            return candidates;
+            return state.Board.InBounds(landing) && state.Board.At(landing) == TileType.Pit;
         }
-
-        /// <summary>How bad a landing tile is, for the deterministic Footing decision.</summary>
-        private static int Harm(GameState state, Coord tile) => state.Board.At(tile) switch
-        {
-            TileType.Pit => 2,
-            TileType.Spikes => 1,
-            _ => 0,
-        };
-
     }
 }

@@ -135,25 +135,33 @@ public class PrimitiveTests
         Assert.Equal(move, template.Move);
     }
 
+    // Player Footing is a scenario's gift, never a class feature (D-028): a blanket refusal on every
+    // duck would make "refuse the shove" the default and blunt the board.
     [Fact]
-    public void UnitTemplate_NoArchetypeStartsWithOrdinaryFooting()
+    public void UnitTemplate_NoPlayerClassStartsWithFooting()
     {
-        // Ordinary Footing is granted by a scenario's 'footing:' key, never by the archetype (D-028).
-        // A blanket token on everyone shortens every shove by a tile and makes resisting a push the
-        // default. The one exception is an archetype whose tokens negate rather than shorten: those
-        // are not a shrug, they are the stat block, and they are stripped rather than spent (D-039).
+        foreach (var kind in new[]
+        {
+            UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
+        })
+        {
+            Assert.Equal(0, UnitTemplate.For(kind).Footing);
+        }
+    }
+
+    // Footing is an integer stat, per enemy, and the stack is the lever (D-144). Nothing enforces a
+    // ceiling: a stat block says 2 when the bestiary wants it to cost properly to fish.
+    [Fact]
+    public void UnitTemplate_FootingIsANonNegativePerEnemyStat()
+    {
         foreach (UnitKind kind in Enum.GetValues(typeof(UnitKind)))
         {
-            var template = UnitTemplate.For(kind);
-
-            if (template.FootingNegates)
-            {
-                Assert.True(template.Footing > 0, kind + " negates with no tokens to negate with.");
-                continue;
-            }
-
-            Assert.Equal(0, template.Footing);
+            Assert.True(UnitTemplate.For(kind).Footing >= 0, kind + " holds negative Footing.");
         }
+
+        // The reserved fixture: a stacked enemy exists so the rules have something to be tested
+        // against, and it is fielded by no fight.
+        Assert.Equal(2, UnitTemplate.For(UnitKind.BracedHusk).Footing);
     }
 
     [Fact]

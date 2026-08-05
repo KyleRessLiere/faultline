@@ -19,7 +19,7 @@ namespace Faultline.Core
     /// </para>
     /// <para>
     /// <b>The blocker has to actually vacate, or there is no trample at all.</b> No side to shove
-    /// toward, push resistance eating the tile, a Footing token cancelling it — any of them and the
+    /// toward, push resistance eating the tile, Footing refusing the instance — any of them and the
     /// blocker is a wall: no damage, no shove, and the mover stops short. That single rule is what
     /// makes a Wardbearer a door rather than a speed bump, and it is checkable in advance, so the
     /// route a Husk plans and the route it walks agree.
@@ -43,7 +43,7 @@ namespace Faultline.Core
         /// <remarks>
         /// Sides are the two directions perpendicular to the heading, considered in the fixed order
         /// N/E/S/W, and a side counts only when the blocker ends up standing on it. That last clause
-        /// is doing the work: it is how push resistance, a Footing token and a body already standing
+        /// is doing the work: it is how push resistance, a Footing refusal and a body already standing
         /// in the way all turn a trample into a halt without any of them needing their own rule here.
         /// A drain or a spike tile is a perfectly good side — being knocked somewhere terrible is the
         /// point of the mechanic, not an exception to it.

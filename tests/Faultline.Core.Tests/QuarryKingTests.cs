@@ -5,9 +5,10 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The Quarry King (docs/archive/CURATED_SET.md §5B). Three things are new and each is tested on its own:
-/// a Footing token that negates a displacement instead of shortening it and is not spent doing so
-/// (D-039), the two events that strip one, and a second stat block that takes over at 7 hit points
+/// The Quarry King (docs/archive/CURATED_SET.md §5B). His three Footing are three whole refusals
+/// under the instance model (D-143) — spent one per instance, on the same drain-only policy every
+/// other enemy follows, so an ordinary shove moves him and only a drain-bound one is braced against.
+/// The two strip triggers survive, as does the second stat block that takes over at 14 hit points
 /// and re-declares his intent on the way in (D-040). Voiding him stays legal throughout.
 /// </summary>
 public class QuarryKingTests
@@ -25,7 +26,6 @@ public class QuarryKingTests
         Assert.Equal(6, King.Damage);
         Assert.Equal(1, King.AttackPush);
         Assert.Equal(3, King.Footing);
-        Assert.True(King.FootingNegates);
         Assert.Equal(14, King.EnrageAt);
 
         var enraged = King.Enraged!;
@@ -47,41 +47,27 @@ public class QuarryKingTests
         Assert.Equal(new Coord(3, 0), after.Position);
     }
 
-    // ---- negation: every displacement is reduced to 0 while a token remains ---------------------
+    // ---- refusal: whole instances, spent one at a time, drain-bound only -----------------------
 
+    // Footing has left the arithmetic. The distance he is shoved is the distance anybody is shoved;
+    // what his tokens buy is the right to say no to an instance, not a smaller number (D-143).
     [Theory]
     [InlineData(DisplacementKind.Push, 1)]
     [InlineData(DisplacementKind.Push, 2)]
-    [InlineData(DisplacementKind.Push, 3)]
     [InlineData(DisplacementKind.Pull, 1)]
-    [InlineData(DisplacementKind.Pull, 3)]
-    public void QuarryKing_WhileATokenRemains_EveryDisplacementIsReducedToZero(
-        DisplacementKind kind, int distance)
+    public void QuarryKing_FootingDoesNotShortenAnything(DisplacementKind kind, int distance)
     {
         var state = Lane(king: 3, vanguard: 0);
         var king = state.Find(UnitKind.QuarryKing);
 
-        int effective = Displacement.EffectiveDistance(
-            state, king, kind, distance, spendFooting: false, out bool consumesStagger);
-
-        Assert.Equal(0, effective);
-        Assert.False(consumesStagger);
-    }
-
-    [Fact]
-    public void QuarryKing_Staggered_IsStillReducedToZero()
-    {
-        var state = Lane(king: 3, vanguard: 0);
-        var king = state.Find(UnitKind.QuarryKing) with { Staggered = true };
-
         Assert.Equal(
-            0,
-            Displacement.EffectiveDistance(state, king, DisplacementKind.Push, 2, false, out bool spent));
-        Assert.False(spent);
+            distance, Displacement.EffectiveDistance(state, king, kind, distance, out _));
     }
 
+    // The drain-only policy applies to the boss exactly as it applies to a Husk: an ordinary shove
+    // is eaten, tokens intact, and he moves.
     [Fact]
-    public void QuarryKing_ShovedByABasicPush_DoesNotMoveAndKeepsAllThreeTokens()
+    public void QuarryKing_ShovedByABasicPush_MovesAndKeepsAllThreeTokens()
     {
         var state = Lane(king: 1, vanguard: 0);
         var kingId = state.Find(UnitKind.QuarryKing).Id;
@@ -89,70 +75,46 @@ public class QuarryKingTests
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Vanguard).Id, kingId));
         var king = result.NewState.UnitById(kingId);
 
-        Assert.Equal(new Coord(1, 0), king.Position);
+        Assert.Equal(new Coord(2, 0), king.Position);
         Assert.Equal(3, king.Footing);
-
-        // The shove is reported and went nowhere: a negating token cancels the displacement rather
-        // than shortening it, and is not spent doing so (D-043, D-057).
-        var shove = result.Single<UnitPushed>();
-        Assert.Empty(shove.Path);
-        Assert.Equal(new Coord(1, 0), shove.To);
         Assert.False(result.Has<FootingSpent>());
         Assert.Equal(King.MaxHp - 2, king.Hp);
     }
 
+    // Drain-bound is the one thing he braces against, and bracing costs him a token — the whole
+    // instance is refused, so he does not travel one tile of it.
     [Fact]
-    public void QuarryKing_HitByBullRush_DoesNotMoveAndKeepsAllThreeTokens()
+    public void QuarryKing_ShovedAtADrain_RefusesTheInstanceAndPaysForIt()
     {
-        var state = Lane(king: 1, vanguard: 0);
+        // Vanguard, King, drain: the shove runs him straight at it.
+        var state = Shove("..O....", vanguard: 0, king: 1);
         var kingId = state.Find(UnitKind.QuarryKing).Id;
 
-        var result = state.Step(new AbilityCommand(
-            state.Find(UnitKind.Vanguard).Id, Ability.BullRush, null, Direction.Right));
-        var king = result.NewState.UnitById(kingId);
-
-        Assert.Equal(new Coord(1, 0), king.Position);
-        Assert.Equal(3, king.Footing);
-        Assert.False(result.Has<FootingSpent>());
-    }
-
-    [Fact]
-    public void QuarryKing_Reeled_DoesNotMoveAndKeepsAllThreeTokens()
-    {
-        var state = BoardBuilder.Rows(".......")
-            .PlayerB(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.QuarryKing, 3, 0)
-            .Active(Team.PlayerB)
-            .Build();
-
-        var kingId = state.Find(UnitKind.QuarryKing).Id;
-
-        var result = state.Step(new AbilityCommand(
-            state.Find(UnitKind.Threadcaster).Id, Ability.Reel, kingId));
-        var king = result.NewState.UnitById(kingId);
-
-        Assert.Equal(new Coord(3, 0), king.Position);
-        Assert.Equal(3, king.Footing);
-        Assert.False(result.Has<FootingSpent>());
-    }
-
-    /// <summary>
-    /// The negation is not a spend, so the deterministic enemy rule that digs in against a pit never
-    /// fires for him: he does not need it, and it would cost him a token he keeps for free.
-    /// </summary>
-    [Fact]
-    public void QuarryKing_ShovedAtAPit_NegatesWithoutSpending()
-    {
-        var state = Shove(".O.....", vanguard: 2, king: 1);
-        var kingId = state.Find(UnitKind.QuarryKing).Id;
-
-        Assert.False(Displacement.EnemyWouldSpendFooting(
-            state, kingId, new Coord(2, 0), DisplacementKind.Push, 1));
+        Assert.True(Displacement.EnemyWouldRefuse(
+            state, kingId, new Coord(0, 0), DisplacementKind.Push, 1));
 
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Vanguard).Id, kingId));
 
         Assert.False(result.Has<Clinging>());
-        Assert.Equal(3, result.NewState.UnitById(kingId).Footing);
+        Assert.Equal(new Coord(1, 0), result.NewState.UnitById(kingId).Position);
+        Assert.Equal(2, result.NewState.UnitById(kingId).Footing);
+    }
+
+    // One spend per instance. A three-token King cannot pay twice into the same shove: the refusal
+    // is asked for once and answered once.
+    [Fact]
+    public void QuarryKing_CannotRefuseTheSameInstanceTwice()
+    {
+        var state = Lane(king: 3, vanguard: 0);
+        var kingId = state.Find(UnitKind.QuarryKing).Id;
+        var events = new List<GameEvent>();
+
+        var after = Displacement.Resolve(
+            state, kingId, new Coord(2, 0), DisplacementKind.Push, 2, refused: true, events: events);
+
+        Assert.Equal(2, after.UnitById(kingId).Footing);
+        Assert.Single(events.OfType<FootingSpent>());
+        Assert.Single(events.OfType<DisplacementRefused>());
     }
 
     // ---- strip trigger 1: a collision he suffers ------------------------------------------------
@@ -250,7 +212,7 @@ public class QuarryKingTests
         Assert.Equal(0, King.PushResistance);
         Assert.Equal(
             2,
-            Displacement.EffectiveDistance(state, king, DisplacementKind.Push, 2, false, out _));
+            Displacement.EffectiveDistance(state, king, DisplacementKind.Push, 2, out _));
     }
 
     // ---- the phase swap -------------------------------------------------------------------------

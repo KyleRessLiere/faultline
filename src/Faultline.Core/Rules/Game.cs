@@ -123,7 +123,7 @@ namespace Faultline.Core
         {
             // A grant *adds* tokens to an archetype that has none; it never takes away tokens the
             // archetype carries itself. This used to assign unconditionally, so a fight that granted
-            // nothing wrote a zero over the Quarry King's three negating tokens and he walked on
+            // nothing wrote a zero over the Quarry King's three tokens and he walked on
             // shovable — the boss whose whole identity is that you have to break him first, with
             // his defining rule silently switched off in every fight he appears in (D-101).
             int granted = fight.FootingFor(unit.Team, unit.Kind);
@@ -235,41 +235,57 @@ namespace Faultline.Core
                 throw new ArgumentNullException(nameof(command));
             }
 
-            var events = new List<GameEvent>();
-            GameState next;
-
-            switch (command)
+            // An outstanding refusal prompt is a hard gate: nothing else is legal until the owning
+            // player answers, and there is no timeout — this is hotseat, so the prompt simply waits.
+            if (state.FootingPrompt is { } outstanding)
             {
-                case DeployCommand deploy:
-                    next = ApplyDeploy(state, deploy, events);
-                    break;
-                case MoveCommand move:
-                    next = ApplyMove(state, move, events);
-                    break;
-                case AttackCommand attack:
-                    next = ApplyAttack(state, attack, events);
-                    break;
-                case AbilityCommand ability:
-                    next = ApplyAbility(state, ability, events);
-                    break;
-                case RescueCommand rescue:
-                    next = ApplyRescue(state, rescue, events);
-                    break;
-                case FinishClingingCommand finish:
-                    next = ApplyFinish(state, finish, events);
-                    break;
-                case SpendVerveCommand spend:
-                    next = ApplySpendVerve(state, spend, events);
-                    break;
-                case UseConsumableCommand use:
-                    next = ApplyUseConsumable(state, use, events);
-                    break;
-                case EndActivationCommand end:
-                    next = ApplyEndActivation(state, end, events);
-                    break;
-                default:
-                    throw new ArgumentException("Unsupported command " + command.GetType().Name + ".", nameof(command));
+                Require(
+                    command is FootingRefuseCommand answer && answer.TargetId == outstanding.TargetId,
+                    "A Footing refusal is outstanding and must be answered first.");
+
+                var given = (FootingRefuseCommand)command;
+                var answers = new List<FootingAnswer>(state.FootingAnswers)
+                {
+                    new FootingAnswer(given.TargetId, given.Refuse && CanStillRefuse(state, given.TargetId)),
+                };
+
+                // The parked command has not run at all, so resuming is applying it afresh with one
+                // more answer on record. Whether that reveals another prompt or finally executes is
+                // the same code path either way.
+                var resumed = state with
+                {
+                    FootingPrompt = null,
+                    FootingAnswers = answers,
+                };
+
+                return Apply(resumed, outstanding.Command);
             }
+
+            // Raised before anything runs, off a speculative resolution that is thrown away, so a
+            // player answering sees exactly the board they were looking at and the answer is an
+            // RNG-free reveal.
+            if (FootingPromptFor(state, command) is { } raised)
+            {
+                var target = state.UnitById(raised.TargetId);
+                return new StepResult(
+                    state with { FootingPrompt = raised },
+                    new GameEvent[]
+                    {
+                        new FootingChoiceRequested(
+                            raised.TargetId,
+                            raised.Owner,
+                            target.Position,
+                            raised.Kind,
+                            raised.Distance,
+                            raised.Cost,
+                            target.Footing,
+                            raised.SourceId),
+                    },
+                    LegalCommands(state with { FootingPrompt = raised }));
+            }
+
+            var events = new List<GameEvent>();
+            GameState next = Resolve(state, command, events);
 
             // Verve reads the finished stream rather than being threaded through the rules that
             // produced it, so it goes here — after the command, before re-planning, so a charge is
@@ -279,7 +295,140 @@ namespace Faultline.Core
             // Brief §2: an enemy whose target just died re-plans immediately and visibly.
             next = Ai.ReplanInvalidated(next, events);
 
+            // An answer is scoped to the command it answered. Dropping it here is what stops a
+            // refusal made against one shove from silently applying to the next.
+            if (next.FootingAnswers.Count > 0)
+            {
+                next = next with { FootingAnswers = new FootingAnswer[0] };
+            }
+
             return new StepResult(next, events, LegalCommands(next));
+        }
+
+        /// <summary>Runs one command's rules, without the listeners that read its finished stream.</summary>
+        private static GameState Resolve(GameState state, Command command, List<GameEvent> events)
+        {
+            switch (command)
+            {
+                case FootingRefuseCommand:
+                    throw new InvalidOperationException("No Footing refusal is outstanding.");
+                case DeployCommand deploy:
+                    return ApplyDeploy(state, deploy, events);
+                case MoveCommand move:
+                    return ApplyMove(state, move, events);
+                case AttackCommand attack:
+                    return ApplyAttack(state, attack, events);
+                case AbilityCommand ability:
+                    return ApplyAbility(state, ability, events);
+                case RescueCommand rescue:
+                    return ApplyRescue(state, rescue, events);
+                case FinishClingingCommand finish:
+                    return ApplyFinish(state, finish, events);
+                case SpendVerveCommand spend:
+                    return ApplySpendVerve(state, spend, events);
+                case UseConsumableCommand use:
+                    return ApplyUseConsumable(state, use, events);
+                case EndActivationCommand end:
+                    return ApplyEndActivation(state, end, events);
+                default:
+                    throw new ArgumentException("Unsupported command " + command.GetType().Name + ".", nameof(command));
+            }
+        }
+
+        /// <summary>
+        /// True while a player is being asked whether to refuse a displacement with Footing. Every
+        /// other command is illegal until <see cref="GameState.FootingPrompt"/> is answered.
+        /// </summary>
+        /// <param name="state">State to inspect.</param>
+        /// <returns>Whether a prompt is outstanding.</returns>
+        public static bool IsAwaitingFootingChoice(GameState state) =>
+            state is not null && state.FootingPrompt is not null;
+
+        /// <summary>
+        /// The first displacement instance this command would aim at a player unit that could refuse
+        /// it and has not been asked yet, or <c>null</c> when nobody needs asking.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Found by resolving the command speculatively and reading the resulting event stream. That
+        /// costs a second resolution, so it is gated on a player unit actually holding Footing — which
+        /// is rare, since the classes print zero and only a scenario grant or a camp charm hands any
+        /// out. The speculative state is discarded whole, RNG included, so it cannot leak.
+        /// </para>
+        /// <para>
+        /// Only instances that would <em>do</em> something raise a prompt: a shove push resistance
+        /// already ate is not a choice worth interrupting for. A throw never raises one, because a
+        /// Cast can only be aimed at an enemy.
+        /// </para>
+        /// </remarks>
+        private static FootingPrompt? FootingPromptFor(GameState state, Command command)
+        {
+            if (command is FootingRefuseCommand || !AnyPlayerHoldsFooting(state))
+            {
+                return null;
+            }
+
+            var probe = new List<GameEvent>();
+            try
+            {
+                Resolve(state, command, probe);
+            }
+            catch (ArgumentException)
+            {
+                // An illegal command is illegal for the same reason on the real pass, which is where
+                // the player should see the message. Nothing was applied here.
+                return null;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
+            foreach (var produced in probe)
+            {
+                if (produced is not UnitPushed pushed
+                    || pushed.Kind == DisplacementKind.Throw
+                    || pushed.Distance <= 0)
+                {
+                    continue;
+                }
+
+                var target = state.FindUnit(pushed.UnitId);
+                if (target is null
+                    || target.Team == Team.Enemy
+                    || !Footing.CanRefuseDisplacement(target)
+                    || Footing.AnswerFor(state, pushed.UnitId).HasValue)
+                {
+                    continue;
+                }
+
+                return new FootingPrompt(
+                    target.Id,
+                    target.Team,
+                    pushed.Kind,
+                    pushed.Distance,
+                    Footing.DisplacementCost,
+                    pushed.By,
+                    command);
+            }
+
+            return null;
+        }
+
+        private static bool CanStillRefuse(GameState state, UnitId targetId) =>
+            Footing.CanRefuseDisplacement(state.FindUnit(targetId));
+
+        private static bool AnyPlayerHoldsFooting(GameState state)
+        {
+            foreach (var unit in state.Units)
+            {
+                if (unit.IsOnBoard && unit.Team != Team.Enemy && Footing.CanRefuseDisplacement(unit))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>Every command that is legal against the given state.</summary>
@@ -296,6 +445,15 @@ namespace Faultline.Core
 
             if (state.Outcome != FightOutcome.InProgress || state.Phase == Phase.Complete)
             {
+                return commands;
+            }
+
+            // Nothing else is legal while somebody is being asked. Both answers are offered, because
+            // both are real choices and both go in the log.
+            if (state.FootingPrompt is { } prompt)
+            {
+                commands.Add(new FootingRefuseCommand(prompt.TargetId, true));
+                commands.Add(new FootingRefuseCommand(prompt.TargetId, false));
                 return commands;
             }
 
@@ -496,7 +654,12 @@ namespace Faultline.Core
         public static bool IsEnemyTurn(GameState state) =>
             state.Phase == Phase.Battle
             && state.Outcome == FightOutcome.InProgress
-            && state.ActiveTeam == Team.Enemy;
+            && state.ActiveTeam == Team.Enemy
+
+            // A refusal prompt belongs to the *owning* player whatever slot raised it, so the enemy
+            // side has nothing to submit until it is answered. There is no timeout: hotseat, not
+            // realtime, and the prompt simply waits.
+            && state.FootingPrompt is null;
 
         /// <summary>
         /// The next command the enemy side will submit, chosen by <see cref="Ai"/> from Brief §2's
@@ -1315,9 +1478,9 @@ namespace Faultline.Core
             {
                 events.Add(new RoundEnded(state.Round));
 
-                // Second strip trigger for negating Footing: ending the round next to a pit costs a
-                // token (D-039). It reads off the board as it stood when the round ended, which is
-                // why it runs here rather than at the top of the next one.
+                // Second strip trigger: ending the round next to a drain shakes a token loose,
+                // whoever is holding it (D-144). It reads off the board as it stood when the round
+                // ended, which is why it runs here rather than at the top of the next one.
                 state = Footing.StripAtRoundEnd(state, events);
 
                 // Brief §2 round end: Clinging resolution, then Stagger clears in BeginRound.

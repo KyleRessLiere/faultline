@@ -134,10 +134,10 @@ namespace Faultline.Core
         WaveAfterLastRound = 110,
 
         /// <summary>
-        /// A <c>footing:</c> grant reaches a player unit that cannot spend it. Player Footing has no
-        /// trigger — the spend is a mid-enemy-turn prompt nobody has built (DECISIONS.md D-026) — so
-        /// the token lands and is never used. Not raised for a unit whose Footing negates, which
-        /// needs no spend at all.
+        /// Retired by D-147. A <c>footing:</c> grant on a player unit used to be a lint, because
+        /// player Footing had no spend trigger (D-026). The instance model gives it one — the owner
+        /// is prompted — so the grant is now a legitimate scenario tool and the code is never raised.
+        /// Kept, never renumbered: a saved lint report cites it.
         /// </summary>
         FootingGrantOnPlayers = 111,
 

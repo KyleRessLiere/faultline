@@ -313,7 +313,7 @@ not an action: it costs the Husk nothing but movement points.
 - **Side selection:** the perpendicular tile the blocker actually ends up on. Both work → the fixed
   order **N/E/S/W**. Neither works → the blocker is a **wall** and the Husk stops.
 - **The blocker has to vacate or there is no trample at all** — no damage, no shove, Husk halts.
-  Push resistance eating the tile, a Footing token cancelling the shove, a body already in the way:
+  Push resistance eating the tile, Footing refusing the instance, a body already in the way:
   all of them are the same halt. **A Wardbearer at resistance 2 is a door.**
 - **Allegiance-blind.** A Husk shoulders its own ally aside exactly as readily as a player unit, and
   in practice that is most of what it does.
@@ -402,9 +402,11 @@ requested distance
   - N   the target's push resistance, on a Push *or a Pull*: 1 for Anchor and Mobile Anchor;
         2 for the Colossus and the Wardbearer   (D-018, D-030, D-139)
   → 1   capped, if an ally with a hold aura stands adjacent — the Bulwark, and only it   (D-031, D-058)
-  - 1   if the target spends a Footing token
   = effective distance   (never below 0)
 ```
+
+**Footing is not in this arithmetic.** It refuses whole instances rather than shortening one; see
+*Statuses* below. Resistance SHORTENS, Footing REFUSES — two sentences, no shared math (D-143).
 
 Then it travels, stopping the moment any of these happen:
 
@@ -432,9 +434,10 @@ Two displacements sit outside it:
 - **Cast is exempt by rule.** A throw is a third verb and never enters this pipeline at all — an
   Anchor braces against the ground and has nothing to brace against in the air (D-091).
 
-**A displacement that moves nothing is still a displacement.** When Footing, push resistance, a hold
-aura or a negating token reduces a shove to zero — or a wall or a body is already against the target
-— the unit stays put and the game still reports the shove, at distance 0 (D-057). Being immovable is
+**A displacement that moves nothing is still a displacement.** When push resistance or a hold aura
+reduces a shove to zero, when Footing refuses the instance outright, or when a wall or a body is
+already against the target — the unit stays put and the game still reports the shove, at distance 0
+(D-057). A refused instance additionally reports a `DisplacementRefused`. Being immovable is
 a result, and often the interesting one: it is what turns the Archer's push into a collision that
 kills two Husks instead of moving one.
 
@@ -475,22 +478,35 @@ Enemy telegraphs re-route: an intent aimed at a covered ally shows the damage an
 - **Staggered** — from taking collision or spike damage. The *next* displacement against it travels
   **+1 tile**, then the Stagger is spent. Clears at end of round. Fall damage does not Stagger, and
   neither does voluntarily walking onto spikes.
-- **A negating Footing token cancels a displacement instead of shortening it.** One archetype's
-  tokens read differently: while any remain, every Push and Pull against that unit resolves at
-  **distance 0** — Push 1, Push 2, Bull Rush and Reel all move it nowhere — and the token is **not
-  spent** doing it. No Stagger bonus is consumed either. Such a token is taken away two ways, both
-  things the board already does: a **collision the unit suffers** (including one caused by something
-  else being slammed into it) and **ending a round next to a pit**. Only the Quarry King has them,
-  and stripping all three is what makes him an ordinary body again (D-043).
-- **Footing** — a token that shortens one displacement against its holder by 1 tile, possibly to
-  zero. **No unit has any by default.** Every archetype, player and enemy, starts a fight on **0**;
-  a scenario hands them out with the `footing:` key in its `.fight` file. A blanket token on
-  everyone made *resisting a shove* the universal default and quietly cost every push a tile, which
-  is the wrong default for a game whose primary weapon is the board — so it is now something a
-  scenario grants on purpose (D-028). Enemies spend a granted token **only when it would keep them
-  out of a pit, and only when that actually works** — deterministic, never a coin flip. *Player
-  units never spend theirs: there is still no prompt, so a player holding a granted token can be
-  shoved into a pit while it goes unused. Open question, not a rule — see D-026.*
+- **Footing — whole refusals, not tiles (D-143 to D-147).** Footing is an **integer stat** counting
+  how many displacement **instances** its holder may refuse this fight. Spending it **refuses one
+  whole instance**: the target does not move and **no consequence of that displacement occurs** —
+  no tiles travelled, no collision, no hazard entry, no Stagger from it, and no Pluck for whoever
+  threw it (a refused shove earns its caster nothing, mirroring the fully-negated-absorb rule
+  D-088). A refused instance does not consume the target's Stagger either: there is no displacement
+  left for the +1 to apply to.
+  - **It is outside the distance arithmetic entirely.** A Wardbearer's resistance 2 still eats two
+    tiles of a Push 3 *and* its Footing is still whole afterwards, to refuse what is left.
+  - **Cost: 1 for an ordinary Push or Pull; 2 for a Cast** (the throw is too heavy to brace against
+    cheaply — see *The Cast threshold* below).
+  - **One spend per instance.** A unit holding 2 cannot pay twice into the same shove.
+  - **Stacks are the enemy anti-displacement stat.** Player classes print **0** and are granted
+    Footing per scenario with the `footing:` key (D-028). Today's stat blocks: **Warden 2**,
+    **Quarry King 3**, **Braced Husk 2** (a Husk variant reserved as the stacked fixture and fielded
+    by no battle), everything else **0**.
+  - **Enemies auto-spend on a drain-bound instance and nothing else.** Deterministic, never a coin
+    flip, and deliberately narrow: a shove into a wall, onto brambles or across open ground is
+    *eaten*, which is what preserves slam-fishing and leaves the Fisher a bait line — a cheap flick
+    aimed at a drain burns a refusal for nothing.
+  - **Players are asked.** A displacement instance aimed at a player unit holding Footing raises a
+    **refusal prompt**: the fight stops, a `FootingChoiceRequested` fires, and the only legal
+    commands are `FootingRefuseCommand(target, refuse: true)` and `(…, refuse: false)`. The prompt
+    belongs to the **owning** player whatever slot raised it, there is **no timeout** — hotseat, so
+    it waits — and **nothing of the raising command has run**, so the board is exactly as the player
+    last saw it. Both answers go in the command log, so a fight with a prompt in it replays exactly.
+  - **Two things strip a token without a refusal being made:** a **collision the unit suffers**
+    (including one caused by something else being slammed into it) and **ending a round orthogonally
+    next to a drain**. This is the counterplay that keeps a stacked enemy attackable.
 - **Clinging** — in a pit, cannot act, and **does not hold an activation slot**: `CanAct` excludes a
   clinging unit, so its side simply has one fewer activation that round rather than passing a dead
   one. This line used to say the opposite; the code has always done this (D-103).
@@ -559,7 +575,7 @@ not settle.
 | Anchor | 12 | 1 | melee, 4 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
 | Grappler | 10 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull. Its 2 is shortened by push resistance like any other displacement (D-139), so against a Wardbearer it drags **nothing** unless the Wardbearer is Staggered |
 | Stalker | 8 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **A hold aura does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1. A Wardbearer in Guard Stance does stop it (D-058) |
-| Warden | 12 | **0** | melee, 4 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. **2 negating Footing tokens** — nothing shoves or pulls it while they stand; a collision it suffers takes one; break both and it moves like anybody (D-102) |
+| Warden | 12 | **0** | melee, 4 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. **Footing 2** — two whole refusals, spent one per instance on the drain-only policy; a collision it suffers strips one for free; out of tokens it shoves like anybody (D-102, D-143) |
 | Perch | 6 | 2 | range 3, 2 dmg | seeks the nearest reachable HighGround and **hits for 4 from it**; once up, it does not come down |
 | Bulwark | 10 | 2 | melee, 2 dmg | **hold aura** — adjacent allies cannot be displaced more than 1; does not protect itself. **The only hold aura left in the game** — the Wardbearer's copy went with the rest of its old kit (D-058) |
 | Harrier | 8 | 4 | **melee, push 1** | no damage. Shoves to **maximise the target's distance from its nearest ally**, and refuses any shove that would not move it — so it never uses walls or the edge |
@@ -568,9 +584,10 @@ not settle.
 | Lesser Grappler | 10 | 3 | range **2**, pull 2 | Grappler list; must close to 2 where a Grappler already has you at 3 |
 | Blunted Stalker | 8 | 4 | **melee, push 1** | ranks **pit → spikes only.** Will not shove into a wall or the board edge, and does not loiter near them |
 | Heavy Husk | 6 | 3 | melee, 2 dmg | Husk list; survives one collision |
+| Braced Husk | 4 | 3 | melee, 2 dmg | Husk list; **Footing 2** — the reserved stacked-Footing fixture (D-144). Fielded by no battle: it exists so the stack rules have something to be asserted against |
 | Mobile Anchor | 12 | 2 | melee, 4 dmg | Anchor list and shrug, at double the speed |
 | Raider | 4 | 3 | melee, 2 dmg | **never targets a player unit at all.** Walks at the nearest standing Protect structure and takes 2 off it whenever it ends an activation adjacent. No self-defence, and no free finish on a clinging unit. With no Protect structure standing anywhere, it holds (D-045) |
-| Quarry King | 28 | **1** | melee, 6 dmg **+ push 1** | **boss.** Three Footing tokens that *negate*: while any remain, every Push and Pull against him resolves at 0 and no token is spent (D-043). A token is stripped by a collision he suffers, or by ending a round next to a pit. At **14 HP or below** the stat block swaps to Move 3 and the list gains Bull Rush; he re-declares his intent on the spot (D-044) |
+| Quarry King | 28 | **1** | melee, 6 dmg **+ push 1** | **boss.** **Footing 3** — three whole refusals, spent one per instance and on the same drain-only policy as everybody else, so an ordinary shove moves him and only a drain-bound one is braced against (D-143, superseding D-043's unspendable token). A token is also stripped by a collision he suffers, or by ending a round next to a drain. At **14 HP or below** the stat block swaps to Move 3 and the list gains Bull Rush; he re-declares his intent on the spot (D-044) |
 
 **A variant shares its archetype's priority list rather than copying it** (D-032). The planner
 dispatches on the plan named by the stat block, not on the archetype, so a stat-block variant and the
@@ -666,8 +683,10 @@ the Verve does not come back.**
 | Archer | **Double Nock** | 4 | Her attack action **fires twice**. Separate targets; each resolved in full. |
 | Wardbearer | **Preen** | 3 | Heals himself **4**, never past his maximum. Not offered at full health. |
 
-**Wrecking Weight** adds its tile to the *request*, before Stagger, resistance, hold auras and
-Footing, so it composes with all of them (D-076). An Anchor still shrugs a tile off — the Vanguard's
+**Wrecking Weight** adds its tile to the *request*, before Stagger, resistance and hold auras, so it
+composes with all of them (D-076). It composes with Footing too, in the only way a refusal composes
+with anything: a refused instance eats the whole charged push, contact damage included, and pays her
+nothing back. An Anchor still shrugs a tile off — the Vanguard's
 plain push 1 becomes 0 and his charged push 2 becomes 1. The contact damage lands *before* the shove
 and stacks with everything after it: a charged basic attack into a wall is **2 attack + 2 contact + 4
 collision = 8**. A target killed by the first two never travels.
@@ -683,9 +702,22 @@ behind its own screen is not hiding. **The landing is the only tile that resolve
 in full: spikes for 6 and a Stagger, a drain for a cling, either of which charges her Pluck.
 
 **Push resistance does not apply to a throw.** An Anchor braces against the ground and has nothing to
-brace against in the air, which makes Cast the answer to the units nothing else can move. **Footing
-still does something**: a token shortens the throw by one tile, landing them short of where she aimed
-— which is how somebody scrabbles clear of a drain.
+brace against in the air, which makes Cast the answer to the units nothing else can move.
+
+**The Cast threshold — Footing is the one thing that answers it, and it is printed on the card
+(D-146).** Refusing a Cast costs **2 Footing**. Three worlds, and the targeting preview always says
+which one you are in:
+
+| Target's Footing | What happens |
+|---|---|
+| **2 or more** | It **may refuse**. Refused → the Cast **fails**, her **3 Pluck is spent with no refund**, the target loses **2 Footing** and does not move. The boot pips are visible, so throwing into this is an informed misplay. An *enemy* refuses only when the landing is **drain-bound** — the same drain-only policy — and eats the rest. |
+| **exactly 1** | It **cannot** refuse: the pair is unaffordable. The Cast **overwhelms** — it lands **and strips the last Footing** on the way through, even though the throw succeeded. |
+| **0** | It lands. No interaction. |
+
+"Below 2" is her hunted state, readable on enemy Footing pips: bait the drain-only auto-spend down
+with a cheap flick, and then the throw is law. A **refused Cast charges her nothing** — no landing
+happened, so no hazard entry, so no Pluck. The old squirm-divert rule (a token buying one tile back
+along the throw line) is **dead**.
 
 **She can only post somebody into a drain she is standing beside.** The landing is one of her four
 orthogonal tiles, so the reach is all in the grab and the payoff is all in where she chose to stand.
@@ -756,7 +788,7 @@ straight-line distance, and attack range still ignores walls (D-010).
 
 The Grappler's pull and the Stalker's shove are ordinary commands Core accepts, resolved by the same
 displacement code a player's push runs through — collisions, spikes, pits, Stagger, Anchor
-resistance, the Bulwark's hold aura and Footing all apply identically (Brief §6 prior 2).
+resistance, the Bulwark's hold aura and the Footing refusal all apply identically (Brief §6 prior 2).
 
 ### Enemies pull their own out of pits
 
@@ -1253,7 +1285,7 @@ it back emptied.
 | **Dried Minnow** | gain **2** Pluck now, capped at 5. Only offered below the cap. |
 | **Bramble Salve** | heal **3**, **never past the maximum**. Only offered while hurt. |
 | **Old Rope** | rescue an **adjacent** clinger as a free action, to any legal drop tile |
-| **Duck Feather Charm** | **+1** Footing token |
+| **Duck Feather Charm** | **+1** Footing — one more whole refusal |
 | **Crate of Debris** | place debris on an **adjacent open** tile — a breakable blocker with the board's own blocker hit points, or one collision's worth when the board declares none. Not onto a drain, brambles or high ground. |
 
 **Old Rope changes the doomed-cling sweep.** A side that is nothing but hands on ledges is normally
@@ -1284,9 +1316,6 @@ Win: every enemy down. Lose: every player unit down or voided.
 
 ## Known gaps in what design can evaluate
 
-- **Player Footing has no prompt.** Player units only hold a token when a scenario grants one, and no
-  shipped fight grants any yet — so the unused-token problem in D-026 is currently unreachable in
-  play rather than fixed. It returns the moment a scenario uses `footing:`.
 - **Momentum is gone.** Verve replaced it and `GameState.Momentum` has been deleted (D-074). The
   brief still lists Momentum and the commander cards; that divergence is the ruling, not an
   oversight.

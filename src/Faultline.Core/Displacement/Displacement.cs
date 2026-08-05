@@ -38,7 +38,10 @@ namespace Faultline.Core
         /// <param name="source">Tile the push or pull originates from.</param>
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance, before modifiers.</param>
-        /// <param name="spendFooting">Whether the target's owner spends a Footing token.</param>
+        /// <param name="refused">
+        /// Whether this whole instance is refused with Footing. A refusal is not arithmetic: the unit
+        /// does not move and nothing the displacement would have caused happens.
+        /// </param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <returns>The projected outcome.</returns>
         public static DisplacementPreview Preview(
@@ -47,7 +50,7 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool spendFooting = false,
+            bool refused = false,
             bool bypassResistance = false)
         {
             var target = state.UnitById(targetId);
@@ -60,19 +63,27 @@ namespace Faultline.Core
                     DisplacementStop.Immovable, 0, null, 0, false, false, false, false, false);
             }
 
-            int effective = EffectiveDistance(
-                state, target, kind, distance, spendFooting, out bool consumesStagger, bypassResistance);
+            int natural = EffectiveDistance(
+                state, target, kind, distance, out bool consumesStagger, bypassResistance);
+
+            // A refused instance consumes nothing, Stagger included: there is no displacement left
+            // for the +1 to apply to.
+            int effective = refused ? 0 : natural;
+            if (refused)
+            {
+                consumesStagger = false;
+            }
+
             var sim = Simulate(state, target, direction.Value, effective);
 
-            bool footingMatters = false;
-            if (!spendFooting && target.Footing > 0)
-            {
-                int reduced = EffectiveDistance(state, target, kind, distance, true, out _, bypassResistance);
-                var alternative = Simulate(state, target, direction.Value, reduced);
-                footingMatters = alternative.Destination != sim.Destination
-                    || alternative.Stop != sim.Stop
-                    || DamageTo(alternative, targetId) != DamageTo(sim, targetId);
-            }
+            // Whether the owner is being offered a real choice: enough Footing to refuse, and
+            // something worth refusing.
+            bool footingMatters = !refused
+                && Footing.CanRefuseDisplacement(target)
+                && (sim.Path.Count > 0
+                    || DamageTo(sim, targetId) > 0
+                    || StaggersUnit(sim, targetId)
+                    || sim.Clings);
 
             int selfDamage = DamageTo(sim, targetId);
 
@@ -103,7 +114,10 @@ namespace Faultline.Core
         /// <param name="source">Tile the push or pull originates from.</param>
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance, before modifiers.</param>
-        /// <param name="spendFooting">Whether the target's owner spends a Footing token.</param>
+        /// <param name="refused">
+        /// Whether the target refuses this whole instance with Footing. See <see cref="Footing"/>:
+        /// the unit does not move and no consequence of the displacement occurs.
+        /// </param>
         /// <param name="events">Sink for the resulting events.</param>
         /// <param name="by">
         /// Unit causing the displacement, where one is known. Passed explicitly rather than inferred
@@ -119,7 +133,7 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool spendFooting,
+            bool refused,
             List<GameEvent> events,
             UnitId? by = null,
             bool bypassResistance = false)
@@ -128,6 +142,27 @@ namespace Faultline.Core
             var direction = DirectionOf(before, source, kind);
             if (direction is null)
             {
+                return state;
+            }
+
+            // The refusal is settled before anything else runs, Wrecking Weight included. A refused
+            // instance earns its caster nothing at all — no tiles, no contact damage, no collision,
+            // and therefore no Pluck, which mirrors the negated-absorb principle (D-088).
+            if (refused && Footing.CanRefuseDisplacement(before))
+            {
+                state = Footing.Pay(state, targetId, Footing.DisplacementCost, events);
+                events.Add(new DisplacementRefused(
+                    targetId,
+                    before.Position,
+                    kind,
+                    Footing.DisplacementCost,
+                    state.UnitById(targetId).Footing,
+                    by));
+
+                // Still reported as a displacement, at distance 0. A shove that moved nothing
+                // happened, and a renderer needs to shudder the target (D-057).
+                events.Add(new UnitPushed(
+                    targetId, before.Position, before.Position, new Coord[0], kind, 0, by));
                 return state;
             }
 
@@ -157,15 +192,8 @@ namespace Faultline.Core
                 }
             }
 
-            // A negating token turns the shove aside without being handed over, so a caller that asked
-            // for a spend does not get one (D-039). Stripping is a listener on collisions and pits.
-            if (Footing.Negates(before))
-            {
-                spendFooting = false;
-            }
-
             int effective = EffectiveDistance(
-                state, before, kind, distance, spendFooting, out bool consumesStagger, bypassResistance);
+                state, before, kind, distance, out bool consumesStagger, bypassResistance);
 
             var updated = before;
             if (consumesStagger)
@@ -173,17 +201,7 @@ namespace Faultline.Core
                 updated = updated with { Staggered = false };
             }
 
-            if (spendFooting && updated.Footing > 0)
-            {
-                updated = updated with { Footing = updated.Footing - 1 };
-            }
-
             state = state.WithUnit(updated);
-
-            if (spendFooting && before.Footing > 0)
-            {
-                events.Add(new FootingSpent(targetId, updated.Footing));
-            }
 
             var sim = Simulate(state, updated, direction.Value, effective);
 
@@ -193,7 +211,7 @@ namespace Faultline.Core
             }
 
             // Reported even when the path is empty. A shove that moved nothing still happened: Footing,
-            // push resistance, a hold aura or a negating token turned it aside, or a wall or a body was
+            // push resistance or a hold aura ate it, or a wall or a body was
             // already against it. That is a result, and often the interesting one — it is what a
             // renderer needs to shudder the target, and what a log needs to say "it did not budge"
             // (DECISIONS.md D-057). Distance is the effective distance, so a 0 says why.
@@ -236,7 +254,7 @@ namespace Faultline.Core
             {
                 state = Combat.ApplyDamage(state, hit.UnitId, hit.Amount, hit.Source, events);
 
-                // First strip trigger: a negating token is knocked loose by a collision, on whichever
+                // First strip trigger: a token is knocked loose by a collision, on whichever
                 // side of it the unit stood. A unit nothing can move is still a unit things can be
                 // slammed into, and that is the way in (D-039).
                 if (hit.Source == DamageSource.Collision)
@@ -261,9 +279,9 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Previews a displacement with Footing decided the same way <see cref="ResolveAuto"/> decides
-        /// it. This is the overload a UI wants: a preview that ignored the defender's automatic
-        /// Footing spend would promise pit kills the rules then refuse to deliver.
+        /// Previews a displacement with the refusal decided the same way <see cref="ResolveAuto"/>
+        /// decides it. This is the overload a UI wants: a preview that ignored the defender's
+        /// automatic refusal would promise drain kills the rules then refuse to deliver.
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="targetId">Unit that would be displaced.</param>
@@ -271,7 +289,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
-        /// <returns>The projected outcome, including any Footing the defender will spend.</returns>
+        /// <returns>The projected outcome, including any refusal the defender will make.</returns>
         public static DisplacementPreview PreviewAuto(
             GameState state,
             UnitId targetId,
@@ -280,19 +298,55 @@ namespace Faultline.Core
             int distance,
             bool bypassResistance = false)
         {
-            bool spend = state.UnitById(targetId).Team == Team.Enemy
-                && EnemyWouldSpendFooting(state, targetId, source, kind, distance, bypassResistance);
-
-            return Preview(state, targetId, source, kind, distance, spend, bypassResistance);
+            return Preview(
+                state,
+                targetId,
+                source,
+                kind,
+                distance,
+                AutoRefuses(state, targetId, source, kind, distance, bypassResistance),
+                bypassResistance);
         }
 
         /// <summary>
-        /// Resolves a displacement, deciding Footing automatically.
+        /// Whether this instance is refused without anybody being asked: the enemy's drain-only
+        /// policy, or an answer a player has already given for the command in flight.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="targetId">Unit being displaced.</param>
+        /// <param name="source">Tile the displacement originates from.</param>
+        /// <param name="kind">Push or Pull.</param>
+        /// <param name="distance">Requested distance.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <returns>Whether the instance is refused.</returns>
+        public static bool AutoRefuses(
+            GameState state,
+            UnitId targetId,
+            Coord source,
+            DisplacementKind kind,
+            int distance,
+            bool bypassResistance = false)
+        {
+            var target = state.UnitById(targetId);
+            if (!Footing.CanRefuseDisplacement(target))
+            {
+                return false;
+            }
+
+            return target.Team == Team.Enemy
+                ? EnemyWouldRefuse(state, targetId, source, kind, distance, bypassResistance)
+                : Footing.AnswerFor(state, targetId) ?? false;
+        }
+
+        /// <summary>
+        /// Resolves a displacement, deciding the refusal automatically.
         /// </summary>
         /// <remarks>
-        /// Enemies follow the deterministic rule in Brief §2 — dig in only to avoid a pit. Player
-        /// units never auto-spend: their owner chooses, and the only thing that displaces a player
-        /// unit is an enemy, which cannot act until M3 (DECISIONS.md D-017).
+        /// Enemies follow the deterministic drain-only rule — brace only against being swept, which
+        /// is what preserves slam-fishing and the Fisher's bait line (MASTER_DESIGN §3). A player unit
+        /// never has a policy applied to it: its owner is asked, and the answer arrives as a
+        /// <see cref="FootingRefuseCommand"/> that <see cref="Game"/> parks in
+        /// <see cref="GameState.FootingAnswers"/> for the length of the command it answers.
         /// </remarks>
         /// <param name="state">Current state.</param>
         /// <param name="targetId">Unit to displace.</param>
@@ -313,24 +367,33 @@ namespace Faultline.Core
             UnitId? by = null,
             bool bypassResistance = false)
         {
-            bool spend = state.UnitById(targetId).Team == Team.Enemy
-                && EnemyWouldSpendFooting(state, targetId, source, kind, distance, bypassResistance);
-
-            return Resolve(state, targetId, source, kind, distance, spend, events, by, bypassResistance);
+            return Resolve(
+                state,
+                targetId,
+                source,
+                kind,
+                distance,
+                AutoRefuses(state, targetId, source, kind, distance, bypassResistance),
+                events,
+                by,
+                bypassResistance);
         }
 
         /// <summary>
-        /// Distance after Stagger, push resistance, a hold aura and Footing, applied in that order.
+        /// Distance after Stagger, push resistance and the Bulwark cap, applied in that order, then
+        /// floored at zero.
         /// </summary>
         /// <remarks>
-        /// Order matters and is pinned by Brief §4: the Stagger bonus lands before the Anchor check so
-        /// it "can turn Push 1 into effective Push 2", and Footing stacks on top of Hold "to 0".
+        /// Order matters and is pinned by Brief §4: the Stagger bonus lands before the resistance
+        /// check so it "can turn Push 1 into effective Push 2". <b>Footing is not here</b> — under the
+        /// instance model it refuses whole displacements rather than shortening them, so it left the
+        /// arithmetic entirely (MASTER_DESIGN §3, Design Log (t)). Resistance SHORTENS, Footing
+        /// REFUSES: two sentences, no shared math.
         /// </remarks>
         /// <param name="state">Current state.</param>
         /// <param name="target">Unit being displaced.</param>
         /// <param name="kind">Push or Pull.</param>
         /// <param name="requested">Distance before modifiers.</param>
-        /// <param name="spendFooting">Whether a Footing token is spent.</param>
         /// <param name="consumesStagger">Set when an existing Stagger is spent for the +1.</param>
         /// <param name="bypassResistance">
         /// Skips the push-resistance subtraction. Set by exactly one caller — Reel, whose printed
@@ -344,20 +407,11 @@ namespace Faultline.Core
             Unit target,
             DisplacementKind kind,
             int requested,
-            bool spendFooting,
             out bool consumesStagger,
             bool bypassResistance = false)
         {
             consumesStagger = false;
             if (requested <= 0)
-            {
-                return 0;
-            }
-
-            // A negating Footing token does not shorten a displacement, it cancels one — and it is not
-            // spent doing so. It sits above every other modifier because there is nothing left for them
-            // to modify: no Stagger bonus is consumed and no token changes hands (D-039).
-            if (target.Footing > 0 && target.Template.FootingNegates)
             {
                 return 0;
             }
@@ -392,11 +446,6 @@ namespace Faultline.Core
             if (distance > 1 && HasHold(state, target))
             {
                 distance = 1;
-            }
-
-            if (spendFooting && target.Footing > 0)
-            {
-                distance -= 1;
             }
 
             return distance < 0 ? 0 : distance;
@@ -436,8 +485,11 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Whether the enemy AI would spend a Footing token against this displacement. Brief §2 makes
-        /// this deterministic: enemies dig in only to avoid a pit.
+        /// Whether an enemy refuses this displacement without being asked. The policy is unchanged
+        /// and deliberately narrow: <b>drain-bound only</b>. It braces against being swept and eats
+        /// everything else, which is what keeps slam-fishing live and leaves the Fisher a bait line —
+        /// a cheap flick that is not drain-bound is not refused, and the tokens stay on the board
+        /// until she wants them gone (MASTER_DESIGN §3).
         /// </summary>
         /// <param name="state">Current state.</param>
         /// <param name="targetId">Enemy being displaced.</param>
@@ -445,8 +497,8 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
-        /// <returns>Whether the token is spent.</returns>
-        public static bool EnemyWouldSpendFooting(
+        /// <returns>Whether the instance is refused.</returns>
+        public static bool EnemyWouldRefuse(
             GameState state,
             UnitId targetId,
             Coord source,
@@ -454,20 +506,13 @@ namespace Faultline.Core
             int distance,
             bool bypassResistance = false)
         {
-            var target = state.UnitById(targetId);
-            if (target.Footing <= 0)
+            if (!Footing.CanRefuseDisplacement(state.UnitById(targetId)))
             {
                 return false;
             }
 
             var without = Preview(state, targetId, source, kind, distance, false, bypassResistance);
-            if (without.Stop != DisplacementStop.Pit)
-            {
-                return false;
-            }
-
-            var with = Preview(state, targetId, source, kind, distance, true, bypassResistance);
-            return with.Stop != DisplacementStop.Pit;
+            return without.Stop == DisplacementStop.Pit;
         }
 
         private static Direction? DirectionOf(Unit target, Coord source, DisplacementKind kind) =>

@@ -5,19 +5,18 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The Warden is a door you break down rather than a door that never opens (D-102). Two negating
-/// Footing tokens: while they stand nothing moves it, and the way to take one is to slam something
-/// else into it — you cannot shove the door, so you throw something at it.
+/// The Warden is a door you break down rather than a door that never opens (D-102). Two Footing:
+/// two whole refusals under the instance model (D-143), and the way to take one without spending a
+/// shove on it is to slam something else into it.
 /// </summary>
 public class WardenDoorTests
 {
     [Fact]
-    public void Warden_CarriesTwoNegatingTokens_OneFewerThanTheKing()
+    public void Warden_CarriesTwoFooting_OneFewerThanTheKing()
     {
         var warden = UnitTemplate.For(UnitKind.Warden);
 
         Assert.Equal(2, warden.Footing);
-        Assert.True(warden.FootingNegates);
         Assert.Equal(0, warden.PushResistance);
 
         // A little weaker than the boss, and met five fights before him, so the mechanic is taught
@@ -70,7 +69,7 @@ public class WardenDoorTests
         var open = state.WithUnit(state.Get(warden) with { Footing = 0 });
 
         Assert.Equal(
-            2, Displacement.EffectiveDistance(open, open.Get(warden), DisplacementKind.Push, 2, false, out _));
+            2, Displacement.EffectiveDistance(open, open.Get(warden), DisplacementKind.Push, 2, out _));
 
         var events = new List<GameEvent>();
         var after = Displacement.Resolve(
@@ -79,15 +78,24 @@ public class WardenDoorTests
         Assert.Equal(new Coord(4, 1), after.Get(warden).Position);
     }
 
-    // One token still standing is still a whole door: negation is not a subtraction.
+    // One token still standing is still a whole refusal: a refusal is not a subtraction. The
+    // arithmetic says 3 — Footing is not in it — and the instance is turned aside all the same.
     [Fact]
-    public void WithOneTokenLeft_ItIsStillCompletelyImmovable()
+    public void WithOneTokenLeft_ARefusedShoveStillMovesItNowhere()
     {
         var state = Door(out var warden, out _);
         var half = state.WithUnit(state.Get(warden) with { Footing = 1 });
 
         Assert.Equal(
-            0, Displacement.EffectiveDistance(half, half.Get(warden), DisplacementKind.Push, 3, false, out _));
+            3, Displacement.EffectiveDistance(half, half.Get(warden), DisplacementKind.Push, 3, out _));
+
+        var events = new List<GameEvent>();
+        var after = Displacement.Resolve(
+            half, warden, new Coord(1, 1), DisplacementKind.Push, 3, refused: true, events: events);
+
+        Assert.Equal(half.Get(warden).Position, after.Get(warden).Position);
+        Assert.Equal(0, after.Get(warden).Footing);
+        Assert.Single(events.OfType<DisplacementRefused>());
     }
 
     // The Fisher's answer survives: Cast places rather than shoves, so it lifts a door outright. That

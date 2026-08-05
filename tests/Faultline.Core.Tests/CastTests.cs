@@ -216,37 +216,97 @@ public class CastTests
         Assert.Equal(landing, result.NewState.Get(heavy).Position);
     }
 
+    // ---- the Cast threshold: three worlds, all asserted ----------------------------------------
+
+    // Footing 2+, drain-bound landing: the target refuses. The throw fails, her three Pluck are
+    // spent and not refunded, and the target loses 2 Footing and does not move.
     [Fact]
-    public void Footing_LandsThemOneTileShortOfADrain()
+    public void CastThreshold_AtTwoOrMore_TheTargetMayRefuse_AndHerPluckIsGone()
+    {
+        var state = Hazards(out var fisher, out var husk, out var drain, out _);
+        var braced = state.WithUnit(state.Get(husk) with { Footing = 2 });
+        var from = braced.Get(husk).Position;
+
+        var result = braced.Step(Cast(fisher, husk, drain));
+
+        Assert.True(result.Has<CastRefused>());
+        Assert.Equal(from, result.NewState.Get(husk).Position);
+        Assert.False(result.NewState.Get(husk).Clinging);
+        Assert.Equal(0, result.NewState.Get(husk).Footing);
+
+        // No refund: the meter went down by the printed cost and stayed there.
+        Assert.Equal(
+            Verve.Cap - Verve.CostOf(VerveSpend.Cast), result.NewState.Get(fisher).Verve);
+        Assert.Equal(CastOutlook.Refused, Throw.Outlook(braced, braced.Get(husk), drain));
+    }
+
+    // A refused Cast earns her nothing. No hazard entry happened, so no charge fires — the same
+    // principle as a fully negated absorb charging the Wardbearer nothing.
+    [Fact]
+    public void CastThreshold_ARefusedCast_EarnsHerNoPluck()
+    {
+        var state = Hazards(out var fisher, out var husk, out var drain, out _);
+        var braced = state
+            .WithUnit(state.Get(husk) with { Footing = 2 })
+            .WithUnit(state.Get(fisher) with { Verve = Verve.CostOf(VerveSpend.Cast) });
+
+        var result = braced.Step(Cast(fisher, husk, drain));
+
+        Assert.Empty(result.Events.OfType<VerveCharged>());
+        Assert.Equal(0, result.NewState.Get(fisher).Verve);
+    }
+
+    // Footing 2+, but the landing is not drain-bound: the enemy's policy is drain-only, so it eats
+    // the Cast rather than burning the pair on a shuffle.
+    [Fact]
+    public void CastThreshold_AtTwoOrMore_AnEnemyEatsANonDrainCast()
+    {
+        var state = Open(out var fisher, out var husk);
+        var braced = state.WithUnit(state.Get(husk) with { Footing = 2 });
+        var landing = Beside(braced, fisher);
+
+        var result = braced.Step(Cast(fisher, husk, landing));
+
+        Assert.False(result.Has<CastRefused>());
+        Assert.Equal(landing, result.NewState.Get(husk).Position);
+        Assert.Equal(2, result.NewState.Get(husk).Footing);
+        Assert.Equal(CastOutlook.LandsThroughFooting, Throw.Outlook(braced, braced.Get(husk), landing));
+    }
+
+    // Footing exactly 1: it CANNOT refuse — the pair is unaffordable — and the Cast overwhelms. It
+    // lands AND strips the last token, even though the throw succeeded.
+    [Fact]
+    public void CastThreshold_AtExactlyOne_TheCastOverwhelmsAndStripsTheLastFooting()
     {
         var state = Hazards(out var fisher, out var husk, out var drain, out _);
         var dug = state.WithUnit(state.Get(husk) with { Footing = 1 });
 
+        Assert.Equal(CastOutlook.Overwhelms, Throw.Outlook(dug, dug.Get(husk), drain));
+
         var result = dug.Step(Cast(fisher, husk, drain));
 
+        Assert.False(result.Has<CastRefused>());
         Assert.True(result.Has<FootingSpent>());
-        Assert.False(result.NewState.Get(husk).Clinging);
-        Assert.Equal(Throw.Shortened(dug, dug.Get(husk), drain), result.NewState.Get(husk).Position);
+        Assert.Equal(drain, result.NewState.Get(husk).Position);
+        Assert.True(result.NewState.Get(husk).Clinging);
         Assert.Equal(0, result.NewState.Get(husk).Footing);
-
-        // One tile short of the drain, and one step of the flight — not somewhere arbitrary.
-        var landed = result.NewState.Get(husk).Position;
-        Assert.Equal(1, landed.DistanceTo(drain));
-        Assert.Contains(landed, Throw.ShortCandidates(dug.Get(husk).Position, drain));
     }
 
+    // Footing 0: it lands, and nothing interacts at all.
     [Fact]
-    public void Footing_IsNotSpentWhenShorteningChangesNothing()
+    public void CastThreshold_AtZero_ItLandsWithNoInteraction()
     {
         var state = Open(out var fisher, out var husk);
-        var dug = state.WithUnit(state.Get(husk) with { Footing = 1 });
-        var landing = Beside(dug, fisher);
+        var landing = Beside(state, fisher);
 
-        var result = dug.Step(Cast(fisher, husk, landing));
+        Assert.Equal(0, state.Get(husk).Footing);
+        Assert.Equal(CastOutlook.Lands, Throw.Outlook(state, state.Get(husk), landing));
+
+        var result = state.Step(Cast(fisher, husk, landing));
 
         Assert.False(result.Has<FootingSpent>());
+        Assert.False(result.Has<CastRefused>());
         Assert.Equal(landing, result.NewState.Get(husk).Position);
-        Assert.Equal(1, result.NewState.Get(husk).Footing);
     }
 
     // ---- the spend itself ----------------------------------------------------------------------

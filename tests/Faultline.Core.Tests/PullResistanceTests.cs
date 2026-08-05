@@ -21,7 +21,7 @@ public class PullResistanceTests
         Assert.Equal(
             0,
             Displacement.EffectiveDistance(
-                state, state.Get(wardbearer), DisplacementKind.Pull, 2, false, out _));
+                state, state.Get(wardbearer), DisplacementKind.Pull, 2, out _));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class PullResistanceTests
         Assert.Equal(
             1,
             Displacement.EffectiveDistance(
-                state, state.Get(wardbearer), DisplacementKind.Pull, 2, false, out bool consumed));
+                state, state.Get(wardbearer), DisplacementKind.Pull, 2, out bool consumed));
 
         Assert.True(consumed);
     }
@@ -116,7 +116,7 @@ public class PullResistanceTests
         Assert.Equal(
             2 - UnitTemplate.For(kind).PushResistance,
             Displacement.EffectiveDistance(
-                state, state.Get(heavy), DisplacementKind.Pull, 2, false, out _));
+                state, state.Get(heavy), DisplacementKind.Pull, 2, out _));
 
         var landing = Throw.Landings(state, state.Get(fisher), heavy)[0];
         var result = state.Step(new SpendVerveCommand(fisher, VerveSpend.Cast, heavy, landing));

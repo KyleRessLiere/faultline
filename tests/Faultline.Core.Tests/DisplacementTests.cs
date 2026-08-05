@@ -450,15 +450,16 @@ public class DisplacementTests
         Assert.True(Displacement.HasHold(state, state.Get(husk.Id)));
 
         int distance = Displacement.EffectiveDistance(
-            state, state.Get(husk.Id), DisplacementKind.Push, 3, false, out _);
+            state, state.Get(husk.Id), DisplacementKind.Push, 3, out _);
 
         Assert.Equal(1, distance);
     }
 
+    // The Bulwark cap is the last term in the arithmetic now that Footing has left it, and it still
+    // works on its own: a token in the target's pocket neither helps it nor is quietly consumed by it.
     [Fact]
-    public void Hold_AndFooting_StackDownToZero()
+    public void Hold_CapStillWorksWithNoFootingTermUnderIt()
     {
-        // The Husk's token is granted by this fixture: Footing is scenario-granted, not automatic.
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
             .Enemy(UnitKind.Husk, 1, 0, footing: 1)
@@ -467,10 +468,23 @@ public class DisplacementTests
 
         var husk = state.Get(state.Find(UnitKind.Husk).Id);
 
-        int distance = Displacement.EffectiveDistance(
-            state, husk, DisplacementKind.Push, 3, true, out _);
+        Assert.Equal(1, Displacement.EffectiveDistance(state, husk, DisplacementKind.Push, 3, out _));
+        Assert.Equal(1, husk.Footing);
+    }
 
-        Assert.Equal(0, distance);
+    // Resistance SHORTENS, Footing REFUSES. The two never touch: a Wardbearer's 2 eats two tiles of
+    // the request and its Footing is still sitting there, whole, to refuse whatever is left.
+    [Fact]
+    public void Footing_IsNotPartOfTheDistanceArithmeticAtAll()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Wardbearer, 2, 0, footing: 1)
+            .Enemy(UnitKind.Husk, 1, 0)
+            .Build();
+
+        var wardbearer = state.Get(state.Find(UnitKind.Wardbearer).Id);
+
+        Assert.Equal(1, Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Push, 3, out _));
     }
 
     [Fact]
@@ -500,7 +514,7 @@ public class DisplacementTests
         Assert.False(UnitTemplate.For(UnitKind.Wardbearer).HoldAura);
         Assert.False(Displacement.HasHold(state, archer));
         Assert.Equal(
-            3, Displacement.EffectiveDistance(state, archer, DisplacementKind.Push, 3, false, out _));
+            3, Displacement.EffectiveDistance(state, archer, DisplacementKind.Push, 3, out _));
     }
 
     [Fact]
@@ -514,7 +528,7 @@ public class DisplacementTests
             .Build();
         var husk = pitBoard.Find(UnitKind.Husk);
 
-        Assert.True(Displacement.EnemyWouldSpendFooting(
+        Assert.True(Displacement.EnemyWouldRefuse(
             pitBoard, husk.Id, new Coord(0, 0), DisplacementKind.Push, 2));
 
         var openBoard = BoardBuilder.Rows(".....")
@@ -522,21 +536,22 @@ public class DisplacementTests
             .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
-        Assert.False(Displacement.EnemyWouldSpendFooting(
+        Assert.False(Displacement.EnemyWouldRefuse(
             openBoard, openBoard.Find(UnitKind.Husk).Id, new Coord(0, 0), DisplacementKind.Push, 2));
     }
 
+    // Under the tile model a shove into an *adjacent* drain was unrefusable: giving up one tile
+    // changed nothing, so the token stayed in the pocket and the unit went in. Refusing an instance
+    // has no such gap — the drain is the drain however close it is.
     [Fact]
-    public void EnemyFooting_IsNotSpentWhenItCannotAvoidThePitAnyway()
+    public void EnemyFooting_RefusesADrainItIsStandingNextTo()
     {
-        // Pit immediately adjacent: shortening the shove by one changes nothing, so the token this
-        // fixture granted is kept.
         var state = BoardBuilder.Rows("..O.")
             .PlayerA(UnitKind.Archer, 0, 0)
             .Enemy(UnitKind.Husk, 1, 0, footing: 1)
             .Build();
 
-        Assert.False(Displacement.EnemyWouldSpendFooting(
+        Assert.True(Displacement.EnemyWouldRefuse(
             state, state.Find(UnitKind.Husk).Id, new Coord(0, 0), DisplacementKind.Push, 2));
     }
 
@@ -553,10 +568,13 @@ public class DisplacementTests
         var after = Displacement.ResolveAuto(
             state, husk.Id, new Coord(0, 0), DisplacementKind.Push, 2, events);
 
+        // The whole instance is refused, so it does not travel at all — not one tile short of the
+        // drain, but nowhere.
         Assert.False(after.Get(husk.Id).Clinging);
-        Assert.Equal(new Coord(2, 0), after.Get(husk.Id).Position);
+        Assert.Equal(new Coord(1, 0), after.Get(husk.Id).Position);
         Assert.Equal(0, after.Get(husk.Id).Footing);
         Assert.Single(events.OfType<FootingSpent>());
+        Assert.Single(events.OfType<DisplacementRefused>());
     }
 
     [Fact]
@@ -667,7 +685,7 @@ public class DisplacementTests
 
         var husk = state.Find(UnitKind.Husk);
         var events = new System.Collections.Generic.List<GameEvent>();
-        var after = Displacement.Resolve(state, husk.Id, husk.Position, DisplacementKind.Push, 2, events: events, spendFooting: false);
+        var after = Displacement.Resolve(state, husk.Id, husk.Position, DisplacementKind.Push, 2, events: events, refused: false);
 
         Assert.Equal(husk.Position, after.Get(husk.Id).Position);
         Assert.Empty(events);

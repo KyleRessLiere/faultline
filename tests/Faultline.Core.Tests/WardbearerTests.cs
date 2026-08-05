@@ -70,7 +70,7 @@ public class WardbearerTests
         state = state.WithUnit(state.Get(wardbearer.Id) with { Staggered = staggered });
 
         int distance = Displacement.EffectiveDistance(
-            state, state.Get(wardbearer.Id), DisplacementKind.Push, requested, false, out _);
+            state, state.Get(wardbearer.Id), DisplacementKind.Push, requested, out _);
 
         Assert.Equal(expected, distance);
     }
@@ -88,11 +88,11 @@ public class WardbearerTests
         var wardbearer = state.Get(state.Find(UnitKind.Wardbearer).Id);
 
         Assert.Equal(
-            0, Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 2, false, out _));
+            0, Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 2, out _));
 
         Assert.Equal(
-            Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Push, 3, false, out _),
-            Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 3, false, out _));
+            Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Push, 3, out _),
+            Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 3, out _));
     }
 
     // ---- Spear Thrust ------------------------------------------------------------------

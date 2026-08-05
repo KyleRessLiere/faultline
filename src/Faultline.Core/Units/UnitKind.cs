@@ -66,8 +66,15 @@ namespace Faultline.Core
         /// <summary>Enemy: HP 2, walks at the Protect structure and never at you.</summary>
         Raider = 19,
 
-        /// <summary>Enemy: HP 14 boss. Three negating Footing tokens and a second stat block at 7 HP.</summary>
+        /// <summary>Enemy: HP 14 boss. Three Footing and a second stat block at 14 HP.</summary>
         QuarryKing = 20,
+
+        /// <summary>
+        /// Enemy: a Husk that holds Footing 2 — the reserved stacked-Footing fixture (D-144). It
+        /// exists so the instance model's stack rules have something to be asserted against, and it
+        /// is fielded by no fight; putting it on a board is a design decision, not a test's.
+        /// </summary>
+        BracedHusk = 21,
     }
 
     /// <summary>

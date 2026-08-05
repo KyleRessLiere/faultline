@@ -12,8 +12,11 @@ namespace Faultline.Core
     /// <param name="Range">Basic attack range in orthogonal steps.</param>
     /// <param name="Damage">Basic attack damage before HighGround bonuses.</param>
     /// <param name="Footing">
-    /// Footing tokens the archetype starts a fight with. Zero for every archetype: Footing is granted
-    /// per scenario by the <c>footing:</c> key in a <c>.fight</c> file, never automatically.
+    /// Footing the archetype starts a fight with, counted in whole <em>refusals</em> rather than in
+    /// tiles (MASTER_DESIGN §3, Design Log (t)). Zero for the player classes, who are granted it per
+    /// scenario by the <c>footing:</c> key in a <c>.fight</c> file. On an enemy this is the
+    /// anti-displacement stat and a bestiary lever: regulars carry 1, and a stack of 2 or more is how
+    /// a stat block says "this one will cost you properly to fish".
     /// </param>
     /// <param name="FreeClimb">True when entering HighGround costs no extra movement.</param>
     /// <param name="AttackPush">Push distance the basic attack applies on top of its damage.</param>
@@ -30,8 +33,9 @@ namespace Faultline.Core
     /// plan with the archetype they vary, so the two lists cannot drift apart.
     /// </param>
     /// <param name="PushResistance">
-    /// Tiles subtracted from every Push against this unit, before Hold and Footing (D-018). One for
-    /// the Anchor, two for the Colossus and the Wardbearer. Pull is never reduced.
+    /// Tiles subtracted from every displacement against this unit, before the Bulwark cap (D-018,
+    /// D-139). One for the Anchor, two for the Colossus and the Wardbearer. Resistance SHORTENS and
+    /// Footing REFUSES: the two never share arithmetic.
     /// </param>
     /// <param name="HoldAura">
     /// True when adjacent allies cannot be displaced more than 1 tile. Only the enemy Bulwark carries
@@ -49,12 +53,6 @@ namespace Faultline.Core
     /// <param name="HazardRanks">
     /// How many tiers of the pit → spikes → wall/edge ladder a flanking shover will aim for: 3 takes
     /// all three, 2 stops at spikes, 0 means the archetype does not hunt hazards at all (D-024).
-    /// </param>
-    /// <param name="FootingNegates">
-    /// True when this archetype's Footing tokens cancel a displacement instead of shortening it by a
-    /// tile: while any remain, every Push and Pull against the unit resolves at distance 0, and the
-    /// token is not spent doing it. Such a token is taken away by a collision or by ending a round on
-    /// the lip of a pit, never by the shove it turned aside (D-039).
     /// </param>
     /// <param name="Enraged">
     /// The second stat block this archetype swaps to at <paramref name="EnrageAt"/> hit points, or
@@ -84,7 +82,6 @@ namespace Faultline.Core
         int HazardRanks = 0,
         int MinRange = 0,
         bool Tramples = false,
-        bool FootingNegates = false,
         UnitTemplate? Enraged = null,
         int EnrageAt = 0)
     {
@@ -156,7 +153,7 @@ namespace Faultline.Core
             // rather than off the archetype — the enraged block is the one that carries a BasicPush.
             var quarryKingEnraged = new UnitTemplate(
                 UnitKind.QuarryKing, "Quarry King", 28, 3, AttackKind.Melee, 1, 6, 3, false,
-                AttackPush: 1, BasicPush: 2, Plan: EnemyPlan.QuarryKing, FootingNegates: true);
+                AttackPush: 1, BasicPush: 2, Plan: EnemyPlan.QuarryKing);
 
             var all = new[]
             {
@@ -183,7 +180,7 @@ namespace Faultline.Core
 
                 // docs/ENEMY_ROSTER.md: behaviour variants. Each one names a plan the shipped five do
                 // not have; everything else about it is a number on this row.
-                new UnitTemplate(UnitKind.Warden, "Warden", 12, 0, AttackKind.Melee, 1, 4, 2, false, Plan: EnemyPlan.Warden, FootingNegates: true),
+                new UnitTemplate(UnitKind.Warden, "Warden", 12, 0, AttackKind.Melee, 1, 4, 2, false, Plan: EnemyPlan.Warden),
                 new UnitTemplate(UnitKind.Perch, "Perch", 6, 2, AttackKind.Ranged, 3, 2, 0, false, Plan: EnemyPlan.Perch),
                 new UnitTemplate(UnitKind.Bulwark, "Bulwark", 10, 2, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee, HoldAura: true),
                 new UnitTemplate(UnitKind.Harrier, "Harrier", 8, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Harrier),
@@ -195,16 +192,21 @@ namespace Faultline.Core
                 new UnitTemplate(UnitKind.LesserGrappler, "Lesser Grappler", 10, 3, AttackKind.None, 2, 0, 0, false, BasicPull: 2, Plan: EnemyPlan.Grappler),
                 new UnitTemplate(UnitKind.BluntedStalker, "Blunted Stalker", 8, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 2),
                 new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 6, 3, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee),
+
+                // The reserved Footing-2 fixture. A Husk in every other number, fielded by nothing:
+                // it exists so the stacked-Footing rules have something to be asserted against
+                // without a shipped board being re-tiered behind a rules change (the D-092 trap).
+                new UnitTemplate(UnitKind.BracedHusk, "Braced Husk", 4, 3, AttackKind.Melee, 1, 2, 2, false, Plan: EnemyPlan.Melee),
                 new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 12, 2, AttackKind.Melee, 1, 4, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
 
                 // docs/archive/CURATED_SET.md §5A/§5B: the objective enemies. The Raider is a Husk in every
-                // number and differs only in the list it runs. The Quarry King is the only archetype
-                // that starts a fight holding Footing, because his three tokens are not the ordinary
-                // one-tile shrug — they are the boss (D-039, amending D-028).
+                // number and differs only in the list it runs. The Quarry King's three carry the
+                // boss's whole anti-displacement budget: three refusals, spent one per instance like
+                // everybody else's since D-143 retired the negating token.
                 new UnitTemplate(UnitKind.Raider, "Raider", 4, 3, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Raider),
                 new UnitTemplate(
                     UnitKind.QuarryKing, "Quarry King", 28, 1, AttackKind.Melee, 1, 6, 3, false,
-                    AttackPush: 1, Plan: EnemyPlan.QuarryKing, FootingNegates: true,
+                    AttackPush: 1, Plan: EnemyPlan.QuarryKing,
                     Enraged: quarryKingEnraged, EnrageAt: 14),
             };
 

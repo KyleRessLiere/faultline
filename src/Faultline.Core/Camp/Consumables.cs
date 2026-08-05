@@ -21,7 +21,7 @@ namespace Faultline.Core
         /// <summary>Hit points a Bramble Salve puts back, never past the duck's maximum.</summary>
         public const int SalveHeal = 3;
 
-        /// <summary>Footing tokens a Duck Feather Charm hands over.</summary>
+        /// <summary>Footing a Duck Feather Charm hands over — one more whole refusal.</summary>
         public const int CharmFooting = 1;
 
         /// <summary>
