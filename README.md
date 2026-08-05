@@ -68,6 +68,18 @@ the whole procedure — there is nothing to type.
 It finds a free port itself, starts the server, and opens a browser once the port actually answers.
 Run it twice and you get two working servers rather than an error.
 
+**Everything you play is written to disk.** There is nothing to switch on: `run.ps1` and `run.sh`
+start a small log host beside the dev server, and each sitting lands in
+`docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log` — Eastern, twelve-hour — holding the run events and
+the board transcript in the order they happened, appended as you play. The date folders are
+gitignored; the harness's `fights.tsv`, `runs.tsv`, `summary.md` and `logs/` in the same directory
+are not. If you serve the app some other way and nothing is listening, the game is unaffected and
+simply logs nothing to disk. To run the log host by hand:
+
+```bash
+dotnet run --project tools/Faultline.Launcher -- --log-only
+```
+
 **With options:**
 
 ```bash
@@ -334,3 +346,7 @@ count per battle.
 Notes are stored in **this browser's localStorage**. Clearing site data deletes them and nothing is
 kept on a server — export from `/notes` (Markdown to read back, JSON for tooling; save to a folder,
 download, or copy) to keep them.
+
+The **session log** is the other half and needs nothing from you: see "How to run it yourself". Notes
+are what you chose to write down; the session log is what actually happened, and it is written
+whether or not anybody remembered to take a note.

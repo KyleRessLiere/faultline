@@ -25,4 +25,13 @@
     <ProjectReference Include="..\..\src\Faultline.Web\Faultline.Web.csproj" />
   </ItemGroup>
 
+  <!-- The session-log endpoint, compiled in rather than referenced. It lives in the launcher, which
+       is a self-contained single-file executable and is not in the solution; a ProjectReference would
+       drag those publish properties into this test build for one static class. The file has no
+       dependency beyond System.IO, so linking it tests exactly the code the launcher runs. -->
+  <ItemGroup>
+    <Compile Include="..\..\tools\Faultline.Launcher\PlaytestLogEndpoint.cs"
+             Link="Linked\PlaytestLogEndpoint.cs" />
+  </ItemGroup>
+
 </Project>

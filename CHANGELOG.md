@@ -1,5 +1,24 @@
 # Changelog
 
+## Every sitting logged to disk, with no setting
+
+- **Playing writes a file (D-142).** `docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log`, Eastern,
+  twelve-hour. No toggle, no folder picker, no permission prompt.
+- **The page posts; the host writes.** A Blazor WASM page cannot write a path, so it POSTs to the
+  process serving it. `tools/Faultline.Launcher` gained `GET /playtest/log/ping` and
+  `POST /playtest/log?date=&file=`, plus a `--log-only` sidecar mode for use beside the Blazor dev
+  server, which takes no middleware of its own. `run.ps1` and `run.sh` start the sidecar.
+- **Silent when nothing answers.** Served off a plain static file server the probe fails and the
+  logger goes inert; the log stays in memory where the Dev panel's LOG tab already reads it.
+- **Appended as play proceeds** — flushed every two seconds, on a full buffer, and on `pagehide` via
+  `sendBeacon`. A tab closed mid-fight still leaves the fight on disk.
+- **One format, not two.** Fight lines are the board transcript and run lines are run events, read by
+  cursor off the same lists the LOG tab draws.
+- **The endpoint accepts a date and a timestamp and nothing else** — an exact-shape match rather than
+  a `..` blocklist, with a path fence behind it.
+- **Only the date folders are gitignored.** `fights.tsv`, `runs.tsv`, `levels.md`, `summary.md`,
+  `logs/*.log` and `omarTest/` share that directory and stay tracked.
+
 ## The battle screen, rebuilt around the board
 
 - **Four regions, no header (D-140, D-141).** A fixed 270–310px left rail (run/fight/seed line,

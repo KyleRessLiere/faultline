@@ -68,16 +68,31 @@ public static class Program
         Console.Title = "Faultline";
         Console.OutputEncoding = Encoding.UTF8;
 
-        var root = Path.Combine(AppContext.BaseDirectory, Root);
-        if (!Directory.Exists(root))
+        // Where session logs go. Found by walking up from the working directory, so running this
+        // from anywhere inside the repo writes into the repo's docs/playtest.
+        var logRoot = PlaytestLogEndpoint.FindRoot(Directory.GetCurrentDirectory());
+
+        // The sidecar. The Blazor dev server is not ours to add an endpoint to, so beside it runs
+        // this: the same endpoint, no game, on the one port a page can guess.
+        bool logsOnly = Array.Exists(args, a => a is "--log-only" or "--logs-only");
+
+        string? root = null;
+        if (!logsOnly)
         {
-            return Fail(
-                "The game files are missing.",
-                "This program expects a '" + Root + "' folder sitting beside it. If you unzipped",
-                "only the executable, unzip the whole folder again and keep the files together.");
+            root = Path.Combine(AppContext.BaseDirectory, Root);
+            if (!Directory.Exists(root))
+            {
+                return Fail(
+                    "The game files are missing.",
+                    "This program expects a '" + Root + "' folder sitting beside it. If you unzipped",
+                    "only the executable, unzip the whole folder again and keep the files together.");
+            }
         }
 
-        int port = args.Length > 0 && int.TryParse(args[0], out int chosen) ? chosen : FreePort();
+        var numeric = Array.Find(args, a => int.TryParse(a, out _));
+        int port = numeric is not null && int.TryParse(numeric, out int chosen)
+            ? chosen
+            : logsOnly ? PlaytestLogEndpoint.SidecarPort : FreePort();
         var address = "http://localhost:" + port + "/";
 
         HttpListener listener;
@@ -85,6 +100,16 @@ public static class Program
         {
             listener = new HttpListener();
             listener.Prefixes.Add(address);
+
+            // The page addresses the sidecar as 127.0.0.1 rather than "localhost", because on a
+            // machine that resolves localhost to ::1 first the browser and this listener would
+            // disagree about which loopback they meant and the log would silently go nowhere. Both
+            // spellings are bound so neither side has to be right.
+            if (logsOnly)
+            {
+                listener.Prefixes.Add("http://127.0.0.1:" + port + "/");
+            }
+
             listener.Start();
         }
         catch (HttpListenerException error)
@@ -96,8 +121,15 @@ public static class Program
                 "different number after it, like:  Faultline 5200");
         }
 
-        Banner(address);
-        Open(address);
+        if (logsOnly)
+        {
+            LogBanner(address, logRoot);
+        }
+        else
+        {
+            Banner(address);
+            Open(address);
+        }
 
         // One request at a time is plenty: the only client is the browser on this machine, and a
         // queue nobody is waiting in costs nothing.
@@ -115,7 +147,7 @@ public static class Program
 
             try
             {
-                Serve(context, root);
+                Serve(context, root, logRoot);
             }
             catch (Exception error) when (error is IOException or HttpListenerException)
             {
@@ -126,9 +158,25 @@ public static class Program
         return 0;
     }
 
-    private static void Serve(HttpListenerContext context, string root)
+    private static void Serve(HttpListenerContext context, string? root, string logRoot)
     {
-        var relative = Uri.UnescapeDataString(context.Request.Url?.AbsolutePath ?? "/").TrimStart('/');
+        var path = context.Request.Url?.AbsolutePath ?? "/";
+
+        if (path is PlaytestLogEndpoint.PingPath or PlaytestLogEndpoint.WritePath)
+        {
+            ServeLog(context, logRoot, path);
+            return;
+        }
+
+        if (root is null)
+        {
+            // Log-only. Nothing else here is anybody's business.
+            context.Response.StatusCode = 404;
+            context.Response.Close();
+            return;
+        }
+
+        var relative = Uri.UnescapeDataString(path).TrimStart('/');
         var file = Resolve(root, relative);
 
         if (file is null)
@@ -156,6 +204,69 @@ public static class Program
         context.Response.ContentLength64 = bytes.Length;
         context.Response.OutputStream.Write(bytes, 0, bytes.Length);
         context.Response.Close();
+    }
+
+    /// <summary>
+    /// Answers the probe and takes log chunks. The only endpoint here that writes anything.
+    /// </summary>
+    private static void ServeLog(HttpListenerContext context, string logRoot, string path)
+    {
+        var response = context.Response;
+
+        // The dev-server sidecar is a different origin from the page, so it has to say so. A wildcard
+        // is right for a loopback endpoint whose entire authority is "append text to a file whose
+        // name is a timestamp" — there is no session, no cookie and nothing to steal.
+        response.Headers["Access-Control-Allow-Origin"] = "*";
+        response.Headers["Cache-Control"] = "no-store";
+
+        if (path == PlaytestLogEndpoint.PingPath)
+        {
+            Say(response, 200, PlaytestLogEndpoint.PingBody);
+            return;
+        }
+
+        if (!string.Equals(context.Request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+        {
+            Say(response, 405, "post only");
+            return;
+        }
+
+        var query = context.Request.QueryString;
+        string body;
+        using (var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8))
+        {
+            body = reader.ReadToEnd();
+        }
+
+        string? written;
+        try
+        {
+            written = PlaytestLogEndpoint.Append(logRoot, query["date"], query["file"], body);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            Say(response, 500, "could not write");
+            return;
+        }
+
+        if (written is null)
+        {
+            // The name was not a date and a timestamp. Nothing was created, nothing was touched.
+            Say(response, 400, "bad name");
+            return;
+        }
+
+        Say(response, 200, "ok");
+    }
+
+    private static void Say(HttpListenerResponse response, int status, string text)
+    {
+        var bytes = Encoding.UTF8.GetBytes(text);
+        response.StatusCode = status;
+        response.ContentType = "text/plain; charset=utf-8";
+        response.ContentLength64 = bytes.Length;
+        response.OutputStream.Write(bytes, 0, bytes.Length);
+        response.Close();
     }
 
     /// <summary>
@@ -217,6 +328,19 @@ public static class Program
         Console.WriteLine("  Your browser should have opened it. If not, paste that address in.");
         Console.WriteLine();
         Console.WriteLine("  >> Leave this window open while you play. Closing it stops the game. <<");
+        Console.WriteLine();
+    }
+
+    private static void LogBanner(string address, string logRoot)
+    {
+        Console.WriteLine();
+        Console.WriteLine("  FAULTLINE — session log host");
+        Console.WriteLine("  ---------------------------");
+        Console.WriteLine();
+        Console.WriteLine("  Listening at   " + address);
+        Console.WriteLine("  Writing into   " + Path.Combine(logRoot, "docs", "playtest"));
+        Console.WriteLine();
+        Console.WriteLine("  Run this beside the dev server and every sitting lands on disk.");
         Console.WriteLine();
     }
 

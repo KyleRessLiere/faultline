@@ -123,6 +123,15 @@ if [ "$OPEN" -eq 1 ]; then
   ) &
 fi
 
+# Every sitting lands in docs/playtest/<date>/ without anybody switching anything on. The page
+# cannot write a path, so it posts to a local host — and the Blazor dev server is not ours to add an
+# endpoint to, so the log host runs beside it on a fixed port. Best effort: if it will not start,
+# the game still runs and the log simply stays in the browser.
+if ! curl -fsS -o /dev/null --max-time 2 "http://127.0.0.1:5178/playtest/log/ping" 2>/dev/null; then
+  ( dotnet run --project tools/Faultline.Launcher -- --log-only >/dev/null 2>&1 & ) || true
+  echo "    session log -> docs/playtest/<date>/<time>.log"
+fi
+
 echo "==> Faultline on $url   (ctrl-c to stop)"
 if [ "$WATCH" -eq 1 ]; then
   echo "    hot reload on — edits to .razor and .cs reload the page"

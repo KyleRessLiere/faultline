@@ -111,6 +111,22 @@ if ($Open) {
     $null = $waiter
 }
 
+# Every sitting lands in docs/playtest/<date>/ without anybody switching anything on. The page
+# cannot write a path, so it posts to a local host — and the Blazor dev server is not ours to add an
+# endpoint to, so the log host runs beside it on a fixed port. Best effort: if it will not start,
+# the game still runs and the log simply stays in the browser.
+if (-not (Test-Listening -OnPort 5178)) {
+    try {
+        Start-Process -FilePath 'dotnet' `
+            -ArgumentList 'run', '--project', 'tools/Faultline.Launcher', '--', '--log-only' `
+            -WorkingDirectory $PSScriptRoot -WindowStyle Minimized | Out-Null
+        Write-Host '    session log -> docs/playtest/<date>/<time>.log' -ForegroundColor DarkGray
+    }
+    catch {
+        Write-Host '    session log host did not start; play is not logged to disk' -ForegroundColor DarkGray
+    }
+}
+
 Write-Host "==> Faultline on $url   (ctrl-c to stop)" -ForegroundColor Green
 
 if ($Watch) {

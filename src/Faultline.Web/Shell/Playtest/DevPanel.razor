@@ -2,6 +2,7 @@
 @inject DevPanelState Dev
 @inject FightFiles Files
 @inject SessionLog Sink
+@inject PlaytestSessionLog Auto
 
 @* The developer panel: six drawers of things a playtester needs and a player must never see.
 
@@ -690,6 +691,14 @@
         {
             string source = Session.Log.Count + " transcript line(s) · "
                 + Session.RecordedLineCount + " recorded";
+
+            // The automatic log (D-142) is the floor under the chosen folder: it needs no folder and
+            // is never off, so it is said first. Nothing here can switch it on or off — this is a
+            // report, not a control.
+            if (Auto.Active)
+            {
+                source += " · " + Auto.Path;
+            }
 
             if (Sink.Active)
             {

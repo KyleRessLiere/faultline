@@ -31,5 +31,18 @@ builder.Services.AddSingleton<BoardAnimator>();
 // Every message about the game as a whole goes here, and there is nowhere else for one to go: the
 // battle screen reserves no row for text between the turn-order strip and the board.
 builder.Services.AddSingleton<SystemToasts>();
+// Every sitting on disk, with no setting and no prompt. A page cannot write a path, so it posts to
+// whichever local host is serving it; when nothing answers, this is silently inert and the log lives
+// in memory as it always did.
+builder.Services.AddSingleton<PlaytestLogHost>();
+builder.Services.AddSingleton<PlaytestSessionLog>();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+// Not awaited: finding the log host is a probe over the network and the game must not wait on one to
+// draw its first frame. Play that happens before the probe lands is not lost — the logger reads the
+// transcript by cursor, so its first pump picks up everything that already happened.
+_ = host.Services.GetRequiredService<PlaytestSessionLog>()
+    .StartAsync(builder.HostEnvironment.BaseAddress);
+
+await host.RunAsync();

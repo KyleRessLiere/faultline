@@ -39,6 +39,18 @@ internal sealed class FakeJsRuntime : IJSRuntime
     /// <summary>What <c>easternNow</c> will answer, tab-separated.</summary>
     internal string Eastern { get; set; } = "2026-08-02\t14-35-07\tEDT";
 
+    /// <summary>
+    /// Whether a local host answers the session-log probe. False is the plain-static-server case:
+    /// nothing to post to, and nothing to say about it.
+    /// </summary>
+    internal bool LogHostAnswers { get; set; }
+
+    /// <summary>Every chunk handed to the log transport, in order.</summary>
+    internal List<string> LogPushes { get; } = new();
+
+    /// <summary>The day folder and file name the session-log transport was started with.</summary>
+    internal string LogTarget { get; private set; } = string.Empty;
+
     /// <summary>How many keys are set right now.</summary>
     internal int Keys => _storage.Count;
 
@@ -110,6 +122,17 @@ internal sealed class FakeJsRuntime : IJSRuntime
 
             case "faultlineFiles.easternNow":
                 return Eastern;
+
+            case "faultlinePlaytestLog.start":
+                LogTarget = Key(args, 1) + "/" + Key(args, 2);
+                return LogHostAnswers ? "http://127.0.0.1:5178/" : string.Empty;
+
+            case "faultlinePlaytestLog.push":
+                LogPushes.Add(Key(args, 0));
+                return null;
+
+            case "faultlinePlaytestLog.flush":
+                return null;
 
             default:
                 throw new NotSupportedException(identifier);
