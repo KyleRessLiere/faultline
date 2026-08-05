@@ -26,7 +26,7 @@ here as dropped rather than quietly folded into the others.
 | # | What changed | Where it went, and why |
 |---|---|---|
 | C1, C2, C3 | The friendly card no longer draws an action list inside itself. | Stats, AP pips (with the hover preview intact), Footing, Resist and the Pluck meter are still there and are now the **only** home for those numbers. The kit moved to the command bar, which falls back to whichever friendly duck is being read — priced, dead, with `not your activation` on every card (C8 is intact). D-141. |
-| C7 | "Nothing selected = a slim hint line." | There is no hint line: with nothing selected the inspector is **absent**, not empty. It is a contextual card now rather than a permanent panel, and a box that persists to say "click something" claims a strip of screen forever. D-140. |
+| C7 | "Nothing selected = a slim hint line." | There is no hint line: with nothing selected the inspector is **absent**, not empty. It is a contextual card now rather than a permanent panel, and a box that persists to say "click something" claims a strip of screen forever. D-140. **Superseded by the 2026-08-04b pass below** — it now falls back to the acting unit. |
 | I1 | An empty pocket drew nothing. | It draws its **socket**, dashed and quiet. The pocket is what a run hands a duck, so an empty one on a fresh fight is the honest picture of the run so far. The slot count is read from the loadout rather than typed. D-140. |
 | D6 | The summary sentence `3 AP left — move or pick an action.` | **Deleted.** Action Points have exactly one home and it is the inspector; a sentence on the bar would have been a second. Every other reason string in section D is intact, and an unaffordable action is still readable on its card without opening anything (`1 AP short`, `Need 3 Pluck`, `no target in range`). D-141. |
 | H3 | The Pluck gain pulse (one flash of the newest segment). | **Lost.** It retired with `PluckSection`; the inspector card draws the meter flat. Not a ruling — an omission, recorded so it can be reinstated on the inspector meter. |
@@ -45,6 +45,46 @@ A second pocket (§8.6's *Deep Pockets*) cannot be rendered or tested today beca
 `DuckLoadout.Pocket` is a single nullable and `Unlock.cs` records the absence as deliberate — the
 shell reads capacity from one place so it grows the slot for free, but the fixture the brief asked
 for cannot be built without a Core change.
+
+---
+
+## The 2026-08-04b layout pass: the inspector stops covering the board
+
+A layout correction, not a rebuild. Nothing in sections A–M changed except the two lines below; the
+one-contextual-surface rule, the paged dock, the 126px bar, the pocket, the cost badges, the reason
+strings, the hover preview and the overlaying toasts are all intact and measured.
+
+| # | What changed | Where it went, and why |
+|---|---|---|
+| C7 | "With nothing selected the inspector is **absent**, not empty." (D-140/D-141) | **Reversed.** With nothing pointed at it falls back to the **acting unit** — HP, AP pips, Pluck, Footing. Selecting something else still replaces the content; deselecting comes back to the acting unit rather than emptying. Absent was defensible while the card was a lid over the board and every pixel it claimed was a tile; it owns a column now, and an empty column means the numbers the turn is planned on are nowhere on screen. This is the one job the deleted resource strip was doing, done in the card that already owns those numbers — **the strip is not coming back**. `BattleSurfaces.Resolve`. |
+| N-new | "The inspector **overlays the board's right edge**; the board does not resize." (D-140/D-141) | **Reversed.** The inspector is a **dedicated column** down the right of the stage, top-aligned beside the board, and the board is sized around it. Overlaying cost the board no width and cost it the rightmost files instead — a board that is whole and partly covered is worse than one that is honestly smaller, because the covered part is the part being read. The column is **reserved whether or not a card is in it**, so opening and closing one still reflows nothing. The other contextual surfaces — an expanded ability card, the expanded order — still overlay and still resize nothing. `PlaytestScreen.razor.css`, `InspectorPanel.razor.css`. |
+
+Two more corrections in the same pass, neither of which changes a claim in the list:
+
+- **The board is left-aligned in its region**, not centred (`CoordinateGrid.razor.css`). Centred, it
+  left a wide dead band between the rail and the first file; the spare width now collects on one
+  side, where the view controls already live. **B10/N3 are unchanged** — the board is still sized by
+  its region and never by a zoom setting.
+- **The legend and the view controls were split.** They were one stack in the board region's
+  bottom-left margin and competed there. The **legend stays in the bottom-left**, beside the tiles it
+  reads; the **view controls (Threats / Range preview / Threat preview / Grid on / zoom / Board only /
+  Fit board) moved to the bottom-right**. Both are still out of flow, and both margins are now
+  subtracted from the board's own fit calculation so neither can land on a tile.
+
+**Measured, in pixels rather than in per cent** (`tools/ui-checks/ia-acceptance.mjs`). A fill ratio is
+the board over the region it sits in, so it sits still while a shrinking region takes the board down
+with it — which is exactly what a dedicated column does. The tool now prints the board's **absolute**
+size against the 2026-08-04 baseline and fails on an absolute floor.
+
+| viewport | rail | inspector | board (was) | board (now) | gave up |
+|---|---|---|---|---|---|
+| 1920x1080 | 307 | 330 | 926 | **926** | **0px** |
+| 2560x1307 | 310 | 330 | 1153 | **1153** | **0px** |
+
+The column is free at both desktop sizes **because the board is height-limited, not width-limited**:
+the region loses 330px of width it was not using. It is not free in general — the board region is
+1251x930 at 1920x1080, so a viewport wider and shorter than about 4:3 against the board's aspect would
+start paying for the column in tiles. The floor in `ia-acceptance.mjs` is what will say so.
 
 ---
 
@@ -97,7 +137,7 @@ Branches on `Inspection.Resolve`, never on four half-overlapping session fields.
 | C4 | **Enemy** | portrait + name + role epithet; HP, Move, Reach, Footing; status flags; the declared intent sentence in full (rules-critical, never behind a hover); one flavour line; the priority list **collapsed behind "How it decides ›"** — the reserved AI-trace socket. |
 | C5 | **Structure** | glyph + name + coord; HP; whether it is objective or blocker; the attack/collision/predicted damage rules, read off `Objectives.AttackDamageToStructure` and `Displacement.CollisionDamage`. |
 | C6 | **Terrain** | name + coord; walk-onto, shoved-onto, damage, stagger, travel. |
-| C7 | **Nothing selected** | one slim hint line, never an empty framed panel. |
+| C7 | **Nothing selected** | ~~one slim hint line~~ ~~absent, not empty (D-140)~~ — the **acting unit's** card, so the active duck's numbers are readable without clicking (2026-08-04b). Nothing at all only when nobody is acting: during deployment, and while a player slot is still open to several candidates (A2 — the game does not pick one, and neither does this). |
 | C8 | A friendly duck the player may *read but not command* keeps its whole kit, priced and dead, with `not your activation` on every row. | `ActionRows.NotYoursReason` |
 
 ## D · The reason-sibling system
@@ -223,4 +263,5 @@ part people remember.
 | N2 | The screen fills the window and never scrolls it; every panel that can outgrow its box scrolls inside itself. | `PlaytestScreen.razor.css` |
 | N3 | The board region is a **leftover** — sized by what the fixed bands do not take, never by a zoom setting. | `CoordinateGrid.razor.css` |
 | N4 | No game state lives in a component: every panel reads the session for itself. | `PlaytestPanel` |
-| N5 | Every layout claim is **measured**, not asserted. `tools/ui-checks/board-fill-acceptance.mjs` measures the board against its region at 1920×1080 and 2560×1307 in three phases, and fails on a fill below the floor or on any message band that took a row. | — |
+| N5 | Every layout claim is **measured**, not asserted. `tools/ui-checks/board-fill-acceptance.mjs` measures the board against its region at 1920×1080 and 2560×1307 in three phases, and fails on a fill below the floor or on any message band that took a row. `ia-acceptance.mjs` measures the bands, and the board in **absolute pixels** against a baseline — a ratio cannot see a region shrinking under the board it describes. | — |
+| N6 | **The inspector owns a region; everything else overlays.** Its column is reserved in every phase, card or no card, so no click reflows the grid. The legend sits in the board's bottom-left margin and the view controls in its bottom-right, both out of flow, and both margins are subtracted from the board's fit so neither can land on a tile. | `PlaytestScreen.razor.css`, `BoardControls.razor.css`, `ia-acceptance.mjs` |

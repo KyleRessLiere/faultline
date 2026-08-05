@@ -2,7 +2,7 @@
 @inject BattleSurfaces Surfaces
 @inject ActionSpotlight Spotlight
 
-@* The contextual inspector: a compact card pinned to the TOP of the board's right edge.
+@* The inspector: a compact card at the top of its OWN COLUMN, to the right of the board.
 
    It is the SINGLE HOME for every unit's detail (design session 2026-08-04) — the duck you are
    commanding included. There is no always-on display for the active unit and no second copy of its
@@ -10,12 +10,14 @@
    Pluck and Footing are read here and nowhere else, which is why the AP pips live in this stat row
    and why the row carries the hover preview the command bar writes.
 
-   NOT a permanent panel, and NOT a full-height column: it opens on a selection, sizes itself to what
-   it has to say, and is gone when nothing is selected. A framed box standing open to say "click
-   something" claims a strip of screen forever to answer a question nobody asked.
+   With NOTHING selected it draws the ACTING unit rather than going away (design session 2026-08-04b,
+   reversing D-141): selecting something else replaces the content, and deselecting comes back here.
+   That is the one job the deleted resource strip was doing — the active duck's numbers always on
+   screen — done in the card that already owns those numbers rather than in a bar across the bottom.
 
-   It overlays; it does not resize the board. A panel that pushed the grid narrower every time
-   somebody clicked an enemy would make reading an enemy cost tiles.
+   NOT a full-height panel: it sizes itself to what it has to say and stops. It does not overlay the
+   board any more; it has a reserved column beside it, and the column is held open whether or not
+   there is a card in it, so nothing anybody clicks reflows the grid.
 
    The panel branches on BattleSurfaces.InspectorContent, which is one value, rather than on four
    half-overlapping session fields. *@

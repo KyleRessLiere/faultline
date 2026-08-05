@@ -11,14 +11,21 @@
 
    Because it is expressed against the container rather than against a measurement, a resize
    recomputes it with no code involved. --zoom is 1.00 unless somebody has deliberately left the
-   fit, and the stage scrolls when a hand-set zoom overflows. */
+   fit, and the stage scrolls when a hand-set zoom overflows.
+
+   THE BOARD IS LEFT-ALIGNED IN ITS REGION, not centred (design session 2026-08-04b). Centred, it
+   left a wide band of dead space between the rail and the first file while the far side of the board
+   ran under the inspector; pushed left, the spare width collects on ONE side, where the view controls
+   already live. --side-left and --side-right are the two margins the legend and the tools sit in, and
+   they are subtracted from the fit rather than merely hoped for: a board that grew into them would
+   put a tile under a button. */
 
 .stage {
     align-items: center;
     container-type: size;
     display: flex;
     flex: 1 1 0;
-    justify-content: center;
+    justify-content: flex-start;
     min-height: 0;
     overflow: auto;
 }
@@ -28,8 +35,10 @@
     --step: 170ms;
     --flash: 130ms;
     --shake: 150ms;
+    --side-left: 120px;
+    --side-right: 168px;
     --fit: min(
-        (100cqw - var(--gutter) - 6px) / var(--cols),
+        (100cqw - var(--gutter) - 6px - var(--side-left) - var(--side-right)) / var(--cols),
         (100cqh - var(--gutter) - 6px) / var(--rows));
     --cell: max(16px, calc(var(--fit) * var(--zoom)));
 
@@ -40,7 +49,7 @@
     flex: 0 0 auto;
     grid-template-columns: var(--gutter) repeat(var(--cols), var(--cell));
     grid-template-rows: var(--gutter) repeat(var(--rows), var(--cell));
-    margin: auto;
+    margin: auto auto auto var(--side-left);
     position: relative;
 }
 

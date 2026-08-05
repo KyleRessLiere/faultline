@@ -1,28 +1,27 @@
-/* The inspector reads; it never commands. It is an OVERLAY over the board's right edge, absolutely
-   positioned inside the stage, so opening it costs the board no width — the grid does not reflow
-   because somebody clicked an enemy.
+/* The inspector reads; it never commands. It sits in a DEDICATED COLUMN at the top right of the
+   stage, beside the board rather than on top of it (design session 2026-08-04b, reversing
+   D-140/D-141). It used to be an overlay pinned to the board's right edge, which cost the board no
+   width and cost it the rightmost files instead — a board that is whole and partly covered is worse
+   than a board that is honestly smaller, because the covered part is still the part you are trying
+   to read. The column is reserved in the layout whether or not there is a card in it, so opening and
+   closing one still reflows nothing.
 
-   A COMPACT CARD PINNED TO THE TOP, not a column. It sizes itself to what it has to say and stops;
-   a full-height panel spent the bottom two thirds of the right edge on nothing, and a box that is
-   mostly empty reads as broken rather than as brief. The cap is there for the one card that can
-   genuinely be long — an enemy with its whole priority list open — and that card scrolls inside
-   itself rather than growing past it. */
+   A COMPACT CARD PINNED TO THE TOP of that column, not a full-height panel: it sizes itself to what
+   it has to say and stops, and a box that is mostly empty reads as broken rather than as brief. The
+   cap is there for the one card that can genuinely be long — an enemy with its whole priority list
+   open — and that card scrolls inside itself rather than growing past it. */
 
 .inspector {
-    background: color-mix(in srgb, var(--pt-bg-panel) 96%, transparent);
+    background: var(--pt-bg-panel);
     border: 1px solid var(--pt-border);
     border-radius: var(--pt-radius);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
     display: flex;
+    flex: 0 1 auto;
     flex-direction: column;
-    max-height: min(62%, 560px);
+    max-height: min(72%, 620px);
     min-height: 0;
     overflow: hidden;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 330px;
-    z-index: 35;
+    width: 100%;
 }
 
 .head-row {

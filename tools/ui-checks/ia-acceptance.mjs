@@ -5,17 +5,24 @@
 //
 //   left rail   270-310  (the header is DELETED; its height went to the board)
 //   ability bar 100-140, and it never changes height: the expanded card hangs above it
-//   inspector   300-360, AND overlaying: opening it must not change the board's width
-//   board       every pixel the fixed bands leave, at or above the fill floor
+//   inspector   300-360, in a COLUMN OF ITS OWN that never overlaps the board
+//   board       every pixel the fixed bands leave, at or above the ABSOLUTE floor
 //
 // It also re-asserts the law the old layout won: nothing between the regions takes a layout row,
-// and every contextual surface is out of flow.
+// and every remaining contextual surface is out of flow.
+//
+// THE BOARD IS MEASURED IN PIXELS, NOT IN PER CENT (design session 2026-08-04b). A fill ratio is the
+// board over the region it is in, so when a region shrinks the ratio sits perfectly still while the
+// board gets smaller — precisely the change a dedicated inspector column makes. The ratio is still
+// printed, because it is the right number for "is the board wasting its region"; BOARD_FLOOR is what
+// actually fails the run, and BASELINE is printed beside it so what the layout costs is a number in
+// the output rather than something discovered later.
 //
 //   dotnet run --project ../../src/Faultline.Web --urls http://localhost:5199
 //   BASE=http://localhost:5199 node ia-acceptance.mjs
 //
-// Exits non-zero on any band outside its range, on a board fill below FILL_MIN, or if opening a
-// contextual surface moved the board.
+// Exits non-zero on any band outside its range, on a board below its absolute floor, or if a
+// contextual surface moved the board or landed on top of it.
 
 import { chromium } from 'playwright';
 
@@ -27,12 +34,25 @@ const VIEWPORTS = [
   { width: 2560, height: 1307 },
 ];
 
+// What the board measured on 2026-08-04, with the inspector still overlaying it. Printed, never
+// asserted: it is the "before" of the trade, so the cost of the inspector's own column is in the
+// output. Update it when a rebuild deliberately moves the number, and say so in the same change.
+const BASELINE = { 1920: 926, 2560: 1153 };
+
+// The absolute floor, in pixels, below which the board is too small whatever the region did. Set
+// under the baseline by the width the inspector column was expected to cost, so a further loss
+// fails rather than being absorbed by a ratio that cannot see it.
+const BOARD_FLOOR = { 1920: 860, 2560: 1080 };
+
 // The header is gone entirely (design session 2026-08-04) and the bar shrank with it: the strip and
 // the AP sentence left, so the 150-180 the brief wrote for a fuller bar is no longer the range.
 const BANDS = {
-  '.pt-rail': [270, 310, 'w'],
-  '.bar': [100, 140, 'h'],
-  '.dock': [0, 9999, 'h'],
+  '.pt-rail': [270, 310, 'w', 'rail'],
+  '.bar': [100, 140, 'h', 'bar'],
+  '.dock': [0, 9999, 'h', 'dock'],
+  // Reserved in every phase, card or no card: a column that came and went would reflow the board
+  // on a click, which is the thing the old overlay was right about and solved the wrong way.
+  '.pt-inspector': [300, 360, 'w', 'column'],
 };
 
 const probe = () => {
@@ -71,7 +91,10 @@ const probe = () => {
     board: box('.board'),
 
     bar: box('.bar'),
+    column: box('.pt-inspector'),
     inspector: box('.inspector'),
+    legend: box('.board-controls .legend'),
+    tools: box('.board-controls .tools'),
     detail: box('.bar .detail'),
     rows,
     // Anything still drawing a message as a row rather than as an overlay.
@@ -95,11 +118,16 @@ const check = (vp, phase, m) => {
   const boardMax = m.board ? Math.max(m.board.w, m.board.h) : 0;
   const fill = limit ? boardMax / limit : 0;
 
+  const baseline = BASELINE[vp.width] || 0;
+
   table.push({
     vp, phase, regionW, regionH, limit, boardMax, fill,
+    baseline,
+    gave: baseline ? baseline - boardMax : 0,
     rail: m.rail ? m.rail.w : 0,
     bar: m.bar ? m.bar.h : 0,
     dock: m.dock ? m.dock.h : 0,
+    column: m.column ? m.column.w : 0,
   });
 
   console.log(`\n=== ${vp.width}x${vp.height} — ${phase} ===`);
@@ -108,12 +136,15 @@ const check = (vp, phase, m) => {
   console.log('  rail       ', JSON.stringify(m.rail), 'objective', JSON.stringify(m.objective));
 
   console.log('  bar        ', JSON.stringify(m.bar));
+  console.log('  inspector  ', JSON.stringify(m.column), 'card', JSON.stringify(m.inspector));
+  console.log('  legend     ', JSON.stringify(m.legend), 'tools', JSON.stringify(m.tools));
   console.log('  region     ', JSON.stringify(m.region));
   console.log('  board      ', JSON.stringify(m.board));
-  console.log(`  -> region ${regionW}x${regionH}, limiting ${limit}, board ${boardMax}, fill ${(fill * 100).toFixed(1)}%`);
+  console.log(`  -> region ${regionW}x${regionH}, limiting ${limit}, board ${boardMax}px absolute`
+    + (baseline ? ` (baseline ${baseline}, gave up ${baseline - boardMax}px)` : '')
+    + `, fill ${(fill * 100).toFixed(1)}%`);
 
-  for (const [sel, [lo, hi, axis]] of Object.entries(BANDS)) {
-    const key = sel === '.pt-rail' ? 'rail' : sel === '.dock' ? 'dock' : 'bar';
+  for (const [sel, [lo, hi, axis, key]] of Object.entries(BANDS)) {
     const el = m[key];
     if (!el) {
       fail.push(`${vp.width}x${vp.height} ${phase}: ${sel} is not on screen`);
@@ -127,6 +158,28 @@ const check = (vp, phase, m) => {
 
   if (fill < FILL_MIN) {
     fail.push(`${vp.width}x${vp.height} ${phase}: board ${boardMax}px is ${(fill * 100).toFixed(1)}% of the limiting region dimension ${limit}px (want >= ${(FILL_MIN * 100).toFixed(0)}%)`);
+  }
+
+  // The absolute, and the one that catches a region quietly getting smaller: a ratio measured
+  // against a shrinking region stays flat while the board it describes loses pixels.
+  const floor = BOARD_FLOOR[vp.width];
+  if (floor && phase !== 'deployment' && boardMax < floor) {
+    fail.push(`${vp.width}x${vp.height} ${phase}: board is ${boardMax}px, floor is ${floor}px (baseline ${baseline})`);
+  }
+
+  // The reversal, measured: the inspector has a column and stays out of the board's box. It used to
+  // be asserted the other way round — that it overlaid and the board did not move.
+  if (m.inspector && m.board && m.inspector.x < m.board.x + m.board.w) {
+    fail.push(`${vp.width}x${vp.height} ${phase}: the inspector at x=${m.inspector.x} overlaps the board, which ends at ${m.board.x + m.board.w}`);
+  }
+
+  // The two board-region toolbars sit in the margins, not on the tiles: the legend in the
+  // bottom-left, the view controls in the bottom-right.
+  if (m.legend && m.board && m.legend.x + m.legend.w > m.board.x) {
+    fail.push(`${vp.width}x${vp.height} ${phase}: the legend runs to x=${m.legend.x + m.legend.w}, over a board that starts at ${m.board.x}`);
+  }
+  if (m.tools && m.board && m.tools.x < m.board.x + m.board.w) {
+    fail.push(`${vp.width}x${vp.height} ${phase}: the view controls at x=${m.tools.x} sit on a board that ends at ${m.board.x + m.board.w}`);
   }
 
   const stolen = m.bands.filter(b => b.h > 0);
@@ -243,10 +296,10 @@ for (const vp of VIEWPORTS) {
 await browser.close();
 
 console.log('\n### regions\n');
-console.log('| viewport | phase | rail | dock h | bar | region W x H | limiting | board (absolute) | fill |');
-console.log('|---|---|---|---|---|---|---|---|---|');
+console.log('| viewport | phase | rail | inspector | dock h | bar | region W x H | limiting | board (absolute) | baseline | gave up | fill |');
+console.log('|---|---|---|---|---|---|---|---|---|---|---|---|');
 for (const r of table) {
-  console.log(`| ${r.vp.width}x${r.vp.height} | ${r.phase} | ${r.rail} | ${r.dock} | ${r.bar} | ${r.regionW} x ${r.regionH} | ${r.limit} | ${r.boardMax} | ${(r.fill * 100).toFixed(1)}% |`);
+  console.log(`| ${r.vp.width}x${r.vp.height} | ${r.phase} | ${r.rail} | ${r.column} | ${r.dock} | ${r.bar} | ${r.regionW} x ${r.regionH} | ${r.limit} | ${r.boardMax} | ${r.baseline || '—'} | ${r.baseline ? r.gave + 'px' : '—'} | ${(r.fill * 100).toFixed(1)}% |`);
 }
 
 if (fail.length) {
@@ -254,4 +307,5 @@ if (fail.length) {
   for (const f of fail) console.error('  ' + f);
   process.exit(1);
 }
-console.log('\nevery region is inside its band, the board fills what is left, and no surface takes a row.');
+console.log('\nevery region is inside its band, the board fills what is left of its own column, the'
+  + ' inspector stays beside it rather than on it, and no surface takes a row.');

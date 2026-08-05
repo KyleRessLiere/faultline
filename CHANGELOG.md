@@ -1,5 +1,26 @@
 # Changelog
 
+## The inspector stops covering the board
+
+- **The inspector owns a column, and the board is sized around it.** It used to overlay the board's
+  right edge and cover the rightmost files (D-140/D-141); it is now a dedicated region top-right,
+  beside the board. The column is reserved whether or not a card is in it, so nothing a player clicks
+  reflows the grid. Every other contextual surface still overlays.
+- **With nothing selected the inspector shows the acting unit** rather than being absent — HP, AP
+  pips, Pluck, Footing. Selecting something else replaces the content; deselecting comes back. The
+  deleted resource strip is not reinstated; its one real job moves into the card that already owns
+  those numbers.
+- **The board is left-aligned in its region**, not centred, so the spare width collects on one side
+  instead of leaving a dead band between the rail and the first file.
+- **The legend and the view controls are split**: the legend keeps the board's bottom-left margin,
+  the view toggles and the zoom pair move to the bottom-right. Both margins are subtracted from the
+  board's own fit calculation, so neither can land on a tile.
+- **Measured in pixels, not per cent.** `ia-acceptance.mjs` prints the board's absolute size against
+  the 2026-08-04 baseline and fails on an absolute floor: a fill ratio holds still while a shrinking
+  region takes the board down with it. The board is **926 at 1920x1080 and 1153 at 2560x1307 — the
+  same as before**, because at both sizes it is height-limited and the column costs width the region
+  was not using.
+
 ## Every sitting logged to disk, with no setting
 
 - **Playing writes a file (D-142).** `docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log`, Eastern,

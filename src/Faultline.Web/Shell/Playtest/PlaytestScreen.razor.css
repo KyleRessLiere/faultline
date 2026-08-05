@@ -6,9 +6,15 @@
    the board takes everything else: a fluid rail spends the board's width on whitespace at exactly
    the sizes where the board wants it most.
 
-   Both columns are position: relative, and that is load-bearing rather than tidy. Every contextual
-   surface on this screen is an overlay anchored to one of them — the inspector to the stage, the
-   expanded order to the rail — which is how they cost the board nothing when they open. */
+   Both columns are position: relative, and that is load-bearing rather than tidy. The remaining
+   contextual overlays are anchored to one of them — the expanded ability card to the stage, the
+   expanded order to the rail — which is how they cost the board nothing when they open.
+
+   The INSPECTOR is no longer one of them. It has a column of its own down the right of the stage
+   (design session 2026-08-04b), and the column is held open whether or not a card is in it: a
+   reserved width costs the board the same number of pixels every frame, whereas a column that
+   appeared on a click would reflow the grid under the player's hand. What it does NOT do any more is
+   sit on top of the rightmost files of the board. */
 
 .pt-app {
     background: var(--pt-bg-app);
@@ -59,14 +65,47 @@
     gap: 6px;
 }
 
-/* Board column: the board, then the two bars. Nothing else is a row here. */
+/* Board column: the board-and-inspector row, then the command bar. Nothing else is a row here. */
 .pt-stage {
+    --pt-inspector-w: 330px;
+
     display: flex;
     flex-direction: column;
     gap: var(--pt-gap);
     min-height: 0;
     min-width: 0;
     position: relative;
+}
+
+/* The board and the inspector, side by side. The board takes what the inspector's fixed column
+   leaves, which is the whole of the reversal: the inspector is a region now, not a lid. */
+.stage-top {
+    display: flex;
+    flex: 1 1 auto;
+    gap: var(--pt-gap);
+    min-height: 0;
+    min-width: 0;
+}
+
+.stage-board {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    position: relative;
+}
+
+/* Reserved, always. An empty column is the price of a board that never moves; a column that came
+   and went would move it on every click. Top-aligned, because the card sizes itself to what it has
+   to say and a card stretched down the whole edge reads as broken rather than as brief. */
+.pt-inspector {
+    display: flex;
+    flex: 0 0 var(--pt-inspector-w);
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    width: var(--pt-inspector-w);
 }
 
 /* Full-board mode hides the rail and gives the whole window to the position. */
@@ -88,6 +127,10 @@
     .pt-app {
         --pt-gap: 6px;
     }
+
+    .pt-stage {
+        --pt-inspector-w: 300px;
+    }
 }
 
 /* Below this the two columns stack and the page is allowed to scroll — a dashboard this dense has
@@ -105,5 +148,15 @@
 
     .pt-stage {
         height: 72vh;
+    }
+
+    /* Too narrow for two columns: the inspector goes under the board rather than eating it. */
+    .stage-top {
+        flex-direction: column;
+    }
+
+    .pt-inspector {
+        flex: 0 0 auto;
+        width: auto;
     }
 }

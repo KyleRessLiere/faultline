@@ -272,15 +272,60 @@ public sealed class BattleSurfacesTests
         Assert.Equal(BattleMode.FriendlyActive, BattleSurfaces.ModeOf(session, surfaces));
     }
 
-    // ---- the inspector's refusal ---------------------------------------------------------------
+    // ---- the inspector's fallback --------------------------------------------------------------
+
+    /// <summary>
+    /// <b>The inversion of D-141's "with nothing selected the inspector is absent, not empty"</b>
+    /// (design session 2026-08-04b). Absent was defensible while the inspector was a lid over the
+    /// board and every pixel it claimed was a tile. It has a column of its own now, so the column is
+    /// paid for whether or not there is a card in it — and an empty one means the acting duck's HP,
+    /// AP, Pluck and Footing are nowhere on screen, which is exactly the hole the deleted resource
+    /// strip used to fill.
+    /// </summary>
+    [Fact]
+    public void WithNothingPointedAt_TheInspectorFallsBackToTheActingUnit()
+    {
+        var session = Deployed(out var open);
+        session.Select(open);
+        session.ClearInspection();
+
+        // Selecting a duck is what opens its activation, so the acting unit is the one Core has
+        // committed. The card is its card, not an empty frame and not nothing at all.
+        var subject = new BattleSurfaces().InspectorContent(session);
+
+        Assert.Equal(InspectKind.Friendly, subject.Kind);
+        Assert.Equal(open, subject.Unit!.Id);
+    }
 
     [Fact]
-    public void TheInspectorDrawsNothingWhenNothingIsPointedAt()
+    public void SelectingAnotherUnitReplacesTheFallback_AndDeselectingReturnsToIt()
     {
+        var session = Deployed(out var open);
+        session.Select(open);
+
+        var surfaces = new BattleSurfaces();
+        Assert.Equal(open, surfaces.InspectorContent(session).Unit!.Id);
+
+        var enemy = session.State.Units.First(u => u.Team == Team.Enemy && u.IsOnBoard);
+        session.Inspect(enemy.Id);
+        Assert.Equal(InspectKind.Enemy, surfaces.InspectorContent(session).Kind);
+
+        // Dropping the inspection does not empty the card; it comes back to the duck being commanded.
+        session.ClearInspection();
+        var back = surfaces.InspectorContent(session);
+
+        Assert.Equal(InspectKind.Friendly, back.Kind);
+        Assert.Equal(open, back.Unit!.Id);
+    }
+
+    [Fact]
+    public void WithNoActivationOpenAndNothingPointedAt_ThereIsStillNothingToDraw()
+    {
+        // The fallback is the ACTING unit, not an invented one: before anybody has been committed
+        // there is no acting unit, and the card has no business making one up.
         var session = Deployed(out _);
         session.ClearInspection();
 
-        // Contextual, not permanent: nothing selected means no panel, not an empty one.
         Assert.Equal(InspectKind.None, new BattleSurfaces().InspectorContent(session).Kind);
     }
 

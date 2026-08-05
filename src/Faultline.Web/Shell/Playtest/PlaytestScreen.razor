@@ -13,12 +13,13 @@
 
      LEFT RAIL   the run/fight/seed line, the objective, the activation order as a vertical list,
                  the pockets, and the paged dock in the bottom-left corner.
-     BOARD       the centre, and everything the rail and the bar do not take.
-     COMMAND BAR one card per action of the active duck, along the bottom. Cards and the hover
-                 preview, nothing else.
-     INSPECTOR   contextual, an OVERLAY pinned to the top-right of the board, absent when nothing is
-                 selected. It is the SINGLE HOME for every unit's detail — HP, AP, Pluck, Footing —
-                 the duck you are commanding included. There is no always-on resource display.
+     BOARD       the centre-left, and everything the rail, the inspector column and the bar leave.
+     INSPECTOR   a DEDICATED COLUMN down the right of the stage, top-aligned beside the board. It is
+                 the SINGLE HOME for every unit's detail — HP, AP, Pluck, Footing — the duck you are
+                 commanding included, and with nothing selected it falls back to the acting duck so
+                 the active duck's numbers are always readable. There is no separate resource strip.
+     COMMAND BAR one card per action of the active duck, along the bottom, under both. Cards and the
+                 hover preview, nothing else.
 
    Two laws hold the layout together and neither is decoration:
 
@@ -27,9 +28,13 @@
    Anything with something to say is an overlay — the toasts, the status band — or it moves into a
    region that already exists.
 
-   EVERY CONTEXTUAL SURFACE OVERLAYS; none of them resizes the board. The inspector, an expanded
-   ability card and the expanded order all draw over the board's margins. A panel that reflowed the
-   grid would make reading an enemy cost tiles, and then nobody reads one.
+   THE INSPECTOR OWNS A COLUMN AND THE BOARD IS SIZED AROUND IT (design session 2026-08-04b, which
+   REVERSES D-140/D-141's "the inspector overlays the right board edge"). Overlaying it was cheaper in
+   pixels and dearer in tiles that could not be read: the card sat on top of the rightmost columns, so
+   the board was intact and partly invisible, which is worse than a board that is honestly smaller.
+   The column is reserved whether or not a card is in it, so nothing the player clicks ever reflows
+   the grid. The other contextual surfaces — an expanded ability card, the expanded order — still
+   overlay the board's margins and still resize nothing.
 
    This component owns the layout and the enemy-activation tick and nothing else. Every panel reads
    the session for itself, so no piece of game state is copied into a component. *@
@@ -53,12 +58,19 @@
         </aside>
 
         <section class="pt-stage">
-            @* The board is the primary element and takes what is left. Everything a player decides
-               with is drawn on it; every other region supports it. The status band, the system
-               toasts and the inspector are drawn over it — they are not rows. *@
-            <BattlefieldPanel />
+            @* The board and the inspector are side by side, and the bar runs under both. The status
+               band and the system toasts are still drawn over the board — they are not rows. The
+               inspector's column is held open whether or not there is a card in it, so a click never
+               reflows the grid. *@
+            <div class="stage-top">
+                <div class="stage-board">
+                    <BattlefieldPanel />
+                </div>
 
-            <InspectorPanel />
+                <div class="pt-inspector">
+                    <InspectorPanel />
+                </div>
+            </div>
 
             <AbilityBar />
         </section>

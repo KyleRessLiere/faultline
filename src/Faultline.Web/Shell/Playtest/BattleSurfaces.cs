@@ -79,7 +79,8 @@ public enum BattleMode
 /// clicking any unit, tile or structure opens its card in the same top-right inspector. So the
 /// inspector follows the selection rather than waiting to be asked: <see cref="InspectorContent"/>
 /// opens itself when the subject changes, and <see cref="Close"/> keeps it shut until it changes
-/// again.
+/// again. It is also the only surface with a <b>region of its own</b> rather than a place over the
+/// board (design session 2026-08-04b); the rest still overlay.
 /// </para>
 /// </remarks>
 public sealed class BattleSurfaces
@@ -160,10 +161,13 @@ public sealed class BattleSurfaces
     /// should not be on screen at all.
     /// </summary>
     /// <remarks>
-    /// Not a permanent panel: with nothing selected it draws nothing, and while another surface is
-    /// open it gives way to it. But it does open itself when the selection changes, because the
-    /// inspector is now the only place a unit's HP, AP, Pluck and Footing are written and a card
-    /// that had to be asked for twice would hide the numbers the turn is planned on.
+    /// It opens itself when the selection changes, because the inspector is the only place a unit's
+    /// HP, AP, Pluck and Footing are written and a card that had to be asked for twice would hide the
+    /// numbers the turn is planned on. With nothing selected it falls back to the <b>acting</b> unit
+    /// rather than emptying (design session 2026-08-04b): selecting another unit still replaces the
+    /// content, and deselecting returns to the acting unit. It draws nothing only when there is
+    /// genuinely nothing to draw — no selection, no activation open — or while another surface has
+    /// the screen.
     /// </remarks>
     /// <param name="session">The board and what is selected.</param>
     /// <returns>The subject, never null.</returns>
@@ -225,13 +229,57 @@ public sealed class BattleSurfaces
 
         if (session.SelectedUnit is { } selected && selected.IsOnBoard)
         {
-            return new InspectSubject(
-                InspectKind.Friendly, selected, selected.Position,
-                state.Board.At(selected.Position), null);
+            return Card(state, selected);
         }
 
-        return InspectSubject.Nothing;
+        // Nothing pointed at and nothing selected: the ACTING unit, rather than nothing at all
+        // (design session 2026-08-04b, reversing D-141's "with nothing selected the inspector is
+        // absent, not empty"). The inspector is the only place a unit's HP, AP, Pluck and Footing are
+        // written, so an empty one means the numbers the turn is being planned on are not on screen —
+        // which is the one job the deleted resource strip was doing. The strip is not coming back;
+        // that job moves here, into the card that already owns those numbers.
+        return ActingUnit(session) is { } acting ? Card(state, acting) : InspectSubject.Nothing;
     }
+
+    /// <summary>
+    /// Whose activation is open, for the inspector's fallback: Core's committed unit, or — before
+    /// anything has been committed — the current slot when it has resolved to exactly one unit.
+    /// </summary>
+    /// <remarks>
+    /// The second half is <see cref="TurnOrder"/>'s answer through <see cref="StripCards"/>, not a
+    /// second guess at it: a slot down to one candidate already draws that duck's plain portrait
+    /// (inventory A3), so naming it here says nothing the strip is not saying. A slot with several
+    /// candidates still open deliberately names nobody (A2) and neither does this — picking one would
+    /// be the shell answering a question the game leaves to the player.
+    /// </remarks>
+    /// <param name="session">The board.</param>
+    /// <returns>The acting unit, or null when nobody is acting yet.</returns>
+    private static Unit? ActingUnit(GameSession session)
+    {
+        var state = session.State;
+
+        if (state.ActiveUnitId is { } committed
+            && state.FindUnit(committed) is { IsOnBoard: true } unit)
+        {
+            return unit;
+        }
+
+        foreach (var card in StripCards.Build(state))
+        {
+            if (card.IsCurrent)
+            {
+                var portraits = StripCards.Portraits(card);
+                return portraits.Count == 1 && portraits[0].IsOnBoard ? portraits[0] : null;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>One unit's card, on the side it is actually on.</summary>
+    private static InspectSubject Card(GameState state, Unit unit) =>
+        new(unit.Team == Team.Enemy ? InspectKind.Enemy : InspectKind.Friendly,
+            unit, unit.Position, state.Board.At(unit.Position), null);
 
     /// <summary>
     /// The duck the command bar and the dock are about: the one Core will take orders for.
