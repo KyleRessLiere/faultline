@@ -3,9 +3,12 @@ using System.Text;
 using Faultline.Core;
 using Faultline.Playtest;
 
-// Ten campaign runs at one seed, one per policy, written as TSV plus a human summary.
+// Campaign runs at one seed, one per policy, written as TSV plus a human summary. Defaults to the
+// standing three (shover, board-first, blade-first) — pass --full for every named policy in
+// Policies.All(), which is what a milestone sweep still wants.
 //
 //   dotnet run --project tools/Faultline.Playtest -- --seed 1 --out playtest
+//   dotnet run --project tools/Faultline.Playtest -- --full --seed 1 --out playtest
 //
 // Headless: no browser, no dev server, no port. It can be run while someone is playing the app.
 
@@ -100,6 +103,7 @@ if (args.Length > 0 && args[0] == "--probe")
 
 int seed = 1;
 string outDir = Path.Combine("docs", "playtest");
+bool full = false;
 
 for (int i = 0; i < args.Length; i++)
 {
@@ -111,12 +115,19 @@ for (int i = 0; i < args.Length; i++)
     {
         outDir = args[i + 1];
     }
+    else if (args[i] == "--full")
+    {
+        full = true;
+    }
 }
 
-// Ten runs. The seed is the same for every one of them on purpose — the campaign, the boards and
-// every enemy plan are therefore identical, and the only thing that differs is how the players
-// decide. Anything the runs disagree about is caused by play, not by luck.
-var policies = Policies.All();
+// The standing default is `shover`, one board-first evaluator and one blade-first control (session
+// budget, CLAUDE.md) — the milestone sweep across every policy in `Policies.All()` still runs, but
+// only by name or with `--full`, never by default. `--seed` is inert for every policy in the default
+// set: nothing in Faultline.Core constructs or consumes an IRng on this campaign but the vote coin
+// (see the seed note below), so seeds 1-3 against the default set would be one sample written three
+// times, not three samples — pass `--seed` explicitly if you want a specific one for a log filename.
+var policies = full ? Policies.All() : Policies.Default();
 
 Directory.CreateDirectory(outDir);
 Console.WriteLine($"Faultline playtest — campaign '{CampaignLibrary.Faultline.Id}', seed {seed}, {policies.Length} runs");
@@ -556,7 +567,7 @@ else
     summary.Append("| Policy |");
     foreach (var ability in usedAbilities)
     {
-        summary.Append(" " + ability + " (" + Activation.CostOf(ability) + " AP) |");
+        summary.Append(" " + ability + " (" + AbilityDefinition.For(ability).Cost + " AP) |");
     }
 
     summary.AppendLine();

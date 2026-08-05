@@ -1,5 +1,24 @@
 # Changelog
 
+## CLAUDE.md split into a core contract plus load-on-demand practices
+
+- **No rule or behaviour change.** `CLAUDE.md` (already trimmed to ~1630 words) keeps only the
+  always-needed contract; the relocated material — battle authoring, subagent fan-out, DECISIONS
+  style, testing standards, branching/commits/CI, the renderer's structure, and handoff rules — moved
+  **verbatim** into seven files under `docs/practices/`, indexed by `docs/practices/README.md` with
+  the same trigger phrases `CLAUDE.md`'s load-on-demand table uses (D-149).
+- `docs/handoffs/TEMPLATE.md` capped at 60 lines: state of play, uncommitted paths, traps, exact next
+  step — rulings point at `DECISIONS.md` instead of being restated.
+- `GAMEPLAY.md` gains a **Quick Reference** header — class HP/AP/Move, ability AP and Pluck costs,
+  ranges, collision/terrain damage, Footing and resist per enemy, structure HP, the Bedraggled formula
+  — generated from and pinned against live Core constants by `tests/Faultline.Core.Tests/QuickReferenceTests.cs`.
+- The playtest harness's default policy set is cut to the standing three — `shover`, `board-first`,
+  `blade-first` (`Policies.Default()`) — with the full thirteen still runnable via `--full`.
+- A board-library fielded/retired judgement and a dev-panel tab usage report were produced for the
+  designer to review; nothing was moved or removed. A `docs/handoffs/DESIGN_SPLIT_REQUEST.md` names
+  the `MASTER_DESIGN.md` sections a future stamp should split out to `docs/DESIGN_HISTORY.md`; the
+  design doc itself is untouched (D-149).
+
 ## Footing refuses whole displacements
 
 - **Footing counts instances, not tiles.** Spending it refuses one whole displacement — the target

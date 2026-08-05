@@ -1,3 +1,88 @@
+# Quick Reference
+
+**A lookup table, not prose.** Every number here is asserted against the section below it and
+against the live Core constants (`tests/Faultline.Core.Tests/QuickReferenceTests.cs`) — if a rule
+changes, this table and that test go red together. Numbers are the doubled scale (see *The scale*).
+
+### Classes
+
+| Class | HP | Move | AP pool |
+|---|---|---|---|
+| Vanguard | 14 | 3 | 3 |
+| Archer | 8 | 3 | 3 |
+| Fisher (`Threadcaster` in code) | 8 | 3 | 3 |
+| Wardbearer | 14 | 3 | 3 |
+
+### Abilities and Pluck spenders
+
+| Class | Action | AP | Pluck | Range | Effect |
+|---|---|---|---|---|---|
+| Vanguard | Basic attack | 1 | — | melee | 2 dmg + push 1 |
+| Vanguard | Bull Rush | 2 | — | charge 3 | first enemy hit pushed 2, threat range 4 |
+| Vanguard | Wrecking Weight (spend) | 0 | 2 | — | next push this activation +1 distance, +2 contact dmg |
+| Archer | Basic attack | 1 | — | 2–3 | 4 dmg |
+| Archer | Stagger Shot | 1 | — | 2–3 | 2 dmg + push 1 away |
+| Archer | Double Nock (spend) | 0 | 4 | — | attack action fires twice |
+| Fisher | Basic attack | 1 | — | 3 | 2 dmg, or pull 1 instead |
+| Fisher | Reel | 2 | — | 4 | pulls all the way to adjacent |
+| Fisher | Cast (spend) | 0 | 3 | grab 3 | plucks and drops on one of her four tiles |
+| Wardbearer | Basic attack | 1 | — | melee | 2 dmg |
+| Wardbearer | Spear Thrust | 1 | — | line 2 | 2 dmg adjacent tile, 4 dmg tile beyond |
+| Wardbearer | Guard Stance | 1 | — | self | redirects hits from adjacent allies, halves attack dmg taken |
+| Wardbearer | Preen (spend) | 0 | 3 | — | heals self 4, never past max |
+
+Rescue: **3 AP** (the whole pool). Pluck cap for every class: **5**.
+
+### Ranges and minimum range
+
+**Only the Archer has a minimum range: 2** — for both her basic shot and Stagger Shot. Every other
+attacker on either side, player or enemy, has no minimum. Ranged attacks fired from HighGround deal
+**+2**.
+
+### Collision and terrain damage
+
+| Event | Damage | Notes |
+|---|---|---|
+| Collision — wall, board edge, or a HighGround ledge from below | 4 | Staggered |
+| Collision — into another unit | 4 to both | both Staggered |
+| Spikes — shoved onto | 6 | stops there, Staggered |
+| Spikes — walked onto voluntarily | 2 | no Stagger |
+| HighGround, shoved off (falling) | 2 | displacement continues travelling |
+| Husk Shoulder — trample contact | 2 | victim knocked 1 tile perpendicular |
+
+Collision, spike and fall damage all ignore mitigation.
+
+### Footing and push resistance, per enemy
+
+| Enemy | Footing | Push resistance |
+|---|---|---|
+| Warden | 2 | 0 |
+| Quarry King | 3 | 0 |
+| Braced Husk | 2 | 0 |
+| Anchor | 0 | 1 |
+| Mobile Anchor | 0 | 1 |
+| Colossus | 0 | 2 |
+| Everything else | 0 | 0 |
+
+Wardbearer (player): push resistance **2**, Footing **0** (players are granted Footing per scenario
+via the `footing:` key). Bulwark: hold aura caps displacement on adjacent allies to **1 tile**
+(does not protect itself).
+
+### Structures
+
+| | HP |
+|---|---|
+| Protect (default) | 12 |
+| Destroy (default) | 16 |
+
+An attack takes **2** off a structure regardless of weapon; a collision takes **4**.
+
+### Bedraggled — the downed return
+
+`ceil(MaxHp / 4)`, minimum 1: **Vanguard 4, Wardbearer 4, Archer 2, Fisher 2.**
+
+---
+
 # GAMEPLAY — the game as it currently plays
 
 **This is the as-built design doc.** It describes what the code actually does right now, with real

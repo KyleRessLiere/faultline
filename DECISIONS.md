@@ -157,10 +157,17 @@ in this file when the question comes back.
 | D-137 | [The run is four screens, one job each: home, map, camp, event. No screen shows run admin and the act graph at the same time.](#d-137-the-run-is-four-screens-one-job-each-home-map-camp-event-no-screen-shows-run-admin-and-the-act-graph-at-the-same-time) | 2026-08-05 |  |
 | D-138 | [A Rest node on the act map is the Still Pond. It is never called a camp, and the fix is in the renderer because the map data still says "Camp".](#d-138-a-rest-node-on-the-act-map-is-the-still-pond-it-is-never-called-a-camp-and-the-fix-is-in-the-renderer-because-the-map-data-still-says-camp) | 2026-08-05 |  |
 | D-139 | [Push resistance shortens a Pull exactly as it shortens a Push. Reel is the one carve-out, and it is an open question rather than a ruling.](#d-139-push-resistance-shortens-a-pull-exactly-as-it-shortens-a-push-reel-is-the-one-carve-out-and-it-is-an-open-question-rather-than-a-ruling) | 2026-08-05 |  |
-| D-140 | [The battle screen is rebuilt: a fixed left rail, the board, one command bar, and a contextual inspector that overlays rather than resizes. One contextual surface open at a time.](#d-140-the-battle-screen-is-rebuilt-a-fixed-left-rail-the-board-one-command-bar-and-a-contextual-inspector-that-overlays-rather-than-resizes-one-contextual-surface-open-at-a-time) | unreleased |  |
-| D-141 | [The header is deleted. Its controls move to a paged dock in the bottom-left corner, and Action Points live in the inspector and nowhere else.](#d-141-the-header-is-deleted-its-controls-move-to-a-paged-dock-in-the-bottom-left-corner-and-action-points-live-in-the-inspector-and-nowhere-else) | unreleased |  |
+| D-140 | [The battle screen is rebuilt: a fixed left rail, the board, one command bar, and a contextual inspector that overlays rather than resizes. One contextual surface open at a time.](#d-140-the-battle-screen-is-rebuilt-a-fixed-left-rail-the-board-one-command-bar-and-a-contextual-inspector-that-overlays-rather-than-resizes-one-contextual-surface-open-at-a-time) | 2026-08-05 |  |
+| D-141 | [The header is deleted. Its controls move to a paged dock in the bottom-left corner, and Action Points live in the inspector and nowhere else.](#d-141-the-header-is-deleted-its-controls-move-to-a-paged-dock-in-the-bottom-left-corner-and-action-points-live-in-the-inspector-and-nowhere-else) | 2026-08-05 |  |
+| D-142 | [Every sitting is logged to `docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log` automatically. The page posts to whichever local host is serving it; when nothing answers, it is silent.](#d-142-every-sitting-is-logged-to-docsplaytestdatedatehh-mm-ss-ampmlog-automatically-the-page-posts-to-whichever-local-host-is-serving-it-when-nothing-answers-it-is-silent) | unreleased |  |
+| D-143 | [Footing refuses whole displacement instances and leaves the distance arithmetic entirely.](#d-143-footing-refuses-whole-displacement-instances-and-leaves-the-distance-arithmetic-entirely) | unreleased |  |
+| D-144 | [Footing is an integer stat per enemy, and the stacked-Footing fixture is a new archetype rather than a re-tiered shipped one.](#d-144-footing-is-an-integer-stat-per-enemy-and-the-stacked-footing-fixture-is-a-new-archetype-rather-than-a-re-tiered-shipped-one) | unreleased |  |
+| D-145 | [A fully refused displacement earns its caster nothing, and the enemy auto-spend stays drain-only.](#d-145-a-fully-refused-displacement-earns-its-caster-nothing-and-the-enemy-auto-spend-stays-drain-only) | unreleased |  |
+| D-146 | [The Cast threshold: refusing a Cast costs 2 Footing, at exactly 1 the Cast overwhelms and strips it, and the squirm-divert rule is deleted.](#d-146-the-cast-threshold-refusing-a-cast-costs-2-footing-at-exactly-1-the-cast-overwhelms-and-strips-it-and-the-squirm-divert-rule-is-deleted) | unreleased |  |
+| D-147 | [A player refusal is an interrupt: a prompt in state, two commands in the log, and the raising command re-applied from a speculative probe rather than resumed mid-flight.](#d-147-a-player-refusal-is-an-interrupt-a-prompt-in-state-two-commands-in-the-log-and-the-raising-command-re-applied-from-a-speculative-probe-rather-than-resumed-mid-flight) | unreleased |  |
+| D-148 | [HELD: the Fisher's "+1 Pluck on a refused Cast" income lever and SURE CAST are named, priced and deliberately not built.](#d-148-held-the-fishers-1-pluck-on-a-refused-cast-income-lever-and-sure-cast-are-named-priced-and-deliberately-not-built) | unreleased | *held* |
 
-**140 rulings.**
+**147 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3380,3 +3387,324 @@ surface is never interrupted by one opening underneath it.
 **Measured after all of it:** board **926** at 1920×1080 and **1153** at 2560×1307 (from 902 and
 1129), bar 126px, dock 62px, rail 307/310px, inspector 330×266 pinned at y=8. Expanding a card leaves
 both the bar and the board unchanged.
+
+---
+
+**D-142 — Every sitting is logged to `docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log` automatically.
+The page posts to whichever local host is serving it; when nothing answers, it is silent.**
+
+*(2026-08-04, from the designer: "every play session is logged to disk, no setting and no prompt".)*
+
+**What was decided.**
+
+1. **There is no toggle, no folder picker and no permission prompt.** Play is logged because playing
+   logs it. The page names the sitting from the browser's Eastern clock and starts appending.
+2. **The file is `docs/playtest/<yyyy-MM-dd>/<yyyy-MM-dd>_hh-mm-ss-AM|PM.log`**, twelve-hour with an
+   uppercase meridiem, Eastern. The date is repeated inside the filename rather than left to the
+   folder, so a log mailed to somebody still says which day it is. The zone abbreviation is *not* in
+   the name: these are always Eastern, and a name alternating EST and EDT sorts a year into halves.
+3. **A Blazor WASM page cannot write a path, so it does not try.** It POSTs the log to the process
+   serving it, and that process writes the file. This is what makes the setting deletable: the File
+   System Access API the old logger uses *cannot* produce a directory handle without a click, so any
+   design built on it has a prompt in it by construction.
+4. **Two hosts, one endpoint, one implementation.** `tools/Faultline.Launcher` already is an
+   `HttpListener`; it gained `GET /playtest/log/ping` and `POST /playtest/log?date=&file=`. The
+   Blazor dev server is not ours and cannot be given middleware, so the *same launcher* runs beside
+   it in `--log-only` mode on a fixed loopback port, and `run.ps1`/`run.sh` start it. The page tries
+   same-origin first and the sidecar second.
+5. **Nothing answering is not a failure.** Served off a plain static file server there is no process
+   to post to. The probe fails, the logger goes permanently inert, and the log stays in memory where
+   the Dev panel already reads it. No toast, no retry, no console noise.
+6. **Appended as play proceeds, never held to the end.** The browser buffers lines and flushes every
+   two seconds, on a full-ish buffer, and again on `pagehide` via `sendBeacon`. A tab closed
+   mid-fight leaves everything up to the last flush on disk.
+7. **The date folders are gitignored; nothing else in `docs/playtest/` is.** The rule lives in
+   `docs/playtest/.gitignore` and matches only `NNNN-NN-NN/`, because the harness's committed output
+   — `fights.tsv`, `runs.tsv`, `levels.md`, `summary.md`, `logs/*.log` — and the designer's
+   `omarTest/` notes share that directory, and a blanket rule would have untracked all of it.
+
+**What forced it.** The existing `SessionLog` (D-118) writes faithfully but must be armed: the player
+points at a folder once, per browser, and only in Chromium. That has the trade backwards in exactly
+the way D-118's own reasoning warned about for recording — the sittings worth reading are the ones
+nobody expected to be interesting, and a log you have to arm is a log you do not have on that day.
+
+**What was rejected.**
+
+- **Keeping the File System Access API and merely defaulting it on.** It cannot be defaulted on. A
+  directory handle requires a user gesture; there is no configuration that removes the click.
+- **Making the dev server serve the endpoint.** `Microsoft.AspNetCore.Components.WebAssembly.DevServer`
+  takes no middleware. The alternative was to stop using it and serve the dev build through the
+  launcher, which would have bought one origin at the cost of `dotnet watch` — a real loss to the
+  daily loop for a fixed port's worth of tidiness.
+- **A single fixed port for both hosts.** Simpler client, but it makes the launcher — the path a
+  non-developer runs — fail whenever something else holds 5178. Same-origin cannot conflict, so the
+  launcher's own case is now unconditionally reliable and the fixed port is the fallback only.
+- **Blocklisting `..` in the endpoint.** The endpoint instead matches both halves of the location
+  against an exact shape and refuses everything else, so `..`, a leading slash, a drive letter and a
+  separator all fail identically. The path fence underneath is kept as a second wall.
+- **A new log format.** Fight lines are `EventText`'s and run lines are `RunEventText`'s, read by
+  cursor off the same lists the Dev panel's LOG tab draws, so the file and the panel cannot drift.
+  The replayable command log stays the REPLAY tab's export; duplicating it into every session file
+  would have put the event log on disk twice.
+
+**What it does not supersede.** D-118's folder logger is untouched and still writes notes and
+per-fight logs to a chosen folder. This is the automatic floor beneath it, not a replacement: one is
+"everything, always, into the repo", the other is "this sitting's notes, where I want them".
+
+---
+
+**D-143 — Footing refuses whole displacement instances and leaves the distance arithmetic entirely.**
+
+Spending Footing no longer shortens a displacement by a tile. It **refuses one whole instance**: the
+target does not move and **no consequence of that displacement occurs** — no tiles travelled, no
+collision, no hazard entry, no Stagger from it, and the Stagger the instance would have consumed for
+its +1 is not consumed either, because there is no displacement left for the bonus to apply to. The
+pipeline is now **Stagger → resistance → Bulwark cap → floor**, and Footing is not in it. Resistance
+SHORTENS, Footing REFUSES: two sentences, no shared math.
+
+**What forced it.** MASTER_DESIGN v2026-08-04u, Design Log **(t)**, locks it, and §3's Statuses
+paragraph and the displacement pipeline both state it. The as-built rule had two Footings — an
+ordinary `-1` term inside `EffectiveDistance` and a negating token outside it (D-039) — which is
+exactly the shared-math confusion the design ruling exists to end. It was also visibly broken as a
+lever: a stack of three negating tokens did nothing a stack of one did not, because none of them was
+ever spent.
+
+**What was rejected.**
+
+- **Keeping the `-1` term for regulars and the negation for bosses.** That is the status quo, and it
+  is the thing (t) rules against by name. It also forces every rule site to ask *which kind* of
+  Footing it is looking at, and a stat that means two different things depending on the archetype is
+  a stat nobody can read off a card.
+- **Keeping `UnitTemplate.FootingNegates` as a legacy flag.** Its one surviving distinct property —
+  the token is not handed over — directly contradicts "spending Footing refuses one instance", and
+  keeping it would have left the second arithmetic standing under a different name. Deleted.
+- **Letting a refusal still cost the target its Stagger.** Tempting as a small tax on refusing, but
+  the ruling is that *no consequence* of the displacement occurs, and Stagger consumption is a
+  consequence of the displacement. A partial negation is the thing that was just deleted.
+- **Suppressing the `UnitPushed` event on a refusal.** D-057 is explicit that a displacement which
+  moves nothing is still a displacement and is still reported. A refusal emits `UnitPushed` at
+  distance 0 *and* a new `DisplacementRefused` carrying the cost and the remainder, so a renderer can
+  tell "it did not budge" from "it refused" without querying state.
+
+**What it supersedes.** D-039 and D-043's negating token — the mechanic survives, the "never spent"
+half does not. Amends D-018 and D-030's ordering, which listed Footing as the last subtraction.
+
+---
+
+**D-144 — Footing is an integer stat per enemy, and the stacked-Footing fixture is a new archetype
+rather than a re-tiered shipped one.**
+
+Footing is a per-stat-block integer counting whole refusals. Player classes print 0 and are granted
+theirs by a scenario; enemies carry theirs. A stack of 2+ is the elite/boss anti-displacement lever.
+To have something to test the stack rules against, a new archetype — **`BracedHusk`, "Braced Husk"**,
+a Husk in every other number with **Footing 2** — is added, appended at enum value 21 and **fielded
+by no `.fight` file**. The round-end drain strip and the collision strip now apply to anyone holding
+Footing rather than only to the archetypes whose tokens negated.
+
+**What forced it.** Design Log (t) makes stacks the bestiary lever, so a stack has to be assertable.
+Design Log (u) reserves the **Heavy Husk** at Footing 2, unfielded — but the Heavy Husk *is* fielded,
+by `nv-05-numbers.fight`. Giving it Footing 2 would have changed what a shipped board fields from
+inside a rules change, which is precisely the D-092 trap, and `.fight` files are out of this session's
+scope.
+
+**What was rejected.**
+
+- **Heavy Husk at Footing 2, as (u) words it.** Rejected only because of the fielding conflict above.
+  Flagged to the designer: either (u) means a Heavy Husk that is no longer in `nv-05-numbers`, or it
+  means a different archetype. `BracedHusk` is the placeholder for whichever it turns out to be, and
+  retiring it costs one enum value and one table row.
+- **Re-tiering the whole roster to (u)'s assignments** — chaff Footing 1, Anchor/Warden/Colossus 2,
+  Quarry King 0. Out of scope here, and it changes what every board fields; it belongs with the
+  `.fight` pass, not with the rules pass. Today's stat blocks are therefore Warden 2, Quarry King 3,
+  Braced Husk 2, everything else 0, which **contradicts (u)** and is recorded as such rather than
+  silently half-applied.
+- **Gating the two strip triggers on a surviving archetype flag.** That is `FootingNegates` under a
+  new name. Universal is also the better rule: now that every token is precious, the strips are the
+  counterplay that keeps a stacked fortress attackable, which is the same reason D-039 invented them.
+
+---
+
+**D-145 — A fully refused displacement earns its caster nothing, and the enemy auto-spend stays
+drain-only.**
+
+The enemy policy is unchanged in trigger and changed only in effect: an enemy refuses **only** a
+drain-bound instance, and now refuses the whole thing rather than shortening it. Everything else — a
+shove into a wall, onto brambles, across open ground — is eaten. Separately: because a refused
+instance produces no collision, no hazard entry and an empty travel path, **no Pluck charge fires for
+it**. Asserted for the Fisher on both a refused Reel and a refused flick.
+
+**What forced it.** §3: drain-only "preserves slam-fishing and the Fisher's bait line". And the
+charge rule needed stating out loud, because Pluck listens to the finished event stream — the zero
+income is emergent, and an emergent rule nobody wrote down is a rule that breaks the first time
+somebody adds an event.
+
+**What was rejected.**
+
+- **Widening the auto-spend to any harmful instance.** It would delete slam-fishing (an enemy would
+  brace against every wall) and delete the bait line with it: the whole point of "below 2 is her
+  hunted state" is that cheap flicks can burn tokens the enemy did not have to spend.
+- **Paying the caster a consolation charge for a refused displacement.** That is the staged "+1 Pluck
+  on a refused Cast" lever (D-148), and it is not live. Paying it now would make refusing *feed* her,
+  which inverts the tension the threshold is built on.
+- **Keeping the old "spend only if it actually avoids the pit" second check.** Under the instance
+  model a refusal always avoids the drain, so the check could only ever return true — and it used to
+  make a drain the target was standing *next to* unrefusable, which was a gap nobody designed.
+
+---
+
+**D-146 — The Cast threshold: refusing a Cast costs 2 Footing, at exactly 1 the Cast overwhelms and
+strips it, and the squirm-divert rule is deleted.**
+
+Three worlds, and `Throw.Outlook` names which one a preview is in. **Footing 2 or more:** the target
+may refuse; refused, the Cast **fails**, the Fisher's 3 Pluck is **spent with no refund**, and the
+target loses **2 Footing** and does not move. An enemy refuses only when the landing is drain-bound —
+the same drain-only policy — and eats the rest. **Footing exactly 1:** it **cannot** refuse; the Cast
+**overwhelms**, landing *and* stripping the last token even though the throw succeeded. **Footing 0:**
+it lands, no interaction. The old rule — a token buying one tile back along the throw line — is gone,
+along with `Throw.Shortened`, `Throw.ShortCandidates` and `Throw.FootingShortens`.
+
+**What forced it.** MASTER_DESIGN §5's Cast row and Design Log (t) both print it, and both say the
+squirm-divert rule is dead.
+
+**What was rejected.**
+
+- **Refunding her Pluck on a refusal.** §5 is explicit: spent, no refund. The boot pips are on the
+  enemy card, so throwing into a Footing-2 target is an informed misplay and the game is entitled to
+  charge for it.
+- **Letting a Footing-1 target refuse for its single token.** That deletes the overwhelm, which is
+  the whole reason "below 2" is a readable hunted state and the reason baiting tokens off with cheap
+  flicks is a line of play at all.
+- **Not stripping on the overwhelm** — the Cast lands, the token survives. Then the throw would be
+  free against the state it is supposed to punish, and a Footing-1 unit would be strictly better off
+  than a Footing-0 one against every displacement including this one.
+- **Prompting a player unit on a Cast.** Unreachable: `Throw.Grabbable` offers enemies only. The
+  answer path exists in `Throw.Refuses` for the day a legendary lets her throw an ally, and does
+  nothing until then.
+
+**What it supersedes.** D-091's Footing-shortens-the-throw clause.
+
+---
+
+**D-147 — A player refusal is an interrupt: a prompt in state, two commands in the log, and the
+raising command re-applied from a speculative probe rather than resumed mid-flight.**
+
+A displacement instance aimed at a **player** unit holding Footing raises a `FootingPrompt` on
+`GameState`. While it stands, `Game.LegalCommands` offers exactly two commands —
+`FootingRefuseCommand(target, refuse: true)` and the decline — `Game.NextEnemyCommand` returns null,
+and everything else is illegal. **No timeout**: hotseat, so the prompt waits. The prompt belongs to
+the **owning** player whatever slot raised it. Answering appends a `FootingAnswer` to state and
+**re-applies the parked command from the top**; the answers are cleared when that command finishes.
+The prompt is found by resolving the command **speculatively** and reading the resulting event stream
+for an unanswered `UnitPushed` at distance above zero against a player unit that can afford the
+refusal — the speculative state is discarded whole, so nothing of the raising command has run when the
+player is asked. The scan is gated on a player actually holding Footing, so the second resolution
+costs nothing in the overwhelming majority of commands.
+
+**What forced it.** Design Log (t): "players get an interactive refuse prompt (negation is chunky
+enough to earn the interrupt)". It also closes D-026, which had recorded player Footing as a token
+with no spend trigger, and retires the `FootingGrantOnPlayers` lint that existed only because of it.
+
+**What was rejected.**
+
+- **A new `Phase` value.** Dozens of sites test `Phase == Phase.Battle`, and a fourth value would
+  have silently changed all of them. A nullable field plus `Game.IsAwaitingFootingChoice` says the
+  same thing and cannot leak into a check that was not updated.
+- **Suspending resolution mid-command and resuming from a saved partial state.** It needs a
+  `GameState` nested inside a `GameState`, or a continuation, and the failure mode is a command whose
+  first half applied twice. The speculative probe costs a second resolution and cannot half-apply
+  anything.
+- **Inferring the decline from the absence of a command.** "Nobody has answered yet" and "the owner
+  declined" are different states, and a log that recorded only refusals would replay a declined shove
+  as an unanswered one. Both answers are commands; a determinism test replays a prompt sequence and a
+  second asserts the two answers reach *different* states.
+- **Keying answers by instance ordinal within the command.** Keyed by target id instead: one answer
+  per target per command. No command in the game displaces the same unit twice, and an ordinal has to
+  be threaded through every displacement call site to be readable.
+- **Prompting on an instance that would do nothing** — a shove push resistance already ate. Not a
+  choice worth stopping the game for.
+
+**What it supersedes.** D-026's "player Footing has no spend trigger", and with it the
+`FootingGrantOnPlayers` lint — the code is kept and never renumbered, but is no longer raised.
+
+---
+
+**D-148 — HELD: the Fisher's "+1 Pluck on a refused Cast" income lever and SURE CAST are named,
+priced and deliberately not built.**
+
+Two levers are recorded as parked rather than forgotten:
+
+- **"+1 Pluck on a refused Cast"** — her named income lever. A Cast that a Footing-2 target refuses
+  costs her 3 and pays nothing; if Footing-stacked compositions starve her, this hands one point back.
+- **SURE CAST** — banked as her legendary: the Cast cannot be refused.
+
+Neither is implemented and neither is offered anywhere.
+
+**What forced it.** MASTER_DESIGN Design Log (t) stages both by name and marks them "not live".
+CLAUDE.md: an idea consciously parked is a decision only if the trigger is written down.
+
+**What unblocks each.**
+
+- The income lever: harness or playtest evidence that a Footing-stacked roster leaves the Fisher below
+  her Cast cost for a measurable share of a run. It is a one-line `Verve.Gain` at the `CastRefused`
+  site and needs no new machinery.
+- SURE CAST: the legendary catalogue existing at all. It is a flag consulted by `Throw.Refuses`.
+
+**What was rejected.** Building either now "since it is small". The threshold has never been played;
+handing the Fisher her compensation before anyone has felt the cost would tune away the tension the
+ruling was written to create, and would do it invisibly.
+
+---
+
+**D-149 — `CLAUDE.md` is split into an always-loaded core plus seven load-on-demand practice files
+under `docs/practices/`; the handoff template is capped at 60 lines; a design-doc split request is
+recorded for the designer to perform.**
+
+**What forced it.** The core `CLAUDE.md` had grown to 306 lines covering every practice a session
+might ever need, all loaded on every turn regardless of task. A session doing a one-file doc edit
+paid the same read cost as a session mid-milestone. The fix is the one the file already teaches for
+everything else: load on demand, on a trigger, not always.
+
+**What changed.** `CLAUDE.md` (already rewritten to ~1630 words in this session's starting tree, not
+by this ruling) keeps the prime directives, the workflow loop, git discipline, the document
+hierarchy, the session budget, the failure-loop protocol, the board-library retirement rule, hooks
+and naming. Everything else — battle authoring, subagent fan-out discipline, DECISIONS.md style,
+testing standards and definition of done, branching/commits/CI, the renderer's structure, and the
+handoff rules — moved **verbatim**, apart from a one-line header on each file naming when to read it,
+into `docs/practices/{BATTLE_AUTHORING,SUBAGENTS,DECISIONS_STYLE,TESTING,BRANCHING,RENDERER,
+HANDOFFS}.md`, indexed by `docs/practices/README.md` using the same trigger phrases as `CLAUDE.md`'s
+load-on-demand table. `docs/handoffs/TEMPLATE.md` was cut to a hard 60-line shape (state of play,
+uncommitted paths, traps, exact next step) with the cap stated in the template itself; rulings and
+reasoning point at `DECISIONS.md` rather than being restated. The playtest harness's default policy
+set was cut from all thirteen policies to the standing three (`shover`, `board-first`, `blade-first`)
+in `Policies.Default()` / `tools/Faultline.Playtest/Program.cs`, with every other policy still
+runnable via `Policies.All()` behind a `--full` flag. `docs/handoffs/DESIGN_SPLIT_REQUEST.md` names
+which `MASTER_DESIGN.md` sections a future stamp should move to `docs/DESIGN_HISTORY.md` (the Design
+Log, §9–§12, §14, §8.7) versus keep (§1–§8.6, §15–§16) — a request only; `MASTER_DESIGN.md` itself is
+untouched, per its inbound-only rule.
+
+**What was rejected.**
+
+- **Trimming practices instead of relocating them.** A shorter file that also said less would have
+  cut reading cost by quietly cutting coverage — the next session to hit a subagent fan-out or a
+  DECISIONS entry would be missing the rules that exist precisely because those tasks went wrong
+  before. Relocation preserves every sentence; only the default read path changes.
+- **One `docs/practices/PRACTICES.md` grab-bag instead of seven files.** A single file defeats the
+  point: a session that only needs the branching rules would still load the renderer's structure
+  and the DECISIONS style guide to get there. Splitting by trigger is what makes the load-on-demand
+  index in `CLAUDE.md` and `docs/practices/README.md` actually save anything.
+- **Cutting the harness to one policy.** `shover` alone would drop the board-first/blade-first
+  contrast that the "sword or the board" report section exists to show. Three is the minimum that
+  keeps a control and an evaluator against the design's own preferred player.
+- **Performing the `MASTER_DESIGN.md` split directly.** The file is inbound-only; editing it here
+  would be silently overwritten by the next arrival, and is explicitly out of scope for this ruling
+  regardless. `docs/handoffs/DESIGN_SPLIT_REQUEST.md` states the split precisely enough to be
+  mechanical for the designer, including one section (§13, Build status & sequencing) that the
+  request could not place on either side without guessing, and says so rather than picking.
+
+**Cost reasoning.** Practices are unchanged in substance — nothing here is a new rule, and nothing a
+session could previously do it now cannot. What changed is *reading* cost: a session with a narrow
+task now loads roughly a fifth of what it used to, and the seven relocated files are read only by
+the sessions whose trigger actually names them.
+
+**What it supersedes.** Nothing numbered; it restructures where prior practice text lives, not what
+it says.

@@ -7,7 +7,7 @@ namespace Faultline.Playtest;
 /// </summary>
 public static class Policies
 {
-    /// <summary>Every policy, in report order.</summary>
+    /// <summary>Every policy, in report order. Runnable by name; not what runs by default.</summary>
     /// <returns>The policies.</returns>
     public static Policy[] All() => new Policy[]
     {
@@ -24,6 +24,20 @@ public static class Policies
         new RandomPolicy("d"),
         new RandomPolicy("e"),
         new RandomPolicy("f"),
+    };
+
+    /// <summary>
+    /// The standing default policy set: <c>shover</c> — the only policy that trades bodies, so the
+    /// only one that exercises the death economy — plus one board-first evaluator and one
+    /// blade-first control. Everything else in <see cref="All"/> still runs, but only by name or
+    /// before a milestone (`CLAUDE.md`, Session budget).
+    /// </summary>
+    /// <returns>The default three policies.</returns>
+    public static Policy[] Default() => new Policy[]
+    {
+        new ShoverPolicy(),
+        new BoardFirstPolicy(),
+        new BladeFirstPolicy(),
     };
 
     /// <summary>Finds a policy by name.</summary>
