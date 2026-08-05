@@ -1,5 +1,14 @@
 # Changelog
 
+## Push resistance reads Pulls too
+
+- **A Grappler's pull 2 no longer drags a Wardbearer two tiles (D-139).** `EffectiveDistance`
+  subtracted push resistance on a Push only; MASTER_DESIGN §3 states one arithmetic for Push and
+  Pull alike. The Fisher's flick and the Grappler's pull now obey it, including through a guarding
+  Wardbearer. Cast is untouched — a throw is a separate verb (D-091) — and **Reel keeps dragging all
+  the way to adjacent** under an explicit carve-out, reported to the designer as an open question
+  rather than settled inside a bug fix.
+
 ## Four screens, one job each — and a Rest is the Still Pond
 
 - **`/campaign` is split into four routes (D-137).** `/` is home: the run card (act, seed,

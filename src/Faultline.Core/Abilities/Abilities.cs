@@ -399,7 +399,9 @@ namespace Faultline.Core
                 int distance = unit.Position.DistanceTo(target.Position) - 1;
                 return distance <= 0
                     ? null
-                    : Displacement.PreviewAuto(state, targetId, unit.Position, DisplacementKind.Pull, distance);
+                    : Displacement.PreviewAuto(
+                        state, targetId, unit.Position, DisplacementKind.Pull, distance,
+                        bypassResistance: true);
             }
 
             return descriptor.Push <= 0
@@ -540,8 +542,13 @@ namespace Faultline.Core
                 int distance = unit.Position.DistanceTo(state.UnitById(targetId).Position) - 1;
                 if (distance > 0)
                 {
+                    // D-139 extended push resistance to Pull, and "pull all the way to adjacent"
+                    // cannot survive being shortened — an Anchor would arrive one tile out and the
+                    // ability would no longer do what it says. Reel keeps today's behaviour under an
+                    // explicit flag rather than by accident, until the designer rules on the clash.
                     state = Displacement.ResolveAuto(
-                        state, targetId, unit.Position, DisplacementKind.Pull, distance, events);
+                        state, targetId, unit.Position, DisplacementKind.Pull, distance, events,
+                        bypassResistance: true);
                 }
 
                 return state;

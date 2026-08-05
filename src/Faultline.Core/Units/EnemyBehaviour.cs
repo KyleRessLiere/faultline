@@ -360,15 +360,15 @@ namespace Faultline.Core
                 {
                     "It shrugs one tile off every Push (D-018). Push 1 moves it nowhere; Push 2 moves it 1; "
                     + "a Staggered Push 1 — normally an effective Push 2 — still only moves it 1.",
-                    "Pull is unaffected. Reel and the Grappler's own pull drag an Anchor at full distance; the "
-                    + "shrug is a Push rule, not a weight rule.",
+                    "Since D-139 the shrug reads Pulls too: the Grappler's own pull of 2 drags an Anchor 1. "
+                    + "Reel is the exception — it pulls all the way to adjacent whatever the stat block says.",
                     $"{anchor.MaxHp} HP and Move {anchor.Move}: the most durable and the slowest thing on the board.",
                 },
                 new[]
                 {
                     $"Walk around it. At Move {anchor.Move} it cannot chase anyone, so an Anchor away from what "
                     + "you care about is a statue with a scary damage number.",
-                    "If it has to move, pull it — Reel ignores the shrug entirely, and dragging it out of the "
+                    "If it has to move, Reel it — Reel ignores the shrug entirely, and dragging it out of the "
                     + "doorway costs one action instead of a whole fight.",
                 });
 
@@ -477,7 +477,7 @@ namespace Faultline.Core
                 },
                 new[]
                 {
-                    $"Pull it. Push resistance only reads Pushes — the Threadcaster's Reel drags it "
+                    $"Reel it. Nothing shortens a Reel — the {threadcaster.Name} drags it "
                     + "the whole way out of the gap it is plugging and the door is open.",
                     // Ceiling division rather than a typed-out count: the shot count is a consequence
                     // of two stats and has to move when either of them does.
@@ -661,14 +661,14 @@ namespace Faultline.Core
                     + "useless against it as openers.",
                     "Only a Stagger unlocks it: a Staggered Bull Rush is an effective Push 3, which "
                     + "resistance 2 turns into exactly 1 tile of travel.",
-                    "Pull is untouched — resistance is a Push rule, not a weight rule. Reel drags a "
-                    + $"Colossus the full distance, which makes the {threadcaster.Name} the answer to it.",
+                    "Since D-139 an ordinary Pull is shortened by the same 2, so a Grappler's drag moves it "
+                    + $"nowhere either. Reel is the exception, which makes the {threadcaster.Name} the answer to it.",
                     $"{colossus.MaxHp} HP is more than double anything else on the enemy side. It is a "
                     + "fight, not a puzzle.",
                 },
                 new[]
                 {
-                    $"Bring the {threadcaster.Name}. Pull is the only displacement that reads normally "
+                    $"Bring the {threadcaster.Name}. Reel is the only displacement that reads normally "
                     + "against it, so if the plan needs it moved, Reel is the plan.",
                     $"Or walk away. Move {colossus.Move} means a Colossus more than a tile from what you "
                     + "care about is scenery with a large damage number attached.",
@@ -798,7 +798,7 @@ namespace Faultline.Core
                 {
                     $"It shrugs one tile off every Push exactly as an Anchor does (D-018): Push 1 moves "
                     + "it nowhere, Push 2 moves it 1, a Staggered Push 1 still moves it 1.",
-                    "Pull is unaffected — the shrug is a Push rule, not a weight rule.",
+                    "The same tile comes off a Pull since D-139; only Reel is exempt.",
                     $"{mobileAnchor.MaxHp} HP at Move {mobileAnchor.Move} is the most durable thing on "
                     + "the board that can also keep up with the players.",
                 },
@@ -806,7 +806,7 @@ namespace Faultline.Core
                 {
                     "Walking away no longer works. The original Anchor's counterplay was its speed; "
                     + "this one has to be pulled, killed or gone around.",
-                    "Pull it out of the line rather than pushing it back into one — Reel ignores the "
+                    "Reel it out of the line rather than pushing it back into one — Reel ignores the "
                     + "shrug entirely.",
                 });
 

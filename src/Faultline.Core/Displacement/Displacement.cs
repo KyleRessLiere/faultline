@@ -39,6 +39,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance, before modifiers.</param>
         /// <param name="spendFooting">Whether the target's owner spends a Footing token.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <returns>The projected outcome.</returns>
         public static DisplacementPreview Preview(
             GameState state,
@@ -46,7 +47,8 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool spendFooting = false)
+            bool spendFooting = false,
+            bool bypassResistance = false)
         {
             var target = state.UnitById(targetId);
             var direction = DirectionOf(target, source, kind);
@@ -58,13 +60,14 @@ namespace Faultline.Core
                     DisplacementStop.Immovable, 0, null, 0, false, false, false, false, false);
             }
 
-            int effective = EffectiveDistance(state, target, kind, distance, spendFooting, out bool consumesStagger);
+            int effective = EffectiveDistance(
+                state, target, kind, distance, spendFooting, out bool consumesStagger, bypassResistance);
             var sim = Simulate(state, target, direction.Value, effective);
 
             bool footingMatters = false;
             if (!spendFooting && target.Footing > 0)
             {
-                int reduced = EffectiveDistance(state, target, kind, distance, true, out _);
+                int reduced = EffectiveDistance(state, target, kind, distance, true, out _, bypassResistance);
                 var alternative = Simulate(state, target, direction.Value, reduced);
                 footingMatters = alternative.Destination != sim.Destination
                     || alternative.Stop != sim.Stop
@@ -108,6 +111,7 @@ namespace Faultline.Core
         /// incidental geometry is a rule that breaks quietly the first time the geometry differs.
         /// Only Wrecking Weight reads it.
         /// </param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState Resolve(
             GameState state,
@@ -117,7 +121,8 @@ namespace Faultline.Core
             int distance,
             bool spendFooting,
             List<GameEvent> events,
-            UnitId? by = null)
+            UnitId? by = null,
+            bool bypassResistance = false)
         {
             var before = state.UnitById(targetId);
             var direction = DirectionOf(before, source, kind);
@@ -159,7 +164,8 @@ namespace Faultline.Core
                 spendFooting = false;
             }
 
-            int effective = EffectiveDistance(state, before, kind, distance, spendFooting, out bool consumesStagger);
+            int effective = EffectiveDistance(
+                state, before, kind, distance, spendFooting, out bool consumesStagger, bypassResistance);
 
             var updated = before;
             if (consumesStagger)
@@ -264,18 +270,20 @@ namespace Faultline.Core
         /// <param name="source">Tile the displacement originates from.</param>
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <returns>The projected outcome, including any Footing the defender will spend.</returns>
         public static DisplacementPreview PreviewAuto(
             GameState state,
             UnitId targetId,
             Coord source,
             DisplacementKind kind,
-            int distance)
+            int distance,
+            bool bypassResistance = false)
         {
             bool spend = state.UnitById(targetId).Team == Team.Enemy
-                && EnemyWouldSpendFooting(state, targetId, source, kind, distance);
+                && EnemyWouldSpendFooting(state, targetId, source, kind, distance, bypassResistance);
 
-            return Preview(state, targetId, source, kind, distance, spend);
+            return Preview(state, targetId, source, kind, distance, spend, bypassResistance);
         }
 
         /// <summary>
@@ -293,6 +301,7 @@ namespace Faultline.Core
         /// <param name="distance">Requested distance.</param>
         /// <param name="events">Sink for the resulting events.</param>
         /// <param name="by">Unit causing the displacement, where one is known.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState ResolveAuto(
             GameState state,
@@ -301,12 +310,13 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             List<GameEvent> events,
-            UnitId? by = null)
+            UnitId? by = null,
+            bool bypassResistance = false)
         {
             bool spend = state.UnitById(targetId).Team == Team.Enemy
-                && EnemyWouldSpendFooting(state, targetId, source, kind, distance);
+                && EnemyWouldSpendFooting(state, targetId, source, kind, distance, bypassResistance);
 
-            return Resolve(state, targetId, source, kind, distance, spend, events, by);
+            return Resolve(state, targetId, source, kind, distance, spend, events, by, bypassResistance);
         }
 
         /// <summary>
@@ -322,6 +332,12 @@ namespace Faultline.Core
         /// <param name="requested">Distance before modifiers.</param>
         /// <param name="spendFooting">Whether a Footing token is spent.</param>
         /// <param name="consumesStagger">Set when an existing Stagger is spent for the +1.</param>
+        /// <param name="bypassResistance">
+        /// Skips the push-resistance subtraction. Set by exactly one caller — Reel, whose printed
+        /// text drags a target "all the way to adjacent" and therefore cannot also be shortened.
+        /// See D-139: this is a carve-out preserving today's Reel while the designer rules on the
+        /// contradiction, not a second arithmetic.
+        /// </param>
         /// <returns>The effective distance, never negative.</returns>
         public static int EffectiveDistance(
             GameState state,
@@ -329,7 +345,8 @@ namespace Faultline.Core
             DisplacementKind kind,
             int requested,
             bool spendFooting,
-            out bool consumesStagger)
+            out bool consumesStagger,
+            bool bypassResistance = false)
         {
             consumesStagger = false;
             if (requested <= 0)
@@ -357,8 +374,13 @@ namespace Faultline.Core
             // satisfies all three clauses in Brief §4 — ignores Push 1, is moved by Push 2, and a
             // Staggered Push 1 becomes effective 2 and therefore moves exactly 1 (DECISIONS.md
             // D-018). A Colossus is the same rule with a 2 in the same slot.
-            int resistance = target.Template.PushResistance;
-            if (kind == DisplacementKind.Push && resistance > 0)
+            //
+            // MASTER_DESIGN §3 opens "Push/Pull resolve tile-by-tile" and states one arithmetic for
+            // both, so the shrug shortens a drag exactly as it shortens a shove (D-139). It used to
+            // read `kind == Push`, which is why a Grappler's pull 2 moved a Wardbearer its full two
+            // tiles. Cast never reaches here at all — a throw is a separate verb (D-091).
+            int resistance = bypassResistance ? 0 : target.Template.PushResistance;
+            if (resistance > 0)
             {
                 distance -= resistance;
                 if (distance <= 0)
@@ -422,13 +444,15 @@ namespace Faultline.Core
         /// <param name="source">Tile the displacement originates from.</param>
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <returns>Whether the token is spent.</returns>
         public static bool EnemyWouldSpendFooting(
             GameState state,
             UnitId targetId,
             Coord source,
             DisplacementKind kind,
-            int distance)
+            int distance,
+            bool bypassResistance = false)
         {
             var target = state.UnitById(targetId);
             if (target.Footing <= 0)
@@ -436,13 +460,13 @@ namespace Faultline.Core
                 return false;
             }
 
-            var without = Preview(state, targetId, source, kind, distance, false);
+            var without = Preview(state, targetId, source, kind, distance, false, bypassResistance);
             if (without.Stop != DisplacementStop.Pit)
             {
                 return false;
             }
 
-            var with = Preview(state, targetId, source, kind, distance, true);
+            var with = Preview(state, targetId, source, kind, distance, true, bypassResistance);
             return with.Stop != DisplacementStop.Pit;
         }
 

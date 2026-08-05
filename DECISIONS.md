@@ -36,7 +36,7 @@ in this file when the question comes back.
 | D-015 | [Bull Rush spends both halves of the activation.](#d-015-bull-rush-spends-both-halves-of-the-activation) | 2026-08-01 | **superseded** |
 | D-016 | [A clinging unit is Voided at the end of the round *after* the one it fell in.](#d-016-a-clinging-unit-is-voided-at-the-end-of-the-round-after-the-one-it-fell-in) | 2026-08-01 |  |
 | D-017 | [Player Footing is not yet an interactive prompt.](#d-017-player-footing-is-not-yet-an-interactive-prompt) | 2026-08-01 |  |
-| D-018 | [The Anchor has Push resistance 1, not a binary immunity to Push 1.](#d-018-the-anchor-has-push-resistance-1-not-a-binary-immunity-to-push-1) | 2026-08-01 |  |
+| D-018 | [The Anchor has Push resistance 1, not a binary immunity to Push 1.](#d-018-the-anchor-has-push-resistance-1-not-a-binary-immunity-to-push-1) | 2026-08-01 | *partly superseded* |
 | D-019 | [Wardbearer Hold protects its allies but not itself.](#d-019-wardbearer-hold-protects-its-allies-but-not-itself) | 2026-08-01 |  |
 | D-020 | [The Grappler pulls targets 2–3 tiles away; a target already adjacent falls through to "advance".](#d-020-the-grappler-pulls-targets-23-tiles-away-a-target-already-adjacent-falls-through-to-advance) | 2026-08-01 |  |
 | D-021 | [An intent locks its *target*, not its route.](#d-021-an-intent-locks-its-target-not-its-route) | 2026-08-01 |  |
@@ -48,7 +48,7 @@ in this file when the question comes back.
 | D-027 | [Loading a hand-authored fight into the creator does not preserve the author's spawn letters.](#d-027-loading-a-hand-authored-fight-into-the-creator-does-not-preserve-the-authors-spawn-letters) | 2026-08-01 |  |
 | D-028 | [Footing is scenario-granted, not automatic. Every archetype starts on zero.](#d-028-footing-is-scenario-granted-not-automatic-every-archetype-starts-on-zero) | 2026-08-01 |  |
 | D-029 | [Enemies walk by real path distance. Manhattan is the tie-break, not the metric.](#d-029-enemies-walk-by-real-path-distance-manhattan-is-the-tie-break-not-the-metric) | 2026-08-01 |  |
-| D-030 | [Push resistance is a number on the stat block, not an archetype check.](#d-030-push-resistance-is-a-number-on-the-stat-block-not-an-archetype-check) | 2026-08-01 |  |
+| D-030 | [Push resistance is a number on the stat block, not an archetype check.](#d-030-push-resistance-is-a-number-on-the-stat-block-not-an-archetype-check) | 2026-08-01 | *partly superseded* |
 | D-031 | [Wardbearer Hold is a hold aura, not a Wardbearer rule.](#d-031-wardbearer-hold-is-a-hold-aura-not-a-wardbearer-rule) | 2026-08-01 |  |
 | D-032 | [The planner dispatches on `EnemyPlan`, not `UnitKind`.](#d-032-the-planner-dispatches-on-enemyplan-not-unitkind) | 2026-08-01 |  |
 | D-033 | [Move 0 is legal, and a Move 0 enemy has no closing branch.](#d-033-move-0-is-legal-and-a-move-0-enemy-has-no-closing-branch) | 2026-08-01 |  |
@@ -154,10 +154,11 @@ in this file when the question comes back.
 | D-134 | [The run save writes `at-camp` and each duck's loadout. Neither was being written, so a camp and everything the camps had given the squad were lost on reload.](#d-134-the-run-save-writes-at-camp-and-each-ducks-loadout-neither-was-being-written-so-a-camp-and-everything-the-camps-had-given-the-squad-were-lost-on-reload) | 2026-08-04 |  |
 | D-135 | [The run log prints display names. Five lines were spelling `UnitKind` straight, so the Fisher appeared on screen as "Threadcaster".](#d-135-the-run-log-prints-display-names-five-lines-were-spelling-unitkind-straight-so-the-fisher-appeared-on-screen-as-threadcaster) | 2026-08-04 |  |
 | D-136 | [A one-shot that needs aiming is aimed on the board, in the same surface abilities and rescues use. Pressing the item is never a no-op, and the sidebar's coordinate list is gone.](#d-136-a-one-shot-that-needs-aiming-is-aimed-on-the-board-in-the-same-surface-abilities-and-rescues-use-pressing-the-item-is-never-a-no-op-and-the-sidebars-coordinate-list-is-gone) | 2026-08-04 |  |
-| D-137 | [The run is four screens, one job each: home, map, camp, event. No screen shows run admin and the act graph at the same time.](#d-137-the-run-is-four-screens-one-job-each-home-map-camp-event-no-screen-shows-run-admin-and-the-act-graph-at-the-same-time) | unreleased |  |
-| D-138 | [A Rest node on the act map is the Still Pond. It is never called a camp, and the fix is in the renderer because the map data still says "Camp".](#d-138-a-rest-node-on-the-act-map-is-the-still-pond-it-is-never-called-a-camp-and-the-fix-is-in-the-renderer-because-the-map-data-still-says-camp) | unreleased |  |
+| D-137 | [The run is four screens, one job each: home, map, camp, event. No screen shows run admin and the act graph at the same time.](#d-137-the-run-is-four-screens-one-job-each-home-map-camp-event-no-screen-shows-run-admin-and-the-act-graph-at-the-same-time) | 2026-08-05 |  |
+| D-138 | [A Rest node on the act map is the Still Pond. It is never called a camp, and the fix is in the renderer because the map data still says "Camp".](#d-138-a-rest-node-on-the-act-map-is-the-still-pond-it-is-never-called-a-camp-and-the-fix-is-in-the-renderer-because-the-map-data-still-says-camp) | 2026-08-05 |  |
+| D-139 | [Push resistance shortens a Pull exactly as it shortens a Push. Reel is the one carve-out, and it is an open question rather than a ruling.](#d-139-push-resistance-shortens-a-pull-exactly-as-it-shortens-a-push-reel-is-the-one-carve-out-and-it-is-an-open-question-rather-than-a-ruling) | unreleased |  |
 
-**137 rulings.**
+**138 rulings.**
 
 <!-- toc:end -->
 ---
@@ -275,6 +276,10 @@ Brief §4 asks for three things at once: "Anchor ignores Push 1; takes Push 2. P
 Anchor → moves 1." A binary immunity cannot produce the third — Stagger makes it an effective Push 2,
 which would move it 2, not 1. Subtracting one tile from every Push satisfies all three: Push 1 → 0,
 Push 2 → 1, Staggered Push 1 → effective 2 → 1. Pull is untouched, as §2 requires.
+
+**Partly superseded by D-139**: the three Push cases stand, but "Pull is untouched" does not —
+MASTER_DESIGN §3 runs both verbs through one arithmetic, and the clause was quietly costing the
+Grappler's drag its resistance check.
 
 **D-019 — Wardbearer Hold protects its allies but not itself.**
 Brief §2 says "allies adjacent to Wardbearer", and a unit is not adjacent to itself. Left as written:
@@ -400,6 +405,10 @@ D-018 gave the Anchor a hardcoded `Kind == Anchor` test. A Colossus subtracting 
 second `if`, and the next one a third. `UnitTemplate.PushResistance` replaces the check entirely:
 subtract the unit's resistance from every Push, before Hold and Footing, never below zero. Behaviour
 for the Anchor is bit-identical. Anchor, Mobile Anchor and Warden are 1; Colossus is 2.
+
+**Partly superseded by D-139**: the field and its position in the arithmetic are unchanged, but it is
+subtracted from every Pull as well. Generalising the *number* without revisiting *which verbs read
+it* is how D-018's Push-only clause survived into a rule that no longer meant to have one.
 
 **D-031 — Wardbearer Hold is a hold aura, not a Wardbearer rule.**
 `UnitTemplate.HoldAura` generalises D-019 so the enemy Bulwark is literally the same rule rather than
@@ -3179,3 +3188,66 @@ renderer's override can come out with it.
 was the symptom. **Rejected: rewiring `MapRestNode` towards the camp phase**, which is what the
 report of this bug could have been read as asking for. That would have been real model drift in
 exchange for a naming problem, and D-119 and D-127 both exist to keep the two apart.
+
+**D-139 — Push resistance shortens a Pull exactly as it shortens a Push. Reel is the one carve-out,
+and it is an open question rather than a ruling.**
+
+**What forced it.** The High Road log, seed 1: a Grappler's pull 2 moved a Wardbearer — push
+resistance 2 — the full two tiles, to (6,3). MASTER_DESIGN §3 opens "Push/Pull resolve tile-by-tile"
+and then states one arithmetic for both verbs: "+1 if target Staggered (consumed) → −N push
+resistance (Anchor 1, Wardbearer 2, Colossus 2) → cap 1 if enemy-Bulwark aura adjacent → floor 0."
+Two minus two is nought. `Displacement.EffectiveDistance` read `kind == DisplacementKind.Push &&
+resistance > 0`, so the subtraction never ran on a drag.
+
+**This was not a slip — it was D-018, and D-018 is superseded here.** That ruling said "Pull is
+untouched, as §2 requires," and D-030 generalised the number without revisiting the clause. Four
+tests pinned it by name (`PushResistance_DoesNotTouchPull`, `Anchor_IsPulledNormally`,
+`Colossus_Pull_IsCompletelyUnaffectedByPushResistance`, `MobileAnchor_StillShrugsOffOneTileOf
+EveryPush`) and five bestiary lines told the player so in prose. All of them are updated rather than
+deleted: the counterplay they described — "bring the Fisher, pull is the inversion" — survives, but
+it now names **Reel** rather than **Pull**, because Reel is the only pull left that ignores the stat
+block.
+
+**Scope, audited source by source.** Everything except Cast runs through one function, so the fix is
+one line and the audit is about which callers reach it. Basic push, Stagger Shot, Bull Rush's shove,
+Husk Shoulder, the Harrier's push and the Stalker's push all honoured resistance already and are
+untouched. The Fisher's basic flick (pull 1) and the Grappler's pull 2 did not, and now do —
+including through a guarding Wardbearer, whose own resistance 2 now eats a redirected drag exactly as
+it already ate a redirected shove (D-058). **Cast never enters the pipeline at all**: D-091 made
+THROW a third verb precisely so "resist doesn't apply" would not have to live as an exception inside
+the function every displacement runs through, and a test now asserts the exemption from this side of
+the change rather than only from Cast's.
+
+**Reel versus resistance is reported, not decided.** §3 says the arithmetic applies to all
+displacement; Reel's own text (§5) drags a target "all the way to adjacent, every tile resolved."
+Against a resisting target those cannot both hold: a Reel at range 4 against a Colossus asks for 3
+and the arithmetic answers 1, which lands the target two tiles out and makes the printed text a lie.
+Today's code drags it the whole way. That behaviour is **preserved deliberately and made explicit**
+— `bypassResistance`, set by the two Reel call sites and nothing else — rather than being changed by
+the side effect of a one-line bug fix, and it is pinned by
+`Colossus_OrdinaryPull_IsShortened_ButReelStillDragsItAllTheWayIn`. **The designer has to rule**: either
+Reel is shortened and its text changes, or resistance is a Push-and-ordinary-Pull rule and §3 says
+so. The Fisher currently owns two pulls that read differently, which is the smell.
+
+**Rejected: leaving Pull alone and treating §3's wording as loose.** That is the silent pick CLAUDE.md
+forbids, and it would have left the observed High Road behaviour unexplained rather than ruled on.
+**Rejected: shortening Reel too, "for consistency."** It is a two-line change and it quietly rewrites
+the Fisher's signature action, deletes the answer to the Colossus that D-018 and the whole bestiary
+sell, and does it inside a bug fix. **Rejected: a `DisplacementKind.Reel`.** A fourth verb changes
+`UnitPushed`'s payload for every listener — the shell, the log, the Pluck long-drag trigger — to
+express a carve-out that may not survive the designer's answer. **Rejected: reading `PullsToAdjacent`
+off the descriptor inside `Displacement`.** Core's rules would then be dispatching on an ability
+table, which is the archetype check D-030 removed, wearing a new hat.
+
+**Harness.** Deterministic policies only, seed 1, per-level sweep. Two boards moved and both field a
+Grappler: `broken-bridge` (first-legal won-10 → stall, shover won-7 → won-8) and `high-road`
+(blade-first and preserver each won-5 → won-6). Every board without a Grappler is bit-identical. The
+campaign sweep could not be compared — `tools/Faultline.Playtest` throws on the `brawler` run,
+before and after the change alike, from an unrelated null `run.Fight`. Seeds are not replication:
+nothing in Core consumes an `IRng` but the vote coin, so seeds 1–3 are one sample counted three
+times. The `random-*` policies are excluded — they seed from `policy.Name.GetHashCode()`, which is
+randomised per process.
+
+**Supersedes D-018's "Pull is untouched" clause** (the Anchor's three Push cases are unchanged) and
+amends D-030, which generalised the number to a stat-block field without revisiting which verbs read
+it.

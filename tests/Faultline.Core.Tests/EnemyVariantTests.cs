@@ -655,9 +655,13 @@ public class EnemyVariantTests
         Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Push, 1, false, out _));
     }
 
-    // The inversion: Pull ignores resistance entirely, so the Threadcaster is the answer.
+    // Was Colossus_Pull_IsCompletelyUnaffectedByPushResistance. D-139 put Pull under the same
+    // arithmetic as Push, so an ordinary drag is shortened by the Colossus's 2 like everything else
+    // — and Reel is the one carve-out left, because its printed text says "all the way to adjacent"
+    // and a shortened Reel would stop doing what the card says. Reported to the designer as the
+    // open question; today's behaviour is pinned here rather than left to chance.
     [Fact]
-    public void Colossus_Pull_IsCompletelyUnaffectedByPushResistance()
+    public void Colossus_OrdinaryPull_IsShortened_ButReelStillDragsItAllTheWayIn()
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerB(UnitKind.Threadcaster, 0, 0)
@@ -667,7 +671,7 @@ public class EnemyVariantTests
         var caster = state.Find(UnitKind.Threadcaster);
         var colossus = state.Find(UnitKind.Colossus);
 
-        Assert.Equal(2, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Pull, 2, false, out _));
+        Assert.Equal(0, Displacement.EffectiveDistance(state, colossus, DisplacementKind.Pull, 2, false, out _));
 
         var result = state.Step(new AbilityCommand(caster.Id, Ability.Reel, colossus.Id));
 
@@ -943,7 +947,9 @@ public class EnemyVariantTests
 
         Assert.Equal(0, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Push, 1, false, out _));
         Assert.Equal(1, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Push, 2, false, out _));
-        Assert.Equal(2, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Pull, 2, false, out _));
+
+        // D-139: the same tile comes off a Pull. It used to come off Pushes only.
+        Assert.Equal(1, Displacement.EffectiveDistance(state, anchor, DisplacementKind.Pull, 2, false, out _));
     }
 
     [Fact]

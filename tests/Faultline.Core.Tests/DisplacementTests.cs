@@ -410,8 +410,10 @@ public class DisplacementTests
         Assert.False(after.Get(anchor.Id).Staggered);
     }
 
+    // Was Anchor_IsPulledNormally, which pinned D-018's "Pull is untouched". MASTER_DESIGN §3 runs
+    // Push and Pull through one arithmetic, so the Anchor's tile comes off a drag too (D-139).
     [Fact]
-    public void Anchor_IsPulledNormally()
+    public void Anchor_ShrugsOffTheSameTileOfAPullAsOfAPush()
     {
         var state = AnchorBoard();
         var anchor = state.Find(UnitKind.Anchor);
@@ -419,7 +421,14 @@ public class DisplacementTests
         var events = new System.Collections.Generic.List<GameEvent>();
         var after = Displacement.Resolve(state, anchor.Id, new Coord(0, 0), DisplacementKind.Pull, 1, false, events);
 
-        Assert.Equal(new Coord(1, 0), after.Get(anchor.Id).Position);
+        Assert.Equal(anchor.Position, after.Get(anchor.Id).Position);
+        Assert.Equal(0, Assert.Single(events.OfType<UnitPushed>()).Distance);
+
+        var pulledTwo = Displacement.Resolve(
+            state, anchor.Id, new Coord(0, 0), DisplacementKind.Pull, 2, false,
+            new System.Collections.Generic.List<GameEvent>());
+
+        Assert.Equal(new Coord(1, 0), pulledTwo.Get(anchor.Id).Position);
     }
 
     // --- Hold auras and Footing ---------------------------------------------------------

@@ -292,8 +292,8 @@ computed first, in this exact order:
 ```
 requested distance
   + 1   if the target is Staggered   (and the Stagger is consumed)
-  - N   the target's push resistance, on a Push: 1 for Anchor, Mobile Anchor and Warden;
-        2 for the Colossus   (D-018, D-030)
+  - N   the target's push resistance, on a Push *or a Pull*: 1 for Anchor and Mobile Anchor;
+        2 for the Colossus and the Wardbearer   (D-018, D-030, D-139)
   → 1   capped, if an ally with a hold aura stands adjacent — the Bulwark, and only it   (D-031, D-058)
   - 1   if the target spends a Footing token
   = effective distance   (never below 0)
@@ -311,6 +311,20 @@ Then it travels, stopping the moment any of these happen:
 
 Collision, spike and fall damage ignore mitigation.
 
+**Push resistance shortens a Pull exactly as it shortens a Push (D-139).** One arithmetic, both
+verbs: a Grappler's pull 2 moves a Wardbearer (resistance 2) **0** tiles and an Anchor (1) **1**;
+the Fisher's flick — a pull 1 — moves an Anchor **0**. Staggering the target buys the tile back: a
+Staggered Grappler pull is an effective 3, so it drags a Wardbearer exactly **1**. Until D-139 this
+subtraction read Pushes only, which is why a Grappler dragged a Wardbearer its full 2.
+
+Two displacements sit outside it:
+
+- **Reel is never shortened.** Its printed text pulls the target *all the way to adjacent*, and it
+  still does — against a Colossus, a Wardbearer, anything. Carve-out, flagged to the designer as an
+  open question rather than settled (D-139); everything else the Fisher does obeys the arithmetic.
+- **Cast is exempt by rule.** A throw is a third verb and never enters this pipeline at all — an
+  Anchor braces against the ground and has nothing to brace against in the air (D-091).
+
 **A displacement that moves nothing is still a displacement.** When Footing, push resistance, a hold
 aura or a negating token reduces a shove to zero — or a wall or a body is already against the target
 — the unit stays put and the game still reports the shove, at distance 0 (D-057). Being immovable is
@@ -323,10 +337,12 @@ The Wardbearer spends its **action half** to guard. Until its **next activation*
 enemy round that follows, not just the rest of this one — damage and displacement aimed at an
 **adjacent ally** land on the Wardbearer instead.
 
-- **The vector is preserved and re-aimed from the Wardbearer's own tile.** A Pull 2 east on an ally
-  one row away drags the *Wardbearer* two east along *its* row. It is a re-aim, not a copy.
+- **The vector is preserved and re-aimed from the Wardbearer's own tile.** A Pull east on an ally one
+  row away drags the *Wardbearer* east along *its* row. It is a re-aim, not a copy.
 - **Its own push resistance 2 applies**, and its own Stagger, terrain and physics. A Push 1 at a
-  guarding Wardbearer moves it nowhere and is reported at distance 0 (D-057).
+  guarding Wardbearer moves it nowhere and is reported at distance 0 (D-057). **Since D-139 the same
+  is true of a redirected Pull**: a Grappler's pull 2 through a guarding Wardbearer moves nobody, and
+  the guard has to be Staggered before an intercepted drag travels at all.
 - **Attack damage it takes — redirected or direct — is halved, rounded up, minimum 1.** Integer
   arithmetic: 1→1, 2→1, 3→2, 4→2, 5→3, 6→3.
 - **Impact damage is never mitigated.** Collision, spikes and falls land in full. The board still
@@ -424,19 +440,24 @@ length that charges her meter on its own — so the extra tile is not just reach
 turns the heavy into a charger. A target already adjacent is still never a legal Reel: there is
 nowhere to reel it to.
 
+**Her flick obeys push resistance; her Reel does not.** The pull-1 flick moves an Anchor 0 tiles and
+a Wardbearer 0 (D-139); Reel is the carve-out and lands its target adjacent whatever its stat block
+says. Two pulls from the same class that read differently is the open question D-139 raised and did
+not settle.
+
 | Enemy | HP | Move | Action | Notes |
 |---|---|---|---|---|
 | Husk | 4 | 3 | melee, 2 dmg | chaff. **Shoulder**: walks through a body on its route, knocking it 1 aside for 2 and paying +1 MP (D-100) |
 | Lobber | 6 | 2 | range 3, 2 dmg | **hits for 4 from HighGround** — the +2 ranged bonus is not player-only |
 | Anchor | 12 | 1 | melee, 4 dmg | **shrugs off 1 tile of every Push.** Push 1 → nothing; Push 2 → moves 1; Staggered Push 1 → moves 1. Pull unaffected. |
-| Grappler | 10 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull |
+| Grappler | 10 | 3 | **range 3, pull 2** | deals **no damage at all**; its entire action is the pull. Its 2 is shortened by push resistance like any other displacement (D-139), so against a Wardbearer it drags **nothing** unless the Wardbearer is Staggered |
 | Stalker | 8 | 4 | **melee, push 1** | deals **no damage at all**; its entire action is the shove. **A hold aura does not blunt it** — Hold only caps displacement above 1 tile, and its shove is exactly 1. A Wardbearer in Guard Stance does stop it (D-058) |
 | Warden | 12 | **0** | melee, 4 dmg | **never moves.** No closing branch at all: adjacent → attack, otherwise hold. **2 negating Footing tokens** — nothing shoves or pulls it while they stand; a collision it suffers takes one; break both and it moves like anybody (D-102) |
 | Perch | 6 | 2 | range 3, 2 dmg | seeks the nearest reachable HighGround and **hits for 4 from it**; once up, it does not come down |
 | Bulwark | 10 | 2 | melee, 2 dmg | **hold aura** — adjacent allies cannot be displaced more than 1; does not protect itself. **The only hold aura left in the game** — the Wardbearer's copy went with the rest of its old kit (D-058) |
 | Harrier | 8 | 4 | **melee, push 1** | no damage. Shoves to **maximise the target's distance from its nearest ally**, and refuses any shove that would not move it — so it never uses walls or the edge |
 | Runt | 2 | 4 | melee, 2 dmg | dies to one collision, one spike tile, or one fall |
-| Colossus | 20 | 1 | melee, 6 dmg | **push resistance 2.** Push 1 → nothing; Push 2 → nothing; a Staggered Bull Rush moves it 1. **Pull is unaffected** |
+| Colossus | 20 | 1 | melee, 6 dmg | **push resistance 2.** Push 1 → nothing; Push 2 → nothing; a Staggered Bull Rush moves it 1. Since D-139 an ordinary **Pull** is shortened by the same 2 — **only Reel still drags it**, all the way to adjacent |
 | Lesser Grappler | 10 | 3 | range **2**, pull 2 | Grappler list; must close to 2 where a Grappler already has you at 3 |
 | Blunted Stalker | 8 | 4 | **melee, push 1** | ranks **pit → spikes only.** Will not shove into a wall or the board edge, and does not loiter near them |
 | Heavy Husk | 6 | 3 | melee, 2 dmg | Husk list; survives one collision |

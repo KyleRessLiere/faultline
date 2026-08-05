@@ -75,8 +75,10 @@ public class WardbearerTests
         Assert.Equal(expected, distance);
     }
 
+    // Was PushResistance_DoesNotTouchPull, which pinned D-018's "Pull is untouched". MASTER_DESIGN
+    // §3 states one arithmetic for Push and Pull alike, so the shrug shortens a drag too (D-139).
     [Fact]
-    public void PushResistance_DoesNotTouchPull()
+    public void PushResistance_ShortensAPullByTheSameAmountAsAPush()
     {
         var state = BoardBuilder.Open(8, 1)
             .PlayerB(UnitKind.Wardbearer, 3, 0)
@@ -86,7 +88,11 @@ public class WardbearerTests
         var wardbearer = state.Get(state.Find(UnitKind.Wardbearer).Id);
 
         Assert.Equal(
-            2, Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 2, false, out _));
+            0, Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 2, false, out _));
+
+        Assert.Equal(
+            Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Push, 3, false, out _),
+            Displacement.EffectiveDistance(state, wardbearer, DisplacementKind.Pull, 3, false, out _));
     }
 
     // ---- Spear Thrust ------------------------------------------------------------------
@@ -580,20 +586,23 @@ public class WardbearerTests
         var archer = state.Find(UnitKind.Archer);
         var grappler = state.Find(UnitKind.Grappler);
 
-        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true });
+        // Staggered so the redirect still travels: since D-139 the guard's own resistance 2 shortens
+        // a redirected Pull exactly as it shortens a redirected Push, and a plain Pull 2 would move
+        // it nowhere. What is under test is the vector, so the fixture buys a tile to show one.
+        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true, Staggered = true });
 
         var result = EnemyTurn(state).Step(new AttackCommand(grappler.Id, archer.Id, AttackMode.Pull));
 
         // The Archer would have been pulled east toward the Grappler. The Wardbearer travels east
         // instead — along its own row, not into the Grappler's.
         Assert.Equal(new Coord(2, 0), result.NewState.Get(archer.Id).Position);
-        Assert.Equal(new Coord(4, 1), result.NewState.Get(wardbearer.Id).Position);
+        Assert.Equal(new Coord(3, 1), result.NewState.Get(wardbearer.Id).Position);
 
         var pushed = result.Single<UnitPushed>();
         Assert.Equal(wardbearer.Id, pushed.UnitId);
         Assert.Equal(DisplacementKind.Pull, pushed.Kind);
-        Assert.Equal(2, pushed.Distance);
-        Assert.Equal(new[] { new Coord(3, 1), new Coord(4, 1) }, pushed.Path);
+        Assert.Equal(1, pushed.Distance);
+        Assert.Equal(new[] { new Coord(3, 1) }, pushed.Path);
     }
 
     [Fact]
@@ -778,7 +787,9 @@ public class WardbearerTests
         var archer = state.Find(UnitKind.Archer);
         var grappler = state.Find(UnitKind.Grappler);
 
-        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true });
+        // Staggered to buy back the tile D-139's resistance now takes off the redirected Pull. The
+        // subject is the wall, not the distance: one tile is all it needs to reach it.
+        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true, Staggered = true });
 
         var result = EnemyTurn(state).Step(new AttackCommand(grappler.Id, archer.Id, AttackMode.Pull));
 
@@ -829,7 +840,9 @@ public class WardbearerTests
         var archer = state.Find(UnitKind.Archer);
         var grappler = state.Find(UnitKind.Grappler);
 
-        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true });
+        // Staggered to buy back the tile D-139's resistance now takes off the redirected Pull. The
+        // subject is the drain one tile east, which one tile of travel still reaches.
+        state = state.WithUnit(state.Get(wardbearer.Id) with { Guarding = true, Staggered = true });
 
         var pulled = EnemyTurn(state).Step(new AttackCommand(grappler.Id, archer.Id, AttackMode.Pull));
 
