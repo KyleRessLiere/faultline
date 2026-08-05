@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-04t** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-04u** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -16,6 +16,17 @@ Last design session: 2026-08-04.
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-04 (u) — LOCKED: climb surcharge REMOVED — climbing is ordinary movement (1 AP,
+  players; no +1 MP, enemies): position is already the price, and high ground's cost is its
+  physics (shove-up collides, shove-off falls, the Grappler hunts the perched). Brambles keep
+  2 AP + 2 damage — there the cost IS the terrain. Casualties: the Archer's free-climb perk
+  retires (vestigial); the Climber unlock deletes from §8.6 (pool of four). Watch flag: if
+  fights open as scripted hill races, the brake returns as board design, never as surcharge.
+  ALSO LOCKED — enemy defense assignments under the Footing rework: chaff tier Footing 1
+  (Husk, Lobber, Grappler, Stalker, Harrier, Perch, Bulwark — aura separate), Runt 0;
+  fortress tier Footing 2 (Anchor r1, Warden r1, Colossus r2); Quarry King Footing 0
+  DELIBERATE (the shell is his only anti-displacement; the post-shell window is the fight's
+  payoff); Heavy Husk reserved at Footing 2, unfielded.
 2026-08-04 (t) — LOCKED: the FOOTING REWORK — Footing counts INSTANCES, not tiles: spending
   it refuses one whole displacement (impact included); it exits the distance arithmetic
   (pipeline is now Stagger → resist → Bulwark cap → floor). Footing STACKS are the
@@ -202,7 +213,7 @@ water moving somewhere else — ducks don't drown, they get swept.
 | Wall | impossible | collision: 4, Stagger |
 | Drain | impossible | Clinging → swept |
 | Spikes | costs 1 extra movement, 2 damage, no Stagger | 6 damage, stops, Stagger |
-| HighGround | +1 MP to climb (Archer free); ranged from it +2 dmg | up: collides like a wall; down: 2 dmg, displacement continues |
+| HighGround | ordinary movement (no climb surcharge — locked u); ranged from it +2 dmg | up: collides like a wall; down: 2 dmg, displacement continues |
 
 **Debris** (`o`): standing piece. Occupies tile, blocks movement, 4 HP, allegiance-less, never
 activates. Attackable; displaceable by any push/pull. Unit into debris: 4 both. Debris into unit:
@@ -286,8 +297,8 @@ buttons, outcomes on previews, "moves only" notes); it never gates on judgment. 
 unorthodox plays belong to the player.
 
 **Activation — the Action Point turn (players only):** each duck activates with **3 AP**.
-Movement spends first at **1 AP per tile** (terrain surcharges unify into AP: brambles 2 AP to
-enter + 2 damage; climb 2 AP, Archer 1). Then **exactly ONE action, which ends the activation**
+Movement spends first at **1 AP per tile** (one surcharge only: brambles cost 2 AP to enter,
++2 damage; climbing is ordinary movement — locked u). Then **exactly ONE action, which ends the activation**
 — AP prices how far you moved before your action, never how many actions; no movement after
 acting (protects the telegraph economy). Spending all 3 AP on movement is legal (the dash needs
 no button — it is today's full move, gated on forfeiting your action). **Acting costs legs:**
@@ -314,7 +325,7 @@ eligibility flagged for review — move-1-then-Bull-Rush extends his threat rang
 | Class | HP | Move | Basic | Kit |
 |---|---|---|---|---|
 | **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush**: charge ≤3 in a line, first enemy hit pushed 2, stop adjacent (fused move+act) |
-| **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away. Climbs HighGround free |
+| **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away |
 | **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
 | **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
 
@@ -369,6 +380,14 @@ seeks and holds HighGround · Bulwark 10/2 aura: adjacent allies displaced max 1
 pushes players away from allies · Runt 2 HP swarm · Colossus 20/1 melee 6, resist 2 · **Raider**
 4/3 claw 2: targets the Protect structure, never players · balance variants (Lesser Grappler,
 blunted Stalker, Heavy Husk, mobile Anchor) scaled likewise.
+
+**Defense assignments (locked u):** chaff tier Footing 1 — Husk, Lobber, Grappler, Stalker,
+Harrier, Perch, Bulwark (its displacement-cap aura is separate from and independent of
+Footing); Runt Footing 0. Fortress tier Footing 2 — Anchor (resist 1), Warden (resist 1),
+Colossus (resist 2): "you'll pay properly to fish me." Quarry King Footing 0 — DELIBERATE:
+shell tokens are his only anti-displacement; the post-shell vulnerability is the fight's
+payoff. Heavy Husk reserved at Footing 2 (unfielded; pairs with the bloody shoulder as the
+named elite). Balance variants as base kin.
 
 Behavior rules: published deterministic priority lists; intents locked and shown fully;
 lowest-id tiebreaks; enemies rescue clinging allies (below lethal-kill in every list); enemy
@@ -553,9 +572,9 @@ round an enemy ends a displacement adjacent to her* ·· Archer — *+1 on kills
 Stance expires unabsorbed (patience pays)* · *+1 when the Spear's tip tile hits*.
 
 **Tactical unlocks (per duck, one sentence each):** *Sure-Footed* — brambles cost this duck
-1 AP · *Climber* — high ground costs this duck 1 AP · *Steady Hands* — Rescue costs this duck
-2 AP · *Long Boot* — may Kick-in at range 2 · *Deep Pockets* — a second consumable pocket
-(rare).
+1 AP · *Steady Hands* — Rescue costs this duck 2 AP · *Long Boot* — may Kick-in at range 2 ·
+*Deep Pockets* — a second consumable pocket (rare). *(Climber deleted with the climb
+surcharge, locked u.)*
 
 **Permanent legendary catalog (destinations only; one per duck = its epithet; the broken law
 printed on each):**
