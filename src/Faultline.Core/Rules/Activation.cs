@@ -16,8 +16,15 @@ namespace Faultline.Core
     /// </para>
     /// <para>
     /// <b>Pools are grammar.</b> The pool is uniform across all four classes; differentiation lives
-    /// in <see cref="CostOf(Ability)"/> and in earned upgrades, never in a per-class pool. That is
-    /// why this is a constant rather than a stat on <c>UnitTemplate</c>.
+    /// in <see cref="AbilityDefinition.Cost"/> and in earned upgrades, never in a per-class pool.
+    /// That is why this is a constant rather than a stat on <c>UnitTemplate</c>.
+    /// </para>
+    /// <para>
+    /// <b>There is no <c>CostOf(Ability)</c> switch.</b> There was, and its default arm meant a newly
+    /// registered expensive ability silently cost <see cref="ActionCost"/> until somebody remembered
+    /// the second table (component review, "Player abilities"). Cost is now a required field of the
+    /// ability's own definition, so omitting it does not compile. The constants below remain as the
+    /// named prices those definitions cite.
     /// </para>
     /// </remarks>
     public static class Activation
@@ -98,16 +105,6 @@ namespace Faultline.Core
         /// <returns>The AP pool for a player unit, or the Move stat for an enemy.</returns>
         public static int Pool(Unit unit) =>
             unit is null ? 0 : UsesActionPoints(unit) ? PlayerPool : unit.Move;
-
-        /// <summary>What an ability costs out of the pool.</summary>
-        /// <param name="ability">Ability being used.</param>
-        /// <returns>Its cost in action points.</returns>
-        public static int CostOf(Ability ability) => ability switch
-        {
-            Ability.BullRush => BullRushCost,
-            Ability.Reel => ReelCost,
-            _ => ActionCost,
-        };
 
         /// <summary>
         /// Points left in the purse this activation, which is not the same question as

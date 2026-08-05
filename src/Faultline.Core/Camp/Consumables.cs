@@ -73,29 +73,18 @@ namespace Faultline.Core
                 return commands;
             }
 
-            switch (unit.Loadout.Pocket!.Value)
+            var definition = ConsumableDefinition.For(unit.Loadout.Pocket!.Value);
+            if (!definition.PreconditionsHold(state, unit))
             {
-                case Consumable.DriedMinnow:
-                    if (unit.Verve < Verve.Cap)
-                    {
-                        commands.Add(new UseConsumableCommand(unit.Id));
-                    }
+                return commands;
+            }
 
-                    break;
-
-                case Consumable.BrambleSalve:
-                    if (unit.Hp < unit.MaxHp)
-                    {
-                        commands.Add(new UseConsumableCommand(unit.Id));
-                    }
-
-                    break;
-
-                case Consumable.DuckFeatherCharm:
-                    commands.Add(new UseConsumableCommand(unit.Id));
-                    break;
-
-                case Consumable.OldRope:
+            // The switch is over the handful of custom rules, not over the items. An item whose
+            // preconditions and effects are the whole of it — a Salve, a Minnow, a Charm — never
+            // appears here at all, which is the property that makes a new healing one-shot data.
+            switch (definition.CustomRule)
+            {
+                case ConsumableRule.Rope:
                     foreach (var clinging in state.Units)
                     {
                         if (!Pits.CanRescue(state, unit, clinging))
@@ -111,10 +100,18 @@ namespace Faultline.Core
 
                     break;
 
-                case Consumable.CrateOfDebris:
+                case ConsumableRule.Debris:
                     foreach (var tile in DebrisTiles(state, unit))
                     {
                         commands.Add(new UseConsumableCommand(unit.Id, null, tile));
+                    }
+
+                    break;
+
+                default:
+                    if (definition.Aim == ConsumableAim.None)
+                    {
+                        commands.Add(new UseConsumableCommand(unit.Id));
                     }
 
                     break;
@@ -201,56 +198,24 @@ namespace Faultline.Core
             state = state.WithUnit(unit with { Loadout = unit.Loadout.WithEmptyPocket() });
             events.Add(new ConsumableUsed(unit.Id, item, unit.Position, command.TargetId, command.To));
 
-            switch (item)
+            // Again the switch is over the custom rules only. Everything else is the definition's
+            // effect list, applied by the same resolver an ability's effects go through — so a
+            // one-shot obeys precisely the physics an ability obeys.
+            switch (ConsumableDefinition.For(item).CustomRule)
             {
-                case Consumable.DriedMinnow:
-                    return Verve.Gain(state, unit.Id, MinnowPluck, VerveSource.Pocket, events);
-
-                case Consumable.BrambleSalve:
-                    return Heal(state, unit.Id, events);
-
-                case Consumable.DuckFeatherCharm:
-                    return Refill(state, unit.Id, events);
-
-                case Consumable.OldRope:
+                case ConsumableRule.Rope:
                     return Haul(state, unit.Id, command, events);
 
-                case Consumable.CrateOfDebris:
+                case ConsumableRule.Debris:
                     return Place(state, unit.Id, command, events);
 
                 default:
-                    return state;
+                    return Effects.Apply(
+                        state,
+                        ConsumableDefinition.For(item).Effects,
+                        new EffectContext(unit.Id, command.TargetId, command.To),
+                        events);
             }
-        }
-
-        private static GameState Heal(GameState state, UnitId unitId, List<GameEvent> events)
-        {
-            var unit = state.UnitById(unitId);
-            int healed = unit.MaxHp - unit.Hp;
-            if (healed > SalveHeal)
-            {
-                healed = SalveHeal;
-            }
-
-            if (healed <= 0)
-            {
-                return state;
-            }
-
-            state = state.WithUnit(unit with { Hp = unit.Hp + healed });
-            events.Add(new UnitHealed(unitId, healed, unit.Hp + healed, unit.Position));
-            return state;
-        }
-
-        private static GameState Refill(GameState state, UnitId unitId, List<GameEvent> events)
-        {
-            var unit = state.UnitById(unitId);
-            var refilled = unit with { Footing = unit.Footing + CharmFooting };
-
-            // The token count travels on a FootingSpent, which is the one event that carries it. A
-            // gain reported as a spend of nothing would be a lie, so the ConsumableUsed above is the
-            // report and this is only the state change.
-            return state.WithUnit(refilled);
         }
 
         private static GameState Haul(

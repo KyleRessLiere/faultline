@@ -9,14 +9,21 @@ namespace Faultline.Core
     /// </summary>
     /// <remarks>
     /// <para>
-    /// One table, in Core, for the same reason <see cref="Verve.DescriptionOf"/> is here: the card
-    /// and the rule must not be able to drift apart. A shell that wrote its own offer text would be
-    /// a second, unversioned copy of the pool.
+    /// One place to ask, in Core, for the same reason <see cref="Verve.DescriptionOf"/> is here: the
+    /// card and the rule must not be able to drift apart. A shell that wrote its own offer text would
+    /// be a second, unversioned copy of the pool.
     /// </para>
     /// <para>
     /// <b>Everything drawable is in this file.</b> The camp draws from these four lists and nothing
     /// else, which is what makes "no offer type outside the implemented set can be drawn" an
     /// assertion about one table rather than about the whole run layer.
+    /// </para>
+    /// <para>
+    /// The <em>metadata</em> of what is drawn — name, card text, eligible class or spender — now lives
+    /// in <see cref="UpgradeDefinition"/> and <see cref="ConsumableDefinition"/>; the accessors below
+    /// read those registries rather than restating them, so there is exactly one source per name and
+    /// per number (component review, "Risks of over-engineering"). What stays here is the
+    /// <em>pools</em>: which of those things a camp may actually hand out.
     /// </para>
     /// </remarks>
     public static class CampCatalogue
@@ -79,155 +86,64 @@ namespace Faultline.Core
         /// <summary>Which spender a mod bolts onto.</summary>
         /// <param name="mod">Mod to place.</param>
         /// <returns>The spender it modifies.</returns>
-        public static VerveSpend SpenderOf(Mod mod) => mod switch
-        {
-            Mod.Heavier or Mod.Freight or Mod.Echo => VerveSpend.WreckingWeight,
-            Mod.LightLine or Mod.LongRod or Mod.BigSplash => VerveSpend.Cast,
-            Mod.FletchersRhythm or Mod.LongDraw or Mod.HuntersRefund => VerveSpend.DoubleNock,
-            Mod.Thorough or Mod.Neighborly or Mod.Quick => VerveSpend.Preen,
-            _ => throw new ArgumentOutOfRangeException(nameof(mod), mod, "No spender for that mod."),
-        };
+        public static VerveSpend SpenderOf(Mod mod) =>
+            UpgradeDefinition.For(mod).Spender
+            ?? throw new ArgumentOutOfRangeException(nameof(mod), mod, "No spender for that mod.");
 
         /// <summary>Which class holds the spender a mod bolts onto.</summary>
         /// <param name="mod">Mod to place.</param>
         /// <returns>The archetype that can carry it.</returns>
-        public static UnitKind KindOf(Mod mod) => SpenderOf(mod) switch
-        {
-            VerveSpend.WreckingWeight => UnitKind.Vanguard,
-            VerveSpend.Cast => UnitKind.Threadcaster,
-            VerveSpend.DoubleNock => UnitKind.Archer,
-            _ => UnitKind.Wardbearer,
-        };
+        public static UnitKind KindOf(Mod mod) =>
+            UpgradeDefinition.For(mod).Kind
+            ?? throw new ArgumentOutOfRangeException(nameof(mod), mod, "No class for that mod.");
 
         /// <summary>Which class a Second Wind condition belongs to. Class-bound, always.</summary>
         /// <param name="wind">Condition to place.</param>
         /// <returns>The archetype that can earn from it.</returns>
-        public static UnitKind KindOf(SecondWind wind) => wind switch
-        {
-            SecondWind.StaggerAnEnemy or SecondWind.BullRushConnects => UnitKind.Vanguard,
-            SecondWind.ChumTheWater or SecondWind.DisplacedAdjacent => UnitKind.Threadcaster,
-            SecondWind.LongKill or SecondWind.Roost => UnitKind.Archer,
-            SecondWind.Patience or SecondWind.SpearTip => UnitKind.Wardbearer,
-            _ => throw new ArgumentOutOfRangeException(nameof(wind), wind, "No class for that condition."),
-        };
+        public static UnitKind KindOf(SecondWind wind) =>
+            UpgradeDefinition.For(wind).Kind
+            ?? throw new ArgumentOutOfRangeException(nameof(wind), wind, "No class for that condition.");
 
         /// <summary>Display name.</summary>
         /// <param name="mod">Mod to name.</param>
         /// <returns>Its name.</returns>
-        public static string NameOf(Mod mod) => mod switch
-        {
-            Mod.Heavier => "Heavier",
-            Mod.Freight => "Freight",
-            Mod.Echo => "Echo",
-            Mod.LightLine => "Light Line",
-            Mod.LongRod => "Long Rod",
-            Mod.BigSplash => "Big Splash",
-            Mod.FletchersRhythm => "Fletcher's Rhythm",
-            Mod.LongDraw => "Long Draw",
-            Mod.HuntersRefund => "Hunter's Refund",
-            Mod.Thorough => "Thorough",
-            Mod.Neighborly => "Neighborly",
-            _ => "Quick",
-        };
+        public static string NameOf(Mod mod) => UpgradeDefinition.For(mod).Name;
 
         /// <summary>Display name.</summary>
         /// <param name="wind">Condition to name.</param>
         /// <returns>Its name.</returns>
-        public static string NameOf(SecondWind wind) => wind switch
-        {
-            SecondWind.StaggerAnEnemy => "Rattle",
-            SecondWind.BullRushConnects => "Impact",
-            SecondWind.ChumTheWater => "Chum the Water",
-            SecondWind.DisplacedAdjacent => "Undertow",
-            SecondWind.LongKill => "Long Shot",
-            SecondWind.Roost => "Roost",
-            SecondWind.Patience => "Patience",
-            _ => "Spear Tip",
-        };
+        public static string NameOf(SecondWind wind) => UpgradeDefinition.For(wind).Name;
 
         /// <summary>Display name.</summary>
         /// <param name="unlock">Unlock to name.</param>
         /// <returns>Its name.</returns>
-        public static string NameOf(Unlock unlock) => unlock switch
-        {
-            Unlock.SureFooted => "Sure-Footed",
-            Unlock.Climber => "Climber",
-            Unlock.SteadyHands => "Steady Hands",
-            _ => "Long Boot",
-        };
+        public static string NameOf(Unlock unlock) => UpgradeDefinition.For(unlock).Name;
 
         /// <summary>Display name.</summary>
         /// <param name="consumable">One-shot to name.</param>
         /// <returns>Its name.</returns>
-        public static string NameOf(Consumable consumable) => consumable switch
-        {
-            Consumable.DriedMinnow => "Dried Minnow",
-            Consumable.BrambleSalve => "Bramble Salve",
-            Consumable.OldRope => "Old Rope",
-            Consumable.DuckFeatherCharm => "Duck Feather Charm",
-            _ => "Crate of Debris",
-        };
+        public static string NameOf(Consumable consumable) => ConsumableDefinition.For(consumable).Name;
 
         /// <summary>What a mod does, in plain words.</summary>
         /// <param name="mod">Mod to describe.</param>
         /// <returns>Its card text.</returns>
-        public static string SummaryOf(Mod mod) => mod switch
-        {
-            Mod.Heavier => "Contact damage " + Verve.HeavierContactDamage + ".",
-            Mod.Freight => "+" + Verve.FreightDistanceBonus + " distance instead of +"
-                + Verve.ContactDistanceBonus + ".",
-            Mod.Echo => "If the charged push collides, refund 1 " + Naming.Meter + ".",
-            Mod.LightLine => "Cost " + Verve.LightLineCost + ".",
-            Mod.LongRod => "Grab range " + Throw.LongRodGrabRange + ".",
-            Mod.BigSplash => "The landing also deals " + Throw.SplashDamage
-                + " to enemies adjacent to the landing tile.",
-            Mod.FletchersRhythm => "Cost " + Verve.FletchersRhythmCost + ".",
-            Mod.LongDraw => "Both shots range " + Combat.LongDrawRange + ".",
-            Mod.HuntersRefund => "A killing shot refunds 1.",
-            Mod.Thorough => "Also clears his Stagger.",
-            Mod.Neighborly => "May target an adjacent ally.",
-            _ => "Cost " + Verve.QuickPreenCost + ".",
-        };
+        public static string SummaryOf(Mod mod) => UpgradeDefinition.For(mod).Summary;
 
         /// <summary>What a Second Wind earns from, in plain words.</summary>
         /// <param name="wind">Condition to describe.</param>
         /// <returns>Its card text.</returns>
-        public static string SummaryOf(SecondWind wind) => wind switch
-        {
-            SecondWind.StaggerAnEnemy => "+1 when he Staggers an enemy.",
-            SecondWind.BullRushConnects => "+1 when Bull Rush connects.",
-            SecondWind.ChumTheWater =>
-                "+1 when an enemy she displaced this round is killed by anyone.",
-            SecondWind.DisplacedAdjacent =>
-                "+1 the first time each round an enemy ends a displacement adjacent to her.",
-            SecondWind.LongKill => "+1 on kills at range " + Verve.LongKillRange + ".",
-            SecondWind.Roost => "+1 the first time each fight she ends a round on high ground.",
-            SecondWind.Patience => "+1 when Guard Stance expires unabsorbed — patience pays.",
-            _ => "+1 when the Spear's tip tile hits.",
-        };
+        public static string SummaryOf(SecondWind wind) => UpgradeDefinition.For(wind).Summary;
 
         /// <summary>What an unlock changes, in one sentence.</summary>
         /// <param name="unlock">Unlock to describe.</param>
         /// <returns>Its card text.</returns>
-        public static string SummaryOf(Unlock unlock) => unlock switch
-        {
-            Unlock.SureFooted => "Brambles cost this duck " + Activation.StepCost + " AP.",
-            Unlock.Climber => "High ground costs this duck " + Activation.StepCost + " AP.",
-            Unlock.SteadyHands => "Rescue costs this duck " + Activation.SteadyHandsRescueCost + " AP.",
-            _ => "May Kick-in at range " + Pits.LongBootKickRange + ".",
-        };
+        public static string SummaryOf(Unlock unlock) => UpgradeDefinition.For(unlock).Summary;
 
         /// <summary>What a one-shot does, in one sentence.</summary>
         /// <param name="consumable">One-shot to describe.</param>
         /// <returns>Its card text.</returns>
-        public static string SummaryOf(Consumable consumable) => consumable switch
-        {
-            Consumable.DriedMinnow => "Gain " + Consumables.MinnowPluck + " " + Naming.Meter + " now.",
-            Consumable.BrambleSalve => "Heal " + Consumables.SalveHeal + ", never past your maximum.",
-            Consumable.OldRope => "Rescue an adjacent clinger as a free action.",
-            Consumable.DuckFeatherCharm => "Refill Footing " + Consumables.CharmFooting + ".",
-            _ => "Place debris on an adjacent open tile.",
-        };
+        public static string SummaryOf(Consumable consumable) =>
+            ConsumableDefinition.For(consumable).Summary;
 
         /// <summary>Display name of whatever an offer holds.</summary>
         /// <param name="offer">Offer to name.</param>

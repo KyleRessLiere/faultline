@@ -13,8 +13,8 @@ namespace Faultline.Core
         Reel = 2,
 
         /// <summary>
-        /// Wardbearer: a two-tile line ahead, 2 damage to the adjacent tile and 1 to the tile beyond
-        /// it. Damage only — it displaces nothing (D-068).
+        /// Wardbearer: a two-tile line ahead, 2 damage to the adjacent tile and 4 to the tile beyond
+        /// it — the tip is the sweet spot (D-086). Damage only — it displaces nothing (D-068).
         /// </summary>
         SpearThrust = 3,
 
@@ -39,7 +39,7 @@ namespace Faultline.Core
 
         /// <summary>
         /// Pick one of the four directions; the ability hits the fixed run of tiles directly ahead
-        /// without the user moving. The run is <see cref="AbilityDescriptor.Range"/> tiles long and
+        /// without the user moving. The run is <see cref="AbilityDefinition.Range"/> tiles long and
         /// nothing blocks it — there is no line of sight in this game (D-010).
         /// </summary>
         Line = 3,

@@ -75,6 +75,16 @@ namespace Faultline.Core
         /// is fielded by no fight; putting it on a board is a design decision, not a test's.
         /// </summary>
         BracedHusk = 21,
+
+        /// <summary>
+        /// Neutral: an escort duckling. No attack, no shove — it puts distance between itself and
+        /// whatever is hostile to it and otherwise stands still. It exists to prove that a genuinely
+        /// new priority list costs one registration in <see cref="EnemyPlanDefinition"/> and one
+        /// planner in <see cref="Ai"/>, and it is <b>fielded by no <c>.fight</c> file and named by no
+        /// campaign or acquisition pool</b>: putting a neutral on a board is a design decision, not a
+        /// test's.
+        /// </summary>
+        EscortDuckling = 22,
     }
 
     /// <summary>
@@ -85,6 +95,10 @@ namespace Faultline.Core
     /// <see cref="Melee"/>, so the two can never drift apart. The planner switches on this rather
     /// than on <see cref="UnitKind"/> for exactly that reason (docs/ENEMY_ROSTER.md).
     /// </remarks>
+    /// <seealso cref="EnemyPlanDefinition">
+    /// Where each member is registered, together with the method that executes it and the description
+    /// of its branches. A member here without a registration there cannot run at all.
+    /// </seealso>
     public enum EnemyPlan
     {
         /// <summary>Not an enemy; the archetype is player-controlled and has no priority list.</summary>
@@ -122,6 +136,12 @@ namespace Faultline.Core
         /// carries a standalone shove.
         /// </summary>
         QuarryKing = 9,
+
+        /// <summary>
+        /// Break away from the nearest hostile, else hold. The escort duckling's list, and the only
+        /// one that never acts on anybody.
+        /// </summary>
+        Escort = 10,
     }
 
     /// <summary>How a unit's basic attack reaches its target.</summary>

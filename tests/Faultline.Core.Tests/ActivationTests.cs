@@ -202,11 +202,11 @@ public class ActivationTests
     {
         Assert.Equal(3, Activation.PlayerPool);
         Assert.Equal(Activation.PlayerPool, Activation.FullPool);
-        Assert.Equal(2, Activation.CostOf(Ability.BullRush));
-        Assert.Equal(2, Activation.CostOf(Ability.Reel));
-        Assert.Equal(1, Activation.CostOf(Ability.StaggerShot));
-        Assert.Equal(1, Activation.CostOf(Ability.SpearThrust));
-        Assert.Equal(1, Activation.CostOf(Ability.GuardStance));
+        Assert.Equal(2, AbilityDefinition.For(Ability.BullRush).Cost);
+        Assert.Equal(2, AbilityDefinition.For(Ability.Reel).Cost);
+        Assert.Equal(1, AbilityDefinition.For(Ability.StaggerShot).Cost);
+        Assert.Equal(1, AbilityDefinition.For(Ability.SpearThrust).Cost);
+        Assert.Equal(1, AbilityDefinition.For(Ability.GuardStance).Cost);
     }
 
     [Fact]

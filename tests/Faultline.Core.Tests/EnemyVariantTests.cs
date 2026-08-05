@@ -720,7 +720,7 @@ public class EnemyVariantTests
             Assert.NotEqual(EnemyPlan.None, UnitTemplate.For(kind).Plan);
         }
 
-        foreach (var descriptor in AbilityDescriptor.All())
+        foreach (var descriptor in AbilityDefinition.All())
         {
             Assert.Equal(EnemyPlan.None, UnitTemplate.For(descriptor.Kind).Plan);
         }

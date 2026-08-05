@@ -54,7 +54,7 @@ public class ArcherMinimumRangeTests
 
         Assert.DoesNotContain(
             husk.Id,
-            Abilities.LegalTargets(state, state.Get(archer.Id), AbilityDescriptor.For(Ability.StaggerShot)));
+            Abilities.LegalTargets(state, state.Get(archer.Id), AbilityDefinition.For(Ability.StaggerShot)));
 
         TestPlay.AssertIllegal(state, new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
     }
@@ -188,7 +188,7 @@ public class ArcherMinimumRangeTests
 
         var archer = state.Find(UnitKind.Archer);
         var husk = state.Find(UnitKind.Husk);
-        var shot = AbilityDescriptor.For(Ability.StaggerShot);
+        var shot = AbilityDefinition.For(Ability.StaggerShot);
 
         Assert.Equal(1, archer.Position.DistanceTo(husk.Position));
         Assert.Contains(husk.Id, Abilities.LegalTargets(state, archer, shot));
@@ -214,7 +214,7 @@ public class ArcherMinimumRangeTests
 
         Assert.DoesNotContain(
             husk.Id,
-            Abilities.LegalTargets(state, archer, AbilityDescriptor.For(Ability.StaggerShot)));
+            Abilities.LegalTargets(state, archer, AbilityDefinition.For(Ability.StaggerShot)));
         TestPlay.AssertIllegal(state, new AbilityCommand(archer.Id, Ability.StaggerShot, husk.Id));
     }
 
@@ -308,7 +308,7 @@ public class ArcherMinimumRangeTests
     {
         Assert.Equal(
             new[] { Ability.StaggerShot },
-            AbilityDescriptor.All().Where(d => d.MinRange > 0).Select(d => d.Ability).ToArray());
+            AbilityDefinition.All().Where(d => d.MinRange > 0).Select(d => d.Ability).ToArray());
     }
 
     private static GameState Board(int enemyAt) =>

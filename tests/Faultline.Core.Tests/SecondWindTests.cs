@@ -82,7 +82,7 @@ public class SecondWindTests
         Assert.Equal(VerveSource.Charge, charged.Source);
         Assert.Equal(1, charged.NewTotal);
         Assert.Equal(1, result.NewState.Get(vanguard.Id).Verve);
-        Assert.Equal(12 - AbilityDescriptor.For(Ability.BullRush).Damage, result.NewState.Get(husk.Id).Hp);
+        Assert.Equal(12 - AbilityDefinition.For(Ability.BullRush).Damage, result.NewState.Get(husk.Id).Hp);
     }
 
     [Fact]

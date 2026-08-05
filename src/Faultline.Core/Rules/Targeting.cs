@@ -92,7 +92,7 @@ namespace Faultline.Core
         /// <param name="unit">Unit that would act.</param>
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns><see cref="TargetingBlock.None"/> when it can be aimed at something.</returns>
-        public static TargetingBlock BlockOn(GameState state, Unit unit, AbilityDescriptor? descriptor)
+        public static TargetingBlock BlockOn(GameState state, Unit unit, AbilityDefinition? descriptor)
         {
             if (state is null || unit is null || !Abilities.IsUsable(unit, descriptor))
             {

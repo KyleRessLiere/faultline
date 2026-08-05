@@ -16,6 +16,10 @@ namespace Faultline.Core
     /// </remarks>
     public static class Ai
     {
+        // The empty candidate list handed to a plan that has no clause about player units. Shared
+        // so that planning one allocates nothing.
+        private static readonly Unit[] NoUnits = new Unit[0];
+
         /// <summary>
         /// The single command this enemy will submit next. Callers apply it through
         /// <see cref="Game.Apply(GameState, Command)"/> like any other command, which is what keeps
@@ -447,12 +451,24 @@ namespace Faultline.Core
                 return rescue;
             }
 
-            // The Raider is planned before anybody asks who the player units are, because its list
-            // never mentions them. Running the candidate search first would make an empty board of
-            // players silence an enemy that was never listening to them (D-041).
-            if (enemy.Template.Plan == EnemyPlan.Raider)
+            // Dispatch on the plan named by the stat block, not on the archetype: a Heavy Husk and a
+            // Husk are the same priority list with different numbers, so there is only ever one copy
+            // of each list (docs/ENEMY_ROSTER.md). The list is looked up rather than switched on, so
+            // the registration that names the planner is the same registration that describes it and
+            // the two cannot drift (component review, step 8). EnemyPlan.None — every player class —
+            // has no registration and holds, exactly as the old switch's default did.
+            var plan = EnemyPlanDefinition.ForPlan(enemy.Template.Plan);
+            if (plan is null)
             {
-                return PlanRaider(state, enemy);
+                return Hold(enemy);
+            }
+
+            // A list with no clause about player units is planned before anybody asks who the player
+            // units are. Running the candidate search first would make an empty board of players
+            // silence an enemy that was never listening to them (D-041).
+            if (plan.IgnoresPlayerUnits)
+            {
+                return plan.Planner(state, enemy, NoUnits, NoUnits);
             }
 
             var all = Candidates(state, enemy);
@@ -461,7 +477,7 @@ namespace Faultline.Core
                 return Hold(enemy);
             }
 
-            var choices = all;
+            IReadOnlyList<Unit> choices = all;
             if (locked.HasValue)
             {
                 foreach (var candidate in all)
@@ -474,38 +490,7 @@ namespace Faultline.Core
                 }
             }
 
-            // Dispatch on the plan named by the stat block, not on the archetype: a Heavy Husk and a
-            // Husk are the same priority list with different numbers, so there is only ever one copy
-            // of each list (docs/ENEMY_ROSTER.md).
-            switch (enemy.Template.Plan)
-            {
-                case EnemyPlan.Melee:
-                    return PlanMelee(state, enemy, choices);
-
-                case EnemyPlan.Lobber:
-                    return PlanLobber(state, enemy, all, choices);
-
-                case EnemyPlan.Grappler:
-                    return PlanGrappler(state, enemy, choices);
-
-                case EnemyPlan.Stalker:
-                    return PlanStalker(state, enemy, choices);
-
-                case EnemyPlan.Warden:
-                    return PlanWarden(state, enemy, choices);
-
-                case EnemyPlan.Perch:
-                    return PlanPerch(state, enemy, all, choices);
-
-                case EnemyPlan.Harrier:
-                    return PlanHarrier(state, enemy, choices);
-
-                case EnemyPlan.QuarryKing:
-                    return PlanQuarryKing(state, enemy, choices);
-
-                default:
-                    return Hold(enemy);
-            }
+            return plan.Planner(state, enemy, all, choices);
         }
 
         // The clinging ally this enemy would haul out, or null when it would not. Nothing in the
@@ -623,7 +608,8 @@ namespace Faultline.Core
         // path to it, Husk rules." That is the whole list. There is no third clause, no clause about
         // player units, and no self-defence clause: an enemy that ignores you is the entire point of
         // the archetype, and the pressure it applies is the clock of its walk (D-041).
-        private static EnemyIntent PlanRaider(GameState state, Unit enemy)
+        internal static EnemyIntent PlanRaider(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             var shrines = SiegeTiles(state);
             if (shrines.Count == 0)
@@ -660,7 +646,8 @@ namespace Faultline.Core
         // it — the player's own opener, aimed back. Which branches exist is read off the stat block
         // rather than off the archetype: the enraged block is the one carrying a standalone shove, so
         // the phase swap adds the branch without there being two lists to keep in step (D-040).
-        private static EnemyIntent PlanQuarryKing(GameState state, Unit enemy, List<Unit> choices)
+        internal static EnemyIntent PlanQuarryKing(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             if (enemy.Template.BasicPush > 0)
             {
@@ -671,7 +658,7 @@ namespace Faultline.Core
                 }
             }
 
-            return PlanMelee(state, enemy, choices);
+            return PlanMelee(state, enemy, all, choices);
         }
 
         // Bull Rush as the Vanguard has it: a straight run of up to Move tiles that stops adjacent to
@@ -679,7 +666,7 @@ namespace Faultline.Core
         // what the ability does against something already adjacent. It is only taken when the shove
         // beats the swing it replaces — a plain push across open ground is worth less than 3 damage,
         // so he punches; a push into a body, or over a lip, is worth more, so he charges.
-        private static EnemyIntent? PlanRush(GameState state, Unit enemy, List<Unit> choices)
+        private static EnemyIntent? PlanRush(GameState state, Unit enemy, IReadOnlyList<Unit> choices)
         {
             var reachable = Movement.Reachable(state, enemy);
             var board = state.Board;
@@ -773,7 +760,8 @@ namespace Faultline.Core
 
         // Brief §2, Husk: "1. Adjacent player unit → attack. 2. Else move toward nearest player unit."
         // The Anchor's list is the same shape with Move 1 and 2 damage.
-        private static EnemyIntent PlanMelee(GameState state, Unit enemy, List<Unit> choices)
+        internal static EnemyIntent PlanMelee(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             var adjacent = FirstAdjacent(enemy.Position, choices);
             if (adjacent is not null)
@@ -798,7 +786,8 @@ namespace Faultline.Core
 
         // Brief §2, Lobber: "1. Player unit in range 3 and no player unit adjacent → ranged attack.
         // 2. Player adjacent → move away (maximize distance). 3. Else advance to range."
-        private static EnemyIntent PlanLobber(GameState state, Unit enemy, List<Unit> all, List<Unit> choices)
+        internal static EnemyIntent PlanLobber(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             int range = enemy.Template.Range;
 
@@ -821,7 +810,7 @@ namespace Faultline.Core
 
             // "Advance to range" is a band, not a beeline: the Lobber wants to be inside range 3 and
             // outside melee, so it never walks itself into the front line (D-023).
-            var destination = ApproachTile(state, enemy, target.Position, 2, range);
+            var destination = ApproachTile(state, enemy, target.Position, BandLow(enemy), range);
             var step = destination == enemy.Position ? (Coord?)null : destination;
 
             if (FirstAdjacent(destination, all) is null)
@@ -839,7 +828,7 @@ namespace Faultline.Core
         // The retreat clause the ranged archetypes share: get out of contact, and shoot after moving
         // if the retreat actually broke it. Factored out so the Perch runs the identical rule.
         private static EnemyIntent BreakContact(
-            GameState state, Unit enemy, List<Unit> all, List<Unit> choices, int range)
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices, int range)
         {
             var away = BestTile(state, enemy, coord => -Spread(coord, all));
             var moveTo = away == enemy.Position ? (Coord?)null : away;
@@ -861,7 +850,8 @@ namespace Faultline.Core
 
         // docs/ENEMY_ROSTER.md, Warden: "1. Attack anything adjacent. 2. Otherwise nothing — Move 0."
         // There is deliberately no closing branch: a Warden is a door, and a door does not chase.
-        private static EnemyIntent PlanWarden(GameState state, Unit enemy, List<Unit> choices)
+        internal static EnemyIntent PlanWarden(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             var adjacent = FirstAdjacent(enemy.Position, choices);
             return adjacent is not null ? Strike(state, enemy, adjacent, null) : Hold(enemy);
@@ -871,7 +861,8 @@ namespace Faultline.Core
         // 3. Else climb to the nearest HighGround it can reach. 4. On a ledge, hold it; off one,
         // advance to the Lobber's band." Strike already adds the +1 for a shot fired from HighGround,
         // so the elevation bonus needs no special case here.
-        private static EnemyIntent PlanPerch(GameState state, Unit enemy, List<Unit> all, List<Unit> choices)
+        internal static EnemyIntent PlanPerch(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             int range = enemy.Template.Range;
 
@@ -923,7 +914,8 @@ namespace Faultline.Core
         // it pulls a party apart instead of executing anyone. A shove that does not move the target —
         // a wall, a body, an unclimbable ledge — is worth nothing to it and never chosen, which is
         // what keeps it off the board edge the Stalker lives on.
-        private static EnemyIntent PlanHarrier(GameState state, Unit enemy, List<Unit> choices)
+        internal static EnemyIntent PlanHarrier(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             var reachable = Movement.Reachable(state, enemy);
             int distance = enemy.Template.BasicPush;
@@ -994,7 +986,8 @@ namespace Faultline.Core
 
         // Brief §2, Grappler: "1. Player unit within range 3 → Pull 2 toward self, preferring
         // (a) units on HighGround, (b) Archer. 2. Else advance toward the Archer, else nearest."
-        private static EnemyIntent PlanGrappler(GameState state, Unit enemy, List<Unit> choices)
+        internal static EnemyIntent PlanGrappler(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             int range = enemy.Template.Range;
             int distance = enemy.Template.BasicPull;
@@ -1011,7 +1004,7 @@ namespace Faultline.Core
                 return Hold(enemy);
             }
 
-            var destination = ApproachTile(state, enemy, target.Position, 2, range);
+            var destination = ApproachTile(state, enemy, target.Position, BandLow(enemy), range);
             var moveTo = destination == enemy.Position ? (Coord?)null : destination;
 
             var arrived = PickGrab(state, destination, choices, range);
@@ -1023,7 +1016,8 @@ namespace Faultline.Core
         // Brief §2, Stalker: "1. Player unit adjacent to Pit/Spikes/edge and reachable → move to
         // flank, Push 1 toward the hazard. 2. Else move toward nearest player unit that is within 2
         // of a hazard; else hold position."
-        private static EnemyIntent PlanStalker(GameState state, Unit enemy, List<Unit> choices)
+        internal static EnemyIntent PlanStalker(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
         {
             var reachable = Movement.Reachable(state, enemy);
 
@@ -1097,6 +1091,28 @@ namespace Faultline.Core
 
             var destination = ClosingTile(state, enemy, loiterer.Position);
             return Advance(enemy, loiterer, destination == enemy.Position ? (Coord?)null : destination);
+        }
+
+        // The escort duckling: a neutral that is not trying to fight (component review, step 8's
+        // proof that a new priority list costs one registration and one planner). 1. Break away from
+        // the nearest hostile. 2. Otherwise hold. It reads no terrain and names no victim, so there
+        // is nothing here for a hazard or a structure to change.
+        internal static EnemyIntent PlanEscort(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
+        {
+            // The kiter's retreat scoring, unchanged: furthest from the nearest hostile, ties broken
+            // by the greater total distance to all of them. Standing still is always a candidate and
+            // wins every tie on cost, so a duckling with nowhere better to be does not shuffle.
+            var away = BestTile(state, enemy, coord => -Spread(coord, all));
+            if (away == enemy.Position)
+            {
+                return Hold(enemy);
+            }
+
+            var fled = FirstAdjacent(enemy.Position, choices) ?? Nearest(enemy.Position, choices);
+            return new EnemyIntent(
+                enemy.Id, enemy.Kind, enemy.Position, IntentAction.Retreat,
+                fled?.Id, fled?.Position, away, null, null, 0, null, 0);
         }
 
         // ---- intent construction --------------------------------------------------------------
@@ -1200,9 +1216,16 @@ namespace Faultline.Core
 
         // True for an archetype whose priority list contains no clause about player units at all.
         // A flag would be a second way of saying what the plan already says (D-032, D-041).
-        private static bool IgnoresUnits(Unit enemy) => enemy.Template.Plan == EnemyPlan.Raider;
+        // The closest tile a ranged plan is willing to fight from, off the plan's own parameters
+        // rather than a literal repeated in two planners. The far end of the band is the stat
+        // block's Range and is never restated anywhere (D-023).
+        private static int BandLow(Unit enemy) =>
+            EnemyPlanDefinition.For(enemy.Template.Plan).Parameters.PreferredRangeLow;
 
-        private static bool Holds(List<Unit> units, UnitId id)
+        private static bool IgnoresUnits(Unit enemy) =>
+            EnemyPlanDefinition.ForPlan(enemy.Template.Plan)?.IgnoresPlayerUnits == true;
+
+        private static bool Holds(IReadOnlyList<Unit> units, UnitId id)
         {
             foreach (var unit in units)
             {
@@ -1301,7 +1324,7 @@ namespace Faultline.Core
                 && Pits.CanRescue(state, rescuer, clinging);
         }
 
-        private static Unit? FirstAdjacent(Coord from, List<Unit> units)
+        private static Unit? FirstAdjacent(Coord from, IReadOnlyList<Unit> units)
         {
             foreach (var unit in units)
             {
@@ -1314,7 +1337,7 @@ namespace Faultline.Core
             return null;
         }
 
-        private static Unit? Nearest(Coord from, List<Unit> units)
+        private static Unit? Nearest(Coord from, IReadOnlyList<Unit> units)
         {
             Unit? best = null;
             int bestDistance = int.MaxValue;
@@ -1332,7 +1355,7 @@ namespace Faultline.Core
             return best;
         }
 
-        private static Unit? NearestWithin(Coord from, List<Unit> units, int range)
+        private static Unit? NearestWithin(Coord from, IReadOnlyList<Unit> units, int range)
         {
             Unit? best = null;
             int bestDistance = int.MaxValue;
@@ -1352,7 +1375,7 @@ namespace Faultline.Core
             return best;
         }
 
-        private static Unit? FirstOfKind(List<Unit> units, UnitKind kind)
+        private static Unit? FirstOfKind(IReadOnlyList<Unit> units, UnitKind kind)
         {
             foreach (var unit in units)
             {
@@ -1367,7 +1390,7 @@ namespace Faultline.Core
 
         // Brief §2 ranks the Grappler's picks: units on HighGround first, then the Archer, then
         // whoever is left. A target already adjacent has nowhere to be pulled to (D-020).
-        private static Unit? PickGrab(GameState state, Coord from, List<Unit> choices, int range)
+        private static Unit? PickGrab(GameState state, Coord from, IReadOnlyList<Unit> choices, int range)
         {
             Unit? best = null;
             int bestTier = int.MaxValue;
@@ -1500,7 +1523,7 @@ namespace Faultline.Core
             return best;
         }
 
-        private static int Spread(Coord from, List<Unit> units)
+        private static int Spread(Coord from, IReadOnlyList<Unit> units)
         {
             int nearest = int.MaxValue;
             int total = 0;

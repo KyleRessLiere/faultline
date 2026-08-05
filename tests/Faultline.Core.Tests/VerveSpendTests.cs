@@ -232,7 +232,7 @@ public class VerveSpendTests
 
         // The descriptor's 2 plus the charged tile, and the contact bite with no attack behind it.
         Assert.Equal(
-            AbilityDescriptor.For(Ability.BullRush).Push + Verve.ContactDistanceBonus,
+            AbilityDefinition.For(Ability.BullRush).Push + Verve.ContactDistanceBonus,
             result.Single<UnitPushed>().Distance);
         Assert.Equal(18 - Verve.ContactDamage, result.NewState.Get(husk).Hp);
         Assert.False(result.NewState.Get(vanguard).WreckingWeightArmed);

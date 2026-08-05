@@ -15,7 +15,7 @@ public sealed class FisherKitTests
     [Fact]
     public void Reel_ReachesFourTiles()
     {
-        Assert.Equal(4, AbilityDescriptor.For(Ability.Reel).Range);
+        Assert.Equal(4, AbilityDefinition.For(Ability.Reel).Range);
     }
 
     [Fact]

@@ -25,7 +25,7 @@ public class TargetingTests
         Assert.Equal(TargetingBlock.TooClose, Targeting.BlockOn(state, archer, AttackMode.Damage));
         Assert.Equal(
             TargetingBlock.TooClose,
-            Targeting.BlockOn(state, archer, AbilityDescriptor.For(Ability.StaggerShot)));
+            Targeting.BlockOn(state, archer, AbilityDefinition.For(Ability.StaggerShot)));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class TargetingTests
         Assert.Equal(TargetingBlock.None, Targeting.BlockOn(state, archer, AttackMode.Damage));
         Assert.Equal(
             TargetingBlock.None,
-            Targeting.BlockOn(state, archer, AbilityDescriptor.For(Ability.StaggerShot)));
+            Targeting.BlockOn(state, archer, AbilityDefinition.For(Ability.StaggerShot)));
         Assert.True(Targeting.HasAnyTarget(state, archer));
     }
 
@@ -126,7 +126,7 @@ public class TargetingTests
 
         Assert.Equal(
             TargetingBlock.NoRoomToPull,
-            Targeting.BlockOn(state, state.Find(UnitKind.Threadcaster), AbilityDescriptor.For(Ability.Reel)));
+            Targeting.BlockOn(state, state.Find(UnitKind.Threadcaster), AbilityDefinition.For(Ability.Reel)));
     }
 
     [Fact]
@@ -141,10 +141,10 @@ public class TargetingTests
 
         Assert.Equal(
             TargetingBlock.None,
-            Targeting.BlockOn(state, ward, AbilityDescriptor.For(Ability.GuardStance)));
+            Targeting.BlockOn(state, ward, AbilityDefinition.For(Ability.GuardStance)));
         Assert.Equal(
             TargetingBlock.OutOfRange,
-            Targeting.BlockOn(state, ward, AbilityDescriptor.For(Ability.SpearThrust)));
+            Targeting.BlockOn(state, ward, AbilityDefinition.For(Ability.SpearThrust)));
     }
 
     // A charge is a move, so open ground ahead is a legal charge and the button is honest to leave
@@ -159,7 +159,7 @@ public class TargetingTests
 
         Assert.Equal(
             TargetingBlock.None,
-            Targeting.BlockOn(state, state.Find(UnitKind.Vanguard), AbilityDescriptor.For(Ability.BullRush)));
+            Targeting.BlockOn(state, state.Find(UnitKind.Vanguard), AbilityDefinition.For(Ability.BullRush)));
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class TargetingTests
 
         Assert.Equal(
             TargetingBlock.OutOfRange,
-            Targeting.BlockOn(state, state.Find(UnitKind.Vanguard), AbilityDescriptor.For(Ability.BullRush)));
+            Targeting.BlockOn(state, state.Find(UnitKind.Vanguard), AbilityDefinition.For(Ability.BullRush)));
     }
 
     // ---- the whole action row ------------------------------------------------------------------

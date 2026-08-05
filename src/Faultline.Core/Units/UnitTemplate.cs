@@ -199,6 +199,13 @@ namespace Faultline.Core
                 new UnitTemplate(UnitKind.BracedHusk, "Braced Husk", 4, 3, AttackKind.Melee, 1, 2, 2, false, Plan: EnemyPlan.Melee),
                 new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 12, 2, AttackKind.Melee, 1, 4, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
 
+                // The neutral. A stat block with nothing on it — no attack, no shove, no resistance —
+                // whose whole identity is the plan it names. Fielded by nothing: it is the proof that
+                // a new priority list costs one registration and one planner, not a proof that the
+                // roster needed another body (component review, "Acceptance test for the architecture
+                // itself").
+                new UnitTemplate(UnitKind.EscortDuckling, "Escort Duckling", 4, 4, AttackKind.None, 0, 0, 0, false, Plan: EnemyPlan.Escort),
+
                 // docs/archive/CURATED_SET.md §5A/§5B: the objective enemies. The Raider is a Husk in every
                 // number and differs only in the list it runs. The Quarry King's three carry the
                 // boss's whole anti-displacement budget: three refusals, spent one per instance like

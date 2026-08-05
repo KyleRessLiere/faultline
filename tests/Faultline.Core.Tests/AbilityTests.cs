@@ -12,18 +12,18 @@ public class AbilityTests
     [Fact]
     public void EveryPlayerClass_HasAtLeastOneAbility_AndTheWardbearerHasTwo()
     {
-        Assert.Equal(5, AbilityDescriptor.All().Count);
-        Assert.Equal(Ability.BullRush, AbilityDescriptor.ForKind(UnitKind.Vanguard)!.Ability);
-        Assert.Equal(Ability.StaggerShot, AbilityDescriptor.ForKind(UnitKind.Archer)!.Ability);
-        Assert.Equal(Ability.Reel, AbilityDescriptor.ForKind(UnitKind.Threadcaster)!.Ability);
+        Assert.Equal(5, AbilityDefinition.All().Count);
+        Assert.Equal(Ability.BullRush, AbilityDefinition.ForKind(UnitKind.Vanguard)!.Ability);
+        Assert.Equal(Ability.StaggerShot, AbilityDefinition.ForKind(UnitKind.Archer)!.Ability);
+        Assert.Equal(Ability.Reel, AbilityDefinition.ForKind(UnitKind.Threadcaster)!.Ability);
 
         Assert.Equal(
             new[] { Ability.SpearThrust, Ability.GuardStance },
-            AbilityDescriptor.AllForKind(UnitKind.Wardbearer).Select(d => d.Ability));
+            AbilityDefinition.AllForKind(UnitKind.Wardbearer).Select(d => d.Ability));
 
         foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster })
         {
-            Assert.Single(AbilityDescriptor.AllForKind(kind));
+            Assert.Single(AbilityDefinition.AllForKind(kind));
         }
     }
 
@@ -31,7 +31,7 @@ public class AbilityTests
     public void Wardbearer_NoLongerHasAPassiveAbilityAtAll()
     {
         Assert.All(
-            AbilityDescriptor.AllForKind(UnitKind.Wardbearer),
+            AbilityDefinition.AllForKind(UnitKind.Wardbearer),
             d => Assert.NotEqual(AbilityTargeting.Passive, d.Targeting));
     }
 
@@ -40,28 +40,28 @@ public class AbilityTests
     {
         foreach (var kind in new[] { UnitKind.Husk, UnitKind.Lobber, UnitKind.Anchor, UnitKind.Grappler, UnitKind.Stalker })
         {
-            Assert.Null(AbilityDescriptor.ForKind(kind));
+            Assert.Null(AbilityDefinition.ForKind(kind));
         }
     }
 
     [Fact]
     public void Descriptors_CarryRulesTextAndNumbersForTheUi()
     {
-        foreach (var descriptor in AbilityDescriptor.All())
+        foreach (var descriptor in AbilityDefinition.All())
         {
             Assert.False(string.IsNullOrWhiteSpace(descriptor.Name));
             Assert.False(string.IsNullOrWhiteSpace(descriptor.Summary));
             Assert.False(string.IsNullOrWhiteSpace(descriptor.Effect));
         }
 
-        Assert.Equal("2 dmg · push 1", AbilityDescriptor.For(Ability.StaggerShot).Effect);
-        Assert.Equal("push 2", AbilityDescriptor.For(Ability.BullRush).Effect);
-        Assert.Equal("pull to adjacent", AbilityDescriptor.For(Ability.Reel).Effect);
+        Assert.Equal("2 dmg · push 1", AbilityDefinition.For(Ability.StaggerShot).Effect);
+        Assert.Equal("push 2", AbilityDefinition.For(Ability.BullRush).Effect);
+        Assert.Equal("pull to adjacent", AbilityDefinition.For(Ability.Reel).Effect);
         // Per-tile damage prints per tile, nearest first: the ability no longer has one number.
-        Assert.Equal("line 2 · 2/4 dmg", AbilityDescriptor.For(Ability.SpearThrust).Effect);
-        Assert.Equal(new[] { 2, 4 }, AbilityDescriptor.For(Ability.SpearThrust).TileDamage);
-        Assert.Equal(0, AbilityDescriptor.For(Ability.SpearThrust).Push);
-        Assert.Equal("stance", AbilityDescriptor.For(Ability.GuardStance).Effect);
+        Assert.Equal("line 2 · 2/4 dmg", AbilityDefinition.For(Ability.SpearThrust).Effect);
+        Assert.Equal(new[] { 2, 4 }, AbilityDefinition.For(Ability.SpearThrust).TileDamage);
+        Assert.Equal(0, AbilityDefinition.For(Ability.SpearThrust).Push);
+        Assert.Equal("stance", AbilityDefinition.For(Ability.GuardStance).Effect);
     }
 
     // Replaces Hold_IsPassiveAndNeverOffered, which asserted a rule D-058 deleted. Same fixture,
@@ -317,9 +317,9 @@ public class AbilityTests
     // cost table and nowhere else, which is what makes the pre-move rules below fall out of it.
     public void BullRush_CostsTwoOfTheThreePoints()
     {
-        Assert.Equal(2, Activation.CostOf(Ability.BullRush));
-        Assert.Equal(Activation.BullRushCost, Activation.CostOf(Ability.BullRush));
-        Assert.True(Activation.CostOf(Ability.BullRush) < Activation.FullPool);
+        Assert.Equal(2, AbilityDefinition.For(Ability.BullRush).Cost);
+        Assert.Equal(Activation.BullRushCost, AbilityDefinition.For(Ability.BullRush).Cost);
+        Assert.True(AbilityDefinition.For(Ability.BullRush).Cost < Activation.FullPool);
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public class AbilityTests
         var husk = state.Find(UnitKind.Husk);
 
         var walked = state.Then(new MoveCommand(vanguard.Id, new Coord(1, 0)));
-        Assert.Equal(Activation.CostOf(Ability.BullRush), Activation.Remaining(walked.Get(vanguard.Id)));
+        Assert.Equal(AbilityDefinition.For(Ability.BullRush).Cost, Activation.Remaining(walked.Get(vanguard.Id)));
 
         var charge = new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right);
         TestPlay.AssertLegal(walked, charge);
@@ -364,8 +364,8 @@ public class AbilityTests
         var moved = walked.Get(vanguard.Id);
 
         Assert.Equal(1, Activation.Remaining(moved));
-        Assert.False(Activation.CanAfford(moved, Activation.CostOf(Ability.BullRush)));
-        Assert.Equal(1, Activation.Shortfall(moved, Activation.CostOf(Ability.BullRush)));
+        Assert.False(Activation.CanAfford(moved, AbilityDefinition.For(Ability.BullRush).Cost));
+        Assert.Equal(1, Activation.Shortfall(moved, AbilityDefinition.For(Ability.BullRush).Cost));
 
         var charge = new AbilityCommand(vanguard.Id, Ability.BullRush, null, Direction.Right);
         TestPlay.AssertNotLegal(walked, charge);

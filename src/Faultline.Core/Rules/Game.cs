@@ -527,7 +527,7 @@ namespace Faultline.Core
 
                         // Priced per ability, not per action: an attack at 1 and Reel or Bull Rush at
                         // 2 drop off the list at different points in the same activation.
-                        if (!Activation.CanAfford(unit, Activation.CostOf(descriptor.Ability)))
+                        if (!Activation.CanAfford(unit, descriptor.Cost))
                         {
                             continue;
                         }
@@ -1128,7 +1128,7 @@ namespace Faultline.Core
             Require(descriptor is not null, "That unit does not have that ability.");
             Require(Abilities.IsUsable(unit, descriptor), "That ability cannot be used.");
             Require(
-                Activation.CanAfford(unit, Activation.CostOf(command.Ability)),
+                Activation.CanAfford(unit, AbilityDefinition.For(command.Ability).Cost),
                 "Not enough action points left for that ability.");
 
             switch (descriptor!.Targeting)
@@ -1170,7 +1170,7 @@ namespace Faultline.Core
             // movement, it is simply the one that was honest about it first. D-126 then dropped its
             // price to 2, and because "no pre-move" was never anything but the price, one tile of
             // run-up became legal here with nothing else to change.
-            state = state.WithUnit(Activation.Spend(unit, Activation.CostOf(command.Ability)));
+            state = state.WithUnit(Activation.Spend(unit, AbilityDefinition.For(command.Ability).Cost));
 
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
 

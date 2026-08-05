@@ -14,7 +14,7 @@ namespace Faultline.Core
     /// <summary>
     /// Everything a UI needs to explain an enemy: its role, the ordered priority list
     /// <see cref="Ai"/> runs, the quirks that surprise a player, and how to beat it. The same job
-    /// <see cref="AbilityDescriptor"/> does for player abilities, so the shell never writes its own
+    /// <see cref="AbilityDefinition"/> does for player abilities, so the shell never writes its own
     /// rules text.
     /// </summary>
     /// <remarks>
@@ -27,6 +27,14 @@ namespace Faultline.Core
     /// is exactly what four rounds of x2 stragglers were (D-104 lineage). Adding a
     /// new enemy is adding one entry to <see cref="Build"/> — no UI file changes, and
     /// <c>EnemyBehaviourTests</c> fails until the entry exists.
+    /// </para>
+    /// <para>
+    /// The <em>shape</em> of the list is not retyped here either. Each archetype's steps are its own
+    /// prose, but the branches they describe are registered once in
+    /// <see cref="EnemyPlanDefinition"/> alongside the planner that executes them, and
+    /// <c>EnemyPlanDefinitionTests</c> asserts that this entry carries exactly one step per
+    /// registered branch plus the shared rescue slot. Growing a planner a branch and leaving the
+    /// bestiary a branch behind is the drift that used to be caught only by review.
     /// </para>
     /// <para>
     /// <b>Every fragment of a concatenation carries its own <c>$</c>.</b> A continuation without one
@@ -61,6 +69,10 @@ namespace Faultline.Core
             // The objective enemies, last: they are the two that need something on the board other
             // than a player unit to have anything to do (docs/archive/CURATED_SET.md §5).
             UnitKind.Raider, UnitKind.QuarryKing,
+            // The neutral, last. Documented here because every archetype is documented here — a kind
+            // with no bestiary entry fails EnemyBehaviourTests — but fielded by no .fight file and
+            // named by no campaign or acquisition pool.
+            UnitKind.EscortDuckling,
         };
 
         private static readonly Dictionary<UnitKind, EnemyBehaviour> ByKind = Build();
@@ -110,7 +122,7 @@ namespace Faultline.Core
 
         /// <summary>
         /// The one-line role of any archetype, player class or enemy. Player classes carry their
-        /// rules on <see cref="AbilityDescriptor"/>; this is the one word of framing they lack, and
+        /// rules on <see cref="AbilityDefinition"/>; this is the one word of framing they lack, and
         /// it belongs in Core with the rest of the words.
         /// </summary>
         /// <param name="kind">Archetype to describe.</param>
@@ -206,7 +218,11 @@ namespace Faultline.Core
             var template = behaviour.Template;
 
             string outranked;
-            if (template.Plan == EnemyPlan.Raider)
+
+            // "Has no clause about player units" is a property of the priority list, and it is read
+            // off the one registration that also holds the planner — the same flag Ai consults when
+            // it declines the free finish (D-041, D-045).
+            if (EnemyPlanDefinition.ForPlan(template.Plan)?.IgnoresPlayerUnits == true)
             {
                 outranked = "Nothing outranks it here: this list has no clause about player units at "
                     + "all (D-045), so there is no killing blow for it to prefer, and a Raider beside "
@@ -940,6 +956,43 @@ namespace Faultline.Core
                     + $"and set the geometry before he drops to {king.EnrageAt} and starts charging.",
                     $"Then void him. Once the tokens are gone he is a {king.MaxHp} HP unit with no push "
                     + "resistance at all, and the pit does not care how many hit points he has left.",
+                });
+
+            // ---- the neutral (component review, step 8's proof) --------------------------------
+
+            var duckling = UnitTemplate.For(UnitKind.EscortDuckling);
+            table[UnitKind.EscortDuckling] = new EnemyBehaviour(
+                UnitKind.EscortDuckling,
+                "neutral — it is trying to leave",
+                $"{duckling.MaxHp} HP at Move {duckling.Move} and nothing else. It has no attack and "
+                + "no shove; every activation it spends putting distance between itself and the "
+                + "nearest hostile, and it stands still when it cannot improve on the tile it is on.",
+                Steps(
+                    ("Break away from the nearest hostile",
+                     $"Move {duckling.Move} to the reachable tile that maximises the distance to the "
+                     + "nearest hostile, ties broken by the greater total distance to all of them. "
+                     + "The kiter's retreat scoring, run every activation rather than only when "
+                     + "something is adjacent."),
+                    ("Otherwise hold",
+                     "With no reachable tile better than the one it is standing on it holds. Standing "
+                     + "still wins every tie on cost, so it does not shuffle.")),
+                new[]
+                {
+                    "It flees hostiles, not danger. Nothing in its list reads the terrain, so the "
+                    + "retreat that puts the most tiles between it and you can end on spikes or "
+                    + "beside a drain.",
+                    $"{duckling.MaxHp} HP and no attack at all: it never trades, never defends itself "
+                    + "and never takes the free finish on anything clinging.",
+                    "It is fielded by no battle. It exists so that a genuinely new priority list has "
+                    + "been proved to cost one registration and one planner, and putting one on a "
+                    + "board is a design decision rather than a test's.",
+                },
+                new[]
+                {
+                    "Herd it, do not chase it. Its whole list is distance from you, so where it goes "
+                    + "is decided by where you stand.",
+                    "Cut off the tile it wants. With every reachable tile no better than its own it "
+                    + "holds, and a duckling that holds is a duckling that is still where you left it.",
                 });
 
             foreach (var kind in Order)

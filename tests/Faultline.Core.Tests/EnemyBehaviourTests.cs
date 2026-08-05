@@ -18,7 +18,7 @@ public class EnemyBehaviourTests
         (UnitKind[])Enum.GetValues(typeof(UnitKind));
 
     private static IReadOnlyList<UnitKind> PlayerKinds =>
-        AbilityDescriptor.All().Select(a => a.Kind).ToList();
+        AbilityDefinition.All().Select(a => a.Kind).ToList();
 
     // ---- coverage: a new enemy cannot ship undocumented ---------------------------------------
 
@@ -36,7 +36,7 @@ public class EnemyBehaviourTests
             Assert.True(
                 isPlayer ^ isEnemy,
                 $"{kind} is neither a documented player class nor a documented enemy, or is both. "
-                + "Add an AbilityDescriptor or an EnemyBehaviour entry.");
+                + "Add an AbilityDefinition or an EnemyBehaviour entry.");
         }
 
         Assert.Equal(AllKinds.Length, players.Count + enemies.Count);

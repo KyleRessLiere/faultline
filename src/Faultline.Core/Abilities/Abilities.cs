@@ -11,7 +11,7 @@ namespace Faultline.Core
         /// <summary>The archetype's headline ability, or <c>null</c> for enemies.</summary>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Its first ability descriptor.</returns>
-        public static AbilityDescriptor? Of(Unit unit) => AbilityDescriptor.ForKind(unit.Kind);
+        public static AbilityDefinition? Of(Unit unit) => AbilityDefinition.ForKind(unit.Kind);
 
         /// <summary>
         /// Every ability the unit brings. The Wardbearer has two and picks one each activation
@@ -19,8 +19,8 @@ namespace Faultline.Core
         /// </summary>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Its abilities, in the order they should be offered.</returns>
-        public static IReadOnlyList<AbilityDescriptor> AllOf(Unit unit) =>
-            AbilityDescriptor.AllForKind(unit.Kind);
+        public static IReadOnlyList<AbilityDefinition> AllOf(Unit unit) =>
+            AbilityDefinition.AllForKind(unit.Kind);
 
         /// <summary>True when the unit could use any of its abilities right now, ignoring target choice.</summary>
         /// <param name="unit">Unit to inspect.</param>
@@ -42,7 +42,7 @@ namespace Faultline.Core
         /// <param name="unit">Unit to inspect.</param>
         /// <param name="descriptor">Ability to test.</param>
         /// <returns>Whether the ability is usable at all.</returns>
-        public static bool IsUsable(Unit unit, AbilityDescriptor? descriptor) =>
+        public static bool IsUsable(Unit unit, AbilityDefinition? descriptor) =>
             descriptor is not null
             && descriptor.Kind == unit.Kind
             && descriptor.Targeting != AbilityTargeting.Passive
@@ -53,7 +53,7 @@ namespace Faultline.Core
         /// <param name="unit">Unit to inspect.</param>
         /// <param name="ability">Ability to look for.</param>
         /// <returns>The descriptor, or <c>null</c>.</returns>
-        public static AbilityDescriptor? DescriptorFor(Unit unit, Ability ability)
+        public static AbilityDefinition? DescriptorFor(Unit unit, Ability ability)
         {
             foreach (var descriptor in AllOf(unit))
             {
@@ -79,7 +79,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>Legal target ids, in stable order.</returns>
         public static IReadOnlyList<UnitId> LegalTargets(
-            GameState state, Unit unit, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, AbilityDefinition? descriptor)
         {
             var targets = new List<UnitId>();
 
@@ -141,7 +141,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>Legal charge directions.</returns>
         public static IReadOnlyList<Direction> LegalDirections(
-            GameState state, Unit unit, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, AbilityDefinition? descriptor)
         {
             var directions = new List<Direction>();
 
@@ -173,7 +173,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>Legal line directions.</returns>
         public static IReadOnlyList<Direction> LegalLines(
-            GameState state, Unit unit, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, AbilityDefinition? descriptor)
         {
             var directions = new List<Direction>();
 
@@ -206,7 +206,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>The covered tiles, nearest first.</returns>
         public static IReadOnlyList<Coord> LineTiles(
-            GameState state, Unit unit, Direction direction, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, Direction direction, AbilityDefinition? descriptor)
         {
             var tiles = new List<Coord>();
             if (descriptor is null || descriptor.Targeting != AbilityTargeting.Line)
@@ -239,7 +239,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>Target ids, nearest first.</returns>
         public static IReadOnlyList<UnitId> LineTargets(
-            GameState state, Unit unit, Direction direction, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, Direction direction, AbilityDefinition? descriptor)
         {
             var targets = new List<UnitId>();
 
@@ -269,7 +269,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>The projected hits, nearest first.</returns>
         public static IReadOnlyList<LineHit> LineHits(
-            GameState state, Unit unit, Direction direction, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, Direction direction, AbilityDefinition? descriptor)
         {
             var hits = new List<LineHit>();
             if (descriptor is null || descriptor.Targeting != AbilityTargeting.Line)
@@ -324,7 +324,7 @@ namespace Faultline.Core
         /// <param name="descriptor">Ability being aimed.</param>
         /// <returns>Tiles within the ability's reach.</returns>
         public static IReadOnlyList<Coord> RangeTiles(
-            GameState state, Unit unit, AbilityDescriptor? descriptor)
+            GameState state, Unit unit, AbilityDefinition? descriptor)
         {
             var tiles = new List<Coord>();
 
@@ -504,64 +504,30 @@ namespace Faultline.Core
         /// <returns>The state after the ability resolved.</returns>
         public static GameState Resolve(GameState state, Unit unit, AbilityCommand command, List<GameEvent> events)
         {
-            var descriptor = AbilityDescriptor.For(command.Ability);
+            var definition = AbilityDefinition.For(command.Ability);
             events.Add(new AbilityUsed(unit.Id, command.Ability, command.TargetId, unit.Position));
 
-            if (descriptor.Targeting == AbilityTargeting.Self)
+            // Dispatch is on the definition, never on the targeting shape. That separation is the
+            // point of the split: a second Self ability is no longer forced to be Guard Stance, and a
+            // second Line ability no longer silently resolves as Spear Thrust.
+            switch (definition.CustomRule)
             {
-                return ResolveStance(state, unit, events);
+                case AbilityRule.GuardStance:
+                    return ResolveStance(state, unit, events);
+
+                case AbilityRule.Line:
+                    return ResolveLine(state, unit, command.Direction!.Value, definition, events);
+
+                case AbilityRule.Charge:
+                    return ResolveCharge(state, unit, command.Direction!.Value, definition, events);
+
+                default:
+                    return Effects.Apply(
+                        state,
+                        definition.Effects,
+                        new EffectContext(unit.Id, command.TargetId, null, command.Direction),
+                        events);
             }
-
-            if (descriptor.Targeting == AbilityTargeting.Line)
-            {
-                return ResolveLine(state, unit, command.Direction!.Value, descriptor, events);
-            }
-
-            if (descriptor.Targeting == AbilityTargeting.Direction)
-            {
-                return ResolveCharge(state, unit, command.Direction!.Value, descriptor, events);
-            }
-
-            var targetId = command.TargetId!.Value;
-
-            if (descriptor.Damage > 0)
-            {
-                var target = state.UnitById(targetId);
-                events.Add(new UnitAttacked(
-                    unit.Id, targetId, unit.Position, target.Position, descriptor.Damage, false));
-                state = Combat.ApplyDamage(state, targetId, descriptor.Damage, DamageSource.Attack, events);
-
-                if (!state.UnitById(targetId).IsOnBoard)
-                {
-                    return state;
-                }
-            }
-
-            if (descriptor.PullsToAdjacent)
-            {
-                int distance = unit.Position.DistanceTo(state.UnitById(targetId).Position) - 1;
-                if (distance > 0)
-                {
-                    // D-139 extended push resistance to Pull, and "pull all the way to adjacent"
-                    // cannot survive being shortened — an Anchor would arrive one tile out and the
-                    // ability would no longer do what it says. Reel keeps today's behaviour under an
-                    // explicit flag rather than by accident, until the designer rules on the clash.
-                    state = Displacement.ResolveAuto(
-                        state, targetId, unit.Position, DisplacementKind.Pull, distance, events,
-                        bypassResistance: true);
-                }
-
-                return state;
-            }
-
-            if (descriptor.Push > 0)
-            {
-                state = Displacement.ResolveAuto(
-                    state, targetId, unit.Position, DisplacementKind.Push, descriptor.Push, events,
-                    by: unit.Id);
-            }
-
-            return state;
         }
 
         // D-058: Guard Stance costs the action half and nothing else. It lapses at the start of this
@@ -584,7 +550,7 @@ namespace Faultline.Core
             GameState state,
             Unit unit,
             Direction direction,
-            AbilityDescriptor descriptor,
+            AbilityDefinition descriptor,
             List<GameEvent> events)
         {
             foreach (var hit in LineHits(state, unit, direction, descriptor))
@@ -633,7 +599,7 @@ namespace Faultline.Core
             GameState state,
             Unit unit,
             Direction direction,
-            AbilityDescriptor descriptor,
+            AbilityDefinition descriptor,
             List<GameEvent> events)
         {
             var charge = PreviewCharge(state, unit, direction);
@@ -663,14 +629,14 @@ namespace Faultline.Core
 
             if (charge.Contact is not null)
             {
-                state = Displacement.ResolveAuto(
+                // The custom rule owns the run; what happens on contact is the definition's ordinary
+                // effect list. The charger has already been moved to its destination, so the shove
+                // originates from where it actually stopped.
+                state = Effects.Apply(
                     state,
-                    charge.Contact.UnitId,
-                    charge.Destination,
-                    DisplacementKind.Push,
-                    descriptor.Push,
-                    events,
-                    by: unit.Id);
+                    descriptor.Effects,
+                    new EffectContext(unit.Id, charge.Contact.UnitId, null, direction),
+                    events);
             }
 
             return state;
