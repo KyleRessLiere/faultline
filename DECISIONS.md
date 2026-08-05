@@ -153,9 +153,11 @@ in this file when the question comes back.
 | D-133 | [The camp is picked on one screen with both tables shown and each player confirming their own. It does not borrow the vote's masked-pick ceremony.](#d-133-the-camp-is-picked-on-one-screen-with-both-tables-shown-and-each-player-confirming-their-own-it-does-not-borrow-the-votes-masked-pick-ceremony) | 2026-08-04 |  |
 | D-134 | [The run save writes `at-camp` and each duck's loadout. Neither was being written, so a camp and everything the camps had given the squad were lost on reload.](#d-134-the-run-save-writes-at-camp-and-each-ducks-loadout-neither-was-being-written-so-a-camp-and-everything-the-camps-had-given-the-squad-were-lost-on-reload) | 2026-08-04 |  |
 | D-135 | [The run log prints display names. Five lines were spelling `UnitKind` straight, so the Fisher appeared on screen as "Threadcaster".](#d-135-the-run-log-prints-display-names-five-lines-were-spelling-unitkind-straight-so-the-fisher-appeared-on-screen-as-threadcaster) | 2026-08-04 |  |
-| D-136 | [A one-shot that needs aiming is aimed on the board, in the same surface abilities and rescues use. Pressing the item is never a no-op, and the sidebar's coordinate list is gone.](#d-136-a-one-shot-that-needs-aiming-is-aimed-on-the-board-in-the-same-surface-abilities-and-rescues-use-pressing-the-item-is-never-a-no-op-and-the-sidebars-coordinate-list-is-gone) | unreleased |  |
+| D-136 | [A one-shot that needs aiming is aimed on the board, in the same surface abilities and rescues use. Pressing the item is never a no-op, and the sidebar's coordinate list is gone.](#d-136-a-one-shot-that-needs-aiming-is-aimed-on-the-board-in-the-same-surface-abilities-and-rescues-use-pressing-the-item-is-never-a-no-op-and-the-sidebars-coordinate-list-is-gone) | 2026-08-04 |  |
+| D-137 | [The run is four screens, one job each: home, map, camp, event. No screen shows run admin and the act graph at the same time.](#d-137-the-run-is-four-screens-one-job-each-home-map-camp-event-no-screen-shows-run-admin-and-the-act-graph-at-the-same-time) | unreleased |  |
+| D-138 | [A Rest node on the act map is the Still Pond. It is never called a camp, and the fix is in the renderer because the map data still says "Camp".](#d-138-a-rest-node-on-the-act-map-is-the-still-pond-it-is-never-called-a-camp-and-the-fix-is-in-the-renderer-because-the-map-data-still-says-camp) | unreleased |  |
 
-**135 rulings.**
+**137 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3089,3 +3091,91 @@ suite was missing: **no path leaves the item pressed with nothing happening and 
 a `[Theory]` over all five one-shots, plus `tools/ui-checks/pocket-check.mjs`, which plays an Act 1
 run until a camp deals a Crate, walks the carrier somewhere with room, presses the item and clicks a
 lit tile.
+
+**D-137 — The run is four screens, one job each: home, map, camp, event. No screen shows run admin
+and the act graph at the same time.**
+
+`/campaign` carried the run status, the squad, the new-run form, the abandon control, the
+localStorage explainer, the camp offer surface **and** the whole act graph. Every one of those is
+something a player wants at a different moment, and putting them on one page meant the graph — the
+only thing a mid-run player is actually looking at — was the last block on a page that opened with a
+form, while "start a new run, discarding this one" sat in the same field of view as "which door do we
+take". It is now four routes:
+
+- **`/` — home.** The active-run card (act, seed, `Column 5/7 · 3/9 fights won`, squad one-liners with
+  Bedraggled and voided badges) and **one** primary action, Continue. New run and Abandon are on the
+  page at secondary weight; the localStorage paragraph is one muted line with the whole explanation
+  behind its hover. A finished run swaps the Continue for the tally and promotes New run to primary.
+  `/home` and `/campaign` still route here, so old links and bookmarks land somewhere sensible.
+- **`/map` — the mid-run hub.** The graph, full viewport, no admin panel beside it. Act name and the
+  one-line lane blurb above it, the squad as a compact strip along the bottom edge, the last step's
+  run events as a capped ticker, and "Leave run" small in the corner. **The vote happens here**,
+  where the doors are drawn. A run on the linear ten draws its road here instead — same screen, same
+  job, other shape.
+- **`/camp` — the card gain.** `CampPanel` promoted off the road it used to be drawn above.
+- **`/event` — the `?`.** The Molting Pool, on the same offer-card surface.
+
+**The invariant, written down because it is the one that will be broken next:** *no page may show run
+admin and the graph at once.* `RunScreensTests.NoScreen_EverShowsRunAdminAndTheGraphAtOnce` asserts
+it on drawn markup, on all four screens, in every phase a run passes through, and
+`tools/ui-checks/screens-check.mjs` asserts it again on the DOM the browser builds.
+
+**Where a screen belongs is one function.** `RunScreens.Owning(RunSession)` answers it — in a fight →
+the board, at a camp → camp, standing in an event → event, everything else mid-run → the map, no run
+or a finished one → home — and the wordmark, Continue, the post-fight band and each screen's own
+"am I still the right screen" guard all read it. Five `if`s in five razor files is how the old page
+ended up disagreeing with itself about where "back" went.
+
+**Two consequences worth stating.** The wordmark with **no** run now goes to the front door rather
+than to the battle picker: the picker is a browsing surface, and a player leaving a battle wants the
+screen that starts a run. And the map does **not** redirect to the board when the run is in a fight —
+a player who left a live fight to look at the map asked to look at the map, and bouncing them back
+would make the wordmark a control that does nothing. The map draws "back to the fight" and lets them
+decide.
+
+**Rejected: keeping one page and collapsing the admin behind a disclosure.** That is the same page
+with a smaller version of the same problem — the graph still shares its viewport with a form, still
+cannot be sized against the region it is in, and the disclosure is one click from putting them back
+together. **Rejected: giving the pond a screen too.** The camp and the event get screens because they
+are card gains with a decision on them; a v1 Rest heals and nothing else, and a page whose entire
+content is one button is not a screen.
+
+**The graph is now sized the way the board is.** `.graph` is a size container and the node size is
+one expression against it — `min((regionW − gutters) / (cols + 0.63), (regionH − gutters) /
+(rows + 0.25))`, the two constants being the overhang of the oversized elite and boss states. The
+76/92/124px node sizes become `u / 1.21u / 1.63u`: the same proportions, no longer numbers chosen for
+one window. Measured at 1920×1080 the region is 1858×748 (69% of the viewport's height) and a plain
+node draws at 150px against the old fixed 76.
+
+**D-138 — A Rest node on the act map is the Still Pond. It is never called a camp, and the fix is in
+the renderer because the map data still says "Camp".**
+
+The map drew columns 4 and 6 as **"Camp"** with a flame glyph. They are **Rest** nodes, and a camp is
+a different thing entirely: a phase on the run seam that follows every won Fight or Elite and is not
+a node on any map (D-127). Two different things wore one word on the same screen, and the one that
+wore it wrongly was the one a player clicks.
+
+**It was display-only, and that was checked rather than assumed.** D-119 made the act map's rest its
+own record — `MapRestNode`, healing `ceil(max/2)` per duck — deliberately distinct from the linear
+campaign's full-heal `RestNode`, and neither is `RunPhase.AtCamp`. Entering a map Rest reaches
+`RunPhase.AtChoice` with a `RestHealCommand` on the legal list and never `AtCamp`, which
+`RunScreensTests.TheMapsRestAndTheRunSeamsCamp_AreDifferentThings` now pins. The model was never
+confused; only the label was.
+
+**Per MASTER_DESIGN's (r) tone lock the fiction is the pond, not a campfire:** the node type reads
+**Rest**, the label reads **The Still Pond**, the glyph is a circle-with-ripple placeholder (◎) until
+the art pass, the lane blurb reads "the safe side has the pond", and entering one reads "Glide onto
+the Still Pond".
+
+**The one thing that is not fixed here.** `ActMapLibrary` — Core data — still authors
+`Label = "Camp"` on both Rest nodes. This session owns the shell and does not edit
+`src/Faultline.Core`, so the label is mapped in `MapCards.LabelFor`, which is where a display name
+belongs under §15's decoupling anyway. **But the string in the map data is still wrong**, and a
+Core-side reader still sees it: it wants fixing at the source, and the test asserts
+`node.Label == "Camp"` deliberately, so that whoever fixes it is told by a failing test that the
+renderer's override can come out with it.
+
+**Rejected: leaving the label alone and only changing the icon.** The word was the drift; the flame
+was the symptom. **Rejected: rewiring `MapRestNode` towards the camp phase**, which is what the
+report of this bug could have been read as asking for. That would have been real model drift in
+exchange for a naming problem, and D-119 and D-127 both exist to keep the two apart.

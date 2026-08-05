@@ -1,13 +1,23 @@
 /* The act map. Columns left to right, the boss largest and last.
 
-   Node size is one variable per state so "the boss is largest" is a fact of the stylesheet rather
-   than a coincidence of content: --node-size is 76px for an ordinary node, 92px for an elite, and
-   124px for the boss. A Playwright check measures the drawn boxes, because a rule about size that
-   nothing measures is a rule about a stylesheet. */
+   THE GRAPH IS SIZED THE WAY THE BOARD IS. .graph is a size container, so one expression turns the
+   region it is given into a node size:
+
+       u = min((regionW - gutters) / (cols + 0.63), (regionH - gutters) / (rows + 0.25))
+
+   The 0.63 and the 0.25 are the overhang the two oversized states add — the boss is 1.63u wide and
+   an elite 1.21u tall — so the widest and tallest thing the graph can draw is still inside the
+   region. Ratios, not pixels: --node-size was 76/92/124px and is now u/1.21u/1.63u, which are the
+   same proportions and no longer a number somebody chose for one window.
+
+   "The boss is largest" therefore remains a fact of the stylesheet rather than a coincidence of
+   content, and a Playwright check measures the drawn boxes, because a rule about size that nothing
+   measures is a rule about a stylesheet. */
 
 .act-map {
-    --node-size: 76px;
-    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .map-head h2 {
@@ -24,12 +34,33 @@
 
 /* ---- The graph ------------------------------------------------------------------------------ */
 
+/* The region the graph fills. flex: 1 so it takes everything the screen has left over, and a size
+   container so the fill expression can be written against it. */
+.graph {
+    align-items: center;
+    container-type: size;
+    display: flex;
+    flex: 1 1 0;
+    justify-content: center;
+    margin-bottom: 1rem;
+    min-height: 280px;
+    overflow: auto;
+}
+
 .columns {
+    --gap-x: 1.5rem;
+    --gap-y: .75rem;
+    --fit: min(
+        (100cqw - (var(--cols) - 1) * var(--gap-x) - 8px) / (var(--cols) + .63),
+        (100cqh - (var(--rows) - 1) * var(--gap-y) - 34px) / (var(--rows) + .25));
+    --u: clamp(46px, var(--fit), 150px);
+    --node-size: var(--u);
+
     align-items: stretch;
     display: flex;
-    gap: 1.5rem;
+    gap: var(--gap-x);
     list-style: none;
-    margin: 0 0 1.25rem;
+    margin: auto;
     min-width: max-content;
     padding: 0;
 }
@@ -64,7 +95,7 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: .75rem;
+    gap: var(--gap-y, .75rem);
     justify-content: center;
     list-style: none;
     margin: 0;
@@ -109,9 +140,10 @@
     text-transform: uppercase;
 }
 
-/* Elites are bigger than plain fights, and the boss is bigger than everything. */
+/* Elites are bigger than plain fights, and the boss is bigger than everything — the same 76/92/124
+   proportions the map always drew, now expressed against the region rather than in pixels. */
 .node.type-elite {
-    --node-size: 92px;
+    --node-size: calc(var(--u) * 1.21);
 }
 
 .node.type-elite .face {
@@ -119,7 +151,7 @@
 }
 
 .node.boss {
-    --node-size: 124px;
+    --node-size: calc(var(--u) * 1.63);
 }
 
 .node.boss .face {
@@ -381,14 +413,12 @@
     max-width: 66ch;
 }
 
-.payers,
 .heals {
     list-style: none;
     margin: .5rem 0;
     padding: 0;
 }
 
-.payers li,
 .heals li {
     font-size: .8rem;
     padding: .15rem 0;

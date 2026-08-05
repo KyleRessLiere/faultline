@@ -20,7 +20,7 @@ namespace Faultline.Web.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Nothing here re-tests a rule. Which nodes exist, which doors are open, what a campfire heals and
+/// Nothing here re-tests a rule. Which nodes exist, which doors are open, what a pond heals and
 /// which way a split fell are all Core's and are tested in <c>RunMapTests</c>. These tests ask only
 /// what reaches a player's eye — which is why most of them assert on rendered markup rather than on
 /// the helper that produced it.
@@ -81,7 +81,7 @@ public sealed class ActMapScreenTests
         Assert.Contains("gate", NodeMarkup(html, "c5-break-the-gate"));
         Assert.Contains("swords", NodeMarkup(html, "c1-first-contact"));
         Assert.Contains("skull", NodeMarkup(html, "c4-high-road"));
-        Assert.Contains("campfire", NodeMarkup(html, "c6-rest"));
+        Assert.Contains("pond", NodeMarkup(html, "c6-rest"));
         Assert.Contains("question", NodeMarkup(html, "c3-molting-pool"));
         Assert.Contains("boss-sigil", NodeMarkup(html, "c7-quarry-king"));
 
@@ -161,7 +161,7 @@ public sealed class ActMapScreenTests
         Assert.DoesNotContain("class=\"roster\"", NodeMarkup(html, "c5-the-trench"));
         Assert.DoesNotContain("class=\"roster\"", NodeMarkup(html, "c7-quarry-king"));
 
-        // The other door is a campfire, which fields nobody, so it draws no roster either — one
+        // The other door is a pond, which fields nobody, so it draws no roster either — one
         // preview on the map, and it belongs to the one door with a board behind it.
         Assert.Equal(1, Occurrences(html, "class=\"roster\""));
 
@@ -394,7 +394,7 @@ public sealed class ActMapScreenTests
     [Fact]
     public async Task AColumnWithOneDoor_IsWalked_AndOffersNoVote()
     {
-        // The campfire at column 4 leads to exactly one place.
+        // The pond at column 4 leads to exactly one place.
         var session = await RunAt("c1-first-contact", "c2-bait-and-break", "c3-the-shrine", "c4-rest");
 
         Assert.Single(session.State!.Doors());
@@ -496,7 +496,7 @@ public sealed class ActMapScreenTests
         Assert.Equal(RunPhase.AtVote, session.State!.Phase);
         session.Vote("c4-rest", "c4-rest");
 
-        // The campfire, then the single door out of it.
+        // The pond, then the single door out of it.
         session.Enter();
         session.Heal();
         Assert.Equal("c5-break-the-gate", session.State!.MapState!.CurrentNodeId);
@@ -595,7 +595,7 @@ public sealed class ActMapScreenTests
         }).GetAwaiter().GetResult();
     }
 
-    /// <summary>The whole campaign page, which is how a player actually arrives at either shape.</summary>
+    /// <summary>The whole map screen, which is how a player actually arrives at either shape.</summary>
     private static string RenderPage(RunSession runs)
     {
         var services = Services(runs);
@@ -605,7 +605,7 @@ public sealed class ActMapScreenTests
 
         return renderer.Dispatcher.InvokeAsync(async () =>
         {
-            var output = await renderer.RenderComponentAsync<Faultline.Web.Pages.Campaign>();
+            var output = await renderer.RenderComponentAsync<Faultline.Web.Pages.MapScreen>();
             return output.ToHtmlString();
         }).GetAwaiter().GetResult();
     }
@@ -628,7 +628,7 @@ public sealed class ActMapScreenTests
     /// <summary>A navigation manager that goes nowhere. Nothing here navigates.</summary>
     private sealed class StubNavigation : NavigationManager
     {
-        public StubNavigation() => Initialize("http://localhost/", "http://localhost/campaign");
+        public StubNavigation() => Initialize("http://localhost/", "http://localhost/map");
 
         protected override void NavigateToCore(string uri, bool forceLoad)
         {

@@ -35,12 +35,16 @@ else
         <h2>@Map.Name</h2>
         <p class="note">
             @Map.Nodes.Count nodes over @Map.ColumnCount columns; a run walks one lane through them
-            to the boss at the end. Lanes are unequal on purpose — the safe side has the campfire,
+            to the boss at the end. Lanes are unequal on purpose — the safe side has the pond,
             the hungry side has the elite.
         </p>
     </header>
 
-    <ol class="columns" aria-label="@Map.Name">
+    @* The graph's region, and the board's fill discipline applied to it: the region is a size
+       container, so the node size is one expression against its own width and height rather than a
+       number somebody chose. A wider window draws a bigger map, not more empty panel. *@
+    <div class="graph">
+    <ol class="columns" aria-label="@Map.Name" style="--cols: @Map.ColumnCount; --rows: @WidestLane;">
         @for (int c = 0; c < Map.ColumnCount; c++)
         {
             var column = c;
@@ -86,6 +90,7 @@ else
             </li>
         }
     </ol>
+    </div>
 
     @if (Vote is not null)
     {
@@ -151,14 +156,18 @@ else
     @if (Here is { } here && Run is { Outcome: RunOutcome.InProgress })
     {
         <div class="here">
-            <h3>You are here — @here.Label</h3>
+            @* Through the card, not off the node: a node's display name is MapCards.LabelFor's to
+               say, and reading node.Label straight is how "You are here — Camp" got onto a screen
+               standing on a pond. *@
+            <h3>You are here — @LabelOf(here.Id)</h3>
             <p class="here-type">@TypeNameOf(here.Id)</p>
 
             @if (Runs.AtChoice && here.Type == MapNodeType.Rest)
             {
                 <p class="note">
-                    Half its own ceiling back, rounded up, per duck. Forging and scraping a curse are
-                    not built, so the campfire offers the one thing it can actually do.
+                    Ducks glide on and tuck their heads: half its own ceiling back, rounded up, per
+                    duck. Forging and scraping a curse are not built, so the pond offers the one
+                    thing it can actually do.
                 </p>
                 <ul class="heals">
                     @foreach (var unit in Run.Squad)
@@ -172,30 +181,14 @@ else
                         }
                     }
                 </ul>
-                <button class="action" @onclick="Heal">Make camp</button>
+                <button class="action" @onclick="Heal">Rest at the pond</button>
             }
-            else if (Runs.AtChoice && here.Type == MapNodeType.Event && Offer is { } offer)
+            else if (RunScreens.AtAnEvent(Runs))
             {
-                <p class="prompt">@offer.Prompt</p>
-                <p class="note">
-                    @offer.HpCost HP now, @offer.MaxHpGain more maximum for the rest of the run.
-                    Whoever pays, pays with their own body — the vote does not decide that.
-                </p>
-                <ul class="payers">
-                    @foreach (var payer in Payers)
-                    {
-                        var who = payer;
-                        <li>
-                            <button class="action secondary" @onclick="() => Pay(who.Id)">
-                                @Naming.Of(who.Kind) pays — @who.Hp/@who.MaxHp → @(who.Hp - offer.HpCost)/@(who.MaxHp + offer.MaxHpGain)
-                            </button>
-                        </li>
-                    }
-                </ul>
-                @if (Walkable)
-                {
-                    <button class="action" @onclick="WalkAway">Walk away</button>
-                }
+                @* The offer itself is the event screen's — one job per screen. The map says only
+                   that there is one and how to get to it. *@
+                <p class="note">Something here wants to talk to you.</p>
+                <a class="action" href="@RunScreens.Event">See what it wants</a>
             }
             else if (Runs.AtVote)
             {
@@ -281,47 +274,34 @@ else
         }
     }
 
-    /// <summary>The event on the table, when the run is standing in one.</summary>
-    private EventDefinition? Offer =>
-        Here is { Type: MapNodeType.Event } node && node.EventId.Length > 0
-            ? EventLibrary.ById(node.EventId)
-            : null;
-
     /// <summary>
-    /// Who may pay, straight off Core's legal list. Not a health check made here — the lethal block
-    /// is a rule, and the surface only draws the payments the rules already offered.
+    /// How many nodes the fattest column holds — the graph's row count, and half of what the fill
+    /// expression divides the region by.
     /// </summary>
-    private IReadOnlyList<RunUnit> Payers
+    private int WidestLane
     {
         get
         {
-            var found = new List<RunUnit>();
-            foreach (var command in Runs.Legal)
+            int widest = 1;
+
+            for (int c = 0; c < Map.ColumnCount; c++)
             {
-                if (command is EventPayCommand pay && Run?.FindUnit(pay.Payer) is { } unit)
+                int here = 0;
+                foreach (var node in Map.Nodes)
                 {
-                    found.Add(unit);
+                    if (node.Column == c)
+                    {
+                        here++;
+                    }
+                }
+
+                if (here > widest)
+                {
+                    widest = here;
                 }
             }
 
-            return found;
-        }
-    }
-
-    /// <summary>Whether leaving without paying is on Core's list. Offers have it; Straits do not.</summary>
-    private bool Walkable
-    {
-        get
-        {
-            foreach (var command in Runs.Legal)
-            {
-                if (command is EventWalkAwayCommand)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return widest;
         }
     }
 
@@ -404,10 +384,6 @@ else
 
     private void Heal() => Runs.Heal();
 
-    private void Pay(RunUnitId payer) => Runs.PayEvent(payer);
-
-    private void WalkAway() => Runs.WalkAwayFromEvent();
-
     private void Enter()
     {
         if (Runs.InFight)
@@ -427,7 +403,7 @@ else
 
     private string EnterLabel(MapNode node) => node.Type switch
     {
-        MapNodeType.Rest => "Sit down at the campfire",
+        MapNodeType.Rest => "Glide onto the Still Pond",
         MapNodeType.Event => "See what it wants",
         MapNodeType.Boss => Runs.InFight ? "Back to the boss" : "Face " + node.Label,
         _ => Runs.InFight ? "Back to the fight" : "Begin the fight",

@@ -1,4 +1,3 @@
-@page "/"
 @page "/battles"
 @layout MainLayout
 @inject GameSession Session
@@ -41,7 +40,7 @@
                 </span>
             }
         </div>
-        <a class="action" href="campaign">@(Runs.InProgress ? "Continue the run" : "Start a run")</a>
+        <a class="action" href="@(Runs.InProgress ? RunScreens.RouteFor(Runs) : RunScreens.Home)">@(Runs.InProgress ? "Continue the run" : "Start a run")</a>
     </section>
 
     @foreach (var section in Sections())

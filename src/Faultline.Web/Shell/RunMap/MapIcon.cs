@@ -29,8 +29,17 @@ public enum MapIcon
     /// <summary>A question mark — an event.</summary>
     Question = 5,
 
-    /// <summary>A campfire — a Rest.</summary>
-    Campfire = 6,
+    /// <summary>
+    /// A still pond — a Rest.
+    /// </summary>
+    /// <remarks>
+    /// Not a campfire. Ducks rest on still water, and MASTER_DESIGN's (r) tone lock says so: "more
+    /// campfires on the safe lane" has to read "more ponds". Display and fiction only — the node
+    /// type identifier stays <see cref="Faultline.Core.MapNodeType.Rest"/> per §15's decoupling, and
+    /// the <em>camp</em> is a different thing entirely (a run-seam phase, D-127) that is not on the
+    /// map at all.
+    /// </remarks>
+    Pond = 6,
 
     /// <summary>The boss sigil, at the end of every lane.</summary>
     Boss = 7,

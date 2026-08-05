@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Faultline.Core;
 using Faultline.Web.Shell;
 using Faultline.Web.Shell.Playtest;
+using Faultline.Web.Shell.RunMap;
 
 namespace Faultline.Web.Tests;
 
@@ -30,18 +31,21 @@ public sealed class LeaveBattleTests
     // ---- where the door goes -------------------------------------------------------------------
 
     [Fact]
-    public void WithNoRun_TheWordmarkGoesToThePicker()
+    public void WithNoRun_TheWordmarkGoesToTheFrontDoor()
     {
+        // The front door, not the battle picker. The picker is a browsing surface; the front door is
+        // the screen that starts a run, which is what a player with no run wants.
         var (_, runs) = Fresh();
 
         Assert.Equal(BattleExit.Picker, BattleExit.HomeRoute(runs));
+        Assert.Equal(RunScreens.Home, BattleExit.HomeRoute(runs));
         Assert.Equal("Home", BattleExit.HomeLabel(runs));
     }
 
     [Fact]
     public async Task MidRun_TheMapIsHome()
     {
-        // Not the picker: a run in progress belongs to its campaign screen, which draws the act map
+        // Not the picker: a run in progress belongs to the map screen, which draws the act graph
         // when the run walks a lane graph. Sending a mid-run player to the battle list would be
         // sending them to a screen about a mode they are not in.
         var (_, runs) = Fresh();
@@ -50,6 +54,7 @@ public sealed class LeaveBattleTests
 
         Assert.NotNull(runs.Map);
         Assert.Equal(BattleExit.RunHome, BattleExit.HomeRoute(runs));
+        Assert.Equal(RunScreens.Map, BattleExit.HomeRoute(runs));
         Assert.Equal("The map", BattleExit.HomeLabel(runs));
     }
 
@@ -200,7 +205,7 @@ public sealed class LeaveBattleTests
         Assert.Equal(before, returned.State.MapState.RouteHash());
 
         // Home for this run is the map, and it is the same map it left.
-        Assert.Equal(BattleExit.RunHome, BattleExit.HomeRoute(returned));
+        Assert.Equal(RunScreens.Map, BattleExit.HomeRoute(returned));
         Assert.NotNull(returned.Map);
     }
 

@@ -68,7 +68,7 @@
                             Cleared. Camp first — one card each, dealt from your own ducks, and there
                             is no skipping it.
                         </p>
-                        <div class="row"><a class="act primary" href="campaign">Break out the cards</a></div>
+                        <div class="row"><a class="act primary" href="@RunScreens.Camp">Break out the cards</a></div>
                     }
                     else if (Runs.AtVote)
                     {
@@ -80,7 +80,7 @@
                             Cleared. The column ahead has more than one door, and the fork is voted on
                             at the map — in front of both players, masked, once.
                         </p>
-                        <div class="row"><a class="act primary" href="campaign">Go and vote</a></div>
+                        <div class="row"><a class="act primary" href="@RunScreens.Map">Go and vote</a></div>
                     }
                     else if (CanEnterNext && run.CurrentNode is FightNode nextFight)
                     {
@@ -89,20 +89,20 @@
                         </p>
                         <div class="row">
                             <button type="button" class="act primary" @onclick="ContinueRun">Play the next fight</button>
-                            <a class="act" href="campaign">Back to the run</a>
+                            <a class="act" href="@RunScreens.Map">Back to the map</a>
                         </div>
                     }
                     else if (run.CurrentNode is RestNode or MapRestNode)
                     {
                         <p class="instruction">Next: <strong>a rest</strong> — it restores everything that can still be fielded.</p>
-                        <div class="row"><a class="act primary" href="campaign">Take the rest</a></div>
+                        <div class="row"><a class="act primary" href="@RunScreens.Map">Take the rest</a></div>
                     }
                     else
                     {
                         @* An event, or anything else the road grows later. The band names it and sends
                            the player to the screen that owns it rather than drawing a dead end. *@
                         <p class="instruction">Next: <strong>@(run.CurrentNode?.Describe() ?? "the road on")</strong></p>
-                        <div class="row"><a class="act primary" href="campaign">Back to the run</a></div>
+                        <div class="row"><a class="act primary" href="@RunScreens.RouteFor(Runs)">Back to the run</a></div>
                     }
                 </div>
             }
@@ -110,7 +110,7 @@
             {
                 <div class="block resolved">
                     <p class="instruction">This run is standing between fights.</p>
-                    <div class="row"><a class="act primary" href="campaign">Back to the run</a></div>
+                    <div class="row"><a class="act primary" href="@RunScreens.RouteFor(Runs)">Back to the run</a></div>
                 </div>
             }
         }

@@ -1,0 +1,89 @@
+/* The one offer card. Moved here out of CampPanel's stylesheet when the event screen became the
+   second caller: scoped CSS follows the markup, and the markup is now in one place because the
+   surface is. */
+
+.offer {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    padding: .7rem .8rem;
+    text-align: left;
+    width: 100%;
+}
+
+.offer:hover:not(:disabled) {
+    border-color: var(--muted);
+}
+
+.offer.picked {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.offer:disabled {
+    cursor: default;
+    opacity: .72;
+}
+
+.offer-head {
+    align-items: center;
+    display: flex;
+    gap: .5rem;
+}
+
+.icon {
+    align-items: center;
+    background: rgba(255, 255, 255, .05);
+    border-radius: 5px;
+    display: inline-flex;
+    height: 1.7rem;
+    justify-content: center;
+    width: 1.7rem;
+}
+
+.icon.mod    { color: var(--pt-cyan); }
+.icon.wind   { color: var(--pt-yellow); }
+.icon.unlock { color: var(--player-a); }
+.icon.pocket { color: var(--pt-amber); }
+
+/* Event faces: a price paid in blood, and the door out of an Offer. */
+.icon.pay    { color: var(--enemy); }
+.icon.leave  { color: var(--muted); }
+
+.offer-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.category {
+    color: var(--muted);
+    font-size: .64rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.bound {
+    align-items: center;
+    color: var(--muted);
+    display: flex;
+    font-size: .74rem;
+    gap: .4rem;
+}
+
+.bound .art {
+    display: inline-flex;
+    height: 1.3rem;
+    width: 1.3rem;
+}
+
+/* The rule text, verbatim from whoever wrote it. Given room rather than truncated: it is the card. */
+.offer-rule {
+    font-size: .84rem;
+    line-height: 1.45;
+}

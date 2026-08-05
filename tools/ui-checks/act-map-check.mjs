@@ -39,6 +39,9 @@ if (await discard.count()) {
   await discard.click();
 }
 
+// The front door starts the run; the map is where it is walked. One primary action gets there.
+await page.locator('a.action.primary.continue').first().click();
+
 await page.waitForSelector('.act-map', { timeout: 30000 });
 
 // ---- 1. Sizes -------------------------------------------------------------------------------
@@ -78,15 +81,18 @@ check(area(sizes.elite[0]) > area(sizes.fight[0]), 'an elite is larger than a pl
 
 const overflow = await page.evaluate(() => ({
   body: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  // The scroll container is the GRAPH's region, not the whole panel: the graph is sized against
+  // that region the way the board is sized against its stage, and the safety valve belongs to the
+  // element the size expression is written against.
   panelScrolls: (() => {
-    const el = document.querySelector('.act-map');
-    return getComputedStyle(el).overflowX;
+    const el = document.querySelector('.graph');
+    return el ? getComputedStyle(el).overflowX : 'missing';
   })(),
 }));
 
 check(overflow.body <= 1, 'the page does not scroll sideways', `${overflow.body}px`);
 check(overflow.panelScrolls === 'auto' || overflow.panelScrolls === 'scroll',
-  'wide content scrolls inside the map panel', overflow.panelScrolls);
+  'wide content scrolls inside the graph region', overflow.panelScrolls);
 
 // ---- 3. The roster preview, on hover ---------------------------------------------------------
 
@@ -107,7 +113,7 @@ if (doorId) {
   }, doorId);
 }
 
-// A reachable door may be a campfire, which fields nobody; then there is no roster to reveal and
+// A reachable door may be a pond, which fields nobody; then there is no roster to reveal and
 // that is correct rather than a failure. Report which case this run landed in.
 const doorHasRoster = doorId
   ? await page.evaluate(id => !!document.querySelector(`.node[data-node="${id}"] .roster`), doorId)

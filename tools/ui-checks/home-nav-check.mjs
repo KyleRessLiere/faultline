@@ -33,8 +33,8 @@ const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 console.log('\n--- the name on screen ---');
 
 for (const [route, selector] of [
-  ['', '.picker h1'],
-  ['campaign', '.run h1'],
+  ['', '.front h1'],
+  ['battles', '.picker h1'],
   ['bestiary', 'h1'],
   ['create', 'h1'],
 ]) {
@@ -54,10 +54,10 @@ const backLinks = async () =>
   page.evaluate(() =>
     [...document.querySelectorAll('a[href], button')]
       .map(el => (el.getAttribute('href') ?? '') + '|' + (el.innerText || el.getAttribute('aria-label') || '').trim())
-      .filter(s => /^(\||battles|campaign|play|$)/.test(s.split('|')[0]))
-      .filter(s => /home|back|battles|campaign|board|map|run|leave|picker/i.test(s)));
+      .filter(s => /^(\||\/|battles|campaign|play|map|$)/.test(s.split('|')[0]))
+      .filter(s => /home|back|battles|campaign|board|map|run|leave|picker|continue/i.test(s)));
 
-for (const route of ['', 'campaign', 'bestiary', 'create']) {
+for (const route of ['', 'battles', 'map', 'camp', 'event', 'bestiary', 'create']) {
   await page.goto(`${BASE}/${route}`, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(800);
   const links = await backLinks();
@@ -189,6 +189,9 @@ if (await discard.count()) {
   await discard.click();
   await page.waitForTimeout(600);
 }
+
+// The front door's one primary action, which is the only way onward it offers.
+await page.locator('a.action.primary.continue').first().click();
 await page.waitForSelector('.act-map', { timeout: 30000 });
 
 const before = await page.evaluate(() => ({
@@ -217,7 +220,7 @@ if (await leaveButton.count()) {
 }
 await page.waitForTimeout(2500);
 
-check(new URL(page.url()).pathname === '/campaign', 'the wordmark goes to the map mid-run', page.url());
+check(new URL(page.url()).pathname === '/map', 'the wordmark goes to the map mid-run', page.url());
 await page.waitForSelector('.act-map', { timeout: 30000 });
 
 const after = await page.evaluate(() => ({
@@ -231,18 +234,22 @@ if (SHOTS) await page.screenshot({ path: `${SHOT_DIR}/home-with-run.png` });
 console.log('\n--- continue run ---');
 
 await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-await page.waitForSelector('.picker', { timeout: 90000 });
+await page.waitForSelector('.front', { timeout: 90000 });
 await page.waitForTimeout(1000);
 
-const cont = await page.$('.run-banner a.action');
+const cont = await page.$('a.action.primary.continue');
 const contText = cont ? (await cont.textContent()).trim() : '';
-check(/Continue the run/i.test(contText), 'the home screen offers Continue run when a run exists', contText);
+check(/Continue/i.test(contText), 'the front door offers Continue when a run exists', contText);
+
+// ONE primary action. The whole point of the front door is that the decision is unambiguous.
+const primaries = await page.$$eval('.front .action.primary', els => els.map(e => e.innerText.trim()));
+check(primaries.length === 1, 'the front door has exactly one primary action', primaries.join(' | '));
 if (SHOTS) await page.screenshot({ path: `${SHOT_DIR}/home-continue-run.png` });
 
 if (cont) {
   await cont.click();
   await page.waitForTimeout(1500);
-  check(new URL(page.url()).pathname === '/campaign', 'Continue run reaches the run', page.url());
+  check(new URL(page.url()).pathname === '/map', 'Continue reaches the map', page.url());
   const still = await page.evaluate(() =>
     document.querySelector('.node.current')?.getAttribute('data-node') ?? '');
   check(still === before.here, 'and it is still the same node', `${before.here} -> ${still}`);

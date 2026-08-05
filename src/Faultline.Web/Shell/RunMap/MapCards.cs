@@ -50,7 +50,7 @@ public static class MapCards
             cards.Add(new MapCard
             {
                 NodeId = node.Id,
-                Label = node.Label,
+                Label = LabelFor(node),
                 Column = node.Column,
                 Type = node.Type,
                 Lane = node.Lane,
@@ -107,6 +107,36 @@ public static class MapCards
         return "Pick " + mark.Pick + " of " + mark.From + " " + prize + ".";
     }
 
+    /// <summary>
+    /// What a node is called on screen.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The authored label, except for a Rest — which <see cref="ActMapLibrary"/> still labels
+    /// <c>"Camp"</c>, and which is <b>wrong on screen</b>. A Rest is the Still Pond (MASTER_DESIGN
+    /// design log (r)); the <em>camp</em> is a phase on the run seam that follows every won Fight or
+    /// Elite and is not a node on any map at all (D-127). Two different things wearing one word on
+    /// the same screen is the drift this closes.
+    /// </para>
+    /// <para>
+    /// It is closed <em>here</em> rather than in the map data because a display name belongs to the
+    /// renderer under §15's decoupling — but the two <c>Label = "Camp"</c> strings in
+    /// <c>ActMapLibrary</c> are still there, still say the wrong word, and are still what a Core-side
+    /// reader sees. They want fixing at the source by whoever owns Core next.
+    /// </para>
+    /// </remarks>
+    /// <param name="node">The map node.</param>
+    /// <returns>Its name on screen.</returns>
+    public static string LabelFor(MapNode node)
+    {
+        if (node is null)
+        {
+            throw new ArgumentNullException(nameof(node));
+        }
+
+        return node.Type == MapNodeType.Rest ? "The Still Pond" : node.Label;
+    }
+
     /// <summary>The glyph a node wears.</summary>
     /// <param name="node">The map node.</param>
     /// <param name="fight">Its fight, when it plays one and the file is loaded.</param>
@@ -122,7 +152,7 @@ public static class MapCards
         {
             MapNodeType.Boss => MapIcon.Boss,
             MapNodeType.Elite => MapIcon.Skull,
-            MapNodeType.Rest => MapIcon.Campfire,
+            MapNodeType.Rest => MapIcon.Pond,
             MapNodeType.Event => MapIcon.Question,
             _ => IconForObjective(fight?.Objective.Kind ?? ObjectiveKind.KillAll),
         };
@@ -159,7 +189,9 @@ public static class MapCards
         MapIcon.Hourglass => "⌛",
         MapIcon.Skull => "\U0001F480",
         MapIcon.Question => "?",
-        MapIcon.Campfire => "\U0001F525",
+        // A circle with a ripple in it — a placeholder mark for still water, not a campfire. The art
+        // pass replaces the glyph; the fiction it stands for is locked (MASTER_DESIGN log (r)).
+        MapIcon.Pond => "◎",
         MapIcon.Boss => "♛",
         _ => "⚔",
     };
@@ -175,7 +207,7 @@ public static class MapCards
         MapIcon.Hourglass => "hourglass",
         MapIcon.Skull => "skull",
         MapIcon.Question => "question",
-        MapIcon.Campfire => "campfire",
+        MapIcon.Pond => "pond",
         MapIcon.Boss => "boss-sigil",
         _ => "swords",
     };
@@ -206,7 +238,9 @@ public static class MapCards
         {
             MapNodeType.Boss => "Boss",
             MapNodeType.Elite => "Elite — " + ObjectiveName(fight?.Objective.Kind ?? ObjectiveKind.KillAll),
-            MapNodeType.Rest => "Camp",
+            // "Rest", the node type — never "Camp", which is a different thing entirely (D-127).
+            // With LabelFor above it, a node reads "The Still Pond / REST".
+            MapNodeType.Rest => "Rest",
             MapNodeType.Event => "Event",
             _ => "Fight — " + ObjectiveName(fight?.Objective.Kind ?? ObjectiveKind.KillAll),
         };

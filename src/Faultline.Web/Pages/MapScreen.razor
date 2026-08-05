@@ -1,0 +1,115 @@
+@page "/map"
+@layout MainLayout
+@implements IDisposable
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* MAP — the mid-run hub, and the whole viewport.
+
+   The graph gets the screen. There is no run-status panel beside it, no new-run form under it and no
+   camp drawn above it: where you are and where you may go is one question, and this screen answers
+   only that one. Run admin is the front door's, and this screen's way back to it is one small link
+   in the corner.
+
+   The vote happens here, because a vote is a question about where to go and this is the screen that
+   shows where you can go. *@
+
+<PageTitle>PLUCK — the map</PageTitle>
+
+<div class="map-screen">
+    @if (!Runs.Loaded)
+    {
+        <p class="note">Reading browser storage…</p>
+    }
+    else if (Run is null)
+    {
+        <div class="no-run">
+            <h1>No run to look at</h1>
+            <p class="note">Start one from the front door.</p>
+            <a class="action" href="@RunScreens.Home">Home</a>
+        </div>
+    }
+    else
+    {
+        <div class="map-region">
+            @if (Runs.Map is not null)
+            {
+                <ActMapPanel />
+            }
+            else
+            {
+                <RoadPanel />
+            }
+        </div>
+
+        <footer class="map-foot">
+            @* What the last run command did, straight off the run's own events. It belongs to the hub
+               rather than to the front door: it is about the step just taken, and this is the screen
+               that shows where that step landed. *@
+            @if (Runs.LastEvents.Count > 0)
+            {
+                <ul class="run-events">
+                    @foreach (var e in Runs.LastEvents)
+                    {
+                        <li class="@EventClass(e)">@RunEventText.Describe(e)</li>
+                    }
+                </ul>
+            }
+
+            <div class="foot-row">
+                <SquadStrip />
+                @* Small, in the corner, and it names what it does. Leaving is not abandoning: the run
+                   is in storage and the front door will still have it. *@
+                <a class="leave" href="@RunScreens.Home" title="Back to the front door. The run is saved.">Leave run</a>
+            </div>
+        </footer>
+    }
+</div>
+
+@code {
+    private RunState? Run => Runs.State;
+
+    private static string EventClass(RunEvent e) => e switch
+    {
+        UnitRested => "good",
+        RunWon => "good",
+        RunLost => "bad",
+        UnitCarried carried when carried.Status == RunUnitStatus.Voided => "bad",
+        _ => string.Empty,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Runs.Changed += OnChanged;
+
+        // Only on a cold arrival. Re-reading storage mid-session would reset the journal and the
+        // undo log under a run that is already in memory.
+        if (!Runs.Loaded)
+        {
+            await Runs.LoadAsync();
+        }
+
+        Hand();
+    }
+
+    public void Dispose() => Runs.Changed -= OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(() =>
+    {
+        StateHasChanged();
+        Hand();
+    });
+
+    /// <summary>
+    /// Hands the run over when another screen owns the moment — the camp after a won fight, an event
+    /// the run has just stepped into. The board is the exception: a player who left a live fight to
+    /// look at the map asked to look at the map (see <see cref="RunScreens.RedirectFrom"/>).
+    /// </summary>
+    private void Hand()
+    {
+        if (RunScreens.RedirectFrom(RunScreen.Map, Runs) is { } route)
+        {
+            Nav.NavigateTo(route);
+        }
+    }
+}

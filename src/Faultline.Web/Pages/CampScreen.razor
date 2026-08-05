@@ -1,0 +1,66 @@
+@page "/camp"
+@layout MainLayout
+@implements IDisposable
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* CAMP — the card gain, on its own screen.
+
+   It used to be drawn above the road on the campaign page, which meant a reward competed for the eye
+   with a node graph and a new-run form. A pick is a decision; give it the screen and it reads as one.
+
+   The surface itself is unchanged — CampPanel, and the OfferCard the event screen also draws. This
+   page adds the frame and the way out: when Core says the camp is over, the run goes back to the
+   map, which is where the fork it opened onto is voted. *@
+
+<PageTitle>PLUCK — camp</PageTitle>
+
+<div class="camp-screen">
+    <header class="camp-frame-head">
+        <h1>Camp</h1>
+        <p class="note">One pick each, then back to the map.</p>
+    </header>
+
+    @if (!Runs.Loaded)
+    {
+        <p class="note">Reading browser storage…</p>
+    }
+    else
+    {
+        <CampPanel />
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Runs.Changed += OnChanged;
+
+        if (!Runs.Loaded)
+        {
+            await Runs.LoadAsync();
+        }
+
+        Hand();
+    }
+
+    public void Dispose() => Runs.Changed -= OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(() =>
+    {
+        StateHasChanged();
+        Hand();
+    });
+
+    /// <summary>
+    /// Leaves the moment Core says the camp is over — the same rule the panel's own ceremony obeys.
+    /// The screen exists exactly while <see cref="RunPhase.AtCamp"/> does.
+    /// </summary>
+    private void Hand()
+    {
+        if (RunScreens.RedirectFrom(RunScreen.Camp, Runs) is { } route)
+        {
+            Nav.NavigateTo(route);
+        }
+    }
+}

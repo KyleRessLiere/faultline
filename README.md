@@ -79,10 +79,12 @@ Serves on http://localhost:5199. The screens:
 
 | Route | Screen |
 |---|---|
-| `/` | Battle select — every fight with its board, enemies and lints, plus anything you saved in the creator |
-| `/battles` | The picker — every active board grouped Campaign / Trials / Co-op gauntlet / Other, retired ones collapsed |
-| `/campaign` | The run — twelve nodes, the squad's carried HP and Pluck, and the two rests. Start a run here; its fights open on `/play` |
+| `/` | **Home** — the front door. The run in progress, its squad and one Continue; start, abandon or reseed a run here. (`/home` and `/campaign` reach it too) |
+| `/map` | **The map** — the mid-run hub, full screen: the act graph (or the linear ten's road), where you are, where you may go, and the vote |
+| `/camp` | **The camp** — the 1-of-2 pick each player takes after every won Fight or Elite |
+| `/event` | **An event** — a `?` node's offer, on the same card surface the camp uses |
 | `/play` | The board, for whichever battle is loaded |
+| `/battles` | The picker — every active board grouped Campaign / Trials / Co-op gauntlet / Other, retired ones collapsed |
 | `/create` | Scenario creator — paint a board, pick rosters, watch the parser, play or save it |
 | `/bestiary` | Every unit: stat blocks, each enemy's priority list, its quirks and its counterplay |
 | `/notes` | Playtest notes across every battle, filterable by battle and tag, with export |
@@ -276,12 +278,13 @@ round — the fight is about reading those intents and moving the board out from
 
 ### Two ways in
 
-**`/campaign` — the run.** Twelve nodes: ten fights and two rests. Start one with a seed; a win
-advances, a loss ends the run.
+**`/` — the run.** Start one with a seed at the front door; Continue takes you to `/map`, which is
+where a run is actually walked. The linear ten is twelve nodes — ten fights and two rests; Act 1 is
+the same fights on a lane graph. A win advances, a loss ends the run.
 
 **There is no healing between fights.** A unit that finishes on 3 of 14 starts the next one on 3 of
-14, so the squad list on the campaign screen is the thing to watch — it is the only place the cost of
-a fight is visible. A unit knocked to zero reads **downed** and walks back on **Bedraggled**: a
+14, so the squad — one-liners on the front door, a strip along the bottom of the map — is the thing
+to watch. It is the only place the cost of a fight is visible. A unit knocked to zero reads **downed** and walks back on **Bedraggled**: a
 quarter of its maximum rounded up (Vanguard and Wardbearer 4, Archer and Fisher 2), and it skips its
 first activation — its side simply has one fewer activation in round 1. It keeps every point of its
 meter and everything it has learned. A unit lost down a drain reads **voided** and is gone for the

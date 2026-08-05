@@ -1,5 +1,31 @@
 # Changelog
 
+## Four screens, one job each — and a Rest is the Still Pond
+
+- **`/campaign` is split into four routes (D-137).** `/` is home: the run card (act, seed,
+  `Column 5/7 · 3/9 fights won`, squad one-liners with badges) and **one** primary action, Continue.
+  `/map` is the mid-run hub and gets the whole viewport. `/camp` is the card gain. `/event` is the
+  `?`, drawn on the same offer-card surface the camp uses — `OfferCard` is now one component with two
+  callers instead of one page with two layouts. `/home` and `/campaign` still land on the front door.
+- **No page shows run admin and the graph at once.** New-run, seed, Abandon and the storage line live
+  on the front door and nowhere else; the graph lives on the map and nowhere else. Asserted on drawn
+  markup in every phase (`RunScreensTests`) and again in a real browser
+  (`tools/ui-checks/screens-check.mjs`).
+- **The graph is sized the way the board is.** `.graph` is a size container and the node size is one
+  expression against the region it is given, so 76/92/124px becomes `u / 1.21u / 1.63u`. At
+  1920×1080 the region measures 1858×748 — 69% of the viewport's height — and a plain node draws at
+  150px.
+- **Where a run belongs is one function.** `RunScreens.Owning` decides it; the wordmark, Continue,
+  the post-fight band and each screen's redirect guard all read it. Mid-run the wordmark goes to
+  `/map`; with no run it goes to the front door rather than to the battle picker.
+- **A map Rest is the Still Pond, never a camp (D-138).** Columns 4 and 6 read "Camp" with a flame
+  on them; they are Rest nodes, and a camp is a run-seam phase that is not on the map at all (D-127).
+  The type reads **Rest**, the label **The Still Pond**, the mark a circle-with-ripple placeholder,
+  and the lane blurb "the safe side has the pond". **Display only** — `MapRestNode` and
+  `RunPhase.AtCamp` were never conflated, which a new test pins. `ActMapLibrary` still authors
+  `Label = "Camp"` in Core and wants fixing there.
+- **1650 Core / 530 Web tests, 0 failing.**
+
 ## A Crate of Debris can be placed — one-shots are aimed on the board
 
 - **Fixes a reported bug (D-136).** Pressing a pocket item with more than one legal use did

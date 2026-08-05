@@ -1,0 +1,201 @@
+/* The front door. One card, one primary action, and the admin beneath it at a visibly lower weight.
+
+   The weight difference is the whole design: "continue" and "throw this run away" were the same size
+   and the same colour on the screen this replaces. */
+
+.front {
+    margin: 0 auto;
+    max-width: 760px;
+    padding: 1.5rem;
+}
+
+.front-head {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+.front-head h1 {
+    margin: 0;
+}
+
+.front-tools {
+    display: flex;
+    gap: .5rem;
+}
+
+a.action {
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* ---- The run card --------------------------------------------------------------------------- */
+
+.run-card {
+    margin-bottom: 1.5rem;
+}
+
+.run-card h2 {
+    margin: 0 0 .5rem;
+}
+
+.run-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin: 0 0 .8rem;
+}
+
+.chip.status-playing { border-color: var(--accent); color: var(--accent); }
+.chip.status-won     { border-color: var(--good); color: var(--good); }
+.chip.status-lost    { border-color: var(--enemy); color: var(--enemy); }
+
+.squad {
+    font-size: .82rem;
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+}
+
+.squad li {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    padding: .18rem 0;
+}
+
+.squad li.lost {
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+.squad li.lost .tag {
+    color: var(--enemy);
+    text-decoration: none;
+}
+
+.squad-name {
+    min-width: 7.5rem;
+}
+
+.squad-hp {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.squad li.hurt .squad-hp {
+    color: #d9b45f;
+}
+
+.squad li.lost .squad-hp {
+    color: var(--muted);
+}
+
+.tag.downed { color: #d9b45f; border-color: #d9b45f; }
+.tag.voided { color: var(--enemy); border-color: var(--enemy); }
+
+/* ---- Weight ---------------------------------------------------------------------------------- */
+
+.action.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0d1420;
+    font-weight: 600;
+}
+
+.continue {
+    font-size: 1.05rem;
+    letter-spacing: .04em;
+    padding: .6rem 1.6rem;
+}
+
+.outcome {
+    font-size: .95rem;
+    margin: 0;
+}
+
+.outcome.won  { color: var(--good); }
+.outcome.lost { color: var(--enemy); }
+
+/* Secondary by construction: dimmer border, smaller type, and it sits below the decision. */
+.run-admin {
+    font-size: .88rem;
+    opacity: .88;
+}
+
+.run-admin h2 {
+    color: var(--muted);
+    font-size: .78rem;
+    letter-spacing: .08em;
+    margin: 0 0 .7rem;
+    text-transform: uppercase;
+}
+
+.seed {
+    color: var(--muted);
+    display: block;
+    font-size: .78rem;
+    margin-bottom: .7rem;
+}
+
+.seed input,
+.seed select {
+    background: #262a33;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--text);
+    font: inherit;
+    margin-left: .35rem;
+    padding: .3rem .45rem;
+}
+
+.seed input {
+    width: 6rem;
+}
+
+.warn {
+    border-left: 2px solid #d9b45f;
+    color: #d9b45f;
+    font-size: .8rem;
+    line-height: 1.5;
+    padding-left: .6rem;
+}
+
+.action.danger {
+    background: #a83b3b;
+}
+
+/* ---- The storage line ------------------------------------------------------------------------ */
+
+/* One muted line; the paragraph it replaced is the hover. */
+.storage {
+    align-items: baseline;
+    color: var(--muted);
+    display: flex;
+    font-size: .72rem;
+    gap: .35rem;
+    margin: .9rem 0 0;
+}
+
+.storage-line {
+    border-bottom: 1px dotted var(--line);
+    cursor: help;
+}
+
+.journal {
+    color: var(--muted);
+    font-size: .74rem;
+    margin-top: .6rem;
+}
+
+.journal ol {
+    line-height: 1.6;
+    margin: .5rem 0 0;
+    max-height: 16rem;
+    overflow-y: auto;
+    padding-left: 1.4rem;
+}

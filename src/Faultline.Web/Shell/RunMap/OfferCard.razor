@@ -1,0 +1,91 @@
+@* ONE offer-card surface, and there is only ever one.
+
+   Camps deal it (MASTER_DESIGN §8.5), events deal it, and Strait bargains will deal it. The card was
+   styled as a card rather than as "the camp thing" from the day it shipped, precisely so the second
+   caller would be a `<OfferCard>` and not a copy — a second card surface is a second place for the
+   same rule text to be laid out differently, and the first tuning pass is when they start to
+   disagree.
+
+   The card carries no opinion about what it is offering. Every string on it is handed in: the name,
+   the rule text, the pool it came from and the duck it is bound to. Nothing here reads Core. *@
+
+<button type="button"
+        class="offer @Tone @(Picked ? "picked" : string.Empty)"
+        data-offer="@Index"
+        disabled="@Disabled"
+        title="@Title"
+        @onclick="Chosen">
+    <span class="offer-head">
+        <span class="icon @Tone" aria-hidden="true">@Glyph</span>
+        <span class="offer-name">@Name</span>
+        <span class="category">@Category</span>
+    </span>
+
+    @* Who the offer is bound to, on the card. A camp mod names the spender it bolts onto; an event
+       payment names the duck whose body pays for it. Either way it is on the card and cannot be
+       moved from here (D-132). *@
+    @if (Bound.Length > 0)
+    {
+        <span class="bound">
+            @if (Kind is { } kind)
+            {
+                <span class="art">
+                    <UnitArt Kind="kind" Label="@Naming.Of(kind)" />
+                </span>
+            }
+            <span class="bound-text">@Bound</span>
+        </span>
+    }
+
+    <span class="offer-rule">@Rule</span>
+</button>
+
+@code {
+    /// <summary>Index into the surface's own list — what a pick sends, and what a test looks for.</summary>
+    [Parameter]
+    public int Index { get; set; }
+
+    /// <summary>The card's display name.</summary>
+    [Parameter]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Its one-line rule text, verbatim from whoever wrote it. Never a paraphrase (D-112).</summary>
+    [Parameter]
+    public string Rule { get; set; } = string.Empty;
+
+    /// <summary>The pool it came out of, in words.</summary>
+    [Parameter]
+    public string Category { get; set; } = string.Empty;
+
+    /// <summary>The class fragment the pool reaches the stylesheet under.</summary>
+    [Parameter]
+    public string Tone { get; set; } = string.Empty;
+
+    /// <summary>One glyph for the pool. Presentation only.</summary>
+    [Parameter]
+    public string Glyph { get; set; } = string.Empty;
+
+    /// <summary>What binds it, in one phrase. Empty draws no bound line at all.</summary>
+    [Parameter]
+    public string Bound { get; set; } = string.Empty;
+
+    /// <summary>The duck it is bound to, when it has one, for the portrait.</summary>
+    [Parameter]
+    public UnitKind? Kind { get; set; }
+
+    /// <summary>Whether this is the card currently selected on its surface.</summary>
+    [Parameter]
+    public bool Picked { get; set; }
+
+    /// <summary>Whether the surface has stopped taking picks.</summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>Taking this card.</summary>
+    [Parameter]
+    public EventCallback OnPick { get; set; }
+
+    private string Title => Rule.Length > 0 ? Name + " — " + Rule : Name;
+
+    private Task Chosen() => OnPick.InvokeAsync();
+}

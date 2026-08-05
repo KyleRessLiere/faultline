@@ -1,0 +1,244 @@
+@page "/event"
+@layout MainLayout
+@implements IDisposable
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* EVENT — the `?`, on its own screen, drawn on the camp's card surface.
+
+   The offer card was built once so the second caller would be a `<OfferCard>` rather than a second
+   card. Every face of the event is one: each duck that may pay is a card naming its own body and its
+   own arithmetic, and walking away is the card next to them. Nothing about the layout says which one
+   is the right one, because §8.5 says you are never owed a good option.
+
+   KNOWN STAKES. Every number printed here is off EventDefinition and every card on the table is off
+   Campaign.LegalRunCommands. The lethal block is a rule, so a duck that cannot pay and live is not a
+   card that is greyed out — it is not a card. And bodily consent is why a pick is confirmed rather
+   than fired on the first click: the duck whose HP it is gets a yes, not a misclick. *@
+
+<PageTitle>PLUCK — @(Offer?.Name ?? "an event")</PageTitle>
+
+<div class="event-screen">
+    @if (!Runs.Loaded)
+    {
+        <p class="note">Reading browser storage…</p>
+    }
+    else if (Offer is { } offer)
+    {
+        <header class="event-head">
+            <h1>@offer.Name</h1>
+            <p class="shape">@(offer.Shape == EventShape.Offer ? "An offer — you may walk away" : "A strait — every exit is priced")</p>
+            <p class="prompt">@offer.Prompt</p>
+        </header>
+
+        @if (Runs.Problem is not null)
+        {
+            <p class="warn">@Runs.Problem</p>
+        }
+
+        <section class="panel event">
+            <ol class="offers">
+                @foreach (var face in Faces)
+                {
+                    var card = face;
+                    <li>
+                        <OfferCard Index="card.Index"
+                                   Name="@card.Name"
+                                   Rule="@card.Rule"
+                                   Category="@card.Category"
+                                   Tone="@card.Tone"
+                                   Glyph="@card.Glyph"
+                                   Bound="@card.Bound"
+                                   Kind="card.Kind"
+                                   Picked="_selected == card.Index"
+                                   OnPick="() => Select(card.Index)" />
+                    </li>
+                }
+            </ol>
+
+            @* One confirm, naming what it is about to do. A body's cost is not paid by a first click. *@
+            <button type="button"
+                    class="action confirm"
+                    disabled="@(Chosen is null)"
+                    @onclick="Take">
+                @(Chosen is { } taking ? taking.Confirm : "Choose a face")
+            </button>
+        </section>
+    }
+    else
+    {
+        <div class="no-event">
+            <h1>Nothing is asking</h1>
+            <p class="note">The run is not standing in an event.</p>
+            <a class="action" href="@RunScreens.Map">Back to the map</a>
+        </div>
+    }
+</div>
+
+@code {
+    private int? _selected;
+
+    /// <summary>One face of the event, ready for the shared card surface.</summary>
+    /// <param name="Index">Its place on the table.</param>
+    /// <param name="Command">What taking it sends.</param>
+    /// <param name="Name">The card's title.</param>
+    /// <param name="Rule">Its terms, in full, printed before choosing.</param>
+    /// <param name="Category">Which kind of face it is.</param>
+    /// <param name="Tone">The class the kind reaches the stylesheet under.</param>
+    /// <param name="Glyph">One character for it.</param>
+    /// <param name="Bound">Whose body it is, or that it is nobody's.</param>
+    /// <param name="Kind">The duck's archetype, for the portrait.</param>
+    /// <param name="Confirm">What the confirm button says once it is selected.</param>
+    private sealed record Face(
+        int Index,
+        RunCommand Command,
+        string Name,
+        string Rule,
+        string Category,
+        string Tone,
+        string Glyph,
+        string Bound,
+        UnitKind? Kind,
+        string Confirm);
+
+    private RunState? Run => Runs.State;
+
+    /// <summary>The event on the table, when the run is standing in one.</summary>
+    private EventDefinition? Offer =>
+        RunScreens.AtAnEvent(Runs)
+        && Run?.CurrentMapNode is { } node
+        && node.EventId.Length > 0
+            ? EventLibrary.ById(node.EventId)
+            : null;
+
+    /// <summary>
+    /// Every face of the event, built straight off Core's legal list.
+    /// </summary>
+    /// <remarks>
+    /// Not off the squad and a health check made here: who may pay is
+    /// <see cref="Campaign.LegalRunCommands"/>'s answer, and the lethal block is
+    /// <see cref="EventDefinition.CanPay"/>'s. A duck that cannot pay and live has no card, because
+    /// it has no command.
+    /// </remarks>
+    private IReadOnlyList<Face> Faces
+    {
+        get
+        {
+            var faces = new List<Face>();
+
+            if (Offer is not { } offer || Run is null)
+            {
+                return faces;
+            }
+
+            foreach (var command in Runs.Legal)
+            {
+                if (command is EventPayCommand pay && Run.FindUnit(pay.Payer) is { } duck)
+                {
+                    string name = Naming.Of(duck.Kind);
+                    faces.Add(new Face(
+                        faces.Count,
+                        command,
+                        name + " pays",
+                        offer.HpCost + " HP now, " + offer.MaxHpGain + " more maximum for the rest of "
+                            + "the run — " + duck.Hp + "/" + duck.MaxHp + " → "
+                            + (duck.Hp - offer.HpCost) + "/" + (duck.MaxHp + offer.MaxHpGain) + ".",
+                        "Pay",
+                        "pay",
+                        "✚",
+                        name + "'s own body",
+                        duck.Kind,
+                        "Let " + name + " pay"));
+                }
+                else if (command is EventWalkAwayCommand)
+                {
+                    faces.Add(new Face(
+                        faces.Count,
+                        command,
+                        "Walk away",
+                        offer.WalkAwayLine.Length > 0
+                            ? offer.WalkAwayLine
+                            : "Nobody pays, and nothing is gained.",
+                        "Leave",
+                        "leave",
+                        "↩",
+                        string.Empty,
+                        null,
+                        "Walk away"));
+                }
+            }
+
+            return faces;
+        }
+    }
+
+    private Face? Chosen
+    {
+        get
+        {
+            foreach (var face in Faces)
+            {
+                if (face.Index == _selected)
+                {
+                    return face;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Runs.Changed += OnChanged;
+
+        if (!Runs.Loaded)
+        {
+            await Runs.LoadAsync();
+        }
+
+        Hand();
+    }
+
+    public void Dispose() => Runs.Changed -= OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(() =>
+    {
+        _selected = null;
+        StateHasChanged();
+        Hand();
+    });
+
+    /// <summary>Leaves the moment Core says the question is answered.</summary>
+    private void Hand()
+    {
+        if (RunScreens.RedirectFrom(RunScreen.Event, Runs) is { } route)
+        {
+            Nav.NavigateTo(route);
+        }
+    }
+
+    private void Select(int index)
+    {
+        _selected = index;
+        StateHasChanged();
+    }
+
+    private void Take()
+    {
+        if (Chosen is not { } face)
+        {
+            return;
+        }
+
+        switch (face.Command)
+        {
+            case EventPayCommand pay:
+                Runs.PayEvent(pay.Payer);
+                break;
+            case EventWalkAwayCommand:
+                Runs.WalkAwayFromEvent();
+                break;
+        }
+    }
+}

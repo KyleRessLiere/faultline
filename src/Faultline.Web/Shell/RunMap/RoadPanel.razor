@@ -1,0 +1,167 @@
+@implements IDisposable
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* The linear ten's road — the other shape a run can walk, and the map screen's other half.
+
+   It is here rather than on a page because the map screen has one job and two shapes: a lane graph
+   (ActMapPanel) or a list. Which one is drawn is the campaign's business, not the page's, and both
+   answer the same question — where am I, and what is next. *@
+
+<section class="panel road">
+    <header class="road-head">
+        <h2>@Runs.Definition.Name</h2>
+        <p class="note">
+            @Nodes.Count nodes in a fixed order — @FightCount fights and the rests between them. There
+            is no healing between fights: a duck that finishes on 3 of 14 starts the next one on 3
+            of 14.
+        </p>
+    </header>
+
+    @if (Run is { Outcome: RunOutcome.InProgress } && CurrentNode is not null)
+    {
+        <div class="here">
+            @if (CurrentNode is FightNode fight)
+            {
+                var definition = Fight(fight.FightId);
+                <h3>You are here — @(definition?.Name ?? fight.FightId)</h3>
+                <p class="here-type">Fight @(FightSlot(fight.FightId) + 1)</p>
+                @if (definition is not null)
+                {
+                    <p class="note">@definition.Description</p>
+                }
+                <button class="action primary" @onclick="Enter">
+                    @(Runs.InFight ? "Back to the fight" : "Begin the fight")
+                </button>
+            }
+            else
+            {
+                <h3>You are here — a checkpoint</h3>
+                <p class="here-type">Rest</p>
+                <p class="note">
+                    Restores every duck that can still be fielded to full and clears the bedraggled
+                    mark. It does not bring back anything voided.
+                </p>
+                <button class="action primary" @onclick="Enter">Take the rest</button>
+            }
+        </div>
+    }
+    else if (Run is { Outcome: RunOutcome.Won })
+    {
+        <p class="outcome won">Run complete — every node cleared.</p>
+    }
+    else if (Run is { Outcome: RunOutcome.Lost })
+    {
+        <p class="outcome lost">Run over.</p>
+    }
+
+    <ol class="spine">
+        @for (int i = 0; i < Nodes.Count; i++)
+        {
+            var index = i;
+            var node = Nodes[index];
+            var view = SlotState(index);
+
+            <li class="slot @view.Css @(node is RestNode ? "rest" : "fight")">
+                <span class="slot-num">@(index + 1)</span>
+
+                <span class="slot-body">
+                    @if (node is FightNode fightNode)
+                    {
+                        var definition = Fight(fightNode.FightId);
+                        <span class="slot-kind">fight</span>
+                        <span class="slot-name">@(definition?.Name ?? Title(fightNode.FightId))</span>
+                        <span class="tag">@fightNode.FightId</span>
+                        <span class="slot-mark">@view.Label</span>
+                        @if (definition is null)
+                        {
+                            <span class="slot-desc missing">
+                                No <code>@(fightNode.FightId + ".fight")</code> file is loaded, so this node
+                                cannot be played.
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="slot-kind rest-kind">rest</span>
+                        <span class="slot-name">Checkpoint</span>
+                        <span class="slot-mark">@view.Label</span>
+                    }
+                </span>
+            </li>
+        }
+    </ol>
+</section>
+
+@code {
+    private RunState? Run => Runs.State;
+
+    private IReadOnlyList<CampaignNode> Nodes => Runs.Definition.Nodes;
+
+    private CampaignNode? CurrentNode => Runs.CurrentNode;
+
+    private int FightCount => Runs.Definition.FightIds().Count;
+
+    protected override void OnInitialized() => Runs.Changed += Redraw;
+
+    public void Dispose() => Runs.Changed -= Redraw;
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+    private static FightDefinition? Fight(string id) =>
+        CuratedSet.Active().TryGetValue(id, out var fight) ? fight : null;
+
+    private static int FightSlot(string id) => CuratedSet.SlotOf(id);
+
+    /// <summary>A readable name for a fight with no loaded file to read one from.</summary>
+    private static string Title(string id) => id.Replace('-', ' ');
+
+    private sealed record SlotView(string Css, string Label);
+
+    private SlotView SlotState(int index)
+    {
+        if (Run is null)
+        {
+            return new SlotView("idle", "not started");
+        }
+
+        if (index < Run.NodeIndex)
+        {
+            return new SlotView("cleared", "cleared");
+        }
+
+        if (index > Run.NodeIndex)
+        {
+            return new SlotView("idle", "ahead");
+        }
+
+        return Run.Outcome switch
+        {
+            RunOutcome.Lost => new SlotView("failed", "run ended here"),
+            RunOutcome.Won => new SlotView("cleared", "cleared"),
+            _ => new SlotView("current", Runs.InFight ? "fighting now" : "you are here"),
+        };
+    }
+
+    /// <summary>
+    /// Enters the node the run is standing on. A rest resolves on the spot and the events say what
+    /// it restored; a fight goes to the board.
+    /// </summary>
+    private void Enter()
+    {
+        if (Runs.InFight)
+        {
+            // The board may have been taken by a one-off battle since; put the run's fight back.
+            Runs.ResumeBoard();
+            Nav.NavigateTo(RunScreens.Board);
+            return;
+        }
+
+        Runs.Enter();
+
+        if (Runs.InFight)
+        {
+            Nav.NavigateTo(RunScreens.Board);
+        }
+    }
+}

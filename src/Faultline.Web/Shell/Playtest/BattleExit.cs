@@ -1,3 +1,5 @@
+using Faultline.Web.Shell.RunMap;
+
 namespace Faultline.Web.Shell.Playtest;
 
 /// <summary>
@@ -25,19 +27,21 @@ namespace Faultline.Web.Shell.Playtest;
 /// </remarks>
 public static class BattleExit
 {
-    /// <summary>The picker, which is home when no run is being played.</summary>
-    public const string Picker = "";
+    /// <summary>The front door, which is where a player with no run belongs.</summary>
+    public const string Picker = RunScreens.Home;
 
-    /// <summary>The campaign screen — which draws the act map when the run walks one.</summary>
-    public const string RunHome = "campaign";
+    /// <summary>The map screen — the mid-run hub, whichever shape the run walks.</summary>
+    public const string RunHome = RunScreens.Map;
 
     /// <summary>
     /// Where the wordmark goes.
     /// </summary>
     /// <remarks>
-    /// Mid-run, the map IS home: a run in progress belongs to its campaign screen, which draws the
-    /// act map when the run walks a lane graph and the road when it walks the linear ten. With no
-    /// run in progress there is nothing to go back to but the battle picker.
+    /// Mid-run, the map IS home: a run in progress belongs to the screen that says where it is and
+    /// where it may go, and that is <c>/map</c> — the act graph for a mapped run, the road for the
+    /// linear ten. With no run in progress there is nothing mid-run to go back to, so the wordmark
+    /// goes to the front door, which is the screen that starts one; it used to go to the battle
+    /// picker, which is a browsing surface rather than a way back into the game.
     /// </remarks>
     /// <param name="runs">The run session.</param>
     /// <returns>A route, relative to the base href.</returns>
@@ -58,8 +62,8 @@ public static class BattleExit
     public static string HomeTitle(GameSession session, RunSession runs)
     {
         string where = !runs.InProgress
-            ? "the battle picker"
-            : runs.Map is not null ? "the act map" : "the campaign screen";
+            ? "the front door"
+            : runs.Map is not null ? "the act map" : "the run's road";
 
         return NeedsConfirm(session, runs)
             ? "Leave this battle and go back to " + where + ". It asks first."

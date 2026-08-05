@@ -1,0 +1,35 @@
+@inject RunSession Runs
+
+@* The squad, at a glance, along one edge of the map. Portraits, health, badges — and deliberately
+   NOT a table: the map screen's job is where you are and where you may go, and a five-column grid of
+   statistics beside it would be a second screen sharing the first one's viewport.
+
+   Whatever needs the full story has a home already: the inspector on the board, and the one-liners
+   on the front door. *@
+
+@if (Run is not null)
+{
+    <ul class="squad-strip" aria-label="Squad">
+        @foreach (var unit in Run.Squad)
+        {
+            <li class="duck @SquadView.CssClass(unit)" data-duck="@unit.Kind">
+                <span class="art">
+                    <UnitArt Kind="unit.Kind" Label="@SquadView.NameOf(unit)" />
+                </span>
+                <span class="who">
+                    <span class="duck-name">@SquadView.NameOf(unit)</span>
+                    <span class="duck-hp">@SquadView.HpText(unit)</span>
+                </span>
+                @if (SquadView.Badge(unit) is { Length: > 0 } badge)
+                {
+                    <span class="badge @unit.Status.ToString().ToLowerInvariant()"
+                          title="@SquadView.BadgeTitle(unit)">@badge</span>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private RunState? Run => Runs.State;
+}

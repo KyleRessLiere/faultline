@@ -64,29 +64,20 @@
                         {
                             var offer = card;
                             <li>
-                                <button type="button"
-                                        class="offer @CampCards.Class(offer.Category) @(Flow.Selected(side) == offer.Index ? "picked" : string.Empty)"
-                                        data-offer="@offer.Index"
-                                        disabled="@Flow.Confirmed(side)"
-                                        title="@offer.Name — @offer.Summary"
-                                        @onclick="() => Select(side, offer.Index)">
-                                    <span class="offer-head">
-                                        <span class="icon @CampCards.Class(offer.Category)" aria-hidden="true">@offer.Glyph</span>
-                                        <span class="offer-name">@offer.Name</span>
-                                        <span class="category">@offer.CategoryName</span>
-                                    </span>
-
-                                    @* The duck the card is bound to, on the card. A mod names the
-                                       spender it bolts onto; an unlock names the duck it changes. *@
-                                    <span class="bound">
-                                        <span class="art">
-                                            <UnitArt Kind="offer.Kind" Label="@offer.DuckName" />
-                                        </span>
-                                        <span class="bound-text">@offer.Bound</span>
-                                    </span>
-
-                                    <span class="offer-rule">@offer.Summary</span>
-                                </button>
+                                @* The shared surface. A mod names the spender it bolts onto; an
+                                   unlock names the duck it changes — and the event screen draws the
+                                   same card for the body that pays. *@
+                                <OfferCard Index="offer.Index"
+                                           Name="@offer.Name"
+                                           Rule="@offer.Summary"
+                                           Category="@offer.CategoryName"
+                                           Tone="@CampCards.Class(offer.Category)"
+                                           Glyph="@offer.Glyph"
+                                           Bound="@offer.Bound"
+                                           Kind="offer.Kind"
+                                           Picked="Flow.Selected(side) == offer.Index"
+                                           Disabled="Flow.Confirmed(side)"
+                                           OnPick="() => Select(side, offer.Index)" />
                             </li>
                         }
                     </ol>

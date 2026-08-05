@@ -1,0 +1,332 @@
+@page "/"
+@page "/home"
+@page "/campaign"
+@layout MainLayout
+@implements IDisposable
+@inject RunSession Runs
+
+@* HOME — the front door, and nothing else.
+
+   One run card, one primary action, and the run admin at secondary weight beneath it. What this
+   screen deliberately does NOT have is the act graph: run admin and the map on one page is how the
+   old campaign screen ended up being four screens wearing one hat, and a player deciding where to
+   walk had "start a new run, discarding this one" in the same field of view. The graph lives at
+   /map and this page links to it. *@
+
+<PageTitle>PLUCK</PageTitle>
+
+<div class="front">
+    <header class="front-head">
+        <h1>PLUCK <span class="sub">a duck rebellion</span></h1>
+
+        <nav class="front-tools">
+            <a class="action secondary" href="battles">All battles</a>
+            <a class="action secondary" href="bestiary">Bestiary</a>
+        </nav>
+    </header>
+
+    @if (!Runs.Loaded)
+    {
+        <p class="note">Reading browser storage…</p>
+    }
+    else
+    {
+        <section class="panel run-card @StatusClass">
+            @if (Runs.Problem is not null)
+            {
+                <p class="warn">@Runs.Problem</p>
+            }
+
+            @if (Run is null)
+            {
+                <h2>No run yet</h2>
+                <p class="note">Pick a shape and a seed below, and start one.</p>
+            }
+            else
+            {
+                <h2>@Run.Campaign.Name</h2>
+
+                <p class="run-line">
+                    <span class="chip">Seed @Run.Seed</span>
+                    <span class="chip">@ProgressText</span>
+                    <span class="chip status-@StatusClass">@StatusLabel</span>
+                </p>
+
+                @if (Runs.RestartedByReload)
+                {
+                    <p class="warn">
+                        The reload found this run inside a fight. The run came back — seed, node and
+                        everything the squad is carrying — but the half-played board did not, so the
+                        fight starts again from deployment.
+                    </p>
+                }
+
+                <ul class="squad">
+                    @foreach (var unit in Run.Squad)
+                    {
+                        <li class="@SquadView.CssClass(unit)">
+                            <span class="art inline">
+                                <UnitArt Kind="unit.Kind" Label="@SquadView.NameOf(unit)" />
+                            </span>
+                            <span class="squad-name">@SquadView.NameOf(unit)</span>
+                            <span class="squad-hp">@SquadView.HpText(unit)</span>
+                            @if (SquadView.Badge(unit) is { Length: > 0 } badge)
+                            {
+                                <span class="tag @unit.Status.ToString().ToLowerInvariant()"
+                                      title="@SquadView.BadgeTitle(unit)">@badge</span>
+                            }
+                        </li>
+                    }
+                </ul>
+
+                @if (Run.Outcome == RunOutcome.InProgress)
+                {
+                    @* THE one primary action on this screen. Everything else here is secondary, and
+                       there is no second way onward for it to disagree with. *@
+                    <a class="action primary continue" href="@RunScreens.Map">Continue</a>
+                }
+                else
+                {
+                    <p class="outcome @StatusClass">@Tally</p>
+                }
+            }
+        </section>
+
+        @* Run admin, at secondary weight and deliberately below the fold of the decision above it.
+           This block and the graph never share a screen. *@
+        <section class="panel run-admin">
+            <h2>@(Run is { Outcome: RunOutcome.InProgress } ? "New run" : "Start a run")</h2>
+
+            <label class="seed">
+                Shape
+                <select class="campaign-pick" value="@_campaignId" @onchange="OnCampaignChanged">
+                    @foreach (var campaign in CampaignLibrary.All())
+                    {
+                        <option value="@campaign.Id">@campaign.Name</option>
+                    }
+                </select>
+            </label>
+
+            <label class="seed">
+                Seed
+                <input type="number" value="@_seed" @onchange="OnSeedChanged" />
+            </label>
+
+            @if (_confirming)
+            {
+                <p class="warn">
+                    A run is in progress — @ProgressText on seed @Run!.Seed.
+                    Starting a new one throws it away, damage, dead and all.
+                </p>
+                <button class="action danger" @onclick="StartConfirmed">Discard it and start over</button>
+                <button class="action secondary" @onclick="() => _confirming = false">Keep playing</button>
+            }
+            else
+            {
+                @* Over a finished run the new one IS the decision, so it is the primary control. *@
+                <button class="action @(NewRunIsPrimary ? "primary" : "secondary")" @onclick="StartRequested">
+                    @(Runs.InProgress ? "Start a new run…" : "Start a run")
+                </button>
+            }
+
+            @if (Run is not null)
+            {
+                @if (_abandoning)
+                {
+                    <p class="warn">
+                        Abandoning throws this run away — the seed, the route it has walked and every
+                        wound and card the squad is carrying. Nothing brings it back.
+                    </p>
+                    <button class="action danger" @onclick="AbandonConfirmed">Throw the run away</button>
+                    <button class="action secondary" @onclick="() => _abandoning = false">Keep it</button>
+                }
+                else
+                {
+                    <button class="action secondary" @onclick="() => _abandoning = true">Abandon this run</button>
+                }
+            }
+
+            @* One muted line, with the whole explanation behind the hover. It used to be a paragraph
+               competing with the run for the eye. *@
+            <p class="storage">
+                <span class="info" aria-hidden="true">ⓘ</span>
+                <span class="storage-line" title="@StorageExplainer">Saved in this browser.</span>
+            </p>
+
+            @* The whole session's log, folded away. The last step's events are the map's — this is
+               the history, which is admin. *@
+            @if (Runs.Journal.Count > 0)
+            {
+                <details class="journal">
+                    <summary>Run log — @Runs.Journal.Count events this session</summary>
+                    <ol>
+                        @foreach (var line in Runs.Journal)
+                        {
+                            <li>@line</li>
+                        }
+                    </ol>
+                </details>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private int _seed = GameSession.DefaultSeed;
+    private bool _confirming;
+    private bool _abandoning;
+    private string _campaignId = CampaignLibrary.FaultlineId;
+
+    private const string StorageExplainer =
+        "The run lives in this browser's localStorage — the seed, which node you are on and what "
+        + "every squad member is carrying. A reload keeps all three and restarts the current fight "
+        + "from deployment; it does not restore a half-played board.";
+
+    private RunState? Run => Runs.State;
+
+    private IReadOnlyList<CampaignNode> Nodes => Runs.Definition.Nodes;
+
+    private int FightCount => Runs.Definition.FightIds().Count;
+
+    private int NodeNumber => Run is null ? 0 : (Run.NodeIndex < Nodes.Count ? Run.NodeIndex + 1 : Nodes.Count);
+
+    /// <summary>A finished run makes starting the next one the decision on this screen.</summary>
+    private bool NewRunIsPrimary => Run is null || Run.Outcome != RunOutcome.InProgress;
+
+    /// <summary>
+    /// How far in, said the way the campaign's own shape says it, and what it has won either way: a
+    /// list counts nodes off a total, a graph counts columns, because a graph has no total to be a
+    /// fraction of.
+    /// </summary>
+    private string ProgressText
+    {
+        get
+        {
+            if (Run is null)
+            {
+                return "not started";
+            }
+
+            string won = Run.FightsWon + "/" + FightCount + " fights won";
+
+            if (Run.Map is { } map)
+            {
+                int column = Run.CurrentMapNode?.Column ?? 0;
+                return "Column " + (column + 1) + "/" + map.ColumnCount + " · " + won;
+            }
+
+            return "Node " + NodeNumber + "/" + Nodes.Count + " · " + won;
+        }
+    }
+
+    /// <summary>What a finished run comes to, in one line.</summary>
+    private string Tally
+    {
+        get
+        {
+            if (Run is null)
+            {
+                return string.Empty;
+            }
+
+            return Run.Outcome == RunOutcome.Won
+                ? "Run complete — " + Run.FightsWon + " of " + FightCount + " fights won."
+                : LossReason + " " + Run.FightsWon + " of " + FightCount + " fights won.";
+        }
+    }
+
+    private string StatusLabel => Run?.Outcome switch
+    {
+        RunOutcome.Won => "complete",
+        RunOutcome.Lost => "run over",
+        _ => Runs.InFight ? "in a fight" : "in progress",
+    };
+
+    private string StatusClass => Run?.Outcome switch
+    {
+        RunOutcome.Won => "won",
+        RunOutcome.Lost => "lost",
+        _ => "playing",
+    };
+
+    /// <summary>Core's own one-line reason, read off the event rather than guessed at.</summary>
+    private string LossReason
+    {
+        get
+        {
+            foreach (var e in Runs.LastEvents)
+            {
+                if (e is RunLost lost)
+                {
+                    return lost.Reason;
+                }
+            }
+
+            return "A campaign ends on its first defeat.";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Runs.Changed += Redraw;
+
+        if (!Runs.Loaded)
+        {
+            await Runs.LoadAsync();
+        }
+
+        if (Run is not null)
+        {
+            _seed = Run.Seed;
+            _campaignId = Run.Campaign.Id;
+        }
+    }
+
+    public void Dispose() => Runs.Changed -= Redraw;
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+    private void OnSeedChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int seed))
+        {
+            _seed = seed;
+        }
+    }
+
+    private void OnCampaignChanged(ChangeEventArgs args)
+    {
+        var id = args.Value?.ToString();
+        if (!string.IsNullOrEmpty(id))
+        {
+            _campaignId = id!;
+        }
+    }
+
+    private async Task StartRequested()
+    {
+        if (Runs.InProgress)
+        {
+            _confirming = true;
+            return;
+        }
+
+        // Awaited rather than fired and forgotten: Blazor re-renders when the handler's task
+        // completes, and a run that appears only on the next unrelated click is a bug.
+        await StartConfirmed();
+    }
+
+    private async Task StartConfirmed()
+    {
+        _confirming = false;
+        _abandoning = false;
+        await Runs.StartAsync(_seed, _campaignId);
+    }
+
+    private async Task AbandonConfirmed()
+    {
+        _confirming = false;
+        _abandoning = false;
+        await Runs.AbandonAsync();
+    }
+}

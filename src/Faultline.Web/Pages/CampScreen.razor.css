@@ -1,0 +1,17 @@
+/* The camp's own screen. Wide enough for two tables side by side and nothing else on it. */
+
+.camp-screen {
+    margin: 0 auto;
+    max-width: 1000px;
+    padding: 1.5rem;
+}
+
+.camp-frame-head h1 {
+    margin: 0 0 .25rem;
+}
+
+.camp-frame-head .note {
+    color: var(--muted);
+    font-size: .82rem;
+    margin: 0 0 1.25rem;
+}

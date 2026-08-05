@@ -1,0 +1,85 @@
+/* The map screen is a viewport, not a page. Full height, no scroll, and the graph takes everything
+   the header and the squad strip do not — the same discipline the board screen has. */
+
+.map-screen {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    height: 100vh;
+    overflow: hidden;
+    padding: 1rem 1.25rem;
+}
+
+/* The graph's share: everything left over. min-height:0 so the flex child may actually shrink,
+   which is what lets the container query inside it report the region rather than the content. */
+.map-region {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.map-region ::deep .act-map,
+.map-region ::deep .road {
+    flex: 1 1 0;
+    margin-bottom: 0;
+    min-height: 0;
+}
+
+.map-foot {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.foot-row {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+/* Capped on purpose: this is a ticker, and a ticker that grows takes the graph's height. */
+.run-events {
+    color: var(--muted);
+    font-size: .76rem;
+    line-height: 1.5;
+    list-style: none;
+    margin: 0;
+    max-height: 4.6rem;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.run-events li {
+    border-left: 2px solid var(--line);
+    padding-left: .6rem;
+}
+
+.run-events li.good { border-left-color: var(--good); }
+.run-events li.bad  { border-left-color: var(--enemy); }
+
+/* Small, in the corner. Leaving the map is not a decision the screen should be selling. */
+.leave {
+    color: var(--muted);
+    font-size: .74rem;
+    letter-spacing: .04em;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.leave:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+.no-run {
+    margin: auto;
+    text-align: center;
+}
+
+.no-run .action {
+    display: inline-block;
+    text-decoration: none;
+}

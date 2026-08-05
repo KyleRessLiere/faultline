@@ -82,6 +82,9 @@ const startRun = async seed => {
   const discard = page.getByRole('button', { name: /Discard it and start over/ });
   if (await discard.count()) await discard.click();
 
+  // The front door starts the run; the map is where it is walked.
+  await page.locator('a.action.primary.continue').first().click();
+
   await page.waitForSelector('.act-map', { timeout: 30000 });
 };
 

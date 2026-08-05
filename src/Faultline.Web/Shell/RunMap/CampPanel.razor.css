@@ -2,8 +2,8 @@
    simultaneous and independent (MASTER_DESIGN §8.5) — laying them out as a sequence would be a
    picture of a rule the game does not have.
 
-   Built once and reused: this is the card surface camps, event offers and Strait bargains all
-   want, so the card is styled as a card rather than as "the camp thing". */
+   Built once and reused: the card itself is OfferCard, which the event screen draws too and which
+   Strait bargains will draw — the card is styled as a card rather than as "the camp thing". */
 
 .camp {
     margin-bottom: 1.25rem;
@@ -85,7 +85,10 @@
     margin: 0;
 }
 
-/* ---- One card ------------------------------------------------------------------------------- */
+/* ---- The cards ------------------------------------------------------------------------------ */
+
+/* The card itself is OfferCard's, styles and all — see OfferCard.razor.css. What is left here is
+   the list it sits in. */
 
 .offers {
     display: flex;
@@ -94,99 +97,6 @@
     list-style: none;
     margin: 0;
     padding: 0;
-}
-
-.offer {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    color: var(--text);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: .45rem;
-    padding: .7rem .8rem;
-    text-align: left;
-    width: 100%;
-}
-
-.offer:hover:not(:disabled) {
-    border-color: var(--muted);
-}
-
-.offer.picked {
-    border-color: var(--accent);
-    box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.offer:disabled {
-    cursor: default;
-    opacity: .72;
-}
-
-.offer-head {
-    align-items: center;
-    display: flex;
-    gap: .5rem;
-}
-
-.icon {
-    align-items: center;
-    background: rgba(255, 255, 255, .05);
-    border-radius: 5px;
-    display: inline-flex;
-    height: 1.7rem;
-    justify-content: center;
-    width: 1.7rem;
-}
-
-.icon.mod {
-    color: var(--pt-cyan);
-}
-
-.icon.wind {
-    color: var(--pt-yellow);
-}
-
-.icon.unlock {
-    color: var(--player-a);
-}
-
-.icon.pocket {
-    color: var(--pt-amber);
-}
-
-.offer-name {
-    flex: 1;
-    font-weight: 600;
-}
-
-.category {
-    color: var(--muted);
-    font-size: .64rem;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.bound {
-    align-items: center;
-    color: var(--muted);
-    display: flex;
-    font-size: .74rem;
-    gap: .4rem;
-}
-
-.bound .art {
-    display: inline-flex;
-    height: 1.3rem;
-    width: 1.3rem;
-}
-
-/* The rule text, verbatim from the catalogue. Given room rather than truncated: it is the card. */
-.offer-rule {
-    font-size: .84rem;
-    line-height: 1.45;
 }
 
 /* ---- Confirming --------------------------------------------------------------------------- */

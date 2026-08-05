@@ -60,6 +60,73 @@ internal static class CampPlayer
         return session.LastResolution?.Outcome ?? FightOutcome.InProgress;
     }
 
+    /// <summary>
+    /// Enters the node the run is standing on and loses its fight — by deploying and then doing
+    /// nothing.
+    /// </summary>
+    /// <remarks>
+    /// <b>Losing is a state a screen has to draw</b>, and the only honest way to reach it is to
+    /// arrive at it the way a player would. Restoring a save that says <c>lost</c> would prove the
+    /// front door can render a field, not that the game can put a run into that field. Passing every
+    /// activation is a legal way to play and the enemy does the rest.
+    /// </remarks>
+    /// <param name="session">The run.</param>
+    /// <param name="steps">Safety valve.</param>
+    /// <returns>How the fight ended.</returns>
+    /// <exception cref="InvalidOperationException">The fight never settled.</exception>
+    public static FightOutcome LoseCurrentFight(RunSession session, int steps = 4000)
+    {
+        session.Enter();
+
+        if (!session.InFight)
+        {
+            throw new InvalidOperationException(
+                "The run did not enter a fight; it is " + (session.State?.Phase.ToString() ?? "gone") + ".");
+        }
+
+        for (int i = 0; i < steps && session.InFight; i++)
+        {
+            var state = session.State?.Fight;
+            var commands = session.Legal.OfType<PlayCommand>().Select(p => p.Command).ToList();
+            if (state is null || commands.Count == 0)
+            {
+                throw new InvalidOperationException("The board offered nothing legal.");
+            }
+
+            // The enemy plays its own game. Passing on its behalf too would be a fight in which
+            // nobody ever swings, which settles nothing and is not a defeat.
+            if (state.ActiveTeam == Team.Enemy)
+            {
+                session.Play(commands[0]);
+                continue;
+            }
+
+            // Deployment still has to happen — a squad that never takes the field is not a squad
+            // that lost, it is a fight that never started. After that: walk towards them and never
+            // swing. Standing still does not lose this board — the Husks run out of reachable ducks
+            // and the fight stalls at round 284 with everyone alive, which is a stalemate rather
+            // than a defeat. Walking in is a legal way to play, and a bad one.
+            var deploy = commands.OfType<DeployCommand>().FirstOrDefault();
+            if (deploy is not null)
+            {
+                session.Play(deploy);
+                continue;
+            }
+
+            var closing = Closing(state, commands.OfType<MoveCommand>().ToList());
+            var pass = commands.OfType<EndActivationCommand>().FirstOrDefault();
+
+            session.Play(closing ?? (Command?)pass ?? commands[0]);
+        }
+
+        if (session.InFight)
+        {
+            throw new InvalidOperationException("The fight never settled.");
+        }
+
+        return session.LastResolution?.Outcome ?? FightOutcome.InProgress;
+    }
+
     /// <summary>Submits one command, chosen greedily.</summary>
     private static bool Step(RunSession session)
     {

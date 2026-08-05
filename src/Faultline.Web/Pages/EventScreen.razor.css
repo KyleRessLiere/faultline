@@ -1,0 +1,58 @@
+/* The event's own screen. Narrower than the camp because it is one table, not two. */
+
+.event-screen {
+    margin: 0 auto;
+    max-width: 680px;
+    padding: 1.5rem;
+}
+
+.event-head h1 {
+    margin: 0 0 .25rem;
+}
+
+.shape {
+    color: var(--muted);
+    font-size: .7rem;
+    letter-spacing: .09em;
+    margin: 0 0 .8rem;
+    text-transform: uppercase;
+}
+
+.prompt {
+    font-size: .92rem;
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+}
+
+.offers {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+}
+
+.confirm:disabled {
+    cursor: default;
+    opacity: .5;
+}
+
+.warn {
+    border-left: 2px solid #d9b45f;
+    color: #d9b45f;
+    font-size: .8rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    padding-left: .6rem;
+}
+
+.no-event {
+    margin: 3rem auto;
+    text-align: center;
+}
+
+.no-event .action {
+    display: inline-block;
+    text-decoration: none;
+}

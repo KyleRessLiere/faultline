@@ -155,8 +155,8 @@ for (const vp of VIEWPORTS) {
   // The case the whole pass is about: a run reloaded mid-fight, which is the state that used to
   // put a four-line notice in a band of its own directly above the board. Measured with the notice
   // actually on screen, because measuring it while it is absent proves nothing.
-  await page.goto(BASE + '/campaign', { waitUntil: 'domcontentloaded', timeout: 90000 });
-  await page.waitForSelector('.run', { timeout: 90000 });
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 90000 });
+  await page.waitForSelector('.front', { timeout: 90000 });
   await page.waitForTimeout(1200);
 
   const start = page.getByRole('button', { name: /^Start a run$|^Start a new run…$/ }).first();
@@ -168,6 +168,13 @@ for (const vp of VIEWPORTS) {
       await discard.click();
       await page.waitForTimeout(600);
     }
+  }
+
+  // The front door starts a run; the map is where its nodes are entered.
+  const onward = page.locator('a.action.primary.continue').first();
+  if (await onward.count()) {
+    await onward.click();
+    await page.waitForTimeout(1200);
   }
 
   const begin = page.getByRole('button', { name: /Begin the fight|Back to the fight|^Play$/ }).first();

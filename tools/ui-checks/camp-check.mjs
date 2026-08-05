@@ -65,6 +65,9 @@ await page.getByRole('button', { name: /Start a run|Start a new run/ }).first().
 const discard = page.getByRole('button', { name: /Discard it and start over/ });
 if (await discard.count()) await discard.click();
 
+// The front door starts the run; the map is where it is walked. One primary action gets there.
+await page.locator('a.action.primary.continue').first().click();
+
 await page.waitForSelector('.act-map', { timeout: 30000 });
 check(await visible('.node.current[data-node="c1-first-contact"]'), 'the run opens on first-contact');
 

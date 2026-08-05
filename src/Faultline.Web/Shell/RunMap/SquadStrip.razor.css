@@ -1,0 +1,70 @@
+/* A strip, not a table. It runs along one edge of the map and never takes height off the graph. */
+
+.squad-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.duck {
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    display: flex;
+    gap: .45rem;
+    padding: .3rem .55rem;
+}
+
+.duck .art {
+    display: inline-flex;
+    height: 1.5rem;
+    width: 1.5rem;
+}
+
+.who {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.duck-name {
+    font-size: .74rem;
+}
+
+.duck-hp {
+    font-size: .74rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.duck.hurt .duck-hp {
+    color: #d9b45f;
+}
+
+.duck.lost {
+    opacity: .6;
+}
+
+.duck.lost .duck-name {
+    text-decoration: line-through;
+}
+
+.duck.lost .duck-hp {
+    color: var(--muted);
+}
+
+.badge {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-size: .58rem;
+    letter-spacing: .06em;
+    padding: .05rem .3rem;
+    text-transform: uppercase;
+}
+
+.badge.downed { border-color: #d9b45f; color: #d9b45f; }
+.badge.voided { border-color: var(--enemy); color: var(--enemy); }
