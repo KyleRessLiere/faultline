@@ -1,0 +1,14 @@
+1.the stalker only see on push ahead if see no push that can hurt u it stall instead of moving play towards a oppertuinity 
+2. highlight charcer that 
+3. ui dispaly on map to show footing
+4.archer knocback direction indecator
+5.warden footing value does not decrease when  hitting it 
+6, gate is non brekable
+7. any ranged attacks should have increase damage by 1 from high ground archer get special bonus
+8. level 9 put charcert on bottem right and left
+9. remove the free action for people in pits forloclomg tjem on
+10. 11 hold the gaetway stand on marked there is no marked ground
+11. level 11 can earlier is easy and booring 
+12. husk walked through spikes, ai needs to consider dangers and avoid them unless overidded not to
+13. lobber same restriction as archer cant hit right next to it
+14. grappler needs to be movment rein in since it has large range
