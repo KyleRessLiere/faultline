@@ -54,13 +54,45 @@ public sealed class PocketUiTests
         Assert.Equal(Consumable.DriedMinnow, duck.Loadout.Pocket);
     }
 
+    /// <summary>
+    /// An empty pocket draws the SOCKET, not nothing. The pocket is what a run hands a duck through
+    /// camps and events, so an empty one on a fresh fight is the honest picture of the run so far —
+    /// and a rail that hid it would hide the thing the player is about to earn. There is still no
+    /// action row, because there is nothing to press.
+    /// </summary>
     [Fact]
-    public void AnEmptyPocket_DrawsNothingAtAll()
+    public void AnEmptyPocket_DrawsTheSocketAndNoAction()
     {
         var session = WithPocket(null, out _);
 
         Assert.Null(PocketRow(session));
-        Assert.DoesNotContain("class=\"pocket\"", Render(session));
+
+        var html = Render(session);
+        Assert.Contains("class=\"pocket\"", html);
+        Assert.Contains("Empty", VisibleText(html));
+
+        // A socket, not a button: there is nothing legal behind it, so it is not pressable at all.
+        Assert.DoesNotContain("<button", html);
+    }
+
+    /// <summary>
+    /// The slot count comes from the loadout, never from a literal in the markup. A mockup drew
+    /// three; three is art. One pocket per duck is <see cref="DuckLoadout"/>'s shape today, and the
+    /// day a second one ships in Core this surface grows it without being edited.
+    /// </summary>
+    [Fact]
+    public void ThePocketIsRenderedFromData_OneSlotPerPocketTheDuckActuallyHas()
+    {
+        var session = WithPocket(Consumable.DriedMinnow, out var duck);
+        var held = Held(session, duck.Id);
+
+        Assert.Equal(1, PocketSlots.Capacity(held));
+        Assert.Equal(PocketSlots.Capacity(held), PocketSlots.For(session, held).Count);
+
+        // And the markup draws exactly that many, not three.
+        Assert.Equal(
+            PocketSlots.Capacity(held),
+            Occurrences(Render(session), "class=\"item "));
     }
 
     /// <summary>
@@ -157,7 +189,12 @@ public sealed class PocketUiTests
         Assert.Null(after.Loadout.Pocket);
         Assert.Null(PocketRow(session));
         Assert.False(session.CanUsePocket);
-        Assert.DoesNotContain("class=\"pocket\"", Render(session));
+
+        // The socket stays; what was in it does not. Core spends the item out of the loadout, so a
+        // used pocket IS an empty one and the shell keeps no third picture of its own.
+        var html = Render(session);
+        Assert.DoesNotContain(CampCatalogue.NameOf(Consumable.DriedMinnow), VisibleText(html));
+        Assert.Contains("Empty", VisibleText(html));
     }
 
     /// <summary>
@@ -649,6 +686,7 @@ public sealed class PocketUiTests
         services.AddSingleton(new PlaytestView());
         services.AddSingleton(session);
         services.AddSingleton(new RunSession(new RunStore(files), session));
+        services.AddSingleton(new BattleSurfaces());
 
         using var provider = services.BuildServiceProvider();
         using var renderer = new HtmlRenderer(provider, NullLoggerFactory.Instance);

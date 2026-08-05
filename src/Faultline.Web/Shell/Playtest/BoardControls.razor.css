@@ -1,24 +1,32 @@
-/* One row below the board, and only one: what the tiles mean on the left, how the board is being
-   looked at on the right. Unframed, like the board above it — a box drawn around the quietest thing
-   on the screen is height taken off the loudest. */
+/* What the tiles mean, and how the board is being looked at. NOT a row: it is drawn in the board
+   region's own left margin, out of flow.
+
+   The board is square and centred, so at any desktop width this region has hundreds of pixels going
+   spare either side of it — and a row underneath was charging the position 44px of height for a
+   thing that fits in space nobody was using. A column rather than a row, because a margin is tall
+   and narrow, and the quietest thing on the screen should be reading down the edge of it. */
 
 .board-controls {
-    align-items: center;
+    bottom: 0;
     display: flex;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-    gap: 6px 14px;
-    justify-content: space-between;
-    min-height: 44px;
-    padding: 2px 2px;
+    flex-direction: column;
+    gap: 8px;
+    left: 0;
+    max-height: 100%;
+    max-width: 190px;
+    overflow-y: auto;
+    padding: 2px;
+    position: absolute;
+    scrollbar-width: thin;
+    z-index: 5;
 }
 
 .legend {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
-    flex: 0 1 auto;
-    flex-wrap: wrap;
-    gap: 2px 4px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 1px;
     list-style: none;
     margin: 0;
     min-width: 0;
@@ -100,12 +108,12 @@
 }
 
 .tools {
-    align-items: center;
+    align-items: stretch;
     display: flex;
     flex: 0 0 auto;
     flex-wrap: wrap;
-    gap: 4px;
-    justify-content: flex-end;
+    gap: 3px;
+    justify-content: flex-start;
 }
 
 .tool {

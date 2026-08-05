@@ -2,8 +2,13 @@
    inside itself instead. min-height: 0 on the grid and on flex children is what makes that work — a
    flex child defaults to min-height: auto and refuses to shrink below its content.
 
-   Desktop-first, laid out to fit 1920x1080 without scrolling. The board takes roughly two thirds of
-   the width and whatever height the strip and the controls leave it. */
+   Desktop-first, laid out to fit 1920x1080 without scrolling. The rail is a narrow FIXED column and
+   the board takes everything else: a fluid rail spends the board's width on whitespace at exactly
+   the sizes where the board wants it most.
+
+   Both columns are position: relative, and that is load-bearing rather than tidy. Every contextual
+   surface on this screen is an overlay anchored to one of them — the inspector to the stage, the
+   expanded order to the rail — which is how they cost the board nothing when they open. */
 
 .pt-app {
     background: var(--pt-bg-app);
@@ -18,55 +23,70 @@
     display: grid;
     flex: 1 1 auto;
     gap: var(--pt-gap);
-    /* The sidebar is a fixed column, not a fluid one: it holds the same panels whatever the window
-       is doing, and everything it does not take belongs to the board. A fluid sidebar spends the
-       board's width on whitespace at exactly the sizes where the board wants it most. */
-    grid-template-columns: minmax(0, 1fr) clamp(430px, 30vw, 560px);
+    grid-template-columns: clamp(270px, 16vw, 310px) minmax(0, 1fr);
     min-height: 0;
     padding: var(--pt-gap);
 }
 
-/* Board column: status band, activation strip, board, then the legend and controls the board
-   panel carries at its own foot. */
+/* The rail: the context line, the objective, the order, the pockets, and — in the bottom-left
+   corner — the paged dock and the dev strip. */
+.pt-rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-gap);
+    min-height: 0;
+    min-width: 0;
+    position: relative;
+}
+
+/* One muted row, and the only place the seed is written now that the header is gone. */
+.rail-context {
+    color: var(--pt-text-dim);
+    flex: 0 0 auto;
+    font-size: 10px;
+    line-height: 1.2;
+    margin: 0;
+    overflow: hidden;
+    padding: 0 2px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rail-foot {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Board column: the board, then the two bars. Nothing else is a row here. */
 .pt-stage {
     display: flex;
     flex-direction: column;
     gap: var(--pt-gap);
     min-height: 0;
     min-width: 0;
+    position: relative;
 }
 
-.pt-side {
-    display: flex;
-    flex-direction: column;
-    gap: var(--pt-gap);
-    min-height: 0;
-    min-width: 0;
-    overflow: hidden;
-}
-
-/* Full-board mode hides the sidebar and gives the whole window to the position. */
+/* Full-board mode hides the rail and gives the whole window to the position. */
 .pt-app.board-only .pt-main {
     grid-template-columns: minmax(0, 1fr);
 }
 
-.pt-app.board-only .pt-side {
+.pt-app.board-only .pt-rail {
     display: none;
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 1400px) {
     .pt-main {
-        grid-template-columns: minmax(0, 1fr) 430px;
+        grid-template-columns: 270px minmax(0, 1fr);
     }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
     .pt-app {
         --pt-gap: 6px;
-    }
-
-    .pt-main {
-        grid-template-columns: minmax(0, 1fr) 380px;
     }
 }
 

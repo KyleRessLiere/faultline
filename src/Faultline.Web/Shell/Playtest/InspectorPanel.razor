@@ -1,214 +1,268 @@
 @inherits PlaytestPanel
+@inject BattleSurfaces Surfaces
 @inject ActionSpotlight Spotlight
 
-@* One inspector, no tabs. Whatever the player last pointed at — their own duck, an enemy, a tile, a
-   structure — is read here, and the panel branches on Inspection.Resolve rather than on four
-   half-overlapping session fields.
+@* The contextual inspector: a compact card pinned to the TOP of the board's right edge.
 
-   With nothing pointed at, this is one line and no box. An empty framed panel with a heading on it
-   claims a fifth of the sidebar to say nothing, and a screen full of boxes waiting to be filled reads
-   as broken rather than as ready.
+   It is the SINGLE HOME for every unit's detail (design session 2026-08-04) — the duck you are
+   commanding included. There is no always-on display for the active unit and no second copy of its
+   numbers anywhere: click a duck, an enemy, a tile or a structure, and its card opens here. HP, AP,
+   Pluck and Footing are read here and nowhere else, which is why the AP pips live in this stat row
+   and why the row carries the hover preview the command bar writes.
 
-   The meter and the action list render *inside* it, for a duck the player is commanding — there is
-   no separate actions region. What a duck can do is part of reading that duck, and a permanent
-   ACTIONS panel spent the same height on "select one of your units" that the inspector was already
-   spending on "click any unit". *@
+   NOT a permanent panel, and NOT a full-height column: it opens on a selection, sizes itself to what
+   it has to say, and is gone when nothing is selected. A framed box standing open to say "click
+   something" claims a strip of screen forever to answer a question nobody asked.
 
-@if (Subject.Kind == InspectKind.None)
+   It overlays; it does not resize the board. A panel that pushed the grid narrower every time
+   somebody clicked an enemy would make reading an enemy cost tiles.
+
+   The panel branches on BattleSurfaces.InspectorContent, which is one value, rather than on four
+   half-overlapping session fields. *@
+
+@if (Subject.Kind != InspectKind.None)
 {
-    <p class="empty-hint">Click any unit, tile or structure to read it.</p>
-}
-else
-{
-<div class="pt-panel inspector">
-    <h2>
-        Inspector
-        <span class="count">@Heading</span>
-    </h2>
+    <aside class="inspector" role="complementary" aria-label="Inspector">
+        <div class="head-row">
+            <h2>@Heading</h2>
+            <button type="button" class="close" aria-label="Close the inspector" title="Close (Escape)" @onclick="Surfaces.Close">✕</button>
+        </div>
 
-    <div class="pt-body">
-        @if (Subject.Kind == InspectKind.Friendly && Subject.Unit is { } own)
-        {
-            <div class="head">
-                <span class="art team-@PlaytestText.TeamClass(own.Team)">
-                    <UnitArt Kind="own.Kind" Label="@own.Name" />
-                </span>
-                <span class="ident">
-                    <strong class="name">@own.Name</strong>
-                    <span class="side team-@PlaytestText.TeamClass(own.Team)">@PlaytestText.Team(own.Team)</span>
-                </span>
-            </div>
+        <div class="body">
+            @if (Subject.Kind == InspectKind.Friendly && Subject.Unit is { } own)
+            {
+                <div class="head">
+                    <span class="art team-@PlaytestText.TeamClass(own.Team)">
+                        <UnitArt Kind="own.Kind" Label="@own.Name" />
+                    </span>
+                    <span class="ident">
+                        <strong class="name">@own.Name</strong>
+                        <span class="side team-@PlaytestText.TeamClass(own.Team)">@PlaytestText.Team(own.Team)</span>
+                    </span>
+                </div>
 
-            @* Action Points have exactly one home on this screen (§7.5), and it is this stat row:
-               the cur/max figure and the pips are one fact drawn twice for one eye, not two claims.
-               They used to be three — the figure here, a pip strip below it, and a "2/3 AP" label
-               beside that — which is three places to keep in step and three places to disagree.
+                @* Flat values, never percentages. Resistance SHORTENS a displacement by a number of
+                   tiles and Footing REFUSES whole instances of one — two sentences, no shared math
+                   (MASTER_DESIGN §3), and a percentage anywhere here would be a third rule. *@
+                <dl class="stats">
+                    <div><dt>HP</dt><dd>@own.Hp / @own.MaxHp</dd></div>
 
-               One pip per point of the pool: bright while unspent, hollow once gone, and dimmed for
-               the ones an action the player is merely hovering would take. The preview number comes
-               from the spotlight, which the action list writes and this reads — the row that is
-               hovered and the pips that answer it are two components, and neither owns the other. *@
-            <dl class="stats">
-                <div><dt>HP</dt><dd>@own.Hp / @own.MaxHp</dd></div>
-                <div><dt>Move</dt><dd>@own.MoveRemaining / @own.Move</dd></div>
-                <div><dt>Footing</dt><dd>@own.Footing / @own.Template.Footing</dd></div>
-                @if (ActionPoints.Shows(own))
-                {
+                    @* Action Points have exactly one home on this screen and this is it. One pip per
+                       point of the pool: bright while unspent, hollow once gone, and dimmed for the
+                       ones an action the player is merely hovering would take. The preview number
+                       comes from the spotlight, which the command bar writes and this reads. *@
+                    @if (ActionPoints.Shows(own))
+                    {
+                        <div class="wide">
+                            <dt>@ActionPoints.Label</dt>
+                            <dd class="ap" title="@ActionPoints.Title(own)">
+                                <span class="ap-figure">@ActionPoints.Remaining(own) / @ActionPoints.Pool(own)</span>
+                                <span class="ap-pips">
+                                    @for (int i = 0; i < ActionPoints.Pool(own); i++)
+                                    {
+                                        <i class="ap-pip @PipClass(i, ActionPoints.Remaining(own), Spotlight.Preview(own))"></i>
+                                    }
+                                </span>
+                            </dd>
+                        </div>
+                    }
+                    else
+                    {
+                        @* A unit off the Action Point economy has halves rather than a pool, and
+                           drawing it three pips would be a rule this shell invented. *@
+                        <div class="wide">
+                            <dt>Turn</dt>
+                            <dd class="halves">
+                                <span class="half @(own.HasMoved ? "spent" : string.Empty)">Move @own.MoveRemaining/@own.Move</span>
+                                <span class="half @(own.HasActed ? "spent" : string.Empty)">Action</span>
+                            </dd>
+                        </div>
+                    }
+
+                    @* Footing is PIPS, not a word. Under the (t) rework it counts whole refusals
+                       rather than tiles, and a stack of 2 is a different animal from a stack of 1 —
+                       a "READY" label would have flattened the number the rework made load-bearing. *@
                     <div>
-                        <dt>@ActionPoints.Label</dt>
-                        <dd class="ap" title="@ActionPoints.Title(own)">
-                            <span class="ap-figure">@ActionPoints.Remaining(own) / @ActionPoints.Pool(own)</span>
-                            <span class="ap-pips">
-                                @for (int i = 0; i < ActionPoints.Pool(own); i++)
-                                {
-                                    <i class="ap-pip @PipClass(i, ActionPoints.Remaining(own), Spotlight.Preview(own))"></i>
-                                }
-                            </span>
+                        <dt>Footing</dt>
+                        <dd class="boots" title="@FootingTitle(own)">
+                            @for (int f = 0; f < FootingSlots(own); f++)
+                            {
+                                <i class="boot-pip @(f < own.Footing ? "on" : string.Empty)"></i>
+                            }
                         </dd>
                     </div>
-                }
-            </dl>
 
-            @* Not a duplicate of the row above: a unit off the Action Point economy has halves
-               rather than a pool, and drawing it three pips would be a rule this shell invented. *@
-            @if (!ActionPoints.Shows(own))
+                    @if (own.Template.PushResistance > 0)
+                    {
+                        <div><dt>Resist</dt><dd title="Every displacement against this duck is this many tiles shorter. It shortens; it never refuses.">@own.Template.PushResistance</dd></div>
+                    }
+                </dl>
+
+                @if (PlaytestText.Flags(own) is { Length: > 0 } flags)
+                {
+                    <p class="status">@flags</p>
+                }
+
+                @if (Verve.SpendFor(own.Kind) is { } spend)
+                {
+                    <div class="meter-block">
+                        <p class="line-head">@Naming.Meter <span class="figure">@own.Verve/@Verve.Cap</span></p>
+                        <div class="meter @(own.Verve >= Verve.CostOf(spend, own) ? "ready" : string.Empty)"
+                             role="meter"
+                             aria-valuenow="@own.Verve"
+                             aria-valuemin="0"
+                             aria-valuemax="@Verve.Cap"
+                             aria-label="@Naming.Meter">
+                            @for (int v = 0; v < Verve.Cap; v++)
+                            {
+                                <i class="seg @(v < own.Verve ? "on" : string.Empty)"></i>
+                            }
+                        </div>
+                        <p class="earns" title="@Verve.ConditionFor(own.Kind)">Earns from @Verve.ConditionFor(own.Kind).</p>
+                        <p class="spender">
+                            <span class="feather" aria-hidden="true">✦</span>
+                            @Verve.NameOf(spend) · @Verve.CostOf(spend, own) @Naming.Meter
+                        </p>
+                    </div>
+                }
+
+                @* No action list here. What a duck can do is drawn once, in the command bar, which
+                   already falls back to whichever friendly duck is being read — priced and dead,
+                   with "not your activation" on every card. *@
+                <p class="pointer">@KitPointer(own)</p>
+            }
+            else if (Subject.Kind == InspectKind.Enemy && Subject.Unit is { } foe)
             {
-                <ul class="halves">
-                    <li class="@(own.HasMoved ? "spent" : string.Empty)">Move @own.MoveRemaining/@own.Move</li>
-                    <li class="@(own.HasActed ? "spent" : string.Empty)">Action</li>
+                <div class="head">
+                    <span class="art team-e"><UnitArt Kind="foe.Kind" Label="@foe.Name" /></span>
+                    <span class="ident">
+                        <strong class="name">@foe.Name</strong>
+                        <span class="side epithet">@EnemyBehaviour.RoleFor(foe.Kind)</span>
+                    </span>
+                </div>
+
+                <dl class="stats">
+                    <div><dt>HP</dt><dd>@foe.Hp / @foe.MaxHp</dd></div>
+                    <div><dt>Move</dt><dd>@foe.MoveRemaining / @foe.Move</dd></div>
+                    <div><dt>Reach</dt><dd>@PlaytestText.Reach(foe)</dd></div>
+                    <div>
+                        <dt>Footing</dt>
+                        <dd class="boots" title="@FootingTitle(foe)">
+                            @for (int f = 0; f < FootingSlots(foe); f++)
+                            {
+                                <i class="boot-pip @(f < foe.Footing ? "on" : string.Empty)"></i>
+                            }
+                        </dd>
+                    </div>
+                    @if (foe.Template.PushResistance > 0)
+                    {
+                        <div><dt>Resist</dt><dd title="Flat tiles off every displacement. It shortens; it never refuses.">@foe.Template.PushResistance</dd></div>
+                    }
+                </dl>
+
+                @if (PlaytestText.Flags(foe) is { Length: > 0 } foeFlags)
+                {
+                    <p class="status">@foeFlags</p>
+                }
+
+                @* Intent telegraphs are rules-critical UI, not polish (CLAUDE.md), so the whole
+                   sentence is on the panel rather than behind a hover. Core writes it; nothing here
+                   rewords it. *@
+                <div class="intent-block @Intents.Class(Category(foe))">
+                    <span class="intent-head">
+                        <i class="intent-glyph">@Intents.Glyph(Category(foe))</i>
+                        Declared this round
+                    </span>
+                    <p class="intent-text">@Intents.Sentence(State, Intents.For(State, foe.Id))</p>
+                </div>
+
+                @if (EnemyBehaviour.ForKind(foe.Kind) is { } behaviour)
+                {
+                    <p class="flavour">@behaviour.Summary</p>
+
+                    @* Collapsed by default: the clause titles are the useful glance and the prose
+                       behind them is the study. This accordion is the reserved socket for the AI
+                       decision-trace feature (§7.5). *@
+                    <details class="decides">
+                        <summary>HOW IT DECIDES ▾</summary>
+                        <ol class="priority">
+                            @foreach (var step in behaviour.Priorities)
+                            {
+                                <li>
+                                    <span class="step-label">@step.Label</span>
+                                    <span class="step-detail">@step.Detail</span>
+                                </li>
+                            }
+                        </ol>
+                    </details>
+                }
+            }
+            else if (Subject.Kind == InspectKind.Structure && Subject.Structure is { } structure)
+            {
+                <div class="head">
+                    <span class="art structure">@StructureGlyph(structure)</span>
+                    <span class="ident">
+                        <strong class="name">@StructureName(structure)</strong>
+                        <span class="side">@BoardCoords.Of(structure.At)</span>
+                    </span>
+                </div>
+
+                <dl class="stats">
+                    <div><dt>HP</dt><dd>@structure.Hp / @structure.MaxHp</dd></div>
+                    <div><dt>@(structure.IsBlocker ? "In the way" : "Objective")</dt><dd>@ObjectiveWord(structure)</dd></div>
+                </dl>
+
+                <ul class="rules">
+                    <li>
+                        <span class="rule-head">Attacks</span>
+                        @("Any attack takes " + Objectives.AttackDamageToStructure
+                            + " off it, whatever swung it."
+                            + (structure.IsSiegeTarget
+                                ? " Enemies claw at it from an adjacent tile for the same."
+                                : string.Empty))
+                    </li>
+                    <li>
+                        <span class="rule-head">Collision</span>
+                        Debris driven into it lands in full: @Displacement.CollisionDamage damage.
+                    </li>
+                    <li>
+                        <span class="rule-head">Predicted</span>
+                        @Predicted(structure)
+                    </li>
                 </ul>
             }
-
-            @if (PlaytestText.Flags(own) is { Length: > 0 } flags)
+            else if (Subject.Kind == InspectKind.Terrain && Subject.Tile is { } tile)
             {
-                <p class="status">@flags</p>
+                <div class="head">
+                    <span class="art terrain @EventText.TileClass(Subject.Terrain)" aria-hidden="true"></span>
+                    <span class="ident">
+                        <strong class="name">@PlaytestText.Terrain(Subject.Terrain)</strong>
+                        <span class="side">@BoardCoords.Of(tile)</span>
+                    </span>
+                </div>
+
+                <ul class="rules">
+                    <li><span class="rule-head">Walk onto</span>@PlaytestText.TerrainWalk(Subject.Terrain)</li>
+                    <li><span class="rule-head">Shoved onto</span>@PlaytestText.TerrainShoved(Subject.Terrain)</li>
+                    <li><span class="rule-head">Damage</span>@DamageWord(Subject.Terrain)</li>
+                    <li>
+                        <span class="rule-head">Stagger</span>
+                        @(PlaytestText.TerrainStaggers(Subject.Terrain) ? "yes" : "no")
+                    </li>
+                    <li>
+                        <span class="rule-head">Travel</span>
+                        @(PlaytestText.TerrainContinues(Subject.Terrain)
+                            ? "the shove continues"
+                            : "the shove stops here")
+                    </li>
+                </ul>
             }
-
-            @* The meter it holds and the orders it can be given, in the panel that is already about
-               this duck. Both draw nothing for a duck that has neither. *@
-            <PluckSection />
-            <PocketSection />
-            <ActionListPanel />
-        }
-        else if (Subject.Kind == InspectKind.Enemy && Subject.Unit is { } foe)
-        {
-            <div class="head">
-                <span class="art team-e"><UnitArt Kind="foe.Kind" Label="@foe.Name" /></span>
-                <span class="ident">
-                    <strong class="name">@foe.Name</strong>
-                    <span class="side epithet">@EnemyBehaviour.RoleFor(foe.Kind)</span>
-                </span>
-            </div>
-
-            <dl class="stats">
-                <div><dt>HP</dt><dd>@foe.Hp / @foe.MaxHp</dd></div>
-                <div><dt>Move</dt><dd>@foe.MoveRemaining / @foe.Move</dd></div>
-                <div><dt>Reach</dt><dd>@PlaytestText.Reach(foe)</dd></div>
-                <div><dt>Footing</dt><dd>@foe.Footing</dd></div>
-            </dl>
-
-            @if (PlaytestText.Flags(foe) is { Length: > 0 } foeFlags)
-            {
-                <p class="status">@foeFlags</p>
-            }
-
-            @* Intent telegraphs are rules-critical UI, not polish (CLAUDE.md), so the whole sentence
-               is on the panel rather than behind a hover. Core writes it; nothing here rewords it. *@
-            <div class="intent-block @Intents.Class(Category(foe))">
-                <span class="intent-head">
-                    <i class="intent-glyph">@Intents.Glyph(Category(foe))</i>
-                    Declared this round
-                </span>
-                <p class="intent-text">@Intents.Sentence(State, Intents.For(State, foe.Id))</p>
-            </div>
-
-            @if (EnemyBehaviour.ForKind(foe.Kind) is { } behaviour)
-            {
-                <p class="flavour">@behaviour.Summary</p>
-
-                @* Collapsed by default: the clause titles are the useful glance and the prose behind
-                   them is the study. Both matter, and putting the prose on screen unasked buries the
-                   plan under the reasoning for it. *@
-                <details class="decides">
-                    <summary>How it decides ›</summary>
-                    <ol class="priority">
-                        @foreach (var step in behaviour.Priorities)
-                        {
-                            <li>
-                                <span class="step-label">@step.Label</span>
-                                <span class="step-detail">@step.Detail</span>
-                            </li>
-                        }
-                    </ol>
-                </details>
-            }
-        }
-        else if (Subject.Kind == InspectKind.Structure && Subject.Structure is { } structure)
-        {
-            <div class="head">
-                <span class="art structure">@StructureGlyph(structure)</span>
-                <span class="ident">
-                    <strong class="name">@StructureName(structure)</strong>
-                    <span class="side">@BoardCoords.Of(structure.At)</span>
-                </span>
-            </div>
-
-            <dl class="stats">
-                <div><dt>HP</dt><dd>@structure.Hp / @structure.MaxHp</dd></div>
-                <div><dt>@(structure.IsBlocker ? "In the way" : "Objective")</dt><dd>@ObjectiveWord(structure)</dd></div>
-            </dl>
-
-            <ul class="rules">
-                <li>
-                    <span class="rule-head">Attacks</span>
-                    @("Any attack takes " + Objectives.AttackDamageToStructure
-                        + " off it, whatever swung it."
-                        + (structure.IsSiegeTarget
-                            ? " Enemies claw at it from an adjacent tile for the same."
-                            : string.Empty))
-                </li>
-                <li>
-                    <span class="rule-head">Collision</span>
-                    Debris driven into it lands in full: @Displacement.CollisionDamage damage.
-                </li>
-                <li>
-                    <span class="rule-head">Predicted</span>
-                    @Predicted(structure)
-                </li>
-            </ul>
-        }
-        else if (Subject.Kind == InspectKind.Terrain && Subject.Tile is { } tile)
-        {
-            <div class="head">
-                <span class="art terrain @EventText.TileClass(Subject.Terrain)" aria-hidden="true"></span>
-                <span class="ident">
-                    <strong class="name">@PlaytestText.Terrain(Subject.Terrain)</strong>
-                    <span class="side">@BoardCoords.Of(tile)</span>
-                </span>
-            </div>
-
-            <ul class="rules">
-                <li><span class="rule-head">Walk onto</span>@PlaytestText.TerrainWalk(Subject.Terrain)</li>
-                <li><span class="rule-head">Shoved onto</span>@PlaytestText.TerrainShoved(Subject.Terrain)</li>
-                <li><span class="rule-head">Damage</span>@DamageWord(Subject.Terrain)</li>
-                <li>
-                    <span class="rule-head">Stagger</span>
-                    @(PlaytestText.TerrainStaggers(Subject.Terrain) ? "yes" : "no")
-                </li>
-                <li>
-                    <span class="rule-head">Travel</span>
-                    @(PlaytestText.TerrainContinues(Subject.Terrain)
-                        ? "the shove continues"
-                        : "the shove stops here")
-                </li>
-            </ul>
-        }
-    </div>
-</div>
+        </div>
+    </aside>
 }
 
 @code {
-    private InspectSubject Subject => Inspection.Resolve(Session);
+    private InspectSubject Subject => Surfaces.InspectorContent(Session);
 
     private string Heading => Subject.Kind switch
     {
@@ -221,16 +275,54 @@ else
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        Surfaces.Changed += Redraw;
         Spotlight.Changed += Redraw;
     }
 
     public override void Dispose()
     {
+        Surfaces.Changed -= Redraw;
         Spotlight.Changed -= Redraw;
         base.Dispose();
     }
 
     private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+    /// <summary>Where this duck's kit is, in a sentence, so the card is not a dead end.</summary>
+    private string KitPointer(Unit unit) =>
+        Session.SelectedUnit?.Id == unit.Id
+            ? "Its actions are priced along the bottom bar."
+            : "Its kit is priced along the bottom bar, greyed — not your activation.";
+
+    /// <summary>
+    /// How many boots to draw: the unit's printed stack, so a fortress-tier 2 is visibly a different
+    /// animal from a regular's 1, with at least one hollow pip once the stack is spent.
+    /// </summary>
+    private static int FootingSlots(Unit unit)
+    {
+        int printed = unit.Template.Footing;
+        int held = unit.Footing;
+        int slots = printed > held ? printed : held;
+        return slots < 1 ? 1 : slots;
+    }
+
+    private static string FootingTitle(Unit unit) =>
+        unit.Footing + " of " + unit.Template.Footing
+        + " — each one refuses a whole displacement, impact and all. Refusing a Cast costs 2.";
+
+    /// <summary>
+    /// A pip's class: lit while unspent, hollow once gone, and "going" for the ones an action the
+    /// player is merely hovering would take.
+    /// </summary>
+    private static string PipClass(int index, int remaining, int preview)
+    {
+        if (index >= remaining)
+        {
+            return "spent";
+        }
+
+        return index >= preview ? "going" : "on";
+    }
 
     private IntentCategory Category(Unit unit) =>
         Intents.CategoryOf(Intents.For(State, unit.Id), State);
@@ -263,18 +355,4 @@ else
         Objectives.AttackDamageToStructure
         + (structure.IsSiegeTarget ? " a claw · " : " an attack · ")
         + Displacement.CollisionDamage + " a collision";
-
-    /// <summary>
-    /// A pip's class: lit while unspent, hollow once gone, and "going" for the ones an action the
-    /// player is merely hovering would take.
-    /// </summary>
-    private static string PipClass(int index, int remaining, int preview)
-    {
-        if (index >= remaining)
-        {
-            return "spent";
-        }
-
-        return index >= preview ? "going" : "on";
-    }
 }

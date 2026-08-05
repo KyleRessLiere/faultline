@@ -271,4 +271,38 @@ public static class StripCards
     /// <param name="state">Card state.</param>
     /// <returns>A lower-case class fragment.</returns>
     public static string Class(StripState state) => state.ToString().ToLowerInvariant();
+
+    /// <summary>
+    /// The portraits a slot draws: the one unit it names, or — for a slot the player has not filled
+    /// yet — every un-activated duck that could take it.
+    /// </summary>
+    /// <remarks>
+    /// An open slot is drawn <em>open</em> (MASTER_DESIGN §3). Prose was the wrong instrument:
+    /// "Wardbearer or A…" is the two facts a portrait carries for free, clipped down to neither of
+    /// them. A slot down to a single candidate has resolved itself and draws exactly one, which is
+    /// why nothing here counts candidates.
+    /// </remarks>
+    /// <param name="card">Card to draw.</param>
+    /// <returns>The units to draw, in order. Empty only when the slot has no candidate at all.</returns>
+    public static IReadOnlyList<Unit> Portraits(StripCard card) =>
+        card?.Unit is { } unit ? new[] { unit } : card?.Candidates ?? NoUnits;
+
+    /// <summary>
+    /// The card's one identity line: who, then which side, on a single row.
+    /// </summary>
+    /// <param name="card">Card to label.</param>
+    /// <returns>Something of the shape <c>Vanguard · A</c>, or <c>A slot</c> for an open one.</returns>
+    public static string Ident(StripCard card) =>
+        card?.Unit is { } unit ? unit.Name + " · " + Owner(card.Team) : Owner(card!.Team) + " slot";
+
+    /// <summary>
+    /// The side, at rail width. The full "Player A" is what the hover and every panel with room for
+    /// it says; the row says the letter and lets its border colour carry the rest.
+    /// </summary>
+    private static string Owner(Team team) => team switch
+    {
+        Team.PlayerA => "A",
+        Team.PlayerB => "B",
+        _ => "Enemy",
+    };
 }

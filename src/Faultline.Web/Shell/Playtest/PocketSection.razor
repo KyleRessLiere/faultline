@@ -1,96 +1,137 @@
 @inherits PlaytestPanel
+@inject BattleSurfaces Surfaces
 
-@* What is in the duck's one pocket, drawn beside the meter because it is the other thing this duck
-   is holding that the activation's Action Point pool does not own.
+@* The pockets, at the foot of the rail. What is in one got there from a camp pick or an event
+   earlier in the run (MASTER_DESIGN §8.5) — this is not a battle inventory, it is what the run
+   handed this duck. An empty rail on a fresh fight is the correct picture.
 
-   0 AP, free timing inside its own activation, one-shot (MASTER_DESIGN §8.5). The zero is on the
-   badge rather than suppressed — "costs nothing" is the whole reason a player reaches for it — and
-   the badge is an AP badge because that genuinely is the budget it does not empty.
+   The SLOT COUNT COMES FROM DATA. A mockup drew three; three is art. PocketSlots asks the loadout
+   how many pockets exist, which is one today and two the day Deep Pockets ships in Core — and this
+   component grows the second slot for free rather than being edited again.
 
-   Nothing here decides whether it may be used: the row comes from ActionRows, which reads
-   Consumables.Legal through the session's legal list, and pressing it submits a command Core handed
-   over. An item with more than one use is *aimed on the board* — the same surface an ability, a
-   cast and a rescue are aimed with. It used to be a column of coordinate buttons here, and pressing
-   the item itself did nothing at all (D-136). *@
+   0 AP, free timing inside its own activation, one-shot. The zero is on the badge rather than
+   suppressed — "costs nothing" is the whole reason a player reaches for it.
 
-@if (Unit is { } unit && unit.Loadout.Pocket is { } item && Row is { } row)
-{
-    <div class="pocket">
-        <p class="section-head">
-            Pocket
-            <span class="section-note">one-shot</span>
-        </p>
+   Nothing here decides whether an item may be used, and nothing here picks a target. Pressing an
+   item ARMS it and lights its legal tiles on the board, through the same Targets map abilities,
+   Cast and rescue commit through (D-136). The card below is the affordance that armed it and the
+   place Cancel lives; it is deliberately not a second picker. *@
 
-        <button type="button"
-                class="item @(row.Available ? string.Empty : "short") @(Session.AimingPocket ? "armed" : string.Empty)"
-                disabled="@(!row.Available)"
-                title="@row.Name — @row.Effect"
-                @onclick="Use">
-            <span class="item-head">
-                <span class="item-name">@row.Name</span>
-                <span class="badge ap" title="@row.Hint">@row.Badge</span>
-            </span>
-            <span class="item-effect">@row.Effect</span>
-            @if (row.Reason.Length > 0)
+<div class="pocket">
+    <p class="section-head">
+        Pocket
+        <span class="section-note">@SlotNote</span>
+    </p>
+
+    @if (Slots.Count == 0)
+    {
+        <p class="none">@NoDuckLine</p>
+    }
+    else
+    {
+        <ul class="slots">
+            @foreach (var slot in Slots)
             {
-                <span class="reason" title="@row.Hint">@row.Reason</span>
-            }
-        </button>
+                <li class="slot">
+                    @if (slot.Item is { } item)
+                    {
+                        <button type="button"
+                                class="item @StateClass(slot)"
+                                disabled="@(!slot.Pressable)"
+                                title="@(slot.Name + " — " + slot.Summary)"
+                                @onclick="() => Press(slot)">
+                            <span class="item-head">
+                                <span class="item-name">@slot.Name</span>
+                                <span class="badge ap" title="Free timing. It does not end the activation.">0 @ActionPoints.Label</span>
+                            </span>
+                            <span class="item-effect">@slot.Summary</span>
+                            @if (slot.Reason.Length > 0)
+                            {
+                                <span class="reason" title="@slot.Hint">@slot.Reason</span>
+                            }
+                        </button>
 
-        @* The board carries the choice; this line only says what the highlighted tiles mean. There
-           is deliberately no second list of coordinates beside it — one surface for aiming, so the
-           board and the sidebar can never disagree about what is on offer. *@
-        @if (Session.AimingPocket)
-        {
-            <p class="aim">@AimText(item)</p>
-            <button type="button" class="cancel" @onclick="Use">Cancel</button>
-        }
-    </div>
-}
+                        @* The compact targeting card. It wraps the board-aiming mode rather than
+                           replacing it: the board carries the choice, this says what the highlighted
+                           tiles mean and offers the way out. *@
+                        @if (slot.State == PocketState.Selected)
+                        {
+                            <div class="aim-card" role="group" aria-label="@(slot.Name + " targeting")">
+                                <p class="aim">@PocketSlots.AimText(Session, item)</p>
+                                <button type="button" class="cancel" @onclick="() => Press(slot)">Cancel</button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="item empty" title="@slot.Hint">
+                            <span class="item-head"><span class="item-name">Empty</span></span>
+                            <span class="item-effect">@slot.Hint</span>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
 
 @code {
     /// <summary>
-    /// The duck the inspector is about, when a player owns it — the same subject the meter and the
-    /// action list use, so all three can never end up describing different ducks.
+    /// The duck the rail is about: the one being commanded, or — when nothing is — the friendly duck
+    /// being read. The same subject the command bar uses, so the two can never end up describing
+    /// different ducks, and an ally's one-shot stays readable while somebody plans around it.
     /// </summary>
-    private Unit? Unit =>
-        ActionRows.Subject(Session) is { } unit && unit.Team.IsPlayer() ? unit : null;
+    private Unit? Duck => ActionRows.Subject(Session) is { } unit && unit.Team.IsPlayer()
+        ? unit
+        : null;
 
-    /// <summary>The pocket as the action list models it, so the row here and the rows below agree.</summary>
-    private ActionRow? Row
-    {
-        get
-        {
-            foreach (var row in ActionRows.For(Session))
-            {
-                if (row.Kind == ActionKind.Pocket)
-                {
-                    return row;
-                }
-            }
+    private IReadOnlyList<PocketSlot> Slots => PocketSlots.For(Session, Duck);
 
-            return null;
-        }
-    }
+    private string SlotNote => Slots.Count == 1
+        ? "one-shot · 1 slot"
+        : "one-shot · " + Slots.Count + " slots";
+
+    private string NoDuckLine => State.Phase == Phase.Deployment
+        ? "Whatever the run has given a duck rides here once it is placed."
+        : "No activation open.";
 
     /// <summary>
     /// Presses the item. Never a no-op: one legal use fires, several arm the board, and pressing it
     /// again while armed puts it away. <see cref="GameSession.UsePocket"/> owns all three.
     /// </summary>
-    private void Use() => Session.UsePocket();
-
-    /// <summary>What the highlighted tiles are asking for, at whichever stage the aim is at.</summary>
-    private string AimText(Consumable item)
+    private void Press(PocketSlot slot)
     {
-        if (Session.PocketPicksWho)
-        {
-            return "Click whoever to haul out — they are lit on the board.";
-        }
+        // Arming a one-shot is a contextual surface like any other, so it collapses the ability bar
+        // and closes the inspector — one surface at a time.
+        Surfaces.ShowConsumable();
+        Session.UsePocket();
 
-        return item switch
+        if (!Session.AimingPocket)
         {
-            Consumable.OldRope => "Click the side to set them down on — lit on the board.",
-            _ => "Click a lit tile on the board to place it.",
-        };
+            Surfaces.Close();
+        }
     }
+
+    private static string StateClass(PocketSlot slot) => slot.State switch
+    {
+        PocketState.Selected => "armed",
+        PocketState.Equipped => "ready",
+        PocketState.NoValidTarget => "short",
+        PocketState.Disabled => "short",
+        _ => "empty",
+    };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Surfaces.Changed += Redraw;
+    }
+
+    public override void Dispose()
+    {
+        Surfaces.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
 }

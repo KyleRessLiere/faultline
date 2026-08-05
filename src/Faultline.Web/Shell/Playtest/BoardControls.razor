@@ -84,6 +84,16 @@
                     @onclick="View.ZoomIn">+</button>
         </span>
 
+        @* Moved here from the header when the header stopped expanding: a switch that changes how
+           the board is drawn belongs on the board's own toolbar, beside the other four. *@
+        <button type="button"
+                class="tool @(View.BoardOnly ? "on" : string.Empty)"
+                aria-pressed="@View.BoardOnly"
+                title="Hide the rail and give the whole window to the position."
+                @onclick="View.ToggleBoardOnly">
+            Board only
+        </button>
+
         <button type="button"
                 class="tool @(View.Fit ? "on" : string.Empty)"
                 aria-pressed="@View.Fit"

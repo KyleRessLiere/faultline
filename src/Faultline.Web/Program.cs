@@ -17,6 +17,10 @@ builder.Services.AddSingleton<PlaytestView>(
 builder.Services.AddSingleton<DevPanelState>(
     sp => new DevPanelState(sp.GetRequiredService<FightFiles>()));
 builder.Services.AddSingleton<ActionSpotlight>();
+// Which contextual surface is over the board — inspector, expanded ability card, consumable card or
+// the expanded order. Exactly one may be open, and that rule lives in one object so it cannot be
+// enforced differently by four components.
+builder.Services.AddSingleton<BattleSurfaces>();
 builder.Services.AddSingleton<FightFiles>();
 builder.Services.AddSingleton<CustomFightStore>();
 builder.Services.AddSingleton<SessionLog>();

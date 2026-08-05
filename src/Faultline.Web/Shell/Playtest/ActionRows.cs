@@ -359,7 +359,10 @@ public static class ActionRows
             yield break;
         }
 
-        int cost = Verve.CostOf(spend);
+        // The price this duck actually pays, not the price the design printed: a card that showed 3
+        // while a Light Line Fisher pays 2 lies at exactly the moment the mod was supposed to pay
+        // off. Core owns the arithmetic; the base is kept for the tooltip by AbilityCards.BaseNote.
+        int cost = Verve.CostOf(spend, unit);
         bool available = session.CanSpendVerve;
         bool armed = spend == VerveSpend.Cast ? session.AimingCast : unit.WreckingWeightArmed;
 

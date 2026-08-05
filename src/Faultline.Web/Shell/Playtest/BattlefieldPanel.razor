@@ -16,6 +16,12 @@
         <StatusBand />
     </div>
 
+    @* The legend and the view toggles, in the board region's own left margin rather than in a row
+       under it. The board is square and centred, so at any desktop width this region has hundreds of
+       pixels of empty margin either side — and 44px of height it was charging the position for a
+       thing that fits in the space already going spare. Out of flow, so it is not a row. *@
+    <BoardControls />
+
     @if (ShowBoard)
     {
         <CoordinateGrid />

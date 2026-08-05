@@ -1,36 +1,43 @@
 @inherits PlaytestPanel
+@inject BattleSurfaces Surfaces
 
-@* The activation order, published (D-103), as a row of portrait cards above the board. Intents have
-   always said *what* each enemy will do and nothing has ever said *when* — and "does the Anchor
-   swing before or after my Wardbearer?" is the most decision-relevant fact on the board.
+@* The published activation order (D-103, MASTER_DESIGN §3), as a VERTICAL list down the left rail.
+
+   It was a horizontal band above the board, which cost the board a row of its height and gave every
+   card 62px to say who it was. Down the rail it costs the board nothing — the rail is a fixed column
+   the board never had — and a row is wide enough for the portrait, the name, the pips and the badge
+   on one line.
 
    Every scrap of order logic is Core's: StripCards reads TurnOrder.Upcoming and this draws it.
 
-   One band, the same height, in both phases. Deployment shows the squad instead of the order and
-   carries its one instruction line inside the band — the alternative was two stacked text panels
-   above the board saying between them what one muted line says, paid for out of the board's height.
+   Intent and status are ICONS, not sentences. A sentence per row would be six sentences on screen at
+   once, which is a paragraph nobody reads placed where a glance was wanted; the whole sentence is on
+   the hover, and the enemy's own inspector carries it in full.
 
-   Three rows per card and no more — portrait, "who · side", then the numbers and the badge on one
-   line. The band is the board's neighbour and the board is height-limited, so a fourth row is a row
-   taken off the only thing on the screen anybody is looking at.
+   Clicking a row READS it and never gives an order. Friendly activation happens on the board.
 
-   Clicking a card *reads* it and never gives an order. Friendly activation happens by clicking the
-   duck on the board, and the caption below says so — a control that changes meaning depending on
-   whose card it is would be the opposite of a tutorial. *@
+   Expanding it OVERLAYS the board's left margin. The board never permanently resizes for a panel
+   that is open for three seconds — that is the same law that keeps messages off the layout rows. *@
 
-<div class="strip-bar @(Deploying ? "deploying" : string.Empty)">
-    <div class="now team-@PlaytestText.TeamClass(State.ActiveTeam)">
+<div class="order @(Deploying ? "deploying" : string.Empty) @(Expanded ? "expanded" : string.Empty)">
+    <div class="order-head">
         <span class="round">@RoundLabel</span>
-        <span class="actor">@ActorLabel</span>
+        <span class="actor team-@PlaytestText.TeamClass(State.ActiveTeam)">@ActorLabel</span>
+
+        <button type="button"
+                class="expand"
+                aria-expanded="@(Expanded ? "true" : "false")"
+                title="@(Expanded ? "Fold the order back into the rail." : "Open the whole order over the board margin.")"
+                @onclick="Surfaces.ToggleTurnOrder">@(Expanded ? "⌄" : "⌃")</button>
     </div>
 
     @if (Cards.Count == 0)
     {
-        <p class="strip-empty">@EmptyText</p>
+        <p class="order-empty">@EmptyText</p>
     }
     else
     {
-        <ol class="strip" aria-label="Activation order">
+        <ol class="order-list" aria-label="Activation order">
             @foreach (var card in Cards)
             {
                 @if (card.RoundSeam)
@@ -47,7 +54,7 @@
                     </li>
                 }
 
-                <li class="card @StripCards.Class(card.State) team-@PlaytestText.TeamClass(card.Team)">
+                <li class="slot @StripCards.Class(card.State) team-@PlaytestText.TeamClass(card.Team)">
                     <button type="button"
                             class="face"
                             disabled="@(!card.IsNamed)"
@@ -57,14 +64,13 @@
                             @onfocus="() => Session.Telegraph(TelegraphOf(card))"
                             @onmouseout="() => Session.Telegraph(null)"
                             @onblur="() => Session.Telegraph(null)">
+
                         <span class="seq">@card.Sequence</span>
 
                         @* An open slot is drawn *open* (MASTER_DESIGN §3): every un-activated duck
-                           that could take it, as overlapping minis. Prose was the wrong instrument —
-                           "Wardbearer or A…" is the two facts a portrait carries for free, clipped
-                           down to neither of them. One candidate is not a choice, so it resolves to
-                           the plain portrait and no stack is drawn. The names stay on the hover. *@
-                        @if (Portraits(card) is { Count: > 0 } faces)
+                           that could take it, as overlapping minis. One candidate is not a choice, so
+                           it resolves to the plain portrait and no stack is drawn. *@
+                        @if (StripCards.Portraits(card) is { Count: > 0 } faces)
                         {
                             <span class="art @(faces.Count > 1 ? "stack" : string.Empty)">
                                 @foreach (var face in faces)
@@ -77,59 +83,65 @@
                         }
                         else
                         {
-                            <span class="art">
-                                <span class="slot-mark">?</span>
-                            </span>
+                            <span class="art"><span class="slot-mark">?</span></span>
                         }
 
-                        <span class="who">@Ident(card)</span>
+                        <span class="ident">
+                            <span class="who">@StripCards.Ident(card)</span>
 
-                        @* Numbers and badge share the last line. They are each two or three
-                           characters wide and the band has width to spare and none to spare
-                           vertically. *@
-                        <span class="meta">
                             @if (card.Unit is { } body)
                             {
-                                <span class="hp">@body.Hp/@body.MaxHp</span>
+                                <span class="numbers">
+                                    <span class="hp">@body.Hp/@body.MaxHp</span>
 
-                                @* Resource pips: one per point of the meter for a class that holds
-                                   one, so a reader can see a spender coming without selecting
-                                   anybody. *@
-                                @if (Verve.SpendFor(body.Kind) is { } spender)
-                                {
-                                    <span class="pips @(body.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty)"
-                                          title="@PlaytestText.VerveTitle(body)">
-                                        @for (int v = 0; v < Verve.Cap; v++)
-                                        {
-                                            <i class="pip @(v < body.Verve ? "on" : string.Empty)"></i>
-                                        }
-                                    </span>
-                                }
+                                    @* One pip per point of the meter for a class that holds one, so a
+                                       spender can be seen coming without selecting anybody. *@
+                                    @if (Verve.SpendFor(body.Kind) is { } spender)
+                                    {
+                                        <span class="pips @(body.Verve >= Verve.CostOf(spender, body) ? "ready" : string.Empty)"
+                                              title="@PlaytestText.VerveTitle(body)">
+                                            @for (int v = 0; v < Verve.Cap; v++)
+                                            {
+                                                <i class="pip @(v < body.Verve ? "on" : string.Empty)"></i>
+                                            }
+                                        </span>
+                                    }
+                                </span>
                             }
+                        </span>
 
-                            @* One badge slot, and what fills it depends on what the card is. A gap
-                               says why it is a gap; an enemy says what it means to do; a spent slot
-                               says it is spent. Never all three, and never nothing. *@
+                        @* One badge slot, and what fills it depends on what the row is. A gap says why
+                           it is a gap; an enemy says what it means to do; a spent slot says it is
+                           spent. Never all three, and never nothing. Icons, not sentences. *@
+                        <span class="mark">
                             @if (card.Skip != ActivationSkip.None)
                             {
-                                <span class="badge gap">@StripCards.GapLabel(card.Skip)</span>
+                                @* The one badge that keeps its word. A gap is a slot that does not
+                                   exist, both players count on it, and a glyph alone would make the
+                                   rarest and most consequential state the least readable one. *@
+                                <span class="badge gap" title="@StripCards.GapLabel(card.Skip)">
+                                    @GapGlyph(card.Skip) @StripCards.GapLabel(card.Skip)
+                                </span>
                             }
                             else if (card.State == StripState.Defeated)
                             {
-                                <span class="badge out">out</span>
+                                <span class="badge out" title="Off the board.">✕</span>
                             }
                             else if (card.State == StripState.Done)
                             {
-                                <span class="badge done" aria-label="@(Deploying ? "Placed" : "Activation spent")">✓</span>
+                                <span class="badge done"
+                                      title="@(Deploying ? "Placed" : "Activation spent")"
+                                      aria-label="@(Deploying ? "Placed" : "Activation spent")">✓</span>
                             }
                             else if (card.Intent != IntentCategory.None)
                             {
                                 <span class="badge intent @Intents.Class(card.Intent)"
+                                      title="@card.IntentText"
                                       aria-label="@card.IntentText">@Intents.Glyph(card.Intent)</span>
                             }
                             else if (card.IsCurrent)
                             {
-                                <span class="badge now">@(Deploying ? "next" : "now")</span>
+                                <span class="badge now" title="@(Deploying ? "Next to place" : "Acting now")">▶</span>
                             }
                         </span>
                     </button>
@@ -145,55 +157,22 @@
     /// <summary>True while the squads are still being put down.</summary>
     private bool Deploying => State.Phase == Phase.Deployment;
 
+    private bool Expanded => Surfaces.IsOpen(ContextualSurface.TurnOrder);
+
     private IReadOnlyList<StripCard> Cards => Deploying
         ? StripCards.Deployment(State, Session.PendingDeployUnit)
         : StripCards.Build(State);
 
-    /// <summary>
-    /// The portraits a card draws: the one unit it names, or — for a slot the player has not filled
-    /// yet — every un-activated duck that could take it. A slot down to a single candidate has
-    /// resolved itself and draws exactly one, which is why nothing here counts candidates.
-    /// </summary>
-    /// <param name="card">Card to draw.</param>
-    /// <returns>The units to draw, in order. Empty only when the slot has no candidate at all.</returns>
-    public static IReadOnlyList<Unit> Portraits(StripCard card) =>
-        card.Unit is { } unit ? new[] { unit } : card.Candidates;
-
-    /// <summary>
-    /// The card's one identity line: who, then which side, on a single row. Two rows said the same
-    /// thing and cost the board one row of height on every card in the band.
-    /// </summary>
-    /// <param name="card">Card to label.</param>
-    /// <returns>Something of the shape <c>Vanguard · A</c>, or <c>A slot</c> for an open one.</returns>
-    public static string Ident(StripCard card) =>
-        card.Unit is { } unit ? unit.Name + " · " + Owner(card.Team) : Owner(card.Team) + " slot";
-
-    /// <summary>
-    /// The side, at card width. The full "Player A" is what the hover and every panel with room for
-    /// it says; a 62px card says the letter and lets its border colour carry the rest.
-    /// </summary>
-    private static string Owner(Team team) => team switch
-    {
-        Team.PlayerA => "A",
-        Team.PlayerB => "B",
-        _ => "Enemy",
-    };
-
-    /// <summary>What the band is counting: a round, or the placements before the first one.</summary>
+    /// <summary>What the list is counting: a round, or the placements before the first one.</summary>
     private string RoundLabel => Deploying ? "Deployment" : "Round " + State.Round;
 
     private string ActorLabel => Deploying
         ? PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " PLACES"
         : PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " TO ACT";
 
-    /// <summary>
-    /// The one instruction line, inside the band. During deployment it is what to click and what the
-    /// hover is for — the two things a player needs before the first placement, and the reason
-    /// neither needs a panel of its own above the board.
-    /// </summary>
     private string Caption => Deploying
-        ? "Click a highlighted deployment tile in your corner. Hover an enemy to see everywhere it could reach on round 1."
-        : "Clicking a card reads it. It never gives an order — select on the board.";
+        ? "Click a highlighted tile in your corner. Hover an enemy to see its round-1 reach."
+        : "Clicking a row reads it. Select on the board.";
 
     private string EmptyText => Deploying
         ? "Nobody left to place."
@@ -201,8 +180,8 @@
 
     /// <summary>
     /// Inspect always; select as well when this is a unit the active player may actually command.
-    /// The two are deliberately not merged: inspection is universal and read-only, selection is
-    /// gated on whose slot it is, and where a clicked card is one you may command both fire — that
+    /// The two are deliberately not merged: inspection is universal and read-only, selection is gated
+    /// on whose slot it is, and where a clicked row is one you may command both fire — that
     /// coincidence is not a licence to merge them (D-103).
     /// </summary>
     private void Read(StripCard card)
@@ -213,6 +192,7 @@
         }
 
         Session.Inspect(id);
+        Surfaces.ShowInspector();
 
         if (Session.Selectable.Contains(id))
         {
@@ -223,6 +203,13 @@
     /// <summary>Which enemy's telegraph a hover singles out on the board, or none.</summary>
     private static UnitId? TelegraphOf(StripCard card) =>
         card.Unit is { Team: Team.Enemy } enemy ? enemy.Id : null;
+
+    /// <summary>A gap's glyph. The words are on the hover; the row has one line.</summary>
+    private static string GapGlyph(ActivationSkip skip) => skip switch
+    {
+        ActivationSkip.Bedraggled => "⧗",
+        _ => "⌁",
+    };
 
     private string Candidates(StripCard card)
     {
@@ -244,7 +231,7 @@
         }
 
         // Deployment says where a duck is, not what it is about to do: there is no order yet, and a
-        // card that claimed one would be publishing a fact the game does not have.
+        // row that claimed one would be publishing a fact the game does not have.
         if (Deploying)
         {
             return card.State switch
@@ -275,4 +262,18 @@
             _ => $"{unit.Name} — round {card.Round}. Click to read it.",
         };
     }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Surfaces.Changed += Redraw;
+    }
+
+    public override void Dispose()
+    {
+        Surfaces.Changed -= Redraw;
+        base.Dispose();
+    }
+
+    private void Redraw() => _ = InvokeAsync(StateHasChanged);
 }

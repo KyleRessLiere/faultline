@@ -152,10 +152,117 @@ So on the same board, at the same three tiles, from the same reach: a duck that 
 cannot swing, and a Husk that walked three tiles can. Nothing about damage, displacement, terrain
 damage or reach differs between the sides — only who is billed for the swing.
 
+## The battle screen {D} four regions, and what lives in each
+
+*(Rebuilt 2026-08-04; D-140 and D-141. Supersedes MASTER_DESIGN §7.5's regional layout, which is
+owed a restamp.)*
+
+**There is no header.** The screen is a fixed left rail, the board, one command bar along the bottom,
+and a contextual inspector that overlays the board's top-right corner.
+
+| Region | Size | What is in it |
+|---|---|---|
+| Left rail | 270–310px, fixed | run/fight/seed line · objective panel · the activation order as a vertical list · the pockets · the paged control dock |
+| Board | everything left over | the position, the intents, the previews, the toasts |
+| Command bar | 126px | one card per action of the duck being commanded |
+| Inspector | 330px wide, pinned top-right | whatever is selected — unit, tile or structure |
+
+Two laws, and neither is decoration:
+
+- **Nothing occupies a layout row that is not one of those regions.** The board is handed whatever the
+  fixed bands leave it, so a sentence given a row of its own is a sentence paid for in tiles. The
+  status band, the system toasts and the board's own legend and view toggles are all drawn *over* the
+  board region rather than above or below it.
+- **Every contextual surface overlays; none of them resizes the board.** The inspector, an expanded
+  ability card and the expanded turn order all draw over the board's margins. Measured
+  (`tools/ui-checks/ia-acceptance.mjs`): the board is 926px at 1920×1080 and 1153px at 2560×1307, and
+  it is exactly the same size with the inspector open and with a card expanded.
+
+**Exactly one contextual surface may be open at a time** — the inspector, an expanded ability card, a
+consumable's targeting card, or the expanded turn order. Opening any closes the others; Escape closes
+whichever is open, and does not swallow the keystroke when nothing is.
+
+### The inspector {D} the single home for a unit's numbers
+
+Click any unit, tile or structure and its card opens top-right. **HP, AP, Pluck and Footing are read
+there and nowhere else**, the duck you are commanding included — there is no always-on resource
+display. The card sizes itself to what it has to say; it is not a full-height column.
+
+- **A friendly duck**: portrait, side, HP, **AP as cur/max with one pip per point** (dimmed pips
+  preview what a hovered action would take), Footing as boot pips, Resist as a flat number of tiles,
+  status flags, the Pluck meter with its charge condition and the named spender, and a pointer to the
+  command bar where its kit is priced.
+- **An enemy**: portrait, role epithet, HP, Move, Reach, Footing pips, Resist, status flags, the
+  declared intent **in full** (never behind a hover), one flavour line, and the priority list
+  collapsed behind **HOW IT DECIDES ▾** — the reserved socket for the AI decision trace.
+- **A structure** or **a tile**: as before — HP and the damage rules, or walk-onto/shoved-onto/damage/
+  stagger/travel.
+
+Resist and Footing are **flat values, never percentages**: resistance shortens a displacement by a
+number of tiles, Footing refuses whole instances of one. Two sentences, no shared math.
+
+The card follows the selection rather than waiting to be asked, because it is the only place those
+numbers are written. Dismissing it keeps it shut until something else is clicked, and an aiming
+gesture is never interrupted by one opening underneath it.
+
+### The command bar {D} one card per action
+
+One card per action of the duck being commanded, Move leftmost. Each carries an icon, the name, a
+one-line effect and a cost badge. **AP badges are blue; a Pluck spender carries a purple feather and
+never an AP cost.** There is no generic "activate Pluck" control.
+
+- **Cards print final values** — the price this duck actually pays with its mods fitted, not the
+  design's printed cost. A Fisher carrying Light Line reads `2 Pluck`, and `Base: 3 Pluck` is in the
+  tooltip.
+- **The class spender draws three modifier sockets. Two are fillable and the third is drawn locked**,
+  saying it is Deep Mastery's and Deep Mastery is a Molt reward. Two is Core's capacity
+  (`DuckLoadout.ModSlots`) until that ships.
+- **Clicking a card expands one detail panel upward, out of flow.** The bar's height never changes and
+  the board is untouched.
+- **Every disabled card carries its reason**, from Core: `1 AP short` (with `Move 2 tiles less to
+  afford this` behind it), `Need 3 Pluck`, `no target in range`, `too close — minimum range 2`,
+  `not your activation`. Nothing is filtered out for being unhelpful.
+- The one line beneath the cards is the **hover preview**: what a tile costs and what an action would
+  actually do, before it is committed.
+
+### The control dock {D} bottom-left, one control at a time
+
+Undo, Restart, Dev, **END ACTIVATION** and **Home**, paged with left/right arrows. It opens on END
+ACTIVATION.
+
+- **END ACTIVATION** submits Core's own `EndActivationCommand` — the same path the Wait card presses.
+  Greyed with its reason beside it when no activation is open.
+- Ending with Action Points still in the pool asks first, in amber: *"End Wardbearer's activation?
+  2 AP will be unused."*
+- **Restart** confirms and names the seed it would land on. **Home** confirms and says what leaving
+  costs, which is exactly what a reload costs, because leaving *is* a reload.
+- **Undo**'s tooltip is the owning session's own words for what would be taken back, or why nothing
+  can be.
+
+### The pocket {D} rendered from data
+
+At the foot of the rail: one block per pocket the duck actually has, read off its loadout rather than
+typed into the markup. That is **one** today; a second appears the day Deep Pockets ships in Core.
+
+What is in a pocket got there from a camp pick or an event earlier in the run, so **an empty pocket
+draws its socket** — an empty rail on a fresh fight is the honest picture, not a missing feature.
+Pressing an item arms it and lights its legal tiles **on the board**, through the same targeting
+surface abilities, Cast and rescue commit through; the card beside it is the affordance that armed it
+and the place Cancel lives, never a second picker.
+
 ### The turn-order strip {D} who goes when
 
-The activation order is **published** as a strip of portraits, left to right (D-103). Intents say
-*what* each enemy will do; this says *when*.
+The activation order is **published** (D-103). Intents say *what* each enemy will do; this says
+*when*.
+
+**It is a vertical list down the left rail** (D-140, 2026-08-04) — it used to be a horizontal band of
+portrait cards above the board, which cost the board 74px of height to give each card 62px of width.
+Every behavioural claim below is unchanged by the move. One row per slot: sequence number, portrait,
+name and side, hit points, Pluck pips, and one badge. **Intent and status are icons, not sentences** —
+the whole sentence is on the hover and in the enemy's own inspector card — with the gap badge as the
+one exception, because a slot that does not exist is the rarest and most consequential state and a
+glyph alone would make it the least readable one. Expanding the list overlays the board's left margin;
+the board never resizes for it.
 
 **The horizon is the rest of this round plus the opening of the next**, stopping once each side that
 can act has appeared once in the peeked round. That seam is the point: an enemy that activates last

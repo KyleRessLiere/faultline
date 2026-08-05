@@ -1,0 +1,154 @@
+/* Bottom-left, one control wide. It is a sibling of the ability bar rather than a row of its own:
+   the header it replaced was charging the board 52px of height for five buttons pressed twice a
+   fight, and the whole point of moving them here is that they now cost nothing. */
+
+.dock {
+    align-items: center;
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    display: flex;
+    flex: 0 0 auto;
+    gap: 4px;
+    outline: none;
+    padding: 6px 7px;
+    position: relative;
+}
+
+.page-arrow {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 15px;
+    line-height: 1;
+    padding: 4px 5px;
+}
+
+.page-arrow:hover { border-color: var(--pt-border); color: var(--pt-text); }
+
+/* One page at a time, in a box that does not resize as the pages change — a dock whose width
+   twitched with the label would make the arrows move away from the pointer. */
+.slot {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    min-height: 40px;
+    width: 168px;
+}
+
+.act {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    color: var(--pt-text);
+    cursor: pointer;
+    font-size: 11.5px;
+    padding: 5px 11px;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.act:hover:not(:disabled) { border-color: var(--pt-blue); }
+.act:disabled { cursor: default; opacity: .45; }
+.act.on { background: var(--pt-blue); border-color: var(--pt-blue); color: #fff; }
+
+.act.primary {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+.act.primary:disabled {
+    background: var(--pt-bg-raised);
+    border-color: var(--pt-border);
+    color: var(--pt-text-dim);
+}
+
+.act.danger { background: var(--pt-red); border-color: var(--pt-red); color: #14171d; font-weight: 700; }
+.act.amber { background: var(--pt-amber); border-color: var(--pt-amber); color: #14171d; font-weight: 700; }
+
+/* The reason rides beside the button, not only in its tooltip. */
+.reason {
+    color: var(--pt-text-dim);
+    font-size: 9px;
+    line-height: 1.25;
+    max-height: 22px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.logo { display: inline-block; height: 13px; vertical-align: -2px; width: 13px; }
+.logo svg { display: block; height: 100%; width: 100%; }
+.logo-plate { fill: #1d2530; stroke: var(--pt-border); stroke-width: 1; }
+.logo-duck { fill: var(--pt-yellow); }
+.logo-bill { fill: var(--pt-amber); }
+.logo-eye { fill: #101319; }
+
+.pager {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-left: 2px;
+}
+
+.dot {
+    background: var(--pt-border);
+    border-radius: 50%;
+    height: 4px;
+    width: 4px;
+}
+
+.dot.on { background: var(--pt-blue); }
+
+.scrim {
+    background: rgba(0, 0, 0, .55);
+    inset: 0;
+    position: fixed;
+    z-index: 90;
+}
+
+.confirm {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .65);
+    left: 50%;
+    padding: 16px 18px;
+    position: fixed;
+    top: 24%;
+    transform: translateX(-50%);
+    width: min(420px, 90vw);
+    z-index: 95;
+}
+
+/* Amber, not red. Unspent points are a waste, not a disaster, and a red dialog for a recoverable
+   mistake teaches players to click through red dialogs. */
+.confirm.amber { border-color: var(--pt-amber); }
+
+.confirm .act { width: auto; }
+
+.ask {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 7px;
+}
+
+.consequence {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
+    line-height: 1.4;
+    margin: 0 0 14px;
+}
+
+.confirm-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}

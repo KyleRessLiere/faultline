@@ -1,0 +1,367 @@
+@inherits PlaytestPanel
+@inject DevPanelState Dev
+@inject NavigationManager Nav
+
+@* The chrome, in the bottom-left corner, one control at a time.
+
+   The header is gone. It was a full-width band of things a player presses two or three times a
+   fight, and it was charging the board 52px of height for the privilege — so it was deleted and its
+   controls moved here, where they sit beside the ability bar and take no row of their own.
+
+   PAGED, not a row: arrows step between Home, Undo, Restart, Dev and END ACTIVATION. Showing five
+   buttons at once in a corner would need the width of five buttons; showing one needs the width of
+   one, and the arrows say there are others without spending anything to prove it.
+
+   END ACTIVATION is the page the dock opens on and the page it returns to. It is the most-pressed
+   control in a hotseat game, and a control you have to go looking for is a control that gets missed.
+
+   HOME IS ON THIS DOCK, and that is not decoration. "You can get stuck in a fight with no way out"
+   was a real bug once; the wordmark that fixed it went with the header, so the door moved here
+   rather than being deleted with the bar it happened to live on.
+
+   Every contract the header carried is intact: undo's stateful tooltip, restart's confirm naming the
+   seed, the amber unspent-AP confirm, and a reason beside anything greyed. They live in HeaderBar,
+   which is why replacing the layout did not put a single one of them at risk. *@
+
+<div class="dock" tabindex="-1" @ref="_root" @onkeydown="OnRootKeyDown">
+    <button type="button"
+            class="page-arrow"
+            aria-label="Previous control"
+            title="Previous control"
+            @onclick="Previous">‹</button>
+
+    <div class="slot">
+        @switch (Current)
+        {
+            case Control.End:
+                <button type="button"
+                        class="act primary"
+                        disabled="@(!CanEndTurn)"
+                        title="@EndTurnTitle"
+                        aria-haspopup="@(WouldWasteAp ? "dialog" : null)"
+                        @onclick="AskEnd">
+                    @HeaderBar.EndLabel
+                </button>
+                @if (EndTurnReason.Length > 0)
+                {
+                    <span class="reason">@EndTurnReason</span>
+                }
+                break;
+
+            case Control.Undo:
+                <button type="button"
+                        class="act"
+                        disabled="@(!CanUndo)"
+                        title="@UndoTitle"
+                        @onclick="OnUndo">
+                    ↶ Undo
+                </button>
+                <span class="reason">@UndoTitle</span>
+                break;
+
+            case Control.Restart:
+                <button type="button"
+                        class="act"
+                        disabled="@Session.InRun"
+                        title="@RestartTitle"
+                        aria-haspopup="dialog"
+                        @onclick="AskRestart">
+                    Restart
+                </button>
+                @if (Session.InRun)
+                {
+                    <span class="reason">@RestartTitle</span>
+                }
+                break;
+
+            case Control.Home:
+                <button type="button"
+                        class="act"
+                        title="@HomeTitle"
+                        aria-haspopup="dialog"
+                        aria-label="@("Leave the battle — " + HomeLabel)"
+                        @onclick="AskLeave">
+                    @DuckMark Home
+                </button>
+                <span class="reason">@HomeLabel</span>
+                break;
+
+            case Control.Dev:
+                <button type="button"
+                        class="act @(Dev.Open ? "on" : string.Empty)"
+                        aria-pressed="@(Dev.Open ? "true" : "false")"
+                        title="Developer overlays and board tools. Internal builds only."
+                        @onclick="Dev.Toggle">
+                    Dev
+                </button>
+                break;
+        }
+    </div>
+
+    <button type="button"
+            class="page-arrow"
+            aria-label="Next control"
+            title="Next control"
+            @onclick="Next">›</button>
+
+    <span class="pager" aria-hidden="true">
+        @foreach (var control in Pages)
+        {
+            <i class="dot @(control == Current ? "on" : string.Empty)"></i>
+        }
+    </span>
+
+    @* Amber, not red: unspent points are a waste, not a disaster, and a red dialog for a recoverable
+       mistake teaches players to click through red dialogs. It names the duck and the number, because
+       "are you sure?" is a question nobody can answer. *@
+    @if (_ending)
+    {
+        <div class="scrim" @onclick="CancelEnd"></div>
+        <div class="confirm amber" role="dialog" aria-modal="true" aria-labelledby="end-ask">
+            <p class="ask" id="end-ask">@EndAsk</p>
+            <p class="consequence">Movement does not carry over. The activation closes here.</p>
+            <div class="confirm-row">
+                <button type="button" class="act" @onclick="CancelEnd">Keep going</button>
+                <button type="button" class="act amber" @onclick="ConfirmEnd">End it</button>
+            </div>
+        </div>
+    }
+
+    @* One dialog, one consequence, told straight. Leaving is a reload — D-050's own path — so what
+       it costs is exactly what a reload costs, and the sentence says so rather than implying the
+       position will be waiting. *@
+    @if (_leaving)
+    {
+        <div class="scrim" @onclick="CancelLeave"></div>
+        <div class="confirm" role="dialog" aria-modal="true" aria-labelledby="leave-ask">
+            <p class="ask" id="leave-ask">Leave battle?</p>
+            <p class="consequence">@LeaveConsequence</p>
+            <div class="confirm-row">
+                <button type="button" class="act" @onclick="CancelLeave">Stay</button>
+                <button type="button" class="act primary" @onclick="ConfirmLeave">@("Leave — " + HomeLabel)</button>
+            </div>
+        </div>
+    }
+
+    @if (_confirming)
+    {
+        <div class="scrim" @onclick="CancelRestart"></div>
+        <div class="confirm" role="dialog" aria-modal="true" aria-labelledby="restart-ask">
+            <p class="ask" id="restart-ask">Restart this battle?</p>
+            <p class="consequence">
+                The board goes back to deployment on seed @NextSeed. Everything that has happened —
+                every move, every hit, every note about how it went — is gone.
+            </p>
+            <div class="confirm-row">
+                <button type="button" class="act" @onclick="CancelRestart">Cancel</button>
+                <button type="button" class="act danger" @onclick="ConfirmRestart">Restart</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>Raised when the player asks to take the last decision back.</summary>
+    [Parameter]
+    public EventCallback OnUndo { get; set; }
+
+    /// <summary>Raised once the player has confirmed the battle should start again.</summary>
+    [Parameter]
+    public EventCallback OnRestart { get; set; }
+
+    /// <summary>One page of the dock.</summary>
+    public enum Control
+    {
+        /// <summary>End the selected duck's activation. The page the dock rests on.</summary>
+        End = 0,
+
+        /// <summary>Take the last decision back.</summary>
+        Undo = 1,
+
+        /// <summary>Throw the battle away and start it again.</summary>
+        Restart = 2,
+
+        /// <summary>The way out of the fight. Never absent — see the note at the top.</summary>
+        Home = 3,
+
+        /// <summary>Developer overlays. Internal builds only, and not a page in release.</summary>
+        Dev = 4,
+    }
+
+    private ElementReference _root;
+    private bool _focused;
+    private int _page;
+
+    private bool _confirming;
+    private bool _leaving;
+    private bool _ending;
+
+    private bool AnyDialog => _confirming || _leaving || _ending;
+
+    /// <summary>
+    /// The pages this build actually has. Dev is absent from a release build rather than present and
+    /// dead: a page that does nothing is a page the arrows make you walk past.
+    /// </summary>
+    private IReadOnlyList<Control> Pages
+    {
+        get
+        {
+            var pages = new List<Control> { Control.End, Control.Undo, Control.Restart, Control.Home };
+
+            if (DevPanelState.Available)
+            {
+                pages.Add(Control.Dev);
+            }
+
+            return pages;
+        }
+    }
+
+    private Control Current => Pages[((_page % Pages.Count) + Pages.Count) % Pages.Count];
+
+    private void Next() => _page++;
+
+    private void Previous() => _page--;
+
+    /// <summary>Where the way out goes — the act map mid-run, the picker otherwise.</summary>
+    private string HomeLabel => BattleExit.HomeLabel(Runs);
+
+    private string HomeTitle => BattleExit.HomeTitle(Session, Runs);
+
+    private string LeaveConsequence => BattleExit.Consequence(Session, Runs);
+
+    /// <summary>
+    /// The mark. A duck, drawn in the same flat placeholder style as the units, because the game is
+    /// PLUCK and the thing it is about is ducks. Drawn rather than lettered so the mark survives a
+    /// rename (MASTER_DESIGN §15).
+    /// </summary>
+    private static RenderFragment DuckMark => @<span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="none" focusable="false">
+            <rect x="1.5" y="1.5" width="21" height="21" rx="5" class="logo-plate" />
+            <path d="M6 17.5 Q5.5 11.5 11 10.5 Q14.5 10 15.5 12.5 L19 13 Q18.5 18 12.5 18.5 Z" class="logo-duck" />
+            <circle cx="13.8" cy="8.2" r="3.1" class="logo-duck" />
+            <path d="M16.4 7.4 L20 7.9 L16.6 9.4 Z" class="logo-bill" />
+            <circle cx="14.6" cy="7.5" r=".7" class="logo-eye" />
+        </svg>
+    </span>;
+
+    private bool CanUndo => HeaderBar.CanUndo(Session, Runs);
+
+    private string UndoTitle => HeaderBar.UndoTitle(Session, Runs);
+
+    private bool CanEndTurn => HeaderBar.CanEndTurn(Session);
+
+    private string EndTurnReason => HeaderBar.EndTurnReason(Session);
+
+    private string EndTurnTitle => HeaderBar.EndTurnTitle(Session);
+
+    private bool WouldWasteAp => HeaderBar.UnusedAp(Session) > 0;
+
+    private string EndAsk => HeaderBar.EndAsk(Session);
+
+    private string RestartTitle => HeaderBar.RestartTitle(Session);
+
+    /// <summary>The seed the restart would land on, so the dialog can name it rather than imply it.</summary>
+    private string NextSeed => HeaderBar.Number(Session.Seed + 1);
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Escape only closes a dialog if the keystroke reaches the dock, and it only reaches the dock
+        // if the dock has focus. Taken once per dialog, given back when it closes.
+        if (AnyDialog && !_focused)
+        {
+            _focused = true;
+            await _root.FocusAsync();
+        }
+        else if (!AnyDialog)
+        {
+            _focused = false;
+        }
+    }
+
+    /// <summary>Escape backs out of whichever dialog is up. One key, one step out.</summary>
+    /// <param name="args">The keystroke.</param>
+    private void OnRootKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key != "Escape")
+        {
+            return;
+        }
+
+        _ending = false;
+        _leaving = false;
+        _confirming = false;
+    }
+
+    /// <summary>
+    /// Ends the selected duck's activation with the command Core offered for it — the same submit
+    /// path the Wait card presses. One route to Core, and no second opinion about when an activation
+    /// may close. Asks first when points would be thrown away.
+    /// </summary>
+    private void AskEnd()
+    {
+        if (WouldWasteAp)
+        {
+            _ending = true;
+            return;
+        }
+
+        EndActivation();
+    }
+
+    private void CancelEnd() => _ending = false;
+
+    private void ConfirmEnd()
+    {
+        _ending = false;
+        EndActivation();
+    }
+
+    private void EndActivation()
+    {
+        if (Session.EndCommand is { } end)
+        {
+            Session.Submit(end);
+        }
+    }
+
+    /// <summary>
+    /// Asks to leave — or leaves outright when there is nothing left to lose, which is what a
+    /// resolved fight is. A dialog guarding a door that costs nothing to walk through is a dialog
+    /// people learn to click past without reading, and then it is not guarding the other one either.
+    /// </summary>
+    private void AskLeave()
+    {
+        if (!BattleExit.NeedsConfirm(Session, Runs))
+        {
+            Leave();
+            return;
+        }
+
+        _leaving = true;
+    }
+
+    private void CancelLeave() => _leaving = false;
+
+    private void ConfirmLeave()
+    {
+        _leaving = false;
+        Leave();
+    }
+
+    /// <summary>
+    /// Goes home with a full page load, which is the whole mechanism: leaving IS a reload (D-050).
+    /// </summary>
+    private void Leave() => Nav.NavigateTo(BattleExit.HomeRoute(Runs), forceLoad: true);
+
+    private void AskRestart() => _confirming = true;
+
+    private void CancelRestart() => _confirming = false;
+
+    private async Task ConfirmRestart()
+    {
+        _confirming = false;
+        await OnRestart.InvokeAsync();
+    }
+}

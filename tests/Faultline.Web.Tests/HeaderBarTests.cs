@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Faultline.Core;
@@ -7,21 +8,25 @@ using Faultline.Web.Shell.Playtest;
 namespace Faultline.Web.Tests;
 
 /// <summary>
-/// The battle screen's top bar: what the 24px strip says, what END TURN is allowed to do and why it
-/// says no, and the gesture that opens the full row over the board without taking a pixel from it.
+/// The battle screen's chrome: what its one context line says, what END ACTIVATION is allowed to
+/// do, why it says no, and when it asks before throwing Action Points away.
+///
+/// The header is gone — its height went to the board and its controls to the bottom-left paged dock
+/// (design session 2026-08-04) — but every one of these contracts is unchanged, because none of them
+/// ever lived in the markup.
 /// </summary>
 /// <remarks>
 /// No bUnit here, by the same rule <see cref="DevPanelState"/>'s tests follow: this project renders
-/// no components, so the bar's decisions live in <see cref="BattleHeader.HeaderBar"/> and
-/// <see cref="BattleHeader.Expansion"/> where a test can reach them, and the markup is the thin part
-/// over the top. Nothing asserted here decides a rule — END TURN is live exactly when Core has
+/// no components, so the bar's decisions live in <see cref="HeaderBar"/> and
+/// <see cref="BattleSurfaces"/> where a test can reach them, and the markup is the thin part over
+/// the top. Nothing asserted here decides a rule — END ACTIVATION is live exactly when Core has
 /// published an <see cref="EndActivationCommand"/> for the selected duck.
 /// </remarks>
 public sealed class HeaderBarTests
 {
     private const string Board = "hz-10-bone-yard";
 
-    // ---- the context line the collapsed strip carries -------------------------------------------
+    // ---- the context line, now the first row of the rail ----------------------------------------
 
     [Fact]
     public void TheStripsContextLine_NamesTheBoardAndTheSeed()
@@ -29,7 +34,7 @@ public sealed class HeaderBarTests
         var (session, runs) = Fresh();
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
 
-        string line = BattleHeader.HeaderBar.ContextLine(session, runs);
+        string line = HeaderBar.ContextLine(session, runs);
 
         Assert.Contains(session.Fight.Name, line);
         Assert.Contains(GameSession.DefaultSeed.ToString(System.Globalization.CultureInfo.InvariantCulture), line);
@@ -38,13 +43,13 @@ public sealed class HeaderBarTests
     [Fact]
     public async Task InsideARun_TheLineSaysWhichNodeOfHowMany()
     {
-        // The strip is the only place the run's position is written now that the bar collapses, so a
+        // The rail is the only place the run's position is written now that the header is gone, so a
         // line that dropped it would take the answer off the screen entirely.
         var (session, runs) = Fresh();
         await runs.StartAsync(77);
         runs.Enter();
 
-        string line = BattleHeader.HeaderBar.ContextLine(session, runs);
+        string line = HeaderBar.ContextLine(session, runs);
 
         Assert.StartsWith("Run 1/", line);
         Assert.Contains(runs.Definition.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), line);
@@ -59,16 +64,16 @@ public sealed class HeaderBarTests
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
 
         Assert.Null(session.EndCommand);
-        Assert.False(BattleHeader.HeaderBar.CanEndTurn(session));
+        Assert.False(HeaderBar.CanEndTurn(session));
 
-        string reason = BattleHeader.HeaderBar.EndTurnReason(session);
+        string reason = HeaderBar.EndTurnReason(session);
 
         Assert.NotEqual(string.Empty, reason);
         Assert.Contains("no activation is open", reason);
 
         // The tooltip is the reason when there is one: a dead button that explains itself only in
         // prose beside it leaves the keyboard reader with nothing.
-        Assert.Equal(reason, BattleHeader.HeaderBar.EndTurnTitle(session));
+        Assert.Equal(reason, HeaderBar.EndTurnTitle(session));
     }
 
     [Fact]
@@ -78,12 +83,12 @@ public sealed class HeaderBarTests
         session.Select(open);
 
         Assert.NotNull(session.EndCommand);
-        Assert.True(BattleHeader.HeaderBar.CanEndTurn(session));
+        Assert.True(HeaderBar.CanEndTurn(session));
 
         // Empty exactly when it is live. A reason that survived the block clearing would grey a
         // working button in the reader's head.
-        Assert.Equal(string.Empty, BattleHeader.HeaderBar.EndTurnReason(session));
-        Assert.NotEqual(string.Empty, BattleHeader.HeaderBar.EndTurnTitle(session));
+        Assert.Equal(string.Empty, HeaderBar.EndTurnReason(session));
+        Assert.NotEqual(string.Empty, HeaderBar.EndTurnTitle(session));
     }
 
     [Fact]
@@ -116,9 +121,9 @@ public sealed class HeaderBarTests
             return;
         }
 
-        string reason = BattleHeader.HeaderBar.EndTurnReason(session);
+        string reason = HeaderBar.EndTurnReason(session);
 
-        Assert.False(BattleHeader.HeaderBar.CanEndTurn(session));
+        Assert.False(HeaderBar.CanEndTurn(session));
         Assert.NotEqual(string.Empty, reason);
         Assert.DoesNotContain("select one of your ducks", reason);
     }
@@ -131,10 +136,10 @@ public sealed class HeaderBarTests
         var (session, runs) = Fresh();
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
 
-        Assert.False(BattleHeader.HeaderBar.CanUndo(session, runs));
+        Assert.False(HeaderBar.CanUndo(session, runs));
         Assert.Equal(
             session.UndoBlockedReason ?? "Nothing to undo.",
-            BattleHeader.HeaderBar.UndoTitle(session, runs));
+            HeaderBar.UndoTitle(session, runs));
     }
 
     [Fact]
@@ -144,9 +149,9 @@ public sealed class HeaderBarTests
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
         session.Submit(session.Legal.OfType<DeployCommand>().First());
 
-        Assert.True(BattleHeader.HeaderBar.CanUndo(session, runs));
+        Assert.True(HeaderBar.CanUndo(session, runs));
 
-        string title = BattleHeader.HeaderBar.UndoTitle(session, runs);
+        string title = HeaderBar.UndoTitle(session, runs);
 
         Assert.NotEqual(string.Empty, title);
         Assert.Equal(session.UndoDescription, title);
@@ -162,8 +167,8 @@ public sealed class HeaderBarTests
         runs.Enter();
 
         Assert.False(session.CanUndo);
-        Assert.Equal(runs.CanUndo, BattleHeader.HeaderBar.CanUndo(session, runs));
-        Assert.Equal(runs.UndoDescription, BattleHeader.HeaderBar.UndoTitle(session, runs));
+        Assert.Equal(runs.CanUndo, HeaderBar.CanUndo(session, runs));
+        Assert.Equal(runs.UndoDescription, HeaderBar.UndoTitle(session, runs));
     }
 
     // ---- restart -------------------------------------------------------------------------------
@@ -173,61 +178,86 @@ public sealed class HeaderBarTests
     {
         var (session, runs) = Fresh();
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
-        string loose = BattleHeader.HeaderBar.RestartTitle(session);
+        string loose = HeaderBar.RestartTitle(session);
 
         await runs.StartAsync(77);
         runs.Enter();
 
-        Assert.NotEqual(loose, BattleHeader.HeaderBar.RestartTitle(session));
-        Assert.Contains("run", BattleHeader.HeaderBar.RestartTitle(session));
+        Assert.NotEqual(loose, HeaderBar.RestartTitle(session));
+        Assert.Contains("run", HeaderBar.RestartTitle(session));
     }
 
-    // ---- the expansion gesture -----------------------------------------------------------------
+    // ---- the escape gesture ----------------------------------------------------------------------
+    //
+    // The bar no longer expands: it is one fixed row and every control is on it. The gesture the old
+    // Expansion type carried — Escape backs out of exactly one thing, and a keystroke with nothing to
+    // close is not swallowed — moved intact to the contextual surfaces, which is what is open over
+    // the board now.
 
     [Fact]
-    public void TheBarStartsCollapsed()
+    public void NothingIsOpenOverTheBoardToStartWith()
     {
-        // The collapsed strip is the only height the layout reserves, and it is what a player who
-        // never touches the bar gets for the whole fight.
-        Assert.False(new BattleHeader.Expansion().Open);
-    }
-
-    [Fact]
-    public void AClickPinsTheRowOpen_AndAnotherLetsItGo()
-    {
-        var bar = new BattleHeader.Expansion();
-
-        bar.Toggle();
-        Assert.True(bar.Open);
-
-        bar.Toggle();
-        Assert.False(bar.Open);
+        Assert.Equal(ContextualSurface.None, new BattleSurfaces().Open);
     }
 
     [Fact]
-    public void EscapeCollapsesAPinnedRow()
+    public void EscapeClosesWhateverSurfaceIsOpen()
     {
-        var bar = new BattleHeader.Expansion();
-        bar.Toggle();
+        var surfaces = new BattleSurfaces();
+        surfaces.ShowInspector();
 
-        Assert.True(bar.Key("Escape"));
-        Assert.False(bar.Open);
+        Assert.True(surfaces.Key("Escape"));
+        Assert.Equal(ContextualSurface.None, surfaces.Open);
     }
 
     [Fact]
-    public void EveryOtherKeyLeavesTheRowAlone_AndEscapeOnACollapsedBarIsNotTakenFromTheBoard()
+    public void EveryOtherKeyIsLeftAlone_AndEscapeWithNothingOpenIsNotTakenFromTheBoard()
     {
-        var bar = new BattleHeader.Expansion();
-        bar.Toggle();
+        var surfaces = new BattleSurfaces();
+        surfaces.ShowInspector();
 
-        Assert.False(bar.Key("Enter"));
-        Assert.True(bar.Open);
+        Assert.False(surfaces.Key("Enter"));
+        Assert.Equal(ContextualSurface.Inspector, surfaces.Open);
 
-        bar.Close();
+        surfaces.Close();
 
         // Nothing to close means the keystroke was not ours: swallowing it would take Escape away
         // from whatever else on the screen wants to cancel with it.
-        Assert.False(bar.Key("Escape"));
+        Assert.False(surfaces.Key("Escape"));
+    }
+
+    // ---- ending an activation ---------------------------------------------------------------------
+
+    [Fact]
+    public void EndingWithNoActivationOpen_WastesNothingAndAsksNothing()
+    {
+        var (session, _) = Fresh();
+
+        Assert.Equal(0, HeaderBar.UnusedAp(session));
+        Assert.Equal(string.Empty, HeaderBar.EndAsk(session));
+    }
+
+    [Fact]
+    public void EndingWithPointsLeft_NamesTheDuckAndTheNumber()
+    {
+        var session = Deployed(out var open);
+        session.Select(open);
+
+        if (session.SelectedUnit is not { } selected || !ActionPoints.Shows(selected))
+        {
+            return;
+        }
+
+        int unused = HeaderBar.UnusedAp(session);
+        Assert.True(unused > 0, "a freshly selected duck has its whole pool");
+
+        string ask = HeaderBar.EndAsk(session);
+        Assert.Contains(selected.Name, ask, StringComparison.Ordinal);
+        Assert.Contains(unused + " " + ActionPoints.Label, ask, StringComparison.Ordinal);
+        Assert.Contains("unused", ask, StringComparison.Ordinal);
+
+        // The tooltip warns before the dialog does, so nobody meets the confirm as a surprise.
+        Assert.Contains("unused", HeaderBar.EndTurnTitle(session), StringComparison.Ordinal);
     }
 
     // ---- fixtures ------------------------------------------------------------------------------

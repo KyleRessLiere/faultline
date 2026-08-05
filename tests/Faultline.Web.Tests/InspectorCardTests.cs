@@ -144,35 +144,45 @@ public sealed class InspectorCardTests
         Assert.DoesNotContain(ActionRows.For(session), r => r.Kind == ActionKind.Wait);
     }
 
+    /// <summary>
+    /// §7.5's promise, re-homed by the 2026-08-04 rebuild: the inspector carries the duck's stats
+    /// and its meter, and its <em>kit</em> is priced along the command bar. The order within the
+    /// inspector is unchanged — stats, then the meter — and the kit is still on screen rather than
+    /// absent, which is the fault the original test was written for.
+    /// </summary>
     [Fact]
-    public void TheCardOfADuckYouCannotCommand_RendersStatsThenPluckThenActions()
+    public void TheCardOfADuckYouCannotCommand_RendersStatsThenPluck_AndItsKitIsPricedInTheBar()
     {
         var session = TwoSided(out _, out var theirs);
         session.Inspect(theirs);
 
-        string html = RenderInspector(session);
+        var surfaces = new BattleSurfaces();
+
+        string html = RenderInspector(session, surfaces: surfaces);
 
         Assert.Contains("class=\"stats", html, StringComparison.Ordinal);
-        Assert.Contains("class=\"pluck", html, StringComparison.Ordinal);
-        Assert.Contains("class=\"action-list", html, StringComparison.Ordinal);
+        Assert.Contains("class=\"meter-block", html, StringComparison.Ordinal);
 
         // In that order, which is the half of §7.5 a "both are present" assertion would miss.
         Assert.True(html.IndexOf("class=\"stats", StringComparison.Ordinal)
-            < html.IndexOf("class=\"pluck", StringComparison.Ordinal));
-        Assert.True(html.IndexOf("class=\"pluck", StringComparison.Ordinal)
-            < html.IndexOf("class=\"action-list", StringComparison.Ordinal));
+            < html.IndexOf("class=\"meter-block", StringComparison.Ordinal));
+
+        // And the kit itself, priced, in its one home.
+        string bar = RenderBar(session);
+        Assert.Contains("class=\"cards", bar, StringComparison.Ordinal);
+        Assert.Contains("class=\"card ", bar, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void EveryButtonOnThatCard_IsDisabledAndTheReasonIsOnScreen()
+    public void EveryCardOfADuckYouCannotCommand_IsDisabledAndTheReasonIsOnScreen()
     {
         var session = TwoSided(out _, out var theirs);
         session.Inspect(theirs);
 
-        string html = RenderInspector(session);
+        string html = RenderBar(session);
 
         int buttons = Count(html, "<button");
-        Assert.True(buttons > 0, "a card with no buttons is the void this test exists to prevent");
+        Assert.True(buttons > 0, "a bar with no cards is the void this test exists to prevent");
         Assert.Equal(buttons, Count(html, "disabled"));
 
         Assert.Contains(ActionRows.NotYoursReason, html, StringComparison.Ordinal);
@@ -180,18 +190,42 @@ public sealed class InspectorCardTests
     }
 
     [Fact]
-    public void TheActiveDucksOwnCard_KeepsLiveButtons()
+    public void TheActiveDucksOwnCards_KeepLiveButtons()
     {
-        // The regression half. A card that greyed everything would have "fixed" the void by breaking
+        // The regression half. A bar that greyed everything would have "fixed" the void by breaking
         // the game.
         var session = TwoSided(out var mine, out _);
         session.Select(mine);
 
-        string html = RenderInspector(session);
+        string html = RenderBar(session);
 
         Assert.True(Count(html, "<button") > Count(html, "disabled"));
         Assert.DoesNotContain(ActionRows.NotYoursReason, html, StringComparison.Ordinal);
         Assert.Contains(ActionRows.For(session), row => row.Available);
+    }
+
+    /// <summary>
+    /// The rebuild's law, after the 2026-08-04 reversal: the inspector is the SINGLE home for every
+    /// unit's detail, and the duck being commanded is drawn there like any other. There is no
+    /// always-on resource display for it to duplicate, so nothing has to give way.
+    /// </summary>
+    [Fact]
+    public void TheActiveDuck_IsDrawnInTheInspectorLikeAnyOtherUnit()
+    {
+        var session = TwoSided(out var mine, out _);
+        session.Select(mine);
+        session.Inspect(mine);
+
+        var surfaces = new BattleSurfaces();
+        var subject = surfaces.InspectorContent(session);
+
+        Assert.Equal(InspectKind.Friendly, subject.Kind);
+        Assert.Equal(mine, subject.Unit!.Id);
+
+        string html = RenderInspector(session, surfaces: surfaces);
+
+        Assert.Contains(session.State.UnitById(mine).Name, html, StringComparison.Ordinal);
+        Assert.Contains("ap-pips", html, StringComparison.Ordinal);
     }
 
     // ---- Part B: Action Points have one home ---------------------------------------------------
@@ -202,6 +236,7 @@ public sealed class InspectorCardTests
         var session = TwoSided(out var mine, out _);
         session.Select(mine);
 
+        session.Inspect(mine);
         string html = RenderInspector(session);
 
         Assert.Equal(1, Count(html, "ap-figure"));
@@ -210,18 +245,26 @@ public sealed class InspectorCardTests
         // The standalone strip and its text label, by name, so a reinstatement fails loudly.
         Assert.DoesNotContain("ap-row", html, StringComparison.Ordinal);
         Assert.DoesNotContain("ap-count", html, StringComparison.Ordinal);
+
+        // And nowhere else on the screen. The command bar prices actions in AP and never states the
+        // pool: a second home is exactly what this test exists to prevent.
+        Assert.Equal(0, Count(RenderBar(session), "ap-figure"));
+        Assert.Equal(0, Count(RenderBar(session), "ap-pips"));
     }
 
     [Fact]
-    public void TheOneHomeIsTheStatRow_FigureAndPipsTogether()
+    public void TheOneHomeIsTheInspectorsStatRow_FigureAndPipsTogether()
     {
         var session = TwoSided(out var mine, out _);
         session.Select(mine);
+        session.Inspect(mine);
 
-        string stats = StatsBlock(RenderInspector(session));
+        string html = StatsBlock(RenderInspector(session));
 
-        Assert.Contains("ap-figure", stats, StringComparison.Ordinal);
-        Assert.Contains("ap-pips", stats, StringComparison.Ordinal);
+        int figure = html.IndexOf("ap-figure", StringComparison.Ordinal);
+        int pips = html.IndexOf("ap-pips", StringComparison.Ordinal);
+
+        Assert.True(figure >= 0 && pips > figure, "the figure and its pips are one block, in order");
     }
 
     [Fact]
@@ -229,6 +272,8 @@ public sealed class InspectorCardTests
     {
         var session = TwoSided(out var mine, out _);
         session.Select(mine);
+
+        session.Inspect(mine);
 
         var unit = session.State.UnitById(mine);
         string html = RenderInspector(session);
@@ -241,10 +286,12 @@ public sealed class InspectorCardTests
     [Fact]
     public void HoveringAnActionDimsThePipsItWouldTake_WhichIsWhyThePipsSurvivedTheCull()
     {
-        // §7.5 asks for the hover-preview of post-action AP by name. The spotlight is written by the
-        // action list and read here — moving the pips into the stat row must not have cut that wire.
+        // §7.5 asks for the hover-preview of post-action AP by name. The spotlight is written by
+        // the command bar and read by the inspector's stat row — rebuilding the screen twice must not
+        // have cut that wire.
         var session = TwoSided(out var mine, out _);
         session.Select(mine);
+        session.Inspect(mine);
 
         var unit = session.State.UnitById(mine);
         var spotlight = new ActionSpotlight();
@@ -338,7 +385,16 @@ public sealed class InspectorCardTests
     /// exactly the guarantee the inspector itself makes. What it checks is the markup a browser
     /// would receive, which is the only place a claim like "AP appears once" can actually be tested.
     /// </remarks>
-    private static string RenderInspector(GameSession session, ActionSpotlight? spotlight = null)
+    private static string RenderInspector(
+        GameSession session, ActionSpotlight? spotlight = null, BattleSurfaces? surfaces = null) =>
+        Render(typeof(InspectorPanel), session, spotlight, surfaces);
+
+    /// <summary>The command bar — where a duck's kit is priced, commanded or merely read.</summary>
+    private static string RenderBar(GameSession session, ActionSpotlight? spotlight = null) =>
+        Render(typeof(AbilityBar), session, spotlight, null);
+
+    private static string Render(
+        Type component, GameSession session, ActionSpotlight? spotlight, BattleSurfaces? surfaces)
     {
         var js = new FakeJsRuntime();
         var files = new FightFiles(js);
@@ -354,13 +410,14 @@ public sealed class InspectorCardTests
         services.AddSingleton(new RunStore(files));
         services.AddSingleton(sp => new RunSession(sp.GetRequiredService<RunStore>(), session));
         services.AddSingleton(sp => new BoardAnimator(session, js));
+        services.AddSingleton(surfaces ?? new BattleSurfaces());
 
         using var provider = services.BuildServiceProvider();
         using var renderer = new StaticHtmlRenderer(provider, NullLoggerFactory.Instance);
 
         return renderer.Dispatcher.InvokeAsync(() =>
         {
-            var root = renderer.BeginRenderingComponent(typeof(InspectorPanel), ParameterView.Empty);
+            var root = renderer.BeginRenderingComponent(component, ParameterView.Empty);
             return root.ToHtmlString();
         }).GetAwaiter().GetResult();
     }

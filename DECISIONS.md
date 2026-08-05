@@ -156,9 +156,11 @@ in this file when the question comes back.
 | D-136 | [A one-shot that needs aiming is aimed on the board, in the same surface abilities and rescues use. Pressing the item is never a no-op, and the sidebar's coordinate list is gone.](#d-136-a-one-shot-that-needs-aiming-is-aimed-on-the-board-in-the-same-surface-abilities-and-rescues-use-pressing-the-item-is-never-a-no-op-and-the-sidebars-coordinate-list-is-gone) | 2026-08-04 |  |
 | D-137 | [The run is four screens, one job each: home, map, camp, event. No screen shows run admin and the act graph at the same time.](#d-137-the-run-is-four-screens-one-job-each-home-map-camp-event-no-screen-shows-run-admin-and-the-act-graph-at-the-same-time) | 2026-08-05 |  |
 | D-138 | [A Rest node on the act map is the Still Pond. It is never called a camp, and the fix is in the renderer because the map data still says "Camp".](#d-138-a-rest-node-on-the-act-map-is-the-still-pond-it-is-never-called-a-camp-and-the-fix-is-in-the-renderer-because-the-map-data-still-says-camp) | 2026-08-05 |  |
-| D-139 | [Push resistance shortens a Pull exactly as it shortens a Push. Reel is the one carve-out, and it is an open question rather than a ruling.](#d-139-push-resistance-shortens-a-pull-exactly-as-it-shortens-a-push-reel-is-the-one-carve-out-and-it-is-an-open-question-rather-than-a-ruling) | unreleased |  |
+| D-139 | [Push resistance shortens a Pull exactly as it shortens a Push. Reel is the one carve-out, and it is an open question rather than a ruling.](#d-139-push-resistance-shortens-a-pull-exactly-as-it-shortens-a-push-reel-is-the-one-carve-out-and-it-is-an-open-question-rather-than-a-ruling) | 2026-08-05 |  |
+| D-140 | [The battle screen is rebuilt: a fixed left rail, the board, one command bar, and a contextual inspector that overlays rather than resizes. One contextual surface open at a time.](#d-140-the-battle-screen-is-rebuilt-a-fixed-left-rail-the-board-one-command-bar-and-a-contextual-inspector-that-overlays-rather-than-resizes-one-contextual-surface-open-at-a-time) | unreleased |  |
+| D-141 | [The header is deleted. Its controls move to a paged dock in the bottom-left corner, and Action Points live in the inspector and nowhere else.](#d-141-the-header-is-deleted-its-controls-move-to-a-paged-dock-in-the-bottom-left-corner-and-action-points-live-in-the-inspector-and-nowhere-else) | unreleased |  |
 
-**138 rulings.**
+**140 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3251,3 +3253,130 @@ randomised per process.
 **Supersedes D-018's "Pull is untouched" clause** (the Anchor's three Push cases are unchanged) and
 amends D-030, which generalised the number to a stat-block field without revisiting which verbs read
 it.
+
+---
+
+**D-140 — The battle screen is rebuilt: a fixed left rail, the board, one command bar, and a
+contextual inspector that overlays rather than resizes. One contextual surface open at a time.**
+
+*(design session 2026-08-04, §7.5-v2 pending — the designer has adopted a new information
+architecture that supersedes MASTER_DESIGN §7.5's regional layout; a restamp follows.)*
+
+**What was decided.** The screen's regions are now:
+
+- **Left rail (270–310px, fixed)** — the run/fight/seed line, the objective panel, the activation
+  order as a **vertical list**, the pockets, and the paged control dock in the bottom-left corner.
+- **The board** — the centre, and every pixel the rail and the bar do not take.
+- **The command bar (126px)** — one card per action of the duck being commanded: icon, name, one-line
+  **final** effect, cost badge, and — on the class spender — three modifier sockets.
+- **The contextual inspector (330px)** — a compact card pinned to the **top** of the board's right
+  edge, opened by a selection and absent when nothing is selected.
+
+Two laws hold it together. **Nothing occupies a layout row that is not one of those regions** — the
+board is handed what the fixed bands leave it, so a sentence given a row is a sentence paid for in
+tiles. And **every contextual surface overlays; none resizes the board** — the inspector, the
+expanded ability card and the expanded turn order all draw over the board's margins.
+
+The one-surface rule is an enum (`ContextualSurface`), not three booleans. Three booleans is three
+places to remember to clear, and the failure is not a crash: it is an inspector and an expanded card
+sharing one board edge, each drawn correctly, together unreadable.
+
+**What forced it.** The old layout put the activation order in a horizontal band above the board and
+the whole inspector in a 430–560px permanent right column. The band cost the board 74px of height in
+every phase to give each card 62px of width to say who it was, and the column cost it 250px of width
+it could not use, because the board is square and height-limited. Down a rail the order costs nothing
+and a row is wide enough for a portrait, a name, pips and a badge on one line.
+
+**What was rejected.** Keeping the inspector in the flow as a permanent column: measured, opening it
+would have cost the board 330px of width every time somebody read an enemy, which prices reading an
+enemy in tiles and teaches players not to. Growing the ability bar when a card expands: measured at
+106px off the board, for the same reason — a card nobody dares open may as well not expand, so the
+detail hangs above the bar out of flow instead.
+
+**Also decided, and worth naming separately:**
+
+- **The board's legend and view toggles left the flow.** They were a 44px row under the board; they
+  are now drawn in the board region's own left margin, which is over 300px of empty space at every
+  desktop width. 44px of height was being charged for something that fits in space nobody was using.
+- **Cards print final values.** `ActionRows` priced the class spender at `Verve.CostOf(spend)` — the
+  design's printed cost — while a Light Line Fisher pays `Verve.CostOf(spend, unit)`. That is a card
+  that lies at exactly the moment the mod was supposed to pay off. The base survives in the tooltip.
+- **Three modifier sockets, two fillable, the third drawn locked.** The design draws three; Core's
+  capacity is `DuckLoadout.ModSlots`, which is 2 until the Molt's Deep Mastery ships. Rendering three
+  and locking the last reconciles them without the shell inventing a capacity of its own.
+- **The pocket is rendered from data.** The slot count comes from the loadout's shape, never a
+  literal in markup. One today; the day Deep Pockets ships in Core, this surface grows a second for
+  free. An **empty pocket draws its socket** — what is in one got there from a camp or an event, so
+  an empty rail on a fresh fight is the honest picture of the run so far, not a missing feature.
+- **The turn order's intent and status are icons, not sentences** — six sentences at once is a
+  paragraph placed where a glance was wanted. The gap badge is the one exception and keeps its word
+  (`recovering`, `clinging`): it is the rarest and most consequential state, and a glyph alone would
+  have made it the least readable one.
+
+**Measured, not asserted** (`tools/ui-checks/ia-acceptance.mjs`, both phases at 1920×1080 and
+2560×1307): board 902 → **926** at 1920 and 1129 → **1153** at 2560, fill 99.6% → 99.6/99.7%. The
+board region's width grew 1336 → 1589 and 1976 → 2226.
+
+**Supersedes** the layout half of D-103 (the strip is vertical and lives in the rail; every
+behavioural claim D-103 makes about it is unchanged) and the panel half of D-112 (the inspector
+overlays and is no longer permanent). `docs/BATTLE_SCREEN_INVENTORY.md` is the line-by-line record of
+what had to survive the rebuild, and of which lines did not.
+
+---
+
+**D-141 — The header is deleted. Its controls move to a paged dock in the bottom-left corner, and
+Action Points live in the inspector and nowhere else.**
+
+*(design session 2026-08-04, from a screenshot of the first build. Reverses two rules the same
+session had set an hour earlier; the later ruling wins.)*
+
+**What was decided.**
+
+1. **There is no header.** The top bar — wordmark, run/fight/seed, Undo, Restart, Dev, END ACTIVATION
+   — is gone, and its height went to the board.
+2. **Its controls are a paged dock** at the foot of the left rail: one control at a time, with
+   left/right arrows between End Activation, Undo, Restart, Home and Dev. Every contract is intact —
+   undo's stateful tooltip, restart's confirm naming the seed, the amber "N AP will be unused"
+   confirm, and a reason beside anything greyed — because none of them ever lived in the markup:
+   they live in `HeaderBar`, which the deleted component only called.
+3. **Home is on the dock.** "You can get stuck in a fight with no way out" was a real bug once, and
+   the wordmark that fixed it went with the header. The door moved rather than being deleted with
+   the bar it happened to live on.
+4. **The run/fight/seed line is the first row of the left rail.** It costs the board nothing there —
+   the rail is a fixed column — and dropping it would have taken "which seed am I on" off the screen,
+   which is the one question a bug report cannot be written without.
+5. **The resource strip is deleted, and the inspector is the single home for every unit's detail —
+   the active duck included.** Clicking any unit, tile or structure opens its card in the same
+   top-right inspector; HP, AP, Pluck and Footing are read there and nowhere else.
+6. **The command bar carries only cards and the hover preview.** The "3 AP left — move or pick an
+   action" summary is gone with the strip. The preview line stays: it is where a move's per-tile AP
+   cost and an ability's predicted outcome are read before committing, which is rules-critical UI.
+
+**What forced it.** A screenshot. The header was a full-width band charging the board 52px for five
+controls pressed two or three times a fight, and the resource strip was a second always-on copy of
+numbers the inspector was about to draw anyway.
+
+**What this reverses.** D-140's session had ruled that the active duck's home was the resource strip
+and that the inspector must **never** show it. That is dead. The reasoning was sound for a screen
+with two homes and is simply moot for a screen with one: with no always-on display there is nothing
+for the inspector to duplicate, and the rule it enforced would only have made the duck you are
+commanding the one unit on the board you could not read. The test that pinned it is inverted rather
+than deleted, so the reversal is visible in the suite.
+
+**The consequence that had to be solved rather than dropped.** With AP only in the inspector, a
+player must still be able to tell an action is unaffordable **without opening it**. They can: every
+card carries its cost badge and its reason sibling, both from Core — `1 AP short` (with
+`Move 2 tiles less to afford this` behind it), `Need 3 Pluck`, `no target in range`,
+`too close — minimum range 2`, `not your activation`. One gap is named rather than papered: an
+ability whose descriptor is `Passive` would render unavailable with `Targeting.BlockOn` returning
+`None`, and therefore with an empty reason. No shipped descriptor is Passive, so the state is
+unreachable today; if one is ever authored, `ActionRows.AbilityRows` needs a reason for it.
+
+**Also:** the inspector follows the selection rather than waiting to be asked. It is the only place a
+unit's numbers are written now, and a card that had to be opened twice would hide the numbers the
+turn is planned on. A dismissed card stays shut until something else is clicked, and an aiming
+surface is never interrupted by one opening underneath it.
+
+**Measured after all of it:** board **926** at 1920×1080 and **1153** at 2560×1307 (from 902 and
+1129), bar 126px, dock 62px, rail 307/310px, inspector 330×266 pinned at y=8. Expanding a card leaves
+both the bar and the board unchanged.

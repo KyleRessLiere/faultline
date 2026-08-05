@@ -2,45 +2,66 @@
 @inject PlaytestNotes Notes
 @inject BoardAnimator Animator
 
-@* The battle screen. Three bands down the left and one sidebar down the right, and that is the whole
-   vertical rhythm: header, the activation strip, the board, and one row carrying the legend and the
-   view controls.
+@* The battle screen, rebuilt (design session 2026-08-04, §7.5-v2 pending).
 
-   NOTHING may occupy a layout row between the strip and the board. It is not a preference: the board
-   is handed whatever the fixed bands leave it, so a sentence given a row of its own is a sentence
-   paid for in tiles. Anything with something to say is either an overlay drawn over the board —
-   toasts, the status band — or it moves into a region that already exists, the way the deployment
-   instruction lives in the strip's own caption line.
+   THERE IS NO HEADER. The top bar was a full-width band charging the board 52px of height for five
+   controls pressed two or three times a fight; it was deleted and its height went to the board. Its
+   controls live in the paged dock at the foot of the rail, and every contract they carried — undo's
+   stateful tooltip, restart's confirm, the amber unspent-AP confirm, the way home — went with them.
 
-   The board is the point of the screen, so it is given every pixel the three fixed bands do not
-   take: it is sized by the region rather than by a zoom setting, and the region is what is left.
+   Four regions, and each fact has exactly one home:
 
-   The sidebar carries the objective, the inspector — which is where the meter and the action list
-   render, for a duck the player has selected — and the developer tools docked at its foot.
+     LEFT RAIL   the run/fight/seed line, the objective, the activation order as a vertical list,
+                 the pockets, and the paged dock in the bottom-left corner.
+     BOARD       the centre, and everything the rail and the bar do not take.
+     COMMAND BAR one card per action of the active duck, along the bottom. Cards and the hover
+                 preview, nothing else.
+     INSPECTOR   contextual, an OVERLAY pinned to the top-right of the board, absent when nothing is
+                 selected. It is the SINGLE HOME for every unit's detail — HP, AP, Pluck, Footing —
+                 the duck you are commanding included. There is no always-on resource display.
+
+   Two laws hold the layout together and neither is decoration:
+
+   NOTHING occupies a layout row that is not one of those regions. The board is handed whatever the
+   fixed bands leave it, so a sentence given a row of its own is a sentence paid for in tiles.
+   Anything with something to say is an overlay — the toasts, the status band — or it moves into a
+   region that already exists.
+
+   EVERY CONTEXTUAL SURFACE OVERLAYS; none of them resizes the board. The inspector, an expanded
+   ability card and the expanded order all draw over the board's margins. A panel that reflowed the
+   grid would make reading an enemy cost tiles, and then nobody reads one.
 
    This component owns the layout and the enemy-activation tick and nothing else. Every panel reads
    the session for itself, so no piece of game state is copied into a component. *@
 
 <div class="pt-app @(View.BoardOnly ? "board-only" : string.Empty)">
-    <BattleHeader OnUndo="Undo" OnRestart="Restart" />
-
     <div class="pt-main">
-        <section class="pt-stage">
-            <TurnStrip />
+        <aside class="pt-rail">
+            @* The line that lost its header and did not lose its home. Which run node, which board,
+               which seed — one muted row at the top of a fixed column, so it costs the board
+               nothing and a bug report can still name the seed. *@
+            <p class="rail-context" title="@Session.Fight.Id">@ContextLine</p>
 
-            @* The board is the primary element and takes what is left of the height. Everything a
-               player decides with is drawn on it; the sidebar supports it. The status band and the
-               system toasts are drawn inside this panel, over the board — they are not rows. *@
+            <ObjectivePanel />
+            <TurnOrderList />
+            <PocketSection />
+
+            <div class="rail-foot">
+                <CommandDock OnUndo="Undo" OnRestart="Restart" />
+                <DevPanel />
+            </div>
+        </aside>
+
+        <section class="pt-stage">
+            @* The board is the primary element and takes what is left. Everything a player decides
+               with is drawn on it; every other region supports it. The status band, the system
+               toasts and the inspector are drawn over it — they are not rows. *@
             <BattlefieldPanel />
 
-            <BoardControls />
-        </section>
-
-        <aside class="pt-side">
-            <ObjectivePanel />
             <InspectorPanel />
-            <DevPanel />
-        </aside>
+
+            <AbilityBar />
+        </section>
     </div>
 </div>
 
@@ -54,6 +75,9 @@
 
     private bool _resolvingEnemy;
     private bool _disposed;
+
+    /// <summary>Where in the run, which board, which seed — the header's one surviving line.</summary>
+    private string ContextLine => HeaderBar.ContextLine(Session, Runs);
 
     protected override void OnInitialized()
     {

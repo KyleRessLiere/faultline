@@ -109,7 +109,7 @@ public sealed class TurnOrderStripTests
         var slot = StripCards.Build(session.State).First(c => c.State == StripState.Slot);
 
         Assert.True(slot.Candidates.Count > 1, "this fixture is only interesting with a real choice in it");
-        Assert.Equal(slot.Candidates.Count, TurnStrip.Portraits(slot).Count);
+        Assert.Equal(slot.Candidates.Count, StripCards.Portraits(slot).Count);
 
         var card = CardMarkup(Render(session), "slot");
 
@@ -142,7 +142,7 @@ public sealed class TurnOrderStripTests
 
         var slot = Card(StripState.Slot, Team.PlayerA, null, new[] { only });
 
-        Assert.Equal(new[] { only }, TurnStrip.Portraits(slot));
+        Assert.Equal(new[] { only }, StripCards.Portraits(slot));
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class TurnOrderStripTests
         // choice the player has already made.
         var card = Card(StripState.Upcoming, Team.PlayerA, duck, new[] { duck, other });
 
-        Assert.Equal(new[] { duck }, TurnStrip.Portraits(card));
+        Assert.Equal(new[] { duck }, StripCards.Portraits(card));
     }
 
     /// <summary>Name and side are one line and one element, not a name row with an owner row under it.</summary>
@@ -164,14 +164,14 @@ public sealed class TurnOrderStripTests
     {
         var duck = Unit.FromTemplate(new UnitId(1), UnitKind.Vanguard, Team.PlayerA);
 
-        Assert.Equal("Vanguard · A", TurnStrip.Ident(Card(StripState.Upcoming, Team.PlayerA, duck, Array.Empty<Unit>())));
+        Assert.Equal("Vanguard · A", StripCards.Ident(Card(StripState.Upcoming, Team.PlayerA, duck, Array.Empty<Unit>())));
         Assert.Equal(
             "Archer · B",
-            TurnStrip.Ident(Card(StripState.Upcoming, Team.PlayerB,
+            StripCards.Ident(Card(StripState.Upcoming, Team.PlayerB,
                 Unit.FromTemplate(new UnitId(2), UnitKind.Archer, Team.PlayerB), Array.Empty<Unit>())));
 
         // An unfilled slot has no name to lead with, so the side leads instead.
-        Assert.Equal("A slot", TurnStrip.Ident(Card(StripState.Slot, Team.PlayerA, null, Array.Empty<Unit>())));
+        Assert.Equal("A slot", StripCards.Ident(Card(StripState.Slot, Team.PlayerA, null, Array.Empty<Unit>())));
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public sealed class TurnOrderStripTests
         Assert.DoesNotContain("class=\"candidates\"", html);
 
         // Every card's identity line is one element, so there are exactly as many of them as cards.
-        int cards = Occurrences(html, "<li class=\"card ");
+        int cards = Occurrences(html, "<li class=\"slot ");
         Assert.Equal(cards, Occurrences(html, "class=\"who\""));
     }
 
@@ -298,13 +298,14 @@ public sealed class TurnOrderStripTests
         services.AddSingleton(new PlaytestView());
         services.AddSingleton(session);
         services.AddSingleton(new RunSession(new RunStore(files), session));
+        services.AddSingleton(new BattleSurfaces());
 
         using var provider = services.BuildServiceProvider();
         using var renderer = new HtmlRenderer(provider, NullLoggerFactory.Instance);
 
         return renderer.Dispatcher.InvokeAsync(async () =>
         {
-            var output = await renderer.RenderComponentAsync<TurnStrip>();
+            var output = await renderer.RenderComponentAsync<TurnOrderList>();
             return output.ToHtmlString();
         }).GetAwaiter().GetResult();
     }
@@ -312,8 +313,8 @@ public sealed class TurnOrderStripTests
     /// <summary>The one card whose state class matches, as markup.</summary>
     private static string CardMarkup(string html, string stateClass)
     {
-        int at = html.IndexOf("<li class=\"card " + stateClass + " ", StringComparison.Ordinal);
-        Assert.True(at >= 0, $"the strip drew no '{stateClass}' card");
+        int at = html.IndexOf("<li class=\"slot " + stateClass + " ", StringComparison.Ordinal);
+        Assert.True(at >= 0, $"the order drew no '{stateClass}' row");
 
         int end = html.IndexOf("</li>", at, StringComparison.Ordinal);
         return html.Substring(at, end - at);

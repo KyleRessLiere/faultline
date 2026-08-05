@@ -1,5 +1,36 @@
 # Changelog
 
+## The battle screen, rebuilt around the board
+
+- **Four regions, no header (D-140, D-141).** A fixed 270–310px left rail (run/fight/seed line,
+  objective, the activation order, the pockets, the paged control dock), the board, one 126px command
+  bar, and a contextual inspector pinned to the board's top-right corner. The top bar is deleted —
+  its 52px went to the board and its controls to the dock.
+- **The board gained, measured** (`tools/ui-checks/ia-acceptance.mjs`, both phases at both
+  resolutions): **902 → 926px** at 1920×1080 and **1129 → 1153px** at 2560×1307, fill 99.6% →
+  99.6/99.7%. Its region also went 1336 → 1589 and 1976 → 2226 wide.
+- **The turn-order strip is a vertical list in the rail**, with intent and status as icons rather than
+  sentences. Every behavioural claim D-103 makes about it — candidate mini-portraits on an open slot,
+  auto-resolve at one duck, the Bedraggled "recovering" gap, done/defeated states, click-inspects-
+  never-activates — is unchanged.
+- **Exactly one contextual surface may be open at a time**: the inspector, an expanded ability card, a
+  consumable's targeting card, or the expanded order. All four overlay the board's margins; **none of
+  them resizes the board**, including the expanded card, which used to cost 106px.
+- **The inspector is the single home for every unit's detail, the active duck included.** HP, AP as
+  pips, Pluck and Footing are read there and nowhere else; there is no always-on resource display.
+- **Cards print final values.** The class spender was priced at the design's printed cost while the
+  duck paid a modded one — a Light Line Fisher's card now reads `2 Pluck`, with `Base: 3 Pluck` in the
+  tooltip.
+- **Three modifier sockets on a spender, the third drawn locked** ("Deep Mastery is a Molt reward"),
+  reconciling the design's always-three with Core's `ModSlots = 2`.
+- **The pocket is rendered from data** — one slot per pocket the duck has, never a literal — and an
+  empty pocket draws its socket rather than vanishing.
+- **The board's legend and view toggles left the flow** into the board region's own left margin,
+  returning another 44px of height.
+- `docs/BATTLE_SCREEN_INVENTORY.md` is new: the as-built behaviour of the screen, written as the
+  regression checklist the rebuild was verified against.
+
+
 ## Push resistance reads Pulls too
 
 - **A Grappler's pull 2 no longer drags a Wardbearer two tiles (D-139).** `EffectiveDistance`

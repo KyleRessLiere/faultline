@@ -367,6 +367,10 @@
 
         if (unit is not null && Session.Selectable.Contains(unit.Id))
         {
+            // Inspect as well as select. The inspector is the single home for every unit's detail
+            // now (design session 2026-08-04), so clicking a duck to command it also opens its card
+            // — one gesture, one card, whoever the unit belongs to.
+            Session.Inspect(unit.Id);
             Session.Select(unit.Id);
             return;
         }
