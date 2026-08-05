@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-03s** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-04t** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -11,11 +11,26 @@ POND_AND_DYNASTY, ENCOUNTERS — now source material, not authorities). Relation
 is meant to be**; `DECISIONS.md` records why they differ wherever they do. When this file and
 GAMEPLAY disagree, that is either unbuilt design or a missing DECISIONS entry.
 
-Last design session: 2026-08-03.
+Last design session: 2026-08-04.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-04 (t) — LOCKED: the FOOTING REWORK — Footing counts INSTANCES, not tiles: spending
+  it refuses one whole displacement (impact included); it exits the distance arithmetic
+  (pipeline is now Stagger → resist → Bulwark cap → floor). Footing STACKS are the
+  elite/boss anti-displacement stat (regulars 1; fortress tier 2+; a bestiary lever).
+  CAST THRESHOLD: refusing a Cast costs 2 Footing (printed on Cast; the throw is too heavy
+  to brace cheaply); a unit at 2+ may refuse (her Pluck spent, no refund — the boot icon is
+  visible, throwing into it is an informed misplay); a unit at EXACTLY 1 cannot refuse —
+  the Cast OVERWHELMS: it lands AND strips the last Footing. "Below 2" is her hunted state,
+  readable on enemy pips — bait the drain-only auto-spend with a cheap flick, then the
+  throw is law. Enemy auto-spend stays drain-only (preserves slam-fishing and the bait
+  line); players get an interactive refuse prompt (negation is chunky enough to earn the
+  interrupt); the old squirm-divert rule dies. Staged (not live): "+1 Pluck on a refused
+  Cast" as her named income lever if Footing-stacked comps starve her; SURE CAST banked as
+  her legendary (Cast cannot be refused). Wardbearer clarity: resist 2 is passive
+  shortening, Footing 1 is the refusal — two sentences, no shared math.
 2026-08-03 (s) — PROPOSAL recorded (council-endorsed unanimously, incl. the Thesis-Keeper's
   first no-reservation endorsement — NOT yet locked, designer holding): "The Four Waters" —
   every progression moment declares a station: the Current (camps: offers drift past, snatch
@@ -208,12 +223,24 @@ so segmenting leaks no exploits.
 ## Displacement pipeline
 Push/Pull resolve tile-by-tile. Distance arithmetic (in order): +1 if target Staggered (consumed)
 → −N push resistance (Anchor 1, Wardbearer 2, Colossus 2) → cap 1 if enemy-Bulwark aura adjacent
-→ −1 Footing spend → floor 0. Collision: both parties 4, both Staggered. Impact damage
+→ floor 0. (Footing is not arithmetic — it refuses whole instances; see Statuses. Resistance
+SHORTENS, Footing REFUSES: two sentences, no shared math.) Collision: both parties 4, both Staggered. Impact damage
 (collision/spike/fall) ignores all mitigation, always.
 
 **Statuses:** Staggered (from collision/spike damage; next displacement +1; clears at round end).
-Footing (1/unit/fight; enemies auto-spend only vs drains; players enemy-only until further
-ruling). Clinging (one round; **rescue is an ACTION requiring adjacency — move to adjacency then
+**Footing (REWORKED, locked t): counts instances, not tiles** — spending Footing REFUSES one
+whole displacement, impact and all; it is outside the distance arithmetic entirely. Regulars
+carry 1; **Footing stacks (2+) are the elite/boss anti-displacement stat** — a bestiary design
+lever ("this one will cost you properly to fish"). Enemies auto-spend ONLY against drain-bound
+displacement (preserves slam-fishing and the Fisher's bait line); players get an interactive
+refuse prompt ("The Grappler pulls Wardbearer — refuse it? Once per fight."). **Cast threshold
+(printed on Cast): refusing a Cast costs 2 Footing.** At 2+ the enemy may refuse — the throw
+fails, her Pluck is spent, no refund (the boot is visible; throwing into it is an informed
+misplay). At exactly 1 it CANNOT refuse — the Cast overwhelms: it lands and strips the last
+Footing on the way through. "Below 2" is her hunted state, readable on enemy Footing pips; the
+targeting preview always says which world you're in ("will be refused (Footing 2)" / "lands —
+overwhelms last Footing"). Staged lever (not live): +1 Pluck on a refused Cast, if
+Footing-stacked comps starve her income. Clinging (one round; **rescue is an ACTION requiring adjacency — move to adjacency then
 Rescue is legal and consumes the activation**; rescuer's player picks the adjacent destination
 tile; UI surfaces "Rescue [name]" in the ability tab whenever an ally is clinging — enabled when
 reachable, grayed with the reason when not — plus an urgent turn-summary banner naming the
@@ -305,7 +332,9 @@ at the moment of the deed.
 | Class | +1 when… | Spender | Cost | Effect |
 |---|---|---|---|---|
 | Vanguard | causes a collision | **Wrecking Weight** | 2 | next push: 2 dmg on contact, +1 distance (collision stacks) |
-| Fisher | her displacement ends in collision/hazard, **or a Reel drags an enemy 3+ tiles** (paid for fishing, not only landed catches; a long drag INTO a collision pays twice) | **Cast** | 3 | target an enemy within range 3 (lob — grab ignores everything between, even screens) and place it on any unoccupied non-wall tile within radius 1 of her (long rod, short landing: to drain-cast she must stand at the drain's edge). Landing applies shoved-onto effects; hazard landings charge her. A THROW: resist doesn't apply; boss negate-tokens DO. **Footing vs Cast: the catch squirms — target diverts to the first legal non-hazard tile in her radius-1 (N/E/S/W); no alternate → Footing unspendable, landing stands.** Independent of Reel: one activation can Reel one enemy (action) and Cast another (spend) |
+| Fisher | her displacement ends in collision/hazard, **or a Reel drags an enemy 3+ tiles** (paid for fishing, not only landed catches; a long drag INTO a collision pays twice) | **Cast** | 3 | target an enemy within range 3 (lob — grab ignores everything between, even screens) and place it on any unoccupied non-wall tile within radius 1 of her (long rod, short landing: to drain-cast she must stand at the drain's edge). Landing applies shoved-onto effects; hazard landings charge her. A THROW: resist doesn't apply; boss negate-tokens DO. **Footing vs Cast (locked t): refusing costs 2 Footing — at 2+ the target may refuse (throw
+fails, Pluck spent, no refund); at exactly 1 it cannot — the Cast OVERWHELMS, landing and
+stripping the last Footing. The old squirm-divert rule is dead.** Independent of Reel: one activation can Reel one enemy (action) and Cast another (spend) |
 | Archer | hits an enemy from high ground | **Double Nock** | 4 | attack twice this action |
 | Wardbearer | absorbs via Guard Stance (**only if the absorb dealt damage or moved him ≥1 — fully-negated redirects charge nothing**) | **Preen** | 3 | heal himself 4 (cap at max) |
 
@@ -538,8 +567,9 @@ printed on each):**
 | Archer | **Point Blank** — minimum range ignored entirely | the dead zone |
 | Fisher | **Friendly Cast** — Cast may target allies (throw semantics; landing hazards apply) | abilities target enemies |
 | Fisher | **Twin Lines** — one Reel pulls two enemies on the same line | one target per action |
+| Fisher | **Sure Cast** — her Cast cannot be refused by Footing | the Cast threshold |
 | Wardbearer | **Deep Roots** — Guard Stance persists through his next activation (he may act while it holds) | stance timing |
-| Wardbearer | **Bulwark Oath** — once per fight, grant an adjacent ally 1 Footing | Footing scarcity **(probation)** |
+| Wardbearer | **Bulwark Oath** — once per fight, grant an adjacent ally 1 Footing | Footing scarcity **(probation — instance-negation made this much stronger; the once-per-fight leash is load-bearing)** |
 | Any | **Third Slot** — unlock spender slot 3 | the two-slot cap |
 
 **Events, four more (joining §8.5's six):**
