@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-04u** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-05v** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -11,11 +11,27 @@ POND_AND_DYNASTY, ENCOUNTERS — now source material, not authorities). Relation
 is meant to be**; `DECISIONS.md` records why they differ wherever they do. When this file and
 GAMEPLAY disagree, that is either unbuilt design or a missing DECISIONS entry.
 
-Last design session: 2026-08-04.
+Last design session: 2026-08-05.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-05 (v) — LOCKED (displacement legibility + the allied charge): (1) DISPLACEMENT PREVIEW
+  is doc law and was unbuilt for ranged abilities — every displacement must render its route,
+  the tile where it ACTUALLY STOPS (interrupted drags, bramble entries and drains end it
+  early), the outcome there, and zero-distance results out loud ("no movement (resist 2)").
+  The Fisher's pulls read as dead because they were illegible, not weak. (2) AMBIGUOUS VECTORS
+  ARE ACTOR-CHOSEN: on a diagonal, two tiles satisfy "away"/"toward" equally — the acting side
+  picks (players via ghost tokens on both candidate stop tiles; enemies by published priority
+  order). Ranged displacement only: melee is orthogonal and Bull Rush follows its aimed charge
+  line. No prompt when one candidate is legal or both outcomes are identical. Reel chooses its
+  APPROACH LINE (horizontal-first vs vertical-first). Cast is untouched and keeps its identity:
+  free placement on any legal tile, no route at all. (3) BULL RUSH AFFECTS ALLIES — it stops at
+  and displaces the first UNIT of any allegiance (removing an allegiance check, not adding one):
+  full pipeline and board consequences, resist means the Wardbearer moves 0, base contact damage
+  stays 0 for everyone, and WRECKING WEIGHT'S contact damage applies to allies too — the cannon
+  costs its passenger. The Vanguard's Pluck charges on ally collisions (the Husk-jostle precedent
+  governs contact-damage riders, never board resolution). Preview is mandatory before it ships.
 2026-08-04 (u) — LOCKED: climb surcharge REMOVED — climbing is ordinary movement (1 AP,
   players; no +1 MP, enemies): position is already the price, and high ground's cost is its
   physics (shove-up collides, shove-off falls, the Grappler hunts the perched). Brambles keep
@@ -232,6 +248,20 @@ waypoints. No confirms, no chips. Each segment is a MoveCommand with its full re
 so segmenting leaks no exploits.
 
 ## Displacement pipeline
+**Ambiguous vectors are actor-chosen (locked v).** When a displacement vector is diagonal, two
+tiles satisfy "away from"/"toward" equally: **the acting side chooses** — players pick between
+two ghosted candidates (Reel picks its approach LINE: horizontal-first or vertical-first);
+enemies pick by their published priority order, and the declared intent names the tile
+resolution will use. Ranged displacement only — melee pushes are orthogonal and Bull Rush
+follows the charge line already aimed. No prompt when only one candidate is legal or both
+outcomes are identical. **Cast is exempt: it has no route — it is free placement.**
+
+**Displacement preview is a rule, not polish (locked v).** Hovering any displacement target
+renders the route, the tile where the displaced unit ACTUALLY STOPS (a mid-route collision,
+bramble entry or drain ends it early — the destination is an intent, not a promise), the
+outcome there (damage to both parties, Stagger, Paddling), and zero-distance results out loud
+("no movement (resist 2)"). All numbers come from Core. A silent no-op is a bug.
+
 Push/Pull resolve tile-by-tile. Distance arithmetic (in order): +1 if target Staggered (consumed)
 → −N push resistance (Anchor 1, Wardbearer 2, Colossus 2) → cap 1 if enemy-Bulwark aura adjacent
 → floor 0. (Footing is not arithmetic — it refuses whole instances; see Statuses. Resistance
@@ -324,7 +354,7 @@ eligibility flagged for review — move-1-then-Bull-Rush extends his threat rang
 
 | Class | HP | Move | Basic | Kit |
 |---|---|---|---|---|
-| **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush**: charge ≤3 in a line, first enemy hit pushed 2, stop adjacent (fused move+act) |
+| **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush** (2 AP): move ≤1, then charge ≤3 in a line; stops at and pushes 2 the first **unit** of ANY allegiance, then stops adjacent. Base contact damage 0; **Wrecking Weight's contact damage applies to allies too** — the cannon costs its passenger. Resist applies (the Wardbearer moves 0) |
 | **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away |
 | **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
 | **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
