@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
@@ -258,7 +258,7 @@ public class CampTests
     {
         Assert.Equal(12, CampCatalogue.ModPool().Count);
         Assert.Equal(8, CampCatalogue.SecondWindPool().Count);
-        Assert.Equal(4, CampCatalogue.UnlockPool().Count);
+        Assert.Equal(3, CampCatalogue.UnlockPool().Count);
         Assert.Equal(5, CampCatalogue.ConsumablePool().Count);
 
         // Three mods per spender, one spender per class (MASTER_DESIGN §8.6).
@@ -395,7 +395,7 @@ public class CampTests
         // board by the run, and the board carries it back out again.
         run = run.WithUnit(run.FindUnit(vanguard)! with
         {
-            Loadout = DuckLoadout.Empty.With(Mod.Heavier).With(Unlock.Climber),
+            Loadout = DuckLoadout.Empty.With(Mod.Heavier).With(Unlock.LongBoot),
         });
 
         run = RunFixture.Deploy(RunFixture.Enter(run));
@@ -408,7 +408,7 @@ public class CampTests
         Assert.Equal(RunUnitStatus.Downed, carried.Status);
         Assert.True(carried.ReturnsBedraggled);
         Assert.True(carried.Loadout.Has(Mod.Heavier));
-        Assert.True(carried.Loadout.Has(Unlock.Climber));
+        Assert.True(carried.Loadout.Has(Unlock.LongBoot));
 
         // And they are on the board it walks back onto, at quarter health and with no round-1 slot.
         var next = RunFixture.Enter(run);
@@ -417,7 +417,7 @@ public class CampTests
         Assert.True(onBoard.Bedraggled);
         Assert.Equal(Bedraggled.ReturningHp(carried.MaxHp), onBoard.Hp);
         Assert.True(onBoard.Has(Mod.Heavier));
-        Assert.True(onBoard.Has(Unlock.Climber));
+        Assert.True(onBoard.Has(Unlock.LongBoot));
     }
 
     [Fact]
@@ -467,9 +467,9 @@ public class CampTests
     [Fact]
     public void AnOfferOnlyReadsBackAsWhatItIs()
     {
-        var offer = CampOffer.Of(new RunUnitId(0), Unlock.Climber);
+        var offer = CampOffer.Of(new RunUnitId(0), Unlock.LongBoot);
 
-        Assert.Equal(Unlock.Climber, offer.AsUnlock);
+        Assert.Equal(Unlock.LongBoot, offer.AsUnlock);
         Assert.Throws<InvalidOperationException>(() => offer.AsMod);
         Assert.Throws<InvalidOperationException>(() => offer.AsSecondWind);
         Assert.Throws<InvalidOperationException>(() => offer.AsConsumable);

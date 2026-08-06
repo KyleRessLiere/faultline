@@ -1,5 +1,22 @@
 # Changelog
 
+## Previews stop lying, and nobody pays to climb
+
+- **Every action now has one projection, and it comes from Core** (`Abilities.Outlook`). Three
+  previews were contradicting resolution in the field and all three were a renderer answering a rules
+  question: Spear Thrust announced "nothing that way" and then hit, the Fisher's pull was annotated
+  with the damage of the shot it was chosen *instead of*, and a Vanguard's shove drew a destination
+  the board then disagreed with. Fixed at the source; both renderers read the same projection (D-151).
+- **A displacement projection knows who is shoving.** Wrecking Weight's extra tile and contact bite
+  are in the preview because `Displacement.Preview` now takes the same pusher `Resolve` does, off one
+  shared helper.
+- **The climb surcharge is gone**: high ground costs **1 AP** for players and **1 MP** for enemies.
+  The Archer's free-climb perk and the **Climber** unlock are deleted with it — the unlock pool is
+  three. Brambles are unchanged at **2 AP + 2 damage**; shove-up still collides, shove-off still deals
+  2 and continues, and a ranged shot from a ledge still adds **+2** (D-152).
+- **Held:** the sweep to re-cut every board to 7×7. MASTER_DESIGN §3 says "7×7 default (format
+  supports larger)"; 17 live boards are larger on purpose. Listed and flagged, none re-cut (D-153).
+
 ## A diagonal shove is the acting side's choice
 
 - **When a ranged displacement vector is diagonal, the acting side picks the tile** — Stagger Shot,

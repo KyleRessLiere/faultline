@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System;
 using System.Collections.Generic;
 using Faultline.Core;
@@ -52,8 +52,8 @@ public static class PlaytestText
         TileType.Pit => "Cannot be entered on purpose.",
         TileType.Spikes => Activation.BrambleCost + " " + ActionPoints.Label + " to enter · "
             + Displacement.SpikeWalkDamage + " damage.",
-        TileType.HighGround => Activation.ClimbCost + " " + ActionPoints.Label
-            + " to climb (free for a climber) · +" + Combat.HighGroundBonus + " on a ranged shot from here.",
+        TileType.HighGround => Activation.StepCost + " " + ActionPoints.Label
+            + " to climb · +" + Combat.HighGroundBonus + " on a ranged shot from here.",
         TileType.Cracked => Activation.StepCost + " " + ActionPoints.Label + " to enter · it is going to give way.",
         _ => Activation.StepCost + " " + ActionPoints.Label + " to enter.",
     };

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -201,9 +201,9 @@ namespace Faultline.Core
                 throw new ArgumentNullException(nameof(template));
             }
 
-            return template.FreeClimb
-                ? "free — climbing onto HighGround costs no extra movement"
-                : null;
+            // Nothing to say: since MASTER_DESIGN §3 (locked u) the ledge costs everybody an
+            // ordinary step, so a "climbs free" clause would name a perk nobody is without.
+            return null;
         }
 
         /// <summary>
@@ -521,9 +521,8 @@ namespace Faultline.Core
                     ("Otherwise climb",
                      $"Off HighGround with a ledge it can route to, it walks toward the nearest one — "
                      + $"real path distance, so a wall is a detour — and fires on arrival if that puts "
-                     + $"someone in range {perch.Range}. Move {perch.Move} pays the "
-                     + $"{Activation.ClimbCost} a ledge costs to enter, so stepping onto an adjacent "
-                     + "one is its entire move."),
+                     + $"someone in range {perch.Range}. A ledge costs the ordinary "
+                     + $"{Activation.StepCost} to enter, so Move {perch.Move} both climbs and closes."),
                     ("Otherwise hold the ledge, or advance to the band",
                      $"Standing on HighGround with nothing in range it holds — it will not give the "
                      + $"tile up. Off HighGround with no ledge reachable it falls back to the Lobber's "

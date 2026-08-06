@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Faultline.Core;
 
@@ -72,61 +72,6 @@ public class UnlockTests
 
         var granted = state.WithUnlock(husk.Id, Unlock.SureFooted);
         Assert.Equal(Activation.StepCost, Movement.StepCost(TileType.Spikes, granted.Get(husk.Id)));
-    }
-
-    // ---- Climber: high ground costs this duck 1 AP -------------------------------------------
-
-    [Fact]
-    public void Climber_MakesHighGroundCostOneAPForThatDuckAndNobodyElse()
-    {
-        // The Archer already climbs free from her template, so she proves nothing here — the control
-        // has to be a class that actually pays the surcharge.
-        var state = Slope(out var vanguard, out var ward);
-        var granted = state.WithUnlock(vanguard, Unlock.Climber);
-
-        Assert.Equal(Activation.ClimbCost, Movement.StepCost(TileType.HighGround, state.Get(vanguard)));
-        Assert.Equal(Activation.StepCost, Movement.StepCost(TileType.HighGround, granted.Get(vanguard)));
-        Assert.Equal(Activation.ClimbCost, Movement.StepCost(TileType.HighGround, granted.Get(ward)));
-
-        // Three tiles of floor is exactly the pool; the climb on the third step is what puts the
-        // ledge out of reach, and the unlock is what puts it back in.
-        Assert.False(Movement.Reachable(state, state.Get(vanguard)).ContainsKey(new Coord(3, 0)));
-
-        var reach = Movement.Reachable(granted, granted.Get(vanguard));
-        Assert.True(reach.TryGetValue(new Coord(3, 0), out var option));
-        Assert.Equal(Activation.PlayerPool, option!.Cost);
-    }
-
-    [Fact]
-    public void Climber_IsTheOnlyWayOntoTheLedgeThisActivation_AndTheClimbIsPaidWhenItIsWalked()
-    {
-        var state = Slope(out var vanguard, out _);
-        var granted = state.WithUnlock(vanguard, Unlock.Climber);
-
-        TestPlay.AssertIllegal(state, new MoveCommand(vanguard, new Coord(3, 0)));
-
-        var result = granted.Step(new MoveCommand(vanguard, new Coord(3, 0)));
-
-        Assert.Equal(new Coord(3, 0), result.NewState.Get(vanguard).Position);
-        Assert.Equal(Activation.PlayerPool, result.Single<UnitMoved>().Cost);
-        Assert.Equal(0, result.NewState.Get(vanguard).MoveRemaining);
-    }
-
-    [Fact]
-    public void Climber_IsNotWhatTheArcherHas_SoTheTwoRoutesToTheSameNumberStaySeparate()
-    {
-        // FreeClimb is a template flag and takes precedence at the same site. Asserting it here keeps
-        // a future "just give the Archer Climber" from looking equivalent.
-        var state = BoardBuilder.Rows("...H...")
-            .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 6, 0)
-            .Build();
-
-        var archer = state.Find(UnitKind.Archer);
-
-        Assert.True(archer.Template.FreeClimb);
-        Assert.False(archer.Has(Unlock.Climber));
-        Assert.Equal(Activation.StepCost, Movement.StepCost(TileType.HighGround, archer));
     }
 
     // ---- Steady Hands: rescue costs this duck 2 AP -------------------------------------------
@@ -254,16 +199,16 @@ public class UnlockTests
     // ---- what the enum is allowed to hold ----------------------------------------------------
 
     [Fact]
-    public void TheUnlockPool_IsExactlyTheFourBuilt_WithDeepPocketsStillDeferred()
+    public void TheUnlockPool_IsExactlyTheThreeBuilt_WithDeepPocketsStillDeferred()
     {
         // §8.6 lists a fifth, Deep Pockets — a second consumable pocket. It is deliberately not in
         // the enum: DuckLoadout has one pocket by construction, so it ships with the pocket rework
         // and not before. An enum entry with no rule site behind it is a promise the camp would
         // start offering.
-        Assert.Equal(4, Enum.GetValues(typeof(Unlock)).Length);
+        Assert.Equal(3, Enum.GetValues(typeof(Unlock)).Length);
 
         Assert.Equal(
-            new[] { Unlock.SureFooted, Unlock.Climber, Unlock.SteadyHands, Unlock.LongBoot },
+            new[] { Unlock.SureFooted, Unlock.SteadyHands, Unlock.LongBoot },
             CampCatalogue.UnlockPool().ToArray());
 
         Assert.Equal(Enum.GetValues(typeof(Unlock)).Length, CampCatalogue.UnlockPool().Count);

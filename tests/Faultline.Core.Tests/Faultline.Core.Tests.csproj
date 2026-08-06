@@ -22,4 +22,12 @@
     <ProjectReference Include="..\..\src\Faultline.Core\Faultline.Core.csproj" />
   </ItemGroup>
 
+  <!-- The text harness's renderer, compiled in rather than referenced. It is the surface a reader
+       actually decides from, and three of its annotations were found contradicting resolution in the
+       field, so its claims need pinning like any other rule text. The harness is an Exe with no other
+       dependency in this file, so linking it tests exactly the code a session reads. -->
+  <ItemGroup>
+    <Compile Include="..\..\tools\Faultline.Playtest\View.cs" Link="Linked\View.cs" />
+  </ItemGroup>
+
 </Project>

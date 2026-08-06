@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -263,7 +263,6 @@ public class EnemyBehaviourTests
             (@"shove for (\d+) apiece", Displacement.CollisionDamage, "Displacement.CollisionDamage"),
             (@"\+(\d+) ranged", Combat.HighGroundBonus, "Combat.HighGroundBonus"),
             (@"toll of (\d+)", PathField.OccupiedPenalty, "PathField.OccupiedPenalty"),
-            (@"pays the (\d+) a ledge costs", Activation.ClimbCost, "Activation.ClimbCost"),
         };
 
         int checks = 0;
@@ -484,33 +483,15 @@ public class EnemyBehaviourTests
     }
 
     [Fact]
-    public void DescribeClimb_SaysSomethingOnlyForAnArchetypeThatClimbsFree()
+    public void DescribeClimb_SaysNothingForAnybody_BecauseNobodyPaysToClimb()
     {
-        // The sentence lives here rather than in the renderer, so it cannot go on being displayed
-        // after the rule behind it changes.
+        // The surcharge is gone on both sides (MASTER_DESIGN §3, locked u), so there is no perk left
+        // to print. Kept as a test rather than deleted: the sentence lives in Core precisely so it
+        // cannot go on being displayed after the rule behind it changes.
         foreach (var kind in System.Enum.GetValues(typeof(UnitKind)).Cast<UnitKind>())
         {
-            var template = UnitTemplate.For(kind);
-            var climb = EnemyBehaviour.DescribeClimb(template);
-
-            if (template.FreeClimb)
-            {
-                Assert.NotNull(climb);
-                Assert.Contains("HighGround", climb!);
-            }
-            else
-            {
-                Assert.Null(climb);
-            }
+            Assert.Null(EnemyBehaviour.DescribeClimb(UnitTemplate.For(kind)));
         }
-    }
-
-    [Fact]
-    public void DescribeClimb_IsTrueOfTheArcherAndOfNobodyElseByAccident()
-    {
-        Assert.NotNull(EnemyBehaviour.DescribeClimb(UnitTemplate.For(UnitKind.Archer)));
-        Assert.Null(EnemyBehaviour.DescribeClimb(UnitTemplate.For(UnitKind.Vanguard)));
-        Assert.Null(EnemyBehaviour.DescribeClimb(UnitTemplate.For(UnitKind.Husk)));
     }
 
 }

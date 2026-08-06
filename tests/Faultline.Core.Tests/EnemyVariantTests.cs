@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
 
@@ -201,12 +201,14 @@ public class EnemyVariantTests
 
         var perch = state.Find(UnitKind.Perch);
 
+        // Move 2 with no surcharge left on the ledge (MASTER_DESIGN §3, locked u) walks the whole
+        // way onto it rather than stopping one tile short as it did while the climb cost double.
         var intent = Ai.Declare(state, perch);
         Assert.Equal(IntentAction.Advance, intent.Action);
-        Assert.Equal(new Coord(1, 0), intent.MoveTo);
+        Assert.Equal(new Coord(0, 0), intent.MoveTo);
 
         state = state.Then(Ai.Plan(state, perch));
-        Assert.Equal(new Coord(1, 0), state.Get(perch.Id).Position);
+        Assert.Equal(new Coord(0, 0), state.Get(perch.Id).Position);
     }
 
     [Fact]

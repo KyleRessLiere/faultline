@@ -166,9 +166,12 @@ in this file when the question comes back.
 | D-146 | [The Cast threshold: refusing a Cast costs 2 Footing, at exactly 1 the Cast overwhelms and strips it, and the squirm-divert rule is deleted.](#d-146-the-cast-threshold-refusing-a-cast-costs-2-footing-at-exactly-1-the-cast-overwhelms-and-strips-it-and-the-squirm-divert-rule-is-deleted) | 2026-08-05 |  |
 | D-147 | [A player refusal is an interrupt: a prompt in state, two commands in the log, and the raising command re-applied from a speculative probe rather than resumed mid-flight.](#d-147-a-player-refusal-is-an-interrupt-a-prompt-in-state-two-commands-in-the-log-and-the-raising-command-re-applied-from-a-speculative-probe-rather-than-resumed-mid-flight) | 2026-08-05 |  |
 | D-148 | [HELD: the Fisher's "+1 Pluck on a refused Cast" income lever and SURE CAST are named, priced and deliberately not built.](#d-148-held-the-fishers-1-pluck-on-a-refused-cast-income-lever-and-sure-cast-are-named-priced-and-deliberately-not-built) | 2026-08-05 | *held* |
-| D-150 | [A diagonal displacement vector is resolved by the acting side, and the choice rides the acting command rather than a prompt of its own.](#d-150-a-diagonal-displacement-vector-is-resolved-by-the-acting-side-and-the-choice-rides-the-acting-command-rather-than-a-prompt-of-its-own) | unreleased |  |
+| D-150 | [A diagonal displacement vector is resolved by the acting side, and the choice rides the acting command rather than a prompt of its own.](#d-150-a-diagonal-displacement-vector-is-resolved-by-the-acting-side-and-the-choice-rides-the-acting-command-rather-than-a-prompt-of-its-own) | 2026-08-06 |  |
+| D-151 | [Every action has exactly one projection, it lives in Core, and no renderer decides which half of an action applies.](#d-151-every-action-has-exactly-one-projection-it-lives-in-core-and-no-renderer-decides-which-half-of-an-action-applies) | unreleased |  |
+| D-152 | [The climb surcharge is deleted on both sides, and the two perks that bought a discount on it are deleted with it.](#d-152-the-climb-surcharge-is-deleted-on-both-sides-and-the-two-perks-that-bought-a-discount-on-it-are-deleted-with-it) | unreleased |  |
+| D-153 | [HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | unreleased | *held* |
 
-**148 rulings.**
+**151 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3788,3 +3791,134 @@ another would be strictly worse than the silent pick this replaces.
 answer when nobody chose, when there is only one candidate, and when both candidates do the same
 thing — but it is no longer the answer on a diagonal that matters. D-003's reasoning is unchanged and
 still correct for what it covers.
+
+---
+
+**D-151 — Every action has exactly one projection, it lives in Core, and no renderer decides which
+half of an action applies.**
+
+MASTER_DESIGN §3 (locked v, stamp **v2026-08-05x**) makes the displacement preview doc law: "every
+displacement must render its route, the tile where it ACTUALLY STOPS, the outcome there, and
+zero-distance results out loud. All numbers come from Core. A silent no-op is a bug." D-150 and the
+ranged-preview work before it built that for the browser shell. The Warrens playtest
+(`playtest/chatgpt-warrens/PLAYTEST_REPORT.md`, P0) then reported three previews contradicting
+resolution, and all three had the same shape: a renderer answering a rules question itself.
+
+- **`Spear Thrust … nothing that way` and then it hit** the gate, a Grappler, a Raider and a Husk.
+  The text harness branched on *a Direction being present* and sent every such command through
+  `Abilities.PreviewCharge`. A Line ability charges nothing, so the charge projection was empty, so
+  the annotation said the ability did nothing.
+- **The Fisher's `Attack[Pull]` was annotated "for 2 (leaves 2)"** and resolved into a pull event
+  with no damage event. The harness asked `Combat.CanAttack` regardless of `AttackMode`. The flick is
+  *2 damage **OR** pull 1*, and the mode is which.
+- **A Vanguard's push reported a destination the following board did not agree with.**
+  `Displacement.Preview` took no `by` argument at all, while `Displacement.Resolve` did — and
+  Wrecking Weight, read off `by`, adds a tile to the request and a contact bite before the shove
+  starts. Two copies of the arithmetic, one of them blind.
+
+**The ruling.** `Abilities.Outlook(state, command)` returns one `ActionOutlook` for any command:
+direct damage (asked per attack mode), line hits, the charge, and the displacement — projected
+against whoever will really take it, a guard's interception included. Both renderers read it and draw
+it. `Displacement.Preview` takes the same `by` that `Resolve` takes, and the Wrecking Weight
+arithmetic moved into one private helper both call, so a third copy cannot appear without deleting
+the second. `Displacement.AutoRefuses` takes it too, so preview and resolution decide a Footing
+refusal against the same armed distance rather than two different ones.
+
+**Proved against resolution, never against typed numbers.** `PreviewTruthTests` submits the real
+command and compares the projection to the board that command produced — six actions (the Vanguard's
+basic shove armed and unarmed, Stagger Shot, the flick's pull, Reel, Bull Rush) by six endings
+(clean, wall, unit, brambles, drain, resisted-to-zero), asserting the stop tile, the damage to both
+parties, Paddling, Stagger and lethality — plus a second pass over the same matrix asserting the
+*rendered sentence* names the tile the body ended on, or names the zero-distance result with its
+reason. The matrix fails on all six armed cases without the `by` fix. It is the general rule, so the
+fourth contradiction has nowhere to hide.
+
+**What was rejected.**
+
+- **Fixing the three annotations where they were found.** Each fix would have been three lines in the
+  harness, and the fourth renderer would have made the same three mistakes. The failure is that a
+  renderer was allowed to answer "does this deal damage?" at all — CLAUDE.md's third prime directive.
+- **A preview method per ability.** The shell already had one switch and the harness another; a third
+  vocabulary would have been a third thing to keep in step. One query, one record.
+- **Letting `Preview` infer the pusher from whoever stands on the source tile.** `Resolve` already
+  refuses to do this, for the reason written at its `by` parameter: a rule that reads a unit out of
+  incidental geometry breaks quietly the first time the geometry differs.
+- **Reporting the contact bite as a separate figure.** A player reads one number off a tile. The bite
+  is folded into `DamageToUnit`, and `WouldDown` is asked of the hit points left *after* it.
+
+**What it supersedes.** Nothing. It generalises D-057 — a displacement that moves nothing is still
+reported — from displacement to every action, and it is the rule D-150's ghosts already obeyed.
+
+---
+
+**D-152 — The climb surcharge is deleted on both sides, and the two perks that bought a discount on
+it are deleted with it.**
+
+MASTER_DESIGN §3 and Design Log (u) (stamp **v2026-08-05x**): "climb surcharge REMOVED — climbing is
+ordinary movement (1 AP, players; no +1 MP, enemies): position is already the price, and high
+ground's cost is its physics (shove-up collides, shove-off falls, the Grappler hunts the perched).
+Brambles keep 2 AP + 2 damage — there the cost IS the terrain. Casualties: the Archer's free-climb
+perk retires (vestigial); the Climber unlock deletes from §8.6."
+
+Built exactly as written. `Movement.StepCost` no longer special-cases `HighGround` for anybody;
+`Activation.ClimbCost`, `UnitTemplate.FreeClimb` and `Unlock.Climber` are gone. The unlock pool is
+three: Sure-Footed, Steady Hands, Long Boot.
+
+**Deleted rather than left inert.** `Unlock.Climber` could have stayed in the enum as a card that
+changes no number. A camp offer that buys nothing is worse than an absent one, because a player
+spends a pick on it — and an enum entry with no rule site behind it is exactly the promise `Unlock`'s
+own remarks warn against. `Activation.ClimbCost` went for the same reason: a constant nothing reads
+is a constant somebody will reintroduce a use for.
+
+**What did not move, pinned by name** (`ClimbRemovalTests`): brambles still cost **2 AP** to enter
+and deal **2** damage · a shove **up** onto a ledge still collides · a shove **off** one still deals
+**2** and the displacement continues · a ranged shot **from** high ground still adds **+2** · the
+Archer's **adjacent-lower exception** is untouched.
+
+**One behaviour change beyond the price**, recorded because a test moved: the Perch (Move 2) now
+walks the *whole* way onto an adjacent ledge instead of stopping one tile short, because the climb no
+longer consumes its entire pool. That is the surcharge's removal showing up in the enemy that most
+wanted to climb — the intent of (u), not a side effect of it.
+
+**Watch flag, from (u) itself:** if fights now open as scripted hill races, **the brake returns as
+board design, never as the surcharge**. Round-1 high-ground occupancy is reported with the harness
+sweep for exactly this.
+
+**What it supersedes.** The climb row of the AP-turn pricing table, and the Climber unlock introduced
+with the camp pool. Sure-Footed is unaffected — brambles are the terrain where the cost is the
+terrain.
+
+---
+
+**D-153 — HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same
+stamp.**
+
+A session was asked to re-cut or retire every legacy fight not on a 7x7 grid. **31 of the 65 shipped
+`.fight` files are not 7x7** — 17 live, 14 already retired — and the request contradicts the document
+it would be executed on. MASTER_DESIGN §3 (stamp **v2026-08-05x**) opens the board section with
+"**7×7 default (format supports larger)**", and §7.5 reaffirms 7×7 as *the battle screen's* board.
+"Default, format supports larger" is a licence for a board to be bigger on purpose; "re-cut
+everything to 7×7" removes it. Per CLAUDE.md, a contradiction between the prompt and the design gets
+an entry rather than a silent pick, so nothing was re-cut and nothing was retired.
+
+**The live non-7x7 boards.** 9×7: `as-02-both-sides-of-the-chasm`, `cb-04-dead-weight`,
+`cb-06-bait-and-break`, `cb-07-two-gates`, `cb-09-crossfire`, `hold-the-gate`, `hz-02-the-short-way`,
+`hz-04-causeway`, `hz-05-long-way-round`, `hz-07-standing-room`, `hz-09-the-trench`, `quarry-king`,
+`tp-01-one-door`. 11×7: `as-08-two-fires`, `tp-10-the-sanctum`. 11×9: `cb-08-open-order`. 9×9:
+`tp-06-the-pillar`. 8×9: `tp-07-three-lanes`.
+
+**Whose thesis is their size.** The `tp-` family is the board-topology axis: `tp-06 the-pillar`,
+`tp-07 three-lanes`, `tp-10 the-sanctum` and `cb-08 open-order` are boards *about* how much room
+there is, and cutting them to 7×7 deletes the question they ask. `hz-09 the-trench` is described in
+the Warrens playtest report as "a broad 9×7 combined exam", and `as-08 two-fires` needs the width to
+hold two separate fires apart. `hold-the-gate` and `quarry-king` are objective and boss boards whose
+lanes are their pacing.
+
+**Also flagged:** the request names `docs/scenarios/archive/` as where a retired board moves. Retired
+boards do not move — they carry a `retired:` key and stay in `src/Faultline.Core/Fights/Data/`, which
+is where all 65 live. `docs/scenarios/` holds design notes, not battles.
+
+**What would unblock it.** A designer ruling on which of the two §3 sentences governs: either board
+size is per-fight data with 7×7 as the common case — nothing to do, and the request retires — or 7×7
+is a hard constraint, in which case §3's parenthesis needs deleting in the next stamp and the 17 live
+boards want re-cutting one at a time with their theses re-argued, not swept.

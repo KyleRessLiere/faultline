@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Faultline.Core;
 
 namespace Faultline.Core.Tests;
@@ -165,10 +165,15 @@ public class PrimitiveTests
     }
 
     [Fact]
-    public void UnitTemplate_OnlyTheArcherClimbsForFree()
+    public void UnitTemplate_CarriesNoClimbPerk_BecauseTheLedgeCostsEverybodyOneStep()
     {
-        Assert.True(UnitTemplate.For(UnitKind.Archer).FreeClimb);
-        Assert.False(UnitTemplate.For(UnitKind.Vanguard).FreeClimb);
-        Assert.False(UnitTemplate.For(UnitKind.Wardbearer).FreeClimb);
+        // The Archer's free-climb perk retired with the surcharge itself (MASTER_DESIGN §3, locked
+        // u). Asserted on the price rather than on a flag, because the flag no longer exists and the
+        // price is what a player pays.
+        foreach (var kind in new[] { UnitKind.Archer, UnitKind.Vanguard, UnitKind.Wardbearer })
+        {
+            var unit = Unit.FromTemplate(new UnitId(0), kind, Team.PlayerA);
+            Assert.Equal(Activation.StepCost, Movement.StepCost(TileType.HighGround, unit));
+        }
     }
 }

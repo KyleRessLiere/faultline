@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Faultline.Core
 {
@@ -8,6 +8,8 @@ namespace Faultline.Core
     /// </summary>
     public static class Abilities
     {
+        private static readonly LineHit[] NoLineHits = new LineHit[0];
+
         /// <summary>The archetype's headline ability, or <c>null</c> for enemies.</summary>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Its first ability descriptor.</returns>
@@ -379,6 +381,141 @@ namespace Faultline.Core
             return tiles;
         }
 
+        /// <summary>
+        /// What one command would do, whole — the single preview every renderer reads.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// MASTER_DESIGN §3 (locked v) makes the preview a rule: the route, the tile the body
+        /// ACTUALLY stops on, the outcome there, and zero-distance results out loud. A rule lives in
+        /// Core (CLAUDE.md, third prime directive), so which half of an action applies is decided
+        /// here and not by whoever is drawing it.
+        /// </para>
+        /// <para>
+        /// The displacement is projected against whoever will really take it: a guard standing beside
+        /// the target intercepts, and the projection follows it, because a preview that named the
+        /// wrong body would be exactly the lie this query exists to stop.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="command">The command to project.</param>
+        /// <returns>The projection, or <c>null</c> when the command is not an action.</returns>
+        public static ActionOutlook? Outlook(GameState state, Command command)
+        {
+            switch (command)
+            {
+                case AttackCommand attack:
+                {
+                    var unit = state.FindUnit(attack.UnitId);
+                    var target = unit is null ? null : state.FindUnit(attack.TargetId);
+                    if (unit is null || target is null)
+                    {
+                        return null;
+                    }
+
+                    // The mode decides, never the stat block: a Threadcaster asked for a pull deals
+                    // no damage, and a preview that asked the damage rule anyway promised 2 and
+                    // delivered a drag.
+                    var kind = attack.Mode == AttackMode.Pull
+                        ? DisplacementKind.Pull
+                        : DisplacementKind.Push;
+
+                    int distance = attack.Mode switch
+                    {
+                        AttackMode.Pull => unit.Template.BasicPull,
+                        AttackMode.Push => unit.Template.BasicPush,
+                        _ => unit.Template.AttackPush,
+                    };
+
+                    int damage = 0;
+                    if (attack.Mode == AttackMode.Damage)
+                    {
+                        Combat.CanAttack(state, unit, target, out damage);
+                    }
+
+                    return new ActionOutlook(
+                        unit.Id,
+                        target.Id,
+                        damage,
+                        NoLineHits,
+                        null,
+                        Redirected(state, unit, target, kind, distance, attack.Aim));
+                }
+
+                case AbilityCommand ability:
+                {
+                    var unit = state.FindUnit(ability.UnitId);
+                    if (unit is null)
+                    {
+                        return null;
+                    }
+
+                    var descriptor = AbilityDefinition.For(ability.Ability);
+
+                    if (descriptor.Targeting == AbilityTargeting.Line && ability.Direction.HasValue)
+                    {
+                        return new ActionOutlook(
+                            unit.Id,
+                            null,
+                            0,
+                            PreviewLine(state, unit, ability.Direction.Value, ability.Ability),
+                            null,
+                            null);
+                    }
+
+                    if (descriptor.Targeting == AbilityTargeting.Direction && ability.Direction.HasValue)
+                    {
+                        return new ActionOutlook(
+                            unit.Id,
+                            null,
+                            0,
+                            NoLineHits,
+                            PreviewCharge(state, unit, ability.Direction.Value),
+                            null);
+                    }
+
+                    if (ability.TargetId is not { } aimedId || state.FindUnit(aimedId) is not { } aimed)
+                    {
+                        return new ActionOutlook(unit.Id, null, 0, NoLineHits, null, null);
+                    }
+
+                    var shove = Shove(state, unit, aimedId, out var kind, out int distance, out bool bypass)
+                        ? Redirected(state, unit, aimed, kind, distance, ability.Aim, bypass)
+                        : null;
+
+                    return new ActionOutlook(unit.Id, aimedId, descriptor.Damage, NoLineHits, null, shove);
+                }
+
+                default:
+                    return null;
+            }
+        }
+
+        // The displacement as the board will really take it. Game.Redirected sends a shove aimed at a
+        // guarded ally to the guard instead, vector preserved; a projection that ignored that would
+        // draw a chip on a unit that never moves.
+        private static DisplacementPreview? Redirected(
+            GameState state,
+            Unit unit,
+            Unit target,
+            DisplacementKind kind,
+            int distance,
+            DisplacementAim aim,
+            bool bypassResistance = false)
+        {
+            if (distance <= 0)
+            {
+                return null;
+            }
+
+            var guard = Guard.Interceptor(state, target);
+            return guard is null
+                ? Displacement.PreviewAuto(
+                    state, target.Id, unit.Position, kind, distance, bypassResistance, aim, unit.Id)
+                : Guard.PreviewAimed(
+                    state, unit.Position, target, guard.Id, kind, distance, aim, unit.Id);
+        }
+
         /// <summary>What a targeted ability would do to a specific enemy.</summary>
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
@@ -394,7 +531,7 @@ namespace Faultline.Core
             }
 
             return Displacement.PreviewAuto(
-                state, targetId, unit.Position, kind, distance, bypass, aim);
+                state, targetId, unit.Position, kind, distance, bypass, aim, unit.Id);
         }
 
         /// <summary>
@@ -415,7 +552,7 @@ namespace Faultline.Core
             GameState state, Unit unit, UnitId targetId)
         {
             return Shove(state, unit, targetId, out var kind, out int distance, out bool bypass)
-                ? Displacement.Candidates(state, targetId, unit.Position, kind, distance, bypass)
+                ? Displacement.Candidates(state, targetId, unit.Position, kind, distance, bypass, unit.Id)
                 : new DisplacementPreview[0];
         }
 
@@ -532,7 +669,8 @@ namespace Faultline.Core
             DisplacementPreview? shove = null;
             if (contact is not null && descriptor is not null && descriptor.Push > 0)
             {
-                shove = Displacement.PreviewAuto(state, contact.Id, position, DisplacementKind.Push, descriptor.Push);
+                shove = Displacement.PreviewAuto(
+                    state, contact.Id, position, DisplacementKind.Push, descriptor.Push, by: unit.Id);
             }
 
             return new ChargePreview(unit.Id, direction, path, position, selfDamage, shove);

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Faultline.Core;
 
 namespace Faultline.Playtest;
@@ -320,17 +320,12 @@ public static class View
             case AttackCommand c:
             {
                 var attacker = state.FindUnit(c.UnitId);
-                var target = state.FindUnit(c.TargetId);
-                string damage = attacker is not null && target is not null
-                    && Combat.CanAttack(state, attacker, target, out int dmg)
-                    ? $" for {dmg}" + (target.Hp <= dmg ? "  KILLS" : $"  (leaves {target.Hp - dmg})")
-                    : string.Empty;
-
                 string elevated = attacker is not null && Combat.IsElevatedShot(state, attacker)
                     ? "  from high ground"
                     : string.Empty;
 
-                return $"Attack[{c.Mode}] {Name(state, c.UnitId)} -> {Name(state, c.TargetId)}{damage}{elevated}";
+                return $"Attack[{c.Mode}] {Name(state, c.UnitId)} -> {Name(state, c.TargetId)}"
+                    + $"{elevated}{Outcome(state, command)}";
             }
 
             case AbilityCommand c:
@@ -339,7 +334,7 @@ public static class View
                     ? " -> " + Name(state, c.TargetId.Value)
                     : c.Direction.HasValue ? " " + c.Direction.Value : string.Empty;
 
-                return $"Ability {c.Ability} by {Name(state, c.UnitId)}{aim}{Outcome(state, c)}";
+                return $"Ability {c.Ability} by {Name(state, c.UnitId)}{aim}{Outcome(state, command)}";
             }
 
             case SpendVerveCommand c:
@@ -368,54 +363,70 @@ public static class View
     }
 
     /// <summary>
-    /// What a displacing ability would do, straight out of Core's preview.
+    /// What an action would do, straight out of Core's projection.
     /// </summary>
-    private static string Outcome(GameState state, AbilityCommand command)
+    /// <remarks>
+    /// <para>
+    /// Every question about which half of an action applies is Core's (<see
+    /// cref="Abilities.Outlook"/>), because this renderer answering them itself is exactly how three
+    /// contradictions reached the field: a Line ability read as a charge and annotated "nothing that
+    /// way" before it hit, a pull annotated with the damage of the shot it was chosen instead of, and
+    /// a shove whose destination was drawn without knowing who was shoving.
+    /// </para>
+    /// <para>
+    /// MASTER_DESIGN §3 (locked v) also makes the empty result a sentence rather than a silence, so
+    /// there is no branch here that returns nothing for an action that does something.
+    /// </para>
+    /// </remarks>
+    private static string Outcome(GameState state, Command command)
     {
-        var unit = state.FindUnit(command.UnitId);
-        if (unit is null)
+        var outlook = Abilities.Outlook(state, command);
+        if (outlook is null)
         {
             return string.Empty;
         }
 
-        // A charge is aimed down a line rather than at a unit, which means Bull Rush — the shove the
-        // whole design is built around — is the one ability that never named a target. Reading only
-        // targeted previews left it as bare text, and a reader choosing between four identical-looking
-        // directions is choosing blind.
-        if (command.Direction.HasValue)
+        var parts = new List<string>();
+
+        if (outlook.Damage > 0 && outlook.TargetId is { } hurtId && state.FindUnit(hurtId) is { } hurt)
         {
-            return Charge(state, unit, command.Direction.Value);
+            parts.Add($"for {outlook.Damage}"
+                + (hurt.Hp <= outlook.Damage ? "  KILLS" : $"  (leaves {hurt.Hp - outlook.Damage})"));
         }
 
-        if (!command.TargetId.HasValue)
+        foreach (var hit in outlook.LineHits)
         {
-            return string.Empty;
+            string who = hit.UnitId is { } id ? Name(state, id)
+                : hit.HitsStructure ? "the structure"
+                : hit.At.ToString();
+            parts.Add($"{hit.Damage} to {who}");
         }
 
-        var preview = Abilities.PreviewTarget(state, unit, command.TargetId.Value);
-        if (preview is null)
+        if (outlook.Charge is { } charge)
         {
-            return string.Empty;
+            parts.AddRange(ChargeParts(state, charge));
         }
 
-        if (preview.IsNoOp)
+        if (outlook.Displacement is { } shove)
         {
-            return "  => does not move it";
+            parts.Add(Shove(state, shove));
         }
 
-        return "  => " + Shove(state, preview);
+        if (parts.Count == 0)
+        {
+            // Named rather than blank. An option that renders as bare text is an option a reader
+            // cannot choose between, which is what "a silent no-op is a bug" means here.
+            return outlook.LineHits.Count > 0 || outlook.Charge is not null
+                ? "  => nothing that way"
+                : "  => no effect on the board";
+        }
+
+        return "  => " + string.Join(", ", parts);
     }
 
     /// <summary>What a Bull Rush down a line would do: the run, and the shove at the end of it.</summary>
-    private static string Charge(GameState state, Unit unit, Direction direction)
+    private static List<string> ChargeParts(GameState state, ChargePreview preview)
     {
-        var preview = Abilities.PreviewCharge(state, unit, direction);
-
-        if (preview.IsNoOp)
-        {
-            return "  => nothing that way";
-        }
-
         var parts = new List<string>();
 
         if (preview.Path.Count > 0)
@@ -432,7 +443,7 @@ public static class View
             ? "connects with nothing"
             : "shoves " + Name(state, preview.Contact.UnitId) + ": " + Shove(state, preview.Contact));
 
-        return "  => " + string.Join(", ", parts);
+        return parts;
     }
 
     /// <summary>One displacement, in words, straight out of Core's preview.</summary>
@@ -440,7 +451,11 @@ public static class View
     {
         if (preview.IsNoOp)
         {
-            return "does not move it";
+            // The reason is Core's own subtraction, never a number worked out here: a refusal that
+            // does not name itself is the silent no-op CLAUDE.md calls a bug.
+            return preview.Resistance > 0
+                ? $"does not move it (resist {preview.Resistance})"
+                : "does not move it";
         }
 
         var parts = new List<string>

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Faultline.Core
 {
@@ -190,6 +190,11 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance, before modifiers.</param>
         /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
+        /// <param name="by">
+        /// Unit causing the displacement, where one is known. Carried so an armed shove previews the
+        /// extra tile and the contact bite it will actually deliver; see
+        /// <see cref="Displacement.Preview"/>.
+        /// </param>
         /// <returns>The projected outcome for the victim.</returns>
         public static DisplacementPreview PreviewAimed(
             GameState state,
@@ -198,10 +203,11 @@ namespace Faultline.Core
             UnitId victimId,
             DisplacementKind kind,
             int distance,
-            DisplacementAim aim = DisplacementAim.Default)
+            DisplacementAim aim = DisplacementAim.Default,
+            UnitId? by = null)
         {
             var from = AimFrom(state, sourceAt, aimedAt, victimId, kind);
-            return Displacement.PreviewAuto(state, victimId, from, kind, distance, aim: aim);
+            return Displacement.PreviewAuto(state, victimId, from, kind, distance, aim: aim, by: by);
         }
 
         /// <summary>

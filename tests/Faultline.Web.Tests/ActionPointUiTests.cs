@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
 using Faultline.Web.Shell;
@@ -192,18 +192,16 @@ public sealed class ActionPointUiTests
     }
 
     [Fact]
-    public void AClimbShowsItsSurchargeOnTheTile_AndTheArcherDoesNotPayIt()
+    public void AClimbCarriesNoSurchargeOnTheTile_ForAnybody()
     {
-        // The ledge at (1,2) costs the climb, so the Vanguard's label carries the bracket. The
-        // Archer climbs free, so its label is the plain running total — the difference is Core's.
+        // The ledge at (1,2) is an ordinary step since MASTER_DESIGN §3 (locked u), so the label is
+        // the plain running total and no bracket appears — for the Vanguard as much as the Archer.
         var state = Ledge(out var vanguard, out var archer);
         var climb = new Coord(1, 2);
 
-        Assert.True(ActionPoints.IsSurcharged(state, vanguard, climb));
-        Assert.Equal(Activation.ClimbCost, ActionPoints.TileCost(state, vanguard, climb));
-        Assert.Equal(
-            Activation.ClimbCost + " (+" + (Activation.ClimbCost - Activation.StepCost) + ")",
-            ActionPoints.TileLabel(state, vanguard, climb));
+        Assert.False(ActionPoints.IsSurcharged(state, vanguard, climb));
+        Assert.Equal(Activation.StepCost, ActionPoints.TileCost(state, vanguard, climb));
+        Assert.DoesNotContain("(+", ActionPoints.TileLabel(state, vanguard, climb));
 
         Assert.False(ActionPoints.IsSurcharged(state, archer, new Coord(1, 4)));
         Assert.Equal(Activation.StepCost, ActionPoints.TileCost(state, archer, new Coord(1, 4)));

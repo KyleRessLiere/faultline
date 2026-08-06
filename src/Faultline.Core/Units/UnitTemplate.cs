@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -18,7 +18,6 @@ namespace Faultline.Core
     /// anti-displacement stat and a bestiary lever: regulars carry 1, and a stack of 2 or more is how
     /// a stat block says "this one will cost you properly to fish".
     /// </param>
-    /// <param name="FreeClimb">True when entering HighGround costs no extra movement.</param>
     /// <param name="AttackPush">Push distance the basic attack applies on top of its damage.</param>
     /// <param name="BasicPull">
     /// Pull distance the basic action may apply instead of dealing damage, within <paramref name="Range"/>.
@@ -72,7 +71,6 @@ namespace Faultline.Core
         int Range,
         int Damage,
         int Footing,
-        bool FreeClimb,
         int AttackPush = 0,
         int BasicPull = 0,
         int BasicPush = 0,
@@ -152,7 +150,7 @@ namespace Faultline.Core
             // the priority list gains a Bull Rush, which the planner reads off the standalone shove
             // rather than off the archetype — the enraged block is the one that carries a BasicPush.
             var quarryKingEnraged = new UnitTemplate(
-                UnitKind.QuarryKing, "Quarry King", 28, 3, AttackKind.Melee, 1, 6, 3, false,
+                UnitKind.QuarryKing, "Quarry King", 28, 3, AttackKind.Melee, 1, 6, 3,
                 AttackPush: 1, BasicPush: 2, Plan: EnemyPlan.QuarryKing);
 
             var all = new[]
@@ -162,57 +160,57 @@ namespace Faultline.Core
                 // push" the default, which blunts the board. Scenarios grant it instead, through the
                 // 'footing:' key in the .fight file.
                 // The Vanguard's basic shoves; the Threadcaster's may pull instead of hurting.
-                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 14, 3, AttackKind.Melee, 1, 2, 0, false, AttackPush: 1),
-                new UnitTemplate(UnitKind.Archer, "Archer", 8, 3, AttackKind.Ranged, 3, 4, 0, true, MinRange: 2),
-                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 8, 3, AttackKind.Ranged, 3, 2, 0, false, BasicPull: 1),
+                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 14, 3, AttackKind.Melee, 1, 2, 0, AttackPush: 1),
+                new UnitTemplate(UnitKind.Archer, "Archer", 8, 3, AttackKind.Ranged, 3, 4, 0, MinRange: 2),
+                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 8, 3, AttackKind.Ranged, 3, 2, 0, BasicPull: 1),
                 // D-058: the Wardbearer's hold aura is gone and it is heavier instead — 7 HP behind
                 // push resistance 2, the Colossus's number on a player class. The aura mechanic
                 // itself survives on the enemy Bulwark below.
-                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 14, 3, AttackKind.Melee, 1, 2, 0, false, PushResistance: 2),
+                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 14, 3, AttackKind.Melee, 1, 2, 0, PushResistance: 2),
 
                 // Brief §2: Enemies. Grappler and Stalker deal no damage at all — their whole action
                 // is the displacement their priority list calls for (Pull 2 at range 3; Push 1 in melee).
-                new UnitTemplate(UnitKind.Husk, "Husk", 4, 3, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee, Tramples: true),
-                new UnitTemplate(UnitKind.Lobber, "Lobber", 6, 2, AttackKind.Ranged, 3, 2, 0, false, Plan: EnemyPlan.Lobber),
-                new UnitTemplate(UnitKind.Anchor, "Anchor", 12, 1, AttackKind.Melee, 1, 4, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
-                new UnitTemplate(UnitKind.Grappler, "Grappler", 10, 3, AttackKind.None, 3, 0, 0, false, BasicPull: 2, Plan: EnemyPlan.Grappler),
-                new UnitTemplate(UnitKind.Stalker, "Stalker", 8, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 3),
+                new UnitTemplate(UnitKind.Husk, "Husk", 4, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee, Tramples: true),
+                new UnitTemplate(UnitKind.Lobber, "Lobber", 6, 2, AttackKind.Ranged, 3, 2, 0, Plan: EnemyPlan.Lobber),
+                new UnitTemplate(UnitKind.Anchor, "Anchor", 12, 1, AttackKind.Melee, 1, 4, 0, Plan: EnemyPlan.Melee, PushResistance: 1),
+                new UnitTemplate(UnitKind.Grappler, "Grappler", 10, 3, AttackKind.None, 3, 0, 0, BasicPull: 2, Plan: EnemyPlan.Grappler),
+                new UnitTemplate(UnitKind.Stalker, "Stalker", 8, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 3),
 
                 // docs/ENEMY_ROSTER.md: behaviour variants. Each one names a plan the shipped five do
                 // not have; everything else about it is a number on this row.
-                new UnitTemplate(UnitKind.Warden, "Warden", 12, 0, AttackKind.Melee, 1, 4, 2, false, Plan: EnemyPlan.Warden),
-                new UnitTemplate(UnitKind.Perch, "Perch", 6, 2, AttackKind.Ranged, 3, 2, 0, false, Plan: EnemyPlan.Perch),
-                new UnitTemplate(UnitKind.Bulwark, "Bulwark", 10, 2, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee, HoldAura: true),
-                new UnitTemplate(UnitKind.Harrier, "Harrier", 8, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Harrier),
-                new UnitTemplate(UnitKind.Runt, "Runt", 2, 4, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee),
-                new UnitTemplate(UnitKind.Colossus, "Colossus", 20, 1, AttackKind.Melee, 1, 6, 0, false, Plan: EnemyPlan.Melee, PushResistance: 2),
+                new UnitTemplate(UnitKind.Warden, "Warden", 12, 0, AttackKind.Melee, 1, 4, 2, Plan: EnemyPlan.Warden),
+                new UnitTemplate(UnitKind.Perch, "Perch", 6, 2, AttackKind.Ranged, 3, 2, 0, Plan: EnemyPlan.Perch),
+                new UnitTemplate(UnitKind.Bulwark, "Bulwark", 10, 2, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee, HoldAura: true),
+                new UnitTemplate(UnitKind.Harrier, "Harrier", 8, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Harrier),
+                new UnitTemplate(UnitKind.Runt, "Runt", 2, 4, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee),
+                new UnitTemplate(UnitKind.Colossus, "Colossus", 20, 1, AttackKind.Melee, 1, 6, 0, Plan: EnemyPlan.Melee, PushResistance: 2),
 
                 // docs/ENEMY_ROSTER.md: balance variants. Same plan as the archetype they vary, so the
                 // priority list is shared rather than copied — only the numbers differ.
-                new UnitTemplate(UnitKind.LesserGrappler, "Lesser Grappler", 10, 3, AttackKind.None, 2, 0, 0, false, BasicPull: 2, Plan: EnemyPlan.Grappler),
-                new UnitTemplate(UnitKind.BluntedStalker, "Blunted Stalker", 8, 4, AttackKind.None, 1, 0, 0, false, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 2),
-                new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 6, 3, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Melee),
+                new UnitTemplate(UnitKind.LesserGrappler, "Lesser Grappler", 10, 3, AttackKind.None, 2, 0, 0, BasicPull: 2, Plan: EnemyPlan.Grappler),
+                new UnitTemplate(UnitKind.BluntedStalker, "Blunted Stalker", 8, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 2),
+                new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 6, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee),
 
                 // The reserved Footing-2 fixture. A Husk in every other number, fielded by nothing:
                 // it exists so the stacked-Footing rules have something to be asserted against
                 // without a shipped board being re-tiered behind a rules change (the D-092 trap).
-                new UnitTemplate(UnitKind.BracedHusk, "Braced Husk", 4, 3, AttackKind.Melee, 1, 2, 2, false, Plan: EnemyPlan.Melee),
-                new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 12, 2, AttackKind.Melee, 1, 4, 0, false, Plan: EnemyPlan.Melee, PushResistance: 1),
+                new UnitTemplate(UnitKind.BracedHusk, "Braced Husk", 4, 3, AttackKind.Melee, 1, 2, 2, Plan: EnemyPlan.Melee),
+                new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 12, 2, AttackKind.Melee, 1, 4, 0, Plan: EnemyPlan.Melee, PushResistance: 1),
 
                 // The neutral. A stat block with nothing on it — no attack, no shove, no resistance —
                 // whose whole identity is the plan it names. Fielded by nothing: it is the proof that
                 // a new priority list costs one registration and one planner, not a proof that the
                 // roster needed another body (component review, "Acceptance test for the architecture
                 // itself").
-                new UnitTemplate(UnitKind.EscortDuckling, "Escort Duckling", 4, 4, AttackKind.None, 0, 0, 0, false, Plan: EnemyPlan.Escort),
+                new UnitTemplate(UnitKind.EscortDuckling, "Escort Duckling", 4, 4, AttackKind.None, 0, 0, 0, Plan: EnemyPlan.Escort),
 
                 // docs/archive/CURATED_SET.md §5A/§5B: the objective enemies. The Raider is a Husk in every
                 // number and differs only in the list it runs. The Quarry King's three carry the
                 // boss's whole anti-displacement budget: three refusals, spent one per instance like
                 // everybody else's since D-143 retired the negating token.
-                new UnitTemplate(UnitKind.Raider, "Raider", 4, 3, AttackKind.Melee, 1, 2, 0, false, Plan: EnemyPlan.Raider),
+                new UnitTemplate(UnitKind.Raider, "Raider", 4, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Raider),
                 new UnitTemplate(
-                    UnitKind.QuarryKing, "Quarry King", 28, 1, AttackKind.Melee, 1, 6, 3, false,
+                    UnitKind.QuarryKing, "Quarry King", 28, 1, AttackKind.Melee, 1, 6, 3,
                     AttackPush: 1, Plan: EnemyPlan.QuarryKing,
                     Enraged: quarryKingEnraged, EnrageAt: 14),
             };

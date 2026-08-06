@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -47,6 +47,13 @@ namespace Faultline.Core
         /// Which candidate the acting side picked, when the vector is diagonal and two tiles satisfy
         /// it equally. Ignored on an unambiguous vector; see <see cref="DisplacementAim"/>.
         /// </param>
+        /// <param name="by">
+        /// Unit causing the displacement, where one is known — the same argument
+        /// <see cref="Resolve"/> takes, and for the same reason. A Wrecking Weight push asks for an
+        /// extra tile and bites on contact, so a preview that did not know who was shoving drew a
+        /// destination the board then disagreed with (MASTER_DESIGN §3, locked v: the destination is
+        /// what the unit ACTUALLY does).
+        /// </param>
         /// <returns>The projected outcome.</returns>
         public static DisplacementPreview Preview(
             GameState state,
@@ -56,7 +63,8 @@ namespace Faultline.Core
             int distance,
             bool refused = false,
             bool bypassResistance = false,
-            DisplacementAim aim = DisplacementAim.Default)
+            DisplacementAim aim = DisplacementAim.Default,
+            UnitId? by = null)
         {
             var target = state.UnitById(targetId);
             var direction = DirectionOf(target, source, kind);
@@ -71,6 +79,26 @@ namespace Faultline.Core
                     targetId, kind, Direction.Up, distance, 0, new Coord[0], target.Position,
                     DisplacementStop.Immovable, 0, null, 0, false, false, false, false, false,
                     null, 0, resistance);
+            }
+
+            // The armed push, read from the same helper Resolve reads it from. A refused instance
+            // never reaches the charge at all, exactly as in Resolve, where the refusal returns
+            // before Wrecking Weight is consulted.
+            int contactDamage = 0;
+            if (!refused && ArmedPush(state, by, kind, ref distance, out int rawContact))
+            {
+                contactDamage = Guard.Mitigate(state, targetId, rawContact, DamageSource.Attack);
+
+                // Contact damage lands before the shove does, so a body it kills never travels.
+                if (target.Hp - contactDamage <= 0)
+                {
+                    return new DisplacementPreview(
+                        targetId, kind, direction.Value, distance, 0, new Coord[0], target.Position,
+                        DisplacementStop.Immovable, contactDamage, null, 0, false, false, true, false,
+                        false, null, 0, resistance);
+                }
+
+                target = target with { Hp = target.Hp - contactDamage };
             }
 
             int natural = EffectiveDistance(
@@ -104,7 +132,12 @@ namespace Faultline.Core
                     || StaggersUnit(sim, targetId)
                     || sim.Clings);
 
-            int selfDamage = DamageTo(sim, targetId);
+            // Everything the shove costs this body, contact bite included: one number, because a
+            // player reads one number off the tile. Whether it is fatal is asked of the hit points
+            // the body has left AFTER the bite — target.Hp is already the post-contact figure, so
+            // adding the bite back in here would kill it twice.
+            int routeDamage = DamageTo(sim, targetId);
+            int selfDamage = routeDamage + contactDamage;
 
             return new DisplacementPreview(
                 targetId,
@@ -120,7 +153,7 @@ namespace Faultline.Core
                 sim.ObstacleId.HasValue ? DamageTo(sim, sim.ObstacleId.Value) : 0,
                 StaggersUnit(sim, targetId),
                 sim.Clings,
-                target.Hp - selfDamage <= 0,
+                target.Hp - routeDamage <= 0,
                 consumesStagger,
                 footingMatters,
                 sim.StructureHits.Count > 0 ? sim.StructureHits[0].At : (Coord?)null,
@@ -200,22 +233,17 @@ namespace Faultline.Core
             // the shove was the armed one has to survive down to the stop below.
             bool echoes = false;
 
-            if (kind == DisplacementKind.Push && by.HasValue)
+            if (ArmedPush(state, by, kind, ref distance, out int contactDamage))
             {
-                var pusher = state.FindUnit(by.Value);
-                if (pusher is not null && pusher.WreckingWeightArmed)
-                {
-                    distance += Verve.ContactDistanceBonusFor(pusher);
-                    echoes = pusher.Has(Mod.Echo);
-                    state = state.WithUnit(pusher with { WreckingWeightArmed = false });
-                    state = Combat.ApplyDamage(
-                        state, targetId, Verve.ContactDamageFor(pusher), DamageSource.Attack, events);
+                var pusher = state.UnitById(by!.Value);
+                echoes = pusher.Has(Mod.Echo);
+                state = state.WithUnit(pusher with { WreckingWeightArmed = false });
+                state = Combat.ApplyDamage(state, targetId, contactDamage, DamageSource.Attack, events);
 
-                    before = state.UnitById(targetId);
-                    if (!before.IsOnBoard)
-                    {
-                        return state;
-                    }
+                before = state.UnitById(targetId);
+                if (!before.IsOnBoard)
+                {
+                    return state;
                 }
             }
 
@@ -317,6 +345,7 @@ namespace Faultline.Core
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
+        /// <param name="by">Unit causing the displacement, where one is known; see <see cref="Preview"/>.</param>
         /// <returns>The projected outcome, including any refusal the defender will make.</returns>
         public static DisplacementPreview PreviewAuto(
             GameState state,
@@ -325,7 +354,8 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             bool bypassResistance = false,
-            DisplacementAim aim = DisplacementAim.Default)
+            DisplacementAim aim = DisplacementAim.Default,
+            UnitId? by = null)
         {
             return Preview(
                 state,
@@ -333,9 +363,10 @@ namespace Faultline.Core
                 source,
                 kind,
                 distance,
-                AutoRefuses(state, targetId, source, kind, distance, bypassResistance, aim),
+                AutoRefuses(state, targetId, source, kind, distance, bypassResistance, aim, by),
                 bypassResistance,
-                aim);
+                aim,
+                by);
         }
 
         /// <summary>
@@ -361,6 +392,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="by">Unit causing the displacement, where one is known; see <see cref="Preview"/>.</param>
         /// <returns>One or two projected outcomes.</returns>
         public static IReadOnlyList<DisplacementPreview> Candidates(
             GameState state,
@@ -368,7 +400,8 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            UnitId? by = null)
         {
             var target = state.UnitById(targetId);
             Vector(target.Position, source, kind, out int dx, out int dy);
@@ -377,7 +410,7 @@ namespace Faultline.Core
             {
                 return new[]
                 {
-                    PreviewAuto(state, targetId, source, kind, distance, bypassResistance),
+                    PreviewAuto(state, targetId, source, kind, distance, bypassResistance, by: by),
                 };
             }
 
@@ -390,8 +423,8 @@ namespace Faultline.Core
 
             return new[]
             {
-                PreviewAuto(state, targetId, source, kind, distance, bypassResistance, first),
-                PreviewAuto(state, targetId, source, kind, distance, bypassResistance, second),
+                PreviewAuto(state, targetId, source, kind, distance, bypassResistance, first, by),
+                PreviewAuto(state, targetId, source, kind, distance, bypassResistance, second, by),
             };
         }
 
@@ -411,6 +444,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="by">Unit causing the displacement, where one is known; see <see cref="Preview"/>.</param>
         /// <returns>Whether the choice is worth making.</returns>
         public static bool ChoiceMatters(
             GameState state,
@@ -418,9 +452,10 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            UnitId? by = null)
         {
-            var candidates = Candidates(state, targetId, source, kind, distance, bypassResistance);
+            var candidates = Candidates(state, targetId, source, kind, distance, bypassResistance, by);
             return candidates.Count == 2 && !candidates[0].SameOutcomeAs(candidates[1]);
         }
 
@@ -435,6 +470,7 @@ namespace Faultline.Core
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
+        /// <param name="by">Unit causing the displacement, where one is known; see <see cref="Preview"/>.</param>
         /// <returns>Whether the instance is refused.</returns>
         public static bool AutoRefuses(
             GameState state,
@@ -443,7 +479,8 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             bool bypassResistance = false,
-            DisplacementAim aim = DisplacementAim.Default)
+            DisplacementAim aim = DisplacementAim.Default,
+            UnitId? by = null)
         {
             var target = state.UnitById(targetId);
             if (!Footing.CanRefuseDisplacement(target))
@@ -452,7 +489,7 @@ namespace Faultline.Core
             }
 
             return target.Team == Team.Enemy
-                ? EnemyWouldRefuse(state, targetId, source, kind, distance, bypassResistance, aim)
+                ? EnemyWouldRefuse(state, targetId, source, kind, distance, bypassResistance, aim, by)
                 : Footing.AnswerFor(state, targetId) ?? false;
         }
 
@@ -493,7 +530,7 @@ namespace Faultline.Core
                 source,
                 kind,
                 distance,
-                AutoRefuses(state, targetId, source, kind, distance, bypassResistance, aim),
+                AutoRefuses(state, targetId, source, kind, distance, bypassResistance, aim, by),
                 events,
                 by,
                 bypassResistance,
@@ -619,6 +656,7 @@ namespace Faultline.Core
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
         /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
+        /// <param name="by">Unit causing the displacement, where one is known; see <see cref="Preview"/>.</param>
         /// <returns>Whether the instance is refused.</returns>
         public static bool EnemyWouldRefuse(
             GameState state,
@@ -627,15 +665,45 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             bool bypassResistance = false,
-            DisplacementAim aim = DisplacementAim.Default)
+            DisplacementAim aim = DisplacementAim.Default,
+            UnitId? by = null)
         {
             if (!Footing.CanRefuseDisplacement(state.UnitById(targetId)))
             {
                 return false;
             }
 
-            var without = Preview(state, targetId, source, kind, distance, false, bypassResistance, aim);
+            var without = Preview(state, targetId, source, kind, distance, false, bypassResistance, aim, by);
             return without.Stop == DisplacementStop.Pit;
+        }
+
+        // The one copy of what Wrecking Weight does to a shove: an extra tile on the request, added
+        // before Stagger, resistance and Footing so it composes with all three (D-076), and a bite on
+        // contact. Read by the preview and by the resolution, because two copies of this is exactly
+        // how a destination chip came to disagree with the board behind it.
+        private static bool ArmedPush(
+            GameState state,
+            UnitId? by,
+            DisplacementKind kind,
+            ref int distance,
+            out int contactDamage)
+        {
+            contactDamage = 0;
+
+            if (kind != DisplacementKind.Push || by is null)
+            {
+                return false;
+            }
+
+            var pusher = state.FindUnit(by.Value);
+            if (pusher is null || !pusher.WreckingWeightArmed)
+            {
+                return false;
+            }
+
+            distance += Verve.ContactDistanceBonusFor(pusher);
+            contactDamage = Verve.ContactDamageFor(pusher);
+            return true;
         }
 
         private static Direction? DirectionOf(Unit target, Coord source, DisplacementKind kind) =>

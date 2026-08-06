@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -176,8 +176,6 @@ namespace Faultline.Core
             // ---- unlocks: any duck may hold any of them --------------------------------------------
             Of(Unlock.SureFooted, "Sure-Footed",
                 "Brambles cost this duck " + Activation.StepCost + " AP.", UpgradeMechanic.MovementCost),
-            Of(Unlock.Climber, "Climber",
-                "High ground costs this duck " + Activation.StepCost + " AP.", UpgradeMechanic.MovementCost),
             Of(Unlock.SteadyHands, "Steady Hands",
                 "Rescue costs this duck " + Activation.SteadyHandsRescueCost + " AP.",
                 UpgradeMechanic.RescuePricing),

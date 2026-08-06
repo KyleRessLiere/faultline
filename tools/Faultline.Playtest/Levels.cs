@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using Faultline.Core;
 
@@ -84,6 +84,26 @@ public static class Levels
         }
 
         text.AppendLine();
+        text.AppendLine("## Round-1 high-ground occupancy — the (u) watch flag");
+        text.AppendLine();
+        text.AppendLine("Player bodies standing on a ledge when round 1 ends, summed and at worst across");
+        text.AppendLine("every policy. Absolute counts, not a fraction: MASTER_DESIGN Design Log (u) deleted the");
+        text.AppendLine("climb surcharge and flagged \"fights opening as scripted hill races\" as the thing to");
+        text.AppendLine("watch. If this rises, the brake is board design, never the surcharge returning.");
+        text.AppendLine();
+        text.AppendLine("| Fight | Ledge tiles | Perched after round 1 (total) | Worst single policy |");
+        text.AppendLine("|---|---|---|---|");
+
+        foreach (var id in fightIds)
+        {
+            var forFight = rows.Where(r => r.FightId == id).ToList();
+            text.AppendLine(
+                $"| `{id}` | {forFight.Select(r => r.Ledges).DefaultIfEmpty(0).Max()} "
+                + $"| {forFight.Sum(r => r.PerchedAfterRoundOne)} "
+                + $"| {forFight.Select(r => r.PerchedAfterRoundOne).DefaultIfEmpty(0).Max()} |");
+        }
+
+        text.AppendLine();
         text.AppendLine("## Which policies clear which board");
         text.AppendLine();
         text.Append("| Fight |");
@@ -130,11 +150,27 @@ public static class Levels
         int boardDealt = 0;
         int totalDealt = 0;
 
+        // The (u) watch flag, counted as an absolute: player bodies standing on a ledge at the moment
+        // round 1 ends. The climb surcharge is deleted, and the thing to watch for is fights opening
+        // as scripted hill races — a ratio would hide it, because a board with two ledges and a board
+        // with six would report the same fraction.
+        int perchedAtRoundOneEnd = -1;
+        int ledges = 0;
+        foreach (var tile in state.Board.AllCoords())
+        {
+            if (state.Board.At(tile) == TileType.HighGround)
+            {
+                ledges++;
+            }
+        }
+
         for (int i = 0; i < 20000 && state.Outcome == FightOutcome.InProgress; i++)
         {
             if (state.Round > RunHarness.StallRound)
             {
-                return new LevelRow(fight.Id, policy.Name, FightOutcome.InProgress, state.Round, taken, boardDealt, totalDealt, true);
+                return new LevelRow(
+                    fight.Id, policy.Name, FightOutcome.InProgress, state.Round, taken, boardDealt,
+                    totalDealt, true, perchedAtRoundOneEnd < 0 ? 0 : perchedAtRoundOneEnd, ledges);
             }
 
             var enemy = Game.NextEnemyCommand(state);
@@ -175,10 +211,33 @@ public static class Levels
                 }
             }
 
+            if (perchedAtRoundOneEnd < 0 && step.NewState.Round > 1)
+            {
+                perchedAtRoundOneEnd = Perched(state);
+            }
+
             state = step.NewState;
         }
 
-        return new LevelRow(fight.Id, policy.Name, state.Outcome, state.Round, taken, boardDealt, totalDealt, false);
+        return new LevelRow(
+            fight.Id, policy.Name, state.Outcome, state.Round, taken, boardDealt, totalDealt, false,
+            perchedAtRoundOneEnd < 0 ? Perched(state) : perchedAtRoundOneEnd,
+            ledges);
+    }
+
+    // Player bodies standing on a ledge, right now.
+    private static int Perched(GameState state)
+    {
+        int count = 0;
+        foreach (var unit in state.Units)
+        {
+            if (unit.IsOnBoard && unit.Team.IsPlayer() && state.Board.At(unit.Position) == TileType.HighGround)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private static string Median(IReadOnlyList<int> values)
@@ -200,5 +259,7 @@ public static class Levels
         int Taken,
         int BoardDealt,
         int TotalDealt,
-        bool Stalled);
+        bool Stalled,
+        int PerchedAfterRoundOne = 0,
+        int Ledges = 0);
 }

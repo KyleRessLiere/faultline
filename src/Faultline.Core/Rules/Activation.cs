@@ -1,4 +1,4 @@
-namespace Faultline.Core
+﻿namespace Faultline.Core
 {
     /// <summary>
     /// The Action Point economy (MASTER_DESIGN §3, "Activation — the Action Point turn"). A player
@@ -40,9 +40,6 @@ namespace Faultline.Core
         /// (MASTER_DESIGN §15). The damage for standing in them is unchanged and separate.
         /// </summary>
         public const int BrambleCost = 2;
-
-        /// <summary>Cost to climb onto HighGround. The Archer pays <see cref="StepCost"/> instead.</summary>
-        public const int ClimbCost = 2;
 
         /// <summary>Basic attacks, Stagger Shot, Spear Thrust, Guard Stance, the Fisher's flick, interact.</summary>
         public const int ActionCost = 1;

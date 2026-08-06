@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -46,7 +46,7 @@ namespace Faultline.Core
 
         private static readonly Unlock[] AllUnlocks =
         {
-            Unlock.SureFooted, Unlock.Climber, Unlock.SteadyHands, Unlock.LongBoot,
+            Unlock.SureFooted, Unlock.SteadyHands, Unlock.LongBoot,
         };
 
         private static readonly Consumable[] AllConsumables =

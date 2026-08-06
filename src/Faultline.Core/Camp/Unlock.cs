@@ -1,4 +1,4 @@
-namespace Faultline.Core
+﻿namespace Faultline.Core
 {
     /// <summary>
     /// A one-sentence rule addition carried by one duck (MASTER_DESIGN §8.6, "Tactical unlocks").
@@ -15,9 +15,6 @@ namespace Faultline.Core
     {
         /// <summary>Brambles cost this duck 1 AP.</summary>
         SureFooted = 0,
-
-        /// <summary>High ground costs this duck 1 AP.</summary>
-        Climber = 1,
 
         /// <summary>Rescue costs this duck 2 AP.</summary>
         SteadyHands = 2,

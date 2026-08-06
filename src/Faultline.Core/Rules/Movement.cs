@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
@@ -153,13 +153,11 @@ namespace Faultline.Core
         /// <returns>The cost in movement points.</returns>
         public static int StepCost(TileType tile, Unit unit)
         {
-            // Brief §2: climbing onto HighGround costs +1, except for the Archer. Under the AP
-            // turn that surcharge is denominated in AP like every other one (MASTER_DESIGN §3), and
-            // the Climber unlock buys one duck out of it entirely (MASTER_DESIGN §8.6).
-            if (tile == TileType.HighGround && !unit.Template.FreeClimb)
-            {
-                return unit.Has(Unlock.Climber) ? Activation.StepCost : Activation.ClimbCost;
-            }
+            // HighGround has no surcharge at all, for anybody, on either side (MASTER_DESIGN §3,
+            // locked u): position is already the price, and the ledge's cost is its physics — a shove
+            // up collides like a wall, a shove off falls, and the Grappler hunts whoever is perched.
+            // The Archer's free-climb perk and the Climber unlock went with it; both bought a
+            // discount on a step that is no longer expensive.
 
             // Brambles cost double to wade into, for AP users only (MASTER_DESIGN §3). Enemies keep
             // movement-point semantics, so terrain prices them exactly as it always did. The damage

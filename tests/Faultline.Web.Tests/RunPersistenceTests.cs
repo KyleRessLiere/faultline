@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Faultline.Core;
@@ -222,7 +222,7 @@ public sealed class RunPersistenceTests
                 .With(Mod.Heavier)
                 .With(Mod.Echo)
                 .With(SecondWind.StaggerAnEnemy)
-                .With(Unlock.Climber)
+                .With(Unlock.LongBoot)
                 .WithPocket(Consumable.OldRope),
         });
 

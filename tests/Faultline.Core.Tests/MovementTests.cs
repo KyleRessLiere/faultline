@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Faultline.Core;
 
 namespace Faultline.Core.Tests;
@@ -68,30 +68,22 @@ public class MovementTests
     }
 
     [Fact]
-    public void Move_HighGroundCostsOneExtraForMostUnits()
+    public void Move_HighGroundCostsAnOrdinaryStep_ForEveryClass()
     {
-        var state = BoardBuilder.Rows("...H.")
-            .PlayerA(UnitKind.Vanguard, 0, 0)
-            .Build();
+        // MASTER_DESIGN §3 (locked u): the surcharge is deleted and the Archer's exemption from it
+        // went with it, so three steps of pool reach a ledge on the third for everybody. Brambles
+        // are the terrain where the cost IS the terrain; the ledge's cost is its physics.
+        foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Wardbearer })
+        {
+            var state = BoardBuilder.Rows("...H.")
+                .PlayerA(kind, 0, 0)
+                .Build();
 
-        var reachable = Movement.Reachable(state, state.Find(UnitKind.Vanguard));
+            var reachable = Movement.Reachable(state, state.Find(kind));
 
-        // Three steps of plain floor is exactly Move 3; the climb on the third step costs 4.
-        Assert.DoesNotContain(new Coord(3, 0), reachable.Keys);
-        Assert.True(reachable.ContainsKey(new Coord(2, 0)));
-    }
-
-    [Fact]
-    public void Move_ArcherClimbsHighGroundForFree()
-    {
-        var state = BoardBuilder.Rows("...H.")
-            .PlayerA(UnitKind.Archer, 0, 0)
-            .Build();
-
-        var reachable = Movement.Reachable(state, state.Find(UnitKind.Archer));
-
-        Assert.True(reachable.TryGetValue(new Coord(3, 0), out var option));
-        Assert.Equal(3, option!.Cost);
+            Assert.True(reachable.TryGetValue(new Coord(3, 0), out var option), kind.ToString());
+            Assert.Equal(Activation.PlayerPool, option!.Cost);
+        }
     }
 
     [Fact]

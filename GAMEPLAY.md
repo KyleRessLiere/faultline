@@ -39,6 +39,15 @@ Rescue: **3 AP** (the whole pool). Pluck cap for every class: **5**.
 attacker on either side, player or enemy, has no minimum. Ranged attacks fired from HighGround deal
 **+2**.
 
+### Terrain movement costs
+
+| Terrain | Cost to enter (player AP) | Cost to enter (enemy MP) |
+|---|---|---|
+| Open, Cracked | 1 | 1 |
+| Brambles (`Spikes`) | **2** (Sure-Footed: 1) | 1 |
+| HighGround | **1** — no climb surcharge on either side (D-152) | 1 |
+| Wall, Drain (`Pit`) | cannot be entered on foot | cannot be entered on foot |
+
 ### Collision and terrain damage
 
 | Event | Damage | Notes |
@@ -141,7 +150,7 @@ double.
 | Wall | impossible | collision |
 | Pit | **impossible** (D-004) | Clinging |
 | Spikes | costs 1 movement, **2 damage**, no Stagger — and the router will walk you over them if that is the fastest way (D-097) | **6 damage**, stops there, Staggers |
-| HighGround | costs **2** movement (Archer: 1) | **impossible from below** — the ledge collides |
+| HighGround | costs **1** movement — an ordinary step, for every class and every enemy (D-152) | **impossible from below** — the ledge collides |
 | HighGround → down | free | **2 damage**, and the displacement *continues* |
 
 Ranged attacks fired *from* HighGround deal **+2**. There is no line of sight (D-010).
@@ -190,7 +199,7 @@ A player unit activates with **3 action points**, and *everything* comes out of 
 |---|---|
 | Step onto open ground or a cracked tile | **1** |
 | Step onto brambles | **2** |
-| Climb onto high ground | **2** (the Archer climbs free, so **1**) |
+| Climb onto high ground | **1** — the same as open ground (D-152) |
 | Basic attack, or the pull/push half of one | **1** |
 | Stagger Shot, Spear Thrust, Guard Stance, the Fisher's flick, interact | **1** |
 | **Reel** | **2** |
@@ -229,7 +238,7 @@ earned upgrades, never in a per-class pool.
 movement-point semantics exactly as they always were:
 
 - Its pool is its **Move stat**, not 3.
-- Its terrain prices are unchanged: **brambles cost it 1**, and the high-ground climb is the old +1.
+- Its terrain prices are unchanged: **brambles cost it 1**, and the high-ground climb costs it **1** — the +1 surcharge is deleted on both sides (D-152).
 - **An action never comes out of its pool.** An enemy that has spent every point of Move can still
   attack, pull, push or shove.
 
@@ -511,6 +520,38 @@ the Fisher's flick — a pull 1 — moves an Anchor **0**. Staggering the target
 Staggered Grappler pull is an effective 3, so it drags a Wardbearer exactly **1**. Until D-139 this
 subtraction read Pushes only, which is why a Grappler dragged a Wardbearer its full 2.
 
+### The preview contract — what every action promises
+
+**A preview is a rule, not polish** (MASTER_DESIGN §3, locked v). Every renderer — the browser shell
+and the text harness alike — reads one Core projection, `Abilities.Outlook(state, command)`, and
+draws it. Nothing outside Core decides which half of an action applies, and no number on screen is
+worked out by whoever is drawing it (D-151).
+
+For **any** command the projection carries, and the renderer shows:
+
+| Claim | Where it comes from |
+|---|---|
+| Direct damage to the target, and whether it kills | `Combat.CanAttack`, asked **per attack mode** — a pull deals none |
+| Per-tile hits of a Line ability | `Abilities.PreviewLine` — never the charge projection |
+| The run of a charge, and what it takes on the way | `Abilities.PreviewCharge` |
+| The **route** of a displacement, and the tile the body **actually stops on** | `Displacement.Preview` |
+| The outcome there — damage to **both** parties, Stagger, Paddling, structure damage | the same projection |
+| A zero-distance result, **out loud**, with its reason | `DisplacementPreview.IsNoOp` + `Resistance` |
+
+Three consequences that were bugs until D-151:
+
+- **A Line ability is never read as a charge.** Spear Thrust carries a direction and charges nothing;
+  routing it through the charge projection made it announce "nothing that way" and then hit for 2/4.
+- **The attack mode decides the damage.** The Fisher's flick is *2 damage OR pull 1*; asking the
+  damage rule about the pull promised 2 and delivered a drag.
+- **The projection knows who is shoving.** Wrecking Weight buys the shove **+1 tile and a 2-point
+  contact bite**, so a projection taken without the pusher drew a destination one tile short of the
+  board that followed. `Displacement.Preview` now takes the same `by` the resolution takes, and the
+  arithmetic lives in one place.
+
+A guard standing beside the target intercepts, and the projection follows the body that will really
+move — the chip is never drawn on a unit that stays put.
+
 ### Which way — the diagonal is the acting side's choice
 
 The direction is the dominant axis of the vector between the source and the target. When the two
@@ -680,7 +721,7 @@ available — *out of reach*, or *the pool is already spent* once she has moved.
 | Class | HP | Move | Basic attack | Ability |
 |---|---|---|---|---|
 | Vanguard | 14 | 3 | melee, 2 dmg **+ push 1** | **Bull Rush** — **2 AP**; charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Like every action it closes the move half (D-097), and at 2 it leaves one tile of run-up, so his threat range is **4** (D-126). |
-| Archer | 8 | 3 | range **2-3**, 4 dmg | **Stagger Shot** — range **2-3**, 2 dmg + push 1 away. Also climbs HighGround for free. |
+| Archer | 8 | 3 | range **2-3**, 4 dmg | **Stagger Shot** — range **2-3**, 2 dmg + push 1 away. Her **+2 from high ground** and her **adjacent-lower exception** are unchanged; her free-climb perk retired with the surcharge itself (D-152). |
 | **Fisher** | 8 | 3 | range **3**, 2 dmg **or pull 1** | **Reel** — range **4**, pull one enemy all the way to adjacent, resolving every tile. Nothing between her and it is consulted — no line of sight, no lane check; the line flies over rock and body alike (D-010). *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **14** | 3 | melee, 2 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **4** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 2. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
 
@@ -1396,7 +1437,6 @@ A condition held by the wrong class pays nothing: the listener checks the class 
 | Unlock | Rule |
 |---|---|
 | **Sure-Footed** | brambles cost this duck **1 AP** instead of 2. The **damage** for entering is unchanged. |
-| **Climber** | high ground costs this duck **1 AP** instead of 2 |
 | **Steady Hands** | rescue costs this duck **2 AP** instead of the whole pool — so it may walk one tile first. It still ends the activation. |
 | **Long Boot** | may kick a clinger in at range **2** instead of 1 |
 
