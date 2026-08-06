@@ -60,6 +60,36 @@ cannot grant — but the consequence is that Act 1's **only** differentiated des
 so a route vote has nothing on screen to prefer one door over another. Worth knowing before playtest
 feedback says "the map choices feel arbitrary".
 
+### The camp now hands out half as many cards, and nobody asked for that
+
+D-154 made the camp one table of two and **one** pick, because §8.6's director rows cannot be stated
+about the two-tables-two-picks camp D-127 built. The ruling is about *legibility* — but its arithmetic
+consequence is a balance change: a run that collected two cards per camp now collects one. Across Act
+1's four camps that is 8 cards → 4. The reading is honest and the alternative was a director whose
+rows are decorative, but **the halving was a side effect, not an intent**, and the designer should say
+whether the fix is two picks off one table, more camps, or leaving it.
+
+### §8.6's fairness row has an unbuildable half
+
+The row reads "…and a shared-use card". **Nothing in the built pool is shared-use** — every card
+belongs to one duck. So the fairness constraint ships as its first half only (steer the offer toward
+the player whose ducks have been passed over). Either the shared-use card class is unbuilt content the
+row is written against, or the phrase means something else.
+
+### Neither harness policy demonstrates both acceptance criteria
+
+`board-first` reaches the capstone but scores by command *type*, so a Follow-In attack and a plain
+attack tie and the base command always wins — it is **blind to cards by construction**, hence
+`changed-action 0`. `relay` (new this session, scores Core's own preview) sees the cards and reports
+`changed-action 1/102` at seeds 1/3/5/11, but loses at the boss. Both criteria are met; **no single
+run meets both**, so the progression proof is assembled from two policies rather than observed once.
+
+### `RunHarness` cannot pass a camp
+
+Its loop knows `AtNode` and a fight only, so the first won fight parks at `AtCamp` and it dereferences
+a null board. That is the crash previously attributed to the `brawler` policy. `--camp-offers` exists
+as a separate runner because of it; the underlying gap is unfixed.
+
 ### `hold-the-gate` re-tagging is a content change, not a tag change
 
 Re-tagging it into the event-fight pool changes what the campaign fields, so it wants the D-092
