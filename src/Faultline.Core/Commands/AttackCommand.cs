@@ -12,9 +12,14 @@ namespace Faultline.Core
     /// Rush's charge direction does. That is what puts the choice in the log and makes a replay
     /// resolve the ambiguity the way the played fight did.
     /// </param>
+    /// <param name="Technique">
+    /// Technique halves the attacker elects for this attack — Follow-In's step, Hand-Off's granted
+    /// push. See <see cref="TechniqueOption"/> for why the election rides the command.
+    /// </param>
     public sealed record AttackCommand(
         UnitId UnitId,
         UnitId TargetId,
         AttackMode Mode = AttackMode.Damage,
-        DisplacementAim Aim = DisplacementAim.Default) : Command;
+        DisplacementAim Aim = DisplacementAim.Default,
+        TechniqueOption Technique = TechniqueOption.None) : Command;
 }

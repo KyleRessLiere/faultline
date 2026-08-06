@@ -107,6 +107,10 @@ namespace Faultline.Core
             Collision => nameof(Collision),
             SpikeHit => nameof(SpikeHit),
             Staggered => nameof(Staggered),
+            Rattled => nameof(Rattled),
+            HandOffGranted => nameof(HandOffGranted),
+            StepBanked => nameof(StepBanked),
+            CrossingShotFired => nameof(CrossingShotFired),
             Clinging => nameof(Clinging),
             Rescued => nameof(Rescued),
             Voided => nameof(Voided),
@@ -205,6 +209,20 @@ namespace Faultline.Core
                 + (e.Voluntary ? "walked in" : "displaced onto"),
 
             Staggered => "staggered until end of round, next displacement +1",
+
+            Rattled e => "rattled by " + Actor(state, e.ByUnitId)
+                + ", " + e.ForFlock + "'s next displacement of it +"
+                + Number(Techniques.RattledDistanceBonus),
+
+            HandOffGranted e => "handed off by " + Actor(state, e.ByUnitId)
+                + ": next basic attack on " + Actor(state, e.AgainstId)
+                + " gains push " + Number(Techniques.HandOffPush) + " if " + e.Owner + " takes it",
+
+            StepBanked e => "offered the tile " + Actor(state, e.ByGuard) + " left at " + e.To
+                + ", " + e.Owner + " to answer",
+
+            CrossingShotFired e => "crossing shot from " + e.From + " at " + e.Crossing
+                + ", " + Number(e.Damage) + " damage",
 
             Clinging e => "clinging to the lip of the pit at " + e.At,
 
@@ -336,6 +354,10 @@ namespace Faultline.Core
             Collision e => e.UnitId,
             SpikeHit e => e.UnitId,
             Staggered e => e.UnitId,
+            Rattled e => e.UnitId,
+            HandOffGranted e => e.UnitId,
+            StepBanked e => e.UnitId,
+            CrossingShotFired e => e.ArcherId,
             Clinging e => e.UnitId,
             Rescued e => e.UnitId,
             Voided e => e.UnitId,

@@ -222,6 +222,18 @@ public class StateEqualityCoverageTests
                 ["FightsWon"] = s => s with { FightsWon = s.FightsWon + 1 },
                 ["RngState"] = s => s with { RngState = s.RngState + 1 },
                 ["MapState"] = s => s with { MapState = MapState.At("c1-first-contact") },
+
+                // §8.6's offer director reads all three: which camp this is, and whose ducks the
+                // last two cards went to. A run that replayed without them would be dealt a
+                // different table (D-154).
+                ["CampsHeld"] = s => s with { CampsHeld = s.CampsHeld + 1 },
+                ["LastPickOwner"] = s => s with { LastPickOwner = Team.PlayerB },
+                ["PreviousPickOwner"] = s => s with { PreviousPickOwner = Team.PlayerB },
+                ["OwnershipIsLopsided"] = s => s with
+                {
+                    LastPickOwner = Team.PlayerA,
+                    PreviousPickOwner = Team.PlayerA,
+                },
             };
 
         internal static readonly IReadOnlyDictionary<string, Func<RunUnit, RunUnit>> SquadMember =

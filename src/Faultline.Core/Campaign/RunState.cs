@@ -76,6 +76,31 @@ namespace Faultline.Core
         /// </remarks>
         public int RngState { get; init; }
 
+        /// <summary>
+        /// How many camps this run has already resolved. The camp director's row selector
+        /// (MASTER_DESIGN §8.6): camp 1 deals engine starters, camp 2 a connector, and so on.
+        /// </summary>
+        public int CampsHeld { get; init; }
+
+        /// <summary>Which player's duck took the most recent camp card, or <c>null</c> before the first.</summary>
+        /// <remarks>
+        /// Two scalars rather than a list of owners, for the reason <see cref="Unit.DisplacedBy"/> is
+        /// two scalars: a list on a state with hand-written equality is a replay bug waiting to be
+        /// written. Two is all §8.6's fairness row asks about — "if the last two picks went to one
+        /// player's ducks".
+        /// </remarks>
+        public Team? LastPickOwner { get; init; }
+
+        /// <summary>Which player's duck took the camp card before that, or <c>null</c>.</summary>
+        public Team? PreviousPickOwner { get; init; }
+
+        /// <summary>
+        /// True when both of the last two camp cards went to the same player, which is the condition
+        /// §8.6's ownership-fairness row fires on.
+        /// </summary>
+        public bool OwnershipIsLopsided =>
+            LastPickOwner is { } last && PreviousPickOwner is { } previous && last == previous;
+
         /// <summary>The act map being walked, or <c>null</c> when the campaign is a linear list.</summary>
         public ActMap? Map => Campaign.Map;
 
@@ -174,6 +199,9 @@ namespace Faultline.Core
                 || Outcome != other.Outcome
                 || FightsWon != other.FightsWon
                 || RngState != other.RngState
+                || CampsHeld != other.CampsHeld
+                || LastPickOwner != other.LastPickOwner
+                || PreviousPickOwner != other.PreviousPickOwner
                 || !Equals(MapState, other.MapState)
                 || !string.Equals(Campaign.Id, other.Campaign.Id, StringComparison.Ordinal)
                 || Campaign.Length != other.Campaign.Length
@@ -218,6 +246,9 @@ namespace Faultline.Core
                 hash = (hash * 31) + (int)Outcome;
                 hash = (hash * 31) + FightsWon;
                 hash = (hash * 31) + RngState;
+                hash = (hash * 31) + CampsHeld;
+                hash = (hash * 31) + (LastPickOwner.HasValue ? (int)LastPickOwner.Value + 1 : 0);
+                hash = (hash * 31) + (PreviousPickOwner.HasValue ? (int)PreviousPickOwner.Value + 1 : 0);
                 hash = (hash * 31) + (MapState?.GetHashCode() ?? 0);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Campaign.Id);
                 hash = (hash * 31) + Campaign.Length;

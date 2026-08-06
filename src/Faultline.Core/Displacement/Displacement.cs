@@ -84,6 +84,11 @@ namespace Faultline.Core
             // The armed push, read from the same helper Resolve reads it from. A refused instance
             // never reaches the charge at all, exactly as in Resolve, where the refusal returns
             // before Wrecking Weight is consulted.
+            // Rattling Impact rides on the request beside Wrecking Weight's tile, so the mark composes
+            // with Stagger, resistance and the hold aura rather than sidestepping them (D-156).
+            int rattle = refused ? 0 : Techniques.RattleBonus(target, by, state);
+            distance += rattle;
+
             int contactDamage = 0;
             if (!refused && ArmedPush(state, by, kind, ref distance, out int rawContact))
             {
@@ -233,6 +238,16 @@ namespace Faultline.Core
             // the shove was the armed one has to survive down to the stop below.
             bool echoes = false;
 
+            // Rattling Impact: the mark is spent whether or not the extra tile survives resistance —
+            // "the other flock's NEXT displacement of it" is one displacement, not one that works.
+            int rattle = Techniques.RattleBonus(before, by, state);
+            if (rattle > 0)
+            {
+                distance += rattle;
+                state = state.WithUnit(before with { RattledFor = null });
+                before = state.UnitById(targetId);
+            }
+
             if (ArmedPush(state, by, kind, ref distance, out int contactDamage))
             {
                 var pusher = state.UnitById(by!.Value);
@@ -254,6 +269,21 @@ namespace Faultline.Core
             if (consumesStagger)
             {
                 updated = updated with { Staggered = false };
+            }
+
+            // Stored Force: "each tile of hostile displacement his resistance cancels stores 1". The
+            // tiles it cancels are counted off the request it was actually handed — Stagger's bonus
+            // included, since that is part of what the shrug ate.
+            int resistance = bypassResistance ? 0 : before.Template.PushResistance;
+            if (resistance > 0)
+            {
+                int asked = distance + (consumesStagger ? 1 : 0);
+                int cancelled = resistance < asked ? resistance : asked;
+                int banked = Techniques.ForceBanked(updated, by, state, cancelled);
+                if (banked > 0)
+                {
+                    updated = updated with { StoredForce = updated.StoredForce + banked };
+                }
             }
 
             state = state.WithUnit(updated);

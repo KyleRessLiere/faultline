@@ -98,6 +98,18 @@ public sealed record RunSave
     /// </summary>
     public int? RngState { get; init; }
 
+    /// <summary>
+    /// How many camps this run has already resolved. Stored because §8.6's offer director reads it:
+    /// a run restored without it would be dealt camp 1's engine starters at its fifth camp.
+    /// </summary>
+    public int CampsHeld { get; init; }
+
+    /// <summary>Which player took the last camp card, for §8.6's ownership-fairness row.</summary>
+    public Team? LastPickOwner { get; init; }
+
+    /// <summary>Which player took the one before that.</summary>
+    public Team? PreviousPickOwner { get; init; }
+
     /// <summary>Takes a snapshot of a live run.</summary>
     /// <param name="id">Storage id.</param>
     /// <param name="state">The run to write down.</param>
@@ -124,6 +136,9 @@ public sealed record RunSave
             AtVote = state.Phase == RunPhase.AtVote,
             AtCamp = state.Phase == RunPhase.AtCamp,
             RngState = state.RngState,
+            CampsHeld = state.CampsHeld,
+            LastPickOwner = state.LastPickOwner,
+            PreviousPickOwner = state.PreviousPickOwner,
         };
     }
 
@@ -155,7 +170,10 @@ public sealed record RunSave
                 },
             RngState,
             AtVote,
-            AtCamp);
+            AtCamp,
+            CampsHeld,
+            LastPickOwner,
+            PreviousPickOwner);
 
     /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
     /// <returns>The stored text.</returns>
@@ -189,6 +207,17 @@ public sealed record RunSave
         // already cleared, which is the exact trap D-125 named.
         text.Append("at-vote: ").Append(AtVote ? "yes" : "no").Append('\n');
         text.Append("at-camp: ").Append(AtCamp ? "yes" : "no").Append('\n');
+        text.Append("camps: ").Append(Number(CampsHeld)).Append('\n');
+
+        if (LastPickOwner is Team last)
+        {
+            text.Append("last-pick: ").Append(last.ToString()).Append('\n');
+        }
+
+        if (PreviousPickOwner is Team previous)
+        {
+            text.Append("previous-pick: ").Append(previous.ToString()).Append('\n');
+        }
 
         foreach (var unit in Squad)
         {
@@ -286,6 +315,21 @@ public sealed record RunSave
                 && string.Equals(voting, "yes", StringComparison.Ordinal),
             AtCamp = fields.TryGetValue("at-camp", out var camping)
                 && string.Equals(camping, "yes", StringComparison.Ordinal),
+            CampsHeld = fields.TryGetValue("camps", out var camps)
+                && int.TryParse(camps, NumberStyles.Integer, CultureInfo.InvariantCulture, out int held)
+                    ? held
+                    : 0,
+
+            // Absent in an older save, which is a run that had no camp history to write down.
+            LastPickOwner = fields.TryGetValue("last-pick", out var lastPick)
+                && Enum.TryParse(lastPick, out Team lastOwner)
+                    ? lastOwner
+                    : (Team?)null,
+            PreviousPickOwner = fields.TryGetValue("previous-pick", out var previousPick)
+                && Enum.TryParse(previousPick, out Team previousOwner)
+                    ? previousOwner
+                    : (Team?)null,
+
             RngState = fields.TryGetValue("rng", out var rng)
                 && int.TryParse(rng, NumberStyles.Integer, CultureInfo.InvariantCulture, out int cursor)
                     ? cursor
@@ -339,6 +383,7 @@ public sealed record RunSave
         text.Append('m').Append(Numbers(loadout.Mods));
         text.Append("|w").Append(Numbers(loadout.SecondWinds));
         text.Append("|u").Append(Numbers(loadout.Unlocks));
+        text.Append("|t").Append(Numbers(loadout.Techniques));
         text.Append("|p").Append(loadout.Pocket is { } pocket ? Number((int)pocket) : string.Empty);
         return text.ToString();
     }
@@ -400,6 +445,8 @@ public sealed record RunSave
                     'm' when Enum.IsDefined(typeof(Mod), value) => loadout.With((Mod)value),
                     'w' when Enum.IsDefined(typeof(SecondWind), value) => loadout.With((SecondWind)value),
                     'u' when Enum.IsDefined(typeof(Unlock), value) => loadout.With((Unlock)value),
+                    't' when Enum.IsDefined(typeof(TechniqueModifier), value) =>
+                        loadout.With((TechniqueModifier)value),
                     _ => loadout,
                 };
             }

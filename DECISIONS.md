@@ -170,8 +170,16 @@ in this file when the question comes back.
 | D-151 | [Every action has exactly one projection, it lives in Core, and no renderer decides which half of an action applies.](#d-151-every-action-has-exactly-one-projection-it-lives-in-core-and-no-renderer-decides-which-half-of-an-action-applies) | unreleased |  |
 | D-152 | [The climb surcharge is deleted on both sides, and the two perks that bought a discount on it are deleted with it.](#d-152-the-climb-surcharge-is-deleted-on-both-sides-and-the-two-perks-that-bought-a-discount-on-it-are-deleted-with-it) | unreleased |  |
 | D-153 | [HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | unreleased | *held* |
+| D-154 | [The camp deals one table of two, and the flock takes one pick.](#d-154---the-camp-deals-one-table-of-two-and-the-flock-takes-one-pick) | unreleased |  |
+| D-155 | [A haul is attributed to its hauler, and Chum the Water starts firing off Reel.](#d-155---a-haul-is-attributed-to-its-hauler-and-chum-the-water-starts-firing-off-reel) | unreleased |  |
+| D-156 | [Rattling Impact's tile rides on the request, and the mark is spent by the attempt.](#d-156---rattling-impacts-tile-rides-on-the-request-and-the-mark-is-spent-by-the-attempt) | unreleased |  |
+| D-157 | [Crossing Shot ships the narrowest reading of an unruled reaction, and does not settle the questions around it.](#d-157---crossing-shot-ships-the-narrowest-reading-of-an-unruled-reaction-and-does-not-settle-the-questions-around-it) | unreleased |  |
+| D-158 | [Technique sockets are counted per duck, because 8.6 contradicts itself about the host.](#d-158---technique-sockets-are-counted-per-duck-because-86-contradicts-itself-about-the-host) | unreleased |  |
+| D-159 | [Only techniques carry a rarity and a tag; the v1 pools are Common and untagged.](#d-159---only-techniques-carry-a-rarity-and-a-tag-the-v1-pools-are-common-and-untagged) | unreleased |  |
+| D-160 | [An "engine starter" is a technique modifier, and every director row is a preference.](#d-160---an-engine-starter-is-a-technique-modifier-and-every-director-row-is-a-preference) | unreleased |  |
+| D-161 | [A modifier that spends another player's duck is elected by that duck's owner.](#d-161---a-modifier-that-spends-another-players-duck-is-elected-by-that-ducks-owner) | unreleased |  |
 
-**151 rulings.**
+**159 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3922,3 +3930,154 @@ is where all 65 live. `docs/scenarios/` holds design notes, not battles.
 size is per-fight data with 7×7 as the common case — nothing to do, and the request retires — or 7×7
 is a hard constraint, in which case §3's parenthesis needs deleting in the next stamp and the 17 live
 boards want re-cutting one at a time with their theses re-argued, not swept.
+
+
+---
+
+**D-154 - The camp deals one table of two, and the flock takes one pick.**
+
+**MASTER_DESIGN 8.6's offer director cannot be stated about the camp that shipped.** Its rows are
+written about a single table - camp 1 is "two **engine starters**, different classes, **preferably
+different players**", camp 3 is "no two cards on the same ability", and the fairness row fires "if the
+last two picks went to one player's ducks". None of those sentences means anything when each player is
+dealt their own pair off their own ducks and both pick, which is what D-127 built.
+
+So the table is now one list of two cards spanning the whole squad, `CampPickCommand` carries one
+index, and **which player's duck a card is for is the decision** rather than which column it sits in.
+Taking the Archer's card is choosing not to take the Vanguard's, and that trade is what the fairness
+row exists to police.
+
+**What D-127 was right about survives.** The table is still derived from the run RNG cursor and never
+stored, so a save that records the phase records the cards; the camp is still a phase on the run seam
+rather than a node on the map.
+
+**What it cost.** `RunState` gained three fields the director reads and the save now carries:
+`CampsHeld`, `LastPickOwner`, `PreviousPickOwner`. A run restored without them is dealt camp 1's row
+at every camp for the rest of the act, which is why they are in `Campaign.Restore` and in `RunSave`.
+
+---
+
+**D-155 - A haul is attributed to its hauler, and Chum the Water starts firing off Reel.**
+
+`PullEffect` resolved with no `by`, on the argument that contact damage and Wrecking Weight are priced
+off a pusher and a haul has never had one. Both are gated on `Push`, so attributing a pull changes
+neither - and three 8.6 cards are written about "an enemy **she** displaced".
+
+The visible consequence is that **Chum the Water now fires off Reel**, which is what its printed card
+text has always said ("+1 when an enemy she displaced this round is killed by anyone") and what the
+anonymous haul quietly prevented. Hand-Off and Crossing Shot need the same attribution to exist at all.
+
+---
+
+**D-156 - Rattling Impact's tile rides on the request, and the mark is spent by the attempt.**
+
+The mark adds its tile to the **requested** distance, beside Wrecking Weight's, rather than to the
+effective one - the placement D-076 argued for. It therefore composes with Stagger, push resistance
+and the hold aura instead of stepping around them: an Anchor's shrug eats a Rattled shove exactly as
+it eats an unmarked one.
+
+**Spent by the attempt, not by the result.** 8.6 says "the other flock's **next** displacement of it",
+and a displacement resistance ate is still a displacement. A rule that only consumed the mark when the
+extra tile survived would let a flock probe for free.
+
+**Unruled, and shipped narrow:** 8.6 says "the first enemy he collides each round", and a collision
+has two bodies in it - the one he moved and the thing it hit. This marks **the body he moved**,
+because that is the one the sentence goes on to talk about. The other reading is live.
+
+---
+
+**D-157 - Crossing Shot ships the narrowest reading of an unruled reaction, and does not settle the
+questions around it.**
+
+Section 14 #13 leaves off-turn timing **unruled**, so this ships the narrowest thing that satisfies
+8.6's one interface clause and adds no timing system:
+
+- it is **not a reaction window**. Nothing is offered to the reacting player, because 8.6 says the
+  shot fires or it does not. It is a consequence of the initiating command, resolved inside it;
+- the **initiating preview shows it** - `ActionOutlook.Reaction`, produced by the same projection the
+  shot is resolved from, so the promise and the shot cannot drift apart;
+- it fires on the tiles the body **enters** (a refused or zero-distance displacement draws nothing),
+  at range 2-3 from the Archer, once per round.
+
+**The command grammar took it unchanged** - no new command, no window, no prompt. That is the
+evidence the reading is not a timing system in disguise.
+
+**Deliberately not settled; each is a live design question:**
+
+1. Does "through her firing line" mean the tiles entered, the tile landed on, or a traced line?
+   Shipped: tiles entered, origin excluded.
+2. Should the shot resolve **mid-path**, so a kill truncates the displacement? Shipped: after the body
+   lands. Mid-path resolution is a real timing system and was not this session's to design.
+3. Should a Crossing Shot kill **charge a meter** - hers, or the initiator's? Shipped: neither. The
+   listener runs after `Verve.Charge` and the camp listeners, so its events fall outside the window
+   those read.
+4. Does the shot obey her **minimum range**? Shipped: no. The card states its own band and it is read
+   instead of the bow's.
+5. Does a **Guard Stance** interception change who is shot at? Shipped: the shot follows the body that
+   actually moved.
+6. Do the **per-round marks** - Rattled, an outstanding Hand-Off, a banked Shelter Step - survive the
+   round they were made in? Shipped: no. They clear in `BeginRound` with Stagger, because every card
+   says "each round" and a mark with no stated duration would be a second duration nobody wrote down.
+
+---
+
+**D-158 - Technique sockets are counted per duck, because 8.6 contradicts itself about the host.**
+
+8.6's heading says all twenty-four modifiers are "**hosted on a named ability**, 2 sockets each". Its
+own card text names a host for three of the eight built here - Follow-In (Basic), Short Line (Reel),
+Shelter Step (Guard Stance) - and names none for Rattling Impact, Hand-Off, Spotter, Crossing Shot or
+Stored Force.
+
+Both cannot be true, and per-ability socketing is unimplementable for five cards out of eight. The
+ceiling is therefore **two techniques per duck**; `TechniqueDefinition.Host` is nullable and is a
+pointer for the card text rather than a rule. The contradiction goes back to the designer.
+
+---
+
+**D-159 - Only techniques carry a rarity and a tag; the v1 pools are Common and untagged.**
+
+8.6 labels rarity on the technique modifiers and on exactly one other card (*Deep Pockets*, "rare",
+unbuilt), and labels tags on the technique modifiers alone. The director's rarity roll needs a tier
+for every card it can deal, so **everything outside the technique pool is Common** - the twelve
+spender mods, the eight Second Winds, the built unlocks, the five pocket one-shots.
+
+They are also **not retro-tagged**. A tag is offer-validity data and the v1 pool predates the
+vocabulary; inventing tags for it here would put the connector row on cards the designer never tagged,
+and the director would then "connect" builds nobody authored.
+
+**Consequence worth watching:** a squad that owns no technique owns no tags, so the connector row
+cannot fire at its second camp. That is part of why camp 1 deals engine starters.
+
+---
+
+**D-160 - An "engine starter" is a technique modifier, and every director row is a preference.**
+
+8.6's camp-1 row says "two **engine starters**" and never defines the term. The narrowest reading that
+makes the row mean anything is the one 8.6's own design test implies: a technique modifier - the cards
+written to change *what the players attempt* - as against the v1 pools, which 8.6 itself calls the
+low-weight utility tier ("a card that only changes a number when an action resolves is a low-weight
+utility card, never a transformative one").
+
+Every constraint in the director is a **preference, not a law**: it narrows the pool when the
+narrowing leaves something and steps aside when it does not, and `CampTable.Bound` records which ones
+actually bound. A director that could deal nothing would be worse than one that occasionally deals a
+card off-row - and without the proof log, an enforced constraint and a decorative one look identical.
+
+---
+
+**D-161 - A modifier that spends another player's duck is elected by that duck's owner.**
+
+Every 8.6 modifier that moves or spends **another player's duck** is consensual, and consent is
+structural rather than a prompt (8.5, and D-120's precedent). Three cards touch it:
+
+- **Hand-Off** writes a grant onto the other flock's duck; that duck's owner elects
+  `TechniqueOption.HandOff` on an attack, or never does. Never doing so is a legal answer.
+- **Shelter Step** banks a tile rather than walking into it. `TakeBankedStepCommand` is the consent,
+  and the tile lapses at the end of the round if nobody asks for it.
+- **Crossing Shot** and **Rattling Impact** need no consent - they are automatic damage and enemy
+  movement - but **their full result appears in the initiating preview** before that player commits.
+
+The elections ride the command for the reason `AttackCommand.Aim` does: the acting side knows the
+choice before anything resolves, so it goes in the log and a replay makes the same choice. An election
+by a duck that does not hold the card, or against an enemy the grant does not name, is **refused by
+name** rather than ignored - a silent no-op is a bug.

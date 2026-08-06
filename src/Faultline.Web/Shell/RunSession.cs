@@ -244,24 +244,22 @@ public sealed class RunSession : IRunBoardDriver
     public void Heal() => Apply(new RestHealCommand());
 
     /// <summary>
-    /// Sends both players' camp picks to Core as one command, which applies them and moves the run on.
+    /// Sends the camp pick to Core, which applies it and moves the run on.
     /// </summary>
     /// <remarks>
-    /// Both picks travel together because they are simultaneous and independent (MASTER_DESIGN §8.5):
-    /// each player's cards are drawn from their own ducks, so there is no order for one to resolve in
-    /// front of the other and no half-picked state to send one into. The table is Core's, redealt
-    /// from the run RNG, so this session cannot hand the squad a card the seed did not deal.
+    /// The table is Core's, redealt from the run RNG, so this session cannot hand the squad a card the
+    /// seed did not deal. One pick, not two: §8.6's director deals one table across the whole squad
+    /// and the flock takes one card off it (D-154).
     /// </remarks>
-    /// <param name="pickA">Index of Player A's card, or -1 when they were dealt none.</param>
-    /// <param name="pickB">Index of Player B's card, or -1 when they were dealt none.</param>
-    public void PickCamp(int pickA, int pickB)
+    /// <param name="pick">Index of the card taken, or -1 when the camp dealt none.</param>
+    public void PickCamp(int pick)
     {
         if (Camp is not { } table)
         {
             return;
         }
 
-        Apply(new CampPickCommand(table, pickA, pickB));
+        Apply(new CampPickCommand(table, pick));
     }
 
     /// <summary>

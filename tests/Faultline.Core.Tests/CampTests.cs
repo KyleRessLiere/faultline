@@ -7,7 +7,8 @@ using Xunit;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The Camp: after every won Fight or Elite, each player picks 1 of 2 (MASTER_DESIGN §8.5).
+/// The Camp: after every won Fight or Elite, two cards on one table and one pick
+/// (MASTER_DESIGN §8.6's offer director; the two-tables shape it replaced is D-127, and why is D-154).
 /// </summary>
 /// <remarks>
 /// These are about the <em>offer</em> — that it is dealt from the run seed, that it is the same two
@@ -33,17 +34,16 @@ public class CampTests
     }
 
     [Fact]
-    public void ACamp_OffersTwoCardsToEachPlayer_AndNothingElseIsLegal()
+    public void ACamp_OffersTwoCards_AndNothingElseIsLegal()
     {
         var run = AtACamp(out var table);
 
-        Assert.Equal(Camp.OffersPerPlayer, table.OffersA.Count);
-        Assert.Equal(Camp.OffersPerPlayer, table.OffersB.Count);
+        Assert.Equal(Camp.OffersPerCamp, table.Offers.Count);
 
-        // Every ordered pair, and nothing but pairs. There is deliberately no decline on the list:
+        // One command per card, and nothing else. There is deliberately no decline on the list:
         // camps are the reward, and turning one down is not a decision (MASTER_DESIGN §8.5).
         var legal = Campaign.LegalRunCommands(run);
-        Assert.Equal(Camp.OffersPerPlayer * Camp.OffersPerPlayer, legal.Count);
+        Assert.Equal(Camp.OffersPerCamp, legal.Count);
         Assert.All(legal, c => Assert.IsType<CampPickCommand>(c));
     }
 
@@ -60,21 +60,18 @@ public class CampTests
     }
 
     [Fact]
-    public void EachDuckPicksForItsOwnOwner_ByTheDefaultSplit()
+    public void EveryCardNamesTheDuckItIsFor_AndThatDucksOwner()
     {
         var run = AtACamp(out var table);
 
         // D-092's loadout is ownership: Player A holds the Vanguard and the Fisher, Player B the
-        // Wardbearer and the Archer. A camp deals each player cards for their own ducks and nobody
-        // else's, which is what makes the two draws independent.
-        foreach (var offer in table.OffersA)
+        // Wardbearer and the Archer. Since D-154 the table spans both, so what has to hold is that
+        // every card can say whose duck it is for — that is the decision the pick is made on.
+        foreach (var offer in table.Offers)
         {
-            Assert.Equal(Team.PlayerA, DefaultTeams.SideFor(run.FindUnit(offer.Duck)!.Kind));
-        }
-
-        foreach (var offer in table.OffersB)
-        {
-            Assert.Equal(Team.PlayerB, DefaultTeams.SideFor(run.FindUnit(offer.Duck)!.Kind));
+            var duck = run.FindUnit(offer.Duck)!;
+            Assert.True(CampDirector.OwnerOf(run, offer).IsPlayer());
+            Assert.Equal(DefaultTeams.SideFor(duck.Kind), CampDirector.OwnerOf(run, offer));
         }
     }
 
@@ -137,7 +134,7 @@ public class CampTests
 
         Assert.NotEqual(run.RngState, table.RngState);
 
-        var after = Campaign.ApplyRun(run, new CampPickCommand(table, 0, 0)).NewState;
+        var after = Campaign.ApplyRun(run, new CampPickCommand(table, 0)).NewState;
 
         Assert.Equal(table.RngState, after.RngState);
     }
@@ -151,30 +148,16 @@ public class CampTests
         // and Core will not take a log that hands the squad cards it never drew.
         var forged = table with
         {
-            OffersA = new[] { CampOffer.Of(new RunUnitId(0), Mod.Heavier), table.OffersA[1] },
+            Offers = new[] { CampOffer.Of(new RunUnitId(0), Mod.Heavier), table.Offers[1] },
         };
 
         var refusal = Assert.Throws<InvalidOperationException>(
-            () => Campaign.ApplyRun(run, new CampPickCommand(forged, 0, 0)));
+            () => Campaign.ApplyRun(run, new CampPickCommand(forged, 0)));
 
         Assert.Contains("not the camp Core would have dealt", refusal.Message, StringComparison.Ordinal);
     }
 
     // ---- the constraints --------------------------------------------------------------------------
-
-    [Fact]
-    public void APlayersTwoOffers_DifferInCategoryWhereverThePoolAllows()
-    {
-        // Swept over many seeds rather than one, because "where the pool allows" is a statement about
-        // the pool and a single deal proves nothing about it.
-        for (int seed = 1; seed <= 60; seed++)
-        {
-            AtACamp(out var table, seed);
-
-            AssertDiffersInCategory(table.OffersA, "Player A", seed);
-            AssertDiffersInCategory(table.OffersB, "Player B", seed);
-        }
-    }
 
     [Fact]
     public void AFullSpender_IsOfferedNoMoreModsForThatDuck()
@@ -194,9 +177,8 @@ public class CampTests
 
         // And it is the run's answer too, not just the catalogue's: no camp can deal her a third.
         var loaded = run.WithUnit(full);
-        var table = Camp.Draw(loaded);
         Assert.DoesNotContain(
-            table.OffersA,
+            CampDirector.Pool(loaded),
             o => o.Category == OfferCategory.Mod && o.Duck.Equals(fisher.Id));
     }
 
@@ -207,7 +189,7 @@ public class CampTests
         {
             var run = AtACamp(out var table, seed);
 
-            foreach (var offer in table.OffersA.Concat(table.OffersB))
+            foreach (var offer in table.Offers)
             {
                 var duck = run.FindUnit(offer.Duck)!;
 
@@ -236,6 +218,7 @@ public class CampTests
             {
                 OfferCategory.Mod, OfferCategory.SecondWind,
                 OfferCategory.Unlock, OfferCategory.Consumable,
+                OfferCategory.Technique,
             },
             CampCatalogue.DrawableCategories());
 
@@ -243,7 +226,7 @@ public class CampTests
         {
             AtACamp(out var table, seed);
 
-            foreach (var offer in table.OffersA.Concat(table.OffersB))
+            foreach (var offer in table.Offers)
             {
                 Assert.Contains(offer.Category, built);
                 Assert.True(IsKnown(offer), offer + " is not in any built pool.");
@@ -289,8 +272,7 @@ public class CampTests
         {
             AtACamp(out var table, seed);
 
-            Assert.Equal(table.OffersA.Count, table.OffersA.Distinct().Count());
-            Assert.Equal(table.OffersB.Count, table.OffersB.Distinct().Count());
+            Assert.Equal(table.Offers.Count, table.Offers.Distinct().Count());
         }
     }
 
@@ -301,22 +283,21 @@ public class CampTests
     {
         var run = AtACamp(out var table);
 
-        var step = Campaign.ApplyRun(run, new CampPickCommand(table, 0, 1));
+        var step = Campaign.ApplyRun(run, new CampPickCommand(table, 1));
 
         var taken = step.All<CampTaken>();
-        Assert.Equal(2, taken.Count);
-        Assert.Equal(Team.PlayerA, taken[0].Player);
-        Assert.Equal(Team.PlayerB, taken[1].Player);
-
-        Assert.Equal(table.OffersA[0], taken[0].Offer);
-        Assert.Equal(table.OffersB[1], taken[1].Offer);
+        Assert.Single(taken);
+        Assert.Equal(CampDirector.OwnerOf(run, table.Offers[1]), taken[0].Player);
+        Assert.Equal(table.Offers[1], taken[0].Offer);
 
         // Full payloads: a renderer draws the card from the event and asks the run nothing (CLAUDE.md).
-        Assert.Equal(table.OffersA[0].Name, taken[0].Name);
-        Assert.Equal(table.OffersA[0].Summary, taken[0].Summary);
+        Assert.Equal(table.Offers[1].Name, taken[0].Name);
+        Assert.Equal(table.Offers[1].Summary, taken[0].Summary);
 
-        AssertCarries(step.NewState.FindUnit(table.OffersA[0].Duck)!, table.OffersA[0]);
-        AssertCarries(step.NewState.FindUnit(table.OffersB[1].Duck)!, table.OffersB[1]);
+        AssertCarries(step.NewState.FindUnit(table.Offers[1].Duck)!, table.Offers[1]);
+
+        // One pick, so the other card is the one the flock gave up. They are never the same card.
+        Assert.NotEqual(table.Offers[0], table.Offers[1]);
     }
 
     [Fact]
@@ -325,11 +306,11 @@ public class CampTests
         var run = AtACamp(out var table);
 
         Assert.Throws<InvalidOperationException>(
-            () => Campaign.ApplyRun(run, new CampPickCommand(table, 2, 0)));
+            () => Campaign.ApplyRun(run, new CampPickCommand(table, 2)));
 
         // And so is declining, which is what an out-of-range index would have to mean.
         Assert.Throws<InvalidOperationException>(
-            () => Campaign.ApplyRun(run, new CampPickCommand(table, CampPickCommand.NoPick, 0)));
+            () => Campaign.ApplyRun(run, new CampPickCommand(table, CampPickCommand.NoPick)));
     }
 
     [Fact]
@@ -338,7 +319,7 @@ public class CampTests
         var run = AtACamp(out var table);
         int before = run.NodeIndex;
 
-        var after = Campaign.ApplyRun(run, new CampPickCommand(table, 0, 0)).NewState;
+        var after = Campaign.ApplyRun(run, new CampPickCommand(table, 0)).NewState;
 
         Assert.NotEqual(RunPhase.AtCamp, after.Phase);
         Assert.Equal(before + 1, after.NodeIndex);
@@ -368,9 +349,9 @@ public class CampTests
         // The draw is on the command, not only the pick: a log entry that said "index 1" without
         // saying what was on offer would be a record nobody could read back.
         Assert.NotNull(pick.Drawn);
-        Assert.NotEmpty(pick.Drawn.OffersA);
-        Assert.NotNull(pick.ChosenA);
-        Assert.Contains(pick.ChosenA!.Value, pick.Drawn.OffersA);
+        Assert.NotEmpty(pick.Drawn.Offers);
+        Assert.NotNull(pick.Chosen);
+        Assert.Contains(pick.Chosen!.Value, pick.Drawn.Offers);
     }
 
     [Fact]
@@ -445,7 +426,10 @@ public class CampTests
             }),
         };
 
-        run = RunFixture.WinTheFight(run);
+        // Read at the handover, before the camp opens. The camp is entitled to hand him a fresh
+        // one-shot — an empty pocket is exactly what makes a consumable drawable — so asserting after
+        // it would be asking whether the *camp* refilled the pocket, which is a different question.
+        run = RunFixture.EndFightInAWin(run).NewState;
 
         Assert.Null(run.FindUnit(wardbearer)!.Loadout.Pocket);
     }
@@ -489,21 +473,6 @@ public class CampTests
         return run;
     }
 
-    private static void AssertDiffersInCategory(
-        IReadOnlyList<CampOffer> offers, string who, int seed)
-    {
-        if (offers.Count < 2)
-        {
-            return;
-        }
-
-        // Only when the pool could have done otherwise: a duck with one category left cannot be
-        // handed two, and that is not a reason to hand it one card (MASTER_DESIGN §8.5).
-        Assert.True(
-            offers[0].Category != offers[1].Category,
-            who + " was dealt two " + offers[0].Category + " cards at seed " + seed + ".");
-    }
-
     private static void AssertCarries(RunUnit duck, CampOffer offer)
     {
         switch (offer.Category)
@@ -517,6 +486,9 @@ public class CampTests
             case OfferCategory.Unlock:
                 Assert.True(duck.Loadout.Has(offer.AsUnlock));
                 break;
+            case OfferCategory.Technique:
+                Assert.True(duck.Loadout.Has(offer.AsTechnique));
+                break;
             default:
                 Assert.Equal(offer.AsConsumable, duck.Loadout.Pocket);
                 break;
@@ -529,6 +501,7 @@ public class CampTests
         OfferCategory.SecondWind => CampCatalogue.SecondWindPool().Contains(offer.AsSecondWind),
         OfferCategory.Unlock => CampCatalogue.UnlockPool().Contains(offer.AsUnlock),
         OfferCategory.Consumable => CampCatalogue.ConsumablePool().Contains(offer.AsConsumable),
+        OfferCategory.Technique => CampCatalogue.TechniquePool().Contains(offer.AsTechnique),
         _ => false,
     };
 }

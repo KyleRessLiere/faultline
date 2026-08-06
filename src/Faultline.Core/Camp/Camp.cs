@@ -17,9 +17,10 @@ namespace Faultline.Core
     /// the same reason: the node just left has no opinion about it (D-127).
     /// </para>
     /// <para>
-    /// <b>Simultaneous and independent.</b> Each player draws from their own ducks, so the two draws
-    /// never compete for the same card and neither has to resolve in front of the other. That is why
-    /// one <see cref="CampPickCommand"/> carries both picks.
+    /// <b>One table, one pick.</b> The camp deals two cards spanning the whole squad and the flock
+    /// takes one, because that is the only shape §8.6's director rows can be said about — "different
+    /// classes, preferably different players", and a fairness row about which player's ducks the last
+    /// two picks went to. It supersedes D-127's per-player draw; see D-154.
     /// </para>
     /// <para>
     /// <b>The table is derived, never stored.</b> <see cref="Draw(RunState)"/> is a pure function of
@@ -29,8 +30,8 @@ namespace Faultline.Core
     /// </remarks>
     public static class Camp
     {
-        /// <summary>Cards dealt to each player. Pick 1 of 2 — and there is no skip.</summary>
-        public const int OffersPerPlayer = 2;
+        /// <summary>Cards on the table. Pick 1 of 2 — and there is no skip.</summary>
+        public const int OffersPerCamp = CampDirector.CardsPerCamp;
 
         /// <summary>
         /// Which ducks a player picks for, in squad order. The default loadout split (D-092) is
@@ -77,10 +78,14 @@ namespace Faultline.Core
             }
 
             var rng = new SeededRng(state.RngState);
-            var offersA = DrawFor(state, Team.PlayerA, rng);
-            var offersB = DrawFor(state, Team.PlayerB, rng);
+            var dealt = CampDirector.Deal(state, rng);
 
-            return new CampTable { OffersA = offersA, OffersB = offersB, RngState = rng.State };
+            return new CampTable
+            {
+                Offers = dealt.Offers,
+                Bound = dealt.Bound,
+                RngState = rng.State,
+            };
         }
 
         /// <summary>
@@ -127,9 +132,8 @@ namespace Faultline.Core
 
         /// <summary>Every pick that could be made at the camp the run is standing at.</summary>
         /// <remarks>
-        /// Every ordered pair of cards, because a camp is two picks and both are inputs — the same
-        /// shape the vote's legal list has. There is no decline on the list: camps are the reward,
-        /// and a button that turns one down is not a decision (MASTER_DESIGN §8.5).
+        /// One command per card. There is no decline on the list: camps are the reward, and a button
+        /// that turns one down is not a decision (MASTER_DESIGN §8.5).
         /// </remarks>
         /// <param name="state">Run standing at a camp.</param>
         /// <returns>The legal picks.</returns>
@@ -143,48 +147,31 @@ namespace Faultline.Core
 
             var table = Draw(state);
 
-            foreach (int a in Indices(table.OffersA.Count))
+            if (table.Offers.Count == 0)
             {
-                foreach (int b in Indices(table.OffersB.Count))
-                {
-                    picks.Add(new CampPickCommand(table, a, b));
-                }
+                picks.Add(new CampPickCommand(table, CampPickCommand.NoPick));
+                return picks;
+            }
+
+            for (int i = 0; i < table.Offers.Count; i++)
+            {
+                picks.Add(new CampPickCommand(table, i));
             }
 
             return picks;
         }
 
         /// <summary>
-        /// The pick indices a table of this size offers: every card, or the single
-        /// <see cref="CampPickCommand.NoPick"/> for a player who was dealt none.
-        /// </summary>
-        private static IReadOnlyList<int> Indices(int count)
-        {
-            if (count == 0)
-            {
-                return new[] { CampPickCommand.NoPick };
-            }
-
-            var indices = new int[count];
-            for (int i = 0; i < count; i++)
-            {
-                indices[i] = i;
-            }
-
-            return indices;
-        }
-
-        /// <summary>
-        /// Applies both picks and leaves the camp. The run advances from here — the camp sits between
+        /// Applies the pick and leaves the camp. The run advances from here — the camp sits between
         /// the fight and the next vote, and closing it is what lets the run move.
         /// </summary>
         /// <param name="state">Run standing at a camp.</param>
-        /// <param name="command">Both picks, with the table they were picked from.</param>
+        /// <param name="command">The pick, with the table it was picked from.</param>
         /// <param name="context">Sinks for what happens.</param>
         /// <returns>The run on the node after the camp, or at its fork.</returns>
         /// <exception cref="InvalidOperationException">
-        /// The run is not at a camp, the recorded table is not the one Core would deal, or a pick is
-        /// not a card on it.
+        /// The run is not at a camp, the recorded table is not the one Core would deal, or the pick
+        /// is not a card on it.
         /// </exception>
         public static RunState Resolve(RunState state, CampPickCommand command, RunContext context)
         {
@@ -221,28 +208,33 @@ namespace Faultline.Core
                     + "; dealt " + table + ".");
             }
 
-            var next = state with { RngState = table.RngState };
+            var next = state with
+            {
+                RngState = table.RngState,
+                CampsHeld = state.CampsHeld + 1,
+            };
 
-            next = Take(next, Team.PlayerA, table.OffersA, command.PickA, context);
-            next = Take(next, Team.PlayerB, table.OffersB, command.PickB, context);
+            next = Take(next, table, command.Pick, context);
 
             return Campaign.Advance(next with { Phase = RunPhase.AtNode }, context);
         }
 
-        /// <summary>Hands one player's chosen card to the duck it was drawn for.</summary>
+        /// <summary>
+        /// Hands the chosen card to the duck it was drawn for, and remembers whose duck that was —
+        /// §8.6's fairness row is a question about the last two picks, so the picks have to be
+        /// written down as they land.
+        /// </summary>
         private static RunState Take(
-            RunState state,
-            Team player,
-            IReadOnlyList<CampOffer> offers,
-            int pick,
-            RunContext context)
+            RunState state, CampTable table, int pick, RunContext context)
         {
+            var offers = table.Offers;
+
             if (offers.Count == 0)
             {
                 if (pick != CampPickCommand.NoPick)
                 {
                     throw new InvalidOperationException(
-                        player + " was dealt nothing at this camp and cannot pick card " + pick + ".");
+                        "This camp dealt nothing and cannot be picked from at card " + pick + ".");
                 }
 
                 return state;
@@ -251,7 +243,7 @@ namespace Faultline.Core
             if (pick < 0 || pick >= offers.Count)
             {
                 throw new InvalidOperationException(
-                    player + " picked card " + pick + " of a table holding " + offers.Count
+                    "Picked card " + pick + " of a table holding " + offers.Count
                     + ". There is no skip — a camp is the reward.");
             }
 
@@ -260,12 +252,17 @@ namespace Faultline.Core
                 ?? throw new InvalidOperationException(
                     "The camp offered something to " + offer.Duck + ", which is not in the squad.");
 
+            var owner = CampDirector.OwnerOf(state, offer);
             var updated = duck with { Loadout = Apply(duck.Loadout, offer) };
 
             context.RunEvents.Add(new CampTaken(
-                player, duck.Id, duck.Kind, offer, offer.Name, offer.Summary));
+                owner, duck.Id, duck.Kind, offer, offer.Name, offer.Summary));
 
-            return state.WithUnit(updated);
+            return state.WithUnit(updated) with
+            {
+                PreviousPickOwner = state.LastPickOwner,
+                LastPickOwner = owner,
+            };
         }
 
         /// <summary>Puts one offer onto a loadout.</summary>
@@ -277,59 +274,11 @@ namespace Faultline.Core
             OfferCategory.Mod => loadout.With(offer.AsMod),
             OfferCategory.SecondWind => loadout.With(offer.AsSecondWind),
             OfferCategory.Unlock => loadout.With(offer.AsUnlock),
+            OfferCategory.Technique => loadout.With(offer.AsTechnique),
             OfferCategory.Consumable => loadout.WithPocket(offer.AsConsumable),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(offer), offer.Category, "No camp pool of that category is built."),
         };
 
-        /// <summary>
-        /// One player's two cards: a uniform draw, then a second uniform draw that prefers a
-        /// different category.
-        /// </summary>
-        /// <remarks>
-        /// The category constraint is "where the pool allows" (MASTER_DESIGN §8.5): the second draw
-        /// is taken from the differing-category subset when there is one, and from whatever is left
-        /// when there is not — a duck with only consumables left cannot be handed two categories, and
-        /// that is not a reason to hand it one card.
-        /// </remarks>
-        private static IReadOnlyList<CampOffer> DrawFor(RunState state, Team player, SeededRng rng)
-        {
-            var pool = new List<CampOffer>();
-            foreach (var duck in DucksFor(state, player))
-            {
-                pool.AddRange(CampCatalogue.EligibleFor(duck));
-            }
-
-            if (pool.Count == 0)
-            {
-                return new CampOffer[0];
-            }
-
-            var first = pool[rng.Next(pool.Count)];
-
-            var differing = new List<CampOffer>();
-            var remainder = new List<CampOffer>();
-            foreach (var candidate in pool)
-            {
-                if (candidate.Equals(first))
-                {
-                    continue;
-                }
-
-                remainder.Add(candidate);
-                if (candidate.Category != first.Category)
-                {
-                    differing.Add(candidate);
-                }
-            }
-
-            var second = differing.Count > 0 ? differing : remainder;
-            if (second.Count == 0)
-            {
-                return new[] { first };
-            }
-
-            return new[] { first, second[rng.Next(second.Count)] };
-        }
     }
 }

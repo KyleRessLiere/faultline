@@ -23,5 +23,11 @@ namespace Faultline.Core
 
         /// <summary>A one-shot for the duck's pocket.</summary>
         Consumable = 3,
+
+        /// <summary>
+        /// A technique modifier on the duck's kit (MASTER_DESIGN §8.6). The v2 pool, and the only
+        /// category that carries a rarity and tags of its own.
+        /// </summary>
+        Technique = 4,
     }
 }

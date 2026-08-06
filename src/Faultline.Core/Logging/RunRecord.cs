@@ -170,8 +170,14 @@ namespace Faultline.Core
         {
             DeployCommand c => Join("Deploy", c.UnitId.ToString(), c.At.ToString()),
             MoveCommand c => Join("Move", c.UnitId.ToString(), c.To.ToString(), PathText(c.Path)),
-            AttackCommand c => Join("Attack", c.UnitId.ToString(), c.TargetId.ToString(), c.Mode.ToString()),
-            AbilityCommand c => Join("Ability", c.UnitId.ToString(), c.Ability.ToString(), AbilityAim(c)),
+            // The elected technique is a column of its own. A logged Follow-In that replayed as a
+            // plain shove would put the Vanguard on a different tile, which is a different fight —
+            // the same argument the attack mode's column is here on.
+            AttackCommand c => Join(
+                "Attack", c.UnitId.ToString(), c.TargetId.ToString(), c.Mode.ToString(),
+                c.Technique.ToString()),
+            AbilityCommand c => Join(
+                "Ability", c.UnitId.ToString(), c.Ability.ToString(), AbilityAim(c), TechniqueAim(c)),
             RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString(), c.To.ToString()),
             FinishClingingCommand c => Join("Finish", c.UnitId.ToString(), c.ClingingId.ToString()),
             EndActivationCommand c => Join("End", c.UnitId.ToString()),
@@ -186,6 +192,7 @@ namespace Faultline.Core
             // The pocket names no item: a duck has one, so which one comes out is the loadout's
             // answer and not the log's (see UseConsumableCommand).
             UseConsumableCommand c => Join("Pocket", c.UnitId.ToString(), PocketAim(c)),
+            TakeBankedStepCommand c => Join("Step", c.UnitId.ToString()),
             _ => Join("Unknown", command is null ? "?" : command.GetType().Name),
         };
 
@@ -220,7 +227,13 @@ namespace Faultline.Core
                     return new AttackCommand(
                         ParseUnit(Field(fields, offset + 1)),
                         ParseUnit(Field(fields, offset + 2)),
-                        Enum.TryParse(Field(fields, offset + 3), out AttackMode mode) ? mode : AttackMode.Damage);
+                        Enum.TryParse(Field(fields, offset + 3), out AttackMode mode) ? mode : AttackMode.Damage,
+                        DisplacementAim.Default,
+
+                        // A line without the column is an older log, and older logs elected nothing.
+                        Enum.TryParse(Field(fields, offset + 4), out TechniqueOption elected)
+                            ? elected
+                            : TechniqueOption.None);
 
                 case "Ability":
                     return ParseAbility(fields, offset);
@@ -242,6 +255,9 @@ namespace Faultline.Core
 
                 case "Pocket":
                     return ParsePocket(fields, offset);
+
+                case "Step":
+                    return new TakeBankedStepCommand(ParseUnit(Field(fields, offset + 1)));
 
                 case "Footing":
                     return new FootingRefuseCommand(
@@ -323,18 +339,60 @@ namespace Faultline.Core
             var aim = Field(fields, offset + 3);
             var unitId = ParseUnit(Field(fields, offset + 1));
 
+            var elected = TechniqueOption.None;
+            int? stopAt = null;
+            foreach (var part in Field(fields, offset + 4).Split(';'))
+            {
+                if (part.StartsWith("tech=", StringComparison.Ordinal)
+                    && Enum.TryParse(part.Substring(5), out TechniqueOption parsed))
+                {
+                    elected = parsed;
+                }
+                else if (part.StartsWith("stop=", StringComparison.Ordinal)
+                    && int.TryParse(
+                        part.Substring(5), NumberStyles.Integer, CultureInfo.InvariantCulture, out int stop))
+                {
+                    stopAt = stop;
+                }
+            }
+
             if (aim.StartsWith("target=", StringComparison.Ordinal))
             {
-                return new AbilityCommand(unitId, ability, ParseUnit(aim.Substring(7)));
+                return new AbilityCommand(
+                    unitId, ability, ParseUnit(aim.Substring(7)), null,
+                    DisplacementAim.Default, elected, stopAt);
             }
 
             if (aim.StartsWith("dir=", StringComparison.Ordinal)
                 && Enum.TryParse(aim.Substring(4), out Direction direction))
             {
-                return new AbilityCommand(unitId, ability, null, direction);
+                return new AbilityCommand(
+                    unitId, ability, null, direction, DisplacementAim.Default, elected, stopAt);
             }
 
-            return new AbilityCommand(unitId, ability);
+            return new AbilityCommand(
+                unitId, ability, null, null, DisplacementAim.Default, elected, stopAt);
+        }
+
+        /// <summary>
+        /// The technique column of an ability line: what was elected, and where Short Line stopped.
+        /// Empty when the command elected nothing, so an ordinary line is unchanged.
+        /// </summary>
+        private static string TechniqueAim(AbilityCommand command)
+        {
+            var parts = new List<string>();
+
+            if (command.Technique != TechniqueOption.None)
+            {
+                parts.Add("tech=" + command.Technique);
+            }
+
+            if (command.StopAt is { } stop)
+            {
+                parts.Add("stop=" + stop.ToString(CultureInfo.InvariantCulture));
+            }
+
+            return string.Join(";", parts);
         }
 
         /// <summary>

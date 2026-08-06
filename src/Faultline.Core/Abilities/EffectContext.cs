@@ -15,10 +15,16 @@ namespace Faultline.Core
     /// Which candidate the acting side picked for an ambiguous displacement vector, carried from the
     /// command so a shove effect resolves the tile the player clicked (MASTER_DESIGN §3, locked v).
     /// </param>
+    /// <param name="StopAt">
+    /// How many tiles of a haul the acting side chose to take, from Short Line (MASTER_DESIGN §8.6).
+    /// <c>null</c> — the whole drag — unless the user holds the card and asked for less; it can never
+    /// lengthen one.
+    /// </param>
     public readonly record struct EffectContext(
         UnitId UserId,
         UnitId? TargetId = null,
         Coord? Tile = null,
         Direction? Direction = null,
-        DisplacementAim Aim = DisplacementAim.Default);
+        DisplacementAim Aim = DisplacementAim.Default,
+        int? StopAt = null);
 }

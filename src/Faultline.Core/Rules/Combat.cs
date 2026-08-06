@@ -93,7 +93,12 @@ namespace Faultline.Core
             // have one - she is firing down at them, not trying to bend a bow around a body in her
             // face. Adjacent on the *same* ledge is still too close, which is what keeps the exception
             // from quietly deleting the rule.
-            if (distance < template.MinRange && !ShootingDownhill(state, attacker, target))
+            //
+            // Spotter (MASTER_DESIGN §8.6) carves out a second, and it is the RELAY one: an enemy
+            // pinned against the other flock's duck is not in her face, it is in somebody else's.
+            if (distance < template.MinRange
+                && !ShootingDownhill(state, attacker, target)
+                && !Techniques.SpotterWaivesMinRange(state, attacker, target))
             {
                 return false;
             }

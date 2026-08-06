@@ -44,6 +44,71 @@ if (args.Length > 0 && args[0] == "--agency")
     return;
 }
 
+// The camp-offer instrumentation (MASTER_DESIGN §8.6). Two runs from one seed with different picks,
+// written as one CSV that is kept rather than a dated session folder.
+//
+//   dotnet run --project tools/Faultline.Playtest -- --camp-offers --seed 1 --policy shover
+if (args.Length > 0 && args[0] == "--camp-offers")
+{
+    int campSeed = 1;
+    string campPolicy = "shover";
+    string campOut = Path.Combine("docs", "playtest", "camp-offers.csv");
+
+    for (int i = 1; i < args.Length; i++)
+    {
+        if (args[i] == "--seed" && i + 1 < args.Length && int.TryParse(args[i + 1], out int cs))
+        {
+            campSeed = cs;
+        }
+        else if (args[i] == "--policy" && i + 1 < args.Length)
+        {
+            campPolicy = args[i + 1];
+        }
+        else if (args[i] == "--out" && i + 1 < args.Length)
+        {
+            campOut = args[i + 1];
+        }
+    }
+
+    var rows = new List<string>();
+
+    // The two halves of the acceptance: same seed, same policy, same route — the pick is the only
+    // thing that differs, which is what makes any difference downstream the card's. More than one
+    // policy may be named, because no single one both reaches the capstone and can see a card.
+    foreach (string name in campPolicy.Split(',', StringSplitOptions.RemoveEmptyEntries))
+    {
+        var chosenPolicy = Policies.ByName(name.Trim());
+        foreach (int pick in new[] { 0, 1 })
+        {
+            var (records, reason, final) = CampInstrumentation.Play(
+                CampaignLibrary.Act1, campSeed, chosenPolicy, pick);
+
+            string label = chosenPolicy.Name + "-seed" + campSeed.ToString(CultureInfo.InvariantCulture)
+                + "-pick" + pick.ToString(CultureInfo.InvariantCulture);
+
+            Console.WriteLine(
+                label + ": " + records.Count + " camps, ended " + final.Outcome + " — " + reason);
+
+            foreach (var record in records)
+            {
+                rows.Add("\"" + label + "\"," + record.Row());
+                Console.WriteLine(
+                    "  camp " + record.Camp + " " + record.NodeId + " [" + record.Lane + "] "
+                    + record.CardA + " | " + record.CardB
+                    + "  ->  " + record.Taken + " (" + record.Recipient + ", " + record.Owner + ")"
+                    + "  triggers " + record.Triggers
+                    + " (" + record.CrossFlockTriggers + " cross-flock)"
+                    + "  changed-action " + record.ChangedChosenAction + "/" + record.DecisionsWatched
+                    + "  solved " + record.ThreatsSolved);
+            }
+        }
+        }
+
+    CampInstrumentation.Write(campOut, rows);
+    Console.WriteLine("Wrote " + campOut + " (" + rows.Count + " rows).");
+    return;
+}
+
 if (args.Length > 0 && args[0] == "--levels")
 {
     int levelSeed = 1;

@@ -287,10 +287,16 @@ namespace Faultline.Core
             var events = new List<GameEvent>();
             GameState next = Resolve(state, command, events);
 
+            // The window every stream listener reads, snapshotted before any of them can widen it.
+            int produced = events.Count;
+
             // Verve reads the finished stream rather than being threaded through the rules that
             // produced it, so it goes here — after the command, before re-planning, so a charge is
             // logged next to the thing that earned it (D-073).
             next = Verve.Charge(next, events);
+
+            // The §8.6 marks, grants and reactions read the same window, last (D-157).
+            next = TechniqueListeners.Fire(next, events, produced);
 
             // Brief §2: an enemy whose target just died re-plans immediately and visibly.
             next = Ai.ReplanInvalidated(next, events);
@@ -328,6 +334,8 @@ namespace Faultline.Core
                     return ApplySpendVerve(state, spend, events);
                 case UseConsumableCommand use:
                     return ApplyUseConsumable(state, use, events);
+                case TakeBankedStepCommand step:
+                    return ApplyBankedStep(state, step, events);
                 case EndActivationCommand end:
                     return ApplyEndActivation(state, end, events);
                 default:
@@ -413,6 +421,32 @@ namespace Faultline.Core
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// The technique halves this attacker could elect against this target, each on its own — a
+        /// list, not a flag, so a driver picks between "step in" and "stay put" as two commands.
+        /// </summary>
+        private static IReadOnlyList<TechniqueOption> ElectableOnAttack(Unit unit, UnitId targetId)
+        {
+            var options = new List<TechniqueOption>();
+
+            if (unit.Has(TechniqueModifier.FollowIn) && unit.Template.AttackPush > 0)
+            {
+                options.Add(TechniqueOption.FollowIn);
+            }
+
+            if (unit.HandOffTarget == targetId)
+            {
+                options.Add(TechniqueOption.HandOff);
+
+                if (unit.Has(TechniqueModifier.FollowIn))
+                {
+                    options.Add(TechniqueOption.HandOff | TechniqueOption.FollowIn);
+                }
+            }
+
+            return options;
         }
 
         private static bool CanStillRefuse(GameState state, UnitId targetId) =>
@@ -503,6 +537,17 @@ namespace Faultline.Core
                         if (Combat.CanAttack(state, unit, target, out _))
                         {
                             commands.Add(new AttackCommand(unit.Id, target.Id));
+
+                            // Every technique the attacker could elect is its own command, because
+                            // electing one is a different decision and not a flag on the same one:
+                            // whoever drives off this list — the AI, the harness, a replay — has to
+                            // be able to choose to step in, or not to.
+                            foreach (var elected in ElectableOnAttack(unit, target.Id))
+                            {
+                                commands.Add(new AttackCommand(
+                                    unit.Id, target.Id, AttackMode.Damage,
+                                    DisplacementAim.Default, elected));
+                            }
                         }
 
                         if (Combat.CanPull(state, unit, target))
@@ -535,6 +580,19 @@ namespace Faultline.Core
                         foreach (var targetId in Abilities.LegalTargets(state, unit, descriptor))
                         {
                             commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, targetId));
+
+                            // Short Line: every tile of the drag she could choose to stop on. The
+                            // full haul is the command already added, so these are the shorter ones.
+                            if (descriptor.PullsToAdjacent && unit.Has(TechniqueModifier.ShortLine))
+                            {
+                                int full = unit.Position.DistanceTo(state.UnitById(targetId).Position) - 1;
+                                for (int stop = 1; stop < full; stop++)
+                                {
+                                    commands.Add(new AbilityCommand(
+                                        unit.Id, descriptor.Ability, targetId, null,
+                                        DisplacementAim.Default, TechniqueOption.None, stop));
+                                }
+                            }
                         }
 
                         foreach (var direction in Abilities.LegalDirections(state, unit, descriptor))
@@ -545,6 +603,13 @@ namespace Faultline.Core
                         foreach (var direction in Abilities.LegalLines(state, unit, descriptor))
                         {
                             commands.Add(new AbilityCommand(unit.Id, descriptor.Ability, null, direction));
+
+                            if (unit.StoredForce > 0 && unit.Has(TechniqueModifier.StoredForce))
+                            {
+                                commands.Add(new AbilityCommand(
+                                    unit.Id, descriptor.Ability, null, direction,
+                                    DisplacementAim.Default, TechniqueOption.StoredForce));
+                            }
                         }
 
                         if (descriptor.Targeting == AbilityTargeting.Self)
@@ -596,6 +661,16 @@ namespace Faultline.Core
                 // A one-shot costs neither half either, and is not once-per-activation but
                 // once-ever — so it sits beside the spend rather than under the action gate.
                 commands.AddRange(Consumables.Legal(state, unit));
+
+                // A banked Shelter Step costs nothing and is nobody's action: it is this owner's
+                // answer to the other flock's card, and never answering is legal (MASTER_DESIGN §8.5).
+                if (unit.BankedStepTo is { } banked
+                    && state.UnitAt(banked) is null
+                    && Movement.IsWalkable(state.Board.At(banked))
+                    && state.StructureAt(banked) is null)
+                {
+                    commands.Add(new TakeBankedStepCommand(unit.Id));
+                }
 
                 // The rescue is fused and costs the whole pool (superseding D-082), so what is on
                 // offer is one command per route *and* drop tile: the run-up is part of the verb, and
@@ -816,6 +891,14 @@ namespace Faultline.Core
                     // "First time each round" is a per-round latch and clears with the rest of them.
                     // The per-fight mask deliberately does not.
                     SecondWindRoundUsed = 0,
+
+                    // The §8.6 marks are per-round for the reason Stagger is: each card says "each
+                    // round", and a mark that outlived the round it was made in would be a second
+                    // duration nobody wrote down (D-157). A banked step and an outstanding Hand-Off
+                    // lapse with them — an offer the other flock made last round is not still open.
+                    RattledFor = null,
+                    HandOffTarget = null,
+                    BankedStepTo = null,
                 };
             }
 
@@ -1009,6 +1092,7 @@ namespace Faultline.Core
         {
             var unit = RequireActivatable(state, command.UnitId);
             Require(!unit.HasActed, "Unit has already acted this activation.");
+            RequireTechniques(unit, command.Technique, command.TargetId);
 
             // An owed attack from Double Nock was already bought by the mod that granted it (D-079),
             // so it is not charged against the pool a second time.
@@ -1084,8 +1168,14 @@ namespace Faultline.Core
 
             state = Combat.ApplyDamage(state, victimId, damage, DamageSource.Attack, events);
 
-            // Brief §2: the Vanguard's basic shove rides along with its damage.
-            int push = unit.Template.AttackPush;
+            // Brief §2: the Vanguard's basic shove rides along with its damage. Hand-Off's granted
+            // push adds to it — the grant is spent by the attack it rides, whether or not the
+            // attacker's own profile shoves at all (MASTER_DESIGN §8.6).
+            int push = unit.Template.AttackPush
+                + Abilities.GrantedPush(unit, command.TargetId, command.Technique);
+
+            var vacated = state.UnitById(victimId).Position;
+
             if (push > 0 && state.UnitById(victimId).IsOnBoard)
             {
                 state = Guard.ResolveAimed(
@@ -1093,7 +1183,91 @@ namespace Faultline.Core
                     by: unit.Id, aim: command.Aim);
             }
 
+            if ((command.Technique & TechniqueOption.HandOff) != 0)
+            {
+                // Spent whether or not the shove travelled: the grant was one attack's worth.
+                state = state.WithUnit(state.UnitById(unit.Id) with { HandOffTarget = null });
+            }
+
+            if (push > 0)
+            {
+                state = FollowIn(state, unit.Id, victimId, vacated, command.Technique, events);
+            }
+
             return AfterAction(state, unit.Id, events);
+        }
+
+        /// <summary>
+        /// Follow-In: the attacker may enter the tile the target left, once the target has really left
+        /// it (MASTER_DESIGN §8.6). Elected on the command, so nothing steps without being asked to.
+        /// </summary>
+        private static GameState FollowIn(
+            GameState state,
+            UnitId attackerId,
+            UnitId victimId,
+            Coord vacated,
+            TechniqueOption elected,
+            List<GameEvent> events)
+        {
+            var attacker = state.FindUnit(attackerId);
+            if ((elected & TechniqueOption.FollowIn) == 0
+                || attacker is null
+                || !attacker.IsOnBoard
+                || !attacker.Has(TechniqueModifier.FollowIn))
+            {
+                return state;
+            }
+
+            // "After the target is pushed ≥1": the body has to have left the tile. A shove a wall or
+            // a Footing refusal ate leaves it standing there, and there is nothing to follow into.
+            var victim = state.FindUnit(victimId);
+            bool moved = victim is null || !victim.IsOnBoard || victim.Position != vacated;
+
+            if (!moved
+                || attacker.Position == vacated
+                || !Movement.IsWalkable(state.Board.At(vacated))
+                || state.StructureAt(vacated) is not null
+                || state.UnitAt(vacated) is not null)
+            {
+                return state;
+            }
+
+            var from = attacker.Position;
+            state = state.WithUnit(attacker with { Position = vacated });
+            events.Add(new UnitMoved(attackerId, from, vacated, new[] { vacated }, 0));
+            return state;
+        }
+
+        /// <summary>
+        /// Refuses a command that elects a technique its actor does not hold or cannot use. A silent
+        /// no-op is a bug, and a card the player does not own must say so rather than do nothing.
+        /// </summary>
+        private static void RequireTechniques(Unit unit, TechniqueOption elected, UnitId? targetId)
+        {
+            if ((elected & TechniqueOption.FollowIn) != 0)
+            {
+                Require(
+                    unit.Has(TechniqueModifier.FollowIn),
+                    "That duck does not carry Follow-In.");
+            }
+
+            if ((elected & TechniqueOption.HandOff) != 0)
+            {
+                Require(
+                    unit.HandOffTarget is not null,
+                    "No Hand-Off has been granted to that duck.");
+                Require(
+                    unit.HandOffTarget == targetId,
+                    "That Hand-Off was granted against a different enemy.");
+            }
+
+            if ((elected & TechniqueOption.StoredForce) != 0)
+            {
+                Require(
+                    unit.Has(TechniqueModifier.StoredForce),
+                    "That duck does not carry Stored Force.");
+                Require(unit.StoredForce > 0, "That duck has no Force banked to spend.");
+            }
         }
 
         // A standalone displacement, routed through whichever guard is covering the target.
@@ -1126,6 +1300,12 @@ namespace Faultline.Core
         {
             var unit = RequireActivatable(state, command.UnitId);
             Require(!unit.HasActed, "Unit has already acted this activation.");
+
+            RequireTechniques(unit, command.Technique, command.TargetId);
+            Require(
+                command.StopAt is null || unit.Has(TechniqueModifier.ShortLine),
+                "Only a Fisher carrying Short Line may choose where the drag stops.");
+            Require(command.StopAt is not (< 0), "A drag cannot stop before the tile it started on.");
 
             var descriptor = Abilities.DescriptorFor(unit, command.Ability);
             Require(descriptor is not null, "That unit does not have that ability.");
@@ -1178,6 +1358,41 @@ namespace Faultline.Core
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
 
             return AfterAction(state, unit.Id, events);
+        }
+
+        /// <summary>
+        /// Takes a banked Shelter Step. Free, one tile, and only into the tile that was banked — the
+        /// owner's yes to somebody else's card, not a movement action.
+        /// </summary>
+        private static GameState ApplyBankedStep(
+            GameState state, TakeBankedStepCommand command, List<GameEvent> events)
+        {
+            var unit = state.UnitById(command.UnitId);
+
+            Require(unit.BankedStepTo is not null, "That duck has no banked step to take.");
+            Require(unit.IsOnBoard && !unit.Clinging, "That duck cannot take a step right now.");
+
+            var to = unit.BankedStepTo!.Value;
+
+            Require(state.UnitAt(to) is null, "Somebody is standing in the tile that was banked.");
+            Require(
+                Movement.IsWalkable(state.Board.At(to)) && state.StructureAt(to) is null,
+                "That tile can no longer be stepped into.");
+
+            var from = unit.Position;
+            state = state.WithUnit(unit with { Position = to, BankedStepTo = null });
+            events.Add(new UnitMoved(unit.Id, from, to, new[] { to }, 0));
+
+            // A free step is still a step, and the board charges for it exactly as it charges for a
+            // walked one: brambles bite for 1 and do not Stagger (Brief §2).
+            if (state.Board.At(to) != TileType.Spikes)
+            {
+                return state;
+            }
+
+            events.Add(new SpikeHit(unit.Id, to, Displacement.SpikeWalkDamage, true));
+            return Combat.ApplyDamage(
+                state, unit.Id, Displacement.SpikeWalkDamage, DamageSource.Spikes, events);
         }
 
         private static GameState ApplyRescue(GameState state, RescueCommand command, List<GameEvent> events)

@@ -465,6 +465,12 @@ namespace Faultline.Core
         /// restoring the phase restores the same two cards. Without it the run would be handed the
         /// node it has already cleared, exactly as with <paramref name="atVote"/> (D-127).
         /// </param>
+        /// <param name="campsHeld">
+        /// How many camps the run had already resolved. §8.6's director reads it to choose the row it
+        /// deals, so a run restored without it is dealt camp 1's table at every camp.
+        /// </param>
+        /// <param name="lastPickOwner">Which player took the last camp card, or <c>null</c>.</param>
+        /// <param name="previousPickOwner">Which player took the one before that, or <c>null</c>.</param>
         /// <returns>The run, standing on its node — or at its fork, or at its camp.</returns>
         /// <exception cref="ArgumentException">
         /// The squad does not match the campaign's, or <paramref name="atVote"/> is claimed somewhere
@@ -480,7 +486,10 @@ namespace Faultline.Core
             MapState? mapState = null,
             int? rngState = null,
             bool atVote = false,
-            bool atCamp = false)
+            bool atCamp = false,
+            int campsHeld = 0,
+            Team? lastPickOwner = null,
+            Team? previousPickOwner = null)
         {
             if (campaign is null)
             {
@@ -582,6 +591,13 @@ namespace Faultline.Core
                 Bindings = Array.Empty<RunBinding>(),
                 MapState = restoredMap,
                 RngState = rngState ?? seed,
+
+                // The camp history is part of the save for the reason the cursor is: §8.6's director
+                // reads the camp number and the last two picks' owners, so a run restored without
+                // them would be dealt camp 1's engine starters again at its fifth camp.
+                CampsHeld = campsHeld < 0 ? 0 : campsHeld,
+                LastPickOwner = lastPickOwner,
+                PreviousPickOwner = previousPickOwner,
             };
         }
 

@@ -594,10 +594,15 @@ public class RunTests
         run = RunFixture.WinTheFight(run);
 
         // The RNG cursor is part of what a save holds: the camp after that fight drew from it, so a
-        // restore that left it at the seed would deal the next camp the same cards twice.
+        // restore that left it at the seed would deal the next camp the same cards twice. So is the
+        // camp history — §8.6's director reads the camp number and the last two picks' owners, and a
+        // run restored without them is dealt camp 1's row for the rest of the act (D-154).
         var restored = Campaign.Restore(
             run.Campaign, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome,
-            rngState: run.RngState);
+            rngState: run.RngState,
+            campsHeld: run.CampsHeld,
+            lastPickOwner: run.LastPickOwner,
+            previousPickOwner: run.PreviousPickOwner);
 
         Assert.Equal(run.GetHashCode(), restored.GetHashCode());
         Assert.Equal(run, restored);

@@ -142,10 +142,10 @@ public sealed class RunScreensTests
 
         var atCamp = Render<Faultline.Web.Pages.CampScreen>(session);
         Assert.Contains("class=\"panel camp\"", atCamp);
-        Assert.Equal(4, Occurrences(atCamp, "class=\"offer "));
+        Assert.Equal(Camp.OffersPerCamp, Occurrences(atCamp, "class=\"offer "));
 
-        // --- both picks, and the camp hands the run to the map ---
-        session.PickCamp(0, 0);
+        // --- the pick, and the camp hands the run to the map ---
+        session.PickCamp(0);
 
         Assert.Null(session.Problem);
         Assert.Equal(RunPhase.AtVote, session.State!.Phase);
@@ -180,7 +180,7 @@ public sealed class RunScreensTests
         Assert.Contains("href=\"" + RunScreens.Camp + "\"", band);
         Assert.DoesNotContain("href=\"campaign\"", band);
 
-        session.PickCamp(0, 0);
+        session.PickCamp(0);
 
         band = RenderBand(session);
         Assert.Contains("href=\"" + RunScreens.Map + "\"", band);
@@ -467,7 +467,7 @@ public sealed class RunScreensTests
                     break;
 
                 case RunPhase.AtCamp:
-                    session.PickCamp(0, 0);
+                    session.PickCamp(0);
                     break;
 
                 case RunPhase.AtChoice:

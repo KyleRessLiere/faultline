@@ -1,0 +1,17 @@
+run,camp,node,lane,card_a,card_b,taken,passed,recipient,owner,bound,triggers,cross_flock_triggers,changed_chosen_action,decisions_watched,threats_solved,objectives_touched
+"board-first-seed1-pick0",1,"c1-first-contact","Neutral","Crossing Shot","Hand-Off","Crossing Shot","Hand-Off","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",1,1,0,107,0,0
+"board-first-seed1-pick0",2,"c2-bait-and-break","Safe","Duck Feather Charm","Spotter","Duck Feather Charm","Spotter","Fisher","PlayerA","no paired consumables; connector to an owned tag",0,0,0,94,0,0
+"board-first-seed1-pick0",3,"c3-the-shrine","Safe","Spotter","Long Boot","Spotter","Long Boot","Archer","PlayerB","",0,0,0,58,0,0
+"board-first-seed1-pick0",4,"c5-break-the-gate","Safe","Shelter Step","Long Boot","Shelter Step","Long Boot","Wardbearer","PlayerB","",0,0,0,35,0,0
+"board-first-seed1-pick1",1,"c1-first-contact","Neutral","Crossing Shot","Hand-Off","Hand-Off","Crossing Shot","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",1,1,0,108,0,0
+"board-first-seed1-pick1",2,"c2-bait-and-break","Safe","Duck Feather Charm","Spotter","Spotter","Duck Feather Charm","Archer","PlayerB","no paired consumables; connector to an owned tag",0,0,0,95,0,0
+"board-first-seed1-pick1",3,"c3-the-shrine","Safe","Sure-Footed","Shelter Step","Shelter Step","Sure-Footed","Wardbearer","PlayerB","connector to an owned tag",0,0,0,59,0,0
+"board-first-seed1-pick1",4,"c5-break-the-gate","Safe","Rattling Impact","Old Rope","Old Rope","Rattling Impact","Fisher","PlayerA","ownership fairness",0,0,0,36,0,0
+"relay-seed1-pick0",1,"c1-first-contact","Neutral","Crossing Shot","Hand-Off","Crossing Shot","Hand-Off","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",2,2,1,102,0,0
+"relay-seed1-pick0",2,"c2-bait-and-break","Safe","Duck Feather Charm","Spotter","Duck Feather Charm","Spotter","Fisher","PlayerA","no paired consumables; connector to an owned tag",0,0,0,86,0,0
+"relay-seed1-pick0",3,"c3-the-shrine","Safe","Spotter","Long Boot","Spotter","Long Boot","Archer","PlayerB","",0,0,0,64,0,0
+"relay-seed1-pick0",4,"c5-break-the-gate","Safe","Shelter Step","Old Rope","Shelter Step","Old Rope","Wardbearer","PlayerB","",0,0,0,32,0,0
+"relay-seed1-pick1",1,"c1-first-contact","Neutral","Crossing Shot","Hand-Off","Hand-Off","Crossing Shot","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,123,0,0
+"relay-seed1-pick1",2,"c2-bait-and-break","Safe","Duck Feather Charm","Spotter","Spotter","Duck Feather Charm","Archer","PlayerB","no paired consumables; connector to an owned tag",0,0,0,107,0,0
+"relay-seed1-pick1",3,"c3-the-shrine","Safe","Sure-Footed","Shelter Step","Shelter Step","Sure-Footed","Wardbearer","PlayerB","connector to an owned tag",0,0,0,85,0,0
+"relay-seed1-pick1",4,"c5-break-the-gate","Safe","Rattling Impact","Old Rope","Old Rope","Rattling Impact","Fisher","PlayerA","ownership fairness",0,0,0,33,0,0

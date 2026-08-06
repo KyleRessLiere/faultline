@@ -254,7 +254,55 @@ namespace Faultline.Core
             }
 
             var from = AimFrom(state, sourceAt, aimedAt, victimId, kind);
-            return Displacement.ResolveAuto(state, victimId, from, kind, distance, events, by, aim: aim);
+            var stood = state.UnitById(victimId).Position;
+
+            state = Displacement.ResolveAuto(state, victimId, from, kind, distance, events, by, aim: aim);
+
+            return ShelterStep(state, aimedAt.Id, victimId, stood, events);
+        }
+
+        /// <summary>
+        /// Shelter Step (MASTER_DESIGN §8.6): if a redirect moves the Wardbearer, the duck he was
+        /// covering banks a free step into the tile he left.
+        /// </summary>
+        /// <remarks>
+        /// <b>Banked, not taken.</b> The protected duck belongs to the other player, and §8.5's bodily
+        /// consent rule is structural: nothing moves another player's body without that owner saying
+        /// so. The owner says so with <see cref="TakeBankedStepCommand"/>, and never saying so is a
+        /// legal answer — which is why this writes a tile down instead of walking into it.
+        /// </remarks>
+        private static GameState ShelterStep(
+            GameState state, UnitId aimedAtId, UnitId victimId, Coord stood, List<GameEvent> events)
+        {
+            if (aimedAtId == victimId)
+            {
+                return state;
+            }
+
+            var guard = state.FindUnit(victimId);
+            var protectedDuck = state.FindUnit(aimedAtId);
+
+            if (guard is null
+                || protectedDuck is null
+                || !guard.Has(TechniqueModifier.ShelterStep)
+                || !protectedDuck.IsOnBoard
+                || !protectedDuck.Team.IsPlayer()
+                || guard.Position == stood)
+            {
+                return state;
+            }
+
+            // The tile has to still be somewhere it could stand: the guard vacated it, but a chain of
+            // shoves inside one command could have put somebody else there first.
+            if (!Movement.IsWalkable(state.Board.At(stood))
+                || state.StructureAt(stood) is not null
+                || state.UnitAt(stood) is not null)
+            {
+                return state;
+            }
+
+            events.Add(new StepBanked(protectedDuck.Id, protectedDuck.Team, stood, guard.Id));
+            return state.WithUnit(protectedDuck with { BankedStepTo = stood });
         }
 
         private static Coord AimFrom(

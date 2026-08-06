@@ -1,13 +1,18 @@
-using System;
 using System.Collections.Generic;
 
 namespace Faultline.Core
 {
     /// <summary>
-    /// What one camp put on the table: each player's own draw, and where the run RNG stands once both
-    /// draws have been made.
+    /// What one camp put on the table: two cards spanning the whole squad, and where the run RNG
+    /// stands once they have been dealt.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// <b>One table, one pick.</b> MASTER_DESIGN §8.6's director rows are written about a single table
+    /// — "two engine starters, different classes, preferably different players" — and its fairness row
+    /// counts which player's ducks the last two picks went to. Neither sentence can be said about two
+    /// independent per-player draws, so the shipped shape gave way to the design's (D-154).
+    /// </para>
     /// <para>
     /// <b>Not stored on <see cref="RunState"/>.</b> A camp's table is a pure function of the run RNG
     /// cursor and the squad, so it is recomputed by <see cref="Camp.Draw(RunState)"/> whenever it is
@@ -15,38 +20,47 @@ namespace Faultline.Core
     /// the same cards, and there is no second copy of the offers to fall out of step with the seed.
     /// </para>
     /// <para>
-    /// Equality is hand-written and structural, because the lists would otherwise compare by
-    /// reference and a recomputed table would never equal the one it recomputed.
+    /// Equality is hand-written and structural, because the list would otherwise compare by reference
+    /// and a recomputed table would never equal the one it recomputed.
     /// </para>
     /// </remarks>
     public sealed record CampTable
     {
         private static readonly CampOffer[] None = new CampOffer[0];
 
-        /// <summary>Player A's draw — at most <see cref="Camp.OffersPerPlayer"/> cards.</summary>
-        public IReadOnlyList<CampOffer> OffersA { get; init; } = None;
+        /// <summary>The cards on the table — at most <see cref="CampDirector.CardsPerCamp"/>.</summary>
+        public IReadOnlyList<CampOffer> Offers { get; init; } = None;
 
-        /// <summary>Player B's draw — at most <see cref="Camp.OffersPerPlayer"/> cards.</summary>
-        public IReadOnlyList<CampOffer> OffersB { get; init; } = None;
-
-        /// <summary>Where the run RNG stands after both draws.</summary>
+        /// <summary>Where the run RNG stands after the deal.</summary>
         public int RngState { get; init; }
 
-        /// <summary>True when neither player was handed anything, so there is no camp to run.</summary>
-        public bool IsEmpty => OffersA.Count == 0 && OffersB.Count == 0;
+        /// <summary>Which of §8.6's rows narrowed the pool while dealing, in the order they applied.</summary>
+        public IReadOnlyList<string> Bound { get; init; } = new string[0];
 
-        /// <summary>One player's draw.</summary>
+        /// <summary>True when the squad could be offered nothing, so there is no camp to run.</summary>
+        public bool IsEmpty => Offers.Count == 0;
+
+        /// <summary>The cards on this table that belong to one player's ducks.</summary>
+        /// <param name="state">Run the table was dealt for, to look owners up.</param>
         /// <param name="player">Which player.</param>
-        /// <returns>Their offers, empty for the enemy side.</returns>
-        public IReadOnlyList<CampOffer> For(Team player) =>
-            player == Team.PlayerA ? OffersA : player == Team.PlayerB ? OffersB : None;
+        /// <returns>Their cards, which may be none — a table is not owed to both sides.</returns>
+        public IReadOnlyList<CampOffer> For(RunState state, Team player)
+        {
+            var mine = new List<CampOffer>();
+            foreach (var offer in Offers)
+            {
+                if (CampDirector.OwnerOf(state, offer) == player)
+                {
+                    mine.Add(offer);
+                }
+            }
+
+            return mine;
+        }
 
         /// <inheritdoc/>
         public bool Equals(CampTable? other) =>
-            other is not null
-            && RngState == other.RngState
-            && Same(OffersA, other.OffersA)
-            && Same(OffersB, other.OffersB);
+            other is not null && RngState == other.RngState && Same(Offers, other.Offers);
 
         /// <inheritdoc/>
         public override int GetHashCode()
@@ -54,14 +68,9 @@ namespace Faultline.Core
             unchecked
             {
                 int hash = RngState;
-                foreach (var offer in OffersA)
+                foreach (var offer in Offers)
                 {
                     hash = (hash * 31) + offer.GetHashCode();
-                }
-
-                foreach (var offer in OffersB)
-                {
-                    hash = (hash * 37) + offer.GetHashCode();
                 }
 
                 return hash;
@@ -69,20 +78,17 @@ namespace Faultline.Core
         }
 
         /// <inheritdoc/>
-        public override string ToString() =>
-            "A: " + Join(OffersA) + " | B: " + Join(OffersB);
-
-        private static string Join(IReadOnlyList<CampOffer> offers)
+        public override string ToString()
         {
-            if (offers.Count == 0)
+            if (Offers.Count == 0)
             {
                 return "—";
             }
 
-            var names = new string[offers.Count];
-            for (int i = 0; i < offers.Count; i++)
+            var names = new string[Offers.Count];
+            for (int i = 0; i < Offers.Count; i++)
             {
-                names[i] = offers[i].Name;
+                names[i] = Offers[i].Name;
             }
 
             return string.Join(" / ", names);

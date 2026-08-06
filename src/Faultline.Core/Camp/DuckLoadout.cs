@@ -28,6 +28,7 @@ namespace Faultline.Core
         private static readonly Mod[] NoMods = new Mod[0];
         private static readonly SecondWind[] NoWinds = new SecondWind[0];
         private static readonly Unlock[] NoUnlocks = new Unlock[0];
+        private static readonly TechniqueModifier[] NoTechniques = new TechniqueModifier[0];
 
         /// <summary>A duck with nothing on it. The shared instance every fresh squad member gets.</summary>
         public static readonly DuckLoadout Empty = new DuckLoadout();
@@ -47,12 +48,28 @@ namespace Faultline.Core
         /// <summary>Rule unlocks, in the order they were taken.</summary>
         public IReadOnlyList<Unlock> Unlocks { get; init; } = NoUnlocks;
 
+        /// <summary>
+        /// Technique modifiers on this duck's kit, in the order they were taken (MASTER_DESIGN §8.6).
+        /// </summary>
+        public IReadOnlyList<TechniqueModifier> Techniques { get; init; } = NoTechniques;
+
+        /// <summary>
+        /// Technique sockets a duck has. §8.6 says "2 sockets each" per hosted ability and then names
+        /// a host for only three of the eight built techniques, so the ceiling is counted per duck —
+        /// see <see cref="TechniqueDefinition"/> and D-158.
+        /// </summary>
+        public const int TechniqueSlots = 2;
+
+        /// <summary>True when every technique socket is taken.</summary>
+        public bool TechniquesAreFull => Techniques.Count >= TechniqueSlots;
+
         /// <summary>What is in the duck's one pocket, or <c>null</c> when it is empty.</summary>
         public Consumable? Pocket { get; init; }
 
         /// <summary>True when this duck carries nothing at all.</summary>
         public bool IsEmpty =>
-            Mods.Count == 0 && SecondWinds.Count == 0 && Unlocks.Count == 0 && Pocket is null;
+            Mods.Count == 0 && SecondWinds.Count == 0 && Unlocks.Count == 0
+            && Techniques.Count == 0 && Pocket is null;
 
         /// <summary>True when every mod slot is taken, so no mod may be offered for this duck.</summary>
         public bool SpenderIsFull => Mods.Count >= ModSlots;
@@ -71,6 +88,31 @@ namespace Faultline.Core
         /// <param name="unlock">Unlock to look for.</param>
         /// <returns>Whether it is held.</returns>
         public bool Has(Unlock unlock) => Contains(Unlocks, unlock);
+
+        /// <summary>Whether this duck's kit carries a technique modifier.</summary>
+        /// <param name="technique">Technique to look for.</param>
+        /// <returns>Whether it is fitted.</returns>
+        public bool Has(TechniqueModifier technique) => Contains(Techniques, technique);
+
+        /// <summary>This loadout with one more technique fitted.</summary>
+        /// <param name="technique">Technique to fit.</param>
+        /// <returns>The new loadout.</returns>
+        /// <exception cref="InvalidOperationException">Every socket is taken, or it is a duplicate.</exception>
+        public DuckLoadout With(TechniqueModifier technique)
+        {
+            if (Has(technique))
+            {
+                throw new InvalidOperationException("That kit already carries " + technique + ".");
+            }
+
+            if (TechniquesAreFull)
+            {
+                throw new InvalidOperationException(
+                    "That kit is full: " + TechniqueSlots + " technique sockets is the ceiling.");
+            }
+
+            return this with { Techniques = Append(Techniques, technique) };
+        }
 
         /// <summary>This loadout with one more mod fitted.</summary>
         /// <param name="mod">Mod to fit.</param>
@@ -127,7 +169,8 @@ namespace Faultline.Core
             && Pocket == other.Pocket
             && Same(Mods, other.Mods)
             && Same(SecondWinds, other.SecondWinds)
-            && Same(Unlocks, other.Unlocks);
+            && Same(Unlocks, other.Unlocks)
+            && Same(Techniques, other.Techniques);
 
         /// <inheritdoc/>
         public override int GetHashCode()
@@ -148,6 +191,11 @@ namespace Faultline.Core
                 foreach (var unlock in Unlocks)
                 {
                     hash = (hash * 41) + (int)unlock + 1;
+                }
+
+                foreach (var technique in Techniques)
+                {
+                    hash = (hash * 43) + (int)technique + 1;
                 }
 
                 return hash;

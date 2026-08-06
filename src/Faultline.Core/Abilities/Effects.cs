@@ -188,20 +188,20 @@ namespace Faultline.Core
             EffectContext context,
             List<GameEvent> events)
         {
-            var origin = state.UnitById(context.UserId).Position;
+            var user = state.UnitById(context.UserId);
+            var origin = user.Position;
 
-            int distance = effect.ToAdjacent
-                ? origin.DistanceTo(state.UnitById(subjectId).Position) - 1
-                : effect.Distance;
+            int distance = Abilities.HauledDistance(state, user, subjectId, effect, context.StopAt);
 
             if (distance <= 0)
             {
                 return state;
             }
 
-            // No `by`. A shove is attributed to its shover because contact damage and Wrecking Weight
-            // are priced off the pusher; a haul never has been, and attributing one here would quietly
-            // change what a collision costs. The asymmetry mirrors the hand-written resolvers exactly.
+            // A haul is attributed to its hauler (D-155). It used to be anonymous, on the argument
+            // that contact damage and Wrecking Weight are priced off a pusher — but both are gated on
+            // Push, so attribution changes neither, and three §8.6 cards are written about "an enemy
+            // she displaced". Chum the Water is one of them, and its card text has always said so.
             return Displacement.ResolveAuto(
                 state,
                 subjectId,
@@ -209,6 +209,7 @@ namespace Faultline.Core
                 DisplacementKind.Pull,
                 distance,
                 events,
+                by: context.UserId,
                 bypassResistance: effect.BypassResistance,
                 aim: context.Aim);
         }

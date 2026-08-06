@@ -147,6 +147,55 @@ namespace Faultline.Core
         /// <summary>The round <see cref="DisplacedBy"/> refers to. Zero when it has never been moved.</summary>
         public int DisplacedInRound { get; init; }
 
+        /// <summary>
+        /// The flock whose next displacement of this unit gains a tile, from Rattling Impact
+        /// (MASTER_DESIGN §8.6). <c>null</c> when the unit is not Rattled.
+        /// </summary>
+        /// <remarks>
+        /// Held on the victim rather than as a list on the Vanguard, for the reason
+        /// <see cref="DisplacedBy"/> gives: a list on a unit compares by reference under the record's
+        /// generated equality and quietly breaks replay. The team rather than a bool, because the mark
+        /// is spent by <em>the other flock</em> and by nobody else — a Vanguard who shoves his own
+        /// Rattled enemy again must not consume it.
+        /// </remarks>
+        public Team? RattledFor { get; init; }
+
+        /// <summary>
+        /// Round in which this unit last applied Rattling Impact. Zero when it never has. The latch
+        /// behind "the first enemy he collides each round".
+        /// </summary>
+        public int RattlingImpactRound { get; init; }
+
+        /// <summary>
+        /// Round in which this unit last fired Crossing Shot. Zero when it never has. The whole of the
+        /// reaction's "once per round".
+        /// </summary>
+        public int CrossingShotRound { get; init; }
+
+        /// <summary>
+        /// Force banked by Stored Force, capped at <see cref="Techniques.StoredForceCap"/>. Spent as a
+        /// push by a tip-tile Spear hit.
+        /// </summary>
+        public int StoredForce { get; init; }
+
+        /// <summary>
+        /// The enemy a Hand-Off has been granted against: this duck's next basic attack on it may take
+        /// the granted push. <c>null</c> when no grant is outstanding.
+        /// </summary>
+        public UnitId? HandOffTarget { get; init; }
+
+        /// <summary>
+        /// A free step this duck has banked from Shelter Step — the tile the Wardbearer left.
+        /// <c>null</c> when nothing is banked.
+        /// </summary>
+        /// <remarks>
+        /// Banked rather than taken, because the tile belongs to the other player's duck and
+        /// MASTER_DESIGN §8.5's bodily-consent rule means nothing moves another player's body without
+        /// that owner saying so. The owner says so by issuing
+        /// <see cref="TakeBankedStepCommand"/> — and never issuing it is a legal answer.
+        /// </remarks>
+        public Coord? BankedStepTo { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 
@@ -247,6 +296,16 @@ namespace Faultline.Core
         /// <param name="unlock">Unlock to look for.</param>
         /// <returns>Whether it is held.</returns>
         public bool Has(Unlock unlock) => Loadout.Has(unlock);
+
+        /// <summary>
+        /// Whether this duck's kit carries a technique modifier <em>and</em> is the class it belongs
+        /// to. Checked together because every technique is class-bound, and a rule that trusted the
+        /// loadout alone would be one draft edit from firing an Archer's card off a Wardbearer.
+        /// </summary>
+        /// <param name="technique">Technique to look for.</param>
+        /// <returns>Whether this unit acts on it.</returns>
+        public bool Has(TechniqueModifier technique) =>
+            Kind == CampCatalogue.KindOf(technique) && Loadout.Has(technique);
 
         /// <summary>Creates a unit at full health from its archetype template.</summary>
         /// <param name="id">Stable identifier.</param>

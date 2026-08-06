@@ -219,9 +219,7 @@ public sealed class RunAdvanceBandTests
         }
 
         var table = runs.Camp!;
-        runs.PickCamp(
-            table.OffersA.Count == 0 ? CampPickCommand.NoPick : 0,
-            table.OffersB.Count == 0 ? CampPickCommand.NoPick : 0);
+        runs.PickCamp(table.Offers.Count == 0 ? CampPickCommand.NoPick : 0);
 
         Assert.Null(runs.Problem);
         Assert.False(runs.AtCamp);

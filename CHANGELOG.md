@@ -1,5 +1,27 @@
 # Changelog
 
+## Eight technique modifiers, a camp that directs, and a way to measure whether a card matters
+
+- **Eight of §8.6's twenty-four technique modifiers are built** — one Common and one Uncommon per
+  class: Follow-In · Rattling Impact · Short Line · Hand-Off · Spotter · Crossing Shot · Stored Force
+  · Shelter Step. Five of them are RELAY cards, the category the v1 pool had nothing for. Two sockets
+  per duck (D-158).
+- **Crossing Shot is an off-turn reaction shipped at its narrowest reading**: it fires or it does not,
+  the reacting player is never asked, and the **initiating preview shows the shot** before that player
+  commits. The command grammar took it unchanged — no window, no prompt. Six questions §8.6 and §14
+  leave open are listed rather than settled (D-157).
+- **The camp deals one table of two and takes one pick** (was: two per-player tables, two picks).
+  §8.6's director rows cannot be stated about the old shape (D-154). The director enforces six rows —
+  camp-1 engine starters on different classes, a connector to an owned tag, no duplicate named
+  permanent in a run, never two paired consumables, ownership fairness across three offers, and
+  rarity by node (safe 60/35/5, hungry 35/50/15) — each as a preference with a proof log (D-160).
+- **A Reel is attributed to the Fisher** (D-155), so **Chum the Water now fires off a Reel kill**,
+  which its printed card text has always said.
+- **Camp instrumentation**: `--camp-offers` plays a run and writes `docs/playtest/camp-offers.csv` —
+  both cards, the pick, the recipient, trigger counts, cross-flock triggers, and a per-decision
+  counterfactual for *did this card change the chosen action*. It ships with the loop that lets a
+  harness run pass a camp at all, which is the crash the notes attributed to `brawler`.
+
 ## Previews stop lying, and nobody pays to climb
 
 - **Every action now has one projection, and it comes from Core** (`Abilities.Outlook`). Three

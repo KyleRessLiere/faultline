@@ -44,6 +44,31 @@ namespace Faultline.Core
         public static CampOffer Of(RunUnitId duck, Consumable consumable) =>
             new CampOffer(duck, OfferCategory.Consumable, (int)consumable);
 
+        /// <summary>A technique modifier offer.</summary>
+        /// <param name="duck">Duck it is for.</param>
+        /// <param name="technique">The technique.</param>
+        /// <returns>The offer.</returns>
+        public static CampOffer Of(RunUnitId duck, TechniqueModifier technique) =>
+            new CampOffer(duck, OfferCategory.Technique, (int)technique);
+
+        /// <summary>The technique, for a <see cref="OfferCategory.Technique"/> offer.</summary>
+        public TechniqueModifier AsTechnique => Category == OfferCategory.Technique
+            ? (TechniqueModifier)Value
+            : throw new InvalidOperationException("That offer is a " + Category + ", not a technique.");
+
+        /// <summary>
+        /// True when taking this card puts something on the duck for the rest of the run. Everything
+        /// but a one-shot: §8.6's "no named permanent appears twice in a run" is stated over exactly
+        /// this set.
+        /// </summary>
+        public bool IsPermanent => Category != OfferCategory.Consumable;
+
+        /// <summary>How often this card comes up; see <see cref="CampCatalogue.RarityOf(CampOffer)"/>.</summary>
+        public CardRarity Rarity => CampCatalogue.RarityOf(this);
+
+        /// <summary>The §8.6 tags this card wears. <see cref="TechniqueTag.None"/> for the v1 pools.</summary>
+        public TechniqueTag Tags => CampCatalogue.TagsOf(this);
+
         /// <summary>The mod, for a <see cref="OfferCategory.Mod"/> offer.</summary>
         public Mod AsMod => Category == OfferCategory.Mod
             ? (Mod)Value

@@ -58,9 +58,18 @@ namespace Faultline.Core
             Consumable.CrateOfDebris,
         };
 
+        private static readonly TechniqueModifier[] AllTechniques =
+        {
+            TechniqueModifier.FollowIn, TechniqueModifier.RattlingImpact,
+            TechniqueModifier.ShortLine, TechniqueModifier.HandOff,
+            TechniqueModifier.Spotter, TechniqueModifier.CrossingShot,
+            TechniqueModifier.StoredForce, TechniqueModifier.ShelterStep,
+        };
+
         private static readonly OfferCategory[] Categories =
         {
-            OfferCategory.Mod, OfferCategory.SecondWind, OfferCategory.Unlock, OfferCategory.Consumable,
+            OfferCategory.Mod, OfferCategory.SecondWind, OfferCategory.Unlock,
+            OfferCategory.Consumable, OfferCategory.Technique,
         };
 
         /// <summary>Every mod in the v1 pool, in pool order.</summary>
@@ -78,6 +87,48 @@ namespace Faultline.Core
         /// <summary>Every tactical consumable, in pool order.</summary>
         /// <returns>The five one-shots.</returns>
         public static IReadOnlyList<Consumable> ConsumablePool() => AllConsumables;
+
+        /// <summary>Every technique modifier built, in pool order.</summary>
+        /// <returns>The eight techniques.</returns>
+        public static IReadOnlyList<TechniqueModifier> TechniquePool() => AllTechniques;
+
+        /// <summary>Which class may hold a technique. Class-bound, always.</summary>
+        /// <param name="technique">Technique to place.</param>
+        /// <returns>The archetype that can carry it.</returns>
+        public static UnitKind KindOf(TechniqueModifier technique) =>
+            TechniqueDefinition.For(technique).Kind;
+
+        /// <summary>Display name.</summary>
+        /// <param name="technique">Technique to name.</param>
+        /// <returns>Its name.</returns>
+        public static string NameOf(TechniqueModifier technique) =>
+            TechniqueDefinition.For(technique).Name;
+
+        /// <summary>What a technique changes, in one sentence.</summary>
+        /// <param name="technique">Technique to describe.</param>
+        /// <returns>Its card text.</returns>
+        public static string SummaryOf(TechniqueModifier technique) =>
+            TechniqueDefinition.For(technique).Summary;
+
+        /// <summary>
+        /// How often a card comes up. Only the technique pool is labelled by §8.6; the v1 pools are
+        /// Common because the director has to weight them somehow (D-159).
+        /// </summary>
+        /// <param name="offer">Offer to price.</param>
+        /// <returns>Its rarity.</returns>
+        public static CardRarity RarityOf(CampOffer offer) => offer.Category == OfferCategory.Technique
+            ? TechniqueDefinition.For(offer.AsTechnique).Rarity
+            : CardRarity.Common;
+
+        /// <summary>
+        /// The §8.6 tags a card wears. Only techniques carry any — the v1 pools predate the tag
+        /// vocabulary and are deliberately not retro-tagged (D-159).
+        /// </summary>
+        /// <param name="offer">Offer to read.</param>
+        /// <returns>Its tags, or <see cref="TechniqueTag.None"/>.</returns>
+        public static TechniqueTag TagsOf(CampOffer offer) => offer.Category == OfferCategory.Technique
+            ? TechniqueDefinition.For(offer.AsTechnique).Tags
+            : TechniqueTag.None;
 
         /// <summary>The categories a camp can draw from, in draw order.</summary>
         /// <returns>The four implemented categories.</returns>
@@ -153,6 +204,7 @@ namespace Faultline.Core
             OfferCategory.Mod => NameOf(offer.AsMod),
             OfferCategory.SecondWind => NameOf(offer.AsSecondWind),
             OfferCategory.Unlock => NameOf(offer.AsUnlock),
+            OfferCategory.Technique => NameOf(offer.AsTechnique),
             _ => NameOf(offer.AsConsumable),
         };
 
@@ -164,6 +216,7 @@ namespace Faultline.Core
             OfferCategory.Mod => SummaryOf(offer.AsMod),
             OfferCategory.SecondWind => SummaryOf(offer.AsSecondWind),
             OfferCategory.Unlock => SummaryOf(offer.AsUnlock),
+            OfferCategory.Technique => SummaryOf(offer.AsTechnique),
             _ => SummaryOf(offer.AsConsumable),
         };
 
@@ -214,6 +267,17 @@ namespace Faultline.Core
                 if (!loadout.Has(unlock))
                 {
                     offers.Add(CampOffer.Of(duck.Id, unlock));
+                }
+            }
+
+            if (!loadout.TechniquesAreFull)
+            {
+                foreach (var technique in AllTechniques)
+                {
+                    if (KindOf(technique) == duck.Kind && !loadout.Has(technique))
+                    {
+                        offers.Add(CampOffer.Of(duck.Id, technique));
+                    }
                 }
             }
 

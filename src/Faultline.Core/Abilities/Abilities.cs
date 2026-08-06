@@ -113,7 +113,9 @@ namespace Faultline.Core
                 // would have to memorise. The ledge should teach one rule, not two.
                 //
                 // Combat owns the exception; this asks it rather than repeating it.
-                if (distance < descriptor.MinRange && !Combat.ShootingDownhill(state, unit, candidate))
+                if (distance < descriptor.MinRange
+                    && !Combat.ShootingDownhill(state, unit, candidate)
+                    && !Techniques.SpotterWaivesMinRange(state, unit, candidate))
                 {
                     continue;
                 }
@@ -433,13 +435,22 @@ namespace Faultline.Core
                         Combat.CanAttack(state, unit, target, out damage);
                     }
 
+                    // Hand-Off's granted push rides the basic attack, so the preview has to ask for
+                    // the same distance the resolution will (D-161).
+                    distance += GrantedPush(unit, target.Id, attack.Technique);
+
+                    var shove = Redirected(state, unit, target, kind, distance, attack.Aim);
+
                     return new ActionOutlook(
                         unit.Id,
                         target.Id,
                         damage,
                         NoLineHits,
                         null,
-                        Redirected(state, unit, target, kind, distance, attack.Aim));
+                        shove,
+                        FollowInTile(state, unit, target, shove, attack.Technique),
+                        Techniques.CrossingShot(state, unit.Id, target.Id, Traversed(shove)),
+                        Granted(state, unit, shove));
                 }
 
                 case AbilityCommand ability:
@@ -454,24 +465,40 @@ namespace Faultline.Core
 
                     if (descriptor.Targeting == AbilityTargeting.Line && ability.Direction.HasValue)
                     {
+                        var hits = PreviewLine(state, unit, ability.Direction.Value, ability.Ability);
+                        var spear = StoredForceShove(state, unit, hits, ability.Technique);
+
                         return new ActionOutlook(
                             unit.Id,
                             null,
                             0,
-                            PreviewLine(state, unit, ability.Direction.Value, ability.Ability),
+                            hits,
                             null,
-                            null);
+                            spear,
+                            null,
+                            spear is null
+                                ? null
+                                : Techniques.CrossingShot(state, unit.Id, spear.UnitId, Traversed(spear)),
+                            Granted(state, unit, spear));
                     }
 
                     if (descriptor.Targeting == AbilityTargeting.Direction && ability.Direction.HasValue)
                     {
+                        var charge = PreviewCharge(state, unit, ability.Direction.Value);
+
                         return new ActionOutlook(
                             unit.Id,
                             null,
                             0,
                             NoLineHits,
-                            PreviewCharge(state, unit, ability.Direction.Value),
-                            null);
+                            charge,
+                            null,
+                            null,
+                            charge.Contact is null
+                                ? null
+                                : Techniques.CrossingShot(
+                                    state, unit.Id, charge.Contact.UnitId, Traversed(charge.Contact)),
+                            Granted(state, unit, charge.Contact));
                     }
 
                     if (ability.TargetId is not { } aimedId || state.FindUnit(aimedId) is not { } aimed)
@@ -479,17 +506,166 @@ namespace Faultline.Core
                         return new ActionOutlook(unit.Id, null, 0, NoLineHits, null, null);
                     }
 
-                    var shove = Shove(state, unit, aimedId, out var kind, out int distance, out bool bypass)
+                    var shove = Shove(
+                        state, unit, aimedId, out var kind, out int distance, out bool bypass, ability.StopAt)
                         ? Redirected(state, unit, aimed, kind, distance, ability.Aim, bypass)
                         : null;
 
-                    return new ActionOutlook(unit.Id, aimedId, descriptor.Damage, NoLineHits, null, shove);
+                    return new ActionOutlook(
+                        unit.Id,
+                        aimedId,
+                        descriptor.Damage,
+                        NoLineHits,
+                        null,
+                        shove,
+                        null,
+                        Techniques.CrossingShot(state, unit.Id, aimedId, Traversed(shove)),
+                        Granted(state, unit, shove));
                 }
 
                 default:
                     return null;
             }
         }
+
+        private static readonly Coord[] NoTiles = new Coord[0];
+
+        /// <summary>Tiles a projected displacement actually enters; empty when nothing moves.</summary>
+        private static IReadOnlyList<Coord> Traversed(DisplacementPreview? preview) =>
+            preview is null ? NoTiles : preview.Path;
+
+        /// <summary>
+        /// The extra push a Hand-Off grant adds to this basic attack, and zero when none was elected,
+        /// none is outstanding, or the grant names a different enemy.
+        /// </summary>
+        /// <param name="unit">Attacking duck.</param>
+        /// <param name="targetId">Enemy attacked.</param>
+        /// <param name="elected">What the attacker elected on the command.</param>
+        /// <returns><see cref="Techniques.HandOffPush"/> or zero.</returns>
+        public static int GrantedPush(Unit unit, UnitId targetId, TechniqueOption elected) =>
+            (elected & TechniqueOption.HandOff) != 0
+            && unit is not null
+            && unit.HandOffTarget == targetId
+                ? Techniques.HandOffPush
+                : 0;
+
+        /// <summary>
+        /// The tile Follow-In would step the attacker into, or <c>null</c>. §8.6's whole text: "after
+        /// the target is pushed ≥1, he may enter its old tile" — so the target must actually travel,
+        /// and the tile it left has to be somewhere he could stand.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Attacking duck.</param>
+        /// <param name="target">Enemy attacked.</param>
+        /// <param name="shove">The projected displacement.</param>
+        /// <param name="elected">What the attacker elected on the command.</param>
+        /// <returns>The tile, or <c>null</c>.</returns>
+        public static Coord? FollowInTile(
+            GameState state,
+            Unit unit,
+            Unit target,
+            DisplacementPreview? shove,
+            TechniqueOption elected)
+        {
+            if ((elected & TechniqueOption.FollowIn) == 0
+                || unit is null
+                || !unit.Has(TechniqueModifier.FollowIn)
+                || shove is null
+                || shove.Path.Count < 1)
+            {
+                return null;
+            }
+
+            var vacated = target.Position;
+
+            // The tile is only vacated if the body really left it, and it is only enterable if it is
+            // walkable and nothing else is standing there. A charge stops adjacent to bodies for the
+            // same reasons; this asks the same questions rather than inventing softer ones.
+            return Movement.IsWalkable(state.Board.At(vacated))
+                && state.StructureAt(vacated) is null
+                && (state.UnitAt(vacated) is not { } sitting || sitting.Id == target.Id)
+                    ? vacated
+                    : (Coord?)null;
+        }
+
+        /// <summary>
+        /// The other flock's duck a Hand-Off would be granted to by this displacement, or
+        /// <c>null</c> when the card is not held or the body does not land beside one.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Duck causing the displacement.</param>
+        /// <param name="shove">The projected displacement.</param>
+        /// <returns>The beneficiary's id, or <c>null</c>.</returns>
+        public static UnitId? Granted(GameState state, Unit unit, DisplacementPreview? shove)
+        {
+            if (unit is null
+                || shove is null
+                || shove.Path.Count == 0
+                || !unit.Has(TechniqueModifier.HandOff))
+            {
+                return null;
+            }
+
+            return Techniques.OtherFlockDuckAdjacentTo(state, unit.Team, shove.Destination)?.Id;
+        }
+
+        /// <summary>
+        /// The push a tip-tile Spear hit would deliver by spending Stored Force, or <c>null</c>. The
+        /// tip is the second tile of the line, which is the only tile §8.6 lets the Force out through.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">The Wardbearer.</param>
+        /// <param name="hits">The line's projected hits, nearest first.</param>
+        /// <param name="elected">What the actor elected on the command.</param>
+        /// <returns>The projected shove, or <c>null</c>.</returns>
+        public static DisplacementPreview? StoredForceShove(
+            GameState state, Unit unit, IReadOnlyList<LineHit> hits, TechniqueOption elected)
+        {
+            if ((elected & TechniqueOption.StoredForce) == 0
+                || unit is null
+                || unit.StoredForce <= 0
+                || !unit.Has(TechniqueModifier.StoredForce))
+            {
+                return null;
+            }
+
+            if (TipHit(state, unit, hits) is not { } tip)
+            {
+                return null;
+            }
+
+            return Displacement.PreviewAuto(
+                state, tip, unit.Position, DisplacementKind.Push, unit.StoredForce, by: unit.Id);
+        }
+
+        /// <summary>
+        /// The unit standing on the tip tile of a Line, or <c>null</c>. The tip is the tile two steps
+        /// out — the same distance <see cref="CampListeners"/> judges Spear Tip on.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">The user of the Line.</param>
+        /// <param name="hits">The line's projected hits.</param>
+        /// <returns>The unit on the tip tile, or <c>null</c>.</returns>
+        public static UnitId? TipHit(GameState state, Unit unit, IReadOnlyList<LineHit> hits)
+        {
+            if (hits is null)
+            {
+                return null;
+            }
+
+            foreach (var hit in hits)
+            {
+                if (hit.UnitId is { } id && unit.Position.DistanceTo(hit.At) == SpearTipDistance)
+                {
+                    return id;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Distance from the user to the tip tile of a two-tile Line.</summary>
+        private const int SpearTipDistance = 2;
 
         // The displacement as the board will really take it. Game.Redirected sends a shove aimed at a
         // guarded ally to the guard instead, vector preserved; a projection that ignored that would
@@ -564,7 +740,8 @@ namespace Faultline.Core
             UnitId targetId,
             out DisplacementKind kind,
             out int distance,
-            out bool bypassResistance)
+            out bool bypassResistance,
+            int? stopAt = null)
         {
             kind = DisplacementKind.Push;
             distance = 0;
@@ -580,12 +757,58 @@ namespace Faultline.Core
             {
                 kind = DisplacementKind.Pull;
                 bypassResistance = true;
-                distance = unit.Position.DistanceTo(state.UnitById(targetId).Position) - 1;
+                distance = ShortLine(
+                    unit, unit.Position.DistanceTo(state.UnitById(targetId).Position) - 1, stopAt);
                 return distance > 0;
             }
 
             distance = descriptor.Push;
             return distance > 0;
+        }
+
+        /// <summary>
+        /// How far a <see cref="PullEffect"/> hauls its subject, Short Line's chosen stop included.
+        /// The resolution's copy of the number <see cref="Outlook"/> previews.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="user">Unit doing the hauling.</param>
+        /// <param name="subjectId">Unit being hauled.</param>
+        /// <param name="effect">The pull effect being applied.</param>
+        /// <param name="stopAt">Short Line's chosen stop, or <c>null</c> for the whole drag.</param>
+        /// <returns>Tiles to haul.</returns>
+        public static int HauledDistance(
+            GameState state, Unit user, UnitId subjectId, PullEffect effect, int? stopAt)
+        {
+            int natural = effect.ToAdjacent
+                ? user.Position.DistanceTo(state.UnitById(subjectId).Position) - 1
+                : effect.Distance;
+
+            return ShortLine(user, natural, stopAt);
+        }
+
+        /// <summary>
+        /// Short Line (MASTER_DESIGN §8.6): the holder may choose any legal stopping tile on the drag
+        /// path. It can only ever shorten — a card that says "choose a stopping tile on the path"
+        /// cannot put a tile beyond the end of it — and collisions and hazards still stop it earlier,
+        /// which they do because the simulation runs afterwards and is not consulted here.
+        /// </summary>
+        /// <param name="user">Unit doing the hauling.</param>
+        /// <param name="natural">The distance the ability would haul unaided.</param>
+        /// <param name="stopAt">The chosen stop, or <c>null</c>.</param>
+        /// <returns>The distance to ask for.</returns>
+        public static int ShortLine(Unit user, int natural, int? stopAt)
+        {
+            if (stopAt is not { } chosen || user is null || !user.Has(TechniqueModifier.ShortLine))
+            {
+                return natural;
+            }
+
+            if (chosen < 0)
+            {
+                chosen = 0;
+            }
+
+            return chosen < natural ? chosen : natural;
         }
 
         /// <summary>
@@ -696,7 +919,8 @@ namespace Faultline.Core
                     return ResolveStance(state, unit, events);
 
                 case AbilityRule.Line:
-                    return ResolveLine(state, unit, command.Direction!.Value, definition, events);
+                    return ResolveLine(
+                        state, unit, command.Direction!.Value, definition, command.Technique, events);
 
                 case AbilityRule.Charge:
                     return ResolveCharge(state, unit, command.Direction!.Value, definition, events);
@@ -705,7 +929,13 @@ namespace Faultline.Core
                     return Effects.Apply(
                         state,
                         definition.Effects,
-                        new EffectContext(unit.Id, command.TargetId, null, command.Direction, command.Aim),
+                        new EffectContext(
+                            unit.Id,
+                            command.TargetId,
+                            null,
+                            command.Direction,
+                            command.Aim,
+                            command.StopAt),
                         events);
             }
         }
@@ -731,14 +961,38 @@ namespace Faultline.Core
             Unit unit,
             Direction direction,
             AbilityDefinition descriptor,
+            TechniqueOption elected,
             List<GameEvent> events)
         {
-            foreach (var hit in LineHits(state, unit, direction, descriptor))
+            var hits = LineHits(state, unit, direction, descriptor);
+            var tip = TipHit(state, unit, hits);
+
+            foreach (var hit in hits)
             {
                 state = StepLineHit(state, unit, hit, events);
             }
 
-            return state;
+            // Stored Force: "his next tip-tile Spear hit may spend it as a push". The push follows the
+            // damage, so a tip hit that kills spends nothing — there is no body left to shove — and
+            // the Force stays banked for the next one.
+            if ((elected & TechniqueOption.StoredForce) == 0 || tip is not { } pushedId)
+            {
+                return state;
+            }
+
+            var wardbearer = state.UnitById(unit.Id);
+            if (wardbearer.StoredForce <= 0
+                || !wardbearer.Has(TechniqueModifier.StoredForce)
+                || state.FindUnit(pushedId) is not { IsOnBoard: true })
+            {
+                return state;
+            }
+
+            int force = wardbearer.StoredForce;
+            state = state.WithUnit(wardbearer with { StoredForce = 0 });
+
+            return Displacement.ResolveAuto(
+                state, pushedId, wardbearer.Position, DisplacementKind.Push, force, events, by: unit.Id);
         }
 
         // One tile of a Line ability. Everything on the tile goes through the shared damage path for

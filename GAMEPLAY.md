@@ -1364,38 +1364,88 @@ Named here so the gap between intent and build stays visible, not to promise a d
   draft (D-121).
 - **The Peddler's Coin**, the one licensed re-flip. When it lands it re-flips the coin, not the vote.
 
-## The Camp — pick 1 of 2 after every won fight
+## The Camp — two cards, one pick, after every won fight
 
-After every **Fight or Elite node that ends in a win**, the run stops at a **Camp**. Each player is
-dealt **two cards** and takes **one**. Gameplay only: there are no stat lines in the pool and nowhere
-to put one (MASTER_DESIGN §8.5). **There is no skip** — camps are the reward, and the legal list holds
+After every **Fight or Elite node that ends in a win**, the run stops at a **Camp**. **Two cards go on
+one table and the flock takes one.** Gameplay only: there are no stat lines in the pool and nowhere to
+put one (MASTER_DESIGN §8.5). **There is no skip** — camps are the reward, and the legal list holds
 nothing but picks.
 
 **Not after the boss.** A boss node runs no camp: its reward is the Molt, which is not built, and a
 camp there would price the act's last fight the same as a corridor fight (D-127).
 
-**The two draws are simultaneous and independent.** Player A's cards come from Player A's ducks and
-Player B's from Player B's — the default split (D-092), so **A holds the Vanguard and the Fisher, B
-the Wardbearer and the Archer**. Nothing is shared, so there is no contention and no initiative order.
-Both picks travel on one `CampPickCommand`, exactly as both votes travel on one `VoteCommand`.
+**One table, spanning the squad.** The two cards may be for two different ducks on two different
+sides, and choosing between them is the decision: taking the Archer's card is choosing not to take the
+Vanguard's. It used to be two independent per-player tables and two picks; §8.6's director rows cannot
+be stated about that shape, so it changed (D-154). The default split still says whose duck is whose —
+**A holds the Vanguard and the Fisher, B the Wardbearer and the Archer** (D-092) — and every card
+prints its owner.
 
 | | |
 |---|---|
 | Phase | `RunPhase.AtCamp`, between the won fight and the next vote |
-| Cards per player | **2**, and the pick is **1** |
-| Constraint | a player's two cards **differ in category** wherever the pool allows |
-| Duplicate cards | never — a card is drawn out and cannot be drawn again in the same deal |
+| Cards on the table | **2**, and the pick is **1** |
+| Duplicate cards | never — no card twice on a table, and **no named permanent twice in a run**, across every duck |
 | Seeded from | the **run RNG** (`RunState.RngState`), the same cursor a split vote's coin flips |
-| Stored | **nothing** — the table is a pure function of the cursor and the squad, so a save, a restore and a replay all deal the same two cards |
-| Recorded | the command carries **the whole table and both picks**; Core refuses a command whose recorded table is not the one the seed would have dealt |
-| Empty pool | when neither player has anything left to be offered, no camp opens and the run walks on |
-| Events | `CampOffered` (the table) then one `CampTaken` per player, in player order |
+| Stored | **nothing** — the table is a pure function of the cursor, the squad and the camp history, so a save, a restore and a replay all deal the same two cards |
+| Recorded | the command carries **the whole table and the pick**; Core refuses a command whose recorded table is not the one the seed would have dealt |
+| Empty pool | when the squad has nothing left to be offered, no camp opens and the run walks on |
+| Events | `CampOffered` (the table) then one `CampTaken` |
+
+### The offer director (§8.6)
+
+Six rows decide what goes on the table. Each is a **preference**: it narrows the pool when the
+narrowing leaves something and steps aside when it does not, and `CampTable.Bound` records which ones
+actually bound — the proof log the map generator owes, applied to the camp (D-160).
+
+| Row | What it does |
+|---|---|
+| **Camp 1** | two **engine starters** — technique modifiers — on **different classes**, and different players where the pool allows |
+| **Camp 2+** | at least one **connector**: a card wearing a tag the squad already owns |
+| **No duplicate permanent** | a named mod, Second Wind, unlock or technique already on **any** duck is never offered again |
+| **Never two consumables** | a table pairs at most one one-shot |
+| **Ownership fairness** | when the **last two picks** went to one player's ducks, the next table holds a card for the other |
+| **Rarity by node** | **safe 60/35/5**, **hungry 35/50/15** (Common/Uncommon/Rare). A run with no lane is priced as safe. |
+
+Everything outside the technique pool is **Common** and carries **no tag** — §8.6 labels neither for
+the v1 cards, and inventing labels would make the director connect builds nobody authored (D-159).
+
+### Technique modifiers — the v2 pool (8 of §8.6's 24 built)
+
+Data on a duck's kit, **two sockets per duck** (D-158). Class-bound, always. One Common and one
+Uncommon per class.
+
+| Card | Class | Rarity | Tags | What it does |
+|---|---|---|---|---|
+| **Follow-In** | Vanguard | C | TRAFFIC | after the target is pushed ≥1, he **may** enter the tile it left |
+| **Rattling Impact** | Vanguard | U | IMPACT/RELAY | the first enemy he collides each round is **Rattled**: the **other flock's** next displacement of it gains **+1** and consumes the mark |
+| **Short Line** | Fisher | C | CONTROL | she **may** choose any legal stopping tile on the drag path; collisions and hazards still stop it earlier |
+| **Hand-Off** | Fisher | U | RELAY | a displacement of hers ending adjacent to the other flock's duck gives that duck's next basic attack on the target **Push 1** |
+| **Spotter** | Archer | C | RELAY | she ignores her **minimum range** against an enemy adjacent to the other flock's duck |
+| **Crossing Shot** | Archer | U | RELAY | **once per round**, when the other flock displaces an enemy through her **range-2–3** firing line, deal **2**. The initiating preview shows the shot. |
+| **Stored Force** | Wardbearer | C | GUARD/IMPACT | each tile of hostile displacement his resistance cancels stores **1 Force (max 2)**; his next **tip-tile** Spear hit **may** spend it as a push |
+| **Shelter Step** | Wardbearer | U | GUARD/RELAY | if a redirect moves him, the duck he was covering **banks a free step** into the tile he left |
+
+**The "may" cards are elected on the command** (`TechniqueOption` on `AttackCommand` and
+`AbilityCommand`, `StopAt` for Short Line). An election by a duck that does not hold the card is
+**refused by name**, never ignored.
+
+**Consent, where a card touches another player's duck** (D-161): Hand-Off's grant is spent only when
+the receiving owner elects it; Shelter Step **banks** a tile and `TakeBankedStepCommand` is the
+owner's yes. Crossing Shot and Rattling Impact are automatic — and their full result is in the
+**initiating** preview before that player commits.
+
+**The per-round marks** — Rattled, an outstanding Hand-Off, a banked Shelter Step — clear when the
+round turns over, with Stagger (D-157).
+
+**Reel is now attributed to the Fisher** (D-155), so **Chum the Water fires off a Reel kill**, which
+its card text has always said.
 
 ### What is in the v1 pool
 
-Four categories are drawable: **Modify**, **Second Wind**, **Tactical unlock**, **Consumable**. §8.5's
-fifth — **Learn / Replace / Swap** — is *not* built and is not a value the enum holds, so it can never
-be dealt.
+Five categories are drawable: **Modify**, **Second Wind**, **Tactical unlock**, **Consumable** and
+**Technique**. §8.5's remaining one — **Learn / Replace / Swap** — is *not* built and is not a value
+the enum holds, so it can never be dealt.
 
 **Mods — 3 per spender, and a duck's spender holds 2 of them.** A mod offer is never dealt for a duck
 whose spender is full, and never for a class the mod does not fit. The third slot is the Molt's *Deep

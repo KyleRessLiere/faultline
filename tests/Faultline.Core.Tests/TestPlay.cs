@@ -147,6 +147,10 @@ public static class TestPlay
     public static GameState WithUnlock(this GameState state, UnitId id, Unlock unlock) =>
         state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.With(unlock) });
 
+    /// <summary>The board with a technique modifier on one unit's kit.</summary>
+    public static GameState WithTechnique(this GameState state, UnitId id, TechniqueModifier technique) =>
+        state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.With(technique) });
+
     /// <summary>The board with something in one unit's pocket.</summary>
     public static GameState WithPocket(this GameState state, UnitId id, Consumable item) =>
         state.WithUnit(state.Get(id) with { Loadout = state.Get(id).Loadout.WithPocket(item) });
