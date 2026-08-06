@@ -1,5 +1,18 @@
 # Changelog
 
+## The Still Pond has two depths and an honest second face
+
+- **The pond before the boss heals everyone to full**, downed ducks included, and clears the
+  Bedraggled mark with it; a mid-act pond still heals half. Which pond a node is comes from the graph
+  — every door out of it opens onto the boss — and never from a flag on the file (D-180).
+- **Both Forges are drawn, named and refused with their reason.** "Not built yet. A Deep Forge pays
+  one of three Rares and the card pool holds 0" — and that 0 is counted off the card pool when the
+  face is drawn, so the stub cannot lie about why it is still a stub (D-182). No Forge button exists
+  to click, and no reward is rendered that the game cannot pay.
+- **"Never both full health and a free Rare" is now unrepresentable.** §8.8's closing clause is a
+  constructor guard on `PondChoice`: a pond face pairing a full heal with any reward throws, so no
+  later pond or generator can produce one (D-181).
+
 ## Structures you can name, count and predict
 
 - **Every objective structure is named, listed and predicted.** The objective panel draws one line

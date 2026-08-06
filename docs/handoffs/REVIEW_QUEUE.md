@@ -124,12 +124,31 @@ checkpoint are different rules and the linear ten is still the tuned build. Fine
 but when the linear campaign retires, `RestNode` and its handler retire with it, and nobody will
 remember that is what they were for.
 
-### The v1 campfire and the v1 event pool are both one-option menus
+### The v1 pond and the v1 event pool are both one-option menus
 
-The campfire offers heal and nothing else (forge and curse-scraping are unbuilt); the event pool
-holds one event. Both are honest — no fake buttons — but a run currently meets its first *real*
-choice at the vote, and the two nodes that exist to be choices are not choices yet. Worth knowing
-before playtest feedback calls the map thin.
+The pond draws both faces and refuses the Forge with its reason (D-182); the event pool holds one
+event. Both are honest — no fake buttons — but a run currently meets its first *real* choice at the
+vote, and the two nodes that exist to be choices are not choices yet. Worth knowing before playtest
+feedback calls the map thin.
+
+### The card pool has no Rare tier at all, which is what stubs the Deep Forge
+
+Rarity is carried only by technique modifiers (D-159); the eight built ones are four Common and four
+Uncommon; every other camp card is Common by default. So §8.8's Deep Forge ("one of three Rares")
+has a pool of **zero**, and §8.6's Forge ("three valid Uncommon/Rare cards", class-bound) has a
+widest-per-class pool of **one**. **The Still Pond stops being a one-option node the moment three
+Rares exist for some class** — that is the whole unblock, and it is a content question for the
+designer rather than an engineering one. Until then both Forges print "Not built yet" with the
+counted pool size (D-182).
+
+### The pre-boss Still Pond is now the run's only full heal, and nothing was tuned for that
+
+§8.8's floor pays a **full** heal to every duck that can still be fielded, downed ones included, and
+Act 1's `c6-rest` is on every route to the boss. Attrition across the act therefore no longer carries
+into the boss fight at all — the Quarry King is now always fought at full strength. That is what the
+design says; nobody has measured what it does to the boss's difficulty, and the harness cannot
+measure it (`--seed` is inert, `RunHarness` cannot pass a camp). Flagged before the number is blamed
+on the boss.
 
 ### One Web test is order-dependent and flaky
 

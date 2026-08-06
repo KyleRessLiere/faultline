@@ -162,26 +162,56 @@ else
             <h3>You are here — @LabelOf(here.Id)</h3>
             <p class="here-type">@TypeNameOf(here.Id)</p>
 
-            @if (Runs.AtChoice && here.Type == MapNodeType.Rest)
+            @if (Runs.AtChoice && Pond is { } pond)
             {
                 <p class="note">
-                    Ducks glide on and tuck their heads: half its own ceiling back, rounded up, per
-                    duck. Forging and scraping a curse are not built, so the pond offers the one
-                    thing it can actually do.
+                    @(pond == PondDepth.PreBoss
+                        ? "The last pond before the boss. Ducks glide on and tuck their heads, and everything that can still be fielded comes back whole."
+                        : "Ducks glide on and tuck their heads: half its own ceiling back, rounded up, per duck.")
                 </p>
-                <ul class="heals">
-                    @foreach (var unit in Run.Squad)
+
+                @* Both faces, always — the refused one printed with its reason rather than left off
+                   the table. §8.8 says the pond has two, and a screen that showed one would be
+                   quietly re-deciding that. Nothing here judges which is legal: PondChoice.Available
+                   is Core's. *@
+                <ol class="pond-faces">
+                    @foreach (var face in StillPond.Offer(pond))
                     {
-                        @if (unit.IsAvailable)
-                        {
-                            <li>
-                                @Naming.Of(unit.Kind) — @unit.Hp/@unit.MaxHp, back
-                                @MapRestNodeHandler.HealFor(unit.MaxHp)
-                            </li>
-                        }
+                        var choice = face;
+                        <li class="pond-face @(choice.Available ? "open" : "shut")">
+                            <span class="face-name">@choice.Name</span>
+                            <span class="face-terms">@choice.Terms</span>
+
+                            @if (choice.Available)
+                            {
+                                <ul class="heals">
+                                    @foreach (var unit in Run.Squad)
+                                    {
+                                        @if (unit.IsAvailable)
+                                        {
+                                            <li>
+                                                @Naming.Of(unit.Kind) — @unit.Hp/@unit.MaxHp →
+                                                @StillPond.HealthAfter(pond, unit)/@unit.MaxHp
+                                                @if (unit.ReturnsBedraggled && choice.ClearsBedraggled)
+                                                {
+                                                    <span class="clears">, Bedraggled cleared</span>
+                                                }
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+                                <button class="action" @onclick="Heal">
+                                    @(pond == PondDepth.PreBoss ? "Rest — everyone comes back whole" : "Rest at the pond")
+                                </button>
+                            }
+                            else
+                            {
+                                @* A refusal names its reason, on screen, where the choice was made. *@
+                                <p class="face-refusal">@choice.Refusal</p>
+                            }
+                        </li>
                     }
-                </ul>
-                <button class="action" @onclick="Heal">Rest at the pond</button>
+                </ol>
             }
             else if (RunScreens.AtAnEvent(Runs))
             {
@@ -253,6 +283,13 @@ else
 
     /// <summary>The node the run is standing on.</summary>
     private MapNode? Here => Run?.CurrentMapNode;
+
+    /// <summary>
+    /// Which pond the run is standing on, or <c>null</c> when it is not standing on one. Read off
+    /// Core's projection rather than off the node's column, because whether a pond is the pre-boss
+    /// floor is <see cref="ActMap.IsPreBossRest"/>'s answer and nothing on this screen may re-decide it.
+    /// </summary>
+    private PondDepth? Pond => Run?.CurrentNode is MapRestNode pond ? pond.Depth : null;
 
     /// <summary>
     /// The last vote Core settled, for the coin. Read off the event rather than recomputed: which

@@ -4,8 +4,14 @@ using System.Collections.Generic;
 namespace Faultline.Core
 {
     /// <summary>
-    /// The act map's campfire: offers one option, heals about half when it is taken, and advances.
+    /// The act map's Still Pond: puts its faces on the table, heals whoever rests, and advances.
     /// </summary>
+    /// <remarks>
+    /// How much it heals is <see cref="MapRestNode.Depth"/>'s answer, not this handler's — a mid-act
+    /// pond gives back half a ceiling and the pre-boss floor gives back all of it (MASTER_DESIGN
+    /// §8.8). What is legal is <see cref="StillPond.LegalFaces"/>'s answer, so the screen and the
+    /// engine cannot disagree about whether the Forge is on offer.
+    /// </remarks>
     public sealed class MapRestNodeHandler : CampaignNodeHandler
     {
         /// <inheritdoc/>
@@ -15,16 +21,16 @@ namespace Faultline.Core
         public override bool HoldsControl(RunState state) => state.Phase == RunPhase.AtChoice;
 
         /// <summary>
-        /// What a campfire gives back: half the duck's ceiling, rounded up. Per duck and off its own
-        /// maximum, so a raised ceiling heals more (MASTER_DESIGN §8.5, "heal ~half").
+        /// What a mid-act pond gives back: half the duck's ceiling, rounded up.
         /// </summary>
         /// <remarks>
-        /// Integer arithmetic, rounded up, so the odd ceilings do not quietly heal less than half. A
-        /// 7-max duck gets 4, not 3.
+        /// Kept as the handler's name for the half-formula because GAMEPLAY.md and the tests both
+        /// point at it; the arithmetic itself belongs to <see cref="StillPond.HalfOf"/>, which the
+        /// pre-boss floor and the screen also read.
         /// </remarks>
         /// <param name="maxHp">The duck's ceiling, raises included.</param>
         /// <returns>Hit points restored.</returns>
-        public static int HealFor(int maxHp) => maxHp <= 0 ? 0 : (maxHp + 1) / 2;
+        public static int HealFor(int maxHp) => StillPond.HalfOf(maxHp);
 
         /// <inheritdoc/>
         public override RunState Enter(RunState state, CampaignNode node, RunContext context) =>
@@ -32,16 +38,18 @@ namespace Faultline.Core
 
         /// <inheritdoc/>
         public override IReadOnlyList<RunCommand> LegalSteps(RunState state, CampaignNode node) =>
-            new RunCommand[] { new RestHealCommand() };
+            StillPond.LegalFaces(((MapRestNode)node).Depth);
 
         /// <inheritdoc/>
         public override RunState Step(RunState state, CampaignNode node, RunCommand command, RunContext context)
         {
+            var depth = ((MapRestNode)node).Depth;
+
             if (command is not RestHealCommand)
             {
                 throw new InvalidOperationException(
-                    "A campfire takes a RestHealCommand, not " + command.GetType().Name
-                    + ". Forge and curse-scraping are not built.");
+                    "A Still Pond takes a RestHealCommand, not " + command.GetType().Name + ". "
+                    + Refusals(depth));
             }
 
             var squad = new List<RunUnit>(state.Squad.Count);
@@ -50,34 +58,44 @@ namespace Faultline.Core
             {
                 if (!unit.IsAvailable)
                 {
-                    // Voided is the run's one permanent loss, and a campfire that undid it would leave
+                    // Voided is the run's one permanent loss, and a pond that undid it would leave
                     // the game with none (D-053).
                     squad.Add(unit);
                     continue;
                 }
 
                 bool wasDowned = unit.Status == RunUnitStatus.Downed;
-                if (!wasDowned && unit.Hp >= unit.MaxHp)
+                int to = StillPond.HealthAfter(depth, unit);
+
+                if (!wasDowned && to <= unit.Hp)
                 {
                     squad.Add(unit);
                     continue;
                 }
 
-                // A downed duck is carrying zero, so half its ceiling is what it stands up on — the
-                // campfire clears the mark, it does not also make good the whole downing.
-                int healed = unit.Hp + HealFor(unit.MaxHp);
-                if (healed > unit.MaxHp)
-                {
-                    healed = unit.MaxHp;
-                }
-
-                var rested = unit with { Hp = healed, Status = RunUnitStatus.Ready };
+                var rested = unit with { Hp = to, Status = RunUnitStatus.Ready };
                 squad.Add(rested);
                 context.RunEvents.Add(new UnitRested(
                     rested.Id, rested.Kind, unit.Hp, rested.Hp, wasDowned));
             }
 
             return Campaign.Advance(state with { Squad = squad, Phase = RunPhase.AtNode }, context);
+        }
+
+        /// <summary>Every face this pond is refusing, and why — a refusal always names its reason.</summary>
+        private static string Refusals(PondDepth depth)
+        {
+            var said = string.Empty;
+
+            foreach (var choice in StillPond.Offer(depth))
+            {
+                if (!choice.Available)
+                {
+                    said += choice.Name + ": " + choice.Refusal + " ";
+                }
+            }
+
+            return said.Length > 0 ? said.TrimEnd() : "Nothing else is on offer here.";
         }
     }
 }

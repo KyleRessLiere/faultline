@@ -413,6 +413,49 @@
     max-width: 66ch;
 }
 
+/* The pond's two faces. The refused one is dimmed and printed, never hidden: §8.8 gives the node
+   two faces, and a face that is not built says so where the choice is made. */
+.pond-faces {
+    display: grid;
+    gap: .6rem;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    list-style: none;
+    margin: .6rem 0 0;
+    padding: 0;
+}
+
+.pond-face {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    padding: .7rem .8rem;
+}
+
+.pond-face.shut {
+    background: color-mix(in srgb, var(--line) 14%, transparent);
+    opacity: .72;
+}
+
+.face-name {
+    font-size: .78rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.face-terms {
+    color: var(--muted);
+    font-size: .8rem;
+    line-height: 1.5;
+    margin-top: .25rem;
+}
+
+.face-refusal {
+    font-size: .78rem;
+    line-height: 1.5;
+    margin: .5rem 0 0;
+}
+
 .heals {
     list-style: none;
     margin: .5rem 0;

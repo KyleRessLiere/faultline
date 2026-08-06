@@ -13,13 +13,21 @@ namespace Faultline.Core
     /// which is the D-092 trap in a different costume.
     /// </para>
     /// <para>
-    /// Forge and scrape are not here, and no button for them is either. The v1 campfire offers one
-    /// option, honestly, rather than three with two greyed out.
+    /// Curse-scraping is not here, and no button for it is either. The Forge <em>is</em> — drawn,
+    /// named and refused with its reason (<see cref="StillPond"/>), because §8.8 says the node has
+    /// two faces and the honest thing is to say which one is not built yet.
     /// </para>
     /// </remarks>
     public sealed record MapRestNode : CampaignNode
     {
+        /// <summary>
+        /// Which pond this is. Projected from the graph by <see cref="MapNode.ToCampaignNode"/> and
+        /// never authored — see <see cref="PondDepth"/>.
+        /// </summary>
+        public PondDepth Depth { get; init; } = PondDepth.MidAct;
+
         /// <inheritdoc/>
-        public override string Describe() => "rest";
+        public override string Describe() =>
+            Depth == PondDepth.PreBoss ? "rest (pre-boss)" : "rest";
     }
 }

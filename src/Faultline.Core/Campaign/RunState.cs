@@ -111,7 +111,7 @@ namespace Faultline.Core
         /// </summary>
         public CampaignNode? CurrentNode => Map is null
             ? Campaign.NodeAt(NodeIndex)
-            : CurrentMapNode?.ToCampaignNode();
+            : CurrentMapNode?.ToCampaignNode(Map);
 
         /// <summary>
         /// The map node the run is standing on, or <c>null</c> when it is not walking a map.

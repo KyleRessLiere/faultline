@@ -127,6 +127,223 @@ public class MapRestAndEventTests
             Campaign.ApplyRun(run, new EventWalkAwayCommand()));
     }
 
+    // --- The two Still Ponds -----------------------------------------------------------------------
+
+    [Fact]
+    public void ThePondsDepth_IsDerivedFromTheGraphAndNotAuthored()
+    {
+        var map = ActMapLibrary.Act1;
+
+        // The floor: every door out of c6-rest opens onto the boss. c4-rest's opens onto a fight.
+        Assert.True(map.IsPreBossRest("c6-rest"));
+        Assert.False(map.IsPreBossRest("c4-rest"));
+
+        // Not a pond at all, and the terminal, which has no doors out: neither is the floor.
+        Assert.False(map.IsPreBossRest("c3-molting-pool"));
+        Assert.False(map.IsPreBossRest("c7-quarry-king"));
+
+        Assert.Equal(
+            PondDepth.PreBoss,
+            Assert.IsType<MapRestNode>(map.NodeAt("c6-rest")!.ToCampaignNode(map)).Depth);
+        Assert.Equal(
+            PondDepth.MidAct,
+            Assert.IsType<MapRestNode>(map.NodeAt("c4-rest")!.ToCampaignNode(map)).Depth);
+    }
+
+    /// <summary>
+    /// MASTER_DESIGN §8.8's closing clause, and the reason this node has two faces at all: a Still
+    /// Pond never pays both full health and a free Rare.
+    /// </summary>
+    [Fact]
+    public void AStillPond_NeverPaysBothFullHealthAndAFreeRare()
+    {
+        foreach (var depth in new[] { PondDepth.MidAct, PondDepth.PreBoss })
+        {
+            foreach (var face in StillPond.Offer(depth))
+            {
+                if (face.Healing == PondHealing.Full)
+                {
+                    Assert.Equal(PondReward.None, face.Reward);
+                }
+
+                if (face.Reward != PondReward.None)
+                {
+                    Assert.NotEqual(PondHealing.Full, face.Healing);
+                }
+            }
+        }
+
+        // The pre-boss floor is where the two would meet if anything ever let them: it is the one
+        // pond that pays full health and the one pond that would pay a Rare.
+        var floor = StillPond.Offer(PondDepth.PreBoss);
+        var rest = floor[0];
+        var deepForge = floor[1];
+
+        Assert.Equal(PondHealing.Full, rest.Healing);
+        Assert.Equal(PondReward.None, rest.Reward);
+        Assert.Equal(PondHealing.Half, deepForge.Healing);
+        Assert.Equal(PondReward.Rare, deepForge.Reward);
+    }
+
+    [Fact]
+    public void APondFace_CannotBeBuiltPairingFullHealthWithAReward()
+    {
+        // Structural, not incidental: the pairing cannot be constructed, so no later pond, generator
+        // or tuning pass can produce one by accident.
+        var refused = Assert.Throws<ArgumentException>(() => new PondChoice(
+            "The Everything Pond",
+            "Full health and a Rare.",
+            PondHealing.Full,
+            PondReward.Rare,
+            clearsBedraggled: true,
+            new RestHealCommand(),
+            string.Empty));
+
+        Assert.Contains("never pays both full health and a free Rare", refused.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void APondFace_ThatCannotBeTakenMustSayWhy()
+    {
+        Assert.Throws<ArgumentException>(() => new PondChoice(
+            "Silence",
+            "It does nothing and explains nothing.",
+            PondHealing.None,
+            PondReward.None,
+            clearsBedraggled: false,
+            command: null,
+            string.Empty));
+    }
+
+    [Fact]
+    public void TheMidActPond_HealsHalfAndClearsBedraggled()
+    {
+        var run = AtTheCampfire();
+        var vanguard = run.Squad.Single(u => u.Kind == UnitKind.Vanguard);
+        run = HurtEveryone(run, 1).WithUnit(vanguard with { Hp = 0, Status = RunUnitStatus.Downed });
+
+        var step = Campaign.ApplyRun(MapFixture.Enter(run), new RestHealCommand());
+        var stood = step.NewState.Squad.Single(u => u.Kind == UnitKind.Vanguard);
+
+        Assert.Equal(7, stood.Hp);
+        Assert.Equal(RunUnitStatus.Ready, stood.Status);
+        Assert.False(stood.ReturnsBedraggled);
+
+        // "Clear Bedraggled" is clearing the omission, not removing a status: what a downed duck
+        // carries into the next fight is the quarter return and the missing slot, and both are gone
+        // the moment the run status is Ready.
+        Assert.Equal(stood.Hp, stood.FieldingHp);
+
+        // Half, not full — the mid-act pond ends the downing; it does not make the downing good.
+        Assert.All(step.NewState.Squad, u => Assert.True(u.Hp < u.MaxHp));
+    }
+
+    [Fact]
+    public void ThePreBossPond_HealsToFullAndClearsBedraggled()
+    {
+        var run = AtThePreBossPond();
+        var vanguard = run.Squad.Single(u => u.Kind == UnitKind.Vanguard);
+        run = HurtEveryone(run, 1).WithUnit(vanguard with { Hp = 0, Status = RunUnitStatus.Downed });
+
+        var step = Campaign.ApplyRun(MapFixture.Enter(run), new RestHealCommand());
+
+        Assert.All(step.NewState.Squad, u => Assert.Equal(u.MaxHp, u.Hp));
+        Assert.All(step.NewState.Squad, u => Assert.Equal(RunUnitStatus.Ready, u.Status));
+
+        var stood = step.NewState.Squad.Single(u => u.Kind == UnitKind.Vanguard);
+        Assert.Equal(14, stood.Hp);
+        Assert.False(stood.ReturnsBedraggled);
+
+        // And the boss is the next node, which is what made it the floor.
+        Assert.Equal("c7-quarry-king", MapFixture.Where(step.NewState));
+    }
+
+    [Fact]
+    public void ThePreBossPond_LeavesAVoidedDuckWhereItIs()
+    {
+        var run = AtThePreBossPond();
+        var archer = run.Squad.Single(u => u.Kind == UnitKind.Archer);
+        run = run.WithUnit(archer with { Hp = 0, Status = RunUnitStatus.Voided });
+
+        var step = Campaign.ApplyRun(MapFixture.Enter(run), new RestHealCommand());
+        var gone = step.NewState.Squad.Single(u => u.Kind == UnitKind.Archer);
+
+        Assert.Equal(RunUnitStatus.Voided, gone.Status);
+        Assert.Equal(0, gone.Hp);
+    }
+
+    [Fact]
+    public void ThePreBossPond_ReportsTheWholeClimb()
+    {
+        var run = HurtEveryone(AtThePreBossPond(), 1);
+        var step = Campaign.ApplyRun(MapFixture.Enter(run), new RestHealCommand());
+
+        var rested = step.All<UnitRested>();
+        Assert.Equal(4, rested.Count);
+        Assert.All(rested, r => Assert.Equal(1, r.From));
+
+        var vanguard = rested.Single(r => r.Kind == UnitKind.Vanguard);
+        Assert.Equal(14, vanguard.To);
+    }
+
+    [Fact]
+    public void BothForges_ArePrintedAndRefusedWithTheirReason()
+    {
+        var midAct = StillPond.Offer(PondDepth.MidAct)[1];
+        var preBoss = StillPond.Offer(PondDepth.PreBoss)[1];
+
+        Assert.Equal("Forge", midAct.Name);
+        Assert.Equal("Deep Forge", preBoss.Name);
+
+        foreach (var forge in new[] { midAct, preBoss })
+        {
+            // Drawn, named and refused: never rendered as a reward the game could pay.
+            Assert.False(forge.Available);
+            Assert.Null(forge.Command);
+            Assert.NotEmpty(forge.Terms);
+            Assert.Contains("Not built yet", forge.Refusal, StringComparison.Ordinal);
+        }
+
+        // The reason is counted off the shipped pool rather than written down, so it cannot go stale.
+        Assert.Equal(0, StillPond.RaresInPool());
+        Assert.Equal(1, StillPond.WidestUncommonOrRarePool());
+        Assert.Contains("holds 0", preBoss.Refusal, StringComparison.Ordinal);
+        Assert.Contains("holds 1", midAct.Refusal, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void APond_OffersExactlyTheFacesItCanPay()
+    {
+        foreach (var (where, depth) in new[]
+        {
+            (AtTheCampfire(), PondDepth.MidAct),
+            (AtThePreBossPond(), PondDepth.PreBoss),
+        })
+        {
+            var run = MapFixture.Enter(where);
+            Assert.Equal(RunPhase.AtChoice, run.Phase);
+
+            var legal = Campaign.LegalRunCommands(run);
+            Assert.Single(legal);
+            Assert.IsType<RestHealCommand>(legal[0]);
+
+            var payable = StillPond.Offer(depth).Where(f => f.Available).ToList();
+            Assert.Equal(legal.Count, payable.Count);
+        }
+    }
+
+    [Fact]
+    public void APond_RefusingAnythingElseNamesTheForgeAndWhy()
+    {
+        var run = MapFixture.Enter(AtThePreBossPond());
+
+        var refused = Assert.Throws<InvalidOperationException>(() =>
+            Campaign.ApplyRun(run, new EventWalkAwayCommand()));
+
+        Assert.Contains("Deep Forge", refused.Message, StringComparison.Ordinal);
+        Assert.Contains("Not built yet", refused.Message, StringComparison.Ordinal);
+    }
+
     // --- The Molting Pool --------------------------------------------------------------------------
 
     [Fact]
@@ -350,6 +567,12 @@ public class MapRestAndEventTests
         MapFixture.Rigged(
             MapFixture.Start(), MapFixture.Toward("c2-bait-and-break", "c3-the-shrine"),
             stopAt: "c4-rest");
+
+    /// <summary>The floor: the pond in column 6, whose only door is the boss. Reached by playing.</summary>
+    private static RunState AtThePreBossPond() =>
+        MapFixture.Rigged(
+            MapFixture.Start(), MapFixture.Toward("c2-bait-and-break", "c3-the-shrine"),
+            stopAt: "c6-rest");
 
     private static RunState AtThePool() =>
         MapFixture.Rigged(

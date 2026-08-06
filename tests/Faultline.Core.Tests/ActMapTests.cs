@@ -274,7 +274,7 @@ public class ActMapTests
     [Fact]
     public void RewardMarks_AreCarriedByTheEliteNodeWithoutBeingSpent()
     {
-        var projected = Assert.IsType<FightNode>(Act1.NodeAt("c4-high-road")!.ToCampaignNode());
+        var projected = Assert.IsType<FightNode>(Act1.NodeAt("c4-high-road")!.ToCampaignNode(Act1));
 
         Assert.True(projected.Elite);
         Assert.Equal("high-road", projected.FightId);

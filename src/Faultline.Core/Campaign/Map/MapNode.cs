@@ -51,17 +51,34 @@ namespace Faultline.Core
         /// The run-engine node this map node plays. The projection that lets the graph reuse the
         /// campaign's node seam instead of duplicating it.
         /// </summary>
+        /// <param name="map">
+        /// The graph this node stands in. A Still Pond's depth is a fact about where it sits, not
+        /// about the node itself (<see cref="ActMap.IsPreBossRest"/>), so the projection needs the
+        /// map to make it.
+        /// </param>
         /// <returns>A campaign node the handler table already knows.</returns>
+        /// <exception cref="ArgumentNullException">No map was given.</exception>
         /// <exception cref="NotSupportedException">The node type has no projection.</exception>
-        public CampaignNode ToCampaignNode() => Type switch
+        public CampaignNode ToCampaignNode(ActMap map)
         {
-            MapNodeType.Fight => new FightNode(FightId),
-            MapNodeType.Elite => new FightNode(FightId) { Elite = true, Reward = Reward },
-            MapNodeType.Boss => new FightNode(FightId) { Boss = true, Reward = Reward },
-            MapNodeType.Rest => new MapRestNode(),
-            MapNodeType.Event => new EventNode(EventId),
-            _ => throw new NotSupportedException("No campaign node for map node type " + Type + "."),
-        };
+            if (map is null)
+            {
+                throw new ArgumentNullException(nameof(map));
+            }
+
+            return Type switch
+            {
+                MapNodeType.Fight => new FightNode(FightId),
+                MapNodeType.Elite => new FightNode(FightId) { Elite = true, Reward = Reward },
+                MapNodeType.Boss => new FightNode(FightId) { Boss = true, Reward = Reward },
+                MapNodeType.Rest => new MapRestNode
+                {
+                    Depth = map.IsPreBossRest(Id) ? PondDepth.PreBoss : PondDepth.MidAct,
+                },
+                MapNodeType.Event => new EventNode(EventId),
+                _ => throw new NotSupportedException("No campaign node for map node type " + Type + "."),
+            };
+        }
 
         /// <inheritdoc/>
         public override string ToString() => Id + " (" + Type + ", " + Lane + ")";

@@ -417,6 +417,75 @@ public sealed class ActMapScreenTests
         Assert.DoesNotContain("class=\"door\"", html);
     }
 
+    // ---- The two Still Ponds, as a player sees them -----------------------------------------------
+
+    [Fact]
+    public async Task TheMidActPond_DrawsBothFaces_AndTheForgeSaysWhyItIsNotYet()
+    {
+        var session = await RunAt("c1-first-contact", "c2-bait-and-break", "c3-the-shrine", "c4-rest");
+        session.Enter();
+
+        var visible = VisibleText(Render(session));
+
+        // Both faces are on the table. The one that cannot be paid is drawn saying so, because a
+        // screen that dropped it would be re-deciding what §8.8 says the node offers.
+        Assert.Contains("Rest", visible);
+        Assert.Contains("Forge", visible);
+        Assert.Contains("Not built yet", visible);
+
+        // Nothing here promises a card the game cannot deal.
+        Assert.DoesNotContain("Deep Forge", visible);
+
+        // The numbers on screen are per duck and absolute — where each one ends up, not a fraction.
+        Assert.Contains("14/14", visible);
+        Assert.Contains("8/8", visible);
+    }
+
+    [Fact]
+    public async Task ThePreBossPond_DrawsAFullHeal_AndRefusesTheDeepForgeOnScreen()
+    {
+        var session = await AtThePreBossPond();
+        session.Enter();
+
+        var html = Render(session);
+        var visible = VisibleText(html);
+
+        Assert.Contains("Deep Forge", visible);
+        Assert.Contains("Not built yet", visible);
+        Assert.Contains("everyone comes back whole", visible);
+
+        // The refused face carries no button, and the paid one does. Assert on the markup, not on
+        // the flag: what is being pinned is what a player can click.
+        Assert.Contains("pond-face shut", html);
+        Assert.Contains("pond-face open", html);
+        Assert.Equal(1, Occurrences(html, "class=\"action\""));
+    }
+
+    [Fact]
+    public async Task ThePreBossPond_IsReachedAndTakenByClicking()
+    {
+        var session = await AtThePreBossPond();
+
+        Assert.Equal(
+            PondDepth.PreBoss,
+            Assert.IsType<MapRestNode>(session.State!.CurrentNode).Depth);
+
+        session.Enter();
+        Assert.Equal(RunPhase.AtChoice, session.State!.Phase);
+        Assert.Contains(session.Legal, c => c is RestHealCommand);
+
+        session.Heal();
+
+        // The one button on the pond took it, and the boss is the next thing on the map.
+        Assert.All(session.State!.Squad, u => Assert.Equal(u.MaxHp, u.Hp));
+        Assert.Equal("c7-quarry-king", session.State.MapState!.CurrentNodeId);
+    }
+
+    /// <summary>A run standing on the act's pre-boss floor, having walked the safe lane to it.</summary>
+    private static Task<RunSession> AtThePreBossPond() => RunAt(
+        "c1-first-contact", "c2-bait-and-break", "c3-the-shrine", "c4-rest",
+        "c5-break-the-gate", "c6-rest");
+
     // ---- Reaching it, and the road that already worked -------------------------------------------
 
     [Fact]

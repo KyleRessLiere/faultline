@@ -185,6 +185,41 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Whether a node is the act's pre-boss Still Pond — the floor §8.8 says every path reaches.
+        /// </summary>
+        /// <remarks>
+        /// Derived, not authored (D-180, following D-162). A pond is the floor when every door out of
+        /// it opens onto the boss, which is what "pre-boss" means on a graph whose edges step exactly
+        /// one column. An authored flag would have been a second place for the same fact to live, and
+        /// a map edited later could have moved the pond without moving the flag.
+        /// </remarks>
+        /// <param name="id">Node id.</param>
+        /// <returns>True when it is a Rest node and every door out of it leads to the boss.</returns>
+        public bool IsPreBossRest(string id)
+        {
+            if (NodeAt(id) is not { Type: MapNodeType.Rest })
+            {
+                return false;
+            }
+
+            var doors = Successors(id);
+            if (doors.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (string door in doors)
+            {
+                if (NodeAt(door) is not { Type: MapNodeType.Boss })
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Everything structurally wrong with the map, as sentences. Empty means the graph is sound.
         /// </summary>
         /// <remarks>

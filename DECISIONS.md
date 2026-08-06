@@ -181,8 +181,12 @@ in this file when the question comes back.
 | D-162 | [A structure's display name is derived from its role, not authored in the fight file.](#d-162-a-structures-display-name-is-derived-from-its-role-not-authored-in-the-fight-file) | 2026-08-06 |  |
 | D-163 | [The objective panel reports each structure separately, and leaves blockers out.](#d-163-the-objective-panel-reports-each-structure-separately-and-leaves-blockers-out) | 2026-08-06 |  |
 | D-164 | [A claw telegraphs the flat structure chip, never the enemy's weapon damage.](#d-164-a-claw-telegraphs-the-flat-structure-chip-never-the-enemys-weapon-damage) | 2026-08-06 |  |
+| D-180 | [A Still Pond's depth is derived from the graph, never authored on the node.](#d-180-a-still-ponds-depth-is-derived-from-the-graph-never-authored-on-the-node) | unreleased |  |
+| D-181 | ["Never both full health and a free Rare" is a constructor guard, not a convention.](#d-181-never-both-full-health-and-a-free-rare-is-a-constructor-guard-not-a-convention) | unreleased |  |
+| D-182 | [Both Forges ship printed and refused, with the pool size counted rather than asserted.](#d-182-both-forges-ship-printed-and-refused-with-the-pool-size-counted-rather-than-asserted) | unreleased |  |
+| D-183 | ["Clear Bedraggled" clears the run status; no status effect was introduced to remove.](#d-183-clear-bedraggled-clears-the-run-status-no-status-effect-was-introduced-to-remove) | unreleased |  |
 
-**162 rulings.**
+**166 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4156,3 +4160,93 @@ not leave a stale prediction on screen.
 (D-096), and the claw telegraph does not say so. `Ai.Strike` publishes `RedirectedTo` for unit
 targets; the structure branch has no equivalent, and a guard who steps in **after** intents are
 declared would not be reflected either way. Recorded for the designer rather than guessed at.
+
+---
+
+**D-180 - A Still Pond's depth is derived from the graph, never authored on the node.**
+
+MASTER_DESIGN §8.8 gives the pond two rate cards - mid-act and pre-boss floor - without saying how a
+node knows which it is. The obvious move was a field on `MapNode` (`PreBoss = true` on `c6-rest`).
+Rejected, following D-162: the fact already exists in the graph. §8.8 defines the floor as the pond
+"every path reaches" before the boss, and on a map whose edges step exactly one column that is
+readable in one line - `ActMap.IsPreBossRest(id)` is true when the node is a Rest and every door out
+of it opens onto the boss. An authored flag would have been a second home for the same fact, and a
+later edit that moved the pond without moving the flag would have shipped a mid-act node paying a
+full heal with nothing failing.
+
+The cost is one signature: `MapNode.ToCampaignNode()` now takes the `ActMap` it stands in, because
+the projection cannot answer this from the node alone. Two call sites. `MapRestNode` carries the
+resulting `PondDepth`, so the handler, the save's replay and the screen all read one answer.
+
+**Also rejected: a second `MapNodeType`.** §8.5 says every node wears its type and the pond's icon is
+one icon; splitting the enum would have put a second pond glyph on the map to express a difference
+the map does not draw.
+
+---
+
+**D-181 - "Never both full health and a free Rare" is a constructor guard, not a convention.**
+
+§8.8's Still Pond ruling ends with the sentence the node exists to enforce: *never both full health
+and a free Rare*. Written as a rule the handler checks, it would have held exactly as long as
+somebody remembered it - and the place it will next be forgotten is the constraint generator for acts
+2 and 3, which will assemble ponds nobody reviews one at a time.
+
+So `PondChoice`'s constructor throws when `PondHealing.Full` meets any `PondReward`. The pairing is
+unrepresentable: no pond, generator, tuning pass or test fixture can produce one, and the failure is
+an exception at the point of construction rather than a wrong number on a screen.
+`AStillPond_NeverPaysBothFullHealthAndAFreeRare` walks both depths' faces and asserts it; a second
+test asserts that constructing the illegal pairing throws, so the guard cannot be quietly deleted.
+
+Two smaller invariants ride the same constructor, for the same reason. A face that cannot be taken
+must carry a refusal - a silent no-op is a bug, and an unavailable face with an empty reason is one
+in card form. A face cannot carry both a command and a refusal, because a player looking at it could
+not tell whether it was on offer.
+
+**Rejected: the invariant as a test over the shipped ponds only.** It would have passed forever while
+the thing it guards - future ponds - went unbuilt.
+
+---
+
+**D-182 - Both Forges ship printed and refused, with the pool size counted rather than asserted.**
+
+The stage brief permits "a stub that reports 'not yet' if the card pool isn't wide enough". It is not
+wide enough, and not marginally: **the shipped card pool contains zero Rare cards.** Rarity is carried
+only by technique modifiers (D-159) and the eight built ones are four Common and four Uncommon;
+everything else in `CampCatalogue` is Common by default. §8.8's Deep Forge pays "one of three Rares"
+against a pool of none. §8.6's Forge deals "three valid Uncommon/Rare cards" to one duck, and every
+card above Common is class-bound, so the widest any duck's Uncommon-or-Rare pool gets is **one**.
+
+Three options. Deal something else and call it a Forge - refused outright, that is the promise rule
+broken on purpose. Leave the Forge off the table until it can pay - refused, because §8.8 says the
+node has two faces and a screen showing one would be silently re-deciding that. **Draw it, name it,
+refuse it with its reason** - taken. `StillPond.Offer` returns both faces at both depths; the Forge
+carries no command, so it can never be sent, and carries a refusal that reaches the screen: "Not
+built yet. A Deep Forge pays one of three Rares and the card pool holds 0."
+
+The counts in those sentences are **counted off `CampCatalogue` when the face is built**, not typed
+in. A refusal that hard-coded "0" would keep saying 0 the day someone adds three Rares, which is
+exactly the day it would matter, and the stub would then be lying about why it is still a stub.
+
+**Unbuilt, and named as unbuilt:** the Forge's card-dealing itself, the Deep Forge's Rare tier, and
+curse-scraping, which §8.5 lists as a third face and which is not drawn at all because nothing about
+curses exists to scrape.
+
+---
+
+**D-183 - "Clear Bedraggled" clears the run status; no status effect was introduced to remove.**
+
+§8.8 asks a mid-act pond to "heal ~half **and clear Bedraggled**", which reads like removing a
+condition. Between fights there is no condition to remove. Bedraggled is a *scheduler omission*
+(`Bedraggled`, D-036): a duck the run holds as `RunUnitStatus.Downed` returns on `ceil(MaxHp/4)` and
+skips its first activation, and both facts are derived - `RunUnit.FieldingHp` and
+`RunUnit.ReturnsBedraggled` read the status, and `Unit.Bedraggled` is stamped on at fielding time by
+`SquadLoadout.IsBedraggled`.
+
+So clearing it is setting the run status back to `Ready`, which the map's rest handler already did
+when it healed (D-119). §8.8's clause was **already built** and is now pinned by a test that asserts
+the downstream facts rather than the flag: after a rest, `FieldingHp == Hp` and `ReturnsBedraggled`
+is false. Nothing was added.
+
+**Rejected: a `Bedraggled` field on `RunUnit`.** It would have been a second source for a fact
+`Status` already carries, and the two would have disagreed the first time a fight resolved into a
+save.

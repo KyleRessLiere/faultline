@@ -1112,7 +1112,7 @@ node types have handlers, and a test pins that number.
 | --- | --- | --- |
 | **Fight** | Plays a fight. A win advances to the next node; a loss ends the run. | both |
 | **Rest** | Restores every unit that can still be fielded to **full**, and advances. | linear campaign |
-| **Map rest** | The act map's **campfire**: heals **half** a duck's ceiling, rounded up. | act map |
+| **Map rest** | The act map's **Still Pond**: heals **half** a duck's ceiling mid-act, **full** on the pre-boss floor. | act map |
 | **Event** | Prints an offer and its prices, then takes a payment or a walk-away. | act map |
 
 The shipped **linear** campaign is **twelve nodes: fights 1–4, a rest, fights 5–8, a rest, fights 9–10** — the
@@ -1132,7 +1132,8 @@ going into the boss.
   everything but voided (D-053). A rested unit is therefore *not* Bedraggled: a rest is still the
   clean return, and this ruling only governs what happens when there is no rest between the downing
   and the next fight. It clears nothing else; a rest is not a phase with choices in it.
-  **On the act map a campfire is a different node and heals half, not full** (D-119) — see below.
+  **On the act map the Still Pond is a different node: half mid-act, full on the pre-boss floor**
+  (D-119, D-180) — see below.
 
 ### Bedraggled — the downed return
 
@@ -1292,20 +1293,36 @@ same doors and the same coin cursor. Without it a reload stood the run back on t
 with fewer than two doors out, or on the linear campaign, is refused rather than downgraded. A record
 written before the field existed has no `at-vote` line, reads as `no`, and restores as it always did.
 
-### The campfire — half, rounded up, per duck
+### The Still Pond — two depths, one node type
 
-The act map's Camp is `MapRestNode`, a **different node type** from the linear campaign's full-heal
-rest, which is unchanged (D-053, D-119).
+The act map's pond is `MapRestNode`, a **different node type** from the linear campaign's full-heal
+rest, which is unchanged (D-053, D-119). It comes in two depths, and **which one a pond is comes from
+the graph, not from the file**: a pond is the **pre-boss floor** when every door out of it opens onto
+the boss (`ActMap.IsPreBossRest`, D-180). On Act 1 that is `c6-rest`; `c4-rest` is mid-act.
 
-- **Heal = `ceil(MaxHp / 2)`**, computed **per duck off its own ceiling**, and capped at that ceiling.
-  A Vanguard or Wardbearer on 14 heals **7**; an Archer or Fisher on 8 heals **4**; a duck that bought
-  a raise at the Molting Pool has a ceiling of 16 and heals **8**.
-- A **downed** duck stands up on half its ceiling and the downed mark clears — so it is not
-  Bedraggled in the next fight. The campfire ends the downing; it does not make the downing good.
-- A **voided** duck is untouched. Voiding is still the run's one permanent loss.
-- A duck already at full is skipped, and nothing is reported for it.
-- **Healing is the only option.** The campfire refuses any other command by name: forge and
-  curse-scraping are not built, and are not offered greyed out.
+| | Mid-act pond | Pre-boss pond |
+| --- | --- | --- |
+| **Rest** | `ceil(MaxHp / 2)` back, per duck off its own ceiling, capped there. Bedraggled cleared. | **Back to `MaxHp`**, per duck. Bedraggled cleared. |
+| **The other face** | **Forge** — three Uncommon-or-Rare cards, no healing. **Not built.** | **Deep Forge** — half a ceiling each plus one of three Rares, downed ducks staying Bedraggled through boss round 1. **Not built.** |
+
+- Mid-act numbers: a Vanguard or Wardbearer on 14 heals **7**; an Archer or Fisher on 8 heals **4**; a
+  duck that bought a raise at the Molting Pool has a ceiling of 16 and heals **8**. On the pre-boss
+  floor every one of them ends on its ceiling exactly.
+- A **downed** duck stands up and the downed mark clears at either depth — mid-act on half its
+  ceiling, pre-boss on all of it. **"Clear Bedraggled" is clearing the omission, not removing a
+  status**: the run holds it as `RunUnitStatus.Downed`, and `FieldingHp`/`ReturnsBedraggled` both
+  read off that, so a duck set back to `Ready` walks into the next fight on its carried HP with its
+  first-round slot intact.
+- A **voided** duck is untouched at either depth. Voiding is still the run's one permanent loss.
+- A duck already at its ceiling is skipped, and nothing is reported for it.
+- **Never both full health and a free Rare** (§8.8). This is a constructor guard on `PondChoice`, not
+  a convention: a face pairing full healing with any reward throws (D-181). The pre-boss floor is the
+  one pond where the two could meet — its Rest pays full health and no card, its Deep Forge pays half
+  and a Rare.
+- **Both Forges are drawn, named and refused with their reason** — "Not built yet. A Deep Forge pays
+  one of three Rares and the card pool holds 0." The counts are read off `CampCatalogue` at render
+  time, not written down (D-182). Curse-scraping is not on the table at all: §8.5 lists it, and
+  nothing about it is built.
 
 ### The Molting Pool — the whole event tier
 
@@ -1368,7 +1385,8 @@ Named here so the gap between intent and build stays visible, not to promise a d
   can settle a camp (`RunSession.PickCamp`) but draws nothing for it yet, so a camp reached in the
   browser is a stop with no cards on screen.
 - **The Molt.**
-- **Forge and curse-scraping** at the campfire.
+- **Forge, Deep Forge and curse-scraping** at the Still Pond. The two Forges are printed on the pond
+  and refused with their reason (D-182); curse-scraping is not drawn at all.
 - **`RunUnit.Owner`.** Consent is structural rather than checked, and stays that way until the Dock
   draft (D-121).
 - **The Peddler's Coin**, the one licensed re-flip. When it lands it re-flips the coin, not the vote.
