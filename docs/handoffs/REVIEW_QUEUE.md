@@ -24,6 +24,60 @@ difficulty; that is a second ruling wearing the first one's clothes.
 **Reverse by:** removing `(1,2)` instead, and re-running the deterministic seven. cb-06 currently
 stays on `AgencyTests.KnownUnsafe` either way.
 
+> **Overtaken by Stage C1 (D-165).** cb-06 was re-cut from 9×7 to 7×7 as Warrens edition A; neither
+> `(7,2)` nor `(1,2)` exists on it any more and it is off `KnownUnsafe`. The measured difficulty
+> result the item is protecting is a result about a board that no longer ships — **the deterministic
+> seven want re-running against edition A before any of it is trusted.**
+
+---
+
+## Stage C1 — Warrens edition A
+
+### A structure collision deals 4; the design prices it at 6, and two published board rules need 6
+
+D-166. `break-the-gate`'s anti-drag rule ("three clean structure collisions end the fight" against 18
+HP) and `broken-bridge`'s "one collision opens a crossing" (6 HP blockers) are the same arithmetic
+twice, and both close at 6 and at no other number. MASTER_DESIGN says 6 in §2, §7 and §8.9;
+`Displacement.CollisionDamage` is 4 and is applied to structures by the same line that applies it to
+units. **The boards are authored to 18 and 6 as the design asks; the constant was not touched.** As
+shipped the gate is five collisions and a crossing is a slam plus a swing.
+
+**This is the one thing on this list that is a rules question rather than a board question**, it is a
+one-constant change, and it needs a designer's yes: does a structure collision deal 6 while unit and
+wall collisions stay at 4? Two tests assert the designed number and the shipped number side by side
+so the change is red-then-delete rather than red-then-edit.
+
+### A Destroy board can still be won by clearing the board
+
+§7 says Destroy has "no kill-all win — objective only; turn-limit expiry is a loss". `Objectives
+.Check` wins on "no enemy left" under **every** objective (D-032/D-034). `break-the-gate` currently
+avoids the contradiction with geometry — both Lobbers are sealed behind the wall band and cannot be
+reached until the gate is down — but the rule and the document still disagree, and the next Destroy
+board will not have a convenient wall. Noted in D-167.
+
+### A `protect` board cannot be won by its own clock
+
+D-167. The parser refuses `protect ... for N` and points at `turn-limit:`, which is a loss on expiry,
+so a protect board is won by clearing the board and the structure is only ever a loss condition. §8's
+act graph calls this node "protect, waves". Whether that is intended is a designer call; nothing was
+changed.
+
+### `UnsafeRound1Deployment` is ready to become a parse error and was left a lint
+
+D-165. `AgencyTests.KnownUnsafe` is empty for the first time, which is the trigger the test names.
+Not done in the same session because it changes what `FightParser` rejects while another writer is
+adding nodes to the same act graph. One line in `FightIssueCode`, plus whatever it then rejects.
+
+### Six of the eight boards keep guideline lints on purpose
+
+`the-teeth` (brambles inside the centre 3×3 — a bramble board whose brambles are on the outer rings
+has no middle to own), `high-road` (the ridge is the centre), `broken-bridge` and `hz-09-the-trench`
+(the trench crosses the centre), `break-the-gate` and `hz-09-the-trench` (both flocks deploy on the
+same side — a siege has one front), and four boards with no high ground or no brambles because adding
+either would be decoration. The lints describe a symmetrical skirmish; §8.8's per-node theses ask for
+boards that are not one. **If the guidelines are meant to bind, they need per-thesis exemptions
+rather than eight boards quietly ignoring them.**
+
 ---
 
 ## Open questions nobody has answered

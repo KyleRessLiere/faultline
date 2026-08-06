@@ -169,7 +169,7 @@ in this file when the question comes back.
 | D-150 | [A diagonal displacement vector is resolved by the acting side, and the choice rides the acting command rather than a prompt of its own.](#d-150-a-diagonal-displacement-vector-is-resolved-by-the-acting-side-and-the-choice-rides-the-acting-command-rather-than-a-prompt-of-its-own) | 2026-08-06 |  |
 | D-151 | [Every action has exactly one projection, it lives in Core, and no renderer decides which half of an action applies.](#d-151-every-action-has-exactly-one-projection-it-lives-in-core-and-no-renderer-decides-which-half-of-an-action-applies) | 2026-08-06 |  |
 | D-152 | [The climb surcharge is deleted on both sides, and the two perks that bought a discount on it are deleted with it.](#d-152-the-climb-surcharge-is-deleted-on-both-sides-and-the-two-perks-that-bought-a-discount-on-it-are-deleted-with-it) | 2026-08-06 |  |
-| D-153 | [HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | 2026-08-06 | *held* |
+| D-153 | [HELD (released, and superseded by D-165): the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-released-and-superseded-by-d-165-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | unreleased | **superseded** |
 | D-154 | [The camp deals one table of two, and the flock takes one pick.](#d-154-the-camp-deals-one-table-of-two-and-the-flock-takes-one-pick) | 2026-08-06 |  |
 | D-155 | [A haul is attributed to its hauler, and Chum the Water starts firing off Reel.](#d-155-a-haul-is-attributed-to-its-hauler-and-chum-the-water-starts-firing-off-reel) | 2026-08-06 |  |
 | D-156 | [Rattling Impact's tile rides on the request, and the mark is spent by the attempt.](#d-156-rattling-impacts-tile-rides-on-the-request-and-the-mark-is-spent-by-the-attempt) | 2026-08-06 |  |
@@ -181,12 +181,15 @@ in this file when the question comes back.
 | D-162 | [A structure's display name is derived from its role, not authored in the fight file.](#d-162-a-structures-display-name-is-derived-from-its-role-not-authored-in-the-fight-file) | 2026-08-06 |  |
 | D-163 | [The objective panel reports each structure separately, and leaves blockers out.](#d-163-the-objective-panel-reports-each-structure-separately-and-leaves-blockers-out) | 2026-08-06 |  |
 | D-164 | [A claw telegraphs the flat structure chip, never the enemy's weapon damage.](#d-164-a-claw-telegraphs-the-flat-structure-chip-never-the-enemys-weapon-damage) | 2026-08-06 |  |
-| D-180 | [A Still Pond's depth is derived from the graph, never authored on the node.](#d-180-a-still-ponds-depth-is-derived-from-the-graph-never-authored-on-the-node) | unreleased |  |
-| D-181 | ["Never both full health and a free Rare" is a constructor guard, not a convention.](#d-181-never-both-full-health-and-a-free-rare-is-a-constructor-guard-not-a-convention) | unreleased |  |
-| D-182 | [Both Forges ship printed and refused, with the pool size counted rather than asserted.](#d-182-both-forges-ship-printed-and-refused-with-the-pool-size-counted-rather-than-asserted) | unreleased |  |
-| D-183 | ["Clear Bedraggled" clears the run status; no status effect was introduced to remove.](#d-183-clear-bedraggled-clears-the-run-status-no-status-effect-was-introduced-to-remove) | unreleased |  |
+| D-180 | [A Still Pond's depth is derived from the graph, never authored on the node.](#d-180-a-still-ponds-depth-is-derived-from-the-graph-never-authored-on-the-node) | 2026-08-06 |  |
+| D-181 | ["Never both full health and a free Rare" is a constructor guard, not a convention.](#d-181-never-both-full-health-and-a-free-rare-is-a-constructor-guard-not-a-convention) | 2026-08-06 |  |
+| D-182 | [Both Forges ship printed and refused, with the pool size counted rather than asserted.](#d-182-both-forges-ship-printed-and-refused-with-the-pool-size-counted-rather-than-asserted) | 2026-08-06 |  |
+| D-183 | ["Clear Bedraggled" clears the run status; no status effect was introduced to remove.](#d-183-clear-bedraggled-clears-the-run-status-no-status-effect-was-introduced-to-remove) | 2026-08-06 |  |
+| D-165 | [Every act-1 combat board is 7x7, and nothing else is re-cut. This supersedes D-153's hold.](#d-165-every-act-1-combat-board-is-7x7-and-nothing-else-is-re-cut-this-supersedes-d-153s-hold) | unreleased |  |
+| D-166 | [A structure collision deals 4, MASTER_DESIGN prices it at 6 in three places, and the boards are authored to the design's numbers with the constant left alone.](#d-166-a-structure-collision-deals-4-masterdesign-prices-it-at-6-in-three-places-and-the-boards-are-authored-to-the-designs-numbers-with-the-constant-left-alone) | unreleased |  |
+| D-167 | [A `protect` board cannot be won by its own clock, and the-shrine ships as "clear the lanes in eight" rather than "hold the shrine for eight".](#d-167-a-protect-board-cannot-be-won-by-its-own-clock-and-the-shrine-ships-as-clear-the-lanes-in-eight-rather-than-hold-the-shrine-for-eight) | unreleased |  |
 
-**166 rulings.**
+**169 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3905,8 +3908,13 @@ terrain.
 
 ---
 
-**D-153 — HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same
-stamp.**
+**D-153 — HELD (released, and superseded by D-165): the "every fight is 7x7" sweep, because
+MASTER_DESIGN says the opposite in the same stamp.**
+
+> **Released 2026-08-06 by D-165.** The unblock this entry asked for turned out not to need a new
+> stamp: §3 and §8.8 are about different things, and the hold was reading them as one sentence. The
+> prose below stands as written — it is still the correct answer to the question it was asked, which
+> was whether to sweep the *whole library*.
 
 A session was asked to re-cut or retire every legacy fight not on a 7x7 grid. **31 of the 65 shipped
 `.fight` files are not 7x7** — 17 live, 14 already retired — and the request contradicts the document
@@ -4250,3 +4258,120 @@ is false. Nothing was added.
 **Rejected: a `Bedraggled` field on `RunUnit`.** It would have been a second source for a fact
 `Status` already carries, and the two would have disagreed the first time a fight resolved into a
 save.
+
+---
+
+**D-165 — Every act-1 combat board is 7x7, and nothing else is re-cut. This supersedes D-153's
+hold.**
+
+D-153 held the "every fight is 7x7" sweep because MASTER_DESIGN appeared to contradict itself inside
+one stamp: §3 opens the board section with "**7×7 default (format supports larger)**", and §8.8's
+generator proof log lists "**every combat board is 7×7**" among the constraints an edition must
+certify. Read as one sentence they collide, and the hold was correct to refuse a 31-board sweep on
+the strength of a collision.
+
+**They are not one sentence.** §3 is about what the FORMAT supports — it sits beside the terrain
+table and the tile costs, and its parenthesis licenses a `.fight` file to describe a larger grid.
+§8.8 is about what an ACT FIELDS — it sits inside the list of things the edition generator must prove
+about the boards a run actually plays. "The format supports larger" and "every combat board in the
+Warrens is 7×7" are both true at once, and the second spends none of the first.
+
+**So the ruling is scoped rather than universal.** The eight act-1 combat nodes are 7×7:
+`first-contact`, `cb-06-bait-and-break`, `the-teeth`, `the-shrine`, `broken-bridge`, `high-road`,
+`break-the-gate`, `hz-09-the-trench`. Two were 9×7 and were re-cut for edition A. **The other 57
+boards are not touched**, which is CLAUDE.md's board-library rule verbatim: a board not fielded by a
+live act or an active event pool is retired, not migrated, and every rules change taxes every board.
+`WarrensEditionATests.EveryCombatBoard_IsSevenBySeven` pins the eight and nothing else.
+
+**Rejected: promoting `UnsafeRound1Deployment` from a lint to an error in the same session.** The
+`AgencyTests` known-unsafe list is now empty, which is the trigger that test names for the promotion,
+and the promotion is genuinely unblocked. It is not done here because it changes what `FightParser`
+REJECTS, and a second writer is adding node types to the same act graph in parallel — a board of
+theirs that trips the law would stop parsing rather than draw a warning. The guard does not weaken by
+waiting: `EveryCampaignBoardExceptTheKnownOnes_OffersADamageFreeRoundOne` already fails on any
+campaign board that breaks the law, which is the whole of what the enum move buys.
+
+**Rejected: keeping the two 9×7 cuts and arguing their size is their thesis.** D-153 makes that case
+for the `tp-` family and for `as-08`, and it is a good case — those boards are *about* how much room
+there is. It is not the case for these two. `cb-06-bait-and-break` asks who holds a doorway and
+`hz-09-the-trench` asks what a crossing costs; neither question needs two more columns, and on 9×7
+neither board could field a roster out of round-1 reach.
+
+---
+
+**D-166 — A structure collision deals 4, MASTER_DESIGN prices it at 6 in three places, and the boards
+are authored to the design's numbers with the constant left alone.**
+
+Stage C1's brief carries two non-negotiables that are the same arithmetic twice:
+
+- **break-the-gate**: "gate 18 HP + the anti-drag rule — three clean structure collisions end the
+  fight (attacks deal 2; nine direct actions is the costly baseline). Do not raise HP."
+- **broken-bridge**: "6 HP breakable blockers — one collision opens a crossing, attacks chip it."
+
+18 ÷ 3 = 6. 6 ÷ 1 = 6. Both close if and only if a collision takes **6** off a structure. The
+shipped constant is `Displacement.CollisionDamage = 4` (D-033), applied to structures by the same
+line that applies it to units, so as built the gate is five collisions and a crossing is a collision
+plus a swing. **The attack half closes exactly**: `Objectives.AttackDamageToStructure` is 2 and 18 ÷ 2
+is the nine actions §8.8 names, which is what makes the collision half look like a missing constant
+rather than a misread.
+
+**MASTER_DESIGN says 6 three times, in three unrelated sections.** §2's design-log line on where
+thesis lives: "price gaps (collision 6 vs attack 2 on structures)". §7's standing-structure rules:
+"any attack deals 2; collisions deal full damage (6 typical)". §8.9's Work Bells: "attacks deal 2, a
+structure collision deals 6". Three independent statements agreeing is not a typo, and 6 is the
+number that makes every published board arithmetic close.
+
+**What was done: the data, not the rule.** The gate is authored at 18 and the blockers at 6 — the
+numbers the design prints — and the constant is not changed. Changing it is a Core rules change that
+retunes every structure on every board at once, in a session whose scope is eight `.fight` files, and
+CLAUDE.md's line on a material game-feel change is to stop and ask rather than to pick. The brief
+also said, in as many words, to report an arithmetic that does not close rather than quietly pick a
+number.
+
+**Rejected: raising the gate's HP to 20 so five collisions read as a round number.** The brief says
+do not raise it, and it is right: the HP is not the thing that is wrong.
+
+**Rejected: writing the boards' design notes to the shipped 4 and saying nothing.** The design notes
+are read on the board while you play it. A note that says "one collision opens a crossing" when it
+takes two is a lie shipped in the product, and a note that quietly says two hides the ruling. Both
+files name the gap and cite this entry.
+
+**What unblocks it:** a designer ruling that structure collisions deal 6 while unit and wall
+collisions stay at 4 — the asymmetry is deliberate in §2's wording ("price gaps") but it has never
+been stated as a rule anyone implemented. The anti-drag test on `break-the-gate` and the crossing
+test on `broken-bridge` assert both numbers, the designed one and the shipped one, so the day the
+constant moves they go red and are deleted rather than edited.
+
+---
+
+**D-167 — A `protect` board cannot be won by its own clock, and the-shrine ships as "clear the lanes
+in eight" rather than "hold the shrine for eight".**
+
+Edition A of `the-shrine` was authored with `objective: protect 3,3 for 8 hp 12`, on the reading that
+a protect board should be won by protecting: the bell rings, the shrine is standing, you win.
+`Objectives.Check` supports exactly that shape — a deadline on a non-Survive objective wins when the
+objective's tiles are clear — so the semantics exist.
+
+**The parser refuses to author them.** `objective: protect ... for N` is an `ObjectiveIncomplete`
+error: *"'protect' has no deadline of its own; use 'turn-limit:' for a round cap."* And `turn-limit:`
+is a **loss** on expiry. So the only two authorable shapes for a protect board are "clear the board
+before round N or lose" and "clear the board, no clock at all", and in both the structure is a loss
+condition rather than a win condition.
+
+**Shipped as `protect 3,3 hp 12` + `turn-limit: 8`**, which is the shape the board already had, so
+nothing observable changed and no rule was touched. Recorded because the next person to author a
+protect board will reach for `for N` exactly as this session did, and because §8's act graph calls
+this node "protect, waves" — the node's name and its win condition do not currently mean the same
+thing.
+
+**Rejected: relaxing the parser's refusal.** It is a rule about what the format admits, it is in
+Core, and it has a reason on its face (a deadline and a turn limit on the same objective are two
+clocks). Changing it to make one board read better is the wrong order of operations: the ruling comes
+first.
+
+**Also observed while measuring:** a Destroy objective still wins under the universal "no enemy left"
+rule (D-032/D-034), while §7 says Destroy has **no kill-all win** — "objective only; turn-limit expiry
+is a loss". `break-the-gate` dodges the contradiction by geometry rather than by rule: both Lobbers
+are sealed north of the wall band and unreachable until the gate falls, so the board cannot be cleared
+before it is broken. That is a board-shaped answer to a rules-shaped question and is queued for
+review, not fixed here.

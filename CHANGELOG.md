@@ -1,5 +1,20 @@
 # Changelog
 
+## The Warrens' eight boards each ask one question, and none of them hit you first
+
+- **Every act-1 combat board is 7×7 and every one of them fields both flocks out of round-1 reach.**
+  Bait and Break and The Trench were re-cut from 9×7; the six boards that broke agency-before-injury
+  are off the known-unsafe list, which is empty for the first time (D-165).
+- **The Teeth opens with a six-damage bramble shove you can see before you click it.** A Husk stands
+  one tile off the middle tooth and both flocks have the play on turn one, so the signature hazard
+  reads as something you do to the enemy instead of something you walk into.
+- **Break the Gate is 18 hit points**, High Road is a five-tile ridge with no entry tax and a Perch
+  that wants to live on it, Broken Bridge's crossings open to any weapon, and the Shrine's two lanes
+  are cut by hazards rather than by walls you cannot shoot across.
+- **A structure collision still deals 4 where the design prices it at 6**, so the gate's "three clean
+  collisions" is five and a crossing costs a slam plus a swing. The boards carry the design's numbers
+  and say so on their own design lines (D-166).
+
 ## The Still Pond has two depths and an honest second face
 
 - **The pond before the boss heals everyone to full**, downed ducks included, and clears the
