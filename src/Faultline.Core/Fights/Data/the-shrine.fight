@@ -1,7 +1,4 @@
-# docs/CURATED_SET.md §1 fight 5 — Protect. The brief's fight-2 objective, finally expressible.
-#
-# Coordinates are x,y with 0,0 top-left. docs/CURATED_SET.md §6 writes them row,col; the board is
-# authoritative and the coordinates here are transposed to match it (DECISIONS.md D-042).
+# Coordinates are x,y with 0,0 top-left (DECISIONS.md D-042).
 #
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
 #   A  Player A deploy slot       B  Player B deploy slot       S  the protect structure
@@ -9,9 +6,16 @@
 id: the-shrine
 number: 5
 name: The Shrine
-description: Two Raiders walk two lanes at a twelve-hit-point shrine and never once look at you. Shove them off it, or lose it.
-design: The Raiders do not care about you. They walk at the shrine and claw it, and nothing you do to them personally makes them stop wanting to. That is the whole fantasy: the pressure is the clock of their walk, and displacement is the natural answer to a thing that will not fight back — shove them off the lane, pull them into the pits, collide them into their own escort.
-design: The escort DOES hunt you, so you cannot simply stand on the shrine and swing.
+description: Raiders walk two lanes at a twelve-hit-point shrine and never once look at you. Their intents name the shrine and print the hit points it will have left. Shove them off the lane, or lose it.
+design: Warrens node 3, edition A - OBJECTIVE/TWO LANES/WAVES (MASTER_DESIGN 8.8). The one question is which lane you can afford to leave open.
+design: TWO LANES, cut by hazards rather than by walls, and that choice is the board. The brambles at (1,2) and (5,2) and the drains at (1,4) and (5,4) leave a west channel and an east channel with the shrine between them, and a wall at (2,1) and another at (3,5) put a backstop on each. Hazards divide the traffic WITHOUT sheltering it: a wall bar across the shrine's approaches also walls the players out of their own objective, and the first cut of this edition did exactly that and lost the shrine on round 5 every time. Lanes you can shoot across are lanes.
+design: The Raiders do not care about you. They walk at the shrine and claw it for 2 whenever they end an activation adjacent, and nothing you do to them personally makes them stop wanting to. Displacement is the natural answer to a thing that will not fight back - shove it off the lane, drop it in the channel drain, collide it into its own escort.
+design: A Raider's intent names the shrine and predicts the hit points it will have after the claw lands (D-164, StructureStatus). The 12 is on the objective panel and on the structure itself, so the clock is a number the player reads rather than a feeling.
+design: WAVES. One Raider and one escort arrive on round 3, one at each end of the board, which is the round the opening pair is usually down and the flocks have committed to a side.
+design: The escort Husk DOES hunt you, so standing on the shrine and swinging is not a plan. It starts at (4,4), one tile from the east channel's drain, which is the shove the board is offering on turn one.
+design: Every enemy opens outside every deployment tile's round-1 reach - the old cut put the second Raider at (6,5) and an escort at (4,6), and between them they covered two thirds of Player A's zone before Player A had moved.
+design: The win is clearing the lanes inside eight rounds; losing the shrine is the loss. The format refuses a deadline on `protect` outright - "'protect' has no deadline of its own; use 'turn-limit:'" - so a protect board cannot currently be won by the bell, and this one is not. That is recorded rather than worked around (D-167).
+design: 7x7 (D-165).
 
 spawn r = Raider
 spawn h = Husk
@@ -19,16 +23,16 @@ spawn h = Husk
 roster a: Vanguard, Threadcaster
 roster b: Wardbearer, Archer
 
-objective: protect 3,3
+objective: protect 3,3 hp 12
 turn-limit: 8
 
-wave 3 = r@3,0 h@5,0
+wave 3 = r@3,0 h@3,6
 
 board:
-  r.....B
-  ..#..BB
+  r....BB
+  ..#...B
   .^...^.
   ...S...
-  .O...O.
-  A..#..r
-  AA..h..
+  .O..hO.
+  A..#...
+  AA....r

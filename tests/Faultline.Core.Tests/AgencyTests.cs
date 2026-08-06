@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Faultline.Core;
@@ -135,15 +136,16 @@ public class AgencyTests
     /// <see cref="FightIssueCode.UnsafeRound1Deployment"/> moves into the error range and this test
     /// becomes a plain "no campaign board breaks the law".
     /// </remarks>
-    private static readonly string[] KnownUnsafe =
-    {
-        "cb-06-bait-and-break",
-        "the-teeth",
-        "broken-bridge",
-        "the-shrine",
-        "high-road",
-        "hz-09-the-trench",
-    };
+    /// <remarks>
+    /// <b>Empty since Stage C1.</b> Every Warrens board was re-authored to edition A with the law as
+    /// a placement constraint rather than an afterthought, and all six came off this list at once.
+    /// The promotion of <see cref="FightIssueCode.UnsafeRound1Deployment"/> into the error range is
+    /// deliberately NOT done in the same session (D-165 records why): it would change what
+    /// <see cref="FightParser"/> rejects for boards another writer is adding to the act graph right
+    /// now. The guard is not weaker for it — the assertion below already fails on any campaign board
+    /// that breaks the law, which is what the enum move would buy.
+    /// </remarks>
+    private static readonly string[] KnownUnsafe = Array.Empty<string>();
 
     [Fact]
     public void EveryCampaignBoardExceptTheKnownOnes_OffersADamageFreeRoundOne()
@@ -227,12 +229,33 @@ public class AgencyTests
     [Fact]
     public void TheLint_NamesTheSideAndHowShortItIs()
     {
-        var result = FightParser.Parse(FightWriter.Write(FightLibrary.ById("the-teeth")));
+        // Authored here rather than taken off a shipped board: since Stage C1 no campaign board
+        // breaks the law, so the only way to see what the message says is to write one that does.
+        // The id has to be a campaign id or the lint is out of scope by design.
+        var result = FightParser.Parse(string.Join(
+            "\n",
+            "id: the-teeth",
+            "name: Teeth, with the swarm parked on Player B's doorstep",
+            "roster a: Vanguard, Threadcaster",
+            "roster b: Wardbearer, Archer",
+            "spawn h = Husk",
+            "board:",
+            "  ....hBB",
+            "  ....h.B",
+            "  .......",
+            "  .......",
+            "  .......",
+            "  A......",
+            "  AA....."));
+
+        Assert.Empty(result.Errors);
 
         var lint = result.Lints.FirstOrDefault(i => i.Code == FightIssueCode.UnsafeRound1Deployment);
 
         Assert.NotNull(lint);
         Assert.Contains("PlayerB", lint!.Message);
+        Assert.DoesNotContain(result.Lints, i =>
+            i.Code == FightIssueCode.UnsafeRound1Deployment && i.Message.Contains("PlayerA"));
     }
 
     [Fact]

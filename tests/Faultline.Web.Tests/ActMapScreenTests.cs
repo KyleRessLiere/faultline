@@ -154,7 +154,7 @@ public sealed class ActMapScreenTests
         // The door: its guard list is on the card, ready for the hover.
         var door = NodeMarkup(html, "c4-high-road");
         Assert.Contains("class=\"roster\"", door);
-        Assert.Contains("Lobber", door);
+        Assert.Contains("Perch", door);
         Assert.Contains("Anchor", door);
 
         // A node further off: no roster element at all, so no hover can reveal one.

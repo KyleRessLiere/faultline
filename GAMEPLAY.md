@@ -477,9 +477,12 @@ roster on unthreatened tiles raises the `UnsafeRound1Deployment` lint.
 six deployment tiles is out of round-1 reach. Fight 1 is where a player learns what the game does to
 them. The lobber is emplaced at (1,0) behind a wall at (2,0) to make that possible.
 
-**Six campaign boards still break the law** and are pinned by name in `AgencyTests`:
-`cb-06-bait-and-break`, `the-teeth`, `broken-bridge`, `the-shrine`, `high-road`, `hz-09-the-trench`.
-The lint becomes an error when that list empties.
+**No campaign board breaks the law.** The six that did — `cb-06-bait-and-break`, `the-teeth`,
+`broken-bridge`, `the-shrine`, `high-road`, `hz-09-the-trench` — were re-authored as Warrens edition
+A with the law as a placement constraint, and `AgencyTests`' known-unsafe list is empty. The lint is
+still a lint: promoting `UnsafeRound1Deployment` into the error range is unblocked and deliberately
+not done in the same session (D-165). The assertion is not weaker for it — the test fails on any
+campaign board that breaks the law, which is what the promotion would buy.
 
 **Displacement-only enemies are outside the law.** The Grappler, Stalker and Harrier deal no damage,
 so a rule worded as damage does not see them — even though a round-1 shove into a pit takes the whole
@@ -1662,10 +1665,18 @@ and finally the turn limit.
 
 **Structures** are board state, not units (D-035). A structure blocks its tile like a unit, and when
 it is destroyed the tile clears — which can open a route. Protect defaults to 12 HP and Destroy to 16,
-both authorable. **Every structure is attackable and an attack takes exactly 2 off it**, whatever the
-weapon and whoever swung it (D-060); **a collision lands its full 4**, so the board stays the better
-answer without being the only one. Because collision is universal physics, shoving an enemy into a
-structure you are guarding damages it too.
+both authorable — `break-the-gate` authors **18** (§8.8's anti-drag rule). **Every structure is
+attackable and an attack takes exactly 2 off it**, whatever the weapon and whoever swung it (D-060);
+**a collision lands its full 4**, so the board stays the better answer without being the only one.
+Because collision is universal physics, shoving an enemy into a structure you are guarding damages it
+too.
+
+> **Known drift: a structure collision should be 6, and ships as 4.** MASTER_DESIGN says so in three
+> places — §2's price-gap line ("collision 6 vs attack 2 on structures"), §7's standing-structure
+> rules ("collisions deal full damage (6 typical)") and §8.9's Work Bells ("a structure collision
+> deals 6"). At 4, break-the-gate's "three clean structure collisions end the fight" is five, and
+> broken-bridge's "one collision opens a crossing" is a collision and a swing. The boards are authored
+> to the design's numbers and the constant is not changed here (D-166).
 
 In practice only two things a player has reach masonry at all: a **collision**, and the Wardbearer's
 **Spear Thrust**, which is the only attack aimed at a tile rather than at a unit. A basic attack
@@ -1690,7 +1701,10 @@ at the enemy's real damage rather than the flat 2 (D-096). One body beside the a
 a siege the planner cannot yet be steered away from.
 
 **`turn-limit: N`** caps the fight. Reaching it is a loss, except under `survive`, where arriving is
-the whole point.
+the whole point. **`protect` cannot take a deadline of its own** — the parser refuses `protect … for
+N` with "'protect' has no deadline of its own; use 'turn-limit:'" — so a protect board is won by
+clearing the board and lost by losing the structure or running out of rounds. `the-shrine` is that
+shape (D-167).
 
 **Reinforcements** arrive on an authored schedule, `wave 2 = h@0,2 h@0,4`, at the start of their
 round and before intents are declared, so a newcomer's plan is published with everyone else's. The

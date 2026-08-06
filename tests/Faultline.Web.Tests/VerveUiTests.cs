@@ -401,6 +401,26 @@ public sealed class DeploymentThreatTests
         var (_, state) = Deploying("the-teeth");
 
         Assert.NotEmpty(Threat.DamageRound1(state));
-        Assert.NotEmpty(Threat.UnsafeSides(FightLibrary.ById("the-teeth")));
+
+        // Since Stage C1 no shipped campaign board reports an unsafe side, so the second half is
+        // asked of a board authored to break the law rather than of one that used to.
+        var parked = FightParser.Parse(string.Join(
+            "\n",
+            "id: the-teeth",
+            "name: Teeth, with the swarm parked on Player B's doorstep",
+            "roster a: Vanguard, Threadcaster",
+            "roster b: Wardbearer, Archer",
+            "spawn h = Husk",
+            "board:",
+            "  ....hBB",
+            "  ....h.B",
+            "  .......",
+            "  .......",
+            "  .......",
+            "  A......",
+            "  AA.....")).Fight!;
+
+        Assert.Empty(Threat.UnsafeSides(FightLibrary.ById("the-teeth")));
+        Assert.NotEmpty(Threat.UnsafeSides(parked));
     }
 }

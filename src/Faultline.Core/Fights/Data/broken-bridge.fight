@@ -6,15 +6,15 @@
 id: broken-bridge
 number: 3
 name: Broken Bridge
-description: A trench of drains splits the map, and the two ways over it are blocked. Break the masonry to open a crossing, then hold a one-tile choke with a hole on either side.
-design: Fight 3 — the trench.
-design: The two crossings are barricaded rather than walled. Each blocker has 6 hit points, and the only things that touch masonry are the Wardbearer's Spear Thrust — 2 a swing, whatever the number on the card — and a collision, which lands its full 4. So a crossing costs three thrusts, or one shove plus one thrust. Hauling a Husk into the barricade with the Fisher's line does it in two pulls and hurts the Husk as much as the wall.
-design: This board used to be two boards. The trench row leaves exactly two open tiles, and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
-design: Keep the drains where they are. The crossing is one tile wide with a hole on each side, so whoever holds it is one sideways shove from the bottom of the trench — and so is whatever walks up to contest it.
+description: A trench of drains splits the map and the two ways over it are barricaded. Break the masonry to open a crossing, then hold a one-tile choke with a hole on either side.
+design: Warrens node 3, edition A - DRAINS/STRUCTURES (MASTER_DESIGN 8.8). The one question is what a crossing is worth.
+design: Six-hit-point breakable blockers, and NO class is required to open one. Any attack chips masonry for 2 whatever the weapon (D-060), so three swings from anybody opens a crossing; a collision lands more in one go, so shoving a Husk into the barricade is the fast route and hurts the Husk as much as the wall; the Fisher's Reel does it as a drag rather than a shove. Four ways in, priced differently - gradients, not lock-and-key.
+design: MASTER_DESIGN 7 prices a structure collision at 6, which would open a crossing in a single slam. The shipped constant is Displacement.CollisionDamage = 4, so today one slam plus one swing does it. The gap is recorded in DECISIONS D-166 rather than papered over here.
+design: This board used to be two boards. The trench row leaves exactly two open tiles and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
+design: Keep the drains where they are. A crossing is one tile wide with a hole on each side, so whoever holds it is one sideways shove from the bottom of the trench - and so is whatever walks up to contest it. That is the drains half of the thesis, and it is a positional threat rather than a kill button.
+design: Two Husks start on each bank, so neither flock can spend the fight waiting for the other to open the way. The diagonal placement is what keeps both corner deployments out of every Husk's round-1 reach on a 7x7.
 
 spawn h = Husk
-spawn g = Grappler
-spawn s = Stalker
 
 roster a: Vanguard, Threadcaster
 roster b: Wardbearer, Archer
@@ -22,10 +22,10 @@ roster b: Wardbearer, Archer
 blocker-hp: 6
 
 board:
-  ..g...B
-  .....BB
-  h.X....
+  h....BB
+  .h....B
+  ..X....
   OO.O.OO
   ....X..
-  A....s.
-  AA..h..
+  A....h.
+  AA....h

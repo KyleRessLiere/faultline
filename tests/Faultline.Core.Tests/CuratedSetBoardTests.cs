@@ -212,24 +212,53 @@ public class CuratedSetBoardTests
         }
     }
 
-    // D-060 replaced the gate's immunity with a chip: an attack takes 1 off it, a collision takes
-    // the full 2, so the board is the best answer to the gate rather than the only one.
+    // D-060 replaced the gate's immunity with a chip: any attack takes the same 2 off it whatever the
+    // weapon, and a collision lands in full, so the board is the best answer to the gate rather than
+    // the only one.
     [Fact]
-    public void BreakTheGate_TakesOneFromAnAttackAndTwoFromACollision()
+    public void BreakTheGate_IsEighteenHitPoints_ChippedByAnAttackAndSlammedByACollision()
     {
         var start = Game.Start(FightLibrary.ById("break-the-gate"), seed: 4242).NewState;
         var gate = start.Structures.Single();
 
         Assert.Equal(ObjectiveKind.Destroy, gate.Role);
-        Assert.Equal(16, gate.MaxHp);
+        Assert.Equal(18, gate.MaxHp);
         Assert.False(gate.IsSiegeTarget);
 
-        var chipped = Objectives.Damage(start, gate.At, 2, DamageSource.Attack, new List<GameEvent>());
-        var slammed = Objectives.Damage(start, gate.At, 2, DamageSource.Collision, new List<GameEvent>());
+        var chipped = Objectives.Damage(
+            start, gate.At, Objectives.AttackDamageToStructure, DamageSource.Attack, new List<GameEvent>());
+        var slammed = Objectives.Damage(
+            start, gate.At, Displacement.CollisionDamage, DamageSource.Collision, new List<GameEvent>());
 
-        Assert.Equal(gate.Hp - 2, chipped.StructureAt(gate.At)!.Hp);
-        Assert.Equal(gate.Hp - 2, slammed.StructureAt(gate.At)!.Hp);
+        Assert.Equal(gate.Hp - Objectives.AttackDamageToStructure, chipped.StructureAt(gate.At)!.Hp);
+        Assert.Equal(gate.Hp - Displacement.CollisionDamage, slammed.StructureAt(gate.At)!.Hp);
     }
+
+    /// <summary>
+    /// MASTER_DESIGN §8.8's anti-drag rule, and the one place it does not close.
+    /// </summary>
+    /// <remarks>
+    /// The rule is "gate 24 → 18 HP, and three clean structure collisions end the fight (attacks deal
+    /// 2, so nine direct actions is the costly baseline)". The baseline half is exactly right. The
+    /// collision half needs a structure collision of <b>6</b> — which is what §7 prices it at
+    /// ("collisions deal full damage (6 typical)"), what §2's price-gap line says ("collision 6 vs
+    /// attack 2 on structures"), and what §8.9 prints on the Rushmaster's Work Bells. The shipped
+    /// constant is <see cref="Displacement.CollisionDamage"/> = 4, so as built the fast route is five
+    /// collisions. <b>This test states the drift rather than blessing it</b> (DECISIONS.md D-166): the
+    /// day the constant moves to 6 it goes red and is deleted, not edited.
+    /// </remarks>
+    [Fact]
+    public void BreakTheGate_AntiDrag_CostsNineAttacksAsDesigned_ButFiveCollisionsRatherThanThree()
+    {
+        var gate = Game.Start(FightLibrary.ById("break-the-gate"), seed: 4242).NewState.Structures.Single();
+
+        Assert.Equal(9, Ceiling(gate.MaxHp, Objectives.AttackDamageToStructure));
+
+        Assert.Equal(3, Ceiling(gate.MaxHp, 6));
+        Assert.Equal(5, Ceiling(gate.MaxHp, Displacement.CollisionDamage));
+    }
+
+    private static int Ceiling(int total, int each) => (total + each - 1) / each;
 
     [Fact]
     public void TheShrine_AndBreakTheGate_LintOnlyOnBoardShape()
@@ -240,19 +269,16 @@ public class CuratedSetBoardTests
         // is still a failure.
         var allowed = new Dictionary<string, FightIssueCode[]>
         {
-            // No high ground: the shrine fight is about lanes and shoves, not elevation.
+            // No high ground and no brambles: the shrine fight is about two lanes and the shoves that
+            // hold them, and a ledge or a tooth added to satisfy a counting guideline would be
+            // decoration. UnsafeRound1Deployment came off this list in Stage C1 — edition A gives both
+            // flocks their whole zone out of every enemy's round-1 reach.
             ["the-shrine"] = new[]
             {
                 FightIssueCode.HazardOffOuterRings,
                 FightIssueCode.CentreNotClear,
                 FightIssueCode.NoHighGround,
-
-                // Listed under protest. D-080 says a campaign board must offer every side a
-                // deployment slot nothing can reach on round 1, and this one offers Player A a
-                // single safe tile for two units. It is not a shape exemption like the others here
-                // and it is not intended to stay — AgencyTests pins the full list of boards still
-                // breaking the law, and this entry comes out with that one.
-                FightIssueCode.UnsafeRound1Deployment,
+                FightIssueCode.SpikeCountOutOfRange,
             },
 
             // A siege has one front: both players deploy south of the wall, and every enemy is north

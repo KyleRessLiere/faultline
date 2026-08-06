@@ -72,10 +72,19 @@ AA....h
 `the-teeth`
 
 
-A ring of spikes owns the middle, so everything coming for you has to cross the teeth — and a shove into them beats any swing.
+A bar of brambles across the throat of the board, and a Husk standing one tile off it. Round one, before anything has walked at you, both flocks can already see a six-damage shove.
 
 
-Fight 2 — the spike seminar.
+Warrens node 2, edition A - BRAMBLES/RANGED/PUSH (MASTER_DESIGN 8.8). The one question is whether you use the teeth or walk around them.
+
+
+The board opens with a previewable BENEFICIAL bramble play, which is the constraint the old Teeth failed. The Husk at (3,3) sits directly north of the middle tooth at (3,4). The Fisher deploys at (0,5), spends two AP walking to (2,5) and flicks her line: range 3, pull 1, and the tile the Husk lands on is brambles for 6 - it has 4 hit points. Player B's Archer has the same opener from the other corner: two AP to (4,1), Stagger Shot at range 3, pushed away onto the same tooth. Both are drawn on the board before the click, so entering the teeth reads as something you DO to the enemy and never as self-harm.
+
+
+Three teeth, not eight. The old ring made the middle a no-go area, which is the opposite of a hazard you want to steer traffic into: a bar you can be pushed onto from either side is a tool, a ring you must cross is a tax. The centre-3x3 lint fires on all three and is refused on purpose - a bramble board whose brambles are on the outer rings has no middle to own.
+
+
+Brambles cost 2 AP to enter on foot and deal 6 with a hard stop when you are shoved onto them, so the bar is a wall for walking and a floor for shoving. That asymmetry is the whole battle: the Lobber in the far corner would rather you came the long way round.
 
 
 **Asks:** Can you make them cross the spikes?
@@ -83,22 +92,22 @@ Fight 2 — the spike seminar.
 **Verdict:** KEEP — Spikes as a survivable hard stop everything must walk through.
 
 
-7×7 board · enemies: 2× Husk, 1× Lobber, 1× Stalker
+7×7 board · enemies: 3× Husk, 1× Lobber
 
 | A | B |
 |---|---|
 | Vanguard, Threadcaster | Wardbearer, Archer |
 
-Legend: `h` Husk, `l` Lobber, `s` Stalker
+Legend: `h` Husk, `l` Lobber
 
 ```
-..h...B
 .....BB
+.h....B
+.......
+...h...
 ..^^^..
-.O^.^O.
-..^^^..
-A..s.l.
-AA...h.
+A....h.
+AA....l
 ```
 
 ### 3 · Broken Bridge
@@ -106,19 +115,25 @@ AA...h.
 `broken-bridge`
 
 
-A trench of drains splits the map, and the two ways over it are blocked. Break the masonry to open a crossing, then hold a one-tile choke with a hole on either side.
+A trench of drains splits the map and the two ways over it are barricaded. Break the masonry to open a crossing, then hold a one-tile choke with a hole on either side.
 
 
-Fight 3 — the trench.
+Warrens node 3, edition A - DRAINS/STRUCTURES (MASTER_DESIGN 8.8). The one question is what a crossing is worth.
 
 
-The two crossings are barricaded rather than walled. Each blocker has 6 hit points, and the only things that touch masonry are the Wardbearer's Spear Thrust — 2 a swing, whatever the number on the card — and a collision, which lands its full 4. So a crossing costs three thrusts, or one shove plus one thrust. Hauling a Husk into the barricade with the Fisher's line does it in two pulls and hurts the Husk as much as the wall.
+Six-hit-point breakable blockers, and NO class is required to open one. Any attack chips masonry for 2 whatever the weapon (D-060), so three swings from anybody opens a crossing; a collision lands more in one go, so shoving a Husk into the barricade is the fast route and hurts the Husk as much as the wall; the Fisher's Reel does it as a drag rather than a shove. Four ways in, priced differently - gradients, not lock-and-key.
 
 
-This board used to be two boards. The trench row leaves exactly two open tiles, and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
+MASTER_DESIGN 7 prices a structure collision at 6, which would open a crossing in a single slam. The shipped constant is Displacement.CollisionDamage = 4, so today one slam plus one swing does it. The gap is recorded in DECISIONS D-166 rather than papered over here.
 
 
-Keep the drains where they are. The crossing is one tile wide with a hole on each side, so whoever holds it is one sideways shove from the bottom of the trench — and so is whatever walks up to contest it.
+This board used to be two boards. The trench row leaves exactly two open tiles and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
+
+
+Keep the drains where they are. A crossing is one tile wide with a hole on each side, so whoever holds it is one sideways shove from the bottom of the trench - and so is whatever walks up to contest it. That is the drains half of the thesis, and it is a positional threat rather than a kill button.
+
+
+Two Husks start on each bank, so neither flock can spend the fight waiting for the other to open the way. The diagonal placement is what keeps both corner deployments out of every Husk's round-1 reach on a 7x7.
 
 
 **Asks:** What does a pull line do when it crosses a pit?
@@ -126,22 +141,22 @@ Keep the drains where they are. The crossing is one tile wide with a hole on eac
 **Verdict:** KEEP — The simplest statement of the trench-and-fisherman shape; the campaign version.
 
 
-7×7 board · enemies: 2× Husk, 1× Grappler, 1× Stalker · breakable blockers: 6 HP each
+7×7 board · enemies: 4× Husk · breakable blockers: 6 HP each
 
 | A | B |
 |---|---|
 | Vanguard, Threadcaster | Wardbearer, Archer |
 
-Legend: `g` Grappler, `h` Husk, `s` Stalker
+Legend: `h` Husk
 
 ```
-..g...B
-.....BB
-h.X....
+h....BB
+.h....B
+..X....
 OO.O.OO
 ....X..
-A....s.
-AA..h..
+A....h.
+AA....h
 ```
 
 ### 4 · High Road
@@ -149,10 +164,28 @@ AA..h..
 `high-road`
 
 
-A high causeway down the spine of the board is worth contesting — the Archer climbs it for free, and a Grappler is waiting to pull her back off.
+A causeway down the spine of the board, a Perch that wants to live on it, and a Grappler whose list names the Archer. Nobody is charged an entry fee - the ridge costs you what holding it costs.
 
 
-Fight 4 — the causeway.
+Warrens node 5, edition A - HIGH GROUND/PULL/RANGED (MASTER_DESIGN 8.8). The one question is who OWNS the ridge, not who can afford to climb it.
+
+
+NO ENTRY TAX. The climb surcharge is deleted on both sides (D-152), so stepping onto the causeway costs the same 1 AP as stepping anywhere else and the Archer's free climb is no longer a discount on a toll nobody else can pay. What the ridge is worth is what it does once you are on it: +2 on every ranged attack fired from it, and nothing can be shoved UP onto it, so the tile is a wall to everyone below and a firing step to whoever is standing there.
+
+
+CONTESTED LINES. The causeway runs (3,1) to (3,5), five tiles, one column. It cannot be held by one duck: the ends are open and the flanks are open, and the four drains at (1,2), (5,2), (1,4) and (5,4) mean the shove that takes you off it has somewhere to put you. Being shoved off high ground is 2 damage and the displacement CONTINUES, which is the chain the drains are placed for.
+
+
+GRAPPLER PRIORITY ON THE ARCHER, and it is already in the rules rather than authored here: Ai.PickGrab ranks anything standing on HighGround first and the Archer second. So the Grappler at the north end pulls whoever climbed, and if nobody has climbed it comes for the Archer anyway. Range 3 and pull 2, and a pull is not shortened by the ledge.
+
+
+The Perch is the ranged half of the thesis and the reason the ridge is not free real estate: it walks to the nearest reachable HighGround, hits for 4 from up there, and does not come down. It starts in the far corner, so both flocks have a turn to get there first.
+
+
+The Anchor at the ridge's south foot shrugs one tile off every push, so it cannot simply be shoved out of the causeway's mouth. Pull is the answer, which is the same lesson the Trench asks for later on the hungry lane.
+
+
+7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch in the far corner poses the same ranged question without taking a hit point off anybody before they have had a turn.
 
 
 **Asks:** Is a raised causeway worth contesting?
@@ -160,22 +193,22 @@ Fight 4 — the causeway.
 **Verdict:** KEEP — Teaches all four elevation clauses at once, at tutorial pace.
 
 
-7×7 board · enemies: 2× Lobber, 1× Anchor, 1× Grappler
+7×7 board · enemies: 1× Anchor, 1× Grappler, 1× Husk, 1× Perch
 
 | A | B |
 |---|---|
 | Vanguard, Threadcaster | Wardbearer, Archer |
 
-Legend: `g` Grappler, `l` Lobber, `n` Anchor
+Legend: `g` Grappler, `h` Husk, `n` Anchor, `p` Perch
 
 ```
-.l....B
-...H.BB
+...g.BB
+.h.H..B
 .O.H.O.
 ...H...
 .O.H.O.
-A..H.g.
-AA...ln
+A..H...
+AA.n..p
 ```
 
 ### 5 · The Shrine
@@ -183,16 +216,37 @@ AA...ln
 `the-shrine`
 
 
-Two Raiders walk two lanes at a twelve-hit-point shrine and never once look at you. Shove them off it, or lose it.
+Raiders walk two lanes at a twelve-hit-point shrine and never once look at you. Their intents name the shrine and print the hit points it will have left. Shove them off the lane, or lose it.
 
 
-The Raiders do not care about you. They walk at the shrine and claw it, and nothing you do to them personally makes them stop wanting to. That is the whole fantasy: the pressure is the clock of their walk, and displacement is the natural answer to a thing that will not fight back — shove them off the lane, pull them into the pits, collide them into their own escort.
+Warrens node 3, edition A - OBJECTIVE/TWO LANES/WAVES (MASTER_DESIGN 8.8). The one question is which lane you can afford to leave open.
 
 
-The escort DOES hunt you, so you cannot simply stand on the shrine and swing.
+TWO LANES, cut by hazards rather than by walls, and that choice is the board. The brambles at (1,2) and (5,2) and the drains at (1,4) and (5,4) leave a west channel and an east channel with the shrine between them, and a wall at (2,1) and another at (3,5) put a backstop on each. Hazards divide the traffic WITHOUT sheltering it: a wall bar across the shrine's approaches also walls the players out of their own objective, and the first cut of this edition did exactly that and lost the shrine on round 5 every time. Lanes you can shoot across are lanes.
 
 
-7×7 board · enemies: 3× Raider, 2× Husk · objective: `protect 3,3` · turn limit: 8
+The Raiders do not care about you. They walk at the shrine and claw it for 2 whenever they end an activation adjacent, and nothing you do to them personally makes them stop wanting to. Displacement is the natural answer to a thing that will not fight back - shove it off the lane, drop it in the channel drain, collide it into its own escort.
+
+
+A Raider's intent names the shrine and predicts the hit points it will have after the claw lands (D-164, StructureStatus). The 12 is on the objective panel and on the structure itself, so the clock is a number the player reads rather than a feeling.
+
+
+WAVES. One Raider and one escort arrive on round 3, one at each end of the board, which is the round the opening pair is usually down and the flocks have committed to a side.
+
+
+The escort Husk DOES hunt you, so standing on the shrine and swinging is not a plan. It starts at (4,4), one tile from the east channel's drain, which is the shove the board is offering on turn one.
+
+
+Every enemy opens outside every deployment tile's round-1 reach - the old cut put the second Raider at (6,5) and an escort at (4,6), and between them they covered two thirds of Player A's zone before Player A had moved.
+
+
+The win is clearing the lanes inside eight rounds; losing the shrine is the loss. The format refuses a deadline on `protect` outright - "'protect' has no deadline of its own; use 'turn-limit:'" - so a protect board cannot currently be won by the bell, and this one is not. That is recorded rather than worked around (D-167).
+
+
+7x7 (D-165).
+
+
+7×7 board · enemies: 3× Raider, 2× Husk · objective: `protect 3,3 hp 12` · turn limit: 8
 
 | A | B |
 |---|---|
@@ -201,19 +255,19 @@ The escort DOES hunt you, so you cannot simply stand on the shrine and swing.
 Legend: `h` Husk, `r` Raider
 
 ```
-r.....B
-..#..BB
+r....BB
+..#...B
 .^...^.
 ...S...
-.O...O.
-A..#..r
-AA..h..
+.O..hO.
+A..#...
+AA....r
 ```
 
 Reinforcements, published at fight start:
 
 ```
-wave 3 = r@3,0 h@5,0
+wave 3 = r@3,0 h@3,6
 ```
 
 ### 6 · Break the Gate
@@ -221,19 +275,28 @@ wave 3 = r@3,0 h@5,0
 `break-the-gate`
 
 
-A sixteen-hit-point gate that only collisions can dent, and a Warden holding the gap who becomes your battering ram the moment he is staggered.
+An eighteen-hit-point gate, a Warden who will not move out of the gap, and two Lobbers dropping rocks over the wall. Attacks chip it; bodies break it.
 
 
-docs/CURATED_SET.md §1 fight 6 — Destroy. The review's worst opener, reborn.
+Warrens node 6, edition A - STRUCTURE/WAVES/AMMUNITION (MASTER_DESIGN 8.8). The one question is whether you spend actions on the gate or spend the enemy on it.
 
 
-The gate is a 16 HP structure that attacks cannot touch at all. The only thing that hurts it is a collision — 4 per slam, four slams — so to win you have to throw bodies at it, which means the enemy is your ammunition. That is the game's thesis stated as a win condition.
+GATE 18 HP, down from 24, and it is the anti-drag rule rather than a difficulty knob. Any attack chips masonry for 2 whatever the weapon (D-060), so nine direct actions is the costly baseline that always exists and always works; the intended fast route is three clean structure collisions. Do not raise the hit points until human wins routinely finish before round 5 with threats unresolved.
 
 
-The Warden under the gate is the complication: Move 0, so unlike the Anchors it replaced it will still be standing in the gap on round 4. It is push-resistant, but a STAGGERED Warden moves — so collide a Husk from the reinforcement waves into him and he becomes the battering ram.
+THE ARITHMETIC DOES NOT CLOSE TODAY. Three clean collisions into 18 requires a structure collision to deal 6, which is what MASTER_DESIGN 7 prices it at ("collisions deal full damage (6 typical)") and what 8.9 prints on the Rushmaster's Work Bells. The shipped constant is Displacement.CollisionDamage = 4, so as built the fast route is five collisions, not three. The HP is authored at 18 as the design asks and the gap is recorded in DECISIONS D-166 - it is one constant, not a board problem.
 
 
-7×7 board · enemies: 2× Husk, 2× Lobber, 1× Warden · objective: `destroy 3,1`
+BOTH FLOCKS DEPLOY SOUTH of the gate, which is why the opposite-corners guideline is refused here. The gate is the far wall of the room, not a line between two armies, and the fight is the two flocks working the same door from the same side.
+
+
+The Warden under the gate is the complication: Move 0, so unlike an Anchor he will still be standing in the gap on round 4. He is push-resistant, but a STAGGERED Warden moves - so collide a Husk from the round-2 wave into him and he becomes the battering ram. Bodies are ammunition, and the enemy supplies them.
+
+
+The two Lobbers are sealed north of the band and can never be reached until the gate falls, so there is no kill-all shortcut to be found by clearing the board: they lob 2 a round over a wall that has no line of sight to stop them. That is the ammunition clock - every round you spend swinging at masonry is a round they are paid for.
+
+
+7×7 board · enemies: 2× Husk, 2× Lobber, 1× Warden · objective: `destroy 3,1 hp 18`
 
 | A | B |
 |---|---|
@@ -1090,13 +1153,25 @@ AA.s.h#
 `hz-09-the-trench`
 
 
-A trench with two bridges, two Anchors that no shove will move, and a Grappler doing to you exactly what your Threadcaster does to them.
+One trench, one crossing, two Anchors that no shove will move, and a Grappler doing to you exactly what your Fisher does to them.
 
 
-Hazard Pressure 9 of 10 — pull, not push.
+Warrens node 7, edition A - DRAINS/RESISTANCE/MIRROR (MASTER_DESIGN 8.8). The one question is what you are willing to pay to reach the far bank.
 
 
-The Anchor shrugs one tile off every Push and moves 1, so it will stand at the trench and refuse to be shoved into it. Pull is not reduced: a Reel from three tiles away drags it two, and the first tile it enters is the pit, which is the one case a Footing token cannot fix. The Grappler on the far bank does the identical thing to you across the same trench.
+THE FISHER'S THESIS. The Anchor shrugs one tile off every push and carries a Footing token here as well, so it will stand at the trench lip all day and refuse to be shoved in. Pull is the carve-out: Reel is not shortened by resistance, it drags all the way to adjacent, and the first tile the Anchor enters is the drain - which is the one case a Footing token cannot fix, because it is a whole refusal and Reel does not offer a tile to give up. She can do this from the south bank without crossing at all.
+
+
+A COSTLY ROUTE FOR EVERY OTHER CLASS, which is the gradient the design asks for and not a lock: (3,3) is a real crossing, one tile wide, and any duck can walk it. The Vanguard can Bull Rush an Anchor 2 tiles - resistance takes one, so it still moves one, and one is enough at the lip. The Archer's Stagger Shot pushes 1, which an Anchor eats entirely, so her answer is the crossing and the ledge. The Wardbearer's answer is to stand in the crossing and let the far bank come to him. Four prices, all payable.
+
+
+THE MIRROR. The Grappler at the north end of the crossing has range 3 and pull 2 and does to you precisely what the Fisher does to the Anchors, across the same water. Its list names the Archer, so the flock that parks a bowman on the ledge is offering it the pull it wants.
+
+
+The single high-ground tile at (3,5) is the crossing's southern landing. Nothing can be shoved up onto it, so it is the one tile on the south bank a Grappler cannot drag you off backwards, and ranged fire from it into the crossing is +2. It is a chokepoint modifier, not decoration.
+
+
+7x7 (D-165). The 9x7 cut was a broad combined exam with two bridges; edition A is the same thesis asked once, which is what a per-node board is for. Both flocks deploy on the south bank, so the trench is the fight rather than a line between two armies - the opposite-corners guideline is refused here on purpose.
 
 
 **Asks:** What do you do about something no push can move?
@@ -1104,22 +1179,22 @@ The Anchor shrugs one tile off every Push and moves 1, so it will stand at the t
 **Verdict:** KEEP — "Pull, not push," proved: `Anchor=1` makes basic push and Bull Rush both literally Immovable.
 
 
-9×7 board · enemies: 2× Anchor, 1× Grappler, 1× Husk, 1× Stalker · footing: `Anchor=1`
+7×7 board · enemies: 2× Anchor, 2× Husk, 1× Grappler · footing: `Anchor=1`
 
 | A | B |
 |---|---|
 | Vanguard, Threadcaster | Wardbearer, Archer |
 
-Legend: `g` Grappler, `h` Husk, `n` Anchor, `s` Stalker
+Legend: `g` Grappler, `h` Husk, `n` Anchor
 
 ```
-....g...B
-..n...n.B
-........B
-OO.OOO.OO
-H........
-A.^.s.^..
-AA..h....
+h..g..h
+.......
+..n.n..
+OOO.OOO
+.......
+A..H..B
+AA...BB
 ```
 
 ### 210 · Bone Yard
@@ -2125,13 +2200,22 @@ AAs....
 `cb-06-bait-and-break`
 
 
-Five Husks all walk at whoever is nearest. Put something tough in the slot and they queue up in a single file you can break one shove at a time.
+Five Husks walk in one column at whoever is nearest. Two walled slots turn the swarm into a queue - but only for the flock that gets a body into a mouth first.
 
 
-Combat Manoeuvre 6 — the nook.
+Warrens node 2, edition A - SWARM/TRAFFIC (MASTER_DESIGN 8.8). The one question is who holds the mouth.
 
 
-No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
+Four wall tiles cut two slots out of the south rank, each two deep with a single mouth at (3,4) and (5,4). A duck standing in a slot can be reached by exactly one Husk at a time, so five bodies become five one-on-one fights instead of one surround. Nothing about a slot is free: the duck in it has given up the rest of the board, and the other flock is fighting in the open while it hides.
+
+
+No drains and no brambles. The pressure is entirely traffic - five bodies, three move each, and a board with two doorways on it. A map with no hazards is not a lesser map, and if this one would be improved by a hole in the floor then the enemy placement is wrong.
+
+
+The column walks the diagonal, so the first Husk to arrive is one shove from the second and the second is one shove from the third. A collision is 4 to both and a Husk has 4, which is the double kill first-contact taught, offered again against a queue that keeps re-forming.
+
+
+7x7 (D-165). The 9x7 cut of this board put every deployment tile inside a Husk's round-1 reach on both sides; the diagonal column is the placement that keeps both corners out of it.
 
 
 **Asks:** Can you turn a swarm into a queue?
@@ -2139,7 +2223,7 @@ No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 **Verdict:** KEEP — The player creates the geometry with their own body — nothing else asks that.
 
 
-9×7 board · enemies: 5× Husk
+7×7 board · enemies: 5× Husk
 
 | A | B |
 |---|---|
@@ -2148,13 +2232,13 @@ No pits, no spikes. Four wall tiles make a two-deep slot with one mouth.
 Legend: `h` Husk
 
 ```
-.h...h.BB
-.......BB
-.h.......
-.........
-.....h...
-AA.#.#...
-AA.#.#..h
+h....BB
+.h....B
+..h....
+...h...
+....h..
+A..#.#.
+AA.#.#.
 ```
 
 ### 507 · Two Gates
