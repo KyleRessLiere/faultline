@@ -46,6 +46,22 @@
             </div>
         }
 
+        @* One line per structure the objective is about, never a sum of them: on a board with two,
+           knowing that eighteen hit points are left between them does not tell you which one is
+           about to fall. Blockers are absent because Core left them out (D-163). *@
+        @if (Status.Structures.Count > 0)
+        {
+            <ul class="structures">
+                @foreach (var structure in Status.Structures)
+                {
+                    <li class="structure-line @(structure.IsUrgent ? "urgent" : string.Empty)"
+                        data-tile="@BoardCoords.Of(structure.At)">
+                        @PlaytestText.StructureLine(structure)
+                    </li>
+                }
+            </ul>
+        }
+
         @if (Status.Clock is { Length: > 0 })
         {
             <p class="clock @(Status.Urgent ? "tight" : string.Empty)">@Status.Clock</p>

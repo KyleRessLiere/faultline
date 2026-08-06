@@ -119,6 +119,24 @@ public static class EventText
 
         string walk = intent.MoveTo is null ? string.Empty : $"move to {intent.MoveTo.Value}{through}, then ";
 
+        // A plan that names no unit but carries a tile is aimed at a structure — Core says so by
+        // leaving TargetId null (Ai.Claw, Ai.March). Every number below is read off Core's
+        // StructureStatus, including the resulting hit points: the shell does no arithmetic, so the
+        // telegraph cannot promise a total the resolution will not produce (D-163).
+        var struck = intent.TargetId is null && intent.TargetPosition is { } aimed
+            ? StructureStatus.For(state, aimed)
+            : null;
+
+        if (struck is not null && intent.Action == IntentAction.Attack)
+        {
+            return $"{walk}claw the {struck.Label} → {struck.HpAfter(intent.Damage)} HP";
+        }
+
+        if (struck is not null && intent.Action == IntentAction.Advance)
+        {
+            return $"close on the {struck.Label}, move to {intent.MoveTo}";
+        }
+
         return intent.Action switch
         {
             IntentAction.Attack => $"{walk}hit {target} for {intent.Damage}",

@@ -269,7 +269,7 @@
     private string Heading => Subject.Kind switch
     {
         InspectKind.Friendly or InspectKind.Enemy => Subject.Unit!.Name,
-        InspectKind.Structure => BoardCoords.Of(Subject.Structure!.At),
+        InspectKind.Structure => StructureName(Subject.Structure!),
         InspectKind.Terrain => BoardCoords.Of(Subject.Tile!.Value),
         _ => "—",
     };
@@ -334,10 +334,9 @@
             ? "break it to open the tile — the fight is not about it"
             : structure.Role == ObjectiveKind.Protect ? "keep it standing" : "bring it down";
 
-    private static string StructureName(Structure structure) =>
-        structure.IsBlocker
-            ? "Breakable blocker"
-            : structure.Role == ObjectiveKind.Protect ? "Protected structure" : "Target structure";
+    // Straight through to the naming layer. The shell writes no nouns of its own (MASTER_DESIGN §15),
+    // and "blocker" was an identifier wearing a display name (D-162).
+    private static string StructureName(Structure structure) => Naming.Of(structure);
 
     private static string StructureGlyph(Structure structure) =>
         structure.IsBlocker ? "▦" : structure.Role == ObjectiveKind.Protect ? "▣" : "▩";

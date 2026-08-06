@@ -320,7 +320,8 @@ public sealed class ObjectivePanelTests
     public void TheFractionIsClampedBothWays()
     {
         var status = new ObjectiveStatus(
-            ObjectiveKind.KillAll, "g", "l", 99, 3, "x", string.Empty, false, Array.Empty<Coord>());
+            ObjectiveKind.KillAll, "g", "l", 99, 3, "x", string.Empty, false,
+            Array.Empty<Coord>(), Array.Empty<StructureStatus>());
 
         Assert.Equal(1, status.Fraction);
     }

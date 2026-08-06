@@ -217,6 +217,27 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* One row per objective-linked structure. Present whenever the fight has any, because "how much of
+   the shrine is left" is the question a Protect board is asking and it must not need a click. */
+.structures {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.structure-line {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.structure-line.urgent {
+    color: var(--pt-warn, #e0a44a);
+    font-weight: 600;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .fill { transition: none; }
     .pip.just { animation: none; }

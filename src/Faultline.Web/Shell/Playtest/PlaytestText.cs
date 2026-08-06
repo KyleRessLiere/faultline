@@ -198,6 +198,43 @@ public static class PlaytestText
     }
 
     /// <summary>
+    /// One line per objective-linked structure: what it is called, where it stands and how much of
+    /// it is left.
+    /// </summary>
+    /// <remarks>
+    /// The objective panel draws exactly these strings, one per line. A board with two structures
+    /// gets two lines rather than one summed number, and a breakable blocker gets none — Core's
+    /// <see cref="ObjectiveStatus.Structures"/> has already made both of those decisions, and this
+    /// only formats them (D-163).
+    /// </remarks>
+    /// <param name="state">Current state.</param>
+    /// <returns>The lines, empty when the fight has no objective structure.</returns>
+    public static IReadOnlyList<string> StructureLines(GameState state)
+    {
+        var lines = new List<string>();
+        if (state is null)
+        {
+            return lines;
+        }
+
+        foreach (var structure in ObjectiveStatus.For(state).Structures)
+        {
+            lines.Add(StructureLine(structure));
+        }
+
+        return lines;
+    }
+
+    /// <summary>One structure's line: its name, its hit points, its tile, and whether it is rubble.</summary>
+    /// <param name="structure">Structure to describe.</param>
+    /// <returns>The line the panel prints.</returns>
+    public static string StructureLine(StructureStatus structure) =>
+        structure is null
+            ? string.Empty
+            : structure.Label + " · " + BoardCoords.Of(structure.At)
+                + (structure.IsStanding ? string.Empty : " · rubble");
+
+    /// <summary>
     /// One line per clinging player unit, naming the deadline instead of implying one.
     /// </summary>
     /// <remarks>
