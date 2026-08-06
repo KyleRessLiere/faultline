@@ -1,5 +1,14 @@
 # Changelog
 
+## Structures you can name, count and predict
+
+- **Every objective structure is named, listed and predicted.** The objective panel draws one line
+  per objective-linked structure — `Shrine 7/12 · D4` — instead of summing them all into one pair of
+  numbers that also folded in breakable blockers (D-163). Names come from `Naming.cs`: Shrine, Gate,
+  Debris (D-162). A Raider's telegraph reads `claw the Shrine 12/12 → 10 HP` and, while it is still
+  walking, `close on the Shrine 12/12` — and the figure it promises is the flat structure chip the
+  resolution actually takes, not the enemy's weapon damage (D-164).
+
 ## Eight technique modifiers, a camp that directs, and a way to measure whether a card matters
 
 - **Eight of §8.6's twenty-four technique modifiers are built** — one Common and one Uncommon per

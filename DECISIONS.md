@@ -178,9 +178,9 @@ in this file when the question comes back.
 | D-159 | [Only techniques carry a rarity and a tag; the v1 pools are Common and untagged.](#d-159-only-techniques-carry-a-rarity-and-a-tag-the-v1-pools-are-common-and-untagged) | 2026-08-06 |  |
 | D-160 | [An "engine starter" is a technique modifier, and every director row is a preference.](#d-160-an-engine-starter-is-a-technique-modifier-and-every-director-row-is-a-preference) | 2026-08-06 |  |
 | D-161 | [A modifier that spends another player's duck is elected by that duck's owner.](#d-161-a-modifier-that-spends-another-players-duck-is-elected-by-that-ducks-owner) | 2026-08-06 |  |
-| D-162 | [A structure's display name is derived from its role, not authored in the fight file.](#d-162-a-structures-display-name-is-derived-from-its-role-not-authored-in-the-fight-file) | unreleased |  |
-| D-163 | [The objective panel reports each structure separately, and leaves blockers out.](#d-163-the-objective-panel-reports-each-structure-separately-and-leaves-blockers-out) | unreleased |  |
-| D-164 | [A claw telegraphs the flat structure chip, never the enemy's weapon damage.](#d-164-a-claw-telegraphs-the-flat-structure-chip-never-the-enemys-weapon-damage) | unreleased |  |
+| D-162 | [A structure's display name is derived from its role, not authored in the fight file.](#d-162-a-structures-display-name-is-derived-from-its-role-not-authored-in-the-fight-file) | 2026-08-06 |  |
+| D-163 | [The objective panel reports each structure separately, and leaves blockers out.](#d-163-the-objective-panel-reports-each-structure-separately-and-leaves-blockers-out) | 2026-08-06 |  |
+| D-164 | [A claw telegraphs the flat structure chip, never the enemy's weapon damage.](#d-164-a-claw-telegraphs-the-flat-structure-chip-never-the-enemys-weapon-damage) | 2026-08-06 |  |
 
 **162 rulings.**
 

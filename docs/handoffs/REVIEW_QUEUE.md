@@ -137,6 +137,39 @@ before playtest feedback calls the map thin.
 in isolation — reproduced at `45989cc` in a clean worktree, so it is not the map work. CLAUDE.md's
 testing standards forbid a test that depends on execution order; this one does.
 
+### A claw redirected onto a guard is not telegraphed (Stage A2)
+
+`Objectives.Besiege` sends the claw into a Wardbearer in Guard Stance beside the structure (D-096),
+but `Ai.Claw` publishes no `RedirectedTo` — so the telegraph promises the shrine will lose 2 when the
+guard is the one who is about to be hit, for the enemy's real damage. `Ai.Strike` already does this
+correctly for unit targets; the structure branch has no equivalent. Separately, a guard who takes
+Guard Stance **after** intents are declared is not reflected on either branch, because
+`RedirectedTo` is fixed at declaration time. Both are the same class of lie Stage A exists to kill.
+
+### `Objectives.Build` gives every tile of a multi-tile structure a full HP pool
+
+MASTER_DESIGN §7 says "multi-tile structures share one HP pool, every tile a collision face", and
+names the break-the-gate gate as 3 tiles / 24 HP. `Objectives.Build` builds one `Structure` per
+objective tile, each with `objective.Hp` — so a 3-tile 24 HP gate would be 72 hit points on the
+board. No live board is multi-tile (both `the-shrine` and `break-the-gate` author a single tile), so
+it is latent. It stops being latent the moment a board authors two, which A2 has now made visible in
+the panel rather than hidden in a sum (D-163).
+
+### `break-the-gate`'s own prose contradicts the rules it plays under
+
+The file's `description:` and `design:` lines say "a sixteen-hit-point gate that only collisions can
+dent", "attacks cannot touch it at all" and "4 per slam, four slams". D-060 made every structure
+attackable for a flat 2, and the objective line authors no `hp`, so the gate takes the Destroy
+default. Editing a `.fight` fires D-092, and `tools/build_catalogue.py` was another writer's at the
+time, so this was left alone — it is designer prose either way.
+
+### The Destroy goal line said "attacks chip it for 1" while the rule took 2
+
+Fixed in A2 (D-163) by reading `Objectives.AttackDamageToStructure`. Flagged here because it is the
+second place a hand-typed constant drifted from `Objectives`, and there may be more: the XML doc on
+`Objectives.Damage` still says "chips a structure for exactly 1" in prose beside the constant it sets
+to 2.
+
 ---
 
 ## Known defects, filed not fixed
