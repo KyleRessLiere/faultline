@@ -10,7 +10,7 @@
             <p class="note">
                 Every unit in the game: stat block, and for each enemy the ordered priority list its
                 planner actually runs. All of it is read out of Core — <code>UnitTemplate</code>,
-                <code>EnemyBehaviour</code>, <code>AbilityDescriptor</code> — so this page cannot
+                <code>EnemyBehaviour</code>, <code>AbilityDefinition</code> — so this page cannot
                 describe behaviour the rules do not have.
             </p>
         </div>
@@ -27,7 +27,7 @@
         {
             <a class="jump-link enemy" href="bestiary#unit-@kind">@UnitTemplate.For(kind).Name</a>
         }
-        @foreach (var ability in AbilityDescriptor.All())
+        @foreach (var ability in AbilityDefinition.All())
         {
             <a class="jump-link player" href="bestiary#unit-@ability.Kind">@UnitTemplate.For(ability.Kind).Name</a>
         }
@@ -57,7 +57,7 @@
         </p>
 
         <div class="beast-grid players">
-            @foreach (var ability in AbilityDescriptor.All())
+            @foreach (var ability in AbilityDefinition.All())
             {
                 var template = UnitTemplate.For(ability.Kind);
 

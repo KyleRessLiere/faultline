@@ -34,7 +34,7 @@ public static class EventText
             ? $"{Name(state, e.UnitId)} takes {e.Amount} ({e.Source}) → 0 HP, {e.Overkill} over."
             : $"{Name(state, e.UnitId)} takes {e.Amount} ({e.Source}) → {e.RemainingHp} HP.",
         UnitDowned e => $"{Name(state, e.UnitId)} is down.",
-        AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDescriptor.For(e.Ability).Name}.",
+        AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDefinition.For(e.Ability).Name}.",
         UnitPushed e => e.Kind switch
         {
             DisplacementKind.Throw => $"{Name(state, e.UnitId)} is thrown {e.Distance} → {e.To}, over everything between.",
@@ -55,8 +55,8 @@ public static class EventText
         UnitTrampled e =>
             $"{Name(state, e.UnitId)} shoulders through {Name(state, e.VictimId)} at {e.At}, knocking it {e.Aside.ToString().ToLowerInvariant()} for {e.Damage}.",
         GuardStanceChanged e => e.Active
-            ? $"{Name(state, e.UnitId)} takes up {AbilityDescriptor.For(Ability.GuardStance).Name} at {e.At}."
-            : $"{Name(state, e.UnitId)}'s {AbilityDescriptor.For(Ability.GuardStance).Name} lapses.",
+            ? $"{Name(state, e.UnitId)} takes up {AbilityDefinition.For(Ability.GuardStance).Name} at {e.At}."
+            : $"{Name(state, e.UnitId)}'s {AbilityDefinition.For(Ability.GuardStance).Name} lapses.",
         // A charge that arrives at a full meter is shown, not swallowed — a player sitting at the cap
         // should be able to see their earnings evaporating and go and spend.
         VerveCharged e => e.Wasted

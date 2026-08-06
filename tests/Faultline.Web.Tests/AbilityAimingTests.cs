@@ -388,8 +388,8 @@ public sealed class AbilityAimingTests
     [Fact]
     public void TheStanceName_IsCoresName_NotTheShells()
     {
-        Assert.Equal(AbilityDescriptor.For(Ability.GuardStance).Name, PlaytestText.GuardName);
-        Assert.Equal(AbilityDescriptor.For(Ability.GuardStance).Summary, PlaytestText.GuardSummary);
+        Assert.Equal(AbilityDefinition.For(Ability.GuardStance).Name, PlaytestText.GuardName);
+        Assert.Equal(AbilityDefinition.For(Ability.GuardStance).Summary, PlaytestText.GuardSummary);
     }
 
     [Fact]

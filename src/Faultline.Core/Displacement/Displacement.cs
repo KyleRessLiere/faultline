@@ -56,11 +56,16 @@ namespace Faultline.Core
             var target = state.UnitById(targetId);
             var direction = DirectionOf(target, source, kind);
 
+            // The shrug, reported rather than recomputed downstream: this is the same number
+            // EffectiveDistance subtracts, read from the same place.
+            int resistance = bypassResistance ? 0 : target.Template.PushResistance;
+
             if (direction is null)
             {
                 return new DisplacementPreview(
                     targetId, kind, Direction.Up, distance, 0, new Coord[0], target.Position,
-                    DisplacementStop.Immovable, 0, null, 0, false, false, false, false, false);
+                    DisplacementStop.Immovable, 0, null, 0, false, false, false, false, false,
+                    null, 0, resistance);
             }
 
             int natural = EffectiveDistance(
@@ -105,7 +110,8 @@ namespace Faultline.Core
                 consumesStagger,
                 footingMatters,
                 sim.StructureHits.Count > 0 ? sim.StructureHits[0].At : (Coord?)null,
-                sim.StructureHits.Count > 0 ? sim.StructureHits[0].Amount : 0);
+                sim.StructureHits.Count > 0 ? sim.StructureHits[0].Amount : 0,
+                resistance);
         }
 
         /// <summary>Applies a displacement and emits everything it caused.</summary>

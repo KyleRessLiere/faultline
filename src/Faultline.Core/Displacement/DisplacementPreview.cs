@@ -28,6 +28,12 @@ namespace Faultline.Core
     /// <param name="FootingWouldMatter">Whether spending Footing changes this outcome at all.</param>
     /// <param name="StructureAt">Objective structure collided with, when the stop was a structure.</param>
     /// <param name="DamageToStructure">Damage that structure would take.</param>
+    /// <param name="Resistance">
+    /// Tiles this unit's push resistance subtracts from the request. Reported rather than left for
+    /// the caller to read off the stat block: a preview that shortens a shove to nothing has to be
+    /// able to say <em>why</em> nothing happened, and a shell that re-derived the reason would be a
+    /// second copy of the distance arithmetic. Zero when Reel's carve-out bypasses resistance.
+    /// </param>
     public sealed record DisplacementPreview(
         UnitId UnitId,
         DisplacementKind Kind,
@@ -46,7 +52,8 @@ namespace Faultline.Core
         bool ConsumesStagger,
         bool FootingWouldMatter,
         Coord? StructureAt = null,
-        int DamageToStructure = 0)
+        int DamageToStructure = 0,
+        int Resistance = 0)
     {
         /// <summary>
         /// True when the displacement accomplishes nothing: the unit does not move, and nothing is

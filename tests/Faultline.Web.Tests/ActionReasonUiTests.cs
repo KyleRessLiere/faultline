@@ -43,10 +43,10 @@ public sealed class ActionReasonUiTests
     public void StaggerShotInTheDeadZone_CarriesTheSameReason()
     {
         var (state, archer) = DeadZone();
-        var shot = AbilityDescriptor.For(Ability.StaggerShot);
+        var shot = AbilityDefinition.For(Ability.StaggerShot);
 
         string reason = ActionPoints.Reason(
-            ActionPoints.Price(archer, Activation.CostOf(Ability.StaggerShot)),
+            ActionPoints.Price(archer, AbilityDefinition.For(Ability.StaggerShot).Cost),
             Targeting.BlockOn(state, archer, shot),
             shot.MinRange);
 
@@ -81,7 +81,7 @@ public sealed class ActionReasonUiTests
         // And the ability follows the shot, because the exception is about the arc, not the button.
         Assert.Equal(
             TargetingBlock.None,
-            Targeting.BlockOn(state, held, AbilityDescriptor.For(Ability.StaggerShot)));
+            Targeting.BlockOn(state, held, AbilityDefinition.For(Ability.StaggerShot)));
     }
 
     // ---- (a) the other reasons ----------------------------------------------------------------

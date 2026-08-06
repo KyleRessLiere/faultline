@@ -15,10 +15,10 @@ public static class PlaytestText
     /// What a guarding unit's stance is called, straight off Core's descriptor so the board, the
     /// unit panel and the reference never disagree about the name.
     /// </summary>
-    public static string GuardName => AbilityDescriptor.For(Ability.GuardStance).Name;
+    public static string GuardName => AbilityDefinition.For(Ability.GuardStance).Name;
 
     /// <summary>The stance's rules text, for a tooltip.</summary>
-    public static string GuardSummary => AbilityDescriptor.For(Ability.GuardStance).Summary;
+    public static string GuardSummary => AbilityDefinition.For(Ability.GuardStance).Summary;
 
     /// <summary>
     /// What a terrain kind is called on screen.
@@ -276,6 +276,43 @@ public static class PlaytestText
         TileType.HighGround => Terrain(TileType.HighGround).ToLowerInvariant(),
         _ => Terrain(TileType.Open).ToLowerInvariant(),
     };
+
+    /// <summary>The word a board chip uses for ending a displacement Staggered.</summary>
+    public const string StaggerNote = "stagger";
+
+    /// <summary>The word a board chip uses for ending a displacement in a drain.</summary>
+    /// <remarks>
+    /// Core's flag is <c>WouldCling</c>; "paddling" is what a player is shown (MASTER_DESIGN §15 —
+    /// display names are decoupled from code identifiers, and Drain is never Pit on screen).
+    /// </remarks>
+    public const string PaddlingNote = "paddling";
+
+    /// <summary>
+    /// What a projected displacement leaves behind on the tile it stops on, beyond the damage.
+    /// </summary>
+    /// <param name="preview">A Core displacement preview.</param>
+    /// <returns>"paddling", "stagger", or an empty string.</returns>
+    public static string Aftermath(DisplacementPreview preview) =>
+        preview.WouldCling ? PaddlingNote
+        : preview.WouldStagger ? StaggerNote
+        : string.Empty;
+
+    /// <summary>
+    /// Why a displacement moves nobody, named. A shove reduced to nothing is still an outcome and
+    /// still has to be drawn: CLAUDE.md's earned practice is that a silent no-op is a bug and every
+    /// refusal names its reason.
+    /// </summary>
+    /// <param name="preview">A Core displacement preview that reports itself a no-op.</param>
+    /// <returns>e.g. "no movement (resist 2)".</returns>
+    /// <remarks>
+    /// The number is <see cref="DisplacementPreview.Resistance"/>, which is Core's own subtraction
+    /// from the distance arithmetic. Nothing here works out what a stat block would have done, and
+    /// nothing here decides that the shove came to nothing — that is the preview's own verdict.
+    /// </remarks>
+    public static string NoMovement(DisplacementPreview preview) =>
+        preview.Resistance > 0
+            ? "no movement (resist " + preview.Resistance + ")"
+            : "no movement";
 
     /// <summary>The status flags worth showing beside a unit.</summary>
     /// <param name="unit">Unit to describe.</param>

@@ -329,7 +329,7 @@ public static class ActionRows
         // Wardbearer has two and the player has to be able to say which is being aimed. Asked of
         // the archetype rather than of the selection, so a duck that is being read still lists the
         // kit it owns — what it brings is a fact about the class, not about whose turn it is.
-        foreach (var descriptor in AbilityDescriptor.AllForKind(unit.Kind))
+        foreach (var descriptor in AbilityDefinition.AllForKind(unit.Kind))
         {
             bool usable = descriptor.Targeting != AbilityTargeting.Passive
                 && session.IsAbilityAvailable(descriptor.Ability);
@@ -342,7 +342,7 @@ public static class ActionRows
                 descriptor.Name,
                 descriptor.Effect,
                 usable,
-                Activation.CostOf(descriptor.Ability),
+                descriptor.Cost,
                 Targeting.BlockOn(state, unit, descriptor),
                 descriptor.MinRange,
                 ability: descriptor.Ability);

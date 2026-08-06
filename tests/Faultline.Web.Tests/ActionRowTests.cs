@@ -54,7 +54,7 @@ public sealed class ActionRowTests
         {
             Assert.NotNull(row.Ability);
             Assert.Equal(CostKind.ActionPoints, row.CostKind);
-            Assert.Equal(Activation.CostOf(row.Ability!.Value), row.Cost);
+            Assert.Equal(AbilityDefinition.For(row.Ability!.Value).Cost, row.Cost);
         }
     }
 
@@ -76,7 +76,7 @@ public sealed class ActionRowTests
         Assert.NotNull(rush);
 
         // D-126: 2, off Core's table, and never the full pool again.
-        Assert.Equal(Activation.CostOf(Ability.BullRush), rush!.Cost);
+        Assert.Equal(AbilityDefinition.For(Ability.BullRush).Cost, rush!.Cost);
         Assert.Equal(2, rush.Cost);
         Assert.Equal("2 " + ActionPoints.Label, rush.Badge);
     }

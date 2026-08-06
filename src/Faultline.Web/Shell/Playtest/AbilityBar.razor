@@ -128,7 +128,7 @@
 
                 @if (detail.Row.Ability is { } ability)
                 {
-                    <p class="rules">@AbilityDescriptor.For(ability).Summary</p>
+                    <p class="rules">@AbilityDefinition.For(ability).Summary</p>
                 }
 
                 @if (detail.HasSockets)
@@ -364,7 +364,7 @@
 
         if (row.Ability is { } ability)
         {
-            return AbilityDescriptor.For(ability).Push > 0;
+            return AbilityDefinition.For(ability).Push > 0;
         }
 
         return row.Mode == ActionMode.Attack && unit.Template.AttackPush > 0;

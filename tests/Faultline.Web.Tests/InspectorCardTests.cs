@@ -71,7 +71,7 @@ public sealed class InspectorCardTests
 
         // One row per ability the archetype brings, from Core's own table — the kit is a fact about
         // the class, not about whose turn it is.
-        foreach (var descriptor in AbilityDescriptor.AllForKind(unit.Kind))
+        foreach (var descriptor in AbilityDefinition.AllForKind(unit.Kind))
         {
             Assert.Contains(rows, r => r.Ability == descriptor.Ability);
         }
@@ -106,8 +106,8 @@ public sealed class InspectorCardTests
         foreach (var row in ActionRows.For(session).Where(r => r.Kind == ActionKind.Ability))
         {
             Assert.Equal(CostKind.ActionPoints, row.CostKind);
-            Assert.Equal(Activation.CostOf(row.Ability!.Value), row.Cost);
-            Assert.Equal(Activation.CostOf(row.Ability!.Value) + " " + ActionPoints.Label, row.Badge);
+            Assert.Equal(AbilityDefinition.For(row.Ability!.Value).Cost, row.Cost);
+            Assert.Equal(AbilityDefinition.For(row.Ability!.Value).Cost + " " + ActionPoints.Label, row.Badge);
         }
     }
 

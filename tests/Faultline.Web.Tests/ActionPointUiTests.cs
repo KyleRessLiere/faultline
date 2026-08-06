@@ -166,7 +166,7 @@ public sealed class ActionPointUiTests
         {
             var priced = ActionPoints.Price(unit, ability);
             Assert.NotNull(priced);
-            Assert.Equal(Activation.CostOf(ability), priced!.Cost);
+            Assert.Equal(AbilityDefinition.For(ability).Cost, priced!.Cost);
         }
     }
 

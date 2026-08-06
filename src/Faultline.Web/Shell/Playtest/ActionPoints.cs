@@ -196,7 +196,7 @@ public static class ActionPoints
     /// <param name="ability">Ability being priced.</param>
     /// <returns>The priced button, or null for a unit that is not on the AP economy.</returns>
     public static Priced? Price(Unit? unit, Ability ability) =>
-        Price(unit, Activation.CostOf(ability));
+        Price(unit, AbilityDefinition.For(ability).Cost);
 
     /// <summary>
     /// Core's targeting block in the player's words, and the one place the dead zone is named. The

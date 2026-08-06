@@ -668,6 +668,24 @@
     font-style: normal;
 }
 
+/* The consequence a number cannot carry, beside it: "stagger", "paddling", or why a shove moved
+   nobody. Quieter than the damage and never instead of it — both are one chip, read in one look. */
+.hit-note {
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: .04em;
+    opacity: .85;
+    text-transform: lowercase;
+}
+
+/* A shove that moves nobody is still an outcome and is drawn as one: the chip is the whole point,
+   because nothing on the board is how the player reads "this ability does not work". */
+.hit.immovable {
+    border-color: var(--pt-text-dim);
+    color: var(--pt-text-dim);
+}
+
 .hit.collision,
 .hit.spikes {
     border-color: var(--pt-red);

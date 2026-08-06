@@ -175,20 +175,20 @@ public sealed class GameSession
     public Unit? SelectedUnit => Selected is null ? null : State.FindUnit(Selected.Value);
 
     /// <summary>Every ability the selected unit brings, in the order Core offers them.</summary>
-    public IReadOnlyList<AbilityDescriptor> SelectedAbilities =>
+    public IReadOnlyList<AbilityDefinition> SelectedAbilities =>
         SelectedUnit is null
-            ? Array.Empty<AbilityDescriptor>()
-            : AbilityDescriptor.AllForKind(SelectedUnit.Kind);
+            ? Array.Empty<AbilityDefinition>()
+            : AbilityDefinition.AllForKind(SelectedUnit.Kind);
 
     /// <summary>The armed ability's descriptor, or <c>null</c> when no ability is armed.</summary>
-    public AbilityDescriptor? ArmedDescriptor =>
-        ArmedAbility is null ? null : AbilityDescriptor.For(ArmedAbility.Value);
+    public AbilityDefinition? ArmedDescriptor =>
+        ArmedAbility is null ? null : AbilityDefinition.For(ArmedAbility.Value);
 
     /// <summary>
     /// The rules text to show beside the action row: the armed ability's, or the unit's first when
     /// nothing is armed yet.
     /// </summary>
-    public AbilityDescriptor? SelectedAbility =>
+    public AbilityDefinition? SelectedAbility =>
         ArmedDescriptor ?? (SelectedAbilities.Count > 0 ? SelectedAbilities[0] : null);
 
     /// <summary>Enemy the player has opened a dossier on, if any.</summary>
@@ -665,7 +665,7 @@ public sealed class GameSession
         DeployCommand deploy => "undo placing " + NameOf(state, deploy.UnitId) + " on " + BoardCoords.Of(deploy.At),
         AttackCommand { Mode: AttackMode.Pull } pull => "undo pull on " + NameOf(state, pull.TargetId),
         AttackCommand attack => "undo attack on " + NameOf(state, attack.TargetId),
-        AbilityCommand ability => "undo " + AbilityDescriptor.For(ability.Ability).Name,
+        AbilityCommand ability => "undo " + AbilityDefinition.For(ability.Ability).Name,
         SpendVerveCommand spend => "undo " + Naming.Of(spend.Spend),
         RescueCommand rescue => "undo rescue of " + NameOf(state, rescue.ClingingId),
         FinishClingingCommand finish => "undo kicking " + NameOf(state, finish.ClingingId) + " off the ledge",
@@ -1271,7 +1271,7 @@ public sealed class GameSession
 
                 case AbilityCommand ability:
                 {
-                    var descriptor = AbilityDescriptor.For(ability.Ability);
+                    var descriptor = AbilityDefinition.For(ability.Ability);
 
                     if (descriptor.Targeting == AbilityTargeting.Line && ability.Direction.HasValue)
                     {
@@ -1311,14 +1311,39 @@ public sealed class GameSession
         }
     }
 
+    /// <summary>
+    /// Draws a projected displacement onto the board: the tile it actually stops on, what happens
+    /// there, and what a second body takes when it is hit on the way.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The stop tile always carries a mark, even when arriving on it costs nothing. A clean shove
+    /// used to draw nothing at all — the mark was suppressed for having no damage on it — so every
+    /// ranged displacement in the game rendered as a highlight on the target and silence everywhere
+    /// else, which reads as "this ability does nothing".
+    /// </para>
+    /// <para>
+    /// A displacement that moves nobody says so, in the same place, for the same reason: CLAUDE.md's
+    /// earned practice is that a silent no-op is a bug and every refusal names its reason. The reason
+    /// is Core's — <see cref="DisplacementPreview.Resistance"/> — never a number worked out here.
+    /// </para>
+    /// </remarks>
     private void AddDisplacement(List<PreviewMark> marks, DisplacementPreview? preview)
     {
-        if (preview is null || preview.IsNoOp)
+        if (preview is null)
         {
             return;
         }
 
-        Add(marks, preview.Destination, preview.DamageToUnit, preview.Stop, preview.WouldDown);
+        if (preview.IsNoOp)
+        {
+            Add(marks, preview.Destination, 0, DisplacementStop.Immovable, false,
+                PlaytestText.NoMovement(preview), landing: true);
+            return;
+        }
+
+        Add(marks, preview.Destination, preview.DamageToUnit, preview.Stop, preview.WouldDown,
+            PlaytestText.Aftermath(preview), landing: true);
 
         // A collision hurts both bodies, and the second one is the half a player forgets.
         if (preview.ObstacleId is { } obstacleId
@@ -1326,7 +1351,7 @@ public sealed class GameSession
             && preview.DamageToObstacle > 0)
         {
             Add(marks, obstacle.Position, preview.DamageToObstacle, DisplacementStop.Collision,
-                preview.DamageToObstacle >= obstacle.Hp);
+                preview.DamageToObstacle >= obstacle.Hp, PlaytestText.StaggerNote);
         }
 
         if (preview.StructureAt is { } structureAt && preview.DamageToStructure > 0)
@@ -1335,30 +1360,60 @@ public sealed class GameSession
         }
     }
 
-    // One mark per tile: the loudest claim wins, so a tile that both takes a hit and is a landing
-    // reads as the hit rather than as two overlapping labels.
-    private static void Add(
-        List<PreviewMark> marks, Coord at, int damage, DisplacementStop stop, bool fatal)
+    /// <summary>
+    /// Puts one claim on one tile, merging with whatever is already there.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One mark per tile — a tile that is both a hit and a landing has to read as one claim rather
+    /// than two overlapping labels. But it is <em>one body taking both</em>, so the numbers add
+    /// rather than the louder one winning: Stagger Shot into the wall behind an enemy is 2 and then
+    /// 4, and a chip that said 4 was under-reporting a killing blow by a third.
+    /// </para>
+    /// <para>
+    /// Neither number is worked out here. Both are Core's, off separate previews of the same
+    /// action; the shell only decides that they fall on the same tile.
+    /// </para>
+    /// </remarks>
+    private void Add(
+        List<PreviewMark> marks,
+        Coord at,
+        int damage,
+        DisplacementStop stop,
+        bool fatal,
+        string note = "",
+        bool landing = false)
     {
-        if (damage <= 0 && stop is DisplacementStop.RanOut or DisplacementStop.Immovable)
+        if (!landing && damage <= 0 && stop is DisplacementStop.RanOut or DisplacementStop.Immovable)
         {
             return;
         }
 
         for (int i = 0; i < marks.Count; i++)
         {
-            if (marks[i].At.Equals(at))
+            if (!marks[i].At.Equals(at))
             {
-                if (damage > marks[i].Damage)
-                {
-                    marks[i] = new PreviewMark(at, damage, stop, fatal);
-                }
-
-                return;
+                continue;
             }
+
+            var existing = marks[i];
+            int total = damage + existing.Damage;
+
+            marks[i] = new PreviewMark(
+                at,
+                total,
+                // The louder cause names the tile: a landing on brambles is drawn as brambles even
+                // when the shot that put it there is the smaller half of the number.
+                damage > existing.Damage ? stop : existing.Stop,
+                State.UnitAt(at) is { } standing ? total >= standing.Hp : existing.Fatal || fatal,
+                // The note survives the merge — losing it is how a drain that also deals damage
+                // stops saying "paddling".
+                note.Length > 0 ? note : existing.Note);
+
+            return;
         }
 
-        marks.Add(new PreviewMark(at, damage, stop, fatal));
+        marks.Add(new PreviewMark(at, damage, stop, fatal, note));
     }
 
     /// <summary>
@@ -1685,7 +1740,7 @@ public sealed class GameSession
             return;
         }
 
-        var descriptor = AbilityDescriptor.For(ability.Ability);
+        var descriptor = AbilityDefinition.For(ability.Ability);
 
         switch (descriptor.Targeting)
         {
@@ -1748,7 +1803,7 @@ public sealed class GameSession
         }
 
         return command is AbilityCommand { Direction: { } direction } ac
-            && AbilityDescriptor.For(ac.Ability).Targeting == AbilityTargeting.Direction
+            && AbilityDefinition.For(ac.Ability).Targeting == AbilityTargeting.Direction
             ? Abilities.PreviewCharge(State, unit, direction)
             : null;
     }
@@ -1823,7 +1878,7 @@ public sealed class GameSession
 
     private string DescribeAbility(Unit unit, AbilityCommand command)
     {
-        var descriptor = AbilityDescriptor.For(command.Ability);
+        var descriptor = AbilityDefinition.For(command.Ability);
 
         // Two abilities are aimed by direction and they are nothing alike, so the shape decides —
         // not the mere presence of a Direction, which used to render Spear Thrust as "Charge 3 to…".
@@ -1900,7 +1955,9 @@ public sealed class GameSession
 
         if (preview.IsNoOp)
         {
-            return $"{verb} — it does not budge";
+            // The same words the board draws on the tile. A sentence that disagreed with the chip
+            // beside it would send the player looking for a third opinion.
+            return $"{verb} — {PlaytestText.NoMovement(preview)}";
         }
 
         var target = State.FindUnit(preview.UnitId);
@@ -1921,7 +1978,10 @@ public sealed class GameSession
                     + (preview.WouldDown ? ", kills it" : string.Empty);
 
             case DisplacementStop.Pit:
-                return $"{verb} into the pit — {name} is left clinging";
+                // The words the chip on that tile uses. Drain, never Pit; paddling, never Clinging
+                // (CLAUDE.md "Naming") — and a sentence beside the board that named the same
+                // outcome differently would read as a second, disagreeing prediction.
+                return $"{verb} into the drain — {name} is left {PlaytestText.PaddlingNote}";
 
             default:
                 string tail = preview.DamageToUnit > 0 ? $" · {preview.DamageToUnit} falling damage" : string.Empty;

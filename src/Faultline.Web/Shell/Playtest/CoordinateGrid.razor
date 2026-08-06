@@ -33,7 +33,11 @@
                 var cell = new Coord(x, row);
                 var unit = Occupant(cell);
 
+                @* The tile's own address, on the tile. It is what the axis labels already show a
+                   player, and it is the only way a test can ask what the board drew *here* rather
+                   than what a helper said it would draw. *@
                 <button type="button"
+                        data-tile="@BoardCoords.Of(cell)"
                         class="@CellClass(cell, unit)"
                         disabled="@(!IsClickable(cell, unit))"
                         title="@Tooltip(cell, unit)"
@@ -149,6 +153,13 @@
                                 <i class="hit-icon" aria-hidden="true">@mark.Icon</i>
                             }
                             @mark.Label
+                            @* The half a number cannot carry: staggered, paddling, or the reason a
+                               shove moved nobody. A shove reduced to nothing used to draw no chip
+                               at all, which reads on the board as the ability having no effect. *@
+                            @if (mark.Note.Length > 0)
+                            {
+                                <i class="hit-note">@mark.Note</i>
+                            }
                         </span>
                     }
 
