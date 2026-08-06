@@ -52,8 +52,9 @@ namespace Faultline.Core
         /// </summary>
         /// <remarks>
         /// This is not an attackability rule. D-060 made every structure attackable — an attack takes
-        /// 1 off any of them, whatever the weapon and whoever swung — and superseded the brief's
-        /// "immune to attacks" clause along with the <c>IsAttackable</c> property that implemented it.
+        /// <see cref="Objectives.AttackDamageToStructure"/> off any of them, whatever the weapon and
+        /// whoever swung — and superseded the brief's "immune to attacks" clause along with the
+        /// <c>IsAttackable</c> property that implemented it.
         /// What is left is whose objective the thing is: the enemy besieges what the players defend,
         /// and has no reason to help them bring down a structure they were sent to destroy.
         /// </remarks>

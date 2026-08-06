@@ -40,6 +40,34 @@ namespace Faultline.Core
             _ => UnitTemplate.For(kind).RawName,
         };
 
+        /// <summary>
+        /// What a structure is called on screen. Derived from what the board already authored — the
+        /// role it plays and whether it is scenery — rather than from a name the fight file carries.
+        /// </summary>
+        /// <remarks>
+        /// A name key in the <c>.fight</c> format would be the flexible answer and is deliberately
+        /// not taken: it is a format change, and a format change drags the catalogue and
+        /// <c>FIGHT_FORMAT.md</c> regeneration behind it (D-092) for a noun that is currently a pure
+        /// function of the role. Every objective structure the library ships is either the shrine you
+        /// hold or the gate you bring down, which is exactly the distinction <see cref="ObjectiveKind"/>
+        /// already draws (DECISIONS.md D-162).
+        /// </remarks>
+        /// <param name="structure">Structure to name.</param>
+        /// <returns>Its display name.</returns>
+        public static string Of(Structure structure)
+        {
+            if (structure is null)
+            {
+                return "Structure";
+            }
+
+            // Never "blocker": that is the identifier, and the word players are given for masonry
+            // that is nobody's objective is Debris.
+            return structure.IsBlocker
+                ? "Debris"
+                : structure.Role == ObjectiveKind.Protect ? "Shrine" : "Gate";
+        }
+
         /// <summary>The display name of a spender.</summary>
         /// <param name="spend">The spend.</param>
         /// <returns>Its name.</returns>

@@ -1016,6 +1016,15 @@ An intent **locks its target, not its route** (D-021):
   list — immediately, and visibly as a fresh declaration marked as a re-plan.
 - An enemy that has already activated does not re-plan; its intent is simply dropped.
 
+**A plan aimed at a structure names it and predicts the hit points it leaves behind** (D-164). Core
+marks these by leaving the intent's target id empty and carrying the tile instead, so a Raider reads
+`claw the Shrine 12/12 → 10 HP` while it is adjacent and `close on the Shrine 12/12, move to (3,4)`
+while it is still walking — never `hit — for 2` and never `close on —`. The predicted figure is
+`Objectives.AttackDamageToStructure` taken off the live structure, which is the same number
+`Objectives.Damage` will actually take off: the claw publishes the flat chip, **not the enemy's
+weapon damage**, so a Raider-plan enemy whose weapon is worth more than the chip cannot telegraph a
+number the resolution never uses.
+
 ## Fights
 
 Fights are **authored as data, not code**. Each one is a `.fight` text file in
@@ -1591,13 +1600,28 @@ Left of the board, and on a narrow viewport it collapses **above** the board —
 | | |
 |---|---|
 | **Goal** | What to do, in plain words. |
-| **Bar** | Live progress with its own numbers on it: `Enemies 3/8`, `Structure 7/12`, `Round 2/4`. |
+| **Bar** | Live progress with its own numbers on it: `Enemies 3/8`, `Shrine 7/12`, `Round 2/4`. |
+| **Structures** | One line per objective-linked structure: `Shrine 7/12 · D4`, and `· rubble` once it is down. Highlighted at or below half. |
 | **Clock** | `Turn 4/10`, when the fight has a limit. Turns red on the last two rounds. |
 | **Lose if** | The loss condition, **same size and weight as the goal**. |
 
 Every figure comes from `ObjectiveStatus` in Core, which reads the same state the win check reads —
 so the bar cannot say one thing while `Objectives.Check` is about to decide another. The bar moves as
 the hit lands rather than at end of round.
+
+**Structures are listed, never summed** (D-163). A board with two of them draws two lines: knowing
+that eighteen hit points remain between them does not tell you which one is about to fall. Breakable
+blockers are left out of the panel entirely — a wall is neither a win nor a loss condition (D-114),
+so folding it into the bar would print a number `Objectives.Check` does not believe in. The bar's own
+caption names the structure when there is exactly one (`Shrine 12/12`, `Gate 8/24 down`) and stays
+generic (`Structures 18/36`) when there are several sharing one pool. The Destroy goal line quotes
+`Objectives.AttackDamageToStructure` rather than a typed figure — it read "attacks chip it for 1"
+while the rule took 2, on the one panel that exists so a player can count swings.
+
+**Structures are named** (D-162). The name is derived from the role the board already authored, not
+authored separately: a Protect structure is a **Shrine**, a Destroy structure is a **Gate**, and a
+breakable blocker is **Debris**. The nouns live in `Naming.cs` with every other display name, so a
+rename is data and never a sweep through the C#.
 
 
 

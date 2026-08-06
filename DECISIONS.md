@@ -167,19 +167,22 @@ in this file when the question comes back.
 | D-147 | [A player refusal is an interrupt: a prompt in state, two commands in the log, and the raising command re-applied from a speculative probe rather than resumed mid-flight.](#d-147-a-player-refusal-is-an-interrupt-a-prompt-in-state-two-commands-in-the-log-and-the-raising-command-re-applied-from-a-speculative-probe-rather-than-resumed-mid-flight) | 2026-08-05 |  |
 | D-148 | [HELD: the Fisher's "+1 Pluck on a refused Cast" income lever and SURE CAST are named, priced and deliberately not built.](#d-148-held-the-fishers-1-pluck-on-a-refused-cast-income-lever-and-sure-cast-are-named-priced-and-deliberately-not-built) | 2026-08-05 | *held* |
 | D-150 | [A diagonal displacement vector is resolved by the acting side, and the choice rides the acting command rather than a prompt of its own.](#d-150-a-diagonal-displacement-vector-is-resolved-by-the-acting-side-and-the-choice-rides-the-acting-command-rather-than-a-prompt-of-its-own) | 2026-08-06 |  |
-| D-151 | [Every action has exactly one projection, it lives in Core, and no renderer decides which half of an action applies.](#d-151-every-action-has-exactly-one-projection-it-lives-in-core-and-no-renderer-decides-which-half-of-an-action-applies) | unreleased |  |
-| D-152 | [The climb surcharge is deleted on both sides, and the two perks that bought a discount on it are deleted with it.](#d-152-the-climb-surcharge-is-deleted-on-both-sides-and-the-two-perks-that-bought-a-discount-on-it-are-deleted-with-it) | unreleased |  |
-| D-153 | [HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | unreleased | *held* |
-| D-154 | [The camp deals one table of two, and the flock takes one pick.](#d-154---the-camp-deals-one-table-of-two-and-the-flock-takes-one-pick) | unreleased |  |
-| D-155 | [A haul is attributed to its hauler, and Chum the Water starts firing off Reel.](#d-155---a-haul-is-attributed-to-its-hauler-and-chum-the-water-starts-firing-off-reel) | unreleased |  |
-| D-156 | [Rattling Impact's tile rides on the request, and the mark is spent by the attempt.](#d-156---rattling-impacts-tile-rides-on-the-request-and-the-mark-is-spent-by-the-attempt) | unreleased |  |
-| D-157 | [Crossing Shot ships the narrowest reading of an unruled reaction, and does not settle the questions around it.](#d-157---crossing-shot-ships-the-narrowest-reading-of-an-unruled-reaction-and-does-not-settle-the-questions-around-it) | unreleased |  |
-| D-158 | [Technique sockets are counted per duck, because 8.6 contradicts itself about the host.](#d-158---technique-sockets-are-counted-per-duck-because-86-contradicts-itself-about-the-host) | unreleased |  |
-| D-159 | [Only techniques carry a rarity and a tag; the v1 pools are Common and untagged.](#d-159---only-techniques-carry-a-rarity-and-a-tag-the-v1-pools-are-common-and-untagged) | unreleased |  |
-| D-160 | [An "engine starter" is a technique modifier, and every director row is a preference.](#d-160---an-engine-starter-is-a-technique-modifier-and-every-director-row-is-a-preference) | unreleased |  |
-| D-161 | [A modifier that spends another player's duck is elected by that duck's owner.](#d-161---a-modifier-that-spends-another-players-duck-is-elected-by-that-ducks-owner) | unreleased |  |
+| D-151 | [Every action has exactly one projection, it lives in Core, and no renderer decides which half of an action applies.](#d-151-every-action-has-exactly-one-projection-it-lives-in-core-and-no-renderer-decides-which-half-of-an-action-applies) | 2026-08-06 |  |
+| D-152 | [The climb surcharge is deleted on both sides, and the two perks that bought a discount on it are deleted with it.](#d-152-the-climb-surcharge-is-deleted-on-both-sides-and-the-two-perks-that-bought-a-discount-on-it-are-deleted-with-it) | 2026-08-06 |  |
+| D-153 | [HELD: the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | 2026-08-06 | *held* |
+| D-154 | [The camp deals one table of two, and the flock takes one pick.](#d-154-the-camp-deals-one-table-of-two-and-the-flock-takes-one-pick) | 2026-08-06 |  |
+| D-155 | [A haul is attributed to its hauler, and Chum the Water starts firing off Reel.](#d-155-a-haul-is-attributed-to-its-hauler-and-chum-the-water-starts-firing-off-reel) | 2026-08-06 |  |
+| D-156 | [Rattling Impact's tile rides on the request, and the mark is spent by the attempt.](#d-156-rattling-impacts-tile-rides-on-the-request-and-the-mark-is-spent-by-the-attempt) | 2026-08-06 |  |
+| D-157 | [Crossing Shot ships the narrowest reading of an unruled reaction, and does not settle the questions around it.](#d-157-crossing-shot-ships-the-narrowest-reading-of-an-unruled-reaction-and-does-not-settle-the-questions-around-it) | 2026-08-06 |  |
+| D-158 | [Technique sockets are counted per duck, because 8.6 contradicts itself about the host.](#d-158-technique-sockets-are-counted-per-duck-because-86-contradicts-itself-about-the-host) | 2026-08-06 |  |
+| D-159 | [Only techniques carry a rarity and a tag; the v1 pools are Common and untagged.](#d-159-only-techniques-carry-a-rarity-and-a-tag-the-v1-pools-are-common-and-untagged) | 2026-08-06 |  |
+| D-160 | [An "engine starter" is a technique modifier, and every director row is a preference.](#d-160-an-engine-starter-is-a-technique-modifier-and-every-director-row-is-a-preference) | 2026-08-06 |  |
+| D-161 | [A modifier that spends another player's duck is elected by that duck's owner.](#d-161-a-modifier-that-spends-another-players-duck-is-elected-by-that-ducks-owner) | 2026-08-06 |  |
+| D-162 | [A structure's display name is derived from its role, not authored in the fight file.](#d-162-a-structures-display-name-is-derived-from-its-role-not-authored-in-the-fight-file) | unreleased |  |
+| D-163 | [The objective panel reports each structure separately, and leaves blockers out.](#d-163-the-objective-panel-reports-each-structure-separately-and-leaves-blockers-out) | unreleased |  |
+| D-164 | [A claw telegraphs the flat structure chip, never the enemy's weapon damage.](#d-164-a-claw-telegraphs-the-flat-structure-chip-never-the-enemys-weapon-damage) | unreleased |  |
 
-**159 rulings.**
+**162 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4081,3 +4084,75 @@ The elections ride the command for the reason `AttackCommand.Aim` does: the acti
 choice before anything resolves, so it goes in the log and a replay makes the same choice. An election
 by a duck that does not hold the card, or against an enemy the grant does not name, is **refused by
 name** rather than ignored - a silent no-op is a bug.
+
+---
+
+**D-162 - A structure's display name is derived from its role, not authored in the fight file.**
+
+A structure had no name at all. The inspector wrote its own nouns - "Protected structure", "Target
+structure", "Breakable blocker" - which put display copy in a `.razor` file, against MASTER_DESIGN
+§15's rule that a rename is data in `Naming.cs` and never a sweep through the C#. "Breakable blocker"
+also spelled an identifier at the player: the word for masonry nobody is defending is **Debris**.
+
+The name now comes from `Naming.Of(Structure)`: a Protect structure is a **Shrine**, a Destroy
+structure a **Gate**, a blocker **Debris**. MASTER_DESIGN §7 uses exactly those two nouns as its
+reference structures, and every objective structure the library ships is one of them.
+
+**Rejected: a `name` key on the objective line.** More flexible, and the wrong price. A `.fight`
+format change fires D-092 - the catalogue and `FIGHT_FORMAT.md` both regenerate behind it - to buy
+per-board nouns for a set of two, both of which are a pure function of `ObjectiveKind`. Held rather
+than refused: **the trigger is the first board that fields an objective structure which is honestly
+neither a shrine nor a gate.** At that point the key is worth its regeneration, and this ruling
+becomes the default rather than the whole story.
+
+---
+
+**D-163 - The objective panel reports each structure separately, and leaves blockers out.**
+
+`ObjectiveStatus.StructureHp` summed **every** structure on the board into one pair of numbers. Two
+consequences, both lies the panel told with a straight face:
+
+- A board with two objective structures read as one. "Structure 18/24" does not say which half is
+  about to fall, which is the only thing a defender needs to know.
+- A breakable blocker's hit points were folded into the objective's own bar. A wall somebody knocked
+  through is neither a win nor a loss condition (D-114), so the bar printed a number
+  `Objectives.Check` did not believe in - the exact failure `ObjectiveStatus` exists to prevent.
+
+`ObjectiveStatus.Structures` now carries one `StructureStatus` per **objective-linked** structure,
+each with its own name, tile and current/max. The bar keeps the shared pool, because the loss fires
+when the last one falls; its caption names the structure when there is exactly one and stays generic
+when there are several. The Destroy goal line, which said "attacks chip it for 1" while
+`Objectives.AttackDamageToStructure` took 2, now quotes the constant.
+
+**Rejected: computing the lines in the panel.** Prime directive 3. A shell that formatted `Hp` and
+`MaxHp` itself would be one more place that has to be found when the chip changes, and `StructureStatus`
+is the query the inspector and the enemy telegraph read too.
+
+No live board is affected: `the-shrine` and `break-the-gate` are single-tile and neither has a
+blocker, so this fixes a latent lie rather than a visible one. That it was latent is why it survived.
+
+---
+
+**D-164 - A claw telegraphs the flat structure chip, never the enemy's weapon damage.**
+
+`Ai.Claw` built the Raider's intent with `Damage: enemy.Template.Damage`, while `Objectives.Damage`
+overrides every attack on a structure to `Objectives.AttackDamageToStructure` (D-060). The telegraph
+and the resolution were reading two different numbers, which is the one thing a telegraph must never
+do (D-061).
+
+**It is currently masked, not harmless.** The shipped Raider deals 2 and the chip is 2, so no board
+in the library prints a wrong figure today. It becomes visible the moment a Raider-plan enemy has
+weapon damage other than 2 - a balance variant, an elite, or a re-tune of the chip - and it would
+arrive as a telegraph bug in a fight nobody changed. `Claw` now reads the constant, and a test pins
+the source rather than the coincidence.
+
+The intent also names what it is aimed at. Core marks a structure plan by leaving `TargetId` null and
+carrying the tile, so the telegraph reads `claw the Shrine 12/12 → 10 HP` and, while the Raider is
+still walking, `close on the Shrine 12/12, move to (3,4)`. Both figures come from `StructureStatus`
+off the live board rather than off the plan, so a structure damaged after intents were declared does
+not leave a stale prediction on screen.
+
+**Not settled here:** a Wardbearer in Guard Stance beside the structure takes the claw instead
+(D-096), and the claw telegraph does not say so. `Ai.Strike` publishes `RedirectedTo` for unit
+targets; the structure branch has no equivalent, and a guard who steps in **after** intents are
+declared would not be reflected either way. Recorded for the designer rather than guessed at.

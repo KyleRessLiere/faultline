@@ -1131,9 +1131,14 @@ namespace Faultline.Core
         // A plan aimed at a structure rather than at a unit. The telegraph carries the tile instead of
         // a target id, which is a shape the intent record already supports — a Lobber that cannot find
         // anyone to flee from declares a Retreat with no target in exactly the same way.
+        //
+        // The damage is the flat chip, not the enemy's weapon: Objectives.Damage overrides every
+        // attack on a structure to Objectives.AttackDamageToStructure (D-060), so publishing
+        // Template.Damage here would promise a number the resolution never takes off. The two happen
+        // to coincide for the shipped Raider, which is exactly why this was worth pinning (D-164).
         private static EnemyIntent Claw(Unit enemy, Coord structure, Coord? moveTo) => new EnemyIntent(
             enemy.Id, enemy.Kind, enemy.Position, IntentAction.Attack,
-            null, structure, moveTo, null, null, 0, null, enemy.Template.Damage);
+            null, structure, moveTo, null, null, 0, null, Objectives.AttackDamageToStructure);
 
         private static EnemyIntent March(Unit enemy, Coord? structure, Coord? moveTo) => new EnemyIntent(
             enemy.Id, enemy.Kind, enemy.Position,

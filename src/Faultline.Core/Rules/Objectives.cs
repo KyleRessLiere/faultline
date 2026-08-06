@@ -196,7 +196,8 @@ namespace Faultline.Core
                 return state;
             }
 
-            // D-060: any attack chips a structure for exactly 1, whoever swung and with what. Applied
+            // D-060: any attack chips a structure for exactly AttackDamageToStructure, whoever swung
+            // and with what — the constant, never a figure retyped in prose beside it (D-163). Applied
             // here rather than at each call site because this is the one place a structure loses hit
             // points, so no weapon can route around it — and no structure is immune to it either.
             if (source == DamageSource.Attack)
@@ -281,7 +282,7 @@ namespace Faultline.Core
                     struck.Add(shield.Id);
 
                     // The blow is landing on a body now, so it is worth what the enemy's weapon is
-                    // worth — the flat 1 is a rule about how fast masonry comes apart (D-060), not
+                    // worth — the flat chip is a rule about how fast masonry comes apart (D-060), not
                     // about how hard the thing swinging hits.
                     events.Add(new UnitAttacked(
                         unitId,
@@ -295,7 +296,7 @@ namespace Faultline.Core
                     continue;
                 }
 
-                // The claw is an attack, so it lands for 1 however hard the thing swinging hits
+                // The claw is an attack, so it lands for the flat chip however hard the thing swinging hits
                 // (D-060). Reported at the amount it actually takes off, not the template's number.
                 events.Add(new StructureAttacked(unitId, unit.Position, tile, AttackDamageToStructure));
                 state = Damage(state, tile, AttackDamageToStructure, DamageSource.Attack, events);
