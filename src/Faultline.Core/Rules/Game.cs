@@ -1026,7 +1026,8 @@ namespace Faultline.Core
                 state = state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
 
                 state = Redirected(
-                    state, unit, target, DisplacementKind.Pull, unit.Template.BasicPull, events);
+                    state, unit, target, DisplacementKind.Pull, unit.Template.BasicPull, events,
+                    command.Aim);
 
                 return AfterAction(state, unit.Id, events);
             }
@@ -1040,7 +1041,8 @@ namespace Faultline.Core
                 state = state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
 
                 state = Redirected(
-                    state, unit, target, DisplacementKind.Push, unit.Template.BasicPush, events);
+                    state, unit, target, DisplacementKind.Push, unit.Template.BasicPush, events,
+                    command.Aim);
 
                 return AfterAction(state, unit.Id, events);
             }
@@ -1088,7 +1090,7 @@ namespace Faultline.Core
             {
                 state = Guard.ResolveAimed(
                     state, unit.Position, target, victimId, DisplacementKind.Push, push, events,
-                    by: unit.Id);
+                    by: unit.Id, aim: command.Aim);
             }
 
             return AfterAction(state, unit.Id, events);
@@ -1101,13 +1103,14 @@ namespace Faultline.Core
             Unit target,
             DisplacementKind kind,
             int distance,
-            List<GameEvent> events)
+            List<GameEvent> events,
+            DisplacementAim aim)
         {
             var guard = Guard.Interceptor(state, target);
             if (guard is null)
             {
                 return Displacement.ResolveAuto(
-                    state, target.Id, source.Position, kind, distance, events, by: source.Id);
+                    state, target.Id, source.Position, kind, distance, events, by: source.Id, aim: aim);
             }
 
             // A displacement, so nothing was spared in hit points — the guard takes the shove and
@@ -1116,7 +1119,7 @@ namespace Faultline.Core
                 guard.Id, target.Id, source.Id, guard.Position, target.Position, 0));
 
             return Guard.ResolveAimed(
-                state, source.Position, target, guard.Id, kind, distance, events, by: source.Id);
+                state, source.Position, target, guard.Id, kind, distance, events, by: source.Id, aim: aim);
         }
 
         private static GameState ApplyAbility(GameState state, AbilityCommand command, List<GameEvent> events)

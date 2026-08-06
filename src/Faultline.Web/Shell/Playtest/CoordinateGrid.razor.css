@@ -703,3 +703,61 @@
     border-color: var(--pt-red);
     color: #0b0d11;
 }
+
+/* ---- The two answers to a diagonal ---------------------------------------------------------- */
+
+/* MASTER_DESIGN §3 (locked v): when the vector is diagonal, both tiles satisfy it and the acting
+   side picks. The board draws BOTH — a token where the body would come to rest, its own route line,
+   and its own outcome chip — because "which of these two positions do I want" is a question about
+   positions, and a dot cannot ask it.
+
+   The two routes differ in hue, not only in brightness: brightness is already carrying which one the
+   keyboard is on, and one channel cannot say two things. */
+.cell.candidate::before {
+    background: rgba(232, 179, 65, .16);
+}
+
+.cell.candidate-horizontal::before {
+    background: rgba(37, 131, 255, .20);
+}
+
+.cell.candidate-vertical::before {
+    background: rgba(126, 217, 87, .20);
+}
+
+.cell.candidate-lit::before {
+    background: rgba(232, 179, 65, .40);
+}
+
+.cell.candidate-stop {
+    border-style: dashed;
+}
+
+/* The ghost itself: the token, at a weight that reads as "not here yet". */
+.ghost {
+    align-items: center;
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    opacity: .38;
+    pointer-events: none;
+    position: absolute;
+    z-index: 2;
+}
+
+.ghost .art {
+    filter: grayscale(.5);
+}
+
+/* The one the keyboard is on, and the one Enter commits. */
+.ghost.lit {
+    opacity: .72;
+}
+
+.ghost.lit .art {
+    filter: none;
+}
+
+.board.choosing {
+    outline: none;
+}

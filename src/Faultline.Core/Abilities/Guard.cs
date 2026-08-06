@@ -189,6 +189,7 @@ namespace Faultline.Core
         /// <param name="victimId">Unit that will actually be displaced.</param>
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance, before modifiers.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>The projected outcome for the victim.</returns>
         public static DisplacementPreview PreviewAimed(
             GameState state,
@@ -196,11 +197,25 @@ namespace Faultline.Core
             Unit aimedAt,
             UnitId victimId,
             DisplacementKind kind,
-            int distance)
+            int distance,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             var from = AimFrom(state, sourceAt, aimedAt, victimId, kind);
-            return Displacement.PreviewAuto(state, victimId, from, kind, distance);
+            return Displacement.PreviewAuto(state, victimId, from, kind, distance, aim: aim);
         }
+
+        /// <summary>
+        /// The tile a displacement aimed at one unit is re-applied from when a guard takes it instead.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="sourceAt">Tile the displacement originates from.</param>
+        /// <param name="aimedAt">Unit the displacement was aimed at.</param>
+        /// <param name="victimId">Unit that will actually be displaced.</param>
+        /// <param name="kind">Push or Pull.</param>
+        /// <returns>The source tile the victim's own displacement runs from.</returns>
+        public static Coord SourceFor(
+            GameState state, Coord sourceAt, Unit aimedAt, UnitId victimId, DisplacementKind kind) =>
+            AimFrom(state, sourceAt, aimedAt, victimId, kind);
 
         /// <summary>
         /// Resolves a displacement aimed at one unit but landing on another, with the vector preserved
@@ -214,6 +229,7 @@ namespace Faultline.Core
         /// <param name="distance">Requested distance, before modifiers.</param>
         /// <param name="events">Sink for the resulting events.</param>
         /// <param name="by">Unit causing the displacement, where one is known.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState ResolveAimed(
             GameState state,
@@ -223,7 +239,8 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             List<GameEvent> events,
-            UnitId? by = null)
+            UnitId? by = null,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             if (distance <= 0 || !state.UnitById(victimId).IsOnBoard)
             {
@@ -231,7 +248,7 @@ namespace Faultline.Core
             }
 
             var from = AimFrom(state, sourceAt, aimedAt, victimId, kind);
-            return Displacement.ResolveAuto(state, victimId, from, kind, distance, events, by);
+            return Displacement.ResolveAuto(state, victimId, from, kind, distance, events, by, aim: aim);
         }
 
         private static Coord AimFrom(

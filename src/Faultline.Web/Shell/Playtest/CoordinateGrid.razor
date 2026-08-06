@@ -10,8 +10,15 @@
    decides anything: the animator says which unit and which tile, the board draws it. *@
 
 <div class="stage">
-    <div class="board @(View.GridLines ? "lines" : string.Empty)"
+    @* The board takes the keys while two ghosts are on it: left/right and Tab flip the highlighted
+       candidate, Enter commits it. Tabindex so the container can hold focus at all, and the default
+       is suppressed only while the choice is open so Tab still walks the tiles the rest of the
+       time. *@
+    <div class="board @(View.GridLines ? "lines" : string.Empty) @(Session.AimChoiceOpen ? "choosing" : string.Empty)"
          style="--cols: @Width; --rows: @Height; --zoom: @View.ZoomFactor; --step: @(Animator.StepMs)ms; --flash: @(Animator.FlashMs)ms; --shake: @(Animator.ShakeMs)ms; --charge: @(Animator.ChargeMs)ms;"
+         tabindex="0"
+         @onkeydown="OnBoardKeyDown"
+         @onkeydown:preventDefault="Session.AimChoiceOpen"
          @onmouseleave="() => Session.Hover(null)">
         <div class="axis corner" aria-hidden="true"></div>
 
@@ -140,6 +147,21 @@
                     @if (ApLabel(cell) is { Length: > 0 } price)
                     {
                         <span class="ap-tile @(IsSurcharged(cell) ? "surcharge" : string.Empty)">@price</span>
+                    }
+
+                    @* Both answers to a diagonal, drawn where the body would actually come to rest.
+                       A ghost is a real token, not a marker: the question is "which of these two
+                       positions do I want", and that is not a question a dot can ask
+                       (MASTER_DESIGN §3, locked v). *@
+                    @if (AimGhostAt(cell) is { } ghost)
+                    {
+                        <span class="ghost aim-@ghost.Key @(ghost.Highlighted ? "lit" : string.Empty)"
+                              data-ghost="@ghost.Key"
+                              title="@ghost.Text">
+                            <span class="art">
+                                <UnitArt Kind="ghost.Kind" Label="@ghost.Name" />
+                            </span>
+                        </span>
                     }
 
                     @* The outcome, on the tile it lands on. The board carries the prediction and the
@@ -339,6 +361,15 @@
             return;
         }
 
+        // A ghost or its route commits that candidate, whether or not it is the highlighted one.
+        // Before Session.Targets, because a candidate can come to rest on a tile that is targetable
+        // in its own right and the aim in flight owns the click.
+        if (Session.AimAt(coord) is { } candidate)
+        {
+            Session.Submit(candidate.Command);
+            return;
+        }
+
         // A rescue in flight owns the click: the ally is already chosen, only the side is left.
         if (Session.RescueDestinations.TryGetValue(coord, out var rescue))
         {
@@ -372,7 +403,9 @@
 
         if (Session.Targets.TryGetValue(coord, out var command))
         {
-            Session.Submit(command);
+            // Clicking the target itself means "the one I am looking at". Session.Aimed hands back
+            // the command unchanged whenever there is no choice open.
+            Session.Submit(Session.Aimed(command));
             return;
         }
 
@@ -401,6 +434,66 @@
     }
 
     private bool IsDeployTarget(Coord coord) => Session.DeployTargets.ContainsKey(coord);
+
+    /// <summary>The candidate whose body comes to rest on this tile, if one does.</summary>
+    private AimChoice? AimGhostAt(Coord coord)
+    {
+        foreach (var choice in Session.AimChoices)
+        {
+            if (choice.Stop.Equals(coord))
+            {
+                return choice;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The candidate whose route crosses this tile, if one does.</summary>
+    private AimChoice? AimRouteAt(Coord coord)
+    {
+        foreach (var choice in Session.AimChoices)
+        {
+            foreach (var tile in choice.Preview.Path)
+            {
+                if (tile.Equals(coord))
+                {
+                    return choice;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Left, right and Tab flip the highlighted candidate; Enter commits it. Only while two ghosts
+    /// are on the board — the keys mean nothing otherwise and must not be swallowed.
+    /// </summary>
+    private void OnBoardKeyDown(KeyboardEventArgs args)
+    {
+        if (Animator.Busy || !Session.AimChoiceOpen)
+        {
+            return;
+        }
+
+        switch (args.Key)
+        {
+            case "ArrowLeft":
+            case "ArrowRight":
+            case "Tab":
+                Session.FlipAim();
+                break;
+
+            case "Enter":
+                if (Session.HighlightedAim is { } choice)
+                {
+                    Session.Submit(choice.Command);
+                }
+
+                break;
+        }
+    }
 
     /// <summary>
     /// What this tile costs on the route being previewed, or empty when it is not on one. Only a
@@ -495,6 +588,25 @@
             if (Session.ProjectedPath.Contains(coord))
             {
                 classes.Add("projected");
+            }
+
+            // Two routes on one board have to be told apart, and the one the keyboard is on has to
+            // be told apart from the other.
+            if (AimRouteAt(coord) is { } route)
+            {
+                classes.Add("candidate");
+                classes.Add("candidate-" + route.Key);
+
+                if (route.Highlighted)
+                {
+                    classes.Add("candidate-lit");
+                }
+            }
+
+            if (AimGhostAt(coord) is { } landing)
+            {
+                classes.Add("candidate-stop");
+                classes.Add("candidate-" + landing.Key);
             }
         }
 

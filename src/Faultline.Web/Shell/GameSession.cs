@@ -171,6 +171,164 @@ public sealed class GameSession
     /// <summary>Tile the pointer is over, if any.</summary>
     public Coord? Hovered { get; private set; }
 
+    // Which of the two ghosts the keyboard is on. Reset by Hover, because a new aim is a new
+    // question.
+    private int _aimIndex;
+
+    /// <summary>
+    /// The two tiles the hovered displacement could send its target to, or an empty list when there
+    /// is nothing to choose.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// MASTER_DESIGN §3 (locked v). Empty is the ordinary case and the important one: the prompt
+    /// must not fire on open ground, where both candidates shove a body one tile onto bare floor and
+    /// picking between them is a nuisance rather than a decision. Core decides that — the comparison
+    /// is <see cref="DisplacementPreview.SameOutcomeAs"/> — and the shell only draws it.
+    /// </para>
+    /// <para>
+    /// The marks are built by <see cref="AddDisplacement"/>, which is Part 1's machinery run once per
+    /// candidate. Drawing the choice is drawing the existing preview twice, never a second preview.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<AimChoice> AimChoices
+    {
+        get
+        {
+            var candidates = HoveredCandidates();
+            if (candidates.Count < 2 || candidates[0].SameOutcomeAs(candidates[1]))
+            {
+                return Array.Empty<AimChoice>();
+            }
+
+            if (Hovered is not { } hovered || !Targets.TryGetValue(hovered, out var command))
+            {
+                return Array.Empty<AimChoice>();
+            }
+
+            var choices = new List<AimChoice>(candidates.Count);
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                var candidate = candidates[i];
+                var body = State.FindUnit(candidate.UnitId);
+                var marks = new List<PreviewMark>();
+                AddDisplacement(marks, candidate);
+
+                choices.Add(new AimChoice(
+                    candidate,
+                    WithAim(command, candidate.Aim),
+                    marks,
+                    body?.Kind ?? UnitKind.Husk,
+                    body?.Name ?? string.Empty,
+                    Describe(PlaytestText.AimVerb(candidate), candidate),
+                    i == HighlightedAimIndex));
+            }
+
+            return choices;
+        }
+    }
+
+    /// <summary>Whether the board is currently asking which of two tiles to use.</summary>
+    public bool AimChoiceOpen => AimChoices.Count > 0;
+
+    /// <summary>The candidate Enter would commit.</summary>
+    public AimChoice? HighlightedAim
+    {
+        get
+        {
+            var choices = AimChoices;
+            return choices.Count == 0 ? null : choices[HighlightedAimIndex];
+        }
+    }
+
+    // Clamped rather than trusted: the list is rebuilt on every hover, and a stale index would
+    // silently highlight nothing.
+    private int HighlightedAimIndex => _aimIndex == 1 ? 1 : 0;
+
+    /// <summary>Moves the highlight to the other candidate. Left, right and Tab all do this.</summary>
+    public void FlipAim()
+    {
+        if (AimChoices.Count > 0)
+        {
+            _aimIndex = HighlightedAimIndex == 0 ? 1 : 0;
+            Changed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// The candidate a click on this tile commits: its ghost, or any tile of its route.
+    /// </summary>
+    /// <param name="coord">Tile clicked.</param>
+    /// <returns>The candidate, or <c>null</c> when the tile belongs to neither.</returns>
+    public AimChoice? AimAt(Coord coord)
+    {
+        var choices = AimChoices;
+
+        // Ghosts before routes, and the highlighted one before the other: where the body comes to
+        // rest is the unambiguous half of a candidate, and two routes can share a tile.
+        foreach (var choice in Ordered(choices))
+        {
+            if (choice.Stop.Equals(coord))
+            {
+                return choice;
+            }
+        }
+
+        foreach (var choice in Ordered(choices))
+        {
+            foreach (var tile in choice.Preview.Path)
+            {
+                if (tile.Equals(coord))
+                {
+                    return choice;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The command a tile's own aim should actually submit — the highlighted candidate's, while a
+    /// choice is open.
+    /// </summary>
+    /// <remarks>
+    /// Clicking the target itself, and pressing Enter, both mean "the one I am looking at". Without
+    /// this they would quietly submit the fixed-order candidate instead, which is the silent pick
+    /// this whole change exists to remove.
+    /// </remarks>
+    /// <param name="command">The command the tile map offers.</param>
+    /// <returns>That command, or the highlighted candidate's.</returns>
+    public Command Aimed(Command command) => HighlightedAim is { } choice ? choice.Command : command;
+
+    private static IEnumerable<AimChoice> Ordered(IReadOnlyList<AimChoice> choices)
+    {
+        foreach (var choice in choices)
+        {
+            if (choice.Highlighted)
+            {
+                yield return choice;
+            }
+        }
+
+        foreach (var choice in choices)
+        {
+            if (!choice.Highlighted)
+            {
+                yield return choice;
+            }
+        }
+    }
+
+    // The aim rides the command that already carries the rest of the aim (Core: AttackCommand.Aim).
+    private static Command WithAim(Command command, DisplacementAim aim) => command switch
+    {
+        AbilityCommand ability => ability with { Aim = aim },
+        AttackCommand attack => attack with { Aim = aim },
+        _ => command,
+    };
+
     /// <summary>The selected unit, resolved.</summary>
     public Unit? SelectedUnit => Selected is null ? null : State.FindUnit(Selected.Value);
 
@@ -892,6 +1050,14 @@ public sealed class GameSession
     /// <param name="coord">Tile hovered, or <c>null</c> when the pointer leaves the board.</param>
     public void Hover(Coord? coord)
     {
+        // A new aim is a new question, so the highlight goes back to the candidate a fixed direction
+        // order would have taken. Leaving it where the last aim left it would mean the key that
+        // commits depends on what the pointer did two tiles ago.
+        if (!Nullable.Equals(Hovered, coord))
+        {
+            _aimIndex = 0;
+        }
+
         Hovered = coord;
         Changed?.Invoke();
     }
@@ -1215,6 +1381,19 @@ public sealed class GameSession
                 return tiles;
             }
 
+            var choices = AimChoices;
+            if (choices.Count > 0)
+            {
+                // Each candidate's own route line, so a ghost is reachable by the line that leads to
+                // it and not only by the tile it stands on.
+                foreach (var choice in choices)
+                {
+                    tiles.AddRange(choice.Preview.Path);
+                }
+
+                return tiles;
+            }
+
             var displacement = HoveredDisplacement();
             if (displacement is not null)
             {
@@ -1261,12 +1440,12 @@ public sealed class GameSession
                     var target = State.UnitById(attack.TargetId);
                     Combat.CanAttack(State, unit, target, out int damage);
                     Add(marks, target.Position, damage, DisplacementStop.RanOut, damage >= target.Hp);
-                    AddDisplacement(marks, HoveredDisplacement());
+                    AddHoveredDisplacement(marks);
                     break;
                 }
 
                 case AttackCommand:
-                    AddDisplacement(marks, HoveredDisplacement());
+                    AddHoveredDisplacement(marks);
                     break;
 
                 case AbilityCommand ability:
@@ -1302,7 +1481,7 @@ public sealed class GameSession
                             descriptor.Damage > 0 && descriptor.Damage >= aimed.Hp);
                     }
 
-                    AddDisplacement(marks, HoveredDisplacement());
+                    AddHoveredDisplacement(marks);
                     break;
                 }
             }
@@ -1328,6 +1507,25 @@ public sealed class GameSession
     /// is Core's — <see cref="DisplacementPreview.Resistance"/> — never a number worked out here.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// The hovered displacement's marks: both candidates when the acting side has a choice, and the
+    /// single answer when it does not.
+    /// </summary>
+    private void AddHoveredDisplacement(List<PreviewMark> marks)
+    {
+        var choices = AimChoices;
+        if (choices.Count == 0)
+        {
+            AddDisplacement(marks, HoveredDisplacement());
+            return;
+        }
+
+        foreach (var choice in choices)
+        {
+            AddDisplacement(marks, choice.Preview);
+        }
+    }
+
     private void AddDisplacement(List<PreviewMark> marks, DisplacementPreview? preview)
     {
         if (preview is null)
@@ -1808,7 +2006,7 @@ public sealed class GameSession
             : null;
     }
 
-    private DisplacementPreview? HoveredDisplacement()
+    private DisplacementPreview? HoveredDisplacement(DisplacementAim aim = DisplacementAim.Default)
     {
         var unit = SelectedUnit;
         if (unit is null || Hovered is null || !Targets.TryGetValue(Hovered.Value, out var command))
@@ -1819,17 +2017,54 @@ public sealed class GameSession
         switch (command)
         {
             case AbilityCommand { TargetId: { } targetId }:
-                return Abilities.PreviewTarget(State, unit, targetId);
+                return Abilities.PreviewTarget(State, unit, targetId, aim);
 
             case AttackCommand { Mode: AttackMode.Pull } pull:
-                return Displacement.PreviewAuto(State, pull.TargetId, unit.Position, DisplacementKind.Pull, 1);
+                return Displacement.PreviewAuto(
+                    State, pull.TargetId, unit.Position, DisplacementKind.Pull, 1, aim: aim);
 
             case AttackCommand attack when unit.Template.AttackPush > 0:
                 return Displacement.PreviewAuto(
-                    State, attack.TargetId, unit.Position, DisplacementKind.Push, unit.Template.AttackPush);
+                    State, attack.TargetId, unit.Position, DisplacementKind.Push,
+                    unit.Template.AttackPush, aim: aim);
 
             default:
                 return null;
+        }
+    }
+
+    /// <summary>
+    /// Every tile the hovered displacement could send its target to, straight from Core.
+    /// </summary>
+    /// <remarks>
+    /// One entry for an ordinary shove; two when the vector is diagonal. The same switch
+    /// <see cref="HoveredDisplacement"/> uses, so the ghosts can never describe a different shove
+    /// from the one the sentence beside them describes.
+    /// </remarks>
+    private IReadOnlyList<DisplacementPreview> HoveredCandidates()
+    {
+        var unit = SelectedUnit;
+        if (unit is null || Hovered is null || !Targets.TryGetValue(Hovered.Value, out var command))
+        {
+            return Array.Empty<DisplacementPreview>();
+        }
+
+        switch (command)
+        {
+            case AbilityCommand { TargetId: { } targetId }:
+                return Abilities.TargetCandidates(State, unit, targetId);
+
+            case AttackCommand { Mode: AttackMode.Pull } pull:
+                return Displacement.Candidates(
+                    State, pull.TargetId, unit.Position, DisplacementKind.Pull, 1);
+
+            case AttackCommand attack when unit.Template.AttackPush > 0:
+                return Displacement.Candidates(
+                    State, attack.TargetId, unit.Position, DisplacementKind.Push,
+                    unit.Template.AttackPush);
+
+            default:
+                return Array.Empty<DisplacementPreview>();
         }
     }
 

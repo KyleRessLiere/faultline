@@ -159,15 +159,16 @@ in this file when the question comes back.
 | D-139 | [Push resistance shortens a Pull exactly as it shortens a Push. Reel is the one carve-out, and it is an open question rather than a ruling.](#d-139-push-resistance-shortens-a-pull-exactly-as-it-shortens-a-push-reel-is-the-one-carve-out-and-it-is-an-open-question-rather-than-a-ruling) | 2026-08-05 |  |
 | D-140 | [The battle screen is rebuilt: a fixed left rail, the board, one command bar, and a contextual inspector that overlays rather than resizes. One contextual surface open at a time.](#d-140-the-battle-screen-is-rebuilt-a-fixed-left-rail-the-board-one-command-bar-and-a-contextual-inspector-that-overlays-rather-than-resizes-one-contextual-surface-open-at-a-time) | 2026-08-05 |  |
 | D-141 | [The header is deleted. Its controls move to a paged dock in the bottom-left corner, and Action Points live in the inspector and nowhere else.](#d-141-the-header-is-deleted-its-controls-move-to-a-paged-dock-in-the-bottom-left-corner-and-action-points-live-in-the-inspector-and-nowhere-else) | 2026-08-05 |  |
-| D-142 | [Every sitting is logged to `docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log` automatically. The page posts to whichever local host is serving it; when nothing answers, it is silent.](#d-142-every-sitting-is-logged-to-docsplaytestdatedatehh-mm-ss-ampmlog-automatically-the-page-posts-to-whichever-local-host-is-serving-it-when-nothing-answers-it-is-silent) | unreleased |  |
-| D-143 | [Footing refuses whole displacement instances and leaves the distance arithmetic entirely.](#d-143-footing-refuses-whole-displacement-instances-and-leaves-the-distance-arithmetic-entirely) | unreleased |  |
-| D-144 | [Footing is an integer stat per enemy, and the stacked-Footing fixture is a new archetype rather than a re-tiered shipped one.](#d-144-footing-is-an-integer-stat-per-enemy-and-the-stacked-footing-fixture-is-a-new-archetype-rather-than-a-re-tiered-shipped-one) | unreleased |  |
-| D-145 | [A fully refused displacement earns its caster nothing, and the enemy auto-spend stays drain-only.](#d-145-a-fully-refused-displacement-earns-its-caster-nothing-and-the-enemy-auto-spend-stays-drain-only) | unreleased |  |
-| D-146 | [The Cast threshold: refusing a Cast costs 2 Footing, at exactly 1 the Cast overwhelms and strips it, and the squirm-divert rule is deleted.](#d-146-the-cast-threshold-refusing-a-cast-costs-2-footing-at-exactly-1-the-cast-overwhelms-and-strips-it-and-the-squirm-divert-rule-is-deleted) | unreleased |  |
-| D-147 | [A player refusal is an interrupt: a prompt in state, two commands in the log, and the raising command re-applied from a speculative probe rather than resumed mid-flight.](#d-147-a-player-refusal-is-an-interrupt-a-prompt-in-state-two-commands-in-the-log-and-the-raising-command-re-applied-from-a-speculative-probe-rather-than-resumed-mid-flight) | unreleased |  |
-| D-148 | [HELD: the Fisher's "+1 Pluck on a refused Cast" income lever and SURE CAST are named, priced and deliberately not built.](#d-148-held-the-fishers-1-pluck-on-a-refused-cast-income-lever-and-sure-cast-are-named-priced-and-deliberately-not-built) | unreleased | *held* |
+| D-142 | [Every sitting is logged to `docs/playtest/<date>/<date>_hh-mm-ss-AM|PM.log` automatically. The page posts to whichever local host is serving it; when nothing answers, it is silent.](#d-142-every-sitting-is-logged-to-docsplaytestdatedatehh-mm-ss-ampmlog-automatically-the-page-posts-to-whichever-local-host-is-serving-it-when-nothing-answers-it-is-silent) | 2026-08-05 |  |
+| D-143 | [Footing refuses whole displacement instances and leaves the distance arithmetic entirely.](#d-143-footing-refuses-whole-displacement-instances-and-leaves-the-distance-arithmetic-entirely) | 2026-08-05 |  |
+| D-144 | [Footing is an integer stat per enemy, and the stacked-Footing fixture is a new archetype rather than a re-tiered shipped one.](#d-144-footing-is-an-integer-stat-per-enemy-and-the-stacked-footing-fixture-is-a-new-archetype-rather-than-a-re-tiered-shipped-one) | 2026-08-05 |  |
+| D-145 | [A fully refused displacement earns its caster nothing, and the enemy auto-spend stays drain-only.](#d-145-a-fully-refused-displacement-earns-its-caster-nothing-and-the-enemy-auto-spend-stays-drain-only) | 2026-08-05 |  |
+| D-146 | [The Cast threshold: refusing a Cast costs 2 Footing, at exactly 1 the Cast overwhelms and strips it, and the squirm-divert rule is deleted.](#d-146-the-cast-threshold-refusing-a-cast-costs-2-footing-at-exactly-1-the-cast-overwhelms-and-strips-it-and-the-squirm-divert-rule-is-deleted) | 2026-08-05 |  |
+| D-147 | [A player refusal is an interrupt: a prompt in state, two commands in the log, and the raising command re-applied from a speculative probe rather than resumed mid-flight.](#d-147-a-player-refusal-is-an-interrupt-a-prompt-in-state-two-commands-in-the-log-and-the-raising-command-re-applied-from-a-speculative-probe-rather-than-resumed-mid-flight) | 2026-08-05 |  |
+| D-148 | [HELD: the Fisher's "+1 Pluck on a refused Cast" income lever and SURE CAST are named, priced and deliberately not built.](#d-148-held-the-fishers-1-pluck-on-a-refused-cast-income-lever-and-sure-cast-are-named-priced-and-deliberately-not-built) | 2026-08-05 | *held* |
+| D-150 | [A diagonal displacement vector is resolved by the acting side, and the choice rides the acting command rather than a prompt of its own.](#d-150-a-diagonal-displacement-vector-is-resolved-by-the-acting-side-and-the-choice-rides-the-acting-command-rather-than-a-prompt-of-its-own) | unreleased |  |
 
-**147 rulings.**
+**148 rulings.**
 
 <!-- toc:end -->
 ---
@@ -3708,3 +3709,82 @@ the sessions whose trigger actually names them.
 
 **What it supersedes.** Nothing numbered; it restructures where prior practice text lives, not what
 it says.
+
+---
+
+**D-150 — A diagonal displacement vector is resolved by the acting side, and the choice rides the
+acting command rather than a prompt of its own.**
+
+MASTER_DESIGN §3 (locked v, design session 2026-08-05, stamp (v)) makes "ambiguous vectors are
+actor-chosen" doc law: when a displacement vector is diagonal, two tiles satisfy "away from" and
+"toward" equally, and until now `Directions.Toward` picked one of them in silence — dominant axis,
+ties broken horizontal (D-003). The tie-break was never wrong; it was simply never anybody's
+decision, and on a diagonal it is the whole decision. Scope is ranged displacement only: Stagger
+Shot, the Fisher's flick and Reel. Melee pushes are orthogonal by construction and Bull Rush follows
+the charge line the player already aimed, so neither is ambiguous; **Cast stays exempt** because it
+has no route at all — it is free placement, and folding it in would delete the thing that
+distinguishes it.
+
+**Ambiguity is |dx| = |dy|, and nothing else.** Two candidates exist exactly when the two routes are
+equally good — which for a ray and for an approach alike means the two axes tie. That is precisely
+the tie D-003's fixed order used to settle, so every displacement in the game that was previously
+unambiguous is byte-identical: the whole Core suite passed unchanged at 1842 through the routing
+rewrite before a single new test was written.
+
+**No prompt when the choice is meaningless.** Candidates are compared on stop class, effective
+distance, damage to the body, to its obstacle and to a structure, and Stagger / Paddling / lethal. If
+all of those agree, the game resolves on the fixed order and says nothing. **Destinations are
+deliberately excluded from that comparison** — they always differ, since differing is what makes two
+candidates two candidates, and including them would make the prompt fire on every diagonal shot on
+open ground. That case is the one that decides whether this is a decision or a tax: a diagonal
+Stagger Shot on bare floor pushes a body one tile onto bare floor whichever tile it is, and asking
+would make every shot in the game slower for nothing.
+
+**Reel's route now turns a corner, and that is a fix rather than a side effect.** A shove is a ray —
+it travels away from its source for as long as it has distance, so its route is one direction
+repeated. A haul is an approach — it closes on its source, so once its leading axis is aligned it
+spends the rest on the other. On a diagonal that makes Reel an L, of length |dx| + |dy| − 1, which is
+exactly the distance the ability already asked for; the two orders of its legs are the two approach
+lines §3 names. Before this, a diagonal Reel travelled a straight line past the Fisher's own row and
+into the far wall, so "pulls one enemy all the way in until it is adjacent to you" (§4) did not
+arrive adjacent. Nothing about Reel's range, cost or resistance carve-out (D-139) changed.
+
+**Enemies choose by the priority order they already publish** — a sweep at 100, a kill at 50, then
+hit points, ties falling to the fixed-order candidate. This is `Ai.RushScore`'s ladder reused rather
+than a new judgement about position: a cleverer pick would need inputs the enemy does not have and
+would make the telegraph harder to read. The declared intent carries the aim
+(`EnemyIntent.DisplacementAim`) and `Ai.Plan` reads it back off the intent instead of choosing again,
+so the telegraph and the resolution cannot drift: an intent that named one tile and resolved to
+another would be strictly worse than the silent pick this replaces.
+
+**What was rejected.**
+
+- **A prompt-and-answer pair, like the Footing refusal (D-147).** Rejected because the two are
+  different shapes of decision. A Footing refusal is the *defending* side answering in the middle of
+  somebody else's resolution, which is why it needs a `FootingPrompt` parked in state and two
+  commands in the log. The aim is the *acting* side's, known before anything resolves, and it is part
+  of the aim in exactly the way Bull Rush's charge direction is. Modelling it as an interrupt would
+  have added a state machine, a second round-trip and a resumable command to record a fact the
+  committing click already knows.
+- **A separate `AimCommand` in the log.** Same reasoning one level down: two commands where one will
+  do, and a log in which an aim could exist without the action it aims.
+- **Offering both aimed commands in `LegalNext`.** The action is already offered; the aim is a
+  refinement of how it executes, not a second legal action. Doubling the legal list on every diagonal
+  would have made "what can this unit do?" answer with the same ability twice, and would have made
+  every AI test that compares against the legal list depend on board geometry.
+- **Rejecting a stale aim as illegal.** An aim on a vector with only one candidate is *ignored*.
+  Legality is about what an action may do, and a shove with one answer has nothing to be illegal
+  about; refusing it would turn a harmless replay artefact into a hard failure.
+- **Treating any non-zero diagonal component as ambiguous** (which would have made every Reel with
+  both components non-zero a prompt). Rejected as over-firing: with |dx| ≠ |dy| there is a dominant
+  axis, the ability has an answer, and MASTER_DESIGN says "diagonal". Reel's route still turns in
+  that case — routing and asking are separate questions.
+- **Letting the shell decide the aim from geometry.** The candidates, the identical-outcome test and
+  the route all live in `Displacement`; the shell draws two ghosts by running Part 1's mark builder
+  once per Core candidate. A second preview path is how a board starts promising outcomes the rules
+  will not deliver.
+
+**What it supersedes.** D-003, in part: its fixed direction order survives as the *default* — the
+answer when nobody chose, when there is only one candidate, and when both candidates do the same
+thing — but it is no longer the answer on a diagonal that matters. D-003's reasoning is unchanged and
+still correct for what it covers.

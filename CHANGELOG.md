@@ -1,5 +1,20 @@
 # Changelog
 
+## A diagonal shove is the acting side's choice
+
+- **When a ranged displacement vector is diagonal, the acting side picks the tile** — Stagger Shot,
+  the Fisher's flick and Reel. Hovering the target draws **both candidates as ghost tokens** where the
+  body would come to rest, each with its own route and outcome chip; click either ghost or its route,
+  or flip with Left/Right/Tab and commit with Enter. No prompt when only one candidate exists or both
+  do the same thing, so a diagonal shot on open ground still resolves in one click (D-150).
+- **Reel picks its approach line** — horizontal leg first or vertical leg first — and a diagonal drag
+  now *arrives* adjacent instead of sliding past the Fisher's row into the far wall. An interrupted
+  line stops where it is interrupted, and the ghost is drawn there.
+- **Enemies pick by their published priority order** (sweep > kill > hit points, ties to the fixed
+  order), the declared intent names that tile, and resolution reads the aim back off the intent.
+- The choice travels in the command log on `AttackCommand.Aim` / `AbilityCommand.Aim`, so a replay
+  makes the same pick. Melee pushes, Bull Rush and Cast are unchanged; Cast remains free placement.
+
 ## CLAUDE.md split into a core contract plus load-on-demand practices
 
 - **No rule or behaviour change.** `CLAUDE.md` (already trimmed to ~1630 words) keeps only the

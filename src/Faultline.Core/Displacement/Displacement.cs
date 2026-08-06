@@ -43,6 +43,10 @@ namespace Faultline.Core
         /// does not move and nothing the displacement would have caused happens.
         /// </param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="aim">
+        /// Which candidate the acting side picked, when the vector is diagonal and two tiles satisfy
+        /// it equally. Ignored on an unambiguous vector; see <see cref="DisplacementAim"/>.
+        /// </param>
         /// <returns>The projected outcome.</returns>
         public static DisplacementPreview Preview(
             GameState state,
@@ -51,7 +55,8 @@ namespace Faultline.Core
             DisplacementKind kind,
             int distance,
             bool refused = false,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             var target = state.UnitById(targetId);
             var direction = DirectionOf(target, source, kind);
@@ -79,7 +84,16 @@ namespace Faultline.Core
                 consumesStagger = false;
             }
 
-            var sim = Simulate(state, target, direction.Value, effective);
+            var route = Route(target.Position, source, kind, effective, aim);
+            var sim = Simulate(state, target, route, effective);
+            direction = route.Count > 0 ? route[0] : direction;
+
+            // Default unless there was genuinely something to choose, so "which candidate is this?"
+            // and "was a choice made?" are the same question and cannot drift apart.
+            Vector(target.Position, source, kind, out int vx, out int vy);
+            var settled = IsAmbiguous(vx, vy)
+                ? Settle(target.Position, source, kind, aim)
+                : DisplacementAim.Default;
 
             // Whether the owner is being offered a real choice: enough Footing to refuse, and
             // something worth refusing.
@@ -111,7 +125,8 @@ namespace Faultline.Core
                 footingMatters,
                 sim.StructureHits.Count > 0 ? sim.StructureHits[0].At : (Coord?)null,
                 sim.StructureHits.Count > 0 ? sim.StructureHits[0].Amount : 0,
-                resistance);
+                resistance,
+                settled);
         }
 
         /// <summary>Applies a displacement and emits everything it caused.</summary>
@@ -132,6 +147,11 @@ namespace Faultline.Core
         /// Only Wrecking Weight reads it.
         /// </param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="aim">
+        /// Which candidate the acting side picked, when the vector is diagonal. It arrives on the
+        /// command that caused the displacement, so a replayed fight resolves the same ambiguity the
+        /// played one did; see <see cref="DisplacementAim"/>.
+        /// </param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState Resolve(
             GameState state,
@@ -142,7 +162,8 @@ namespace Faultline.Core
             bool refused,
             List<GameEvent> events,
             UnitId? by = null,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             var before = state.UnitById(targetId);
             var direction = DirectionOf(before, source, kind);
@@ -209,7 +230,7 @@ namespace Faultline.Core
 
             state = state.WithUnit(updated);
 
-            var sim = Simulate(state, updated, direction.Value, effective);
+            var sim = Simulate(state, updated, Route(updated.Position, source, kind, effective, aim), effective);
 
             if (sim.Path.Count > 0)
             {
@@ -295,6 +316,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>The projected outcome, including any refusal the defender will make.</returns>
         public static DisplacementPreview PreviewAuto(
             GameState state,
@@ -302,7 +324,8 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             return Preview(
                 state,
@@ -310,8 +333,95 @@ namespace Faultline.Core
                 source,
                 kind,
                 distance,
-                AutoRefuses(state, targetId, source, kind, distance, bypassResistance),
-                bypassResistance);
+                AutoRefuses(state, targetId, source, kind, distance, bypassResistance, aim),
+                bypassResistance,
+                aim);
+        }
+
+        /// <summary>
+        /// Every tile the acting side may send this displacement to: one entry when the vector is
+        /// unambiguous, two when it is diagonal, in the order a fixed direction order would pick them.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The candidates are the shell's ghosts and the AI's shortlist, and they are one list so the
+        /// two cannot disagree about what was on offer. Each carries its own
+        /// <see cref="DisplacementPreview.Aim"/>, which is what the committing command records.
+        /// </para>
+        /// <para>
+        /// <b>Two candidates exist exactly when the two routes are equally good.</b> A shove and a
+        /// short haul travel a straight ray, so their axes tie only on the diagonal — |dx| = |dy|,
+        /// which is precisely the tie D-003's fixed order used to settle in silence. Anything else
+        /// has a dominant axis and one answer.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="targetId">Unit that would be displaced.</param>
+        /// <param name="source">Tile the displacement originates from.</param>
+        /// <param name="kind">Push or Pull.</param>
+        /// <param name="distance">Requested distance.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <returns>One or two projected outcomes.</returns>
+        public static IReadOnlyList<DisplacementPreview> Candidates(
+            GameState state,
+            UnitId targetId,
+            Coord source,
+            DisplacementKind kind,
+            int distance,
+            bool bypassResistance = false)
+        {
+            var target = state.UnitById(targetId);
+            Vector(target.Position, source, kind, out int dx, out int dy);
+
+            if (!IsAmbiguous(dx, dy))
+            {
+                return new[]
+                {
+                    PreviewAuto(state, targetId, source, kind, distance, bypassResistance),
+                };
+            }
+
+            // Fixed order first: the candidate the game would have picked silently is the one a
+            // keyboard starts on and the one a tie in the enemy's priority order falls back to.
+            var first = Settle(target.Position, source, kind, DisplacementAim.Default);
+            var second = first == DisplacementAim.Horizontal
+                ? DisplacementAim.Vertical
+                : DisplacementAim.Horizontal;
+
+            return new[]
+            {
+                PreviewAuto(state, targetId, source, kind, distance, bypassResistance, first),
+                PreviewAuto(state, targetId, source, kind, distance, bypassResistance, second),
+            };
+        }
+
+        /// <summary>
+        /// Whether the acting side has a decision to make here: two candidates that do different
+        /// things.
+        /// </summary>
+        /// <remarks>
+        /// MASTER_DESIGN §3 (locked v): no prompt when only one candidate is legal or both outcomes
+        /// are identical. On open ground both candidates shove a body one tile onto ordinary floor,
+        /// and asking which one would make every shot slower for nothing — the difference between a
+        /// decision and a nuisance.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="targetId">Unit that would be displaced.</param>
+        /// <param name="source">Tile the displacement originates from.</param>
+        /// <param name="kind">Push or Pull.</param>
+        /// <param name="distance">Requested distance.</param>
+        /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <returns>Whether the choice is worth making.</returns>
+        public static bool ChoiceMatters(
+            GameState state,
+            UnitId targetId,
+            Coord source,
+            DisplacementKind kind,
+            int distance,
+            bool bypassResistance = false)
+        {
+            var candidates = Candidates(state, targetId, source, kind, distance, bypassResistance);
+            return candidates.Count == 2 && !candidates[0].SameOutcomeAs(candidates[1]);
         }
 
         /// <summary>
@@ -324,6 +434,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>Whether the instance is refused.</returns>
         public static bool AutoRefuses(
             GameState state,
@@ -331,7 +442,8 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             var target = state.UnitById(targetId);
             if (!Footing.CanRefuseDisplacement(target))
@@ -340,7 +452,7 @@ namespace Faultline.Core
             }
 
             return target.Team == Team.Enemy
-                ? EnemyWouldRefuse(state, targetId, source, kind, distance, bypassResistance)
+                ? EnemyWouldRefuse(state, targetId, source, kind, distance, bypassResistance, aim)
                 : Footing.AnswerFor(state, targetId) ?? false;
         }
 
@@ -362,6 +474,7 @@ namespace Faultline.Core
         /// <param name="events">Sink for the resulting events.</param>
         /// <param name="by">Unit causing the displacement, where one is known.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>The state after the displacement resolved.</returns>
         public static GameState ResolveAuto(
             GameState state,
@@ -371,7 +484,8 @@ namespace Faultline.Core
             int distance,
             List<GameEvent> events,
             UnitId? by = null,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             return Resolve(
                 state,
@@ -379,10 +493,11 @@ namespace Faultline.Core
                 source,
                 kind,
                 distance,
-                AutoRefuses(state, targetId, source, kind, distance, bypassResistance),
+                AutoRefuses(state, targetId, source, kind, distance, bypassResistance, aim),
                 events,
                 by,
-                bypassResistance);
+                bypassResistance,
+                aim);
         }
 
         /// <summary>
@@ -503,6 +618,7 @@ namespace Faultline.Core
         /// <param name="kind">Push or Pull.</param>
         /// <param name="distance">Requested distance.</param>
         /// <param name="bypassResistance">Reel's carve-out; see <see cref="EffectiveDistance"/>.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>Whether the instance is refused.</returns>
         public static bool EnemyWouldRefuse(
             GameState state,
@@ -510,14 +626,15 @@ namespace Faultline.Core
             Coord source,
             DisplacementKind kind,
             int distance,
-            bool bypassResistance = false)
+            bool bypassResistance = false,
+            DisplacementAim aim = DisplacementAim.Default)
         {
             if (!Footing.CanRefuseDisplacement(state.UnitById(targetId)))
             {
                 return false;
             }
 
-            var without = Preview(state, targetId, source, kind, distance, false, bypassResistance);
+            var without = Preview(state, targetId, source, kind, distance, false, bypassResistance, aim);
             return without.Stop == DisplacementStop.Pit;
         }
 
@@ -526,7 +643,91 @@ namespace Faultline.Core
                 ? Directions.Toward(source, target.Position)
                 : Directions.Toward(target.Position, source);
 
-        private static Sim Simulate(GameState state, Unit target, Direction direction, int distance)
+        /// <summary>
+        /// The travel vector: away from the source for a shove, toward it for a haul.
+        /// </summary>
+        private static void Vector(Coord at, Coord source, DisplacementKind kind, out int dx, out int dy)
+        {
+            var from = kind == DisplacementKind.Push ? source : at;
+            var to = kind == DisplacementKind.Push ? at : source;
+            dx = to.X - from.X;
+            dy = to.Y - from.Y;
+        }
+
+        // Diagonal, and nothing else. Both axes carry the displacement equally far, which is exactly
+        // the tie D-003's fixed order used to settle without telling anybody (MASTER_DESIGN §3).
+        private static bool IsAmbiguous(int dx, int dy) =>
+            dx != 0 && dy != 0 && (dx < 0 ? -dx : dx) == (dy < 0 ? -dy : dy);
+
+        /// <summary>
+        /// The axis this displacement actually travels on: the acting side's pick where there was a
+        /// choice, and the fixed direction order everywhere else.
+        /// </summary>
+        private static DisplacementAim Settle(Coord at, Coord source, DisplacementKind kind, DisplacementAim aim)
+        {
+            Vector(at, source, kind, out int dx, out int dy);
+
+            // An aim on an unambiguous vector is ignored rather than refused: a shove with one
+            // candidate has nothing to be illegal about, and a stale aim must never change a result.
+            if (!IsAmbiguous(dx, dy) || aim == DisplacementAim.Default)
+            {
+                int ax = dx < 0 ? -dx : dx;
+                int ay = dy < 0 ? -dy : dy;
+                return ax >= ay ? DisplacementAim.Horizontal : DisplacementAim.Vertical;
+            }
+
+            return aim;
+        }
+
+        /// <summary>
+        /// The direction of every step, in order.
+        /// </summary>
+        /// <remarks>
+        /// <b>A shove is a ray; a haul is an approach.</b> A shove keeps going away from its source
+        /// for as long as it has distance, so its route is one direction repeated. A haul closes on
+        /// its source, so once the leading axis is aligned it turns and spends the rest on the other —
+        /// which is what makes Reel's "all the way in until it is adjacent" arrive adjacent on a
+        /// diagonal instead of sliding past the puller's row into the far wall (MASTER_DESIGN §4).
+        /// The two orders of those legs are Reel's two approach lines.
+        /// </remarks>
+        private static List<Direction> Route(
+            Coord at, Coord source, DisplacementKind kind, int distance, DisplacementAim aim)
+        {
+            var route = new List<Direction>();
+            if (distance <= 0)
+            {
+                return route;
+            }
+
+            Vector(at, source, kind, out int dx, out int dy);
+            var settled = Settle(at, source, kind, aim);
+
+            var horizontal = dx >= 0 ? Direction.Right : Direction.Left;
+            var vertical = dy >= 0 ? Direction.Down : Direction.Up;
+
+            bool leadsHorizontal = settled == DisplacementAim.Horizontal;
+            var lead = leadsHorizontal ? horizontal : vertical;
+            var rest = leadsHorizontal ? vertical : horizontal;
+
+            int leadDelta = leadsHorizontal ? dx : dy;
+            int restDelta = leadsHorizontal ? dy : dx;
+
+            // A ray never turns. A haul turns after the leading leg is spent — unless the other axis
+            // is already aligned, in which case there is no corner and it keeps going straight, which
+            // is what an over-long pull into its own puller has always done.
+            int budget = kind == DisplacementKind.Push || restDelta == 0
+                ? distance
+                : (leadDelta < 0 ? -leadDelta : leadDelta);
+
+            for (int step = 0; step < distance; step++)
+            {
+                route.Add(step < budget ? lead : rest);
+            }
+
+            return route;
+        }
+
+        private static Sim Simulate(GameState state, Unit target, IReadOnlyList<Direction> route, int distance)
         {
             var sim = new Sim { Destination = target.Position, Stop = DisplacementStop.RanOut };
 
@@ -542,7 +743,7 @@ namespace Faultline.Core
 
             for (int step = 0; step < distance; step++)
             {
-                var next = position.Step(direction);
+                var next = position.Step(route[step]);
                 bool leavingHighGround = board.At(position) == TileType.HighGround;
 
                 if (!board.InBounds(next) || board.At(next) == TileType.Wall)

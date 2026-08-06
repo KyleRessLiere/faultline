@@ -42,6 +42,13 @@ namespace Faultline.Core
     /// </param>
     /// <param name="TrampleAt">Tile that victim is standing on.</param>
     /// <param name="TrampleAside">Direction it would be knocked, always across the walk.</param>
+    /// <param name="DisplacementAim">
+    /// Which of two tiles the enemy picked, when the vector was diagonal and both satisfied it
+    /// equally (MASTER_DESIGN §3, locked v). Recorded rather than re-derived at resolution: the
+    /// command the enemy submits reads its aim off this, so a telegraph that names one tile cannot
+    /// resolve to the other. <see cref="Faultline.Core.DisplacementAim.Default"/> whenever there was
+    /// nothing to choose.
+    /// </param>
     public sealed record EnemyIntent(
         UnitId UnitId,
         UnitKind Kind,
@@ -58,5 +65,6 @@ namespace Faultline.Core
         UnitId? RedirectedTo = null,
         UnitId? TrampleVictim = null,
         Coord? TrampleAt = null,
-        Direction? TrampleAside = null);
+        Direction? TrampleAside = null,
+        DisplacementAim DisplacementAim = DisplacementAim.Default);
 }

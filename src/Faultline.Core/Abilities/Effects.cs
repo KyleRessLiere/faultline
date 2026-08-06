@@ -102,7 +102,8 @@ namespace Faultline.Core
                         push.Distance,
                         events,
                         by: context.UserId,
-                        bypassResistance: push.BypassResistance);
+                        bypassResistance: push.BypassResistance,
+                        aim: context.Aim);
 
                 case PullEffect pull:
                     return Pull(state, pull, subjectId, context, events);
@@ -208,7 +209,8 @@ namespace Faultline.Core
                 DisplacementKind.Pull,
                 distance,
                 events,
-                bypassResistance: effect.BypassResistance);
+                bypassResistance: effect.BypassResistance,
+                aim: context.Aim);
         }
 
         private static GameState Status(

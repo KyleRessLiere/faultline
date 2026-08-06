@@ -511,6 +511,49 @@ the Fisher's flick — a pull 1 — moves an Anchor **0**. Staggering the target
 Staggered Grappler pull is an effective 3, so it drags a Wardbearer exactly **1**. Until D-139 this
 subtraction read Pushes only, which is why a Grappler dragged a Wardbearer its full 2.
 
+### Which way — the diagonal is the acting side's choice
+
+The direction is the dominant axis of the vector between the source and the target. When the two
+components are equal — |dx| = |dy|, a **diagonal** — **two tiles satisfy it equally, and the acting
+side picks one** (D-150). Everything else has one answer and nothing is asked.
+
+Scope: **ranged displacement only** — Stagger Shot, the Fisher's flick, Reel. Melee pushes are
+orthogonal by construction, Bull Rush follows the charge line already aimed, and **Cast is exempt**:
+it has no route at all, it is free placement on any legal tile within radius 1.
+
+**The choice is offered only when it changes something.** Two candidates are compared on stop class,
+effective distance, damage to the body, damage to whatever it hits, damage to a structure, and
+Stagger / Paddling / lethal. **All equal → the game resolves it silently on the fixed order** — a
+diagonal Stagger Shot on open ground pushes 1 onto bare floor either way and asks nothing. The
+destination tiles are deliberately *not* compared: they always differ, which is what makes the two
+candidates two candidates.
+
+**Player side.** Hovering the target draws **both candidates as ghost tokens** on the tiles the body
+would actually come to rest on, each with its own route line and its own outcome chip. Click either
+ghost or any tile of its route to commit it. **Left / Right / Tab** flip the highlighted candidate,
+**Enter** commits it; clicking the target itself commits the highlighted one. The highlight starts on
+the candidate the fixed order would have taken — horizontal.
+
+**Reel picks its approach LINE**, not just a tile: horizontal leg first or vertical leg first. A haul
+turns the corner once its leading axis is aligned, so `pull all the way to adjacent` now *arrives*
+adjacent on a diagonal instead of sliding past her row into the far wall. The two lines cost the same
+— |dx| + |dy| − 1 tiles — and cross different ground: from (3,3) to a Fisher at (1,1), horizontal-first
+is (2,3) (1,3) (1,2) and vertical-first is (3,2) (3,1) (2,1). **An interrupted line never reaches her**
+— brambles at (2,3) stop the horizontal line on its **first** tile, for 6 and a Stagger, two tiles
+short of her side — and the ghost is drawn on the tile the drag actually stops on, never on the tile
+the ability intended.
+
+**Enemies pick by their published priority order**: a sweep (100) over a kill (50) over hit points,
+a tie falling back on the fixed order. No new AI inputs, no randomness. **The declared intent names
+the tile that order picked, and resolution uses that same tile** — the intent carries the choice and
+the command reads it back off the intent, so a telegraph cannot name one tile and resolve to another.
+
+**The choice is a command, not a prompt.** It rides `AttackCommand.Aim` / `AbilityCommand.Aim`
+alongside the rest of the aim, exactly as Bull Rush's charge direction does, so seed + command log
+still reproduces the fight. (A Footing refusal is different and stays its own command: that is the
+*other* side answering mid-resolution.) An aim on a vector that has no choice is **ignored, never
+refused** — a shove with one candidate has nothing to be illegal about.
+
 Two displacements sit outside it:
 
 - **Reel is never shortened.** Its printed text pulls the target *all the way to adjacent*, and it

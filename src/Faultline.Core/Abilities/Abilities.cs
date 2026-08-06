@@ -383,30 +383,72 @@ namespace Faultline.Core
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
         /// <param name="targetId">Enemy to aim at.</param>
+        /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
         /// <returns>The projected displacement, or <c>null</c> when the ability does not displace.</returns>
-        public static DisplacementPreview? PreviewTarget(GameState state, Unit unit, UnitId targetId)
+        public static DisplacementPreview? PreviewTarget(
+            GameState state, Unit unit, UnitId targetId, DisplacementAim aim = DisplacementAim.Default)
         {
-            var descriptor = Of(unit);
-            if (descriptor is null)
+            if (!Shove(state, unit, targetId, out var kind, out int distance, out bool bypass))
             {
                 return null;
             }
 
-            var target = state.UnitById(targetId);
+            return Displacement.PreviewAuto(
+                state, targetId, unit.Position, kind, distance, bypass, aim);
+        }
+
+        /// <summary>
+        /// Every tile a targeted ability could send an enemy to: one, or two when the vector is
+        /// diagonal and the acting side has a choice.
+        /// </summary>
+        /// <remarks>
+        /// The same distance and the same carve-out <see cref="PreviewTarget"/> uses, from the same
+        /// place. A shell that worked out "Reel drags to adjacent, Stagger Shot pushes 1" a second
+        /// time to draw its ghosts would be a second preview path, and the two would eventually
+        /// disagree about what the ability does.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Acting unit.</param>
+        /// <param name="targetId">Enemy to aim at.</param>
+        /// <returns>The candidates, or an empty list when the ability does not displace.</returns>
+        public static IReadOnlyList<DisplacementPreview> TargetCandidates(
+            GameState state, Unit unit, UnitId targetId)
+        {
+            return Shove(state, unit, targetId, out var kind, out int distance, out bool bypass)
+                ? Displacement.Candidates(state, targetId, unit.Position, kind, distance, bypass)
+                : new DisplacementPreview[0];
+        }
+
+        // What displacement this unit's targeted ability asks for, if any. One place, because the
+        // preview, the ghosts and the resolution all have to be asking for the same shove.
+        private static bool Shove(
+            GameState state,
+            Unit unit,
+            UnitId targetId,
+            out DisplacementKind kind,
+            out int distance,
+            out bool bypassResistance)
+        {
+            kind = DisplacementKind.Push;
+            distance = 0;
+            bypassResistance = false;
+
+            var descriptor = Of(unit);
+            if (descriptor is null)
+            {
+                return false;
+            }
 
             if (descriptor.PullsToAdjacent)
             {
-                int distance = unit.Position.DistanceTo(target.Position) - 1;
-                return distance <= 0
-                    ? null
-                    : Displacement.PreviewAuto(
-                        state, targetId, unit.Position, DisplacementKind.Pull, distance,
-                        bypassResistance: true);
+                kind = DisplacementKind.Pull;
+                bypassResistance = true;
+                distance = unit.Position.DistanceTo(state.UnitById(targetId).Position) - 1;
+                return distance > 0;
             }
 
-            return descriptor.Push <= 0
-                ? null
-                : Displacement.PreviewAuto(state, targetId, unit.Position, DisplacementKind.Push, descriptor.Push);
+            distance = descriptor.Push;
+            return distance > 0;
         }
 
         /// <summary>
@@ -525,7 +567,7 @@ namespace Faultline.Core
                     return Effects.Apply(
                         state,
                         definition.Effects,
-                        new EffectContext(unit.Id, command.TargetId, null, command.Direction),
+                        new EffectContext(unit.Id, command.TargetId, null, command.Direction, command.Aim),
                         events);
             }
         }

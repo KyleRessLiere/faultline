@@ -314,6 +314,21 @@ public static class PlaytestText
             ? "no movement (resist " + preview.Resistance + ")"
             : "no movement";
 
+    /// <summary>
+    /// The verb a ghosted candidate's sentence opens with.
+    /// </summary>
+    /// <remarks>
+    /// A haul long enough to have turned a corner is a Reel and says so; anything else is the plain
+    /// verb. Read off the projection rather than off the ability, because the sentence describes what
+    /// this candidate does and not which button produced it.
+    /// </remarks>
+    /// <param name="preview">A Core displacement candidate.</param>
+    /// <returns>"push", "pull" or "reel in".</returns>
+    public static string AimVerb(DisplacementPreview preview) =>
+        preview.Kind == DisplacementKind.Push ? "push"
+        : preview.RequestedDistance > 1 ? "reel in"
+        : "pull";
+
     /// <summary>The status flags worth showing beside a unit.</summary>
     /// <param name="unit">Unit to describe.</param>
     /// <returns>A comma-separated list, possibly empty.</returns>

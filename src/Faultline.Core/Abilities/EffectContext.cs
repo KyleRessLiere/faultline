@@ -11,9 +11,14 @@ namespace Faultline.Core
     /// <param name="TargetId">The selected unit, when the selector picks one.</param>
     /// <param name="Tile">The selected tile, when the selector picks one.</param>
     /// <param name="Direction">The selected direction, when the selector picks one.</param>
+    /// <param name="Aim">
+    /// Which candidate the acting side picked for an ambiguous displacement vector, carried from the
+    /// command so a shove effect resolves the tile the player clicked (MASTER_DESIGN §3, locked v).
+    /// </param>
     public readonly record struct EffectContext(
         UnitId UserId,
         UnitId? TargetId = null,
         Coord? Tile = null,
-        Direction? Direction = null);
+        Direction? Direction = null,
+        DisplacementAim Aim = DisplacementAim.Default);
 }

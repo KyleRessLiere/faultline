@@ -90,11 +90,18 @@ namespace Faultline.Core
                         case IntentAction.Attack when Combat.CanAttack(state, enemy, target, out _):
                             return new AttackCommand(enemy.Id, target.Id);
 
+                        // The aim is read back off the telegraph rather than chosen again here. An
+                        // intent that named one tile and resolved to another would be worse than the
+                        // silent pick this replaces (MASTER_DESIGN §3, locked v), and the only way
+                        // to be sure of that is for the declaration and the command to carry the
+                        // same axis rather than two computations that agree today.
                         case IntentAction.Pull when Combat.CanPull(state, enemy, target):
-                            return new AttackCommand(enemy.Id, target.Id, AttackMode.Pull);
+                            return new AttackCommand(
+                                enemy.Id, target.Id, AttackMode.Pull, intent.DisplacementAim);
 
                         case IntentAction.Push when Combat.CanPush(state, enemy, target):
-                            return new AttackCommand(enemy.Id, target.Id, AttackMode.Push);
+                            return new AttackCommand(
+                                enemy.Id, target.Id, AttackMode.Push, intent.DisplacementAim);
                     }
                 }
             }
@@ -1159,6 +1166,61 @@ namespace Faultline.Core
                 target.Id, target.Position, moveTo, null, null, 0, null, damage, guard?.Id);
         }
 
+        /// <summary>
+        /// Which of two tiles an enemy sends a body to when the vector is diagonal.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The published priority order and nothing else — no new AI inputs, no randomness
+        /// (MASTER_DESIGN §3, locked v). It is the same order <see cref="RushScore"/> already
+        /// publishes for choosing whom to shove: a sweep first, then a kill, then hit points; a tie
+        /// falls back on the fixed direction order, which is the first candidate.
+        /// </para>
+        /// <para>
+        /// Deliberately not a new judgement about position. Anything cleverer would need inputs the
+        /// enemy does not have, and would make the telegraph harder to read for no gain the player
+        /// can see.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="targetId">Unit that would be displaced.</param>
+        /// <param name="from">Tile the displacement originates from.</param>
+        /// <param name="kind">Push or Pull.</param>
+        /// <param name="distance">Requested distance.</param>
+        /// <returns>The aim the enemy declares and resolves with.</returns>
+        internal static DisplacementAim PreferredAim(
+            GameState state, UnitId targetId, Coord from, DisplacementKind kind, int distance)
+        {
+            var candidates = Displacement.Candidates(state, targetId, from, kind, distance);
+            if (candidates.Count < 2)
+            {
+                return DisplacementAim.Default;
+            }
+
+            // Strictly greater, so the fixed-order candidate keeps the tie: the enemy's pick has to
+            // be reproducible from the board alone, and "whichever we looked at first" is not.
+            return AimScore(candidates[1]) > AimScore(candidates[0])
+                ? candidates[1].Aim
+                : candidates[0].Aim;
+        }
+
+        private static int AimScore(DisplacementPreview preview)
+        {
+            int score = preview.DamageToUnit + preview.DamageToObstacle + preview.DamageToStructure;
+
+            if (preview.WouldCling)
+            {
+                score += 100;
+            }
+
+            if (preview.WouldDown)
+            {
+                score += 50;
+            }
+
+            return score;
+        }
+
         private static EnemyIntent Displace(
             GameState state,
             Unit enemy,
@@ -1178,7 +1240,13 @@ namespace Faultline.Core
             // the destination the telegraph carries are the guard's, not the target's.
             var guard = Guard.Interceptor(view, target);
             var victimId = guard?.Id ?? target.Id;
-            var preview = Guard.PreviewAimed(view, from, target, victimId, kind, distance);
+
+            // The declared tile is the one the priority order picks, not the one a fixed direction
+            // order happens to reach first (MASTER_DESIGN §3, locked v).
+            var aim = PreferredAim(
+                view, victimId, Guard.SourceFor(view, from, target, victimId, kind), kind, distance);
+
+            var preview = Guard.PreviewAimed(view, from, target, victimId, kind, distance, aim);
 
             return new EnemyIntent(
                 enemy.Id,
@@ -1193,7 +1261,8 @@ namespace Faultline.Core
                 preview.EffectiveDistance,
                 preview.Destination,
                 0,
-                guard?.Id);
+                guard?.Id,
+                DisplacementAim: aim);
         }
 
         // ---- target selection -----------------------------------------------------------------

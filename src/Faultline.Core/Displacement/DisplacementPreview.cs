@@ -34,6 +34,11 @@ namespace Faultline.Core
     /// able to say <em>why</em> nothing happened, and a shell that re-derived the reason would be a
     /// second copy of the distance arithmetic. Zero when Reel's carve-out bypasses resistance.
     /// </param>
+    /// <param name="Aim">
+    /// Which candidate this preview is. <see cref="DisplacementAim.Default"/> whenever the vector is
+    /// unambiguous — there is nothing to have chosen. Carried on the preview so that a shell drawing
+    /// two ghosts knows which command each one commits, without re-deriving the geometry.
+    /// </param>
     public sealed record DisplacementPreview(
         UnitId UnitId,
         DisplacementKind Kind,
@@ -53,8 +58,34 @@ namespace Faultline.Core
         bool FootingWouldMatter,
         Coord? StructureAt = null,
         int DamageToStructure = 0,
-        int Resistance = 0)
+        int Resistance = 0,
+        DisplacementAim Aim = DisplacementAim.Default)
     {
+        /// <summary>
+        /// Whether this candidate and another end in the same thing happening.
+        /// </summary>
+        /// <remarks>
+        /// The test that decides whether a player is asked at all (MASTER_DESIGN §3, locked v): two
+        /// candidates that stop on the same class of tile, deal the same damage and cross nothing are
+        /// not a decision, and asking about them makes every shot on open ground slower for nothing.
+        /// <b>Destinations are deliberately not compared</b> — they always differ, since differing is
+        /// what makes them two candidates. Everything the simulation can produce is compared instead:
+        /// a hazard crossed mid-route shows up as damage or as a different <see cref="Stop"/>.
+        /// </remarks>
+        /// <param name="other">The other candidate.</param>
+        /// <returns>Whether the two would play out identically.</returns>
+        public bool SameOutcomeAs(DisplacementPreview other) =>
+            other is not null
+            && Stop == other.Stop
+            && EffectiveDistance == other.EffectiveDistance
+            && DamageToUnit == other.DamageToUnit
+            && DamageToObstacle == other.DamageToObstacle
+            && DamageToStructure == other.DamageToStructure
+            && WouldStagger == other.WouldStagger
+            && WouldCling == other.WouldCling
+            && WouldDown == other.WouldDown;
+
+
         /// <summary>
         /// True when the displacement accomplishes nothing: the unit does not move, and nothing is
         /// hurt, staggered or dropped by the attempt.
