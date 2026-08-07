@@ -225,13 +225,17 @@ in this file when the question comes back.
 | D-223 | [RULED: clearing the board no longer wins under every objective; it wins the five that have nothing else to say about an empty board.](#d-223-ruled-clearing-the-board-no-longer-wins-under-every-objective-it-wins-the-five-that-have-nothing-else-to-say-about-an-empty-board) | 2026-08-07 |  |
 | D-224 | [RULED: Crew Cover's preview promises the collision the board is about to collect.](#d-224-ruled-crew-covers-preview-promises-the-collision-the-board-is-about-to-collect) | 2026-08-07 |  |
 | D-222 | [A Core phase with no screen is a bricked run, and this is the third time.](#d-222-a-core-phase-with-no-screen-is-a-bricked-run-and-this-is-the-third-time) | 2026-08-07 |  |
-| D-225 | [RULED: a duck's kit is slots holding data, and the Wardbearer's fourth slot is the first deliberate exception to "pools are grammar".](#d-225-ruled-a-ducks-kit-is-slots-holding-data-and-the-wardbearers-fourth-slot-is-the-first-deliberate-exception-to-pools-are-grammar) | unreleased |  |
-| D-226 | [RULED: mods are counted per slot, three per ability, not two per duck; and Deep Mastery now has nothing left to raise.](#d-226-ruled-mods-are-counted-per-slot-three-per-ability-not-two-per-duck-and-deep-mastery-now-has-nothing-left-to-raise) | unreleased |  |
-| D-227 | [OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of the eight built techniques hang on neither.](#d-227-open-reported-not-resolved-spender-slot-and-ability-slot-are-two-axes-and-five-of-the-eight-built-techniques-hang-on-neither) | unreleased |  |
-| D-228 | [OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.](#d-228-open-implemented-one-way-behind-a-named-seam-forfeited-mods-return-to-the-runs-offers) | unreleased |  |
-| D-229 | [FOUND, not fixed: a duck's legendary epithet does not survive a save.](#d-229-found-not-fixed-a-ducks-legendary-epithet-does-not-survive-a-save) | unreleased |  |
+| D-225 | [RULED: a duck's kit is slots holding data, and the Wardbearer's fourth slot is the first deliberate exception to "pools are grammar".](#d-225-ruled-a-ducks-kit-is-slots-holding-data-and-the-wardbearers-fourth-slot-is-the-first-deliberate-exception-to-pools-are-grammar) | 2026-08-07 | *partly superseded* |
+| D-226 | [RULED: mods are counted per slot, three per ability, not two per duck; and Deep Mastery now has nothing left to raise.](#d-226-ruled-mods-are-counted-per-slot-three-per-ability-not-two-per-duck-and-deep-mastery-now-has-nothing-left-to-raise) | 2026-08-07 |  |
+| D-227 | [OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of the eight built techniques hang on neither.](#d-227-open-reported-not-resolved-spender-slot-and-ability-slot-are-two-axes-and-five-of-the-eight-built-techniques-hang-on-neither) | 2026-08-07 |  |
+| D-228 | [OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.](#d-228-open-implemented-one-way-behind-a-named-seam-forfeited-mods-return-to-the-runs-offers) | 2026-08-07 |  |
+| D-229 | [FOUND, not fixed: a duck's legendary epithet does not survive a save.](#d-229-found-not-fixed-a-ducks-legendary-epithet-does-not-survive-a-save) | 2026-08-07 |  |
+| D-230 | [RULED: the Pluck spender is its own slot with its own count, which supersedes D-225's "exception" framing and resolves the spender-slot half of D-227.](#d-230-ruled-the-pluck-spender-is-its-own-slot-with-its-own-count-which-supersedes-d-225s-exception-framing-and-resolves-the-spender-slot-half-of-d-227) | unreleased |  |
+| D-231 | [RULED: slot counts are class-initialisation data and are adjustable per duck; a runtime-mutable class-wide count is refused, because it cannot survive a replay.](#d-231-ruled-slot-counts-are-class-initialisation-data-and-are-adjustable-per-duck-a-runtime-mutable-class-wide-count-is-refused-because-it-cannot-survive-a-replay) | unreleased |  |
+| D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | unreleased |  |
+| D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | unreleased |  |
 
-**211 rulings.**
+**215 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5784,7 +5788,7 @@ The next session should fix both together.
 
 ---
 
-**D-230 â€” RULED: the Pluck spender is its own slot with its own count, which supersedes D-225's
+**D-230 — RULED: the Pluck spender is its own slot with its own count, which supersedes D-225's
 "exception" framing and resolves the spender-slot half of D-227.**
 
 The designer ruled two things in one breath: *"pluck is its own slot so player has the 3 abilities +
@@ -5802,49 +5806,49 @@ separately**, and a class's opening hand is written across both.
 So every class opens with **one ability slot free to grow into**, the Wardbearer included.
 
 **This resolves D-227's first half, and it resolves it the designer's way rather than any of the three
-ways that entry offered.** D-227 reported that Â§8.5's *Fresh Slot Learn (3rd spender slot)*, Â§8.6's
+ways that entry offered.** D-227 reported that §8.5's *Fresh Slot Learn (3rd spender slot)*, §8.6's
 *Third Slot (spender slot 3)* and WATERLOGGED's *"occupies a spender slot"* count a different axis
-from the ability slots, and that under the one-axis model they were therefore inert or illegal â€” a
+from the ability slots, and that under the one-axis model they were therefore inert or illegal — a
 grant that would push a Vanguard past his class's count. With the axis split they are **legal exactly
 as written**: they raise `PluckSlotsFor`, the ability cap never sees them, and a duck can hold a
 second and third spender without giving up an action. The count they raise now exists and is
 adjustable (D-231); **the offers that raise it are not built, because a reward card is content**.
-D-227's *other* half â€” five of eight built techniques hanging on no host â€” is untouched and still the
+D-227's *other* half — five of eight built techniques hanging on no host — is untouched and still the
 designer's.
 
 **And it supersedes D-225's framing of the Wardbearer's fourth slot.** D-225 called it *"the first
-deliberate exception to Â§3's 'pools are grammar'"* and flagged the cost of that: a future reader could
-cite it for per-class slot counts generally. The designer's reply removes the premise â€” a slot count
+deliberate exception to §3's 'pools are grammar'"* and flagged the cost of that: a future reader could
+cite it for per-class slot counts generally. The designer's reply removes the premise — a slot count
 is **class-initialisation data**, so a class that starts with more is the system working, not the
-system being bent. **The reason survives the reframing and stays attached to the number**: Â§4 prints
+system being bent. **The reason survives the reframing and stays attached to the number**: §4 prints
 the spear and the stance as one *"per activation choose"* line, slots cannot hold a choice, so the
 choice becomes two slots and his kit starts with the fourth to pay for it. D-225's prose is kept, with
-the superseded paragraphs marked in place â€” the reasoning for *why four* is still the useful part.
+the superseded paragraphs marked in place — the reasoning for *why four* is still the useful part.
 
 **Rejected: one list with the spender in it and the cap counted around it.** That is what shipped in
 D-225 and it is what made three of the doc's reward cards illegal: with one list, "a duck has three
-slots" and "a duck may hold three spenders" cannot both be true. Two lists â€” `DuckLoadout.Slots` and
-`DuckLoadout.SpenderSlots`, each empty while untouched â€” make the two sentences independent and cost
+slots" and "a duck may hold three spenders" cannot both be true. Two lists — `DuckLoadout.Slots` and
+`DuckLoadout.SpenderSlots`, each empty while untouched — make the two sentences independent and cost
 one save field.
 
 **Rejected: an axis stored beside each entry.** `Kits.AxisOf` derives it from the entry, because a
 spender is a spender wherever it is written down and a stored axis is a second opinion waiting to
-disagree â€” the same reason D-226 derives a mod's host from the card.
+disagree — the same reason D-226 derives a mod's host from the card.
 
-`Kits.Holds` reads **both** axes, so every existing caller â€” `Abilities.AllOf`, `Verve.SpendFor`,
-`Unit.Template`, `CampCatalogue.EligibleFor` â€” kept working without learning that there are two.
+`Kits.Holds` reads **both** axes, so every existing caller — `Abilities.AllOf`, `Verve.SpendFor`,
+`Unit.Template`, `CampCatalogue.EligibleFor` — kept working without learning that there are two.
 
 ---
 
-**D-231 â€” RULED: slot counts are class-initialisation data and are adjustable per duck; a
+**D-231 — RULED: slot counts are class-initialisation data and are adjustable per duck; a
 runtime-mutable class-wide count is refused, because it cannot survive a replay.**
 
 The designer asked for two things: *"allow the slots to be a class initialization so classes like
-wardmaster start default more"*, and *"additionally allow it a mutable thing for class â€” maybe later
+wardmaster start default more"*, and *"additionally allow it a mutable thing for class — maybe later
 want to test with more, or have things that affect the count"*. `Kits.SlotsFor` was a hardcoded
 `switch`, which is neither.
 
-**Built, for the first half:** `ClassKit` â€” a record holding two counts and two opening hands â€” and
+**Built, for the first half:** `ClassKit` — a record holding two counts and two opening hands — and
 one row per class in `Kits.For(kind)`. A class starting with more says so in its row. Testing a
 different count is `Kits.For(kind) with { AbilitySlots = 4 }`, a value, not an edit to control flow.
 
@@ -5854,17 +5858,17 @@ slot; `Kits.Learn` fills a free one and `Kits.RefusalForLearning` refuses a full
 
 **Refused: a mutable static the class table exposes.** Prime directive 2 is that seed plus command log
 reproduces a state exactly. A count a fight reads and something else pokes appears in neither the seed
-nor the log, so two runs of the same replay could disagree and nothing would say why â€” and it would
+nor the log, so two runs of the same replay could disagree and nothing would say why — and it would
 disagree *quietly*, because a slot cap is invisible until the moment it refuses something. The
 distinction that made this decidable: **a count that varies must vary as state that travels**, and
-per-duck state travels â€” it is in `Equals`, in `GetHashCode`, in the save, and in the board a replay
+per-duck state travels — it is in `Equals`, in `GetHashCode`, in the save, and in the board a replay
 starts from. `AnAdjustedSlotCount_TravelsWithTheDuck_SoAReplayIsIdentical` plays a fight from a
 constructed loadout and replays it to the identical state and hash.
 
 **What this does not give the designer, said plainly:** there is no runtime knob that widens a whole
 *class* mid-run. Per-duck grants cover "things that affect the count", and a class-wide experiment is
 a one-line data edit before the run starts. A genuine class-wide runtime override would have to live
-on `RunState`, be written to the save and be read by the camp â€” real work, with nothing yet driving
+on `RunState`, be written to the save and be read by the camp — real work, with nothing yet driving
 it, so it was not built on a guess.
 
 **And the save learned it in the same change.** Four saves have now shipped that dropped a field Core
@@ -5876,36 +5880,36 @@ wrong session is how the last three shipped.
 
 ---
 
-**D-232 â€” RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds
+**D-232 — RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds
 and can use", and `AnybodyHolds` is therefore still right.**
 
 The designer: *"yes abilities can be stripped away but flag but mark them as character owning but not
 available so they can have disabled abilities that is stored"*. So replacement does not delete the
 entry. `DuckLoadout.Disabled` keeps it, `RunSave` writes it, and it survives a reload.
 
-**A disabled ability is not offered, not usable and not counted against the slot cap** â€” it is in no
-slot, so every rule that asks a slot question already answers correctly â€” **and it is still known**,
+**A disabled ability is not offered, not usable and not counted against the slot cap** — it is in no
+slot, so every rule that asks a slot question already answers correctly — **and it is still known**,
 which `Kits.Knows` answers and `Kits.UnavailableNote` puts into a sentence the camp strip draws:
-*"still knows Guard Stance, and cannot use it â€” no slot holds it any more"*. The sentence is Core's,
+*"still knows Guard Stance, and cannot use it — no slot holds it any more"*. The sentence is Core's,
 because "owned but not available" is a ruling and a shell writing its own would be a second,
-unversioned copy of it â€” the same reason `Kits.LossesFrom` lives in Core.
+unversioned copy of it — the same reason `Kits.LossesFrom` lives in Core.
 
-**One predicate, two meanings â€” resolved by splitting the predicate.** This session has been bitten
+**One predicate, two meanings — resolved by splitting the predicate.** This session has been bitten
 three times by a single question answering for two different rules, so it was not left to inference.
 `Kits.Holds` means **holds and can use**; `Kits.Knows` means **owns in any state**. Every existing
 caller wanted the first and kept it.
 
 **`CampDirector.AnybodyHolds` still means the right thing, and needed no change.** D-228 recorded that
-forfeited mods return to the offers *by architecture*: Â§8.6's "no named permanent appears twice in a
+forfeited mods return to the offers *by architecture*: §8.6's "no named permanent appears twice in a
 run" is implemented as a question about what the squad **currently holds**. The worry was that a
 stripped ability now being *held* would break that. It does not, because **the flag is about
-abilities and `AnybodyHolds` is about cards** â€” mods, unlocks, winds, one-shots â€” and a mod forfeited
+abilities and `AnybodyHolds` is about cards** — mods, unlocks, winds, one-shots — and a mod forfeited
 with its host is still held by nobody. `ADisabledAbility_DoesNotChangeWhatAnybodyHoldsMeans` pins both
 halves: the uniqueness law says the mod is free again, *and* the duck whose host is disabled is still
 not offered it, because `CampCatalogue.EligibleFor` asks `Holds`. Two rules, two answers, both right.
 
 **Rejected: disabling mods too, by symmetry with abilities.** It is the obvious next step and it is
-not what was ruled â€” and it would have silently answered D-228, which is the designer's. See D-233.
+not what was ruled — and it would have silently answered D-228, which is the designer's. See D-233.
 
 **Rejected: `Holds` returning true for a disabled entry with a separate "usable" check at each call
 site.** That is the one-predicate-two-meanings bug with extra steps: four call sites would each have
@@ -5916,18 +5920,18 @@ Taking an ability back clears the flag (`Enabling`), so a duck never owns the sa
 
 ---
 
-**D-233 â€” REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for
+**D-233 — REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for
 D-228, and it is still the designer's.**
 
 D-228 offered two answers for a mod forfeited by a replacement: **returned** (it can be earned again;
 replacement is a pivot) or **gone** (one-way, and it needs a run-long ledger). The disabled-ability
-ruling makes a third one readable: **suspended** â€” the mod goes with its host and comes back if and
+ruling makes a third one readable: **suspended** — the mod goes with its host and comes back if and
 when the host does, exactly as the ability itself now does.
 
 **This was not built and not assumed.** The ruling names abilities, not mods, so mods stay forfeited
 and D-228's shipped behaviour is unchanged. But a symmetric reading of *"character owning but not
 available"* would extend to the mods that hung on the ability, and that reading is neither what
-shipped nor what D-228 offered â€” so it is reported here and stopped at.
+shipped nor what D-228 offered — so it is reported here and stopped at.
 
 **Why it matters more than a tidy-up:** *suspended* is the only one of the three that makes a
 replacement fully reversible, which is a different game from either of D-228's options. It would also
