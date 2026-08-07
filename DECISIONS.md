@@ -214,8 +214,10 @@ in this file when the question comes back.
 | D-203 | [Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.](#d-203-deep-roots-buys-exactly-one-skip-of-the-stance-drop-and-a-latch-is-what-bounds-it) | 2026-08-07 |  |
 | D-204 | [A free step's destination is a column in the replay log, because it is a choice.](#d-204-a-free-steps-destination-is-a-column-in-the-replay-log-because-it-is-a-choice) | 2026-08-07 |  |
 | D-214 | [HELD: Stage E cannot be built, because v2026-08-06q deletes the section that specifies it.](#d-214-held-stage-e-cannot-be-built-because-v2026-08-06q-deletes-the-section-that-specifies-it) | 2026-08-07 | *held* |
+| D-215 | ["Zero structures destroyed" means two different things on two boards, and only one of them is a defect.](#d-215-zero-structures-destroyed-means-two-different-things-on-two-boards-and-only-one-of-them-is-a-defect) | unreleased |  |
+| D-216 | [HELD: Stage D item 6 cannot certify, because an inert seed makes its assertion unfalsifiable.](#d-216-held-stage-d-item-6-cannot-certify-because-an-inert-seed-makes-its-assertion-unfalsifiable) | unreleased | *held* |
 
-**195 rulings.**
+**197 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5251,3 +5253,57 @@ reissues old rulings as new law. The archive's own warning - *"an agent that rea
 implementing superseded instructions"* - turns out to apply to the design document itself, not only
 to the prompts. **Refresh the working copy from the repo before a design session**, and check an
 inbound stamp's Design Log for gaps before reading anything else in it.
+
+
+---
+
+**D-215 - "Zero structures destroyed" means two different things on two boards, and only one of them
+is a defect.**
+
+The correction to D-186 reported zero structure collisions, zero chips and zero destroyed across
+every board and every policy. **That number carries the same two explanations the 18/18 reading did**
+- and split per board, it resolves opposite ways.
+
+**`break-the-gate` - a real defect, and not the one it looked like.** The board declares
+`destroy 3,1 hp 18` correctly, so "the objective type is not set" is exonerated. But
+`Objectives.Check` returns `Win` on `!AnyEnemyLeft` **under every objective** (D-032's universal
+win), and 7 says Destroy has **no kill-all win**. So a cleared board wins a Destroy fight, the
+policies clear it because clearing it genuinely wins, and **the policies are behaving rationally**.
+The defect is in **win-condition resolution**, which is more serious than policy scoring because it
+affects every Destroy board that will ever be authored. Second data fault on the same board: it
+declares **no `turn-limit:`**, so 7's "turn-limit expiry is a loss" has nothing to expire.
+
+**`the-shrine` - not a defect at all.** Its zero is measuring a different system with the same
+number: the Raiders **do** arrive and **do** claw. The shrine reads 12->0, 12->2, 12->2, 12->0 across
+the four policies, and two of them **lose the fight to it**. Protect is fully exercised; "zero
+destroyed" on the winning runs means *the defence held*, which is the objective succeeding rather
+than the objective being untested.
+
+**The rule this is the third instance of.** 18/18 admitted "the price is wrong" and "nobody is
+aiming". Zero-destroyed admits "the policies never aim" and "the defence worked". A number that
+several mechanisms produce identically is not evidence for any of them - **it is a question, and the
+work is finding the reading that discriminates.** Here it was one line of board data and one line of
+`Objectives.Check`, both cheaper to read than either theory was to argue.
+
+---
+
+**D-216 - HELD: Stage D item 6 cannot certify, because an inert seed makes its assertion
+unfalsifiable.**
+
+Item 6 replaces a category-level director sweep with a **card-level** one: sweep seeds across a wide
+range and assert on which cards appear, on the grounds that identical *kinds* across seeds is the
+Camp 1 rule working while identical *cards* is the defect.
+
+**Nothing in `Faultline.Core` constructs or consumes an `IRng` inside a fight**, so a wide seed range
+is one sample repeated. An assertion that "cards differ across seeds" **passes on a director that
+returns a constant** - it cannot fail, which makes running it worse than not running it: it would
+certify item 6 and Stage D on evidence that was never capable of being wrong. **Held**, and gated on
+Stage F's F3 (the seeded generator) and F4 landing together - F4's "replay hash across five seeds"
+has exactly the same defect and the same fix.
+
+**It also reopens the evidence behind the Camp 1 ruling, though not the ruling.** "Technique,
+Technique for every seed 1-40" was read as the director's weighting; with the seed inert it equally
+supports **"no seed ever reached the director"**. The Camp 1 floor survives because it is now
+**authored intent** rather than an inference from that sweep - but the finding that prompted it was
+never established, and the Engine Starter **distribution** question is untestable until the seed is
+live. Two explanations again, and this one is not yet split.
