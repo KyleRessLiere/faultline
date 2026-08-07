@@ -336,6 +336,8 @@ namespace Faultline.Core
                     return ApplyUseConsumable(state, use, events);
                 case TakeBankedStepCommand step:
                     return ApplyBankedStep(state, step, events);
+                case TakeSplitReedCommand reed:
+                    return ApplySplitReed(state, reed, events);
                 case TakeFreeStepCommand free:
                     return ApplyFreeStep(state, free, events);
                 case EndActivationCommand end:
@@ -674,6 +676,14 @@ namespace Faultline.Core
                     commands.Add(new TakeBankedStepCommand(unit.Id));
                 }
 
+                // A Split Reed's offer, waiting on this owner's yes. Costs nothing and is nobody's
+                // action; never answering is legal, which is the whole of how "both owners consent"
+                // is said without a party-wide accept (MASTER_DESIGN §8.5, D-192).
+                if (SplitReedSwapIsLegal(state, unit))
+                {
+                    commands.Add(new TakeSplitReedCommand(unit.Id));
+                }
+
                 // Free movement a legendary already paid for. Neither half of the activation and
                 // nothing out of the purse — the activation is being held open for exactly this, and
                 // EndActivationCommand below is the way to decline it.
@@ -909,6 +919,12 @@ namespace Faultline.Core
                     RattledFor = null,
                     HandOffTarget = null,
                     BankedStepTo = null,
+
+                    // An unanswered Split Reed lapses with the banked step beside it, and for the
+                    // identical reason: an offer the other flock made last round is not still open
+                    // (D-157, D-192). The reed is already spent — declining costs the answerer
+                    // nothing and refunds the offerer nothing.
+                    SplitReedOfferFrom = null,
 
                     // A Greased Feather and a Chalk Mark lapse with them. §8.6 prints no duration on
                     // either card, and the alternative — a mark that outlives the round it was made
@@ -1381,6 +1397,91 @@ namespace Faultline.Core
         /// Takes a banked Shelter Step. Free, one tile, and only into the tile that was banked — the
         /// owner's yes to somebody else's card, not a movement action.
         /// </summary>
+        /// <summary>
+        /// Whether this duck could accept a Split Reed's offer right now: it holds one, the offerer is
+        /// still standing where it was, and neither body is over a ledge.
+        /// </summary>
+        /// <remarks>
+        /// A Core query rather than shell arithmetic, for the reason the rest of this file is: the
+        /// surface that draws the button and the rule that takes the command must not be able to
+        /// disagree about whether the offer is live.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Duck that would accept.</param>
+        /// <returns>Whether the swap can happen.</returns>
+        public static bool SplitReedSwapIsLegal(GameState state, Unit unit)
+        {
+            if (state is null
+                || unit is null
+                || unit.SplitReedOfferFrom is not { } offererId
+                || !unit.IsOnBoard
+                || unit.Clinging)
+            {
+                return false;
+            }
+
+            var offerer = state.FindUnit(offererId);
+
+            // The board moves between the offer and the answer: the offerer may have been shoved,
+            // downed or dropped over an edge since. A swap with a body that is no longer there is not
+            // refused silently — it simply is not on the list, and the offer lapses at the seam.
+            return offerer is not null
+                && offerer.IsOnBoard
+                && !offerer.Clinging
+                && offerer.Position.IsAdjacentTo(unit.Position);
+        }
+
+        /// <summary>
+        /// Swaps two ducks that have both said yes. A <b>placement</b>: neither body travels, so
+        /// nothing is collided with and no Footing refusal applies — but the tile each one lands on
+        /// charges what it charges (D-185, D-192).
+        /// </summary>
+        private static GameState ApplySplitReed(
+            GameState state, TakeSplitReedCommand command, List<GameEvent> events)
+        {
+            var accepter = state.UnitById(command.UnitId);
+
+            Require(accepter.SplitReedOfferFrom is not null, "That duck holds no Split Reed offer.");
+            Require(
+                SplitReedSwapIsLegal(state, accepter),
+                "That swap is no longer possible: the duck that offered it is gone, over a ledge, or "
+                + "no longer beside this one.");
+
+            var offerer = state.UnitById(accepter.SplitReedOfferFrom!.Value);
+
+            var accepterTo = offerer.Position;
+            var offererTo = accepter.Position;
+
+            state = state.WithUnit(accepter with
+            {
+                Position = accepterTo,
+                SplitReedOfferFrom = null,
+            });
+            state = state.WithUnit(state.UnitById(offerer.Id) with { Position = offererTo });
+
+            events.Add(new DucksSwapped(accepter.Id, offerer.Id, accepterTo, offererTo));
+
+            // Landing terrain, both ends. A placement does not travel, so it collides with nothing and
+            // no Footing counter is owed — but a free move is free of the economy and never of the
+            // board, so brambles bite each body that arrives on them exactly as a walked step does.
+            state = LandOn(state, accepter.Id, accepterTo, events);
+            return LandOn(state, offerer.Id, offererTo, events);
+        }
+
+        /// <summary>Charges a placed body for the tile it arrived on.</summary>
+        private static GameState LandOn(
+            GameState state, UnitId unitId, Coord tile, List<GameEvent> events)
+        {
+            if (state.Board.At(tile) != TileType.Spikes)
+            {
+                return state;
+            }
+
+            events.Add(new SpikeHit(unitId, tile, Displacement.SpikeWalkDamage, true));
+            return Combat.ApplyDamage(
+                state, unitId, Displacement.SpikeWalkDamage, DamageSource.Spikes, events);
+        }
+
         private static GameState ApplyBankedStep(
             GameState state, TakeBankedStepCommand command, List<GameEvent> events)
         {

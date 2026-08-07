@@ -339,6 +339,10 @@ public class ConsumableDefinitionTests
                 ".O.......",
                 ".........")
             .PlayerA(UnitKind.Vanguard, 2, 1)
+
+            // A standing ally beside the Vanguard, so a Split Reed has somebody to offer a swap to.
+            // The Archer below is Clinging, which is exactly what the reed refuses.
+            .PlayerA(UnitKind.Wardbearer, 2, 2)
             .PlayerB(UnitKind.Archer, 6, 2)
             .Enemy(UnitKind.Husk, 5, 1)
             .Enemy(UnitKind.Anchor, 8, 2)

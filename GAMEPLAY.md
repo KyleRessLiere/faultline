@@ -1580,6 +1580,7 @@ it back emptied.
 | **Greased Feather** | **this duck's next displacement asks for +1 distance**. Not offered to a duck already carrying one. |
 | **Chalk Mark** | mark **any enemy on the board**: **the other flock's** next displacement of it asks for **+1 distance**. Not offered on an enemy that other flock is already owed a tile on. |
 | **Thorn Pouch** | grow **brambles** on an **adjacent open** tile **until the end of the round**. Same tile filter as the Crate: not onto a drain, brambles or high ground, and not under a body. |
+| **Split Reed** | **offer** an **adjacent allied duck** a swap of places. Nothing moves until that duck's owner accepts. Never onto or from a ledge, and never an enemy. |
 
 **Both +1s ride the request, and both are spent by the attempt.** A Greased Feather and a Chalk Mark
 add their tile to the **requested** distance, beside Wrecking Weight's, exactly as Rattling Impact's
@@ -1587,6 +1588,19 @@ mark does (D-076, D-156) — so they meet Stagger, push resistance and the hold 
 around them. Each is consumed by the displacement that used it **whether or not the extra tile
 survived**: a shove that resistance ate is still a displacement, and a mark spent only on success
 would let a flock probe the board for free (D-190).
+
+**A Split Reed is an offer, and the swap is a placement.** Spending the reed moves nobody: it puts a
+standing offer on the named duck, and the swap happens only when **that duck's owner** issues the
+accept. **Never accepting is a legal answer** that costs the answerer nothing and refunds the offerer
+nothing — this is how "both owners consent" is said in a game with no party-wide accept and no owner
+field on a unit (§8.5's bodily-consent rule; the same shape Shelter Step's banked step already has).
+The offer **lapses at the round seam** if unanswered, and is refused **by name** if the offerer has
+since been downed, shoved out of reach or dropped over a ledge.
+
+The swap itself is a **PLACEMENT, not a displacement**: neither body travels, so nothing is collided
+with, no throw semantics run and **no Footing refusal applies**. **Landing terrain does apply** to
+both bodies — a duck placed onto brambles pays the walk-on price, because a free move is free of the
+economy and never of the board (D-185, D-192).
 
 **A Thorn Pouch changes the board, and the board changes back.** The tile genuinely becomes brambles,
 so walking onto it, being displaced onto it and Sure-Footed all cost exactly what they already cost —

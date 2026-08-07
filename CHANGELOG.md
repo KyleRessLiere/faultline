@@ -2,6 +2,11 @@
 
 ## Two pockets learn to push a tile further, and neither one invents a way to do it
 
+- **Split Reed ships, and consent stays structural.** Spending the reed offers an adjacent ally a
+  swap and moves nobody; the swap happens only when that duck's owner sends the accept, and never
+  sending it is a legal answer that costs nothing (D-192). The swap is a **placement** — nothing
+  is collided with and no Footing refusal applies — but **landing terrain applies to both**.
+
 - **Thorn Pouch ships, and the board learns to change back.** Brambles grow on an adjacent open
   tile and die back at the end of the round they were thrown in. The tile genuinely becomes
   brambles, so every rule that already prices brambles needed no new case; what is remembered is

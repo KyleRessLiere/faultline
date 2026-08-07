@@ -196,6 +196,7 @@ in this file when the question comes back.
 | D-189 | ["This duck's next displacement" is the displacement it causes, because that is how §8.6 uses the possessive everywhere else.](#d-189-this-ducks-next-displacement-is-the-displacement-it-causes-because-that-is-how-86-uses-the-possessive-everywhere-else) | unreleased |  |
 | D-190 | [Chalk Mark is Rattling Impact's mark with a different author, so it is the same field — and Greased Feather is its mirror on the pusher.](#d-190-chalk-mark-is-rattling-impacts-mark-with-a-different-author-so-it-is-the-same-field--and-greased-feather-is-its-mirror-on-the-pusher) | unreleased |  |
 | D-191 | [Temporary terrain is a real change to the board plus a booked way back, not a parallel list of pretend hazards.](#d-191-temporary-terrain-is-a-real-change-to-the-board-plus-a-booked-way-back-not-a-parallel-list-of-pretend-hazards) | unreleased |  |
+| D-192 | [A Split Reed offers; the other owner's yes is a command they may never send, and the swap it completes is a placement.](#d-192-a-split-reed-offers-the-other-owners-yes-is-a-command-they-may-never-send-and-the-swap-it-completes-is-a-placement) | unreleased |  |
 
 **174 rulings.**
 
@@ -4662,3 +4663,45 @@ question, and asking it twice in two places is how the two answers drift.
 prints only "one adjacent tile" and the debris filter already refuses it, so the narrow reading ships;
 the wide one is a damage question (does the body take the walk-on price immediately?) that the card
 does not answer. Held for the designer.
+
+
+---
+
+**D-192 - A Split Reed offers; the other owner's yes is a command they may never send, and the swap it
+completes is a placement.**
+
+§8.6 prints *Split Reed* as "swap with an adjacent allied duck - placement, both owners consent". Both
+halves of that needed a ruling.
+
+**Consent is structural, not a prompt.** There is no party-wide accept in this game and no
+`RunUnit.Owner` field to ask. The pattern already in the codebase is Hand-Off and
+`TakeBankedStepCommand`: a card banks something on a specific duck, and that duck's owner completes it
+with a command naming that duck - or never does, which is a legal answer costing nothing. So spending
+the reed writes `Unit.SplitReedOfferFrom` on the partner and **moves nobody**;
+`TakeSplitReedCommand` is the second yes. The offerer cannot issue it, because it names a duck that is
+not theirs.
+
+**Any allied duck, not only the other flock's.** §8.6 says "allied", and a same-flock swap is a real
+play. One owner answering its own offer is one owner consenting twice, and a single path means there
+is no branch where the second yes is quietly skipped.
+
+**The reed is spent by the offer, not by the acceptance.** Consistent with every other one-shot this
+session (D-190): an item that came back when the answer was no would let a flock ask the question for
+free, and the question itself is information.
+
+**An unanswered offer lapses at the round seam**, beside the banked step, for D-157's reason - an
+offer the other flock made last round is not still open. An offer whose offerer has since been downed,
+shoved out of reach or dropped over a ledge is **refused by name** rather than silently performed or
+silently dropped; `Game.SplitReedSwapIsLegal` is the Core query both the rule and any surface read, so
+the button and the ruling cannot disagree.
+
+**Placement, not displacement.** Neither body travels, so nothing is collided with, no throw semantics
+run and no Footing counter is owed - the same distinction Drift Scroll's §8.6 row draws. **Landing
+terrain still applies to both**: a duck placed onto brambles pays the walk-on price, because a free
+move is free of the economy and never of the board (D-185, and `ApplyBankedStep` before it).
+
+**What this does not decide.** Whether a duck may hold more than one outstanding offer. Today
+`ReedPartners` excludes anyone already holding one, so the answer is no by construction and
+`TakeSplitReedCommand` needs no partner argument. If two reeds should ever be able to court the same
+duck, the command grows an argument and the log format grows a column - and that is a change worth
+making deliberately rather than by accident.

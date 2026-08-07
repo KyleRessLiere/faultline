@@ -218,6 +218,20 @@ namespace Faultline.Core
         public Coord? BankedStepTo { get; init; }
 
         /// <summary>
+        /// The duck that has offered to swap places with this one out of a Split Reed, or
+        /// <c>null</c> (MASTER_DESIGN §8.6). Held on the duck whose owner has to answer.
+        /// </summary>
+        /// <remarks>
+        /// §8.6 prints "both owners consent", and consent here is structural rather than a prompt: the
+        /// reed spends itself to make the <em>offer</em>, and the swap happens only when this duck's
+        /// owner issues <see cref="TakeSplitReedCommand"/>. Never issuing it is a legal answer that
+        /// costs the answerer nothing — the same shape Shelter Step's banked step already has, and for
+        /// the same §8.5 reason: nothing moves another player's body without that owner saying so
+        /// (D-192).
+        /// </remarks>
+        public UnitId? SplitReedOfferFrom { get; init; }
+
+        /// <summary>
         /// Tiles of free movement this duck is owed by a permanent legendary — Follow Through's move
         /// after a collision, Kestrel Step's move after a shot (MASTER_DESIGN §8.6).
         /// </summary>

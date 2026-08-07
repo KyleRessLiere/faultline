@@ -51,6 +51,49 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Allied ducks a Split Reed could offer a swap to: adjacent, on the board, standing, and not
+        /// already holding an offer.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Any allied duck, not only the other flock's.</b> §8.6 prints "an adjacent allied duck",
+        /// and a same-flock swap is a legal, useful play. The consent rule does not need the flocks to
+        /// differ: one owner answering its own offer is one owner consenting twice, and keeping a
+        /// single path means there is no branch where the second yes is skipped (D-192).
+        /// </para>
+        /// <para>
+        /// A duck that is Clinging is excluded on both sides: a body hanging off a ledge has no tile to
+        /// trade, and hauling one out is the Rope's job and costs a rescue.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Duck spending the reed.</param>
+        /// <returns>The legal partners, in unit order.</returns>
+        public static IReadOnlyList<UnitId> ReedPartners(GameState state, Unit unit)
+        {
+            var partners = new List<UnitId>();
+            if (state is null || unit is null || !unit.IsOnBoard || unit.Clinging)
+            {
+                return partners;
+            }
+
+            foreach (var other in state.Units)
+            {
+                if (!other.Id.Equals(unit.Id)
+                    && other.Team.IsPlayer()
+                    && other.IsOnBoard
+                    && !other.Clinging
+                    && other.SplitReedOfferFrom is null
+                    && unit.Position.IsAdjacentTo(other.Position))
+                {
+                    partners.Add(other.Id);
+                }
+            }
+
+            return partners;
+        }
+
+        /// <summary>
         /// Enemies a Chalk Mark could be put on: on the board, alive, and not already carrying the
         /// mark for the flock this one would hand it to.
         /// </summary>
@@ -184,6 +227,14 @@ namespace Faultline.Core
 
                     break;
 
+                case ConsumableRule.Reed:
+                    foreach (var partner in ReedPartners(state, unit))
+                    {
+                        commands.Add(new UseConsumableCommand(unit.Id, partner));
+                    }
+
+                    break;
+
                 default:
                     if (definition.Aim == ConsumableAim.None)
                     {
@@ -290,6 +341,9 @@ namespace Faultline.Core
 
                 case ConsumableRule.Thorns:
                     return Scatter(state, unit.Id, command, events);
+
+                case ConsumableRule.Reed:
+                    return Offer(state, unit.Id, command, events);
 
                 default:
                     return Effects.Apply(
@@ -451,6 +505,44 @@ namespace Faultline.Core
             }
 
             return state with { Board = board, TemporaryTerrain = kept };
+        }
+
+        /// <summary>
+        /// Spends a Split Reed to put a swap on the table. Nothing moves here — the other owner's yes
+        /// is a command they may simply never send (D-192).
+        /// </summary>
+        private static GameState Offer(
+            GameState state, UnitId unitId, UseConsumableCommand command, List<GameEvent> events)
+        {
+            var offerer = state.UnitById(unitId);
+
+            if (command.TargetId is not { } partnerId)
+            {
+                throw new IllegalCommandException("A Split Reed needs an adjacent ally to swap with.");
+            }
+
+            bool legal = false;
+            foreach (var candidate in ReedPartners(state, offerer))
+            {
+                if (candidate.Equals(partnerId))
+                {
+                    legal = true;
+                    break;
+                }
+            }
+
+            if (!legal)
+            {
+                throw new IllegalCommandException(
+                    "That is not an adjacent allied duck this reed can reach — it is not beside this "
+                    + "duck, it is over a ledge, or it is already holding an offer.");
+            }
+
+            var partner = state.UnitById(partnerId);
+            state = state.WithUnit(partner with { SplitReedOfferFrom = unitId });
+
+            events.Add(new SplitReedOffered(partnerId, unitId, offerer.Position, partner.Position));
+            return state;
         }
 
         private static GameState Place(

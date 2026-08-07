@@ -109,6 +109,8 @@ namespace Faultline.Core
             Staggered => nameof(Staggered),
             Rattled => nameof(Rattled),
             ChalkMarked => nameof(ChalkMarked),
+            SplitReedOffered => nameof(SplitReedOffered),
+            DucksSwapped => nameof(DucksSwapped),
             BramblesGrew => nameof(BramblesGrew),
             BramblesFaded => nameof(BramblesFaded),
             GreasedFeatherSpent => nameof(GreasedFeatherSpent),
@@ -294,6 +296,12 @@ namespace Faultline.Core
 
             DebrisPlaced e => "drops debris on " + e.At + " with " + Number(e.Hp) + " hp",
 
+            SplitReedOffered e => "offered a swap by " + Actor(state, e.ByUnitId)
+                + ", " + e.To + " for " + e.At + ", its owner answers or does not",
+
+            DucksSwapped e => "swaps places with " + Actor(state, e.WithUnitId)
+                + ", " + e.At + " and " + e.WithAt + ", a placement",
+
             BramblesGrew e => "scatters brambles on " + e.At
                 + ", until the end of round " + Number(e.ThroughRound),
 
@@ -374,6 +382,8 @@ namespace Faultline.Core
             Staggered e => e.UnitId,
             Rattled e => e.UnitId,
             ChalkMarked e => e.UnitId,
+            SplitReedOffered e => e.UnitId,
+            DucksSwapped e => e.UnitId,
             BramblesGrew e => e.UnitId,
             GreasedFeatherSpent e => e.UnitId,
             HandOffGranted e => e.UnitId,

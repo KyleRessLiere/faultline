@@ -263,6 +263,178 @@ public class PocketItemTests
             () => holding.Then(new UseConsumableCommand(duck)));
     }
 
+    // ---- Split Reed · swap with an adjacent ally, both owners consenting -------------------------
+
+    [Fact]
+    public void SplitReed_OffersASwap_AndMovesNobodyUntilTheOtherOwnerSaysYes()
+    {
+        var state = TwoFlocks(out var mine, out var theirs);
+
+        var here = state.Get(mine).Position;
+        var there = state.Get(theirs).Position;
+
+        var offered = state.WithPocket(mine, Consumable.SplitReed)
+            .Step(new UseConsumableCommand(mine, theirs));
+
+        // The reed is spent and the offer stands — and nothing has moved. Consent is structural: the
+        // other owner's yes is a command they may simply never send (D-192).
+        Assert.Null(offered.NewState.Get(mine).Loadout.Pocket);
+        Assert.Equal(mine, offered.NewState.Get(theirs).SplitReedOfferFrom);
+        Assert.Equal(here, offered.NewState.Get(mine).Position);
+        Assert.Equal(there, offered.NewState.Get(theirs).Position);
+        Assert.False(offered.Has<DucksSwapped>());
+
+        var announced = offered.Single<SplitReedOffered>();
+        Assert.Equal(theirs, announced.UnitId);
+        Assert.Equal(mine, announced.ByUnitId);
+    }
+
+    [Fact]
+    public void SplitReed_TheOfferIsTheOtherOwnersToTake_AndNeverTakingItIsLegal()
+    {
+        var state = TwoFlocks(out var mine, out var theirs);
+
+        var here = state.Get(mine).Position;
+        var there = state.Get(theirs).Position;
+
+        var offered = state.WithPocket(mine, Consumable.SplitReed)
+            .Then(new UseConsumableCommand(mine, theirs));
+
+        // The offerer cannot answer for the other body. There is no party-wide accept and no owner
+        // field to ask — the command names one duck, and it is not this one.
+        TestPlay.AssertNotLegal(offered, new TakeSplitReedCommand(mine));
+
+        // Handed over by playing, and then it is on the answering owner's list.
+        var toThem = offered;
+        for (int i = 0; i < 10 && toThem.ActiveTeam != Team.PlayerB; i++)
+        {
+            toThem = toThem.PassCurrent().NewState;
+        }
+
+        TestPlay.AssertLegal(toThem, new TakeSplitReedCommand(theirs));
+
+        var swapped = toThem.Step(new TakeSplitReedCommand(theirs));
+
+        Assert.Equal(here, swapped.NewState.Get(theirs).Position);
+        Assert.Equal(there, swapped.NewState.Get(mine).Position);
+        Assert.Null(swapped.NewState.Get(theirs).SplitReedOfferFrom);
+
+        var event_ = swapped.Single<DucksSwapped>();
+        Assert.Equal(theirs, event_.UnitId);
+        Assert.Equal(mine, event_.WithUnitId);
+    }
+
+    [Fact]
+    public void SplitReed_IsAPlacement_SoNothingIsCollidedWithButLandingTerrainApplies()
+    {
+        // The ally stands on brambles. A swap is a placement: nobody travels, so no collision and no
+        // Footing counter — but the duck that arrives on the thorns is bitten exactly as a walked
+        // step is bitten (D-185, D-192).
+        var state = BoardBuilder.Rows("^....")
+            .PlayerA(UnitKind.Vanguard, 1, 0)
+            .PlayerB(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 4, 0)
+            .Build();
+
+        var mine = state.Find(UnitKind.Vanguard).Id;
+        var theirs = state.Find(UnitKind.Archer).Id;
+
+        Assert.Equal(TileType.Spikes, state.Board.At(new Coord(0, 0)));
+
+        var offered = state.WithPocket(mine, Consumable.SplitReed)
+            .Then(new UseConsumableCommand(mine, theirs));
+
+        var toThem = offered;
+        for (int i = 0; i < 10 && toThem.ActiveTeam != Team.PlayerB; i++)
+        {
+            toThem = toThem.PassCurrent().NewState;
+        }
+
+        int before = toThem.Get(mine).Hp;
+        var swapped = toThem.Step(new TakeSplitReedCommand(theirs));
+
+        // The Vanguard landed on the brambles and paid the walk-on price. The Archer left them and
+        // pays nothing — it did not arrive anywhere hostile.
+        Assert.Equal(new Coord(0, 0), swapped.NewState.Get(mine).Position);
+        Assert.Equal(before - Displacement.SpikeWalkDamage, swapped.NewState.Get(mine).Hp);
+
+        var bite = swapped.Single<SpikeHit>();
+        Assert.Equal(mine, bite.UnitId);
+        Assert.True(bite.Voluntary);
+
+        // A placement travels through nothing, so nothing was collided with and nobody was offered a
+        // Footing refusal.
+        Assert.False(swapped.Has<Collision>());
+        Assert.False(swapped.Has<FootingChoiceRequested>());
+        Assert.False(swapped.Has<UnitPushed>());
+    }
+
+    [Fact]
+    public void SplitReed_RefusesAnOfferItCanNoLongerHonour_ByName()
+    {
+        var state = TwoFlocks(out var mine, out var theirs);
+
+        var offered = state.WithPocket(mine, Consumable.SplitReed)
+            .Then(new UseConsumableCommand(mine, theirs));
+
+        // The offerer went over a ledge between the offer and the answer. The swap is not silently
+        // performed and not silently dropped — it is refused, by name.
+        var stranded = offered.WithUnit(offered.Get(mine) with { Clinging = true });
+
+        Assert.False(Game.SplitReedSwapIsLegal(stranded, stranded.Get(theirs)));
+        TestPlay.AssertIllegal(stranded, new TakeSplitReedCommand(theirs));
+
+        // And a duck holding no offer at all is refused for its own reason.
+        TestPlay.AssertIllegal(state, new TakeSplitReedCommand(theirs));
+    }
+
+    [Fact]
+    public void SplitReed_WillNotReachPastAdjacency_OrTradeWithABodyOnALedge()
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .PlayerB(UnitKind.Archer, 3, 0)
+            .Enemy(UnitKind.Husk, 5, 0)
+            .Build();
+
+        var mine = state.Find(UnitKind.Vanguard).Id;
+        var far = state.Find(UnitKind.Archer).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+
+        var holding = state.WithPocket(mine, Consumable.SplitReed);
+
+        Assert.Empty(Consumables.ReedPartners(holding, holding.Get(mine)));
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(mine, far));
+
+        // Never an enemy: §8.6 prints "an adjacent allied duck".
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(mine, husk));
+
+        // And aimless is refused rather than spent for nothing.
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(mine));
+    }
+
+    [Fact]
+    public void SplitReed_AnUnansweredOfferLapsesAtTheRoundSeam()
+    {
+        var state = TwoFlocks(out var mine, out var theirs);
+
+        var offered = state.WithPocket(mine, Consumable.SplitReed)
+            .Then(new UseConsumableCommand(mine, theirs));
+
+        int round = offered.Round;
+        var next = offered;
+        for (int i = 0; i < 40 && next.Round == round; i++)
+        {
+            next = next.PassCurrent().NewState;
+        }
+
+        Assert.Equal(round + 1, next.Round);
+        Assert.Null(next.Get(theirs).SplitReedOfferFrom);
+
+        // The reed stays spent. Declining costs the answerer nothing and refunds the offerer nothing.
+        Assert.Null(next.Get(mine).Loadout.Pocket);
+    }
+
     // ---- the shared ruling ------------------------------------------------------------------------
 
     [Fact]
@@ -279,6 +451,19 @@ public class PocketItemTests
         var rattled = state.WithUnit(state.Get(husk) with { RattledFor = Team.PlayerA });
 
         Assert.Equal(rattled.Get(husk).RattledFor, chalked.Get(husk).RattledFor);
+    }
+
+    private static GameState TwoFlocks(out UnitId mine, out UnitId theirs)
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .PlayerB(UnitKind.Archer, 1, 0)
+            .Enemy(UnitKind.Husk, 5, 0)
+            .Build();
+
+        mine = state.Find(UnitKind.Vanguard).Id;
+        theirs = state.Find(UnitKind.Archer).Id;
+        return state;
     }
 
     private static GameState Vanguard(out UnitId duck, out UnitId husk)

@@ -51,5 +51,13 @@ namespace Faultline.Core
         /// standard effect vocabulary can say.
         /// </summary>
         Thorns = 4,
+
+        /// <summary>
+        /// Split Reed: pick an adjacent allied duck and offer to swap tiles. Custom because the offer
+        /// is filtered by adjacency and by who is already holding one, and because what it writes is a
+        /// standing offer rather than an effect — the swap itself waits on
+        /// <see cref="TakeSplitReedCommand"/> (D-192).
+        /// </summary>
+        Reed = 5,
     }
 }

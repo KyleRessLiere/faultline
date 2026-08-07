@@ -35,5 +35,8 @@ namespace Faultline.Core
 
         /// <summary>Grow brambles on one adjacent tile until the end of the round.</summary>
         ThornPouch = 7,
+
+        /// <summary>Offer an adjacent allied duck a swap of tiles; its owner accepts or does not.</summary>
+        SplitReed = 8,
     }
 }

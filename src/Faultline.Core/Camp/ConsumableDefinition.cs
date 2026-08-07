@@ -219,6 +219,15 @@ namespace Faultline.Core
             {
                 CustomRule = ConsumableRule.Thorns,
             },
+
+            new ConsumableDefinition(
+                Consumable.SplitReed,
+                "Split Reed",
+                "Offer an adjacent allied duck a swap of places. Its owner accepts or does not.",
+                ConsumableAim.Unit)
+            {
+                CustomRule = ConsumableRule.Reed,
+            },
         };
     }
 }
