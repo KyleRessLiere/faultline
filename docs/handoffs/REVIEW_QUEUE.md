@@ -13,6 +13,7 @@ already made (reversibly, with reasoning) or a question engineering can answer f
 
 | # | Question | What it blocks | Where |
 |---|---|---|---|
+| 0 | **v2026-08-06q deleted §8.7, §8.8 and §8.9 — including the entire Rushmaster spec.** Were they cut, deferred, or lost in delivery? | **Stage E entirely**, and 35 code comments whose section citations now resolve to nothing. §8.6 survived a rename in the same edit while its three neighbours vanished together, which is the shape of a delivery loss rather than a decision. | D-214 |
 | 1 | **The card pool has no Rare tier.** Zero cards declare `CardRarity.Rare`; the widest per-class Uncommon-or-Rare pool is 1. | **Stage D3 entirely.** The Forge and Deep Forge are stubbed and say so on screen. No amount of engineering unblocks it — it is content. | §8.6 |
 | 2 | **Should `Threat.DamageRound1` see a displacement-only enemy?** A Grappler's `Damage` is 0, so a board that opens by slamming your Archer into your own Wardbearer reads as safe. | Every board's agency check. High Road is the first board it cost, and it cost the whole board. Undecided in GAMEPLAY since D-080. | D-187 |
 | 3 | **The camp deals half the cards it used to** — one table of two, one pick. The ruling was about legibility; the halving was a side effect nobody asked for. | Act 1's whole progression rate: 8 cards → 4. | D-154 |

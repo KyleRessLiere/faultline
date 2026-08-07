@@ -203,18 +203,19 @@ in this file when the question comes back.
 | D-196 | [Every legendary is Rare, and being Rare is exactly what does not get it into a camp.](#d-196-every-legendary-is-rare-and-being-rare-is-exactly-what-does-not-get-it-into-a-camp) | 2026-08-07 |  |
 | D-197 | [`OfferCategory` is 8.5's camp-category cut, NOT 8.6's kind axis, and the difference is left standing rather than resolved.](#d-197-offercategory-is-85s-camp-category-cut-not-86s-kind-axis-and-the-difference-is-left-standing-rather-than-resolved) | 2026-08-07 |  |
 | D-198 | [Tier odds are a table keyed by source, because the ladder is locked and the numbers are not.](#d-198-tier-odds-are-a-table-keyed-by-source-because-the-ladder-is-locked-and-the-numbers-are-not) | 2026-08-07 |  |
-| D-210 | [Reversion belongs to the terrain-mutation system, and the Thorn Pouch is a call site.](#d-210-reversion-belongs-to-the-terrain-mutation-system-and-the-thorn-pouch-is-a-call-site) | unreleased |  |
-| D-211 | [When a mutation expires under a standing body, the ground changes and the body is not touched.](#d-211-when-a-mutation-expires-under-a-standing-body-the-ground-changes-and-the-body-is-not-touched) | unreleased |  |
-| D-212 | [Nothing is mutated under a standing body, and the refusal is the system's rather than the card's.](#d-212-nothing-is-mutated-under-a-standing-body-and-the-refusal-is-the-systems-rather-than-the-cards) | unreleased |  |
-| D-213 | [A mutation on a mutation keeps the first one's `Was`, and the booking's clock takes whichever round is later.](#d-213-a-mutation-on-a-mutation-keeps-the-first-ones-was-and-the-bookings-clock-takes-whichever-round-is-later) | unreleased |  |
-| D-199 | [A citation in code names a ruling that exists, and this file is where that is enforced.](#d-199-a-citation-in-code-names-a-ruling-that-exists-and-this-file-is-where-that-is-enforced) | unreleased |  |
-| D-200 | [A mark gilds exactly when the game can pay it, in both directions.](#d-200-a-mark-gilds-exactly-when-the-game-can-pay-it-in-both-directions) | unreleased |  |
-| D-201 | [Only a legendary whose rule is built is a member of the enum.](#d-201-only-a-legendary-whose-rule-is-built-is-a-member-of-the-enum) | unreleased |  |
-| D-202 | [Free movement a legendary owes is neither half of the activation, and the activation is held open to pay it.](#d-202-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-the-activation-is-held-open-to-pay-it) | unreleased |  |
-| D-203 | [Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.](#d-203-deep-roots-buys-exactly-one-skip-of-the-stance-drop-and-a-latch-is-what-bounds-it) | unreleased |  |
-| D-204 | [A free step's destination is a column in the replay log, because it is a choice.](#d-204-a-free-steps-destination-is-a-column-in-the-replay-log-because-it-is-a-choice) | unreleased |  |
+| D-210 | [Reversion belongs to the terrain-mutation system, and the Thorn Pouch is a call site.](#d-210-reversion-belongs-to-the-terrain-mutation-system-and-the-thorn-pouch-is-a-call-site) | 2026-08-07 |  |
+| D-211 | [When a mutation expires under a standing body, the ground changes and the body is not touched.](#d-211-when-a-mutation-expires-under-a-standing-body-the-ground-changes-and-the-body-is-not-touched) | 2026-08-07 |  |
+| D-212 | [Nothing is mutated under a standing body, and the refusal is the system's rather than the card's.](#d-212-nothing-is-mutated-under-a-standing-body-and-the-refusal-is-the-systems-rather-than-the-cards) | 2026-08-07 |  |
+| D-213 | [A mutation on a mutation keeps the first one's `Was`, and the booking's clock takes whichever round is later.](#d-213-a-mutation-on-a-mutation-keeps-the-first-ones-was-and-the-bookings-clock-takes-whichever-round-is-later) | 2026-08-07 |  |
+| D-199 | [A citation in code names a ruling that exists, and this file is where that is enforced.](#d-199-a-citation-in-code-names-a-ruling-that-exists-and-this-file-is-where-that-is-enforced) | 2026-08-07 |  |
+| D-200 | [A mark gilds exactly when the game can pay it, in both directions.](#d-200-a-mark-gilds-exactly-when-the-game-can-pay-it-in-both-directions) | 2026-08-07 |  |
+| D-201 | [Only a legendary whose rule is built is a member of the enum.](#d-201-only-a-legendary-whose-rule-is-built-is-a-member-of-the-enum) | 2026-08-07 |  |
+| D-202 | [Free movement a legendary owes is neither half of the activation, and the activation is held open to pay it.](#d-202-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-the-activation-is-held-open-to-pay-it) | 2026-08-07 |  |
+| D-203 | [Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.](#d-203-deep-roots-buys-exactly-one-skip-of-the-stance-drop-and-a-latch-is-what-bounds-it) | 2026-08-07 |  |
+| D-204 | [A free step's destination is a column in the replay log, because it is a choice.](#d-204-a-free-steps-destination-is-a-column-in-the-replay-log-because-it-is-a-choice) | 2026-08-07 |  |
+| D-214 | [HELD: Stage E cannot be built, because v2026-08-06q deletes the section that specifies it.](#d-214-held-stage-e-cannot-be-built-because-v2026-08-06q-deletes-the-section-that-specifies-it) | unreleased | *held* |
 
-**194 rulings.**
+**195 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5149,3 +5150,50 @@ test would report as one.
 The general rule it instances: **a command's log line carries every choice the player made and
 nothing Core can re-derive.** Re-derivable state in the log is noise; a dropped choice is a silent
 desync.
+
+
+---
+
+**D-214 - HELD: Stage E cannot be built, because v2026-08-06q deletes the section that specifies it.**
+
+The Stage E packet says "Read `docs/MASTER_DESIGN.md` **8.9** (the boss, verbatim)" and carries
+numbers from it - 26 HP, Move 1, melee 4 + Push 1, resist 1, Footing 1, three 6 HP Work Bells, the
+13 HP Cut Loose trigger, Crew Cover, Throw the Shift, Stampede. **Section 8.9 does not exist in the
+current stamp, and the word "Rushmaster" appears nowhere in it.**
+
+The q rewrite (186 insertions, 419 deletions against v2026-08-05x) removed three sections whole:
+
+| Removed | What it held |
+|---|---|
+| **8.7** | PROPOSAL - The Four Waters (pick-scene stations; council-endorsed, not locked) |
+| **8.8** | Warrens editions & generation constraints (locked w) |
+| **8.9** | The Rushmaster - Warrens boss (locked w; species provisional) |
+
+Section 8 now reads "**Bosses owed: Warrens boss + one per middle territory**", which is the state
+the doc was in *before* the Rushmaster was written. Nothing was renamed or moved - the specification
+is gone.
+
+**Not built, and not reconstructed from the archived stamp.** Prime directive 5 makes
+`MASTER_DESIGN.md` inbound-only and says a contradicted document gets a ruling and a report, not a
+local fix. Building a 26-HP boss out of a superseded stamp would put a locked-looking enemy in the
+game on an authority the designer has withdrawn, and every number in it would be unattributable the
+next time somebody asked why.
+
+**This is the hazard the prompt archive names in its own index.** Stage E's packet is dated
+2026-08-05 and was written against **v2026-08-05x**; the authority moved to q on 2026-08-06. The
+index for that folder says it plainly: *"an agent that reads old prompts starts implementing
+superseded instructions."* Stage E is the first packet where that came true.
+
+**Blast radius beyond the boss:** **33 code comments cite 8.8** and **2 cite 8.9** - rulings about
+Still Ponds, destinations, the legendary table, the eight authored boards, and the certification
+criteria the whole of Stage C was measured against. Those citations now resolve to nothing, which is
+the same defect D-199 names one stamp later. They are **not** swept here: repointing 35 comments at
+sections that may return in the next stamp would be churn, and repointing them at nothing would
+delete the reasoning. Held until the designer says whether 8.7-8.9 were **cut**, **deferred**, or
+**lost in delivery**.
+
+**What unblocks each answer.** Cut: the Warrens ships bossless for now and the 35 citations get
+rewritten against whatever replaces them. Deferred: nothing to do but wait, and Stage E is out of
+sequence rather than wrong. Lost in delivery: re-issue the stamp with 8.7-8.9 restored and Stage E
+runs unchanged - which is the outcome the removal's shape most suggests, since 8.6 survived a
+rename in the same edit while its three neighbours vanished together.
