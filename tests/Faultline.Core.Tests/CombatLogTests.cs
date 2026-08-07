@@ -253,6 +253,13 @@ public class CombatLogTests
             new SpendVerveCommand(new UnitId(1), VerveSpend.Cast, new UnitId(6), new Coord(4, 3)),
             new SpendVerveCommand(new UnitId(2), VerveSpend.DoubleNock),
             new SpendVerveCommand(new UnitId(3), VerveSpend.Preen),
+
+            // A legendary's free step carries the tile it lands on, and the tile is the whole point:
+            // a banked step has one landing Core re-derives, while Follow Through picks between
+            // every neighbour. Round-tripped with a tile that is not the origin so a dropped column
+            // cannot pass as a coincidence (D-204).
+            new TakeFreeStepCommand(new UnitId(1), new Coord(6, 2)),
+            new TakeBankedStepCommand(new UnitId(1)),
         };
 
         var record = new RunRecord { FightId = "the-maw", FightNumber = 4, Seed = -19, Commands = commands };

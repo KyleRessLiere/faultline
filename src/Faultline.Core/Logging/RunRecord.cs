@@ -193,6 +193,12 @@ namespace Faultline.Core
             // answer and not the log's (see UseConsumableCommand).
             UseConsumableCommand c => Join("Pocket", c.UnitId.ToString(), PocketAim(c)),
             TakeBankedStepCommand c => Join("Step", c.UnitId.ToString()),
+
+            // A verb of its own, and the destination tile with it. A banked step has one legal
+            // landing that Core re-derives, so "Step" needs no tile; a legendary's free step chooses
+            // between every adjacent tile, so a log that dropped the column would replay the duck
+            // onto a different one — a different fight (MASTER_DESIGN §8.6, D-204).
+            TakeFreeStepCommand c => Join("FreeStep", c.UnitId.ToString(), c.To.ToString()),
             _ => Join("Unknown", command is null ? "?" : command.GetType().Name),
         };
 
@@ -258,6 +264,10 @@ namespace Faultline.Core
 
                 case "Step":
                     return new TakeBankedStepCommand(ParseUnit(Field(fields, offset + 1)));
+
+                case "FreeStep":
+                    return new TakeFreeStepCommand(
+                        ParseUnit(Field(fields, offset + 1)), ParseTile(Field(fields, offset + 2)));
 
                 case "Footing":
                     return new FootingRefuseCommand(

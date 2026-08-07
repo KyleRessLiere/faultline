@@ -266,8 +266,13 @@ public class RunMapTests
 
     // --- Nodes -------------------------------------------------------------------------------------
 
+    /// <summary>
+    /// Entering the elite promises the legendary and does not hand it over. Since D-200 the promise
+    /// is payable — a gilt edge means it is literally there — but it is paid on the way out, after
+    /// the fight and after the node's own Camp, not on the way in.
+    /// </summary>
     [Fact]
-    public void TheElite_LoadsItsBoardAndReportsItsPromiseWithoutPayingIt()
+    public void TheElite_LoadsItsBoardAndPromisesALegendaryItHasNotPaidYet()
     {
         var run = MapFixture.Rigged(
             MapFixture.Start(), MapFixture.Toward("c2-the-teeth", "c3-broken-bridge"),
@@ -282,10 +287,12 @@ public class RunMapTests
         var promise = step.Single<RewardPromised>();
         Assert.Equal("c4-high-road", promise.NodeId);
         Assert.Equal("legendary-pick-1-of-2", promise.MarkId);
-        Assert.False(promise.Payable);
+        Assert.True(promise.Payable);
 
-        // Nothing was handed over: the squad that walked into the elite is the squad that was there.
+        // Nothing was handed over yet: the squad that walked into the elite is the squad that was
+        // there, and no duck wears an epithet until the destination opens on the way out.
         Assert.Equal(before, step.NewState.Squad);
+        Assert.All(step.NewState.Squad, duck => Assert.Null(duck.Loadout.Epithet));
     }
 
     [Fact]

@@ -220,29 +220,44 @@ public class ActMapTests
             RewardMark.LegendaryConsumablePickOneOfTwo.Id);
     }
 
+    /// <summary>
+    /// The promise rule, after D-200 made one half of it payable. A mark is payable exactly when
+    /// this build has a system that hands it over: the legendary pick now does — there is a
+    /// catalogue, a duck can wear one, and <see cref="Destination"/> is the surface — and the
+    /// legendary <em>consumable</em> pick still does not, because no legendary one-shot is built.
+    /// The second half is the one that still proves the rule bites.
+    /// </summary>
     [Fact]
-    public void RewardMarks_AreNotPayable()
+    public void RewardMarks_ArePayableExactlyWhenTheBuildCanHandThemOver()
     {
-        // The promise rule: no system in this build can hand one over, and the mark says so rather
-        // than leaving a screen to know it.
-        Assert.False(RewardMark.LegendaryPickOneOfTwo.Payable);
+        Assert.True(RewardMark.LegendaryPickOneOfTwo.Payable);
+
+        // Genuinely unpayable, and this is the mark that keeps the promise rule honest: nothing may
+        // gild it and nothing may open a destination for it while no legendary consumable exists.
         Assert.False(RewardMark.LegendaryConsumablePickOneOfTwo.Payable);
 
         foreach (var node in Act1.Nodes)
         {
-            if (node.Reward is not null)
+            if (node.Reward is { Payable: true } reward)
             {
-                Assert.False(node.Reward.Payable, node.Id + " promises something it can pay.");
+                // A payable mark on the graph must be one the run can actually open a destination
+                // for. A mark that gilds but has no phase behind it is the broken promise wearing
+                // the other face.
+                Assert.Equal(RewardMarkKind.LegendaryPick, reward.Kind);
             }
         }
     }
 
+    /// <summary>
+    /// The half of "no payout code path" that survives D-200. A mark still never becomes run state
+    /// by itself — the legendary that lands on a duck comes from <see cref="LegendaryCatalogue"/>
+    /// and the run RNG, and the mark's only job is still to say a destination is owed. Enforced by
+    /// reflection rather than by care, because "the mark is only read, never spent" is exactly the
+    /// kind of statement that quietly stops being true.
+    /// </summary>
     [Fact]
-    public void RewardMarks_HaveNoPayoutCodePath()
+    public void RewardMarks_AreReadAndReported_NeverTurnedIntoRunStateThemselves()
     {
-        // Core must not contain a route from a mark to a changed run. Enforced by reflection rather
-        // than by care, because "we did not build the payout yet" is exactly the kind of statement
-        // that quietly stops being true.
         var offenders = new List<string>();
 
         foreach (var type in typeof(RewardMark).Assembly.GetTypes())
@@ -258,7 +273,8 @@ public class ActMapTests
                 }
 
                 // Reading one and reporting it is fine — the mark exists to be rendered and logged.
-                // Turning one into run state is not.
+                // Turning one into run state is not: Destination.Open takes the run and asks the
+                // mark a question, and never takes a mark and returns a changed run.
                 if (method.ReturnType == typeof(RunState)
                     || method.ReturnType == typeof(RunUnit)
                     || method.ReturnType == typeof(GameState))
@@ -269,6 +285,38 @@ public class ActMapTests
         }
 
         Assert.Empty(offenders);
+    }
+
+    /// <summary>
+    /// §8.8's generator constraint, named: <b>High Road always pays its legendary before the
+    /// Trench.</b> Verified against the authored graph rather than against a played run, because it
+    /// is a claim about the map's shape — the hungry route's reward must land ahead of the risk that
+    /// tests it, or the route was never tested with both halves in place.
+    /// </summary>
+    [Fact]
+    public void HighRoad_AlwaysPaysItsLegendaryBeforeTheTrench()
+    {
+        var highRoad = Act1.NodeAt("c4-high-road")!;
+        var trench = Act1.NodeAt("c5-the-trench")!;
+
+        // The reward is on High Road and it is payable, so standing on it opens a destination.
+        Assert.Equal(RewardMark.LegendaryPickOneOfTwo, highRoad.Reward);
+        Assert.True(highRoad.Reward!.Payable);
+        Assert.Equal(RewardMarkKind.LegendaryPick, highRoad.Reward.Kind);
+
+        // And the Trench has exactly one way in, which is that node. There is no lane, no crossing
+        // and no skip that reaches the risk without first standing on the reward.
+        var waysIn = Act1.Nodes
+            .Where(n => Act1.Successors(n.Id).Contains(trench.Id))
+            .Select(n => n.Id)
+            .ToList();
+
+        Assert.Equal(new[] { "c4-high-road" }, waysIn);
+
+        // The reward is strictly earlier on the board, not merely elsewhere on it.
+        Assert.True(
+            highRoad.Column < trench.Column,
+            "High Road must sit ahead of the Trench, not beside it.");
     }
 
     [Fact]

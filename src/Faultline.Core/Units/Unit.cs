@@ -196,6 +196,40 @@ namespace Faultline.Core
         /// </remarks>
         public Coord? BankedStepTo { get; init; }
 
+        /// <summary>
+        /// Tiles of free movement this duck is owed by a permanent legendary — Follow Through's move
+        /// after a collision, Kestrel Step's move after a shot (MASTER_DESIGN §8.6).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>The activation waits while this is above zero</b>, which is the rule-break the legendary
+        /// tier is for: §3's AP turn ends an activation the moment its action lands, and these tiles
+        /// arrive after it. Holding the activation open is the narrowest way to pay them — the duck is
+        /// still the acting duck, its owner is still the acting player, and no off-turn timing has to
+        /// be invented (§14 #13 leaves that unruled; D-202).
+        /// </para>
+        /// <para>
+        /// Free of the AP purse: <see cref="Activation.Remaining"/> is untouched by spending one, so a
+        /// duck that spent its whole pool still walks. Brambles still bite on arrival, exactly as they
+        /// do for a banked Shelter Step.
+        /// </para>
+        /// </remarks>
+        public int FreeSteps { get; init; }
+
+        /// <summary>
+        /// True once a legendary has already granted free steps this activation. The latch behind
+        /// "after causing a collision" being one payout, not one per collision in a trample.
+        /// </summary>
+        public bool FreeStepsGranted { get; init; }
+
+        /// <summary>
+        /// True while Deep Roots is holding this Wardbearer's Guard Stance through an activation
+        /// (MASTER_DESIGN §8.6). Set when the stance survives the start of an activation it would
+        /// otherwise have dropped at, and cleared when that activation ends — which is what makes the
+        /// card "persists through his NEXT activation" rather than "never drops".
+        /// </summary>
+        public bool GuardHeldByRoots { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 
@@ -306,6 +340,16 @@ namespace Faultline.Core
         /// <returns>Whether this unit acts on it.</returns>
         public bool Has(TechniqueModifier technique) =>
             Kind == CampCatalogue.KindOf(technique) && Loadout.Has(technique);
+
+        /// <summary>
+        /// Whether this duck wears a permanent legendary, and is the class that can wear it. Class
+        /// and loadout together for the reason <see cref="Has(TechniqueModifier)"/> checks both: a
+        /// legendary is its class's epithet, and nothing else's.
+        /// </summary>
+        /// <param name="card">Legendary to look for.</param>
+        /// <returns>Whether this unit acts on it.</returns>
+        public bool Has(Legendary card) =>
+            Kind == LegendaryCatalogue.KindOf(card) && Loadout.Has(card);
 
         /// <summary>Creates a unit at full health from its archetype template.</summary>
         /// <param name="id">Stable identifier.</param>

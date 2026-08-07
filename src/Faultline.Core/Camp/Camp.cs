@@ -114,7 +114,7 @@ namespace Faultline.Core
             // nothing to decline, because every pool the squad could draw from is exhausted.
             if (table.IsEmpty)
             {
-                return Campaign.Advance(state with { Phase = RunPhase.AtNode }, context);
+                return Destination.Open(state with { Phase = RunPhase.AtNode }, context);
             }
 
             context.RunEvents.Add(new CampOffered(state.NodeIndex, fightId ?? string.Empty, table));
@@ -216,7 +216,11 @@ namespace Faultline.Core
 
             next = Take(next, table, command.Pick, context);
 
-            return Campaign.Advance(next with { Phase = RunPhase.AtNode }, context);
+            // "After its normal Camp": a node wearing a payable gilt mark pays it here, between the
+            // camp and the next vote, so the hungry route's promise lands before the fight that
+            // tests it (MASTER_DESIGN §8.5, §8.8). Every other node walks straight on — Open makes
+            // that call, because whether a mark is payable is the mark's own question.
+            return Destination.Open(next with { Phase = RunPhase.AtNode }, context);
         }
 
         /// <summary>

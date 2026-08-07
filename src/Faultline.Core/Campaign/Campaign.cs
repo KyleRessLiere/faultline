@@ -114,6 +114,15 @@ namespace Faultline.Core
                 return Result(Camp.Resolve(state, pick, campContext), campContext);
             }
 
+            // The gilt destination sits on the same seam as the camp, one step later, and is the
+            // engine's business for the same reason (MASTER_DESIGN §8.5).
+            if (command is LegendaryPickCommand legendary)
+            {
+                var destinationContext = new RunContext();
+                return Result(
+                    Destination.Resolve(state, legendary, destinationContext), destinationContext);
+            }
+
             if (state.Phase == RunPhase.AtVote)
             {
                 throw new InvalidOperationException(
@@ -124,6 +133,13 @@ namespace Faultline.Core
             {
                 throw new InvalidOperationException(
                     "The run is at a camp and the only thing it takes is a pick. There is no skip.");
+            }
+
+            if (state.Phase == RunPhase.AtDestination)
+            {
+                throw new InvalidOperationException(
+                    "The run is at a gilt destination and the only thing it takes is a legendary. "
+                    + "There is no skip — the gilt edge already promised it.");
             }
 
             var node = state.CurrentNode
@@ -175,6 +191,11 @@ namespace Faultline.Core
             if (state.Phase == RunPhase.AtCamp)
             {
                 return Camp.LegalPicks(state);
+            }
+
+            if (state.Phase == RunPhase.AtDestination)
+            {
+                return Destination.LegalPicks(state);
             }
 
             var node = state.CurrentNode;
@@ -403,6 +424,7 @@ namespace Faultline.Core
             RunPhase.InFight => "in a fight",
             RunPhase.AtChoice => "being asked a question by the node it is on",
             RunPhase.AtCamp => "at a camp with both players' cards on the table",
+            RunPhase.AtDestination => "at a gilt destination with its legendaries on the table",
             RunPhase.Complete => "over",
             _ => phase.ToString(),
         };
@@ -471,7 +493,15 @@ namespace Faultline.Core
         /// </param>
         /// <param name="lastPickOwner">Which player took the last camp card, or <c>null</c>.</param>
         /// <param name="previousPickOwner">Which player took the one before that, or <c>null</c>.</param>
-        /// <returns>The run, standing on its node — or at its fork, or at its camp.</returns>
+        /// <param name="atDestination">
+        /// True when the run was standing at a gilt destination with its legendary still to take.
+        /// Carried for exactly the reason <paramref name="atCamp"/> is, and one reason more: the
+        /// destination is the hungry route's whole promise, and a reload that dropped the phase would
+        /// walk the run onto the Trench having silently kept the risk and lost the reward (§8.8). The
+        /// pair is not stored — it is a pure function of <paramref name="rngState"/> and the squad,
+        /// so restoring the phase deals the same two cards.
+        /// </param>
+        /// <returns>The run, standing on its node — or at its fork, its camp, or its destination.</returns>
         /// <exception cref="ArgumentException">
         /// The squad does not match the campaign's, or <paramref name="atVote"/> is claimed somewhere
         /// no fork exists.
@@ -489,7 +519,8 @@ namespace Faultline.Core
             bool atCamp = false,
             int campsHeld = 0,
             Team? lastPickOwner = null,
-            Team? previousPickOwner = null)
+            Team? previousPickOwner = null,
+            bool atDestination = false)
         {
             if (campaign is null)
             {
@@ -586,6 +617,7 @@ namespace Faultline.Core
                 Phase = ending != RunOutcome.InProgress ? RunPhase.Complete
                     : waiting ? RunPhase.AtVote
                     : atCamp ? RunPhase.AtCamp
+                    : atDestination ? RunPhase.AtDestination
                     : RunPhase.AtNode,
                 Fight = null,
                 Bindings = Array.Empty<RunBinding>(),

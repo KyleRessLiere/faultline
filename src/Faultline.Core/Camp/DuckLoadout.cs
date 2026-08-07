@@ -66,10 +66,17 @@ namespace Faultline.Core
         /// <summary>What is in the duck's one pocket, or <c>null</c> when it is empty.</summary>
         public Consumable? Pocket { get; init; }
 
+        /// <summary>
+        /// The permanent legendary this duck wears, or <c>null</c>. MASTER_DESIGN §8.6: "one per duck
+        /// = its epithet" — so one slot, not a list, and taking a second is refused rather than
+        /// appended.
+        /// </summary>
+        public Legendary? Epithet { get; init; }
+
         /// <summary>True when this duck carries nothing at all.</summary>
         public bool IsEmpty =>
             Mods.Count == 0 && SecondWinds.Count == 0 && Unlocks.Count == 0
-            && Techniques.Count == 0 && Pocket is null;
+            && Techniques.Count == 0 && Pocket is null && Epithet is null;
 
         /// <summary>True when every mod slot is taken, so no mod may be offered for this duck.</summary>
         public bool SpenderIsFull => Mods.Count >= ModSlots;
@@ -88,6 +95,11 @@ namespace Faultline.Core
         /// <param name="unlock">Unlock to look for.</param>
         /// <returns>Whether it is held.</returns>
         public bool Has(Unlock unlock) => Contains(Unlocks, unlock);
+
+        /// <summary>Whether this duck wears a named legendary.</summary>
+        /// <param name="card">Legendary to look for.</param>
+        /// <returns>Whether it is worn.</returns>
+        public bool Has(Legendary card) => Epithet == card;
 
         /// <summary>Whether this duck's kit carries a technique modifier.</summary>
         /// <param name="technique">Technique to look for.</param>
@@ -150,6 +162,16 @@ namespace Faultline.Core
             ? throw new InvalidOperationException("That duck already has " + unlock + ".")
             : this with { Unlocks = Append(Unlocks, unlock) };
 
+        /// <summary>This loadout wearing a permanent legendary.</summary>
+        /// <param name="card">The legendary.</param>
+        /// <returns>The new loadout.</returns>
+        /// <exception cref="InvalidOperationException">This duck already wears one.</exception>
+        public DuckLoadout With(Legendary card) => Epithet is { } worn
+            ? throw new InvalidOperationException(
+                "That duck's epithet is already " + LegendaryCatalogue.NameOf(worn)
+                + ", and a duck wears one.")
+            : this with { Epithet = card };
+
         /// <summary>This loadout with something in the pocket.</summary>
         /// <param name="consumable">What to carry.</param>
         /// <returns>The new loadout.</returns>
@@ -167,6 +189,7 @@ namespace Faultline.Core
         public bool Equals(DuckLoadout? other) =>
             other is not null
             && Pocket == other.Pocket
+            && Epithet == other.Epithet
             && Same(Mods, other.Mods)
             && Same(SecondWinds, other.SecondWinds)
             && Same(Unlocks, other.Unlocks)
@@ -178,6 +201,7 @@ namespace Faultline.Core
             unchecked
             {
                 int hash = Pocket.HasValue ? (int)Pocket.Value + 1 : 0;
+                hash = (hash * 47) + (Epithet.HasValue ? (int)Epithet.Value + 1 : 0);
                 foreach (var mod in Mods)
                 {
                     hash = (hash * 31) + (int)mod + 1;

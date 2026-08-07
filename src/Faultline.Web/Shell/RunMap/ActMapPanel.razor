@@ -16,10 +16,11 @@
    THE SPOILER RULE. A roster preview is drawn only for a door one step away, and a distant node has
    no roster on its card to draw — see MapCard.Roster. The map is not a spoiler sheet.
 
-   THE PROMISE RULE. A gilt edge means a legendary is LITERALLY there. Nothing in this build can pay
-   one, so RewardMark.Payable is false, so no gilt is drawn and nothing is promised — on the marked
-   node, in its hover, or anywhere else. The gilt sits behind the same flag as the payout so both
-   light up together. *@
+   THE PROMISE RULE. A gilt edge means a legendary is LITERALLY there. The gilt sits behind the same
+   flag as the payout — RewardMark.Payable — so the two cannot drift apart: a mark gilds exactly when
+   the game can pay it, and an unpayable mark draws nothing at all on the node, in its hover, or
+   anywhere else. High Road's legendary pick now pays, so it now gilds. The legendary CONSUMABLE pick
+   is still a typed, named, unpayable mark and still draws silence rather than a smaller promise. *@
 
 @if (Runs.Map is null)
 {

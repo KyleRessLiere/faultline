@@ -34,5 +34,14 @@ namespace Faultline.Core
         /// is not a decision. The camp sits on the run seam, ahead of the next vote.
         /// </summary>
         AtCamp = 5,
+
+        /// <summary>
+        /// At a gilt destination: the node the run just cleared wears a payable
+        /// <see cref="RewardMark"/>, its Camp is done, and the only legal commands are
+        /// <see cref="LegendaryPickCommand"/>s. There is no skip — a gilt edge is a promise, not an
+        /// offer (MASTER_DESIGN §8.5). Like <see cref="AtCamp"/> it sits on the run seam, after the
+        /// camp and ahead of the next vote.
+        /// </summary>
+        AtDestination = 6,
     }
 }

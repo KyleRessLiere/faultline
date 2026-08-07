@@ -336,6 +336,8 @@ namespace Faultline.Core
                     return ApplyUseConsumable(state, use, events);
                 case TakeBankedStepCommand step:
                     return ApplyBankedStep(state, step, events);
+                case TakeFreeStepCommand free:
+                    return ApplyFreeStep(state, free, events);
                 case EndActivationCommand end:
                     return ApplyEndActivation(state, end, events);
                 default:
@@ -670,6 +672,14 @@ namespace Faultline.Core
                     && state.StructureAt(banked) is null)
                 {
                     commands.Add(new TakeBankedStepCommand(unit.Id));
+                }
+
+                // Free movement a legendary already paid for. Neither half of the activation and
+                // nothing out of the purse — the activation is being held open for exactly this, and
+                // EndActivationCommand below is the way to decline it.
+                foreach (var tile in Legendaries.FreeStepsFrom(state, unit))
+                {
+                    commands.Add(new TakeFreeStepCommand(unit.Id, tile));
                 }
 
                 // The rescue is fused and costs the whole pool (superseding D-082), so what is on
@@ -1395,6 +1405,45 @@ namespace Faultline.Core
                 state, unit.Id, Displacement.SpikeWalkDamage, DamageSource.Spikes, events);
         }
 
+        /// <summary>
+        /// Spends one tile of the free movement a permanent legendary owes — Follow Through's move
+        /// after a collision, Kestrel Step's after a shot (MASTER_DESIGN §8.6). Free of the AP purse
+        /// and of the move half, which is the rule-break the card is.
+        /// </summary>
+        private static GameState ApplyFreeStep(
+            GameState state, TakeFreeStepCommand command, List<GameEvent> events)
+        {
+            var unit = state.UnitById(command.UnitId);
+
+            Require(unit.FreeSteps > 0, "That duck is owed no free steps.");
+            Require(unit.IsOnBoard && !unit.Clinging, "That duck cannot take a step right now.");
+            Require(
+                unit.Position.IsAdjacentTo(command.To),
+                "A free step goes one tile, and that tile is not next to the duck.");
+            Require(
+                Legendaries.CanStepTo(state, command.To),
+                "That tile cannot be stepped into: it is off the board, unwalkable, or occupied.");
+
+            var from = unit.Position;
+            state = state.WithUnit(unit with
+            {
+                Position = command.To,
+                FreeSteps = unit.FreeSteps - 1,
+            });
+            events.Add(new UnitMoved(unit.Id, from, command.To, new[] { command.To }, 0));
+
+            // A free step is still a step, and the board charges for it exactly as it charges for a
+            // walked one — the same ruling ApplyBankedStep makes.
+            if (state.Board.At(command.To) == TileType.Spikes)
+            {
+                events.Add(new SpikeHit(unit.Id, command.To, Displacement.SpikeWalkDamage, true));
+                state = Combat.ApplyDamage(
+                    state, unit.Id, Displacement.SpikeWalkDamage, DamageSource.Spikes, events);
+            }
+
+            return AfterAction(state, unit.Id, events);
+        }
+
         private static GameState ApplyRescue(GameState state, RescueCommand command, List<GameEvent> events)
         {
             var rescuer = RequireActivatable(state, command.UnitId);
@@ -1625,7 +1674,16 @@ namespace Faultline.Core
             // D-058: Guard Stance lasts "until the guard's next activation", which is here — the
             // instant it takes the slot, before it has done anything with it. Not at end of round:
             // the stance is declared on one activation to cover the enemy round that follows it.
-            if (unit.Guarding)
+            //
+            // Deep Roots (§8.6) buys exactly one skip of that drop: the stance persists THROUGH this
+            // activation, and the duck may act while it holds. The latch is what makes it one
+            // activation and not forever — it is set here and cleared in EndActivation, so the next
+            // activation drops the stance normally (D-203).
+            if (unit.Guarding && unit.Has(Legendary.DeepRoots) && !unit.GuardHeldByRoots)
+            {
+                state = state.WithUnit(state.UnitById(unit.Id) with { GuardHeldByRoots = true });
+            }
+            else if (unit.Guarding)
             {
                 state = state.WithUnit(state.UnitById(unit.Id) with { Guarding = false });
                 events.Add(new GuardStanceChanged(unit.Id, unit.Position, false));
@@ -1642,7 +1700,19 @@ namespace Faultline.Core
                 return state;
             }
 
+            // A legendary's free movement is earned by the action that just resolved and paid after
+            // it, so it is banked here — before the activation is allowed to end, because holding
+            // the activation open is how it is paid (MASTER_DESIGN §8.6, D-202).
+            state = Legendaries.GrantFreeSteps(state, unitId, events);
+
             var unit = state.UnitById(unitId);
+
+            // The activation waits while tiles are owed. Declining them is EndActivationCommand,
+            // which is on the legal list beside every step — a silent no-op would be a bug.
+            if (unit.FreeSteps > 0 && CanAct(unit))
+            {
+                return state;
+            }
 
             // Brief §2: an activation is Move plus one Action in either order — once both halves are
             // spent, or the unit is off the board, there is nothing left to choose.
@@ -1670,7 +1740,24 @@ namespace Faultline.Core
                 HasSpentVerve = false,
                 WreckingWeightArmed = false,
                 ExtraAttacks = 0,
+
+                // Unspent free steps expire with the activation they held open, and the latch that
+                // says a legendary already paid this activation clears with them.
+                FreeSteps = 0,
+                FreeStepsGranted = false,
+
+                // Deep Roots holds the stance through exactly one activation, and this is where that
+                // activation ends. Dropping both the stance and the latch here is what makes the
+                // card "persists through his NEXT activation" rather than a stance that never drops
+                // (MASTER_DESIGN §8.6, D-203).
+                Guarding = unit.GuardHeldByRoots ? false : unit.Guarding,
+                GuardHeldByRoots = false,
             });
+
+            if (unit.GuardHeldByRoots)
+            {
+                events.Add(new GuardStanceChanged(unitId, unit.Position, false));
+            }
             events.Add(new ActivationEnded(unitId, passed));
 
             state = state with { ActiveUnitId = null };

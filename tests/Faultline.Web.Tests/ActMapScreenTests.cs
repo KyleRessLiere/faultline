@@ -194,60 +194,65 @@ public sealed class ActMapScreenTests
     // ---- The promise rule -----------------------------------------------------------------------
 
     /// <summary>
-    /// The one that matters. <c>high-road</c> carries <c>legendary-pick-1-of-2</c> and no legendary
-    /// system exists, so the map draws a plain elite: no gilt, no promise, no mention of a prize.
-    /// Asserted on the drawn markup, because the rule is about what reaches a player's eye.
+    /// The one that matters, now from the other side. <c>high-road</c> carries
+    /// <c>legendary-pick-1-of-2</c> and the legendary destination exists, so the mark is payable and
+    /// the map may finally say so: gilt edge, promise, the prize named. Asserted on the drawn markup,
+    /// because the rule was always about what reaches a player's eye.
     /// </summary>
+    /// <remarks>
+    /// This test used to assert the opposite, and it was right to. The promise rule is not "never
+    /// gild" — it is "gild exactly when the game can pay", and until the legendary session shipped
+    /// the honest answer was nothing at all. The half that has not changed is pinned below and in
+    /// <see cref="TheRunLog_AdmitsAnUnpayableMark_WithoutNamingAPrize"/>.
+    /// </remarks>
     [Fact]
-    public async Task HighRoad_DrawsNoGiltAndPromisesNothing_WhileTheMarkCannotBePaid()
+    public async Task HighRoad_DrawsItsGiltAndNamesThePrize_NowThatTheMarkCanBePaid()
     {
         var node = ActMapLibrary.Act1.NodeAt("c4-high-road")!;
 
-        // The fixture is only interesting if the mark is really there and really unpayable.
+        // The fixture is only interesting if the mark is really there and really payable.
         Assert.Equal("legendary-pick-1-of-2", node.Reward!.Id);
         Assert.Equal(RewardMarkKind.LegendaryPick, node.Reward.Kind);
-        Assert.False(node.Reward.Payable);
+        Assert.True(node.Reward.Payable);
 
         var html = Render(await RunAt("c1-first-contact", "c2-the-teeth", "c3-molting-pool"));
         var card = NodeMarkup(html, "c4-high-road");
 
-        Assert.DoesNotContain("gilt", card);
-        Assert.DoesNotContain("class=\"promise\"", card);
+        Assert.Contains("gilt", card);
+        Assert.Contains("class=\"promise\"", card);
 
-        // Nothing anywhere on the card says prize, in markup or in prose.
+        // And it says what it pays, in prose a player reads rather than in a class name.
         var visible = VisibleText(card);
-        foreach (string word in new[] { "legendary", "Legendary", "pick 1 of 2", "reward", "prize" })
-        {
-            Assert.DoesNotContain(word, card);
-            Assert.DoesNotContain(word, visible);
-        }
+        Assert.Contains("Pick 1 of 2 permanent legendaries.", visible);
 
-        // It is a plain elite and says so, which is the honest thing it can say.
+        // Still an elite. The gilt is a second fact about the node, not a replacement for the first.
         Assert.Contains("type-elite", card);
         Assert.Contains("Elite", visible);
-
-        // And no gilt is drawn anywhere on the map, because no mark on it can be paid.
-        Assert.DoesNotContain("gilt", html);
     }
 
     /// <summary>
-    /// The other half: the gilt hangs off <see cref="RewardMark.Payable"/> and never off the mark's
-    /// kind. Both of Act 1's marks are known, typed and unpayable, and both draw nothing.
+    /// The half that has not changed: the gilt hangs off <see cref="RewardMark.Payable"/> and never
+    /// off the mark's kind. Act 1's legendary pick is payable and gilds; the legendary <em>consumable</em>
+    /// pick is a real, typed, named mark whose pockets are unbuilt, so it still draws nothing.
     /// </summary>
     [Fact]
     public void TheGilt_ReadsThePayableFlag_AndNeverTheMarksKind()
     {
-        Assert.False(MapCards.GiltFor(RewardMark.LegendaryPickOneOfTwo));
+        Assert.True(MapCards.GiltFor(RewardMark.LegendaryPickOneOfTwo));
         Assert.False(MapCards.GiltFor(RewardMark.LegendaryConsumablePickOneOfTwo));
         Assert.False(MapCards.GiltFor(null));
 
-        Assert.Equal(string.Empty, MapCards.PromiseFor(RewardMark.LegendaryPickOneOfTwo));
+        Assert.Equal(
+            "Pick 1 of 2 permanent legendaries.",
+            MapCards.PromiseFor(RewardMark.LegendaryPickOneOfTwo));
+
+        // Typed, known, and still unpayable — so the promise is silence, not a smaller promise.
         Assert.Equal(string.Empty, MapCards.PromiseFor(RewardMark.LegendaryConsumablePickOneOfTwo));
 
         var card = MapCards.Build(ActMapLibrary.Act1, null).Single(c => c.NodeId == "c4-high-road");
 
-        Assert.False(card.Gilt);
-        Assert.Equal(string.Empty, card.Promise);
+        Assert.True(card.Gilt);
+        Assert.Equal("Pick 1 of 2 permanent legendaries.", card.Promise);
     }
 
     /// <summary>The log tells the same story the map does: the mark is admitted, the prize is not.</summary>

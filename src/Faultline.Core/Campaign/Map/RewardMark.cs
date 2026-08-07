@@ -46,11 +46,16 @@ namespace Faultline.Core
             + From.ToString(CultureInfo.InvariantCulture);
 
         /// <summary>
-        /// Whether any system in the build can actually hand this over. Always false in v1: no
-        /// legendary catalog, no consumable pockets, no pick-one-of-two surface exists. See the
-        /// promise rule in the type's own remarks.
+        /// Whether any system in the build can actually hand this over.
         /// </summary>
-        public bool Payable => false;
+        /// <remarks>
+        /// True for <see cref="RewardMarkKind.LegendaryPick"/> since D-200: there is a legendary
+        /// catalogue, a squad member can wear one, and <see cref="Destination"/> is the
+        /// pick-one-of-two surface. Still false for the Sunken Cache's legendary consumables — no
+        /// legendary one-shot is built, so nothing may draw its gilt edge. See the promise rule in
+        /// the type's own remarks.
+        /// </remarks>
+        public bool Payable => Kind == RewardMarkKind.LegendaryPick;
 
         /// <summary>Reads a mark back from its <see cref="Id"/>.</summary>
         /// <param name="id">A serialised mark, e.g. <c>legendary-consumable-pick-1-of-2</c>.</param>
