@@ -213,7 +213,7 @@ in this file when the question comes back.
 | D-202 | [Free movement a legendary owes is neither half of the activation, and the activation is held open to pay it.](#d-202-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-the-activation-is-held-open-to-pay-it) | 2026-08-07 |  |
 | D-203 | [Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.](#d-203-deep-roots-buys-exactly-one-skip-of-the-stance-drop-and-a-latch-is-what-bounds-it) | 2026-08-07 |  |
 | D-204 | [A free step's destination is a column in the replay log, because it is a choice.](#d-204-a-free-steps-destination-is-a-column-in-the-replay-log-because-it-is-a-choice) | 2026-08-07 |  |
-| D-214 | [HELD: Stage E cannot be built, because v2026-08-06q deletes the section that specifies it.](#d-214-held-stage-e-cannot-be-built-because-v2026-08-06q-deletes-the-section-that-specifies-it) | unreleased | *held* |
+| D-214 | [HELD: Stage E cannot be built, because v2026-08-06q deletes the section that specifies it.](#d-214-held-stage-e-cannot-be-built-because-v2026-08-06q-deletes-the-section-that-specifies-it) | 2026-08-07 | *held* |
 
 **195 rulings.**
 
@@ -5192,8 +5192,37 @@ sections that may return in the next stamp would be churn, and repointing them a
 delete the reasoning. Held until the designer says whether 8.7-8.9 were **cut**, **deferred**, or
 **lost in delivery**.
 
-**What unblocks each answer.** Cut: the Warrens ships bossless for now and the 35 citations get
-rewritten against whatever replaces them. Deferred: nothing to do but wait, and Stage E is out of
-sequence rather than wrong. Lost in delivery: re-issue the stamp with 8.7-8.9 restored and Stage E
-runs unchanged - which is the outcome the removal's shape most suggests, since 8.6 survived a
-rename in the same edit while its three neighbours vanished together.
+**RULED (designer, same day): q is VOID; x is the authority and the stamp is re-cut from it.**
+
+The diagnosis is sharper than "lost in delivery", and the Design Log proves it in one line: **q's log
+runs (q) then jumps straight to (p).** Seven locked sessions are absent from it - **(r), (s), (t),
+(u), (v), (w), (x)**. So q was not x with three sections removed. **q was built on a (p)-era base
+from 2026-08-03**, with the new camp-director rulings appended to it, and it therefore silently
+reverts every ruling locked since:
+
+| Missing | What q reverts to |
+|---|---|
+| (t) | the Footing rework - instances, not tiles |
+| (u) | the climb surcharge; q's terrain table reads "+1 MP to climb (Archer free)" where x reads "ordinary movement (no climb surcharge - locked u)" |
+| (v) | displacement preview legibility |
+| (w) | **Warrens act v2 - which is where 8.7, 8.8 and 8.9 arrived.** They were never deleted from q; they were never in it |
+| (x) | the Pond clearing Bedraggled |
+
+Bull Rush is the cleanest tell: q prints "**Bull Rush 3** (full pool, no pre-move)", x prints
+"**Bull Rush 2** (move <=1 first is legal)". The build has shipped 2 since D-126.
+
+**So the 35 citations were never stale.** They point at sections that exist in the real authority and
+resolve again the moment the stamp is correct - which is why sweeping them would have destroyed live
+reasoning to chase an artifact. Holding was right for a better reason than the one it was held for.
+
+**Consequence for this session's work:** the tier assignments in item 4 were made against 8.5/8.6 as
+q printed them, and q's 8.6 is a (p)-era draft. **The reward work wants a second look once x is
+reissued** - not a revert, a check. Stage D items 1 and 5 stay held and item 6 is not certified. Item
+2 proceeds: re-anchoring pocket tests to Camp 2 is test-side and touches nothing the stamp governs.
+
+**The process failure is upstream of the repo and is recorded so it is not repeated:** the designer's
+working copy had drifted seven sessions behind the repo, and a design session against a stale copy
+reissues old rulings as new law. The archive's own warning - *"an agent that reads old prompts starts
+implementing superseded instructions"* - turns out to apply to the design document itself, not only
+to the prompts. **Refresh the working copy from the repo before a design session**, and check an
+inbound stamp's Design Log for gaps before reading anything else in it.
