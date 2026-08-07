@@ -147,10 +147,22 @@ public sealed class CampScreenTests
     /// no one-shots (<see cref="CampCatalogue.EligibleFor"/>), so neither is ever on the table — and
     /// the strip beneath the cards says which, rather than leaving it a mystery.
     /// </summary>
+    /// <remarks>
+    /// <b>The loadout is CONSTRUCTED, and the name says so, because this state cannot be reached by
+    /// playing.</b> The run is walked to Camp 2 for real — Camp 1 is authored to two Techniques and
+    /// can never deal a one-shot, so the first camp is the wrong anchor on its own. But at seed 4242
+    /// camps 1, 2 <em>and</em> 3 all deal Techniques, so no amount of further play fills a pocket:
+    /// there is no honest route to a carried one-shot inside the act. The standing practice is to
+    /// reach states by play and to <b>say so in the test's name when that is impossible</b>, which is
+    /// what the suffix is doing. If the offer weights ever put a one-shot on an early table, this test
+    /// should lose the suffix and take one.
+    /// </remarks>
     [Fact]
-    public async Task AnOfferWhoseTargetIsFull_IsNeverDealt_AndTheScreenSaysWhy()
+    public async Task AnOfferWhoseTargetIsFull_IsNeverDealt_AndTheScreenSaysWhy_LoadoutConstructed()
     {
-        var session = await AtACamp();
+        // Camp 2 at the earliest: Camp 1 is authored to two Techniques and deals no one-shot at all,
+        // so a run cannot be carrying one when it arrives at its first camp.
+        var session = await AtCamp(2);
 
         // Fill the Vanguard's spender and pocket — Player A's duck, so it is A's table that changes.
         var vanguard = session.State!.Squad.First(u => u.Kind == UnitKind.Vanguard);
@@ -189,7 +201,7 @@ public sealed class CampScreenTests
     /// replace, drop or discard control, so a full pocket cannot be silently overwritten and an offer
     /// cannot no-op. The companion assertion — the reason line drawn for a duck that is actually
     /// carrying something — is
-    /// <see cref="AnOfferWhoseTargetIsFull_IsNeverDealt_AndTheScreenSaysWhy"/>. The two together are
+    /// <see cref="AnOfferWhoseTargetIsFull_IsNeverDealt_AndTheScreenSaysWhy_LoadoutConstructed"/>. The two together are
     /// the ruling; if a replace/drop surface is ever built, this is the test that should fail first.
     /// </remarks>
     [Fact]
@@ -429,6 +441,70 @@ public sealed class CampScreenTests
         Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
 
         return session;
+    }
+
+    /// <summary>
+    /// A run standing at its <paramref name="camp"/>'th camp, reached by winning that many fights and
+    /// taking a card at each one on the way.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Camp 1 cannot deal a one-shot</b> — it is authored to two Techniques from the Engine
+    /// Starter subset, and pocket items are ineligible until Camp 2. So a test about a
+    /// <em>carried</em> one-shot cannot be anchored at the first camp any more, and this is how it
+    /// reaches a later one honestly.
+    /// </para>
+    /// <para>
+    /// <paramref name="preferPockets"/> steers the pick toward a one-shot when the table offers one,
+    /// which is the only way a duck's pocket fills <em>by playing</em>. Writing the pocket onto the
+    /// squad directly would be the restored-save shape the standing practice forbids: it passes, and
+    /// it would have hidden the authored Camp 1 rather than exposing it.
+    /// </para>
+    /// </remarks>
+    /// <param name="camp">Which camp to stop at, counting from 1.</param>
+    /// <param name="preferPockets">Take a one-shot when one is on the table.</param>
+    /// <returns>The run, standing at that camp with its table drawn.</returns>
+    private static async Task<RunSession> AtCamp(int camp, bool preferPockets = false)
+    {
+        var session = NewSession();
+        await session.StartAsync(Seed, CampaignLibrary.Act1Id);
+
+        for (int held = 1; ; held++)
+        {
+            // A column with two doors votes before it fights. Both players name the same door, which
+            // is a settled vote and needs no coin — the route is not what this fixture is about.
+            while (session.AtVote)
+            {
+                var door = session.Legal.OfType<VoteCommand>().First().ChoiceA;
+                session.Vote(door, door);
+                Assert.Null(session.Problem);
+            }
+
+            Assert.Equal(FightOutcome.Won, CampPlayer.PlayCurrentFight(session));
+            Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
+
+            if (held == camp)
+            {
+                return session;
+            }
+
+            var table = session.Camp!;
+            int pick = 0;
+            if (preferPockets)
+            {
+                for (int i = 0; i < table.Offers.Count; i++)
+                {
+                    if (table.Offers[i].Category == OfferCategory.Consumable)
+                    {
+                        pick = i;
+                        break;
+                    }
+                }
+            }
+
+            session.PickCamp(pick);
+            Assert.Null(session.Problem);
+        }
     }
 
     // ---- Rendering ------------------------------------------------------------------------------
