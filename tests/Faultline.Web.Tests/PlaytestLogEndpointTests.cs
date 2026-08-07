@@ -23,15 +23,30 @@ public sealed class PlaytestLogEndpointTests : IDisposable
         }
     }
 
+    /// <summary>
+    /// One folder per sitting, named for its timestamp, with the log inside it.
+    /// </summary>
+    /// <remarks>
+    /// This asserted a flat <c>&lt;date&gt;/&lt;timestamp&gt;.log</c> until D-246. The request still
+    /// names a <em>file</em> and is still validated as one — that shape check is the whole of the path
+    /// safety, so it was not loosened to accept a folder; the stem is split off here instead. What the
+    /// folder buys is somewhere for everything else a sitting produces to land beside the log it
+    /// belongs to.
+    /// </remarks>
     [Fact]
-    public void Resolve_NamesAFileUnderDocsPlaytestDateFolder()
+    public void Resolve_NamesASittingsOwnFolder_WithTheLogInsideIt()
     {
         var full = PlaytestLogEndpoint.Resolve(_root, "2026-08-04", "2026-08-04_10-21-45-PM.log");
 
         Assert.NotNull(full);
         Assert.Equal(
-            Path.GetFullPath(Path.Combine(_root, "docs", "playtest", "2026-08-04", "2026-08-04_10-21-45-PM.log")),
+            Path.GetFullPath(Path.Combine(
+                _root, "docs", "playtest", "2026-08-04", "2026-08-04_10-21-45-PM", "session.log")),
             full);
+
+        // The fence still holds: the timestamp is the only thing that becomes a folder name, and it
+        // had to be an exact shape to get here at all.
+        Assert.Null(PlaytestLogEndpoint.Resolve(_root, "2026-08-04", "sub/2026-08-04_10-21-45-PM.log"));
     }
 
     [Theory]

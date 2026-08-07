@@ -66,7 +66,20 @@ public sealed class PlaytestSessionLog
     public bool Active => _host.Active;
 
     /// <summary>Where the file is, for the Dev panel to show, or empty when nothing answered.</summary>
-    public string Path => Date.Length > 0 ? "docs/playtest/" + Date + "/" + File : string.Empty;
+    public string Path => Date.Length > 0
+        ? "docs/playtest/" + Date + "/" + Stem + "/session.log"
+        : string.Empty;
+
+    /// <summary>The sitting's own folder name — its timestamp, without the <c>.log</c>.</summary>
+    /// <remarks>
+    /// The wire still carries a file name and the endpoint still validates one; the folder is derived
+    /// from it there. This mirrors that derivation so a surface prints the path a person will actually
+    /// find (D-246).
+    /// </remarks>
+    private string Stem =>
+        File.EndsWith(".log", StringComparison.Ordinal)
+            ? File.Substring(0, File.Length - ".log".Length)
+            : File;
 
     /// <summary>Whether lines are buffering in the tab because no launcher has answered yet.</summary>
     public bool Searching => _host.Searching;

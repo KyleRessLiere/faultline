@@ -235,9 +235,10 @@ in this file when the question comes back.
 | D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | 2026-08-07 |  |
 | D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 |  |
 | D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | 2026-08-07 |  |
-| D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | unreleased |  |
+| D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | 2026-08-07 |  |
+| D-246 | [One folder per sitting, and the filename check stays as strict as it was.](#d-246-one-folder-per-sitting-and-the-filename-check-stays-as-strict-as-it-was) | unreleased |  |
 
-**217 rulings.**
+**218 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5997,3 +5998,29 @@ asserts the sitting is buffered and the surface says it is not reaching disk.
 
 The folder shape was already right and is unchanged: `docs/playtest/<date>/<session-timestamp>/`,
 one folder per sitting, with `fights/` inside it.
+
+
+---
+
+**D-246 - One folder per sitting, and the filename check stays as strict as it was.**
+
+The streaming session log wrote `docs/playtest/<date>/<timestamp>.log` - a flat file per sitting. The
+designer asked for a folder per run so everything a sitting produces lands together.
+
+**The safety was in the filename, so the filename is unchanged.** `PlaytestLogEndpoint.IsSessionFile`
+validates an exact 24-character shape, and that check - not the fence below it - is what actually
+stops a POST from writing outside `docs/playtest`. Loosening it to accept a path separator would have
+traded a real guard for a naming convenience. **The wire still carries a file name and is still
+validated as one**; `Resolve` splits the `.log` off and uses the stem as the folder, with
+`session.log` inside it. No client change, no protocol change, one composition point moved.
+
+A sitting is now `docs/playtest/<date>/<timestamp>/session.log`, which gives per-fight transcripts,
+notes and anything else a sitting produces somewhere to land beside the log they belong to.
+
+**A correction rides with this.** The folder-per-run shape was reported as "already built" one turn
+earlier - that was wrong. `SessionLog` does write `<date>/<session>/` with a `fights/` subfolder, but
+it is the **notes** sink and a different path from the streaming log the game actually posts to. Two
+classes, two shapes, one of them checked and the other assumed.
+
+Also fixed here: `Where()` printed the flat path it no longer writes, so the sentence a surface shows
+now names the file a person will actually find.

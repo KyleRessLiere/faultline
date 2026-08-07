@@ -75,8 +75,16 @@ public sealed class PlaytestSessionLogStreamTests
         await log.StartAsync("http://localhost:5199/");
 
         Assert.True(log.Active);
+
+        // The WIRE still names a file — the endpoint's shape check on that name is the whole of the
+        // path safety, so it was not loosened to carry a folder.
         Assert.Equal("2026-08-04/2026-08-04_10-21-45-PM.log", js.LogTarget);
-        Assert.Equal("docs/playtest/2026-08-04/2026-08-04_10-21-45-PM.log", log.Path);
+
+        // What lands on DISK is the sitting's own folder with the log inside it, and the surface
+        // prints the path a person will actually find (D-246).
+        Assert.Equal(
+            "docs/playtest/2026-08-04/2026-08-04_10-21-45-PM/session.log",
+            log.Path);
     }
 
     [Fact]

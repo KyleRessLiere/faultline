@@ -38,6 +38,9 @@ public static class PlaytestLogEndpoint
     /// <summary>The path the game probes to find out whether anybody is listening.</summary>
     public const string PingPath = "/playtest/log/ping";
 
+    /// <summary>The log's name inside a sitting's own folder.</summary>
+    public const string SessionFile = "session.log";
+
     /// <summary>What <see cref="PingPath"/> answers with, so a stray 200 is not mistaken for a host.</summary>
     public const string PingBody = "faultline-log 1";
 
@@ -142,7 +145,18 @@ public static class PlaytestLogEndpoint
     /// <param name="root">Folder holding <c>docs/playtest</c>.</param>
     /// <param name="date">Day folder, <c>yyyy-MM-dd</c>.</param>
     /// <param name="file">Session file, <c>yyyy-MM-dd_hh-mm-ss-AM.log</c>.</param>
-    /// <returns>An absolute path under <c>&lt;root&gt;/docs/playtest/&lt;date&gt;/</c>, or <c>null</c>.</returns>
+    /// <returns>
+    /// An absolute path under <c>&lt;root&gt;/docs/playtest/&lt;date&gt;/&lt;timestamp&gt;/</c>, or
+    /// <c>null</c>.
+    /// </returns>
+    /// <remarks>
+    /// <b>One folder per sitting, not one file.</b> The request still names a session <em>file</em>
+    /// and is still validated as one — the timestamp's shape is the whole of the path safety here, so
+    /// loosening that check to accept a folder would be trading a fence for a convenience. Instead the
+    /// <c>.log</c> is split off and the stem becomes the folder, with <see cref="SessionFile"/> inside
+    /// it. The client protocol is unchanged, and everything a sitting produces later — per-fight
+    /// transcripts, notes, a screenshot — has somewhere to land beside the log it belongs to (D-246).
+    /// </remarks>
     public static string? Resolve(string? root, string? date, string? file)
     {
         if (string.IsNullOrEmpty(root) || !IsDateFolder(date) || !IsSessionFile(file))
@@ -150,8 +164,12 @@ public static class PlaytestLogEndpoint
             return null;
         }
 
+        // The stem is the sitting; the file inside it is always the same name, so a folder listing
+        // reads as a list of sittings rather than a list of timestamps repeated twice.
+        var stem = file!.Substring(0, file.Length - ".log".Length);
+
         var fence = Path.GetFullPath(Path.Combine(root, Folder[0], Folder[1])) + Path.DirectorySeparatorChar;
-        var full = Path.GetFullPath(Path.Combine(fence, date!, file!));
+        var full = Path.GetFullPath(Path.Combine(fence, date!, stem, SessionFile));
 
         // Both halves already had to be an exact shape to get here, so this can only fire if that
         // matching is ever loosened. It is kept for exactly that day.
