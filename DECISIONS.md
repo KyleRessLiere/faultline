@@ -230,12 +230,13 @@ in this file when the question comes back.
 | D-227 | [OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of the eight built techniques hang on neither.](#d-227-open-reported-not-resolved-spender-slot-and-ability-slot-are-two-axes-and-five-of-the-eight-built-techniques-hang-on-neither) | 2026-08-07 |  |
 | D-228 | [OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.](#d-228-open-implemented-one-way-behind-a-named-seam-forfeited-mods-return-to-the-runs-offers) | 2026-08-07 |  |
 | D-229 | [FOUND, not fixed: a duck's legendary epithet does not survive a save.](#d-229-found-not-fixed-a-ducks-legendary-epithet-does-not-survive-a-save) | 2026-08-07 |  |
-| D-230 | [RULED: the Pluck spender is its own slot with its own count, which supersedes D-225's "exception" framing and resolves the spender-slot half of D-227.](#d-230-ruled-the-pluck-spender-is-its-own-slot-with-its-own-count-which-supersedes-d-225s-exception-framing-and-resolves-the-spender-slot-half-of-d-227) | unreleased |  |
-| D-231 | [RULED: slot counts are class-initialisation data and are adjustable per duck; a runtime-mutable class-wide count is refused, because it cannot survive a replay.](#d-231-ruled-slot-counts-are-class-initialisation-data-and-are-adjustable-per-duck-a-runtime-mutable-class-wide-count-is-refused-because-it-cannot-survive-a-replay) | unreleased |  |
-| D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | unreleased |  |
-| D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | unreleased |  |
+| D-230 | [RULED: the Pluck spender is its own slot with its own count, which supersedes D-225's "exception" framing and resolves the spender-slot half of D-227.](#d-230-ruled-the-pluck-spender-is-its-own-slot-with-its-own-count-which-supersedes-d-225s-exception-framing-and-resolves-the-spender-slot-half-of-d-227) | 2026-08-07 |  |
+| D-231 | [RULED: slot counts are class-initialisation data and are adjustable per duck; a runtime-mutable class-wide count is refused, because it cannot survive a replay.](#d-231-ruled-slot-counts-are-class-initialisation-data-and-are-adjustable-per-duck-a-runtime-mutable-class-wide-count-is-refused-because-it-cannot-survive-a-replay) | 2026-08-07 |  |
+| D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | 2026-08-07 |  |
+| D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 |  |
+| D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | unreleased |  |
 
-**215 rulings.**
+**216 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5937,3 +5938,31 @@ shipped nor what D-228 offered — so it is reported here and stopped at.
 replacement fully reversible, which is a different game from either of D-228's options. It would also
 be cheaper than *gone*: it needs no run-long ledger, only the same per-duck storage the disabled
 abilities already use.
+
+
+---
+
+**D-234 - The epithet rides in the save, and the fifth instance of one defect gets a name.**
+
+`RunSave.LoadoutText` wrote eight sections - mods, Second Winds, unlocks, techniques, pocket, slots,
+spender slots, disabled, granted counts - and **not the epithet**. So a run that took Follow Through
+at High Road's gilt came back from a reload without it, and the destination unblocked hours earlier
+paid nothing that survived the tab closing.
+
+**The sharp edge was quieter than the loss.** `DuckLoadout.IsEmpty` counts the epithet, so a duck
+carrying *only* one serialised as a bare `-`: the record did not merely drop the card, it asserted the
+duck had nothing. Every other section is optional and appended, so the fix is one `|e` written last
+and one arm in `ParseLoadout` - an unknown value is dropped rather than guessed, because D-201 keeps
+unbuilt legendaries out of the enum precisely so nothing can hold one.
+
+**This is the fifth time Core grew a field and the record did not learn it**: D-125's fork, D-127's
+camp, D-222's destination phase, the slot counts (caught by a round-trip test written in the same
+session), and this. Four shipped; the one that did not is the one whose packet demanded the test.
+
+**So the pattern is not "remember the save" - it is that a new field in `DuckLoadout` or a new
+`RunPhase` is not done until a round-trip test names it.** The four that shipped were each found by a
+person, one of them by the designer playing; the fifth was found by reading `LoadoutText` while
+fixing the fourth. None was found by the suite, because the suite tested the fields that existed when
+each test was written.
+
+Proven by neutering: the write was removed and the test went red before it was allowed green.

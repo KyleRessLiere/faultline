@@ -445,6 +445,14 @@ public sealed record RunSave
                 .Append(',').Append(Number(loadout.ExtraPluckSlots));
         }
 
+        // The duck's epithet — the one permanent legendary a gilt destination pays (§8.6). Written
+        // last and optionally, like every section above it, so a record from before destinations
+        // existed still reads.
+        if (loadout.Epithet is { } epithet)
+        {
+            text.Append("|e").Append(Number((int)epithet));
+        }
+
         return text.ToString();
     }
 
@@ -524,6 +532,20 @@ public sealed record RunSave
                     && Enum.IsDefined(typeof(Consumable), pocket))
                 {
                     loadout = loadout.WithPocket((Consumable)pocket);
+                }
+
+                continue;
+            }
+
+            if (kind == 'e')
+            {
+                // An unknown value is dropped rather than guessed: a legendary this build does not
+                // have is a card whose rule does not exist, and D-201 keeps unbuilt cards out of the
+                // enum precisely so nothing can hold one.
+                if (int.TryParse(body, NumberStyles.Integer, CultureInfo.InvariantCulture, out int epithet)
+                    && Enum.IsDefined(typeof(Legendary), epithet))
+                {
+                    loadout = loadout with { Epithet = (Legendary)epithet };
                 }
 
                 continue;

@@ -294,6 +294,42 @@ public sealed class RunPersistenceTests
     /// session's; a loadout carrying one would fail here for a reason that has nothing to do with
     /// slots, and papering over it with a fix in the wrong session is how the last three shipped.
     /// </remarks>
+    /// <summary>
+    /// A duck's epithet — the permanent legendary a gilt destination pays — survives a reload.
+    /// </summary>
+    /// <remarks>
+    /// <b>It did not, and that made the gilt destination pay nothing.</b> `LoadoutText` wrote eight
+    /// sections and the epithet was not one of them, so a run that took Follow Through at High Road
+    /// came back without it. Worse, <see cref="DuckLoadout.IsEmpty"/> counts the epithet, so a duck
+    /// carrying <em>only</em> one wrote as a bare dash — the save agreed the duck had nothing.
+    ///
+    /// The fifth instance of the same defect: Core grows a field and the record does not learn it
+    /// (D-125's fork, D-127's camp, D-222's destination phase, the slot counts caught in time, and
+    /// this). D-229 filed it; this closes it.
+    /// </remarks>
+    [Fact]
+    public void ADucksEpithet_RidesInTheSave_AndADuckCarryingOnlyOneIsNotWrittenOffAsEmpty()
+    {
+        var run = Campaign.Start(CampaignLibrary.Faultline, Seed).NewState;
+        var vanguard = run.Squad.First(u => u.Kind == UnitKind.Vanguard);
+
+        // Nothing but the epithet, which is the case that used to write as "-".
+        var crowned = vanguard.Loadout with { Epithet = Legendary.FollowThrough };
+        Assert.False(crowned.IsEmpty);
+
+        var text = RunSave.Of("0000000000000000008", run.WithUnit(vanguard with { Loadout = crowned })).Render();
+
+        var line = text.Split('\n').First(l => l.StartsWith("unit: " + vanguard.Id.Value + " ", StringComparison.Ordinal));
+        Assert.Equal(8, line.Split(' ').Length);
+        Assert.Contains("|e", line, StringComparison.Ordinal);
+        Assert.DoesNotContain(" - ", line, StringComparison.Ordinal);
+
+        var back = RunSave.Parse(text)!.Restore().FindUnit(vanguard.Id)!;
+
+        Assert.Equal(Legendary.FollowThrough, back.Loadout.Epithet);
+        Assert.Equal(crowned, back.Loadout);
+    }
+
     [Fact]
     public void APlucksSlotADisabledAbilityAndAGrantedSlot_AllRideInTheSave()
     {

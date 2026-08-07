@@ -230,6 +230,21 @@ on the boss.
 in isolation — reproduced at `45989cc` in a clean worktree, so it is not the map work. CLAUDE.md's
 testing standards forbid a test that depends on execution order; this one does.
 
+### ~~A duck's epithet never survived a save~~ — FIXED, D-234
+
+Closed. `RunSave` now writes and reads `|e`, and a duck carrying only an epithet no longer serialises
+as a bare `-`. Proven by neutering the write and watching the test go red first.
+
+**What is worth keeping is the count.** Five times now, Core has grown a field or a phase and the
+save record has not learned it — D-125's fork, D-127's camp, D-222's destination phase, the slot
+counts, and this. **Four of the five shipped.** The one that did not is the one whose packet demanded
+a round-trip test by name. Every one of the four was found by a person rather than by the suite, and
+one of them by the designer playing the game — because a test written when a field did not exist
+cannot notice the field.
+
+**Standing consequence:** a new field on `DuckLoadout`, or a new `RunPhase`, is not done until a
+round-trip test names it.
+
 ### A claw redirected onto a guard is not telegraphed (Stage A2)
 
 `Objectives.Besiege` sends the claw into a Wardbearer in Guard Stance beside the structure (D-096),
