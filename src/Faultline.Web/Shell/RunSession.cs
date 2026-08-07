@@ -126,6 +126,24 @@ public sealed class RunSession : IRunBoardDriver
     /// </summary>
     public CampTable? Camp => AtCamp ? Faultline.Core.Camp.Draw(State!) : null;
 
+    /// <summary>Whether the run is standing at a gilt destination with its legendaries on the table.</summary>
+    public bool AtDestination => State is { Phase: RunPhase.AtDestination };
+
+    /// <summary>
+    /// The destination's pair of permanent legendaries, or <c>null</c> when the run is not at one.
+    /// Dealt by Core from the run RNG, never by this session.
+    /// </summary>
+    /// <remarks>
+    /// <b>This property and the panel that reads it are the whole of a bug that bricked a run.</b>
+    /// Core shipped <see cref="RunPhase.AtDestination"/>, `Destination.Draw`, `Destination.LegalPicks`
+    /// and <see cref="LegendaryPickCommand"/> complete and tested — and the shell had no
+    /// <c>AtDestination</c> anywhere, so a run that reached High Road's gilt sat there with a promise
+    /// on screen and nothing to click. A camp phase did exactly this once before (D-125). **A Core
+    /// phase with no reachable surface is not a cosmetic gap; it is a bricked run** (D-222).
+    /// </remarks>
+    public LegendaryTable? Legendaries =>
+        AtDestination ? Destination.Draw(State!) : null;
+
     /// <summary>Everything legal from here, straight from Core.</summary>
     public IReadOnlyList<RunCommand> Legal =>
         State is null ? Array.Empty<RunCommand>() : Campaign.LegalRunCommands(State);
@@ -260,6 +278,26 @@ public sealed class RunSession : IRunBoardDriver
         }
 
         Apply(new CampPickCommand(table, pick));
+    }
+
+    /// <summary>
+    /// Sends the destination's legendary pick to Core, which applies it and moves the run on.
+    /// </summary>
+    /// <remarks>
+    /// The table is Core's, redealt from the run RNG, so this session cannot hand a duck a card the
+    /// seed did not deal — the same contract <see cref="PickCamp"/> keeps. There is no skip: the gilt
+    /// edge already promised the card, and the promise rule means a promise the game shows is a
+    /// promise it pays.
+    /// </remarks>
+    /// <param name="pick">Index of the legendary taken.</param>
+    public void PickLegendary(int pick)
+    {
+        if (Legendaries is not { } table)
+        {
+            return;
+        }
+
+        Apply(new LegendaryPickCommand(table, pick));
     }
 
     /// <summary>

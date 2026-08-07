@@ -19,6 +19,12 @@ public enum RunScreen
 
     /// <summary>The board.</summary>
     Board = 4,
+
+    /// <summary>
+    /// A gilt destination's permanent-legendary pick (§8.6). Its own screen for the same reason the
+    /// camp has one — it is a decision with nothing else on it.
+    /// </summary>
+    Destination = 5,
 }
 
 /// <summary>
@@ -58,6 +64,9 @@ public static class RunScreens
     /// <summary>The board.</summary>
     public const string Board = "/play";
 
+    /// <summary>A gilt destination.</summary>
+    public const string Destination = "/destination";
+
     /// <summary>The route a screen is drawn at.</summary>
     /// <param name="screen">The screen.</param>
     /// <returns>A route relative to the base href.</returns>
@@ -67,6 +76,7 @@ public static class RunScreens
         RunScreen.Camp => Camp,
         RunScreen.Event => Event,
         RunScreen.Board => Board,
+        RunScreen.Destination => Destination,
         _ => Home,
     };
 
@@ -107,8 +117,45 @@ public static class RunScreens
             return RunScreen.Camp;
         }
 
+        // The gilt destination. It fell through to the map until D-222, which is what bricked a run:
+        // the map drew High Road's promise under the node and had nothing to click, because Core's
+        // AtDestination phase had no screen anywhere in the shell.
+        if (runs.AtDestination)
+        {
+            return RunScreen.Destination;
+        }
+
         return AtAnEvent(runs) ? RunScreen.Event : RunScreen.Map;
     }
+
+    /// <summary>
+    /// Which screen a phase belongs to, asked of the phase alone.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Owning"/> is the live answer and asks the session, because two phases need more
+    /// than the phase to place them: <see cref="RunPhase.AtChoice"/> is an event's screen or the
+    /// map's depending on the node under it, and <see cref="RunPhase.AtNode"/> is the board's once a
+    /// fight is running. This is the same table with those two answered conservatively, and it exists
+    /// so a test can walk <see cref="RunPhase"/> and fail on a phase nobody routed.
+    /// </para>
+    /// <para>
+    /// <b>That is the test that was missing.</b> D-222 was not a wrong branch, it was an absent one —
+    /// Core grew a phase and the shell never learned it existed — and no assertion about the phases
+    /// that <em>were</em> routed could have caught it.
+    /// </para>
+    /// </remarks>
+    /// <param name="phase">The run phase.</param>
+    /// <returns>The screen that draws it.</returns>
+    public static RunScreen ScreenForPhase(RunPhase phase) => phase switch
+    {
+        RunPhase.InFight => RunScreen.Board,
+        RunPhase.Complete => RunScreen.Home,
+        RunPhase.AtCamp => RunScreen.Camp,
+        RunPhase.AtDestination => RunScreen.Destination,
+        RunPhase.AtChoice => RunScreen.Event,
+        _ => RunScreen.Map,
+    };
 
     /// <summary>Whether the run is standing inside an event node's question.</summary>
     /// <param name="runs">The run session.</param>

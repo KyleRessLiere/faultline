@@ -64,12 +64,33 @@ public sealed class CampFlow
             throw new ArgumentNullException(nameof(table));
         }
 
-        if (Open && _count == table.Offers.Count)
+        Begin(table.Offers.Count);
+    }
+
+    /// <summary>
+    /// Opens the ceremony on a table of <paramref name="offers"/> cards, whatever dealt them.
+    /// </summary>
+    /// <remarks>
+    /// The ceremony was always generic — pick one of N, confirm, optionally change your mind — and
+    /// only <see cref="Begin(CampTable)"/> knew what a camp was. The gilt destination's legendary
+    /// pair is the same ceremony over a different table, so it takes this rather than growing a
+    /// second copy with its own off-by-one bugs (D-222).
+    /// </remarks>
+    /// <param name="offers">How many cards are on the table; zero is a table that dealt nothing.</param>
+    /// <exception cref="ArgumentOutOfRangeException">A negative number of cards.</exception>
+    public void Begin(int offers)
+    {
+        if (offers < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offers), "A table cannot deal fewer than no cards.");
+        }
+
+        if (Open && _count == offers)
         {
             return;
         }
 
-        _count = table.Offers.Count;
+        _count = offers;
         _pick = CampPickCommand.NoPick;
 
         // A camp that dealt nothing has nothing to ask about. Its index is NoPick — the absence of a

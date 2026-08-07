@@ -539,6 +539,80 @@ public sealed class RunScreensTests
 
     // ---- Rendering -------------------------------------------------------------------------------
 
+    // ---- The gilt destination ---------------------------------------------------------------
+
+    /// <summary>
+    /// <b>The defect this file exists to prevent, found in play instead.</b> Core shipped
+    /// <see cref="RunPhase.AtDestination"/>, its draw, its legal picks and its command — complete and
+    /// tested — and nothing in the shell mentioned the phase, so <see cref="RunScreens.Owning"/> fell
+    /// through to <see cref="RunScreen.Map"/>. A run reaching High Road's gilt sat on the act graph
+    /// with "Pick 1 of 2 permanent legendaries" printed under the node and nothing to click (D-222).
+    /// </summary>
+    /// <remarks>
+    /// <b>Every phase is walked, not just the new one.</b> The bug was not a wrong branch, it was a
+    /// missing one — so a test naming only <c>AtDestination</c> would have been written the same day
+    /// the branch was and caught nothing. This fails on any waiting phase the router has no opinion
+    /// about, which is the shape that catches the next one.
+    /// </remarks>
+    [Fact]
+    public void EveryWaitingRunPhase_HasAScreenThatOwnsIt_AndNoneFallsThroughToTheMapByAccident()
+    {
+        // The map honestly owns these two: "where am I, and where may I go" is what it draws.
+        var mapsOwn = new[] { RunPhase.AtNode, RunPhase.AtVote };
+
+        // Not places a run stands waiting for a person.
+        var notASurface = new[] { RunPhase.InFight, RunPhase.Complete };
+
+        foreach (RunPhase phase in Enum.GetValues(typeof(RunPhase)))
+        {
+            if (notASurface.Contains(phase) || mapsOwn.Contains(phase))
+            {
+                continue;
+            }
+
+            Assert.True(
+                RunScreens.ScreenForPhase(phase) != RunScreen.Map,
+                $"RunPhase.{phase} falls through to the map, which draws no control for it — "
+                + "the shape of the bricked-run bug (D-222).");
+        }
+
+        Assert.Equal(RunScreen.Destination, RunScreens.ScreenForPhase(RunPhase.AtDestination));
+        Assert.Equal(RunScreen.Camp, RunScreens.ScreenForPhase(RunPhase.AtCamp));
+    }
+
+    /// <summary>
+    /// A save that drops the destination phase hands the run back its cleared node and loses the
+    /// legendary — the same defect as D-125's fork and the camp's, a third time (D-222).
+    /// </summary>
+    [Fact]
+    public void ASaveWrittenAtTheGilt_ComesBackAtTheGilt()
+    {
+        var record = new RunSave
+        {
+            Id = "1",
+            CampaignId = CampaignLibrary.Act1Id,
+            Seed = Seed,
+            NodeIndex = 3,
+            FightsWon = 3,
+            Route = new[] { "c1-first-contact", "c2-the-teeth", "c3-molting-pool", "c4-high-road" },
+            AtDestination = true,
+            Squad = CampaignLibrary.Act1.Squad
+                .Select((kind, i) => RunUnit.Fresh(new RunUnitId(i), kind))
+                .ToList(),
+        };
+
+        var written = RunSave.Parse(record.Render())!;
+
+        Assert.Contains("at-destination: yes", record.Render());
+        Assert.True(written.AtDestination);
+        Assert.Equal(RunPhase.AtDestination, written.Restore().Phase);
+
+        // An older record has no such line, and a run written before destinations existed cannot
+        // have been standing at one.
+        var older = RunSave.Parse(record.Render().Replace("at-destination: yes", "at-destination: no"))!;
+        Assert.False(older.AtDestination);
+    }
+
     private static string Render<TComponent>(RunSession runs)
         where TComponent : IComponent
     {

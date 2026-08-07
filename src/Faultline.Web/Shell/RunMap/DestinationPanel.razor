@@ -1,0 +1,150 @@
+@implements IDisposable
+@inject RunSession Runs
+
+@* The gilt destination (MASTER_DESIGN §8.6, permanent legendaries): after High Road's normal camp,
+   one of two permanent legendaries. This is the hungry route's promise, and §8.8 requires it to be
+   paid BEFORE the Trench — a route tested with its risk intact and its reward missing is not a
+   valid test.
+
+   THIS PANEL IS A BUG FIX, AND THE BUG IS WORTH REMEMBERING. Core shipped the whole destination —
+   the phase, the draw, the legal picks, the command — complete and tested, and nothing in the shell
+   ever mentioned RunPhase.AtDestination. A run that reached the gilt sat on the map with "Pick 1 of
+   2 permanent legendaries" printed under the node and no way to pick either. A camp phase did
+   exactly this once before (D-125), and the lesson did not take: a Core phase with no reachable
+   surface is a BRICKED RUN, not a cosmetic gap (D-222).
+
+   Everything drawn here comes off Destination.Draw and the catalogue behind it. The name and the
+   rule text are LegendaryOffer.Name and .Summary verbatim — no number on a card is typed in this
+   file and no sentence on one is a paraphrase (D-112).
+
+   THE OFFER IS ALREADY BOUND, exactly as a camp card is: the table is dealt per duck, so the seed
+   chose the duck at the same moment it chose the card. The card names its duck and offers no way to
+   move it (D-132).
+
+   THERE IS NO SKIP. The gilt edge already promised the card, and the promise rule is that a promise
+   the game shows is a promise it pays (D-200). *@
+
+@if (Runs.AtDestination && Runs.Legendaries is { } table)
+{
+<section class="panel destination">
+    <header class="camp-head">
+        <h2>The gilt road</h2>
+        <p class="note">
+            One of two permanent legendaries — a duck's epithet, kept for the rest of the run. The
+            hungry route promised this, and it pays before the Trench.
+        </p>
+    </header>
+
+    @if (Runs.Problem is not null)
+    {
+        <p class="warn">@Runs.Problem</p>
+    }
+
+    <div class="tables">
+        <div class="table @(Flow.Confirmed ? "locked" : "open")">
+            @if (table.IsEmpty)
+            {
+                @* Not a decline. The promise rule cuts both ways: if the table cannot be filled
+                   honestly the node says so rather than drawing an empty ceremony. *@
+                <p class="empty">
+                    Nothing could be dealt here — no legendary in the pool has a legal recipient in
+                    this squad. Nothing to take, and nothing to turn down.
+                </p>
+                <button type="button" class="action confirm" @onclick="() => Take(-1)">Move on</button>
+            }
+            else
+            {
+                <ol class="offers">
+                    @for (int i = 0; i < table.Offers.Count; i++)
+                    {
+                        var index = i;
+                        var offer = table.Offers[index];
+                        var duck = Runs.State?.FindUnit(offer.Duck);
+                        <li data-side="@SideClass(duck)" data-legendary="@offer.Card">
+                            <OfferCard Index="index"
+                                       Name="@offer.Name"
+                                       Rule="@offer.Summary"
+                                       Category="Legendary"
+                                       Tone="legendary"
+                                       Glyph="★"
+                                       Bound="@Bound(offer, duck)"
+                                       Kind="offer.Class"
+                                       Picked="Flow.Selected == index"
+                                       Disabled="Flow.Confirmed"
+                                       OnPick="() => Select(index)" />
+                        </li>
+                    }
+                </ol>
+
+                @if (Flow.Confirmed)
+                {
+                    <p class="confirmed" role="status">Locked in — @NameOfPick(table).</p>
+                    <button type="button" class="action secondary" @onclick="Reopen">Change it</button>
+                }
+                else
+                {
+                    <button type="button"
+                            class="action confirm"
+                            disabled="@(Flow.Selected is null)"
+                            @onclick="Confirm">
+                        @(Flow.Selected is null ? "Pick a legendary" : "Take " + NameOfPick(table))
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</section>
+}
+
+@code {
+    private readonly CampFlow _own = new();
+
+    /// <summary>
+    /// The picking ceremony, when the host wants to own it. Left unset the panel keeps its own —
+    /// the same parameter the camp's panel takes, and for the same reason: a harness has to be able
+    /// to take a pick without a mouse.
+    /// </summary>
+    [Parameter]
+    public CampFlow? Ceremony { get; set; }
+
+    private CampFlow Flow => Ceremony ?? _own;
+
+    protected override void OnInitialized() => Runs.Changed += OnChanged;
+
+    public void Dispose() => Runs.Changed -= OnChanged;
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    protected override void OnParametersSet()
+    {
+        if (Runs.AtDestination && Runs.Legendaries is { } table)
+        {
+            Flow.Begin(table.Offers.Count);
+        }
+    }
+
+    private void Select(int index) => Flow.Select(index);
+
+    private void Reopen() => Flow.Reopen();
+
+    private void Confirm()
+    {
+        if (!Flow.Confirm())
+        {
+            return;
+        }
+
+        Take(Flow.Pick);
+    }
+
+    private void Take(int pick) => Runs.PickLegendary(pick);
+
+    private static string SideClass(RunUnit? duck) =>
+        duck is null ? "n" : DefaultTeams.SideFor(duck.Kind) == Team.PlayerA ? "a" : "b";
+
+    private static string Bound(LegendaryOffer offer, RunUnit? duck) =>
+        duck is null ? Naming.Of(offer.Class) : Naming.Of(duck.Kind) + " · " + Naming.Of(offer.Class);
+
+    private string NameOfPick(LegendaryTable table) =>
+        Flow.Selected is { } i && i >= 0 && i < table.Offers.Count ? table.Offers[i].Name : string.Empty;
+}

@@ -1,0 +1,68 @@
+@page "/destination"
+@layout MainLayout
+@implements IDisposable
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* THE GILT DESTINATION — the permanent-legendary pick, on its own screen.
+
+   Same frame as the camp, for the same reason: a pick is a decision, and giving it the screen is
+   what makes it read as one.
+
+   This screen exists because it was missing. Core shipped RunPhase.AtDestination, Destination.Draw,
+   Destination.LegalPicks and LegendaryPickCommand — complete, tested, and unreachable. Nothing in
+   the shell mentioned the phase, so RunScreens.Owning fell through to the map, and a run that
+   reached High Road's gilt sat on the act graph with "Pick 1 of 2 permanent legendaries" printed
+   under the node and no way to pick either. The run could not proceed (D-222). *@
+
+<PageTitle>PLUCK — the gilt road</PageTitle>
+
+<div class="camp-screen">
+    <header class="camp-frame-head">
+        <h1>The gilt road</h1>
+        <p class="note">One legendary, kept for the rest of the run. Then back to the map.</p>
+    </header>
+
+    @if (!Runs.Loaded)
+    {
+        <p class="note">Reading browser storage…</p>
+    }
+    else
+    {
+        <DestinationPanel />
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Runs.Changed += OnChanged;
+
+        if (!Runs.Loaded)
+        {
+            await Runs.LoadAsync();
+        }
+
+        Hand();
+    }
+
+    public void Dispose() => Runs.Changed -= OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(() =>
+    {
+        StateHasChanged();
+        Hand();
+    });
+
+    /// <summary>
+    /// Leaves the moment Core says the destination is over. The screen exists exactly while
+    /// <see cref="RunPhase.AtDestination"/> does.
+    /// </summary>
+    private void Hand()
+    {
+        if (RunScreens.RedirectFrom(RunScreen.Destination, Runs) is { } route)
+        {
+            Nav.NavigateTo(route);
+        }
+    }
+}

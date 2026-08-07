@@ -92,6 +92,21 @@ public sealed record RunSave
     public bool AtCamp { get; init; }
 
     /// <summary>
+    /// True when the run was standing at a gilt destination with its legendaries still to pick.
+    /// </summary>
+    /// <remarks>
+    /// <b>The third instance of the same defect, and the reason this one is written down.</b> Carried
+    /// for exactly the reason <see cref="AtVote"/> and <see cref="AtCamp"/> are: the node under a
+    /// destination has already been cleared, so a run restored onto it as
+    /// <see cref="RunPhase.AtNode"/> is handed High Road all over again — and the legendary it was
+    /// about to take is gone. D-125 was this bug at a fork, D-127's camp was this bug at a camp, and
+    /// this is it at a destination (D-222). The pair of cards is <em>not</em> stored: like the camp's,
+    /// it is a pure function of the RNG cursor and the squad, so restoring <see cref="RngState"/>
+    /// deals the same two again.
+    /// </remarks>
+    public bool AtDestination { get; init; }
+
+    /// <summary>
     /// The run RNG's cursor as it stood, or <c>null</c> for a record written before votes existed.
     /// Restored so the next split vote does not re-flip a coin this run has already flipped; when it
     /// is absent Core falls back to the seed, which is where an unflipped run starts.
@@ -135,6 +150,7 @@ public sealed record RunSave
             ActCleared = state.MapState?.Completed ?? false,
             AtVote = state.Phase == RunPhase.AtVote,
             AtCamp = state.Phase == RunPhase.AtCamp,
+            AtDestination = state.Phase == RunPhase.AtDestination,
             RngState = state.RngState,
             CampsHeld = state.CampsHeld,
             LastPickOwner = state.LastPickOwner,
@@ -173,7 +189,8 @@ public sealed record RunSave
             AtCamp,
             CampsHeld,
             LastPickOwner,
-            PreviousPickOwner);
+            PreviousPickOwner,
+            AtDestination);
 
     /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
     /// <returns>The stored text.</returns>
@@ -207,6 +224,7 @@ public sealed record RunSave
         // already cleared, which is the exact trap D-125 named.
         text.Append("at-vote: ").Append(AtVote ? "yes" : "no").Append('\n');
         text.Append("at-camp: ").Append(AtCamp ? "yes" : "no").Append('\n');
+        text.Append("at-destination: ").Append(AtDestination ? "yes" : "no").Append('\n');
         text.Append("camps: ").Append(Number(CampsHeld)).Append('\n');
 
         if (LastPickOwner is Team last)
@@ -315,6 +333,11 @@ public sealed record RunSave
                 && string.Equals(voting, "yes", StringComparison.Ordinal),
             AtCamp = fields.TryGetValue("at-camp", out var camping)
                 && string.Equals(camping, "yes", StringComparison.Ordinal),
+
+            // Absent in an older save, which is a run written before destinations existed and so a
+            // run that cannot have been standing at one.
+            AtDestination = fields.TryGetValue("at-destination", out var gilt)
+                && string.Equals(gilt, "yes", StringComparison.Ordinal),
             CampsHeld = fields.TryGetValue("camps", out var camps)
                 && int.TryParse(camps, NumberStyles.Integer, CultureInfo.InvariantCulture, out int held)
                     ? held

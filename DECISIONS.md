@@ -224,8 +224,9 @@ in this file when the question comes back.
 | D-222 | [RULED: the boss's death ends the fight, and the crowd's disappearance is a rendered beat.](#d-222-ruled-the-bosss-death-ends-the-fight-and-the-crowds-disappearance-is-a-rendered-beat) | 2026-08-07 |  |
 | D-223 | [RULED: clearing the board no longer wins under every objective; it wins the five that have nothing else to say about an empty board.](#d-223-ruled-clearing-the-board-no-longer-wins-under-every-objective-it-wins-the-five-that-have-nothing-else-to-say-about-an-empty-board) | 2026-08-07 |  |
 | D-224 | [RULED: Crew Cover's preview promises the collision the board is about to collect.](#d-224-ruled-crew-covers-preview-promises-the-collision-the-board-is-about-to-collect) | 2026-08-07 |  |
+| D-222 | [A Core phase with no screen is a bricked run, and this is the third time.](#d-222-a-core-phase-with-no-screen-is-a-bricked-run-and-this-is-the-third-time) | unreleased |  |
 
-**205 rulings.**
+**206 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5574,3 +5575,46 @@ excluding anything routed through the board.**
 
 **Still open and deliberately untouched: D-188**, the held preview lie about damage to a Clinging
 unit.
+
+
+---
+
+**D-222 - A Core phase with no screen is a bricked run, and this is the third time.**
+
+A player reached High Road's gilt destination and could not proceed. The map drew the node, printed
+"Pick 1 of 2 permanent legendaries" beneath it, and offered nothing to click.
+
+**Core was complete.** `RunPhase.AtDestination`, `Destination.Draw`, `Destination.LegalPicks`,
+`LegendaryPickCommand` - built, tested, correct. **The shell contained no reference to the phase at
+all**, so `RunScreens.Owning` fell through its final `else` to the map, which draws a graph and has
+no control for a decision.
+
+**Two faults, one cause.** The second was found while fixing the first: `RunSave` carried `AtVote`
+and `AtCamp` and **not** `AtDestination`. Its own comments say why those two exist - the node under a
+fork or a camp has already been cleared, so a run restored onto it as `AtNode` is offered the fight
+it just won. A save written at the gilt would have handed the player High Road a second time and
+taken the legendary with it. Nobody saw it because nobody reloaded.
+
+**The lesson did not take twice already.** D-125 was this bug at a fork. The camp phase was this bug
+at a camp - shipped to Core with no surface, bricking every run, and recorded at the time as *"my
+error; I said 'unreachable by clicking' and treated it as cosmetic"*. This is the same bug a third
+time, in work whose own brief said **"a Core phase with no reachable surface is a bricked run, not a
+cosmetic gap"**. Writing the rule down did not prevent it; the rule was in the packet and the packet
+was followed everywhere except here.
+
+**So the fix is a test that cannot be written after the fact.** `RunScreens.ScreenForPhase` makes the
+phase-to-screen table askable of the phase alone, and
+`EveryWaitingRunPhase_HasAScreenThatOwnsIt_AndNoneFallsThroughToTheMapByAccident` walks
+`RunPhase` itself and fails on any waiting phase that lands on the map. **A test naming
+`AtDestination` would have been written the same day the branch was and caught nothing** - the defect
+was an *absent* branch, and only an assertion over the whole enum can see an absence. The save's
+round-trip is pinned the same way.
+
+**Not fixed by play, and the reason is recorded.** The natural test - walk a run to the gilt and
+click - cannot be written: reaching High Road's destination requires *winning* high-road, and the
+test harness's playing style cannot; that board loses 2 of 4 evaluator policies and stalls the rest.
+Named in the test rather than hidden.
+
+**One thing was reused rather than copied.** `CampFlow` was already generic over "pick one of N,
+confirm, change your mind" - only its `Begin` knew what a camp was. It takes a count now, so the
+destination runs the same ceremony instead of a second copy with its own off-by-one bugs.
