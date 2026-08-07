@@ -4,45 +4,62 @@ using System.Collections.Generic;
 namespace Faultline.Core
 {
     /// <summary>
-    /// The slot system: how many ability slots a class carries, what starts in them, which slot a mod
-    /// hangs on, and what a duck loses when a slot is replaced. <b>Every cap in the kit is counted
-    /// here and nowhere else</b> — a grant that wanted its own ceiling would be a second opinion.
+    /// The slot system: how many ability slots and Pluck slots a class carries, what starts in them,
+    /// which slot a mod hangs on, and what a duck loses when a slot is replaced. <b>Every cap in the
+    /// kit is counted here and nowhere else</b> — a grant that wanted its own ceiling would be a
+    /// second opinion.
     /// </summary>
     /// <remarks>
     /// <para>
     /// <b>Slots are data, not class-hardcoded fields.</b> MASTER_DESIGN §4 prints each class's kit;
     /// this treats that kit as the <i>starting contents</i> of a fixed number of slots, so that
-    /// replacement has something to replace. A class is its slot count and its opening hand, not the
+    /// replacement has something to replace. A class is its slot counts and its opening hand, not the
     /// list of abilities it may ever hold.
     /// </para>
     /// <para>
-    /// <b>An empty <see cref="DuckLoadout.Slots"/> means "the class kit, untouched".</b> The list is
-    /// materialised only when surgery first happens, so a fresh duck stays
-    /// <see cref="DuckLoadout.Empty"/>, a save written before slots existed still restores the right
-    /// kit, and nothing has to write down what the class already says.
+    /// <b>Two axes, counted separately.</b> A duck has <see cref="ClassKit.AbilitySlots"/> ability
+    /// slots <i>plus</i> <see cref="ClassKit.PluckSlots"/> Pluck slots. The class's spender sits on
+    /// the second and never spends one of the first, so the Vanguard, Archer and Fisher open using
+    /// two of three ability slots with one free to grow into, and the Wardbearer three of four
+    /// (D-230).
+    /// </para>
+    /// <para>
+    /// <b>An empty <see cref="DuckLoadout.Slots"/> means "the class kit, untouched"</b>, and the
+    /// same goes for <see cref="DuckLoadout.SpenderSlots"/>. Each list is materialised only when
+    /// surgery first touches that axis, so a fresh duck stays <see cref="DuckLoadout.Empty"/>, a save
+    /// written before slots existed still restores the right kit, and nothing has to write down what
+    /// the class already says.
     /// </para>
     /// </remarks>
     public static class Kits
     {
         /// <summary>
         /// Ability slots every class carries — <b>except the Wardbearer</b>, who carries
-        /// <see cref="WardbearerSlots"/>. See <see cref="SlotsFor"/> for the reason, which travels
-        /// with the number on purpose.
+        /// <see cref="WardbearerSlots"/>. See <see cref="For(UnitKind)"/> for the reason, which
+        /// travels with the number on purpose.
         /// </summary>
         public const int SlotsPerDuck = 3;
 
         /// <summary>
-        /// The Wardbearer's slot count. <b>The reason is part of the rule: his stance and his spear
-        /// are two halves of one job</b>, so the kit that has to hold both needs the fourth slot to
-        /// hold what every other class holds in three.
+        /// The Wardbearer's ability-slot count. <b>The reason is part of the rule: his stance and his
+        /// spear are two halves of one job</b>, so the kit that has to hold both needs the fourth
+        /// slot to hold what every other class holds in three.
         /// </summary>
         /// <remarks>
-        /// This is a deliberate, single exception to §3's <i>"pools are grammar — differentiation
-        /// lives in action costs and earned upgrades, never in base pools"</i>, and it is the first
-        /// one (D-225). It is <b>not</b> licence for per-class slot counts generally: a second
-        /// exception needs its own ruling and its own reason, written here beside this one.
+        /// <b>This is his class initialisation, not an exception to a law.</b> The designer's ruling
+        /// — <i>"wardmaster can start with 4 slots just part of his kit"</i> — supersedes D-225's
+        /// framing of it as the first deliberate exception to §3's <i>"pools are grammar"</i>
+        /// (D-230). The reason still travels with the number, because a slot count without its reason
+        /// attached is the thing that invites the next reader to tidy it away.
         /// </remarks>
         public const int WardbearerSlots = 4;
+
+        /// <summary>
+        /// Pluck slots every class carries at the start of a run. <b>One</b>: §5 gives each class a
+        /// single spender. §8.5's <i>Fresh Slot Learn</i> and §8.6's <i>Third Slot</i> raise it, and
+        /// they raise it on the duck (<see cref="DuckLoadout.ExtraPluckSlots"/>) rather than here.
+        /// </summary>
+        public const int PluckSlotsPerDuck = 1;
 
         /// <summary>
         /// Mods one slot may carry, all classes. Counted per <i>slot</i>, not per duck — see
@@ -52,56 +69,118 @@ namespace Faultline.Core
 
         private static readonly KitEntry[] NoEntries = new KitEntry[0];
 
-        private static readonly KitEntry[] VanguardKit =
-        {
-            KitEntry.VanguardBasic, KitEntry.BullRush, KitEntry.WreckingWeight,
-        };
+        private static readonly ClassKit NoKit = new ClassKit(0, 0, NoEntries, NoEntries);
 
-        private static readonly KitEntry[] ArcherKit =
-        {
-            KitEntry.ArcherBasic, KitEntry.StaggerShot, KitEntry.DoubleNock,
-        };
+        private static readonly ClassKit VanguardKit = new ClassKit(
+            SlotsPerDuck,
+            PluckSlotsPerDuck,
+            new[] { KitEntry.VanguardBasic, KitEntry.BullRush },
+            new[] { KitEntry.WreckingWeight });
 
-        private static readonly KitEntry[] FisherKit =
-        {
-            KitEntry.FisherBasic, KitEntry.Reel, KitEntry.Cast,
-        };
+        private static readonly ClassKit ArcherKit = new ClassKit(
+            SlotsPerDuck,
+            PluckSlotsPerDuck,
+            new[] { KitEntry.ArcherBasic, KitEntry.StaggerShot },
+            new[] { KitEntry.DoubleNock });
 
-        // Four, and the fourth is Guard Stance: §4 prints the spear and the stance as one "per
-        // activation choose" line, which is one kit entry wearing two names. Slots cannot hold a
-        // choice, so the choice becomes two slots and the Wardbearer gets the fourth to pay for it.
-        private static readonly KitEntry[] WardbearerKit =
-        {
-            KitEntry.WardbearerBasic, KitEntry.SpearThrust, KitEntry.GuardStance, KitEntry.Preen,
-        };
+        private static readonly ClassKit FisherKit = new ClassKit(
+            SlotsPerDuck,
+            PluckSlotsPerDuck,
+            new[] { KitEntry.FisherBasic, KitEntry.Reel },
+            new[] { KitEntry.Cast });
 
-        /// <summary>How many ability slots a class carries.</summary>
-        /// <param name="kind">Archetype to ask about.</param>
-        /// <returns>Its slot count; 0 for anything that is not a player duck.</returns>
-        public static int SlotsFor(UnitKind kind) => kind switch
-        {
-            UnitKind.Wardbearer => WardbearerSlots,
-            UnitKind.Vanguard => SlotsPerDuck,
-            UnitKind.Archer => SlotsPerDuck,
-            UnitKind.Threadcaster => SlotsPerDuck,
-            _ => 0,
-        };
+        // Four ability slots, and the fourth is Guard Stance: §4 prints the spear and the stance as
+        // one "per activation choose" line, which is one kit entry wearing two names. Slots cannot
+        // hold a choice, so the choice becomes two slots and the Wardbearer's kit starts with the
+        // fourth to pay for it (D-230).
+        private static readonly ClassKit WardbearerKit = new ClassKit(
+            WardbearerSlots,
+            PluckSlotsPerDuck,
+            new[] { KitEntry.WardbearerBasic, KitEntry.SpearThrust, KitEntry.GuardStance },
+            new[] { KitEntry.Preen });
 
-        /// <summary>What §4 puts in a class's slots at the start of a run.</summary>
-        /// <param name="kind">Archetype to ask about.</param>
-        /// <returns>Its opening kit, in slot order; empty for anything that is not a player duck.</returns>
-        public static IReadOnlyList<KitEntry> StartingKit(UnitKind kind) => kind switch
+        // Declared last, and it matters: static initialisers run in declaration order, so a table
+        // built above the kits would have been built out of nulls.
+        private static readonly Dictionary<UnitKind, ClassKit> Table = new Dictionary<UnitKind, ClassKit>
         {
-            UnitKind.Vanguard => VanguardKit,
-            UnitKind.Archer => ArcherKit,
-            UnitKind.Threadcaster => FisherKit,
-            UnitKind.Wardbearer => WardbearerKit,
-            _ => NoEntries,
+            [UnitKind.Vanguard] = VanguardKit,
+            [UnitKind.Archer] = ArcherKit,
+            [UnitKind.Threadcaster] = FisherKit,
+            [UnitKind.Wardbearer] = WardbearerKit,
         };
 
         /// <summary>
-        /// What is actually in this duck's slots right now: whatever surgery has left, or the class's
-        /// opening kit while no surgery has happened.
+        /// <b>The data a class is initialised with</b>: its two slot counts and its opening hand, as
+        /// one value.
+        /// </summary>
+        /// <remarks>
+        /// One row per class rather than a <c>switch</c>, so that a class starting with more says so
+        /// in its row and a designer testing a different count writes a value — <c>Kits.For(kind)
+        /// with { AbilitySlots = 4 }</c> — instead of editing control flow in Core (D-231). The table
+        /// is immutable on purpose: see <see cref="ClassKit"/> for why a pokeable static would be a
+        /// determinism hole, and <see cref="AbilitySlotsFor"/> for where run-time adjustment lives.
+        /// </remarks>
+        /// <param name="kind">Archetype to ask about.</param>
+        /// <returns>Its kit; an empty one for anything that is not a player duck.</returns>
+        public static ClassKit For(UnitKind kind) =>
+            Table.TryGetValue(kind, out var kit) ? kit : NoKit;
+
+        /// <summary>How many ability slots a class carries before anything grants it more.</summary>
+        /// <param name="kind">Archetype to ask about.</param>
+        /// <returns>Its slot count; 0 for anything that is not a player duck.</returns>
+        public static int SlotsFor(UnitKind kind) => For(kind).AbilitySlots;
+
+        /// <summary>How many Pluck slots a class carries before anything grants it more.</summary>
+        /// <param name="kind">Archetype to ask about.</param>
+        /// <returns>Its Pluck slot count; 0 for anything that is not a player duck.</returns>
+        public static int PluckSlotsFor(UnitKind kind) => For(kind).PluckSlots;
+
+        /// <summary>
+        /// How many ability slots <i>this duck</i> carries: its class's count plus whatever the run
+        /// has granted it.
+        /// </summary>
+        /// <remarks>
+        /// <b>The adjustment is state that travels with the duck</b>, not a static — so it is written
+        /// into the save, compared by <see cref="DuckLoadout.Equals(DuckLoadout)"/> and reproduced by
+        /// a replay from the same seed and command log. That is the whole of what makes an adjustable
+        /// ceiling safe (D-231).
+        /// </remarks>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>The count, never below zero.</returns>
+        public static int AbilitySlotsFor(UnitKind kind, DuckLoadout? loadout)
+        {
+            int count = SlotsFor(kind) + (loadout?.ExtraAbilitySlots ?? 0);
+            return count < 0 ? 0 : count;
+        }
+
+        /// <summary>
+        /// How many Pluck slots <i>this duck</i> carries: its class's count plus whatever the run has
+        /// granted it. §8.5's <i>Fresh Slot Learn</i>, §8.6's <i>Third Slot</i> and WATERLOGGED's
+        /// <i>"occupies a spender slot"</i> all count this axis, and this is what they raise (D-230).
+        /// </summary>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>The count, never below zero.</returns>
+        public static int PluckSlotsFor(UnitKind kind, DuckLoadout? loadout)
+        {
+            int count = PluckSlotsFor(kind) + (loadout?.ExtraPluckSlots ?? 0);
+            return count < 0 ? 0 : count;
+        }
+
+        /// <summary>What §4 puts in a class's ability slots at the start of a run.</summary>
+        /// <param name="kind">Archetype to ask about.</param>
+        /// <returns>Its opening actions, in slot order; empty for anything that is not a player duck.</returns>
+        public static IReadOnlyList<KitEntry> StartingKit(UnitKind kind) => For(kind).Abilities;
+
+        /// <summary>What §5 puts in a class's Pluck slots at the start of a run.</summary>
+        /// <param name="kind">Archetype to ask about.</param>
+        /// <returns>Its opening spenders, in slot order; empty for anything that is not a player duck.</returns>
+        public static IReadOnlyList<KitEntry> StartingSpenders(UnitKind kind) => For(kind).Spenders;
+
+        /// <summary>
+        /// What is actually in this duck's ability slots right now: whatever surgery has left, or the
+        /// class's opening kit while no surgery has touched that axis.
         /// </summary>
         /// <param name="kind">The duck's archetype.</param>
         /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
@@ -109,14 +188,87 @@ namespace Faultline.Core
         public static IReadOnlyList<KitEntry> SlotsOf(UnitKind kind, DuckLoadout? loadout) =>
             loadout is { Slots: { Count: > 0 } slots } ? slots : StartingKit(kind);
 
-        /// <summary>Whether a duck's kit currently holds an entry.</summary>
+        /// <summary>
+        /// What is actually in this duck's Pluck slots right now: whatever surgery has left, or the
+        /// class's opening spender while no surgery has touched that axis.
+        /// </summary>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>The Pluck slot contents, in slot order.</returns>
+        public static IReadOnlyList<KitEntry> SpenderSlotsOf(UnitKind kind, DuckLoadout? loadout) =>
+            loadout is { SpenderSlots: { Count: > 0 } slots } ? slots : StartingSpenders(kind);
+
+        /// <summary>Which axis an entry sits on — derived from the entry, never stored beside it.</summary>
+        /// <param name="entry">Entry to place.</param>
+        /// <returns>Its axis.</returns>
+        public static KitAxis AxisOf(KitEntry entry) =>
+            SpenderOf(entry) is not null ? KitAxis.Pluck : KitAxis.Ability;
+
+        /// <summary>What is in one of this duck's two sets of slots.</summary>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <param name="axis">Which axis to read.</param>
+        /// <returns>That axis's contents, in slot order.</returns>
+        public static IReadOnlyList<KitEntry> SlotsOn(UnitKind kind, DuckLoadout? loadout, KitAxis axis) =>
+            axis == KitAxis.Pluck ? SpenderSlotsOf(kind, loadout) : SlotsOf(kind, loadout);
+
+        /// <summary>How many slots on one axis this duck has nothing in.</summary>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <param name="axis">Which axis to measure.</param>
+        /// <returns>The free count, never below zero.</returns>
+        public static int FreeSlots(UnitKind kind, DuckLoadout? loadout, KitAxis axis)
+        {
+            int ceiling = axis == KitAxis.Pluck
+                ? PluckSlotsFor(kind, loadout)
+                : AbilitySlotsFor(kind, loadout);
+
+            int used = SlotsOn(kind, loadout, axis).Count;
+            return ceiling - used < 0 ? 0 : ceiling - used;
+        }
+
+        /// <summary>
+        /// <b>Whether a duck's kit holds an entry <i>and can use it</i></b> — the predicate the fight
+        /// layer, the offer filter and the uniqueness law all read.
+        /// </summary>
+        /// <remarks>
+        /// A disabled entry is still <i>owned</i> and answers <see cref="Knows"/>, but it answers
+        /// <c>false</c> here: it is not offered, not usable and not counted. One predicate meaning two
+        /// things is the bug this split exists to prevent (D-232).
+        /// </remarks>
         /// <param name="kind">The duck's archetype.</param>
         /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
         /// <param name="entry">Entry to look for.</param>
-        /// <returns>Whether it is in a slot.</returns>
-        public static bool Holds(UnitKind kind, DuckLoadout? loadout, KitEntry entry)
+        /// <returns>Whether it is in a slot the duck can use.</returns>
+        public static bool Holds(UnitKind kind, DuckLoadout? loadout, KitEntry entry) =>
+            Contains(SlotsOf(kind, loadout), entry)
+            || Contains(SpenderSlotsOf(kind, loadout), entry);
+
+        /// <summary>
+        /// Whether this duck <i>owns</i> an entry at all — held and usable, or held and disabled.
+        /// </summary>
+        /// <remarks>
+        /// The designer's ruling: an ability taken out of a slot is <i>"character owning but not
+        /// available"</i>, and the flag is stored. So a surface can say what a duck still knows
+        /// without any rule treating it as usable (D-232).
+        /// </remarks>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <param name="entry">Entry to look for.</param>
+        /// <returns>Whether the duck owns it in any state.</returns>
+        public static bool Knows(UnitKind kind, DuckLoadout? loadout, KitEntry entry) =>
+            Holds(kind, loadout, entry) || IsDisabled(loadout, entry);
+
+        /// <summary>Whether this duck owns an entry it cannot use.</summary>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <param name="entry">Entry to look for.</param>
+        /// <returns>Whether it is owned and unavailable.</returns>
+        public static bool IsDisabled(DuckLoadout? loadout, KitEntry entry) =>
+            loadout is not null && Contains(loadout.Disabled, entry);
+
+        private static bool Contains(IReadOnlyList<KitEntry> entries, KitEntry entry)
         {
-            foreach (var held in SlotsOf(kind, loadout))
+            foreach (var held in entries)
             {
                 if (held == entry)
                 {
@@ -359,6 +511,145 @@ namespace Faultline.Core
         /// </remarks>
         public const bool ForfeitedModsReturnToTheOffers = true;
 
+        /// <summary>
+        /// Why this entry cannot be learned into a free slot, or <c>null</c> when it can. <b>A
+        /// refusal always names its reason</b> — a silent no-op is a bug.
+        /// </summary>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <param name="taken">Entry to learn.</param>
+        /// <returns>The reason, or <c>null</c>.</returns>
+        public static string? RefusalForLearning(UnitKind kind, DuckLoadout? loadout, KitEntry taken)
+        {
+            if (Holds(kind, loadout, taken))
+            {
+                return NameOf(taken) + " is already in that kit.";
+            }
+
+            var axis = AxisOf(taken);
+            if (FreeSlots(kind, loadout, axis) > 0)
+            {
+                return null;
+            }
+
+            return axis == KitAxis.Pluck
+                ? "That kit's " + PluckSlotsFor(kind, loadout) + " " + Naming.Meter
+                    + " slots are full, so there is nowhere to learn " + NameOf(taken) + "."
+                : "That kit's " + AbilitySlotsFor(kind, loadout)
+                    + " ability slots are full, so there is nowhere to learn " + NameOf(taken) + ".";
+        }
+
+        /// <summary>
+        /// This loadout with an entry learned into a free slot on its own axis. <b>The two axes are
+        /// counted separately</b>, so a spender needs a free Pluck slot and never consumes an ability
+        /// slot (D-230).
+        /// </summary>
+        /// <remarks>
+        /// Learning something the duck owns but cannot use clears the disabled flag rather than
+        /// leaving it owning the same entry twice.
+        /// </remarks>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <param name="taken">Entry to learn.</param>
+        /// <returns>The new loadout.</returns>
+        /// <exception cref="InvalidOperationException">There is no free slot, or it is already held.</exception>
+        public static DuckLoadout Learn(UnitKind kind, DuckLoadout? loadout, KitEntry taken)
+        {
+            var have = loadout ?? DuckLoadout.Empty;
+            if (RefusalForLearning(kind, have, taken) is { } refusal)
+            {
+                throw new InvalidOperationException(refusal);
+            }
+
+            var axis = AxisOf(taken);
+            var slots = SlotsOn(kind, have, axis);
+            var next = new KitEntry[slots.Count + 1];
+            for (int i = 0; i < slots.Count; i++)
+            {
+                next[i] = slots[i];
+            }
+
+            next[slots.Count] = taken;
+
+            var grown = axis == KitAxis.Pluck
+                ? have with { SpenderSlots = next }
+                : have with { Slots = next };
+
+            return grown.Enabling(taken);
+        }
+
+        /// <summary>
+        /// What this duck still knows and cannot use, named for a screen. Empty when nothing has been
+        /// taken out of a slot.
+        /// </summary>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>Their display names, in the order they were set aside.</returns>
+        public static IReadOnlyList<string> KnownButUnavailable(UnitKind kind, DuckLoadout? loadout)
+        {
+            var names = new List<string>();
+            if (loadout is null)
+            {
+                return names;
+            }
+
+            foreach (var entry in loadout.Disabled)
+            {
+                if (!Holds(kind, loadout, entry))
+                {
+                    names.Add(NameOf(entry));
+                }
+            }
+
+            return names;
+        }
+
+        /// <summary>
+        /// <b>The sentence a surface prints for what a duck owns but cannot use</b>, or an empty
+        /// string when there is nothing to say.
+        /// </summary>
+        /// <remarks>
+        /// The words live in Core because "owned but not available" is a ruling and not a rendering
+        /// choice — a shell writing its own would be a second, unversioned copy of it, exactly as
+        /// <see cref="LossesFrom"/> exists to prevent (D-232).
+        /// </remarks>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>The sentence, or an empty string.</returns>
+        public static string UnavailableNote(UnitKind kind, DuckLoadout? loadout)
+        {
+            var names = KnownButUnavailable(kind, loadout);
+            if (names.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            string it = names.Count == 1 ? "it" : "them";
+            return "still knows " + Listed(names) + ", and cannot use " + it + " — no slot holds "
+                + it + " any more";
+        }
+
+        private static string Listed(IReadOnlyList<string> names)
+        {
+            if (names.Count == 1)
+            {
+                return names[0];
+            }
+
+            var text = new System.Text.StringBuilder();
+            for (int i = 0; i < names.Count; i++)
+            {
+                if (i > 0)
+                {
+                    text.Append(i == names.Count - 1 ? " and " : ", ");
+                }
+
+                text.Append(names[i]);
+            }
+
+            return text.ToString();
+        }
+
         /// <summary>What a kit entry is called on screen.</summary>
         /// <param name="entry">Entry to name.</param>
         /// <returns>Its display name.</returns>
@@ -403,14 +694,15 @@ namespace Faultline.Core
         /// </remarks>
         /// <param name="kind">The duck's archetype.</param>
         /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
-        /// <param name="slot">Index of the slot being changed.</param>
+        /// <param name="axis">Which of the duck's two sets of slots is being changed.</param>
+        /// <param name="slot">Index of the slot being changed, within that axis.</param>
         /// <param name="taken">What is going into it.</param>
         /// <returns>The warnings, loudest first; empty when nothing categorical is lost.</returns>
         public static IReadOnlyList<string> LossesFrom(
-            UnitKind kind, DuckLoadout? loadout, int slot, KitEntry taken)
+            UnitKind kind, DuckLoadout? loadout, KitAxis axis, int slot, KitEntry taken)
         {
             var warnings = new List<string>();
-            var kit = SlotsOf(kind, loadout);
+            var kit = SlotsOn(kind, loadout, axis);
             if (slot < 0 || slot >= kit.Count)
             {
                 return warnings;
@@ -436,19 +728,21 @@ namespace Faultline.Core
                     + "somebody who can take it. Give it up and nothing redirects a hit again.");
             }
 
-            // Counted over the kit as it would stand afterwards, not over the entry alone: the
-            // sentence is "this duck can no longer hurt anything", which only one slot can be the
-            // last of.
+            // Counted over the whole kit as it would stand afterwards — both axes, not just the one
+            // being changed — because the sentence is "this duck can no longer hurt anything" and a
+            // spender on the other axis is still a way to hurt something.
             if (IsDamageSource(dropped) && !IsDamageSource(taken))
             {
                 bool anyLeft = false;
-                for (int i = 0; i < kit.Count; i++)
+                for (int i = 0; i < kit.Count && !anyLeft; i++)
                 {
-                    if (i != slot && IsDamageSource(kit[i]))
-                    {
-                        anyLeft = true;
-                        break;
-                    }
+                    anyLeft = i != slot && IsDamageSource(kit[i]);
+                }
+
+                var other = SlotsOn(kind, loadout, axis == KitAxis.Pluck ? KitAxis.Ability : KitAxis.Pluck);
+                for (int i = 0; i < other.Count && !anyLeft; i++)
+                {
+                    anyLeft = IsDamageSource(other[i]);
                 }
 
                 if (!anyLeft)

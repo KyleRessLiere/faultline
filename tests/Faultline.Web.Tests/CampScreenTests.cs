@@ -510,6 +510,60 @@ public sealed class CampScreenTests
         }
     }
 
+    /// <summary>
+    /// <b>A duck that has had an ability taken out of a slot still owns it, and the camp screen's
+    /// duck strip says so in words.</b> "Owned but not available" that nothing renders is a flag, not
+    /// a rule — and a flag proves nothing about what a player sees (D-232).
+    /// </summary>
+    /// <remarks>
+    /// <b>Loadout-constructed, and it has to be.</b> Nothing in the shipped game performs kit
+    /// surgery: the replacement offer and its command are what G2 is blocked on, so there is no way
+    /// to reach a disabled ability by playing, and the test says so in its name as two others
+    /// already do. It asserts the half that is assertable — the sentence on the strip beneath the
+    /// cards, which is what <see cref="CampCards.DucksFor"/> hands the panel and the panel draws in
+    /// its <c>duck-reason</c> span — and pins on the drawn markup that a squad with nothing disabled
+    /// says nothing, so the line cannot appear by accident.
+    /// </remarks>
+    [Fact]
+    public async Task TheCampScreen_SaysWhatADuckStillKnowsAndCannotUse_LoadoutConstructed()
+    {
+        var session = await AtACamp();
+        string stanceName = AbilityDefinition.For(Ability.GuardStance).Name;
+
+        // Nothing has been taken out of anybody's kit, so the drawn screen is silent about it.
+        Assert.DoesNotContain("still knows", VisibleText(Render(session)), StringComparison.Ordinal);
+
+        var ward = session.State!.Squad.First(u => u.Kind == UnitKind.Wardbearer);
+        var kit = Kits.SlotsOf(ward.Kind, ward.Loadout);
+        int stance = kit.ToList().IndexOf(KitEntry.GuardStance);
+
+        var run = session.State.WithUnit(ward with
+        {
+            Loadout = ward.Loadout.Replacing(stance, KitEntry.StaggerShot, kit),
+        });
+
+        // The Wardbearer is Player B's wall, so it is B's strip the sentence lands on.
+        var lines = CampCards.DucksFor(run, Team.PlayerB);
+        string reason = lines.Single(l => l.Kind == UnitKind.Wardbearer).Reason;
+
+        Assert.Contains("still knows " + stanceName, reason, StringComparison.Ordinal);
+        Assert.Contains("cannot use it", reason, StringComparison.Ordinal);
+
+        // Said about the duck that owns it, not about the squad.
+        Assert.DoesNotContain(stanceName, lines.Single(l => l.Kind == UnitKind.Archer).Reason);
+        Assert.All(
+            CampCards.DucksFor(run, Team.PlayerA),
+            l => Assert.DoesNotContain("still knows", l.Reason, StringComparison.Ordinal));
+
+        // And the sentence carries none of the words the pocket ruling bans from this screen, so
+        // rendering it cannot break TheCampScreen_OffersNoWayToThrowACarriedOneShotAway.
+        foreach (string word in
+                 new[] { "Replace", "replace", "Drop", "drop", "Discard", "discard", "Swap out" })
+        {
+            Assert.DoesNotContain(word, reason, StringComparison.Ordinal);
+        }
+    }
+
     // ---- Rendering ------------------------------------------------------------------------------
 
     private static string Render(RunSession runs)

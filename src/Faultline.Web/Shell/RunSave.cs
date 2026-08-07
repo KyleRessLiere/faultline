@@ -397,10 +397,17 @@ public sealed record RunSave
     /// because these are enum members and the file is not a document anybody edits by hand.
     /// </para>
     /// <para>
-    /// <b><c>s</c> is the duck's ability slots</b>, written only once surgery has changed them: an
-    /// absent <c>s</c> reads back as the class's starting kit, which is what an empty
-    /// <see cref="DuckLoadout.Slots"/> means everywhere else. Three saves have now shipped that
-    /// dropped a field Core had grown (D-125, the camp, D-222), so this one arrives with the state.
+    /// <b><c>s</c> is the duck's ability slots and <c>k</c> its Pluck slots</b>, written only once
+    /// surgery has changed them: an absent field reads back as the class's starting kit on that axis,
+    /// which is what an empty <see cref="DuckLoadout.Slots"/> means everywhere else. Three saves had
+    /// shipped that dropped a field Core had grown (D-125, the camp, D-222), so these arrive with the
+    /// state.
+    /// </para>
+    /// <para>
+    /// <b><c>d</c> is what the duck owns and cannot use</b> — the disabled abilities, which the
+    /// ruling says are stored — and <b><c>x</c> is the two granted slot counts</b>, ability then
+    /// Pluck. Both are written only when they say something, so an untouched duck is still a bare
+    /// <c>-</c> (D-231, D-232).
     /// </para>
     /// </remarks>
     private static string LoadoutText(DuckLoadout loadout)
@@ -420,6 +427,22 @@ public sealed record RunSave
         if (loadout.Slots.Count > 0)
         {
             text.Append("|s").Append(Numbers(loadout.Slots));
+        }
+
+        if (loadout.SpenderSlots.Count > 0)
+        {
+            text.Append("|k").Append(Numbers(loadout.SpenderSlots));
+        }
+
+        if (loadout.Disabled.Count > 0)
+        {
+            text.Append("|d").Append(Numbers(loadout.Disabled));
+        }
+
+        if (loadout.ExtraAbilitySlots != 0 || loadout.ExtraPluckSlots != 0)
+        {
+            text.Append("|x").Append(Number(loadout.ExtraAbilitySlots))
+                .Append(',').Append(Number(loadout.ExtraPluckSlots));
         }
 
         return text.ToString();
@@ -461,6 +484,21 @@ public sealed record RunSave
         return slots;
     }
 
+    /// <summary>The saved slot grants, or <c>null</c> when the pair is unreadable.</summary>
+    private static (int Ability, int Pluck)? ParseGrants(string body)
+    {
+        var raw = body.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        if (raw.Length != 2)
+        {
+            return null;
+        }
+
+        return int.TryParse(raw[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int ability)
+            && int.TryParse(raw[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int pluck)
+                ? (ability, pluck)
+                : ((int, int)?)null;
+    }
+
     private static DuckLoadout ParseLoadout(string token)
     {
         if (token.Length == 0 || string.Equals(token, "-", StringComparison.Ordinal))
@@ -500,6 +538,46 @@ public sealed record RunSave
                 if (ParseSlots(body) is { } slots)
                 {
                     loadout = loadout with { Slots = slots };
+                }
+
+                continue;
+            }
+
+            if (kind == 'k')
+            {
+                // The Pluck slots, read the same all-or-nothing way and for the same reason: they
+                // are an ordered kit of a fixed length, not a bag.
+                if (ParseSlots(body) is { } spenders)
+                {
+                    loadout = loadout with { SpenderSlots = spenders };
+                }
+
+                continue;
+            }
+
+            if (kind == 'd')
+            {
+                // Owned but unavailable. Order is the order they were set aside, so this is read
+                // whole as well — a half-read list would quietly hand an ability back.
+                if (ParseSlots(body) is { } disabled)
+                {
+                    loadout = loadout with { Disabled = disabled };
+                }
+
+                continue;
+            }
+
+            if (kind == 'x')
+            {
+                // Granted slots, ability then Pluck. Both or neither: a half-read pair would restore
+                // a duck with a ceiling it never earned, or one it did.
+                if (ParseGrants(body) is { } grants)
+                {
+                    loadout = loadout with
+                    {
+                        ExtraAbilitySlots = grants.Ability,
+                        ExtraPluckSlots = grants.Pluck,
+                    };
                 }
 
                 continue;

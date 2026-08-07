@@ -1,5 +1,24 @@
 # Changelog
 
+## Pluck gets its own slot, and an ability you trade away is still yours
+
+- **The spender moves off the ability slots onto a Pluck slot of its own** (D-230), counted
+  separately — so every class opens using two of three ability slots (the Wardbearer three of four)
+  with one free to grow into. This makes §8.5's *Fresh Slot Learn*, §8.6's *Third Slot* and
+  WATERLOGGED legal as written, which is the half of D-227 that was open.
+- **The Wardbearer's four is class initialisation, not an exception to a law** — D-230 supersedes
+  D-225's framing; the reason still travels with the number.
+- **Slot counts are data a class is initialised with and are adjustable per duck** (D-231):
+  `Kits.For(kind)` hands back a `ClassKit`, and a run may grant a duck slots on either axis. The
+  class table stays immutable, because a count a replay cannot reproduce is a determinism hole.
+- **An ability taken out of a slot is owned-but-disabled, and stored** (D-232): not offered, not
+  usable, not counted against the cap, still known — and the camp strip says so. `Kits.Holds` means
+  *holds and can use*; `Kits.Knows` means *owns in any state*.
+- **The save carries all of it**: Pluck slots, disabled abilities and granted counts, round-tripped
+  together.
+- **Reported, not resolved:** the disabled ruling makes *suspended* a third candidate answer to
+  D-228's forfeited-mods question (D-233).
+
 ## A duck's kit is slots now, and the Wardbearer carries four of them
 
 - **Ability slots** (D-225): §4's kits become the *starting contents* of a fixed number of slots

@@ -46,6 +46,56 @@ namespace Faultline.Core
         /// </remarks>
         public IReadOnlyList<KitEntry> Slots { get; init; } = NoSlots;
 
+        /// <summary>
+        /// What is in this duck's Pluck slots, in slot order — <b>empty while no surgery has
+        /// happened</b>, which reads as "the class's starting spender, untouched"
+        /// (<see cref="Kits.SpenderSlotsOf"/>).
+        /// </summary>
+        /// <remarks>
+        /// <b>A separate list because it is a separate count.</b> The designer's ruling — "pluck is
+        /// its own slot… the pluck is a separate count" — means a spender never occupies one of the
+        /// ability slots, so the two axes cannot share a list without the cap on one silently
+        /// becoming a cap on the other (D-230).
+        /// </remarks>
+        public IReadOnlyList<KitEntry> SpenderSlots { get; init; } = NoSlots;
+
+        /// <summary>
+        /// What this duck <b>owns but cannot use</b>: entries taken out of a slot, kept rather than
+        /// deleted, in the order they were set aside.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The designer's ruling: an ability stripped away is marked <i>"character owning but not
+        /// available"</i>, and the flag is <b>stored</b> — it rides in the save and survives a reload.
+        /// </para>
+        /// <para>
+        /// A disabled entry is <b>not offered, not usable and not counted against the slot cap</b>,
+        /// because it is in no slot; it is still <i>known</i>, which is what
+        /// <see cref="Kits.Knows"/> answers and what <see cref="Kits.UnavailableNote"/> puts on a
+        /// screen (D-232).
+        /// </para>
+        /// </remarks>
+        public IReadOnlyList<KitEntry> Disabled { get; init; } = NoSlots;
+
+        /// <summary>
+        /// Ability slots this duck has been granted beyond its class's count. Zero for every duck
+        /// nothing has changed.
+        /// </summary>
+        /// <remarks>
+        /// <b>The count is adjustable, and this is where the adjustment lives.</b> The designer asked
+        /// for a mutable slot count; a static a fight could read and something else could poke would
+        /// break replay, so the adjustment is per-duck run state instead — saved, compared and
+        /// replayed like every other field here (D-231). Read it through
+        /// <see cref="Kits.AbilitySlotsFor"/>, never directly.
+        /// </remarks>
+        public int ExtraAbilitySlots { get; init; }
+
+        /// <summary>
+        /// Pluck slots this duck has been granted beyond its class's count — what §8.5's <i>Fresh
+        /// Slot Learn</i> and §8.6's <i>Third Slot</i> raise. Zero for every duck nothing has changed.
+        /// </summary>
+        public int ExtraPluckSlots { get; init; }
+
         /// <summary>Mods on this duck, in the order they were taken. Each hangs on one slot.</summary>
         /// <remarks>
         /// Which slot is <i>derived</i> from the card rather than stored beside it —
@@ -104,7 +154,9 @@ namespace Faultline.Core
         /// </summary>
         public bool IsEmpty =>
             Mods.Count == 0 && SecondWinds.Count == 0 && Unlocks.Count == 0
-            && Techniques.Count == 0 && Slots.Count == 0 && Pocket is null && Epithet is null;
+            && Techniques.Count == 0 && Slots.Count == 0 && SpenderSlots.Count == 0
+            && Disabled.Count == 0 && ExtraAbilitySlots == 0 && ExtraPluckSlots == 0
+            && Pocket is null && Epithet is null;
 
         /// <summary>Whether this duck's spender carries a mod.</summary>
         /// <param name="mod">Mod to look for.</param>
@@ -222,12 +274,72 @@ namespace Faultline.Core
         /// <see cref="Kits.ForfeitedModsReturnToTheOffers"/>.
         /// </para>
         /// </remarks>
-        /// <param name="slot">Index into the duck's slots.</param>
+        /// <param name="slot">Index into the duck's ability slots.</param>
         /// <param name="taken">What goes into it.</param>
-        /// <param name="kit">The slots as they stand, from <see cref="Kits.SlotsOf"/>.</param>
+        /// <param name="kit">The ability slots as they stand, from <see cref="Kits.SlotsOf"/>.</param>
         /// <returns>The new loadout.</returns>
         /// <exception cref="ArgumentOutOfRangeException">There is no slot at that index.</exception>
         public DuckLoadout Replacing(int slot, KitEntry taken, IReadOnlyList<KitEntry> kit)
+        {
+            var next = Swapped(slot, taken, kit, "ability slots", out var dropped);
+            return Settled(dropped, taken) with { Slots = next };
+        }
+
+        /// <summary>
+        /// This loadout with one <b>Pluck</b> slot's contents traded for another spender, forfeiting
+        /// every mod that hung on what left.
+        /// </summary>
+        /// <remarks>
+        /// The Pluck slots are counted separately from the ability slots, so this is a separate
+        /// method rather than an index into one shared list: a spender leaving costs the duck a
+        /// spender and never an action (D-230).
+        /// </remarks>
+        /// <param name="slot">Index into the duck's Pluck slots.</param>
+        /// <param name="taken">What goes into it.</param>
+        /// <param name="kit">The Pluck slots as they stand, from <see cref="Kits.SpenderSlotsOf"/>.</param>
+        /// <returns>The new loadout.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">There is no slot at that index.</exception>
+        public DuckLoadout ReplacingSpender(int slot, KitEntry taken, IReadOnlyList<KitEntry> kit)
+        {
+            var next = Swapped(slot, taken, kit, Naming.Meter + " slots", out var dropped);
+            return Settled(dropped, taken) with { SpenderSlots = next };
+        }
+
+        /// <summary>
+        /// This loadout still owning an entry, flagged unavailable. <b>Replacement does not delete
+        /// what it took out</b> — the duck keeps owning it and the flag is stored (D-232).
+        /// </summary>
+        /// <param name="entry">What the duck owns but cannot use.</param>
+        /// <returns>The new loadout.</returns>
+        public DuckLoadout Disabling(KitEntry entry) =>
+            Contains(Disabled, entry) ? this : this with { Disabled = Append(Disabled, entry) };
+
+        /// <summary>This loadout with an entry no longer flagged unavailable — what taking it back does.</summary>
+        /// <param name="entry">What the duck can use again.</param>
+        /// <returns>The new loadout.</returns>
+        public DuckLoadout Enabling(KitEntry entry)
+        {
+            if (!Contains(Disabled, entry))
+            {
+                return this;
+            }
+
+            var kept = new List<KitEntry>(Disabled.Count);
+            foreach (var held in Disabled)
+            {
+                if (held != entry)
+                {
+                    kept.Add(held);
+                }
+            }
+
+            return this with { Disabled = kept.ToArray() };
+        }
+
+        // One slot's contents traded, with the index checked by name rather than clamped. The axis is
+        // named in the refusal because "there is no slot 3" is a different sentence on each of them.
+        private static KitEntry[] Swapped(
+            int slot, KitEntry taken, IReadOnlyList<KitEntry> kit, string axis, out KitEntry dropped)
         {
             if (kit is null)
             {
@@ -237,18 +349,25 @@ namespace Faultline.Core
             if (slot < 0 || slot >= kit.Count)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(slot), slot, "That duck has " + kit.Count + " slots, so there is none at " + slot + ".");
+                    nameof(slot),
+                    slot,
+                    "That duck has " + kit.Count + " " + axis + ", so there is none at " + slot + ".");
             }
 
-            var dropped = kit[slot];
+            dropped = kit[slot];
             var next = new KitEntry[kit.Count];
             for (int i = 0; i < kit.Count; i++)
             {
                 next[i] = i == slot ? taken : kit[i];
             }
 
-            return Forfeiting(dropped) with { Slots = next };
+            return next;
         }
+
+        // What leaves is forfeited of its mods and kept as owned-but-unavailable; what arrives stops
+        // being unavailable, so a duck never owns the same entry twice over.
+        private DuckLoadout Settled(KitEntry dropped, KitEntry taken) =>
+            Forfeiting(dropped).Disabling(dropped).Enabling(taken);
 
         /// <summary>This loadout with every mod that hung on one slot's contents stripped off.</summary>
         /// <param name="dropped">What has left the slot.</param>
@@ -311,8 +430,12 @@ namespace Faultline.Core
             && Same(Mods, other.Mods)
             && Same(SecondWinds, other.SecondWinds)
             && Same(Unlocks, other.Unlocks)
+            && ExtraAbilitySlots == other.ExtraAbilitySlots
+            && ExtraPluckSlots == other.ExtraPluckSlots
             && Same(Techniques, other.Techniques)
-            && Same(Slots, other.Slots);
+            && Same(Slots, other.Slots)
+            && Same(SpenderSlots, other.SpenderSlots)
+            && Same(Disabled, other.Disabled);
 
         /// <inheritdoc/>
         public override int GetHashCode()
@@ -345,6 +468,19 @@ namespace Faultline.Core
                 {
                     hash = (hash * 53) + (int)slot + 1;
                 }
+
+                foreach (var slot in SpenderSlots)
+                {
+                    hash = (hash * 59) + (int)slot + 1;
+                }
+
+                foreach (var entry in Disabled)
+                {
+                    hash = (hash * 61) + (int)entry + 1;
+                }
+
+                hash = (hash * 67) + ExtraAbilitySlots;
+                hash = (hash * 71) + ExtraPluckSlots;
 
                 return hash;
             }

@@ -1458,46 +1458,71 @@ Named here so the gap between intent and build stays visible, not to promise a d
   draft (D-121).
 - **The Peddler's Coin**, the one licensed re-flip. When it lands it re-flips the coin, not the vote.
 
-## Ability slots — the kit as data
+## Ability slots and the Pluck slot — the kit as data
 
 A duck's kit is a **fixed number of slots holding data**, not a list of abilities hardcoded to its
-class. MASTER_DESIGN §4's kits are the **starting contents** of those slots. Every ceiling in the kit
-is counted in `Kits` and nowhere else, so nothing can grant a slot or a mod past the ruling.
+class. MASTER_DESIGN §4's and §5's kits are the **starting contents** of those slots. Every ceiling in
+the kit is counted in `Kits` and nowhere else, so nothing can grant a slot or a mod past the ruling.
 
-| Class | Slots | Starting contents |
-|---|---|---|
-| **Vanguard** | 3 | basic attack · Bull Rush · Wrecking Weight |
-| **Archer** | 3 | basic attack · Stagger Shot · Double Nock |
-| **Fisher** | 3 | basic attack (the flick) · Reel · Cast |
-| **Wardbearer** | **4** | basic attack · Spear Thrust · Guard Stance · Preen |
+**There are two axes and they are counted separately: N ability slots, *plus* the Pluck slot.** A
+class's spender lives on the second axis and never occupies one of the first (D-230).
 
-**The Wardbearer carries four, and the reason travels with the number: his stance and his spear are
-two halves of one job.** §4 prints them as one "per activation choose" line, which is one kit entry
-wearing two names; slots cannot hold a choice, so the choice becomes two slots and he gets a fourth to
-pay for it. This is a **deliberate exception** to §3's *"pools are grammar — differentiation lives in
-action costs and earned upgrades, never in base pools"*, and it is **the first one**. It is not
-licence for per-class slot counts generally: a second exception needs its own ruling and its own
-reason written beside this one (D-225). **§4 needs this sentence carried into the next stamp** — it is
-inbound-only, so it cannot be written there from here.
+| Class | Ability slots | Starting contents | Pluck slots | Spender |
+|---|---|---|---|---|
+| **Vanguard** | 3 (2 used) | basic attack · Bull Rush | 1 | Wrecking Weight |
+| **Archer** | 3 (2 used) | basic attack · Stagger Shot | 1 | Double Nock |
+| **Fisher** | 3 (2 used) | basic attack (the flick) · Reel | 1 | Cast |
+| **Wardbearer** | **4** (3 used) | basic attack · Spear Thrust · Guard Stance | 1 | Preen |
 
-- **Every slot is replaceable, including the basic attack.**
+So every class but the Wardbearer opens **using two of three ability slots, with one free to grow
+into**, and the Wardbearer three of four.
+
+**The Wardbearer starts with four, and the reason travels with the number: his stance and his spear
+are two halves of one job.** §4 prints them as one "per activation choose" line, which is one kit
+entry wearing two names; slots cannot hold a choice, so the choice becomes two slots and his kit
+starts with the fourth to pay for it. **This is his class initialisation, not an exception to a law** —
+D-230 supersedes D-225's framing of it as the first deliberate exception to §3's *"pools are grammar"*.
+**§4 needs this carried into the next stamp** — it is inbound-only, so it cannot be written there from
+here.
+
+**Slot counts are class-initialisation data and are adjustable.** `Kits.For(kind)` hands back a
+`ClassKit` — two counts and two opening hands as one value — so a class starting with more says so in
+its own row and testing a different count is `Kits.For(kind) with { AbilitySlots = 4 }` rather than an
+edit to control flow. **Adjustment a run can make lives on the duck**, as `ExtraAbilitySlots` and
+`ExtraPluckSlots`, so it is saved, compared and replayed like any other run state; the class table
+itself is immutable, because a static a fight reads and something else pokes cannot survive replay
+(D-231).
+
+- **Every slot is replaceable, including the basic attack and the spender.**
+- **A stripped ability is still owned, flagged unavailable, and stored** (D-232). Replacement does not
+  delete it: the duck keeps owning it, it is **not offered, not usable and not counted against the
+  slot cap**, and the flag rides in the save. `Kits.Holds` means *holds and can use*; `Kits.Knows`
+  means *owns in any state*. Taking an ability back clears the flag.
+- **The camp strip says what a duck still knows and cannot use** — "still knows Guard Stance, and
+  cannot use it — no slot holds it any more". The sentence is Core's, so a shell cannot write a second
+  version of the ruling.
 - **Mods are counted per slot: three per ability, all classes** (D-226). A mod's host slot is
   *derived* from the card — a mod bolts onto its spender, a technique onto the ability §8.6 names —
   so the ceiling costs no run state.
 - **Replacing a slot forfeits every mod that hung on what left.** A mod names the thing it modifies,
-  so a mod whose host has gone is a rule about nothing.
+  so a mod whose host has gone is a rule about nothing. **Mods are forfeited, not disabled** — the
+  owned-but-unavailable flag is about abilities, so §8.6's uniqueness law (`CampDirector.AnybodyHolds`,
+  "what the squad currently holds") answers exactly as it did before the flag existed.
 - **A duck is never offered a mod for an ability it does not own.** This applies to mods only; Second
   Winds, unlocks and one-shots are unaffected, or a kit could never change.
 - **A duck with no attack is legal and nothing gates it.** Its stat block reads `AttackKind.None`, it
   is offered no swing, and it still moves, spends Pluck, interacts and rescues. §3: the game never
   decides what is useful.
-- **A rearranged kit rides in the save** as an `s` field on the duck's loadout token. A duck whose kit
-  is untouched writes no slot list at all, and an absent list reads back as the class's starting kit.
+- **A rearranged kit rides in the save**: `s` for the ability slots, `k` for the Pluck slots, `d` for
+  what is owned and unavailable, `x` for the two granted counts. A duck whose kit is untouched writes
+  none of them, and an absent field reads back as the class's starting kit on that axis.
 
 **Not built yet:** the camp offer and the command that perform the replacement, and the confirm
 surface that prints the forfeited mods and the category of play being lost. `Kits.LossesFrom` already
 supplies those warnings — Preen as the game's only in-fight healing, Guard Stance as the only damage
-redirect, and the last damage source — and they are tested; nothing renders them yet.
+redirect, and the last damage source — and they are tested; nothing renders them yet. `Kits.Learn` and
+`Kits.RefusalForLearning` are the seam a Learn offer fills a free slot through; no offer draws on them
+yet.
 
 ## The Camp — two cards, one pick, after every won fight
 
@@ -1583,7 +1608,7 @@ other five name none**, so they hang on the duck rather than on any slot: never 
 filtered, and capped only by `DuckLoadout.TechniqueSlots` = 2. That is D-158's recorded contradiction
 — the §8.6 heading says all twenty-four are "hosted on a named ability, 2 sockets each" while the
 entries name a host for three — surfacing again under the slot model rather than being resolved
-(D-227).
+(D-227, still open on that half; the spender-slot half of D-227 is resolved by D-230).
 
 | Card | Class | Rarity | Tags | What it does |
 |---|---|---|---|---|

@@ -12,21 +12,26 @@ namespace Faultline.Core.Tests;
 /// </summary>
 public class KitSlotTests
 {
+    private static readonly UnitKind[] Ducks =
+    {
+        UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
+    };
+
     // ---- the counts ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <b>Three slots per duck, and four for the Wardbearer.</b> Pinned explicitly, with its reason,
-    /// so that it reads as intent and not as a bug somebody later tidies away: his stance and his
-    /// spear are two halves of one job, so the kit that has to hold both needs a fourth slot to hold
-    /// what every other class holds in three.
+    /// <b>Three ability slots per duck, and four for the Wardbearer, with the Pluck slot counted
+    /// separately from both.</b> Pinned explicitly, with its reason, so that it reads as intent and
+    /// not as a bug somebody later tidies away: his stance and his spear are two halves of one job,
+    /// so the kit that has to hold both needs a fourth slot to hold what every other class holds in
+    /// three.
     /// </summary>
     /// <remarks>
-    /// This is the first deliberate exception to §3's "pools are grammar — differentiation lives in
-    /// action costs and earned upgrades, never in base pools", and it is not licence for per-class
-    /// slot counts generally (D-225).
+    /// The counts are <b>class initialisation data</b> and the Wardbearer's four is part of his kit,
+    /// not an exception to a law (D-230 superseding D-225's framing).
     /// </remarks>
     [Fact]
-    public void EveryDuckCarriesThreeSlots_ExceptTheWardbearerWhoCarriesFour()
+    public void EveryDuckCarriesThreeAbilitySlots_ExceptTheWardbearerWhoCarriesFour()
     {
         Assert.Equal(3, Kits.SlotsFor(UnitKind.Vanguard));
         Assert.Equal(3, Kits.SlotsFor(UnitKind.Archer));
@@ -36,35 +41,169 @@ public class KitSlotTests
         Assert.Equal(Kits.WardbearerSlots, Kits.SlotsFor(UnitKind.Wardbearer));
         Assert.Equal(Kits.SlotsPerDuck + 1, Kits.SlotsFor(UnitKind.Wardbearer));
 
-        // The Wardbearer is the only one. A second exception needs its own ruling.
-        var exceptions = new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer }
+        // The Wardbearer is the only one who starts with more, and it is written in his row.
+        var more = new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer }
             .Where(k => Kits.SlotsFor(k) != Kits.SlotsPerDuck)
             .ToList();
 
-        Assert.Single(exceptions);
-        Assert.Equal(UnitKind.Wardbearer, exceptions[0]);
+        Assert.Single(more);
+        Assert.Equal(UnitKind.Wardbearer, more[0]);
+
+        // And every class carries exactly one Pluck slot, on its own axis.
+        foreach (var kind in Ducks)
+        {
+            Assert.Equal(Kits.PluckSlotsPerDuck, Kits.PluckSlotsFor(kind));
+            Assert.Equal(1, Kits.PluckSlotsFor(kind));
+        }
     }
 
-    /// <summary>Every class starts with its slots full, and with exactly what §4 prints.</summary>
+    /// <summary>
+    /// <b>The Pluck spender is its own slot and is not counted against the ability slots.</b> The
+    /// designer's ruling — "pluck is its own slot… the pluck is a separate count" — so every class
+    /// but the Wardbearer opens using 2 of 3 ability slots with one free to grow into, and the
+    /// Wardbearer 3 of 4 (D-230).
+    /// </summary>
     [Fact]
-    public void AStartingKit_FillsEverySlot_AndIsWhatSectionFourPrints()
+    public void TheSpenderIsItsOwnSlot_AndIsNotCountedAgainstTheAbilitySlots()
     {
-        foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer })
+        foreach (var kind in Ducks)
         {
-            var kit = Kits.StartingKit(kind);
+            var abilities = Kits.StartingKit(kind);
+            var spenders = Kits.StartingSpenders(kind);
 
-            Assert.Equal(Kits.SlotsFor(kind), kit.Count);
-            Assert.Equal(kit.Count, kit.Distinct().Count());
-            Assert.All(kit, entry => Assert.Equal(kind, Kits.KindOf(entry)));
+            // Nothing on the ability axis is a spender, and nothing on the Pluck axis is not.
+            Assert.All(abilities, e => Assert.Null(Kits.SpenderOf(e)));
+            Assert.All(spenders, e => Assert.NotNull(Kits.SpenderOf(e)));
 
-            // A basic attack, and a spender, in every opening hand.
-            Assert.Contains(Kits.BasicFor(kind)!.Value, kit);
-            Assert.Contains(kit, e => Kits.SpenderOf(e) is not null);
+            Assert.Contains(Kits.BasicFor(kind)!.Value, abilities);
+            Assert.Single(spenders);
+            Assert.Equal(Kits.PluckSlotsFor(kind), spenders.Count);
+
+            // The whole opening hand is still §4's, read across both axes.
+            Assert.Equal(
+                abilities.Count + spenders.Count,
+                abilities.Concat(spenders).Distinct().Count());
+            Assert.All(abilities.Concat(spenders), e => Assert.Equal(kind, Kits.KindOf(e)));
         }
 
+        // The arithmetic, said out loud: two of three, and one free to grow into.
+        Assert.Equal(2, Kits.StartingKit(UnitKind.Vanguard).Count);
+        Assert.Equal(2, Kits.StartingKit(UnitKind.Archer).Count);
+        Assert.Equal(2, Kits.StartingKit(UnitKind.Threadcaster).Count);
+        Assert.Equal(3, Kits.StartingKit(UnitKind.Wardbearer).Count);
+
+        Assert.Equal(1, Kits.FreeSlots(UnitKind.Vanguard, null, KitAxis.Ability));
+        Assert.Equal(1, Kits.FreeSlots(UnitKind.Wardbearer, null, KitAxis.Ability));
+        Assert.Equal(0, Kits.FreeSlots(UnitKind.Vanguard, null, KitAxis.Pluck));
+
         Assert.Equal(
-            new[] { KitEntry.WardbearerBasic, KitEntry.SpearThrust, KitEntry.GuardStance, KitEntry.Preen },
+            new[] { KitEntry.WardbearerBasic, KitEntry.SpearThrust, KitEntry.GuardStance },
             Kits.StartingKit(UnitKind.Wardbearer));
+        Assert.Equal(new[] { KitEntry.Preen }, Kits.StartingSpenders(UnitKind.Wardbearer));
+    }
+
+    /// <summary>
+    /// <b>A slot count is data a class is initialised with, not a branch.</b> The designer asked for
+    /// class initialisation and for the count to be adjustable; the table hands back a record, so a
+    /// different count is a different value and never an edit to control flow (D-231).
+    /// </summary>
+    [Fact]
+    public void ASlotCount_IsClassInitialisationData_AndIsReachableAsAValue()
+    {
+        foreach (var kind in Ducks)
+        {
+            var kit = Kits.For(kind);
+
+            Assert.Equal(Kits.SlotsFor(kind), kit.AbilitySlots);
+            Assert.Equal(Kits.PluckSlotsFor(kind), kit.PluckSlots);
+            Assert.Equal(Kits.StartingKit(kind), kit.Abilities);
+            Assert.Equal(Kits.StartingSpenders(kind), kit.Spenders);
+        }
+
+        // Testing at a different count is a value, not a code change.
+        var wider = Kits.For(UnitKind.Vanguard) with { AbilitySlots = 5 };
+        Assert.Equal(5, wider.AbilitySlots);
+        Assert.Equal(Kits.StartingKit(UnitKind.Vanguard), wider.Abilities);
+
+        // And the table itself is unmoved by that — it is not a static anybody can poke, which is
+        // what keeps a replay honest (D-231).
+        Assert.Equal(Kits.SlotsPerDuck, Kits.For(UnitKind.Vanguard).AbilitySlots);
+
+        // Anything that is not a player duck has no kit rather than a guessed one.
+        Assert.Equal(0, Kits.For(UnitKind.Husk).AbilitySlots);
+        Assert.Empty(Kits.For(UnitKind.Husk).Abilities);
+    }
+
+    /// <summary>
+    /// <b>The count is adjustable per duck, and the adjustment is state that travels with the
+    /// duck.</b> A grant raises the ceiling and something can then be learned into the new slot; the
+    /// same grant on nobody leaves the class where it was, so no other duck is changed by it
+    /// (D-231).
+    /// </summary>
+    [Fact]
+    public void AGrantedSlot_RaisesThatDucksCeilingAlone_AndCanBeLearnedInto()
+    {
+        var fresh = DuckLoadout.Empty;
+
+        // Full at three: the Vanguard's two plus one learned action.
+        var grown = Kits.Learn(UnitKind.Vanguard, fresh, KitEntry.StaggerShot);
+        Assert.Equal(3, Kits.SlotsOf(UnitKind.Vanguard, grown).Count);
+        Assert.Equal(0, Kits.FreeSlots(UnitKind.Vanguard, grown, KitAxis.Ability));
+
+        // A fourth is refused, by name.
+        var refusal = Kits.RefusalForLearning(UnitKind.Vanguard, grown, KitEntry.Reel);
+        Assert.NotNull(refusal);
+        Assert.Contains("ability slots are full", refusal!, StringComparison.Ordinal);
+        Assert.Throws<InvalidOperationException>(() => Kits.Learn(UnitKind.Vanguard, grown, KitEntry.Reel));
+
+        // Grant this duck one more and the same learn goes through.
+        var granted = grown with { ExtraAbilitySlots = 1 };
+        Assert.Equal(4, Kits.AbilitySlotsFor(UnitKind.Vanguard, granted));
+        Assert.Null(Kits.RefusalForLearning(UnitKind.Vanguard, granted, KitEntry.Reel));
+
+        var wider = Kits.Learn(UnitKind.Vanguard, granted, KitEntry.Reel);
+        Assert.Contains(KitEntry.Reel, Kits.SlotsOf(UnitKind.Vanguard, wider));
+        Assert.True(Kits.Holds(UnitKind.Vanguard, wider, KitEntry.Reel));
+
+        // Nobody else moved: the grant is on the duck, not on the class.
+        Assert.Equal(Kits.SlotsPerDuck, Kits.AbilitySlotsFor(UnitKind.Vanguard, DuckLoadout.Empty));
+        Assert.Equal(Kits.SlotsPerDuck, Kits.SlotsFor(UnitKind.Vanguard));
+        Assert.True(DuckLoadout.Empty.IsEmpty);
+    }
+
+    /// <summary>
+    /// <b>The Pluck axis has its own count, and raising it is what §8.5's <i>Fresh Slot Learn</i>,
+    /// §8.6's <i>Third Slot</i> and WATERLOGGED's "occupies a spender slot" ask for.</b> They grant a
+    /// spender slot, which is now a thing a duck can be granted — so they are legal rather than inert
+    /// or forbidden, which is D-227's resolution (D-230).
+    /// </summary>
+    [Fact]
+    public void ASecondPluckSlot_IsAThingADuckCanBeGranted_WhichIsWhatTheRewardCardsGrant()
+    {
+        var fresh = DuckLoadout.Empty;
+
+        // One spender, and no room for a second until something grants it.
+        Assert.Equal(0, Kits.FreeSlots(UnitKind.Vanguard, fresh, KitAxis.Pluck));
+        var refusal = Kits.RefusalForLearning(UnitKind.Vanguard, fresh, KitEntry.Cast);
+        Assert.NotNull(refusal);
+        Assert.Contains("Pluck slots are full", refusal!, StringComparison.Ordinal);
+
+        var granted = fresh with { ExtraPluckSlots = 1 };
+        Assert.Equal(2, Kits.PluckSlotsFor(UnitKind.Vanguard, granted));
+
+        var two = Kits.Learn(UnitKind.Vanguard, granted, KitEntry.Cast);
+        Assert.Equal(
+            new[] { KitEntry.WreckingWeight, KitEntry.Cast },
+            Kits.SpenderSlotsOf(UnitKind.Vanguard, two));
+
+        // And it cost the duck none of its ability slots — the two axes do not touch.
+        Assert.Equal(Kits.SlotsPerDuck, Kits.AbilitySlotsFor(UnitKind.Vanguard, two));
+        Assert.Equal(1, Kits.FreeSlots(UnitKind.Vanguard, two, KitAxis.Ability));
+        Assert.Equal(2, Kits.SlotsOf(UnitKind.Vanguard, two).Count);
+
+        // Both spenders are usable, because Holds reads both axes.
+        Assert.True(Kits.Holds(UnitKind.Vanguard, two, KitEntry.WreckingWeight));
+        Assert.True(Kits.Holds(UnitKind.Vanguard, two, KitEntry.Cast));
     }
 
     /// <summary>
@@ -144,13 +283,14 @@ public class KitSlotTests
             CampCatalogue.EligibleFor(ward),
             o => o.Category == OfferCategory.Mod && Kits.HostOf(o.AsMod) == KitEntry.Preen);
 
-        var kit = Kits.SlotsOf(ward.Kind, ward.Loadout);
+        // Preen is a spender, so it is the Pluck slot that changes, not an ability slot.
+        var kit = Kits.SpenderSlotsOf(ward.Kind, ward.Loadout);
         var traded = ward with
         {
-            Loadout = ward.Loadout.Replacing(kit.ToList().IndexOf(KitEntry.Preen), KitEntry.SpearThrust, kit),
+            Loadout = ward.Loadout.ReplacingSpender(kit.ToList().IndexOf(KitEntry.Preen), KitEntry.Cast, kit),
         };
 
-        Assert.DoesNotContain(KitEntry.Preen, Kits.SlotsOf(traded.Kind, traded.Loadout));
+        Assert.DoesNotContain(KitEntry.Preen, Kits.SpenderSlotsOf(traded.Kind, traded.Loadout));
         Assert.DoesNotContain(
             CampCatalogue.EligibleFor(traded),
             o => o.Category == OfferCategory.Mod && Kits.HostOf(o.AsMod) == KitEntry.Preen);
@@ -177,8 +317,9 @@ public class KitSlotTests
         var loadout = DuckLoadout.Empty.With(TechniqueModifier.StoredForce);
         Assert.Equal(1, Kits.HostlessTechniquesOn(loadout));
 
-        // Nothing leaving a slot takes it with it.
-        foreach (var entry in Kits.StartingKit(UnitKind.Wardbearer))
+        // Nothing leaving a slot takes it with it, on either axis.
+        foreach (var entry in Kits.StartingKit(UnitKind.Wardbearer)
+                     .Concat(Kits.StartingSpenders(UnitKind.Wardbearer)))
         {
             Assert.Contains(TechniqueModifier.StoredForce, loadout.Forfeiting(entry).Techniques);
         }
@@ -200,7 +341,7 @@ public class KitSlotTests
             .With(TechniqueModifier.ShelterStep)
             .With(TechniqueModifier.StoredForce);
 
-        var kit = Kits.StartingKit(UnitKind.Wardbearer);
+        var kit = Kits.StartingSpenders(UnitKind.Wardbearer);
         int preen = kit.ToList().IndexOf(KitEntry.Preen);
 
         // Named before it happens, so a screen can print them.
@@ -209,7 +350,7 @@ public class KitSlotTests
             new[] { CampCatalogue.NameOf(Mod.Thorough), CampCatalogue.NameOf(Mod.Quick) },
             doomed);
 
-        var after = loadout.Replacing(preen, KitEntry.StaggerShot, kit);
+        var after = loadout.ReplacingSpender(preen, KitEntry.Cast, kit);
 
         Assert.Empty(after.Mods);
         Assert.Equal(0, Kits.ModsOn(after, KitEntry.Preen));
@@ -218,11 +359,15 @@ public class KitSlotTests
         Assert.Contains(TechniqueModifier.ShelterStep, after.Techniques);
         Assert.Contains(TechniqueModifier.StoredForce, after.Techniques);
 
-        // And the kit itself changed shape, keeping its slot count.
-        Assert.Equal(kit.Count, after.Slots.Count);
-        Assert.Equal(KitEntry.StaggerShot, after.Slots[preen]);
-        Assert.DoesNotContain(KitEntry.Preen, after.Slots);
+        // And the Pluck slot itself changed shape, keeping its count.
+        Assert.Equal(kit.Count, after.SpenderSlots.Count);
+        Assert.Equal(KitEntry.Cast, after.SpenderSlots[preen]);
+        Assert.DoesNotContain(KitEntry.Preen, after.SpenderSlots);
         Assert.False(after.IsEmpty);
+
+        // The ability slots were not touched by a Pluck-slot change.
+        Assert.Empty(after.Slots);
+        Assert.Equal(Kits.StartingKit(UnitKind.Wardbearer), Kits.SlotsOf(UnitKind.Wardbearer, after));
     }
 
     /// <summary>
@@ -239,7 +384,7 @@ public class KitSlotTests
 
         var run = RunFixture.StartedInFirstFight(out _);
         var ward = run.Squad.Single(u => u.Kind == UnitKind.Wardbearer);
-        var kit = Kits.SlotsOf(ward.Kind, ward.Loadout);
+        var kit = Kits.SpenderSlotsOf(ward.Kind, ward.Loadout);
 
         var modded = ward with { Loadout = ward.Loadout.With(Mod.Thorough) };
         Assert.DoesNotContain(
@@ -248,12 +393,13 @@ public class KitSlotTests
         // Trade Preen away and take it back: the mod died with the slot, and the slot's return makes
         // the mod offerable again, because nobody holds it.
         int preen = kit.ToList().IndexOf(KitEntry.Preen);
-        var stripped = modded.Loadout.Replacing(preen, KitEntry.StaggerShot, kit);
+        var stripped = modded.Loadout.ReplacingSpender(preen, KitEntry.Cast, kit);
         Assert.DoesNotContain(Mod.Thorough, stripped.Mods);
 
         var restored = ward with
         {
-            Loadout = stripped.Replacing(preen, KitEntry.Preen, Kits.SlotsOf(ward.Kind, stripped)),
+            Loadout = stripped.ReplacingSpender(
+                preen, KitEntry.Preen, Kits.SpenderSlotsOf(ward.Kind, stripped)),
         };
 
         Assert.Contains(
@@ -290,10 +436,12 @@ public class KitSlotTests
             Hp = 4,
             Verve = Verve.Cap,
 
-            // The spear and the basic are both gone; the stance and Preen are what is left.
+            // The spear and the basic are both gone; the stance is what is left on the ability axis,
+            // and Preen sits on the Pluck axis where it always did.
             Loadout = DuckLoadout.Empty with
             {
-                Slots = new[] { KitEntry.GuardStance, KitEntry.Preen },
+                Slots = new[] { KitEntry.GuardStance },
+                Disabled = new[] { KitEntry.WardbearerBasic, KitEntry.SpearThrust },
             },
         };
 
@@ -331,34 +479,39 @@ public class KitSlotTests
     public void TheWarnings_NameTheCategoryOfPlayBeingLost_NotJustTheMods()
     {
         var kit = Kits.StartingKit(UnitKind.Wardbearer);
-        int preen = kit.ToList().IndexOf(KitEntry.Preen);
         int stance = kit.ToList().IndexOf(KitEntry.GuardStance);
 
-        var healing = Kits.LossesFrom(UnitKind.Wardbearer, DuckLoadout.Empty, preen, KitEntry.StaggerShot);
+        // Preen is a spender, so its warning is read off the Pluck axis.
+        var healing = Kits.LossesFrom(
+            UnitKind.Wardbearer, DuckLoadout.Empty, KitAxis.Pluck, 0, KitEntry.Cast);
         Assert.Contains(healing, w => w.Contains("only in-fight healing", StringComparison.Ordinal));
 
-        var redirect = Kits.LossesFrom(UnitKind.Wardbearer, DuckLoadout.Empty, stance, KitEntry.StaggerShot);
+        var redirect = Kits.LossesFrom(
+            UnitKind.Wardbearer, DuckLoadout.Empty, KitAxis.Ability, stance, KitEntry.StaggerShot);
         Assert.Contains(redirect, w => w.Contains("redirect", StringComparison.Ordinal));
 
-        // The Wardbearer may drop Guard Stance and keep the spear: the tank may trade away the
+        // The Wardbearer may give Guard Stance up and keep the spear: the tank may trade away the
         // tanking. That is legal, and the surface says so rather than refusing it.
         Assert.NotEmpty(redirect);
 
-        // Swapping like for like warns about nothing.
-        Assert.Empty(Kits.LossesFrom(UnitKind.Wardbearer, DuckLoadout.Empty, preen, KitEntry.Preen));
+        // Trading like for like warns about nothing.
+        Assert.Empty(Kits.LossesFrom(
+            UnitKind.Wardbearer, DuckLoadout.Empty, KitAxis.Pluck, 0, KitEntry.Preen));
 
-        // And the last damage source is its own, louder sentence.
-        var noAttack = DuckLoadout.Empty with
+        // And the last damage source is its own, louder sentence. Preen and Guard Stance deal no
+        // damage, so the basic attack leaving the ability slots silences him.
+        var noSpear = DuckLoadout.Empty with
         {
-            Slots = new[] { KitEntry.WardbearerBasic, KitEntry.GuardStance, KitEntry.Preen },
+            Slots = new[] { KitEntry.WardbearerBasic, KitEntry.GuardStance },
         };
 
-        var silenced = Kits.LossesFrom(UnitKind.Wardbearer, noAttack, 0, KitEntry.GuardStance);
+        var silenced = Kits.LossesFrom(
+            UnitKind.Wardbearer, noSpear, KitAxis.Ability, 0, KitEntry.GuardStance);
         Assert.Contains(silenced, w => w.Contains("no way to deal damage at all", StringComparison.Ordinal));
         Assert.Contains(silenced, w => w.Contains("That is legal", StringComparison.Ordinal));
     }
 
-    /// <summary>A slot index outside the kit is refused by name rather than clamped.</summary>
+    /// <summary>A slot index outside the kit is refused by name rather than clamped, on both axes.</summary>
     [Fact]
     public void ReplacingASlotThatIsNotThere_IsRefusedWithItsReason()
     {
@@ -367,6 +520,185 @@ public class KitSlotTests
         var refusal = Assert.Throws<ArgumentOutOfRangeException>(
             () => DuckLoadout.Empty.Replacing(kit.Count, KitEntry.Reel, kit));
 
-        Assert.Contains("slots", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("ability slots", refusal.Message, StringComparison.Ordinal);
+
+        var spenders = Kits.StartingSpenders(UnitKind.Vanguard);
+        var pluck = Assert.Throws<ArgumentOutOfRangeException>(
+            () => DuckLoadout.Empty.ReplacingSpender(spenders.Count, KitEntry.Cast, spenders));
+
+        Assert.Contains(Naming.Meter, pluck.Message, StringComparison.Ordinal);
+    }
+
+    // ---- owned but not available ---------------------------------------------------------------------
+
+    /// <summary>
+    /// <b>An ability taken out of a slot is still the duck's — owned, flagged unavailable, and
+    /// stored.</b> The designer's ruling: "abilities can be stripped away but mark them as character
+    /// owning but not available so they can have disabled abilities that is stored." So it is not
+    /// offered, not usable and not counted against the slot cap, and it is still <i>known</i>
+    /// (D-232).
+    /// </summary>
+    [Fact]
+    public void AStrippedAbility_IsStillOwned_ButIsNotUsableNotOfferedAndNotCounted()
+    {
+        var kit = Kits.StartingKit(UnitKind.Wardbearer);
+        int stance = kit.ToList().IndexOf(KitEntry.GuardStance);
+
+        var after = DuckLoadout.Empty
+            .With(TechniqueModifier.ShelterStep)
+            .Replacing(stance, KitEntry.StaggerShot, kit);
+
+        // Owned, and stored on the loadout rather than thrown away.
+        Assert.Contains(KitEntry.GuardStance, after.Disabled);
+        Assert.True(Kits.Knows(UnitKind.Wardbearer, after, KitEntry.GuardStance));
+
+        // Not usable, and not held.
+        Assert.False(Kits.Holds(UnitKind.Wardbearer, after, KitEntry.GuardStance));
+        Assert.True(Kits.IsDisabled(after, KitEntry.GuardStance));
+
+        // Not counted against the cap: the kit is still four wide with none of it spent on a card
+        // the duck cannot use.
+        Assert.Equal(kit.Count, Kits.SlotsOf(UnitKind.Wardbearer, after).Count);
+        Assert.Equal(Kits.WardbearerSlots, Kits.AbilitySlotsFor(UnitKind.Wardbearer, after));
+        Assert.Equal(
+            Kits.WardbearerSlots - Kits.SlotsOf(UnitKind.Wardbearer, after).Count,
+            Kits.FreeSlots(UnitKind.Wardbearer, after, KitAxis.Ability));
+
+        // Not offered: its technique went with it and is not eligible again while it is disabled.
+        var run = RunFixture.StartedInFirstFight(out _);
+        var ward = run.Squad.Single(u => u.Kind == UnitKind.Wardbearer) with { Loadout = after };
+        Assert.DoesNotContain(TechniqueModifier.ShelterStep, after.Techniques);
+        Assert.DoesNotContain(
+            CampCatalogue.EligibleFor(ward),
+            o => o.Category == OfferCategory.Technique && o.AsTechnique == TechniqueModifier.ShelterStep);
+
+        // And the surface has a sentence to print, which is what "still known" is for.
+        Assert.Contains(
+            AbilityDefinition.For(Ability.GuardStance).Name,
+            Kits.UnavailableNote(UnitKind.Wardbearer, after));
+    }
+
+    /// <summary>
+    /// Taking an ability back clears the flag rather than leaving the duck owning it twice. A kit
+    /// that listed Guard Stance as both held and disabled would be the one-predicate-two-meanings
+    /// bug in its purest form (D-232).
+    /// </summary>
+    [Fact]
+    public void AnAbilityTakenBack_StopsBeingDisabled()
+    {
+        var kit = Kits.StartingKit(UnitKind.Wardbearer);
+        int stance = kit.ToList().IndexOf(KitEntry.GuardStance);
+
+        var without = DuckLoadout.Empty.Replacing(stance, KitEntry.StaggerShot, kit);
+        var back = without.Replacing(
+            stance, KitEntry.GuardStance, Kits.SlotsOf(UnitKind.Wardbearer, without));
+
+        Assert.DoesNotContain(KitEntry.GuardStance, back.Disabled);
+        Assert.True(Kits.Holds(UnitKind.Wardbearer, back, KitEntry.GuardStance));
+        Assert.DoesNotContain(
+            AbilityDefinition.For(Ability.GuardStance).Name,
+            Kits.UnavailableNote(UnitKind.Wardbearer, back));
+
+        // And what left in its place is what is disabled now — the note swaps over with the slot.
+        Assert.Contains(KitEntry.StaggerShot, back.Disabled);
+        Assert.Contains(
+            AbilityDefinition.For(Ability.StaggerShot).Name,
+            Kits.UnavailableNote(UnitKind.Wardbearer, back));
+
+        // A kit nothing has been taken out of has nothing to say.
+        Assert.Empty(Kits.UnavailableNote(UnitKind.Wardbearer, DuckLoadout.Empty));
+
+        // Learning something back into a free slot clears it too.
+        var learned = Kits.Learn(UnitKind.Wardbearer, back, KitEntry.StaggerShot);
+        Assert.DoesNotContain(KitEntry.StaggerShot, learned.Disabled);
+        Assert.True(Kits.Holds(UnitKind.Wardbearer, learned, KitEntry.StaggerShot));
+    }
+
+    /// <summary>
+    /// <b>"Holds" still means "holds and can use", and that is what
+    /// <see cref="CampDirector.AnybodyHolds"/> needs it to mean.</b> The disabled flag is about
+    /// <i>abilities</i>; the cards a run deals are mods, unlocks, winds and one-shots, and a
+    /// forfeited mod is still held by nobody. So the §8.6 uniqueness law is unchanged, and the
+    /// per-duck offer filter reads the same predicate the fight layer does (D-232).
+    /// </summary>
+    [Fact]
+    public void ADisabledAbility_DoesNotChangeWhatAnybodyHoldsMeans()
+    {
+        var run = RunFixture.StartedInFirstFight(out _);
+        var ward = run.Squad.Single(u => u.Kind == UnitKind.Wardbearer);
+
+        var modded = run.WithUnit(ward with { Loadout = ward.Loadout.With(Mod.Thorough) });
+        var offer = CampOffer.Of(ward.Id, Mod.Thorough);
+        Assert.True(CampDirector.AnybodyHolds(modded, offer));
+
+        // Strip the slot the mod hung on. The ability is still owned — disabled — but the mod is
+        // held by nobody, so the uniqueness law answers exactly as it did before the flag existed.
+        var spenders = Kits.SpenderSlotsOf(ward.Kind, ward.Loadout);
+        int preen = spenders.ToList().IndexOf(KitEntry.Preen);
+        var stripped = modded.FindUnit(ward.Id)!.Loadout.ReplacingSpender(preen, KitEntry.Cast, spenders);
+
+        var after = modded.WithUnit(modded.FindUnit(ward.Id)! with { Loadout = stripped });
+
+        Assert.True(Kits.Knows(ward.Kind, stripped, KitEntry.Preen));
+        Assert.False(Kits.Holds(ward.Kind, stripped, KitEntry.Preen));
+        Assert.False(CampDirector.AnybodyHolds(after, offer));
+
+        // And the mod is still not on this duck's own table, because its host is not usable — the
+        // two rules answer separately and both answer right.
+        Assert.DoesNotContain(
+            CampCatalogue.EligibleFor(after.FindUnit(ward.Id)!),
+            o => o.Category == OfferCategory.Mod && o.AsMod == Mod.Thorough);
+    }
+
+    /// <summary>
+    /// <b>The disabled ability, the granted slots and the second spender are all state that travels
+    /// with the duck</b>, so a fight replayed from the same seed and command log reaches an identical
+    /// state. That is what makes an adjustable slot count safe: nothing about the ceiling lives in a
+    /// static a replay would not reproduce (D-231, prime directive 2).
+    /// </summary>
+    [Fact]
+    public void AnAdjustedSlotCount_TravelsWithTheDuck_SoAReplayIsIdentical()
+    {
+        var loadout = DuckLoadout.Empty with
+        {
+            Slots = new[] { KitEntry.WardbearerBasic, KitEntry.GuardStance },
+            Disabled = new[] { KitEntry.SpearThrust },
+            ExtraAbilitySlots = 1,
+            ExtraPluckSlots = 1,
+        };
+
+        Assert.False(loadout.IsEmpty);
+
+        var built = BoardBuilder.Rows(".....", ".....", ".....")
+            .PlayerA(UnitKind.Wardbearer, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 1, hp: 8)
+            .Build();
+
+        var ward = built.Find(UnitKind.Wardbearer);
+        var start = built.WithUnit(ward with { Loadout = loadout });
+
+        var (played, log) = TestPlay.PlayFirstLegal(start, maxSteps: 200);
+        var replayed = TestPlay.Replay(built.WithUnit(ward with { Loadout = loadout }), log);
+
+        Assert.NotEmpty(log);
+        Assert.Equal(played, replayed);
+        Assert.Equal(played.GetHashCode(), replayed.GetHashCode());
+
+        // Structural, not referential: a fresh list with the same contents is the same loadout.
+        var rebuilt = DuckLoadout.Empty with
+        {
+            Slots = new[] { KitEntry.WardbearerBasic, KitEntry.GuardStance },
+            Disabled = new[] { KitEntry.SpearThrust },
+            ExtraAbilitySlots = 1,
+            ExtraPluckSlots = 1,
+        };
+
+        Assert.Equal(loadout, rebuilt);
+        Assert.Equal(loadout.GetHashCode(), rebuilt.GetHashCode());
+
+        // And a different count is a different loadout, or the save could drop it unnoticed.
+        Assert.NotEqual(loadout, loadout with { ExtraAbilitySlots = 2 });
+        Assert.NotEqual(loadout, loadout with { ExtraPluckSlots = 0 });
+        Assert.NotEqual(loadout, loadout with { Disabled = new KitEntry[0] });
     }
 }

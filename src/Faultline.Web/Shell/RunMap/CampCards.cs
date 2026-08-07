@@ -221,25 +221,35 @@ public static class CampCards
 
     private static string ReasonFor(RunUnit duck, int offers)
     {
-        if (offers == 0)
-        {
-            return "already carrying everything this camp could offer it";
-        }
-
         var loadout = duck.Loadout;
         var said = new List<string>();
 
-        if (Verve.SpendFor(duck.Kind) is { } spend
-            && Kits.SlotIsFull(loadout, Kits.EntryOf(spend)))
+        if (offers == 0)
         {
-            said.Add(
-                Naming.Of(spend) + " full at " + Kits.ModsPerSlot + " — no mod is on its table");
+            said.Add("already carrying everything this camp could offer it");
+        }
+        else
+        {
+            if (Verve.SpendFor(duck.Kind) is { } spend
+                && Kits.SlotIsFull(loadout, Kits.EntryOf(spend)))
+            {
+                said.Add(
+                    Naming.Of(spend) + " full at " + Kits.ModsPerSlot + " — no mod is on its table");
+            }
+
+            if (loadout.Pocket is { } pocket)
+            {
+                said.Add(
+                    "pocket holds a " + CampCatalogue.NameOf(pocket) + " — no one-shot is on its table");
+            }
         }
 
-        if (loadout.Pocket is { } pocket)
+        // Said whatever else is true of the duck: an ability out of a slot is still owned, and a
+        // player who cannot see that has no way to know the kit is recoverable (D-232). Core writes
+        // the sentence, because "owned but not available" is a ruling and not a rendering choice.
+        if (Kits.UnavailableNote(duck.Kind, loadout) is { Length: > 0 } known)
         {
-            said.Add(
-                "pocket holds a " + CampCatalogue.NameOf(pocket) + " — no one-shot is on its table");
+            said.Add(known);
         }
 
         return string.Join("; ", said);

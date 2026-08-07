@@ -284,6 +284,66 @@ public sealed class RunPersistenceTests
     }
 
     /// <summary>
+    /// <b>The Pluck slot, the disabled abilities and the granted slot counts all ride in the save.</b>
+    /// Four saves have now shipped that dropped a field Core had grown — D-125, the camp, D-222's
+    /// destination and D-229's epithet — so this loadout carries one of everything the slot system
+    /// added and round-trips the lot at once rather than field by field (D-231, D-232).
+    /// </summary>
+    /// <remarks>
+    /// <b>The epithet is deliberately not in this fixture.</b> D-229 is open and its fix is not this
+    /// session's; a loadout carrying one would fail here for a reason that has nothing to do with
+    /// slots, and papering over it with a fix in the wrong session is how the last three shipped.
+    /// </remarks>
+    [Fact]
+    public void APlucksSlotADisabledAbilityAndAGrantedSlot_AllRideInTheSave()
+    {
+        var run = Campaign.Start(CampaignLibrary.Faultline, Seed).NewState;
+        var ward = run.Squad.First(u => u.Kind == UnitKind.Wardbearer);
+
+        // Preen traded for Cast on the Pluck axis, Guard Stance traded off the ability axis, and a
+        // slot granted on each — every field the slot system added, on one duck.
+        var spenders = Kits.SpenderSlotsOf(ward.Kind, ward.Loadout);
+        var abilities = Kits.SlotsOf(ward.Kind, ward.Loadout);
+        int stance = abilities.ToList().IndexOf(KitEntry.GuardStance);
+
+        var surgery = ward.Loadout
+            .With(Mod.Thorough)
+            .ReplacingSpender(spenders.ToList().IndexOf(KitEntry.Preen), KitEntry.Cast, spenders)
+            .Replacing(stance, KitEntry.StaggerShot, abilities)
+            with
+        { ExtraAbilitySlots = 1, ExtraPluckSlots = 1 };
+
+        var traded = run.WithUnit(ward with { Loadout = surgery });
+        var text = RunSave.Of("0000000000000000007", traded).Render();
+
+        // Still one space-free token, so the positional unit line still parses.
+        var line = text.Split('\n').First(l => l.StartsWith("unit: " + ward.Id.Value + " ", StringComparison.Ordinal));
+        Assert.Equal(8, line.Split(' ').Length);
+        Assert.Contains("|k", line, StringComparison.Ordinal);
+        Assert.Contains("|d", line, StringComparison.Ordinal);
+        Assert.Contains("|x", line, StringComparison.Ordinal);
+
+        var back = RunSave.Parse(text)!.Restore().FindUnit(ward.Id)!;
+
+        Assert.Equal(surgery, back.Loadout);
+
+        // Said again as behaviour, not as field equality: the same questions answer the same way.
+        Assert.Equal(new[] { KitEntry.Cast }, Kits.SpenderSlotsOf(back.Kind, back.Loadout));
+        Assert.False(Kits.Holds(back.Kind, back.Loadout, KitEntry.Preen));
+        Assert.True(Kits.Knows(back.Kind, back.Loadout, KitEntry.Preen));
+        Assert.True(Kits.Knows(back.Kind, back.Loadout, KitEntry.GuardStance));
+        Assert.Equal(Kits.WardbearerSlots + 1, Kits.AbilitySlotsFor(back.Kind, back.Loadout));
+        Assert.Equal(Kits.PluckSlotsPerDuck + 1, Kits.PluckSlotsFor(back.Kind, back.Loadout));
+
+        // And a duck nothing touched still writes a bare dash rather than an empty tangle.
+        var fresh = RunSave.Parse(text)!.Restore().Squad.First(u => u.Kind == UnitKind.Vanguard);
+        Assert.True(fresh.Loadout.IsEmpty);
+        Assert.Empty(fresh.Loadout.SpenderSlots);
+        Assert.Empty(fresh.Loadout.Disabled);
+        Assert.Equal(0, fresh.Loadout.ExtraPluckSlots);
+    }
+
+    /// <summary>
     /// A camp is a phase the save has to carry, for the reason a fork is: the node under it has
     /// already been cleared (D-125).
     /// </summary>
