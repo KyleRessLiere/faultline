@@ -34,7 +34,12 @@ namespace Faultline.Core
     /// <param name="Name">Display name.</param>
     /// <param name="Summary">One-line rules text, as it appears on the card.</param>
     /// <param name="Kind">The archetype that may hold it, or <c>null</c> when any duck may.</param>
-    /// <param name="Spender">The spender it bolts onto, or <c>null</c> when it modifies no spender.</param>
+    /// <param name="Host">
+    /// The kit slot it bolts onto, or <c>null</c> when it hangs on no ability at all. <b>An ability,
+    /// not a spender</b>: under kit surgery "spender" and "action" are both abilities occupying slots,
+    /// so a mod's host is a <see cref="KitEntry"/> and a spender is one kind of it (D-243). This does
+    /// not touch the hostless-technique question, which is still open (D-158/D-227).
+    /// </param>
     /// <param name="Mechanic">Which rule site implements it.</param>
     public sealed record UpgradeDefinition(
         OfferCategory Category,
@@ -42,10 +47,17 @@ namespace Faultline.Core
         string Name,
         string Summary,
         UnitKind? Kind,
-        VerveSpend? Spender,
+        KitEntry? Host,
         UpgradeMechanic Mechanic)
     {
         private static readonly UpgradeDefinition[] Registry = Build();
+
+        /// <summary>
+        /// The spender it bolts onto, or <c>null</c> when its host is an action rather than a
+        /// spender. Derived from <see cref="Host"/> for the reason <see cref="Kits.AxisOf"/> is
+        /// derived from the entry: a stored second opinion is a second opinion waiting to disagree.
+        /// </summary>
+        public VerveSpend? Spender => Host is { } host ? Kits.SpenderOf(host) : null;
 
         /// <summary>The mod, for a <see cref="OfferCategory.Mod"/> upgrade.</summary>
         public Mod AsMod => Category == OfferCategory.Mod
@@ -99,9 +111,18 @@ namespace Faultline.Core
             throw new ArgumentOutOfRangeException(nameof(value), value, "No definition for that " + what + ".");
         }
 
+        // A spender mod still declares itself by naming its spender — that is what the card says —
+        // and the slot it hangs on is derived from it. The KitEntry overload beneath is for the mods
+        // whose host is an action, which no VerveSpend can name (D-243).
         private static UpgradeDefinition Of(
             Mod mod, string name, string summary, VerveSpend spender, UnitKind kind, UpgradeMechanic mechanic) =>
-            new UpgradeDefinition(OfferCategory.Mod, (int)mod, name, summary, kind, spender, mechanic);
+            new UpgradeDefinition(
+                OfferCategory.Mod, (int)mod, name, summary, kind, Kits.EntryOf(spender), mechanic);
+
+        private static UpgradeDefinition Of(
+            Mod mod, string name, string summary, Ability host, UnitKind kind, UpgradeMechanic mechanic) =>
+            new UpgradeDefinition(
+                OfferCategory.Mod, (int)mod, name, summary, kind, Kits.EntryOf(host), mechanic);
 
         private static UpgradeDefinition Of(SecondWind wind, string name, string summary, UnitKind kind) =>
             new UpgradeDefinition(
@@ -195,6 +216,39 @@ namespace Faultline.Core
             Of(Mod.Toll, "Toll",
                 "+" + Breakwater.TollPayout + " Pluck the first time each round the wall triggers.",
                 VerveSpend.Breakwater, UnitKind.Wardbearer, UpgradeMechanic.MeterRefund),
+
+            // ---- mods hosted on actions rather than spenders ---------------------------------------
+            // Same three axes and the same pool; only the host is a different kind of ability (D-243).
+            Of(Mod.Downhill, "Downhill",
+                Overrun.DownhillCost + " " + Naming.ActionPoints + " when the run begins on high ground.",
+                Ability.Overrun, UnitKind.Vanguard, UpgradeMechanic.AbilityCost),
+            Of(Mod.Ploughshare, "Ploughshare",
+                "Every enemy he shoulders is Staggered.",
+                Ability.Overrun, UnitKind.Vanguard, UpgradeMechanic.ShoveRule),
+            Of(Mod.FullWeight, "Full Weight",
+                "+" + Overrun.FullWeightPayout + " " + Naming.Meter + " if the run shoulders "
+                + Overrun.FullWeightThreshold + " or more.",
+                Ability.Overrun, UnitKind.Vanguard, UpgradeMechanic.MeterRefund),
+
+            Of(Mod.ShortPole, "Short Pole",
+                Punt.ShortPoleCost + " " + Naming.ActionPoints + ", and the shove is "
+                + Punt.ShortPolePushDistance + ".",
+                Ability.Punt, UnitKind.Threadcaster, UpgradeMechanic.AbilityCost),
+            Of(Mod.LongPunt, "Long Punt",
+                "Range " + Punt.LongPuntRange + ".",
+                Ability.Punt, UnitKind.Threadcaster, UpgradeMechanic.AbilityRange),
+            Of(Mod.Downstream, "Downstream",
+                "+" + Punt.DownstreamPayout + " " + Naming.Meter
+                + " if the enemy is shoved the whole way.",
+                Ability.Punt, UnitKind.Threadcaster, UpgradeMechanic.MeterRefund),
+
+            Of(Mod.LongReach, "Long Reach",
+                "Range " + Interpose.LongReachRange + ".",
+                Ability.Interpose, UnitKind.Wardbearer, UpgradeMechanic.AbilityRange),
+            Of(Mod.ChangingOfTheGuard, "Changing of the Guard",
+                "+" + Interpose.ChangingOfTheGuardPayout + " " + Naming.Meter
+                + " if he swaps onto a tile an enemy has declared as its target.",
+                Ability.Interpose, UnitKind.Wardbearer, UpgradeMechanic.MeterRefund),
 
             // ---- Second Winds: two per class, and class-bound without exception --------------------
             Of(SecondWind.StaggerAnEnemy, "Rattle",

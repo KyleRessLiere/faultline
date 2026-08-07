@@ -38,6 +38,37 @@ namespace Faultline.Core
         /// <summary>Damage the runner takes per bramble tile he crosses, as Bull Rush takes it.</summary>
         public const int BrambleSelfDamage = 1;
 
+        /// <summary>Overrun's price once <see cref="Mod.Downhill"/> is fitted and he starts high.</summary>
+        public const int DownhillCost = 2;
+
+        /// <summary>Bodies <see cref="Mod.FullWeight"/> wants shouldered before it pays.</summary>
+        public const int FullWeightThreshold = 2;
+
+        /// <summary>Pluck <see cref="Mod.FullWeight"/> pays when the run reaches its threshold.</summary>
+        public const int FullWeightPayout = 1;
+
+        /// <summary>
+        /// What Overrun costs this Vanguard right now — two action points with
+        /// <see cref="Mod.Downhill"/> fitted <em>and</em> his feet on high ground when he sets off.
+        /// </summary>
+        /// <remarks>
+        /// <b>A board condition, so it is priced against the board and not against the loadout.</b>
+        /// The card says "if he begins the charge on high ground", which means the same duck pays
+        /// three from the flat and two from the ledge in the same activation — and a card that says
+        /// so has to be able to say so on the button, which is why every caller of the printed cost
+        /// asks this instead (D-243).
+        /// </remarks>
+        /// <param name="state">Current state, for the tile he is standing on.</param>
+        /// <param name="unit">The Vanguard, or <c>null</c>.</param>
+        /// <returns>The cost in action points.</returns>
+        public static int CostFor(GameState? state, Unit? unit) =>
+            state is not null
+            && unit is not null
+            && unit.Has(Mod.Downhill)
+            && state.Board.At(unit.Position) == TileType.HighGround
+                ? DownhillCost
+                : Activation.OverrunCost;
+
         /// <summary>
         /// What the run would do, projected in resolution order.
         /// </summary>
@@ -156,6 +187,7 @@ namespace Faultline.Core
 
             int reach = descriptor.Range;
             int distance = ShoveDistance;
+            int shouldered = 0;
 
             for (int step = 0; step < reach; step++)
             {
@@ -187,6 +219,17 @@ namespace Faultline.Core
                     state = Trample.Shoulder(
                         state, unit.Id, occupant.Id, next, direction, side.Value,
                         contactDamage: 0, distance, events);
+
+                    shouldered++;
+
+                    // Ploughshare: what the shoulder leaves behind. Applied to the body he actually
+                    // shifted and only while it is still standing — a Stagger on a duck that went
+                    // into a drain is a status on nobody, which is the shape three earlier bugs took.
+                    if (unit.Has(Mod.Ploughshare)
+                        && state.FindUnit(occupant.Id) is { IsOnBoard: true, Staggered: false } ploughed)
+                    {
+                        state = state.WithUnit(ploughed with { Staggered = true });
+                    }
 
                     // The shove can take the runner off the board too — a collision hurts both ends,
                     // and the body he shouldered may have gone into him. Nothing continues after that.
@@ -232,7 +275,22 @@ namespace Faultline.Core
                 }
             }
 
-            return state;
+            return Paid(state, unit.Id, shouldered, events);
+        }
+
+        // Full Weight: the economy axis, paid once for the whole run rather than per body, because
+        // the card asks a question about the run — "if he pushes 2 or more" — and a per-body refund
+        // would be a different card. Paid at the end, so a runner a collision took off the board is
+        // not banking Pluck he is no longer standing to spend.
+        private static GameState Paid(
+            GameState state, UnitId runnerId, int shouldered, List<GameEvent> events)
+        {
+            var runner = state.FindUnit(runnerId);
+            return runner is { IsOnBoard: true }
+                && runner.Has(Mod.FullWeight)
+                && shouldered >= FullWeightThreshold
+                ? Verve.Gain(state, runnerId, FullWeightPayout, VerveSource.Collision, events)
+                : state;
         }
 
         // A push travels away from its source, so the synthetic source is the tile opposite the side.

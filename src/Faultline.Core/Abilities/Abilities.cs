@@ -50,6 +50,63 @@ namespace Faultline.Core
             return held;
         }
 
+        /// <summary>
+        /// <b>What this ability costs <em>this</em> duck right now</b> — the printed price with every
+        /// fitted mod already in it.
+        /// </summary>
+        /// <remarks>
+        /// The one place an ability is priced, for the reason <see cref="Verve.CostOf(VerveSpend,
+        /// Unit)"/> is the one place a spend is: the legality check, the charge and the card have to
+        /// name the same number or the bar is lying at the moment of the choice. Mods overwrite the
+        /// price rather than discounting it — §8.6 states each as an absolute, and one cheaper mod per
+        /// ability is the whole of the pool (D-243).
+        /// </remarks>
+        /// <param name="state">Current state, for the mods whose condition is the board.</param>
+        /// <param name="unit">The duck acting, or <c>null</c> for the printed price.</param>
+        /// <param name="descriptor">The ability being priced.</param>
+        /// <returns>Its cost in action points.</returns>
+        public static int CostOf(GameState? state, Unit? unit, AbilityDefinition? descriptor)
+        {
+            if (descriptor is null)
+            {
+                return 0;
+            }
+
+            return descriptor.Ability switch
+            {
+                Ability.Overrun => Faultline.Core.Overrun.CostFor(state, unit),
+                Ability.Punt => Faultline.Core.Punt.CostFor(unit),
+                _ => descriptor.Cost,
+            };
+        }
+
+        /// <summary>
+        /// <b>How far this ability reaches for <em>this</em> duck</b> — the printed range with every
+        /// fitted mod already in it.
+        /// </summary>
+        /// <remarks>
+        /// Asked by every range test there is: the legal-target list, the greyed-out reason, the
+        /// aiming overlay. A mod that lengthened the reach in one of them and not the others would be
+        /// a card that works only where somebody remembered it.
+        /// </remarks>
+        /// <param name="unit">The duck acting, or <c>null</c> for the printed range.</param>
+        /// <param name="descriptor">The ability being aimed.</param>
+        /// <returns>Its reach in tiles.</returns>
+        public static int RangeFor(Unit? unit, AbilityDefinition? descriptor)
+        {
+            if (descriptor is null)
+            {
+                return 0;
+            }
+
+            return descriptor.Ability switch
+            {
+                Ability.Punt => Faultline.Core.Punt.RangeFor(unit, descriptor),
+                Ability.Interpose => Faultline.Core.Interpose.RangeFor(unit, descriptor),
+                _ => descriptor.Range,
+            };
+        }
+
         /// <summary>True when the unit could use any of its abilities right now, ignoring target choice.</summary>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Whether at least one ability is usable at all.</returns>
@@ -126,7 +183,7 @@ namespace Faultline.Core
                 }
 
                 int distance = unit.Position.DistanceTo(candidate.Position);
-                if (distance == 0 || distance > descriptor.Range)
+                if (distance == 0 || distance > RangeFor(unit, descriptor))
                 {
                     continue;
                 }
@@ -420,7 +477,7 @@ namespace Faultline.Core
             foreach (var coord in state.Board.AllCoords())
             {
                 int distance = unit.Position.DistanceTo(coord);
-                if (distance > 0 && distance <= descriptor.Range)
+                if (distance > 0 && distance <= RangeFor(unit, descriptor))
                 {
                     tiles.Add(coord);
                 }
@@ -931,7 +988,9 @@ namespace Faultline.Core
                 return distance > 0;
             }
 
-            distance = descriptor.Push;
+            distance = descriptor.Ability == Ability.Punt
+                ? Faultline.Core.Punt.PushDistanceFor(unit)
+                : descriptor.Push;
             return distance > 0;
         }
 
@@ -1108,6 +1167,10 @@ namespace Faultline.Core
                 case AbilityRule.Interpose:
                     return ResolveInterpose(state, unit, command.TargetId, events);
 
+                case AbilityRule.Punt:
+                    return Faultline.Core.Punt.Resolve(
+                        state, unit, command.TargetId, command.Aim, events);
+
                 default:
                     return Effects.Apply(
                         state,
@@ -1198,7 +1261,7 @@ namespace Faultline.Core
                 }
 
                 int distance = unit.Position.DistanceTo(candidate.Position);
-                if (distance == 0 || distance > descriptor.Range)
+                if (distance == 0 || distance > RangeFor(unit, descriptor))
                 {
                     continue;
                 }

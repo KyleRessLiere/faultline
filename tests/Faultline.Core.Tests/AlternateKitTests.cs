@@ -578,7 +578,7 @@ public class AlternateKitTests
                      VerveSpend.Whirl, VerveSpend.Breakwater,
                  })
         {
-            var mods = CampCatalogue.ModPool().Where(m => CampCatalogue.SpenderOf(m) == spend).ToList();
+            var mods = CampCatalogue.ModsFor(Kits.EntryOf(spend));
 
             Assert.Equal(Kits.ModsPerSlot, mods.Count);
             Assert.All(mods, m => Assert.Equal(Kits.KindOf(Kits.EntryOf(spend)), CampCatalogue.KindOf(m)));

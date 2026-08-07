@@ -165,14 +165,23 @@ public sealed class AbilityBarTests
 
     // ---- modifier sockets ------------------------------------------------------------------------
 
+    /// <summary>
+    /// <b>Sockets follow the host, not the currency.</b> A card draws them when the pool has mods for
+    /// its slot and draws none when it has not — so a Fisher's Cast draws three, her Reel draws none
+    /// (its modifiers are techniques), and Move and Rescue draw none because they are not slots at
+    /// all (D-243).
+    /// </summary>
     [Fact]
-    public void ASpenderDrawsThreeSockets_AndOnlyTheSpenderDoes()
+    public void ACardDrawsSockets_WhenThePoolHasModsForItsSlot_AndOtherwiseNone()
     {
         var session = Fisher(out _);
 
         foreach (var card in AbilityCards.For(session))
         {
-            if (card.Row.Kind == ActionKind.Spend)
+            bool hosted = AbilityCards.SlotOf(card.Row) is { } slot
+                && CampCatalogue.ModsFor(slot).Count > 0;
+
+            if (hosted)
             {
                 Assert.Equal(AbilityCards.SocketsDrawn, card.Sockets.Count);
             }
@@ -193,7 +202,7 @@ public sealed class AbilityBarTests
     [Fact]
     public void AllThreeSocketsAreOpen_AndNoneIsHeldBackForDeepMastery()
     {
-        var sockets = AbilityCards.Sockets(Fresh(UnitKind.Threadcaster));
+        var sockets = AbilityCards.Sockets(Fresh(UnitKind.Threadcaster), KitEntry.Cast);
 
         Assert.Equal(AbilityCards.SocketsDrawn, sockets.Count);
         Assert.Equal(Kits.ModsPerSlot, sockets.Count(s => !s.Locked));
@@ -213,7 +222,7 @@ public sealed class AbilityBarTests
             Loadout = DuckLoadout.Empty.With(Mod.LightLine),
         };
 
-        var sockets = AbilityCards.Sockets(unit);
+        var sockets = AbilityCards.Sockets(unit, KitEntry.Cast);
 
         Assert.Equal(Mod.LightLine, sockets[0].Fitted);
         Assert.Equal(CampCatalogue.NameOf(Mod.LightLine), sockets[0].Name);
@@ -225,6 +234,36 @@ public sealed class AbilityBarTests
         // The third is open now too — three per slot, all classes (D-226).
         Assert.Null(sockets[2].Fitted);
         Assert.False(sockets[2].Locked);
+    }
+
+    /// <summary>
+    /// <b>A mod hosted on an action displays exactly as one hosted on a spender.</b> The Vanguard's
+    /// Overrun card carries Ploughshare in its own socket, his Wrecking Weight card carries Heavier
+    /// in its own, and neither card shows the other's — asserted on the rendered bar, because
+    /// "sockets are filtered by host" is a claim about what a player sees (D-243).
+    /// </summary>
+    [Fact]
+    public void AnActionsModsSitInTheActionsSockets_AndNotInTheSpenders()
+    {
+        var session = Taught(
+            UnitKind.Vanguard, KitEntry.Overrun, out _, Mod.Ploughshare, Mod.Heavier);
+
+        var overrun = AbilityCards.For(session)
+            .Single(c => c.Row.Ability == Ability.Overrun);
+        var spender = AbilityCards.For(session)
+            .Single(c => c.Row.Kind == ActionKind.Spend);
+
+        Assert.Equal(AbilityCards.SocketsDrawn, overrun.Sockets.Count);
+        Assert.Equal(Mod.Ploughshare, overrun.Sockets[0].Fitted);
+        Assert.DoesNotContain(overrun.Sockets, s => s.Fitted == Mod.Heavier);
+
+        Assert.Equal(Mod.Heavier, spender.Sockets[0].Fitted);
+        Assert.DoesNotContain(spender.Sockets, s => s.Fitted == Mod.Ploughshare);
+
+        // And on screen, in the catalogue's own words for both kinds of host.
+        string html = RenderBar(session);
+        Assert.Contains(CampCatalogue.NameOf(Mod.Ploughshare), html, StringComparison.Ordinal);
+        Assert.Contains(CampCatalogue.NameOf(Mod.Heavier), html, StringComparison.Ordinal);
     }
 
     // ---- the name ---------------------------------------------------------------------------------
@@ -282,11 +321,17 @@ public sealed class AbilityBarTests
     private static GameSession Vanguard(out UnitId duck, params Mod[] mods) =>
         Board(UnitKind.Vanguard, out duck, mods);
 
+    // The same board, with one alternate learned into a free slot first — Kits.Learn is the Core rule
+    // the camp's replacement will call, played here rather than a save restored.
+    private static GameSession Taught(UnitKind kind, KitEntry entry, out UnitId duck, params Mod[] mods) =>
+        Board(kind, out duck, mods, entry);
+
     /// <summary>
     /// One duck of the given archetype with a full meter and whatever mods the test wants, one enemy
     /// to make the actions real, and the duck's activation open.
     /// </summary>
-    private static GameSession Board(UnitKind kind, out UnitId duck, IReadOnlyList<Mod> mods)
+    private static GameSession Board(
+        UnitKind kind, out UnitId duck, IReadOnlyList<Mod> mods, KitEntry? learned = null)
     {
         var rows = new List<string>();
         for (int y = 0; y < 5; y++)
@@ -295,6 +340,11 @@ public sealed class AbilityBarTests
         }
 
         var loadout = DuckLoadout.Empty;
+        if (learned is { } entry)
+        {
+            loadout = Kits.Learn(kind, loadout, entry);
+        }
+
         foreach (var mod in mods)
         {
             loadout = loadout.With(mod);

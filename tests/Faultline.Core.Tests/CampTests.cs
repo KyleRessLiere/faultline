@@ -239,7 +239,9 @@ public class CampTests
     [Fact]
     public void TheCatalogueHoldsTheWholeV1Pool_AndNothingBeyondIt()
     {
-        Assert.Equal(24, CampCatalogue.ModPool().Count);
+        // 24 hosted on spenders + 8 hosted on actions (D-243). §8.6 prints 24 and needs the widening
+        // carried into the next stamp; the count is asserted here so the doc gap cannot go quiet.
+        Assert.Equal(32, CampCatalogue.ModPool().Count);
         Assert.Equal(8, CampCatalogue.SecondWindPool().Count);
         Assert.Equal(3, CampCatalogue.UnlockPool().Count);
         Assert.Equal(10, CampCatalogue.ConsumablePool().Count);
@@ -255,8 +257,15 @@ public class CampTests
                      VerveSpend.Skyfall, VerveSpend.Breakwater,
                  })
         {
-            Assert.Equal(3, CampCatalogue.ModPool().Count(m => CampCatalogue.SpenderOf(m) == spend));
+            Assert.Equal(3, CampCatalogue.ModsFor(Kits.EntryOf(spend)).Count);
         }
+
+        // And the three alternate ACTIONS that shipped carry theirs on the same three axes. Overrun
+        // and Punt carry three each; Interpose carries two, because its third — Shield Arm — was not
+        // commissioned. Grounding Shot's are absent with the ability (D-236).
+        Assert.Equal(3, CampCatalogue.ModsFor(KitEntry.Overrun).Count);
+        Assert.Equal(3, CampCatalogue.ModsFor(KitEntry.Punt).Count);
+        Assert.Equal(2, CampCatalogue.ModsFor(KitEntry.Interpose).Count);
 
         // Two conditions per class.
         foreach (var kind in new[]

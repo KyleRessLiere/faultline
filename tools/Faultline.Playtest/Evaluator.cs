@@ -182,9 +182,14 @@ public abstract class EvaluatorPolicy : Policy
             return 0;
         }
 
+        // The ability the command names, never "whichever the duck holds first". D-240 threaded the
+        // descriptor through Core's four previews and the harness kept calling the headline overloads,
+        // so a Fisher holding Reel and Punt had her Punt scored as a Reel (D-242).
+        var aimed = Abilities.DescriptorFor(unit, command.Ability);
+
         if (command.Direction.HasValue)
         {
-            var charge = Abilities.PreviewCharge(state, unit, command.Direction.Value);
+            var charge = Abilities.PreviewCharge(state, unit, command.Direction.Value, aimed);
             if (charge.IsNoOp)
             {
                 return 0;
@@ -199,20 +204,20 @@ public abstract class EvaluatorPolicy : Policy
 
         if (command.TargetId.HasValue)
         {
-            var descriptor = Abilities.Of(unit);
             var target = state.FindUnit(command.TargetId.Value);
             int score = 0;
 
-            if (descriptor is not null && descriptor.Damage > 0 && target is not null)
+            if (aimed is not null && aimed.Damage > 0 && target is not null)
             {
-                score += descriptor.Damage * w.Damage;
-                if (descriptor.Damage >= target.Hp)
+                score += aimed.Damage * w.Damage;
+                if (aimed.Damage >= target.Hp)
                 {
                     score += w.Kill;
                 }
             }
 
-            var preview = Abilities.PreviewTarget(state, unit, command.TargetId.Value);
+            var preview = Abilities.PreviewTarget(
+                state, unit, command.TargetId.Value, DisplacementAim.Default, aimed);
             score += Displaced(state, preview);
             score += ChargeFor(state, unit, preview);
 

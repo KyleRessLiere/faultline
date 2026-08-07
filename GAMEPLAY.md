@@ -49,6 +49,13 @@ draws from; each replaces something above.
 **Grounding Shot is specified but NOT built** — it wants a halved Move until end of round, which is a
 status this game does not have. See D-236.
 
+**What a duck holds is a fact about the duck, not about its class.** Every surface asks the duck:
+`Kits.SpenderHeldBy` for the spender its Pluck slot actually carries, `Abilities.AllOf` for the
+actions in its ability slots, `Abilities.CostOf` and `Abilities.RangeFor` for what those actions cost
+and reach with its mods on. A duck that holds no spender **draws no meter at all**. Asking the
+archetype instead was the Stage H bug class: the meter on the token, the strip and the inspector all
+named the card the class opens with (D-242).
+
 **Charge conditions do not travel.** An alternate spender changes the spend and never the income:
 Retort is funded by the Vanguard causing collisions exactly as Wrecking Weight is, Whirl by the
 Fisher's displacements, Skyfall by the Archer's high ground, Breakwater by the Wardbearer's absorbs.
@@ -1677,24 +1684,61 @@ Five categories are drawable: **Modify**, **Second Wind**, **Tactical unlock**, 
 **Technique**. §8.5's remaining one — **Learn / Replace / Swap** — is *not* built and is not a value
 the enum holds, so it can never be dealt.
 
-**Mods — 3 per spender, and a duck's spender holds 2 of them.** A mod offer is never dealt for a duck
-whose spender is full, and never for a class the mod does not fit. The third slot is the Molt's *Deep
-Mastery*, which is not built, so **2 is the whole ceiling today**.
+**Mods — 3 per ability, and an ability's slot holds 3 of them.** A mod hosts on an **ability**, and a
+spender is one kind of ability (D-243). A mod offer is never dealt for a duck that does not hold the
+ability it bolts onto, never for a class the ability does not belong to, and never for a slot that is
+already carrying three — **one filter, over both kinds of host** (`CampCatalogue.EligibleFor`).
+
+Every socket a duck can fill is open: **3 is the starting ceiling**, so the Molt's *Deep Mastery*
+(which was to raise 2 → 3) has nothing left to raise. That is the designer's to retire or reprice
+(D-226).
+
+**Hosted on a spender — 24, three per spender, eight spenders:**
 
 | Spender | Mod | What it does now |
 |---|---|---|
 | Wrecking Weight (Vanguard) | **Heavier** | contact damage **4** instead of 2 |
 | | **Freight** | **+2** distance instead of +1 |
 | | **Echo** | if the charged push **collides**, refund **1** Pluck (`VerveSource.Refund`) |
+| Retort (Vanguard) | **Hair Trigger** | cost **1** instead of 2 |
+| | **Backhand** | the shove is **3** instead of 2 |
+| | **Grudge** | refund **2** Pluck if the retort's shove causes a collision |
 | Cast (Fisher) | **Light Line** | cost **2** instead of 3 |
 | | **Long Rod** | grab range **4** instead of 3 |
 | | **Big Splash** | the landing also deals **2** to every enemy adjacent to the landing tile |
+| Whirl (Fisher) | **Riptide** | cost **2** instead of 3 |
+| | **Wide Whirl** | the shove is **2** instead of 1 |
+| | **Churn** | **+1** Pluck if 2 or more enemies are shoved |
 | Double Nock (Archer) | **Fletcher's Rhythm** | cost **3** instead of 4 |
 | | **Long Draw** | both shots range **4** — while the spend is live this activation |
 | | **Hunter's Refund** | a **killing shot** refunds **1** Pluck |
+| Skyfall (Archer) | **Low Sky** | usable from **any** tile, range **3** |
+| | **Shatterfall** | also Staggers enemies adjacent to the target |
+| | **Updraft** | refund **1** Pluck on a kill |
 | Preen (Wardbearer) | **Thorough** | also clears **his own** Stagger |
 | | **Neighborly** | may heal an **adjacent hurt ally** instead of himself, for the same 4 |
 | | **Quick** | cost **2** instead of 3 |
+| Breakwater (Wardbearer) | **Low Wall** | cost **2** instead of 3 |
+| | **Sea Wall** | the shove is **2** instead of 1 |
+| | **Toll** | **+1** Pluck the first time each round the wall triggers |
+
+**Hosted on an action — 8.** Same three axes (cheaper, stronger, economy) and the same pool; only the
+host is a different kind of ability.
+
+| Action | Mod | What it does now |
+|---|---|---|
+| Overrun (Vanguard) | **Downhill** | **2 AP** instead of 3, when the run **begins on high ground** — a board condition, so the same duck pays 3 from the flat in the same activation |
+| | **Ploughshare** | every enemy he shoulders is **Staggered** |
+| | **Full Weight** | **+1** Pluck if the run shoulders **2 or more**. Paid once for the run, not per body, and not at all if a collision takes him off the board |
+| Punt (Fisher) | **Short Pole** | **1 AP** instead of 2, and the shove is **2** instead of 3 |
+| | **Long Punt** | range **4** instead of 3 |
+| | **Downstream** | **+1** Pluck if the enemy travels the **whole shove** — the whole shove, not a literal 3, so Short Pole does not make it inert. Measured off the displacement's own path, so a body a wall kills where it stands pays nothing |
+| Interpose (Wardbearer) | **Long Reach** | range **2** instead of 1 |
+| | **Changing of the Guard** | **+1** Pluck if he swaps onto a tile an enemy has **declared as its target**. Paid on the **accepted swap**, never on the offer — the ally's owner is what turns an Interpose into a step |
+
+**Grounding Shot's mods are absent with the ability** (D-236): *Long Stake* is held with it, and
+*Deep Mire* is **struck** — it forbids a climb cost D-165 removed. Interpose carries two rather than
+three; its third, *Shield Arm*, was not commissioned.
 
 **Second Wind conditions — 2 per class, class-bound like every other charge.** Each pays **+1** and
 carries its own `VerveSource`, so the log says which condition paid.

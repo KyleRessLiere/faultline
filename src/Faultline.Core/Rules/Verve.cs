@@ -190,26 +190,8 @@ namespace Faultline.Core
         /// </summary>
         /// <param name="unit">Unit to ask about.</param>
         /// <returns>Its spend, or null.</returns>
-        public static VerveSpend? SpendFor(Unit? unit)
-        {
-            if (unit is null)
-            {
-                return null;
-            }
-
-            // Read out of the Pluck slots rather than off the archetype: §5 gives each class one
-            // spender, and G4's alternates mean the one it has is no longer the one it started with.
-            // A duck that traded the slot away holds none, and answers null (D-225, D-230).
-            foreach (var entry in Kits.SpenderSlotsOf(unit.Kind, unit.Loadout))
-            {
-                if (Kits.SpenderOf(entry) is { } held)
-                {
-                    return held;
-                }
-            }
-
-            return null;
-        }
+        public static VerveSpend? SpendFor(Unit? unit) =>
+            unit is null ? null : Kits.SpenderHeldBy(unit.Kind, unit.Loadout);
 
         /// <summary>The spend's name, for a card or a button.</summary>
         /// <param name="spend">The spend.</param>

@@ -48,5 +48,12 @@ namespace Faultline.Core
         /// owner's answer, so it reuses the Split Reed offer field and its command (D-192).
         /// </summary>
         Interpose = 5,
+
+        /// <summary>
+        /// Punt's shove: the pipeline's own push, then a look at how far the body actually went, so
+        /// that <see cref="Mod.Downstream"/> can pay for the whole journey and not for the attempt.
+        /// A bare <see cref="PushEffect"/> resolves the shove perfectly well and cannot notice.
+        /// </summary>
+        Punt = 6,
     }
 }

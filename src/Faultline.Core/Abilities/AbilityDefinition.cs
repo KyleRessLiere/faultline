@@ -380,7 +380,11 @@ namespace Faultline.Core
                         Cost: Activation.PuntCost,
                         Range: 3)
                     {
-                        Effects = new AbilityEffect[] { new PushEffect(3) },
+                        // The push stays authored as a standard effect so the preview and the card
+                        // read the same 3; the custom rule exists for Downstream, which has to see
+                        // how far the body really went (D-243).
+                        CustomRule = AbilityRule.Punt,
+                        Effects = new AbilityEffect[] { new PushEffect(Faultline.Core.Punt.PushDistance) },
                     },
                 },
 

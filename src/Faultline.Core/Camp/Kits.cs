@@ -198,6 +198,34 @@ namespace Faultline.Core
         public static IReadOnlyList<KitEntry> SpenderSlotsOf(UnitKind kind, DuckLoadout? loadout) =>
             loadout is { SpenderSlots: { Count: > 0 } slots } ? slots : StartingSpenders(kind);
 
+        /// <summary>
+        /// <b>The spender this duck actually holds</b>, or <c>null</c> when it holds none — the one
+        /// place that question is answered, whichever layer is asking.
+        /// </summary>
+        /// <remarks>
+        /// Takes the archetype and the loadout rather than a unit, because the same question is asked
+        /// of a fight <see cref="Unit"/> and of a <see cref="RunUnit"/> between fights, and two
+        /// overloads walking the slot list themselves would be two answers waiting to disagree.
+        /// <see cref="Verve.SpendFor(Unit)"/> is the fight layer's door onto this; the run layer asks
+        /// here directly. <b>Asking the archetype instead is the Stage H bug</b> (D-242): a class's
+        /// spender is what it starts with, and G4's alternates mean that is no longer what it has.
+        /// </remarks>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>The spender in its Pluck slots, or <c>null</c>.</returns>
+        public static VerveSpend? SpenderHeldBy(UnitKind kind, DuckLoadout? loadout)
+        {
+            foreach (var entry in SpenderSlotsOf(kind, loadout))
+            {
+                if (SpenderOf(entry) is { } held)
+                {
+                    return held;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>Which axis an entry sits on — derived from the entry, never stored beside it.</summary>
         /// <param name="entry">Entry to place.</param>
         /// <returns>Its axis.</returns>
@@ -388,12 +416,22 @@ namespace Faultline.Core
         };
 
         /// <summary>
-        /// Which slot a mod hangs on. Mods bolt onto spenders (§8.6's Modify pool), so a mod's host is
-        /// its spender's slot.
+        /// Which slot a mod hangs on. <b>A mod hosts on an ability, and a spender is one kind of
+        /// ability</b> — so this answers a <see cref="KitEntry"/> whichever kind the host is, and
+        /// every caller of it kept working across the widening (D-243).
         /// </summary>
+        /// <remarks>
+        /// This used to read <c>EntryOf(CampCatalogue.SpenderOf(mod))</c>, which was an artifact of
+        /// the pre-slot world where spenders were the only thing a mod could hang on. It is a
+        /// widening and not a new concept: the host is still derived from the card and still stored
+        /// nowhere beside the duck (D-226). <b>It does not touch the hostless techniques</b>, which
+        /// are still §8.6's open contradiction (D-158/D-227).
+        /// </remarks>
         /// <param name="mod">Mod to place.</param>
         /// <returns>The slot it needs the duck to own.</returns>
-        public static KitEntry HostOf(Mod mod) => EntryOf(CampCatalogue.SpenderOf(mod));
+        public static KitEntry HostOf(Mod mod) =>
+            UpgradeDefinition.For(mod).Host
+            ?? throw new ArgumentOutOfRangeException(nameof(mod), mod, "No host slot for that mod.");
 
         /// <summary>
         /// Which slot a technique modifier hangs on, or <c>null</c> when §8.6 names no host for it.
@@ -485,7 +523,7 @@ namespace Faultline.Core
         {
             var host = HostOf(mod);
             return SlotIsFull(loadout, host)
-                ? Naming.Of(CampCatalogue.SpenderOf(mod)) + " already carries " + ModsPerSlot
+                ? NameOf(host) + " already carries " + ModsPerSlot
                     + " mods, which is the ceiling for one slot."
                 : null;
         }

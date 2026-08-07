@@ -43,6 +43,15 @@ namespace Faultline.Core
             Mod.LowSky, Mod.Shatterfall, Mod.Updraft,
             Mod.Riptide, Mod.WideWhirl, Mod.Churn,
             Mod.LowWall, Mod.SeaWall, Mod.Toll,
+
+            // The alternate actions' mods, and the filter above them did not change by one character
+            // to take them: Kits.HostOf answers a KitEntry whichever kind of ability the host is, so
+            // a Fisher who never learned Punt is never offered a Long Punt by the same line that
+            // already refused her a Grudge. One filter over both host kinds is the evidence the
+            // widening was the right shape (D-243).
+            Mod.Downhill, Mod.Ploughshare, Mod.FullWeight,
+            Mod.ShortPole, Mod.LongPunt, Mod.Downstream,
+            Mod.LongReach, Mod.ChangingOfTheGuard,
         };
 
         private static readonly SecondWind[] AllSecondWinds =
@@ -90,9 +99,30 @@ namespace Faultline.Core
             OfferCategory.Consumable, OfferCategory.Technique,
         };
 
-        /// <summary>Every mod in the v1 pool, in pool order.</summary>
-        /// <returns>The twelve mods.</returns>
+        /// <summary>Every mod in the pool, in pool order.</summary>
+        /// <returns>The mods, spender-hosted first.</returns>
         public static IReadOnlyList<Mod> ModPool() => AllMods;
+
+        /// <summary>
+        /// The mods the pool hangs on one slot. <b>Empty is a real answer</b> — Guard Stance and the
+        /// basic attacks host none — and a surface that drew sockets anyway would be promising a
+        /// player cards no camp can deal (D-243).
+        /// </summary>
+        /// <param name="slot">Slot to ask about.</param>
+        /// <returns>Its mods, in pool order.</returns>
+        public static IReadOnlyList<Mod> ModsFor(KitEntry slot)
+        {
+            var mods = new List<Mod>();
+            foreach (var mod in AllMods)
+            {
+                if (Kits.HostOf(mod) == slot)
+                {
+                    mods.Add(mod);
+                }
+            }
+
+            return mods;
+        }
 
         /// <summary>Every Second Wind condition in the v1 pool, in pool order.</summary>
         /// <returns>The eight conditions.</returns>

@@ -94,12 +94,12 @@
                                 <span class="numbers">
                                     <span class="hp">@body.Hp/@body.MaxHp</span>
 
-                                    @* One pip per point of the meter for a class that holds one, so a
-                                       spender can be seen coming without selecting anybody. *@
-                                    @if (Verve.SpendFor(body.Kind) is { } spender)
+                                    @* One pip per point of the meter for a duck that holds a spender,
+                                       so a spend can be seen coming without selecting anybody. *@
+                                    @if (PlaytestText.MeterOf(body) is { } meter)
                                     {
-                                        <span class="pips @(body.Verve >= Verve.CostOf(spender, body) ? "ready" : string.Empty)"
-                                              title="@PlaytestText.VerveTitle(body)">
+                                        <span class="pips @(meter.Ready ? "ready" : string.Empty)"
+                                              title="@meter.Title">
                                             @for (int v = 0; v < Verve.Cap; v++)
                                             {
                                                 <i class="pip @(v < body.Verve ? "on" : string.Empty)"></i>

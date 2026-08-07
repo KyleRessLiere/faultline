@@ -86,10 +86,11 @@ public sealed class CampScreenTests
 
             Assert.Contains(card.Bound, visible);
 
-            // A mod names the spender it bolts onto; the others name the duck or its kit.
+            // A mod names the ABILITY it bolts onto — a spender for most, an action for eight of
+            // them — and Kits.NameOf names either kind from one place (D-243).
             if (card.Category == OfferCategory.Mod)
             {
-                Assert.Contains(Naming.Of(CampCatalogue.SpenderOf(card.Offer.AsMod)), card.Bound);
+                Assert.Contains(Kits.NameOf(Kits.HostOf(card.Offer.AsMod)), card.Bound);
             }
             else
             {

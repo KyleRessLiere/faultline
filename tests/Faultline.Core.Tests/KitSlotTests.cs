@@ -252,17 +252,40 @@ public class KitSlotTests
         Assert.Equal(Kits.ModsPerSlot, Kits.ModsOn(both, KitEntry.Preen));
     }
 
-    /// <summary>A mod's host slot is derived from the card, never stored beside it.</summary>
+    /// <summary>
+    /// A mod's host slot is derived from the card, never stored beside it — and the host is an
+    /// <b>ability</b>, of which a spender is one kind. Every mod in the pool hangs on a real slot of
+    /// its own class's kit, whichever kind that slot is (D-243).
+    /// </summary>
     [Fact]
-    public void EveryModHangsOnTheSlotItModifies()
+    public void EveryModHangsOnASlotOfItsOwnClass_WhicheverKindOfAbilityThatSlotIs()
     {
+        bool sawASpenderHost = false;
+        bool sawAnActionHost = false;
+
         foreach (var mod in CampCatalogue.ModPool())
         {
             var host = Kits.HostOf(mod);
 
-            Assert.Equal(CampCatalogue.SpenderOf(mod), Kits.SpenderOf(host));
             Assert.Equal(CampCatalogue.KindOf(mod), Kits.KindOf(host));
+            Assert.Contains(host, Kits.For(Kits.KindOf(host)).Abilities
+                .Concat(Kits.For(Kits.KindOf(host)).Spenders)
+                .Concat(new[] { KitEntry.Overrun, KitEntry.Punt, KitEntry.Interpose,
+                    KitEntry.Retort, KitEntry.Skyfall, KitEntry.Whirl, KitEntry.Breakwater }));
+
+            if (Kits.SpenderOf(host) is not null)
+            {
+                sawASpenderHost = true;
+            }
+            else
+            {
+                sawAnActionHost = true;
+                Assert.NotNull(Kits.AbilityOf(host));
+            }
         }
+
+        Assert.True(sawASpenderHost, "the pool should still host mods on spenders");
+        Assert.True(sawAnActionHost, "the pool should now host mods on actions too");
     }
 
     // ---- the offer filter ---------------------------------------------------------------------------

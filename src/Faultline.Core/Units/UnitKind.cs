@@ -6,7 +6,7 @@ namespace Faultline.Core
         /// <summary>Player class: HP 7, melee, pushes.</summary>
         Vanguard = 0,
 
-        /// <summary>Player class: HP 4, range 3, climbs free.</summary>
+        /// <summary>Player class: HP 4, range 3.</summary>
         Archer = 1,
 
         /// <summary>Player class: HP 4, range 3, pulls.</summary>

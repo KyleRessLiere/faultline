@@ -584,8 +584,9 @@ namespace Faultline.Core
                         }
 
                         // Priced per ability, not per action: an attack at 1 and Reel or Bull Rush at
-                        // 2 drop off the list at different points in the same activation.
-                        if (!Activation.CanAfford(unit, descriptor.Cost))
+                        // 2 drop off the list at different points in the same activation. Priced for
+                        // this duck, not off the card: a Downhill Overrun from a ledge is 2 (D-243).
+                        if (!Activation.CanAfford(unit, Abilities.CostOf(state, unit, descriptor)))
                         {
                             continue;
                         }
@@ -1408,7 +1409,9 @@ namespace Faultline.Core
             Require(descriptor is not null, "That unit does not have that ability.");
             Require(Abilities.IsUsable(unit, descriptor), "That ability cannot be used.");
             Require(
-                Activation.CanAfford(unit, AbilityDefinition.For(command.Ability).Cost),
+                Activation.CanAfford(
+                    unit,
+                    Abilities.CostOf(state, unit, AbilityDefinition.For(command.Ability))),
                 "Not enough action points left for that ability.");
 
             switch (descriptor!.Targeting)
@@ -1458,7 +1461,8 @@ namespace Faultline.Core
             // movement, it is simply the one that was honest about it first. D-126 then dropped its
             // price to 2, and because "no pre-move" was never anything but the price, one tile of
             // run-up became legal here with nothing else to change.
-            state = state.WithUnit(Activation.Spend(unit, AbilityDefinition.For(command.Ability).Cost));
+            state = state.WithUnit(Activation.Spend(
+                unit, Abilities.CostOf(state, unit, AbilityDefinition.For(command.Ability))));
 
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
 
@@ -1524,6 +1528,10 @@ namespace Faultline.Core
             var accepterTo = offerer.Position;
             var offererTo = accepter.Position;
 
+            // Changing of the Guard asks its question before the swap, because afterwards the duck
+            // an enemy declared is standing somewhere else and the tile answers no (D-243).
+            bool steppedIntoADeclaredBlow = Interpose.IsDeclaredTarget(state, offererTo);
+
             state = state.WithUnit(accepter with
             {
                 Position = accepterTo,
@@ -1537,7 +1545,9 @@ namespace Faultline.Core
             // no Footing counter is owed — but a free move is free of the economy and never of the
             // board, so brambles bite each body that arrives on them exactly as a walked step does.
             state = LandOn(state, accepter.Id, accepterTo, events);
-            return LandOn(state, offerer.Id, offererTo, events);
+            state = LandOn(state, offerer.Id, offererTo, events);
+
+            return Interpose.Pay(state, offerer.Id, steppedIntoADeclaredBlow, events);
         }
 
         /// <summary>Charges a placed body for the tile it arrived on.</summary>
