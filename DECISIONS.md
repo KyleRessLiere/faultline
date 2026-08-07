@@ -221,9 +221,9 @@ in this file when the question comes back.
 | D-219 | [RULED: Stampede is the basic shove with two clauses, and allegiance is the ability's business rather than the board's.](#d-219-ruled-stampede-is-the-basic-shove-with-two-clauses-and-allegiance-is-the-abilitys-business-rather-than-the-boards) | 2026-08-07 |  |
 | D-220 | [RULED: the Rushmaster's priority list is one list across both phases, and the walk is what the harness turns around.](#d-220-ruled-the-rushmasters-priority-list-is-one-list-across-both-phases-and-the-walk-is-what-the-harness-turns-around) | 2026-08-07 |  |
 | D-221 | [RULED: Crew Cover needed no timing mechanism, because the codebase already had both halves of it.](#d-221-ruled-crew-cover-needed-no-timing-mechanism-because-the-codebase-already-had-both-halves-of-it) | 2026-08-07 |  |
-| D-222 | [RULED: the boss's death ends the fight, and the crowd's disappearance is a rendered beat.](#d-222-ruled-the-bosss-death-ends-the-fight-and-the-crowds-disappearance-is-a-rendered-beat) | unreleased |  |
-| D-223 | [RULED: clearing the board no longer wins under every objective; it wins the five that have nothing else to say about an empty board.](#d-223-ruled-clearing-the-board-no-longer-wins-under-every-objective-it-wins-the-five-that-have-nothing-else-to-say-about-an-empty-board) | unreleased |  |
-| D-224 | [RULED: Crew Cover's preview promises the collision the board is about to collect.](#d-224-ruled-crew-covers-preview-promises-the-collision-the-board-is-about-to-collect) | unreleased |  |
+| D-222 | [RULED: the boss's death ends the fight, and the crowd's disappearance is a rendered beat.](#d-222-ruled-the-bosss-death-ends-the-fight-and-the-crowds-disappearance-is-a-rendered-beat) | 2026-08-07 |  |
+| D-223 | [RULED: clearing the board no longer wins under every objective; it wins the five that have nothing else to say about an empty board.](#d-223-ruled-clearing-the-board-no-longer-wins-under-every-objective-it-wins-the-five-that-have-nothing-else-to-say-about-an-empty-board) | 2026-08-07 |  |
+| D-224 | [RULED: Crew Cover's preview promises the collision the board is about to collect.](#d-224-ruled-crew-covers-preview-promises-the-collision-the-board-is-about-to-collect) | 2026-08-07 |  |
 
 **205 rulings.**
 
