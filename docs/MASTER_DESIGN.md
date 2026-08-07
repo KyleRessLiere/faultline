@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-05x** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-06q** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -11,94 +11,34 @@ POND_AND_DYNASTY, ENCOUNTERS — now source material, not authorities). Relation
 is meant to be**; `DECISIONS.md` records why they differ wherever they do. When this file and
 GAMEPLAY disagree, that is either unbuilt design or a missing DECISIONS entry.
 
-Last design session: 2026-08-05.
+Last design session: 2026-08-06.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
-2026-08-05 (x) — LOCKED: **the Pond heals the wound.** A Still Pond's Rest CLEARS Bedraggled —
-  a duck that rests returns at half max HP with its round-1 activation slot intact. An unhealed
-  down stays Bedraggled (quarter HP, no first slot) into the next fight. This closes the §3/§8.8
-  contradiction and gives Ponds a second job: they are not only HP, they are the cure for the
-  death penalty — so the hungry lane's missing pond now costs tempo as well as health, and
-  "route to water" becomes a real strategic sentence. Healing is geography, and now so is
-  recovery.
-2026-08-05 (w) — LOCKED: WARRENS ACT v2 — Act 1 becomes an AUTHORED act with SEEDED EDITIONS
-  (§8.8): route graph and every node's tactical role fixed and visible; the seed picks one of two
-  validated board editions per node, one of two published wave schedules, the reward deck order,
-  and which two legendaries appear at High Road — never tile-by-tile scatter, never a hidden
-  roll. §8.6 REPLACED: 24 technique modifiers on six tags (TRAFFIC/IMPACT/RELAY/CONTROL/GUARD/
-  FINISH), with RELAY — cross-flock handoffs — as the category the old pool lacked; number-only
-  mods demoted to low weight and never paired against a transformative card at equal rarity.
-  Camp offer DIRECTOR rules + rarity by node (safe 60/35/5, hungry 35/50/15). Steady Hands
-  DELETED (Rescue stays a universal 3 AP emergency; the drama is the countdown, not a discount —
-  no Rescue build family). Break the Gate 24 → 18 HP with an anti-drag rule (three clean
-  structure collisions end it). New permanent Warrens boss: THE RUSHMASTER (§8.9) — Work Bells,
-  Crew Cover, Cut Loose, Stampede; the Quarry King is reserved for the Locks. Class BUILD SEEDS
-  (randomised starting kits) considered and HELD: fixed classes stay the control group so a camp
-  pick's effect is legible — revisit only once the transformative pool is proven.
-2026-08-05 (v) — LOCKED (displacement legibility + the allied charge): (1) DISPLACEMENT PREVIEW
-  is doc law and was unbuilt for ranged abilities — every displacement must render its route,
-  the tile where it ACTUALLY STOPS (interrupted drags, bramble entries and drains end it
-  early), the outcome there, and zero-distance results out loud ("no movement (resist 2)").
-  The Fisher's pulls read as dead because they were illegible, not weak. (2) AMBIGUOUS VECTORS
-  ARE ACTOR-CHOSEN: on a diagonal, two tiles satisfy "away"/"toward" equally — the acting side
-  picks (players via ghost tokens on both candidate stop tiles; enemies by published priority
-  order). Ranged displacement only: melee is orthogonal and Bull Rush follows its aimed charge
-  line. No prompt when one candidate is legal or both outcomes are identical. Reel chooses its
-  APPROACH LINE (horizontal-first vs vertical-first). Cast is untouched and keeps its identity:
-  free placement on any legal tile, no route at all. (3) BULL RUSH AFFECTS ALLIES — it stops at
-  and displaces the first UNIT of any allegiance (removing an allegiance check, not adding one):
-  full pipeline and board consequences, resist means the Wardbearer moves 0, base contact damage
-  stays 0 for everyone, and WRECKING WEIGHT'S contact damage applies to allies too — the cannon
-  costs its passenger. The Vanguard's Pluck charges on ally collisions (the Husk-jostle precedent
-  governs contact-damage riders, never board resolution). Preview is mandatory before it ships.
-2026-08-04 (u) — LOCKED: climb surcharge REMOVED — climbing is ordinary movement (1 AP,
-  players; no +1 MP, enemies): position is already the price, and high ground's cost is its
-  physics (shove-up collides, shove-off falls, the Grappler hunts the perched). Brambles keep
-  2 AP + 2 damage — there the cost IS the terrain. Casualties: the Archer's free-climb perk
-  retires (vestigial); the Climber unlock deletes from §8.6 (pool of four). Watch flag: if
-  fights open as scripted hill races, the brake returns as board design, never as surcharge.
-  ALSO LOCKED — enemy defense assignments under the Footing rework: chaff tier Footing 1
-  (Husk, Lobber, Grappler, Stalker, Harrier, Perch, Bulwark — aura separate), Runt 0;
-  fortress tier Footing 2 (Anchor r1, Warden r1, Colossus r2); Quarry King Footing 0
-  DELIBERATE (the shell is his only anti-displacement; the post-shell window is the fight's
-  payoff); Heavy Husk reserved at Footing 2, unfielded.
-2026-08-04 (t) — LOCKED: the FOOTING REWORK — Footing counts INSTANCES, not tiles: spending
-  it refuses one whole displacement (impact included); it exits the distance arithmetic
-  (pipeline is now Stagger → resist → Bulwark cap → floor). Footing STACKS are the
-  elite/boss anti-displacement stat (regulars 1; fortress tier 2+; a bestiary lever).
-  CAST THRESHOLD: refusing a Cast costs 2 Footing (printed on Cast; the throw is too heavy
-  to brace cheaply); a unit at 2+ may refuse (her Pluck spent, no refund — the boot icon is
-  visible, throwing into it is an informed misplay); a unit at EXACTLY 1 cannot refuse —
-  the Cast OVERWHELMS: it lands AND strips the last Footing. "Below 2" is her hunted state,
-  readable on enemy pips — bait the drain-only auto-spend with a cheap flick, then the
-  throw is law. Enemy auto-spend stays drain-only (preserves slam-fishing and the bait
-  line); players get an interactive refuse prompt (negation is chunky enough to earn the
-  interrupt); the old squirm-divert rule dies. Staged (not live): "+1 Pluck on a refused
-  Cast" as her named income lever if Footing-stacked comps starve her; SURE CAST banked as
-  her legendary (Cast cannot be refused). Wardbearer clarity: resist 2 is passive
-  shortening, Footing 1 is the refusal — two sentences, no shared math.
-2026-08-03 (s) — PROPOSAL recorded (council-endorsed unanimously, incl. the Thesis-Keeper's
-  first no-reservation endorsement — NOT yet locked, designer holding): "The Four Waters" —
-  every progression moment declares a station: the Current (camps: offers drift past, snatch
-  one, the rest washes downstream), the Dive (the Still Pond's forge: head under, held
-  breath), the Raft & the Road (events: the only station where someone talks to you), the
-  Nest (the Molt, later town/Generations: picks woven into what the ducklings hatch in).
-  Constants if adopted: one offer-card component under all wrappers (flat + legible on
-  focus), stations are presentation over unchanged commands, paint ships on the art track
-  behind the Playtest Gate; station ASSIGNMENTS would lock immediately so UI sessions stop
-  guessing. See §8.7.
-2026-08-03 (r) — Tone lock: Rest nodes are PONDS, not campfires — ducks rest on still water
-  (map icon: a calm pond; "more campfires on the safe lane" reads "more ponds"; Rest screen
-  fiction: glide on, tuck the head, heal or forge at the Still Pond). Display/fiction only —
-  node type identifier stays Rest per §15 decoupling.
-2026-08-03 (q) — LOCKED: Bull Rush 3 → 2 AP (move ≤1 then charge ≤3; threat 4 — deliberate,
-  the chaser's reach: one past his walk, one short of the Archer's shot band). Rationale: the
-  signature competed with "just walk 3"; a cost should create a decision, full-pool created
-  only a sacrifice. Archer's 4-at-range-for-1 stands — her payment is the positional ledger
-  (min range, dead zone, mobility tax, Perch), settled and not reopened. Rescue stays 3
-  (full pool).
+2026-08-06 (q) — LOCKED (camp director rulings, from build intake): CAMP 1 IS AUTHORED — always
+  two Techniques from the Engine Starter subset, targeting different classes and, where
+  possible, different players; pocket items are ineligible until Camp 2; Second Winds, Rares
+  and one-shots may not displace the run's first build-defining decision (a consumable makes a
+  tactical exception, it cannot establish how the party plays). The observed
+  `Technique, Technique` across seeds 1–40 is therefore CORRECT, not a weighting defect; the
+  remaining test is whether the starter Techniques distribute across seeds and satisfy the
+  class/ownership constraints — card-level sweeps, not category-level. FULL-POCKET SUPPRESSION
+  upheld: with no replace/drop surface, the director removes pocket items from the eligible
+  pool and still produces two valid permanent choices (the "pick 1 of 2" shape is the camp's
+  law, never a target). DEEP POCKETS REMOVED from §8.6 and from the current milestone — one
+  pocket per duck is deliberate scarcity; a second slot buys inventory UI and weakens
+  commitment before the central progression system has been tested (this also resolves the
+  doc's own §8.5-vs-§8.6 contradiction in favour of "never add slots"). RARITY IS A REAL TIER:
+  Common / Uncommon / Rare as reward METADATA, orthogonal to reward KIND (Technique / Second
+  Wind / Pocket Item / Legendary) — unblocks D3, Forge offers, hungry-route weights, the
+  pre-boss Deep Forge. Thorn Pouch's stored-underlying-tile approach ratified and promoted to
+  terrain-mutation TECH (the primitive Cracked and the collapse clock will want), with coverage
+  owed on save/load, undo, expiry under a standing unit, AI pathing, action preview, and
+  temporary-over-temporary placement. Practice note: reaching states by PLAY rather than by
+  restored save is what surfaced the authored Camp 1 at all; a restored full pocket would have
+  passed and taught nothing. OWED before codification: the Technique↔category mapping and the
+  Engine Starter subset (see §8.6 and §14 #13–#17).
 2026-08-03 (p) — V1 REWARD POOLS drafted into §8.6 (tuning expected, content not law): mod
   lists per spender (3 each), Second Wind conditions (2/class), tactical unlocks (5), the
   permanent legendary catalog (2/class + Third Slot, each naming the law it breaks; Bulwark
@@ -242,7 +182,8 @@ wave schedules, slot and mod counts.)*
 
 ## Board & terrain
 7×7 default (format supports larger). Terrain: **Open, Wall, Pit→Drain, Spikes→Brambles,
-HighGround**, plus **Cracked** (collapse tech, unbuilt). Board edge = wall. Fiction: drains are
+HighGround**, plus **Cracked** (collapse tech, unbuilt — the **terrain-mutation tech** ratified in §8.6 with
+Thorn Pouch, storing the underlying tile, is Cracked's intended primitive). Board edge = wall. Fiction: drains are
 water moving somewhere else — ducks don't drown, they get swept.
 
 | Terrain | Walk on | Shoved onto |
@@ -250,7 +191,7 @@ water moving somewhere else — ducks don't drown, they get swept.
 | Wall | impossible | collision: 4, Stagger |
 | Drain | impossible | Clinging → swept |
 | Spikes | costs 1 extra movement, 2 damage, no Stagger | 6 damage, stops, Stagger |
-| HighGround | ordinary movement (no climb surcharge — locked u); ranged from it +2 dmg | up: collides like a wall; down: 2 dmg, displacement continues |
+| HighGround | +1 MP to climb (Archer free); ranged from it +2 dmg | up: collides like a wall; down: 2 dmg, displacement continues |
 
 **Debris** (`o`): standing piece. Occupies tile, blocks movement, 4 HP, allegiance-less, never
 activates. Attackable; displaceable by any push/pull. Unit into debris: 4 both. Debris into unit:
@@ -269,40 +210,14 @@ waypoints. No confirms, no chips. Each segment is a MoveCommand with its full re
 so segmenting leaks no exploits.
 
 ## Displacement pipeline
-**Ambiguous vectors are actor-chosen (locked v).** When a displacement vector is diagonal, two
-tiles satisfy "away from"/"toward" equally: **the acting side chooses** — players pick between
-two ghosted candidates (Reel picks its approach LINE: horizontal-first or vertical-first);
-enemies pick by their published priority order, and the declared intent names the tile
-resolution will use. Ranged displacement only — melee pushes are orthogonal and Bull Rush
-follows the charge line already aimed. No prompt when only one candidate is legal or both
-outcomes are identical. **Cast is exempt: it has no route — it is free placement.**
-
-**Displacement preview is a rule, not polish (locked v).** Hovering any displacement target
-renders the route, the tile where the displaced unit ACTUALLY STOPS (a mid-route collision,
-bramble entry or drain ends it early — the destination is an intent, not a promise), the
-outcome there (damage to both parties, Stagger, Paddling), and zero-distance results out loud
-("no movement (resist 2)"). All numbers come from Core. A silent no-op is a bug.
-
 Push/Pull resolve tile-by-tile. Distance arithmetic (in order): +1 if target Staggered (consumed)
 → −N push resistance (Anchor 1, Wardbearer 2, Colossus 2) → cap 1 if enemy-Bulwark aura adjacent
-→ floor 0. (Footing is not arithmetic — it refuses whole instances; see Statuses. Resistance
-SHORTENS, Footing REFUSES: two sentences, no shared math.) Collision: both parties 4, both Staggered. Impact damage
+→ −1 Footing spend → floor 0. Collision: both parties 4, both Staggered. Impact damage
 (collision/spike/fall) ignores all mitigation, always.
 
 **Statuses:** Staggered (from collision/spike damage; next displacement +1; clears at round end).
-**Footing (REWORKED, locked t): counts instances, not tiles** — spending Footing REFUSES one
-whole displacement, impact and all; it is outside the distance arithmetic entirely. Regulars
-carry 1; **Footing stacks (2+) are the elite/boss anti-displacement stat** — a bestiary design
-lever ("this one will cost you properly to fish"). Enemies auto-spend ONLY against drain-bound
-displacement (preserves slam-fishing and the Fisher's bait line); players get an interactive
-refuse prompt ("The Grappler pulls Wardbearer — refuse it? Once per fight."). **Cast threshold
-(printed on Cast): refusing a Cast costs 2 Footing.** At 2+ the enemy may refuse — the throw
-fails, her Pluck is spent, no refund (the boot is visible; throwing into it is an informed
-misplay). At exactly 1 it CANNOT refuse — the Cast overwhelms: it lands and strips the last
-Footing on the way through. "Below 2" is her hunted state, readable on enemy Footing pips; the
-targeting preview always says which world you're in ("will be refused (Footing 2)" / "lands —
-overwhelms last Footing"). Staged lever (not live): +1 Pluck on a refused Cast, if
-Footing-stacked comps starve her income. Clinging (one round; **rescue is an ACTION requiring adjacency — move to adjacency then
+Footing (1/unit/fight; enemies auto-spend only vs drains; players enemy-only until further
+ruling). Clinging (one round; **rescue is an ACTION requiring adjacency — move to adjacency then
 Rescue is legal and consumes the activation**; rescuer's player picks the adjacent destination
 tile; UI surfaces "Rescue [name]" in the ability tab whenever an ally is clinging — enabled when
 reachable, grayed with the reason when not — plus an urgent turn-summary banner naming the
@@ -316,10 +231,7 @@ slot does not exist — the side has one fewer activation in round 1). Deploymen
 Bedraggled units loudly; round-1 enemy targeting treats them like any other unit — no AI
 preference for the wounded. Pluck and learned abilities intact. **The state clears at round 1's
 end** — from round 2 the duck is simply wounded; the flag's only teeth are the omitted slot, so
-it dies with the round that contained the omission. **A Still Pond's Rest clears Bedraggled
-outright (locked x):** a duck that rests returns at half max HP with its round-1 slot intact. An
-unhealed down carries Bedraggled into the next fight. Ponds cure the penalty as well as the
-wound — routing to water buys tempo, not just HP.
+it dies with the round that contained the omission.
 
 **Doomed-cling resolution:** when no standing enemy remains AND no pending reinforcement wave
 could arrive to rescue, all clinging enemies are swept immediately and the fight resolves (waves
@@ -351,8 +263,8 @@ buttons, outcomes on previews, "moves only" notes); it never gates on judgment. 
 unorthodox plays belong to the player.
 
 **Activation — the Action Point turn (players only):** each duck activates with **3 AP**.
-Movement spends first at **1 AP per tile** (one surcharge only: brambles cost 2 AP to enter,
-+2 damage; climbing is ordinary movement — locked u). Then **exactly ONE action, which ends the activation**
+Movement spends first at **1 AP per tile** (terrain surcharges unify into AP: brambles 2 AP to
+enter + 2 damage; climb 2 AP, Archer 1). Then **exactly ONE action, which ends the activation**
 — AP prices how far you moved before your action, never how many actions; no movement after
 acting (protects the telegraph economy). Spending all 3 AP on movement is legal (the dash needs
 no button — it is today's full move, gated on forfeiting your action). **Acting costs legs:**
@@ -363,8 +275,8 @@ Pass is a bare pass.
 
 **Action costs:** basic attacks 1 · Stagger Shot 1 · Spear Thrust 1 · Guard Stance 1 · Fisher's
 flick 1 · **Reel 2** · kick-in 0 · interact 1 · **Rescue 3 (full pool — drop everything; reach
-3 preserved)** · **Bull Rush 2 (move ≤1 first is legal; charge ≤3 unchanged — threat 4, the
-chaser's deliberate reach: one past his walk, one short of the Archer's shot band)** · any Pluck spend 0.
+3 preserved)** · **Bull Rush 3 (full pool, no pre-move — his charge was always priced as
+everything)** · any Pluck spend 0.
 
 **Design law (appended to §2 in spirit): pools are grammar.** The AP pool is uniform across all
 player ducks — differentiation lives in ACTION COSTS and EARNED upgrades (Camp's +1 AP pick,
@@ -378,8 +290,8 @@ eligibility flagged for review — move-1-then-Bull-Rush extends his threat rang
 
 | Class | HP | Move | Basic | Kit |
 |---|---|---|---|---|
-| **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush** (2 AP): move ≤1, then charge ≤3 in a line; stops at and pushes 2 the first **unit** of ANY allegiance, then stops adjacent. Base contact damage 0; **Wrecking Weight's contact damage applies to allies too** — the cannon costs its passenger. Resist applies (the Wardbearer moves 0) |
-| **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away |
+| **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush**: charge ≤3 in a line, first enemy hit pushed 2, stop adjacent (fused move+act) |
+| **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away. Climbs HighGround free |
 | **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
 | **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
 
@@ -397,9 +309,7 @@ at the moment of the deed.
 | Class | +1 when… | Spender | Cost | Effect |
 |---|---|---|---|---|
 | Vanguard | causes a collision | **Wrecking Weight** | 2 | next push: 2 dmg on contact, +1 distance (collision stacks) |
-| Fisher | her displacement ends in collision/hazard, **or a Reel drags an enemy 3+ tiles** (paid for fishing, not only landed catches; a long drag INTO a collision pays twice) | **Cast** | 3 | target an enemy within range 3 (lob — grab ignores everything between, even screens) and place it on any unoccupied non-wall tile within radius 1 of her (long rod, short landing: to drain-cast she must stand at the drain's edge). Landing applies shoved-onto effects; hazard landings charge her. A THROW: resist doesn't apply; boss negate-tokens DO. **Footing vs Cast (locked t): refusing costs 2 Footing — at 2+ the target may refuse (throw
-fails, Pluck spent, no refund); at exactly 1 it cannot — the Cast OVERWHELMS, landing and
-stripping the last Footing. The old squirm-divert rule is dead.** Independent of Reel: one activation can Reel one enemy (action) and Cast another (spend) |
+| Fisher | her displacement ends in collision/hazard, **or a Reel drags an enemy 3+ tiles** (paid for fishing, not only landed catches; a long drag INTO a collision pays twice) | **Cast** | 3 | target an enemy within range 3 (lob — grab ignores everything between, even screens) and place it on any unoccupied non-wall tile within radius 1 of her (long rod, short landing: to drain-cast she must stand at the drain's edge). Landing applies shoved-onto effects; hazard landings charge her. A THROW: resist doesn't apply; boss negate-tokens DO. **Footing vs Cast: the catch squirms — target diverts to the first legal non-hazard tile in her radius-1 (N/E/S/W); no alternate → Footing unspendable, landing stands.** Independent of Reel: one activation can Reel one enemy (action) and Cast another (spend) |
 | Archer | hits an enemy from high ground | **Double Nock** | 4 | attack twice this action |
 | Wardbearer | absorbs via Guard Stance (**only if the absorb dealt damage or moved him ≥1 — fully-negated redirects charge nothing**) | **Preen** | 3 | heal himself 4 (cap at max) |
 
@@ -434,14 +344,6 @@ seeks and holds HighGround · Bulwark 10/2 aura: adjacent allies displaced max 1
 pushes players away from allies · Runt 2 HP swarm · Colossus 20/1 melee 6, resist 2 · **Raider**
 4/3 claw 2: targets the Protect structure, never players · balance variants (Lesser Grappler,
 blunted Stalker, Heavy Husk, mobile Anchor) scaled likewise.
-
-**Defense assignments (locked u):** chaff tier Footing 1 — Husk, Lobber, Grappler, Stalker,
-Harrier, Perch, Bulwark (its displacement-cap aura is separate from and independent of
-Footing); Runt Footing 0. Fortress tier Footing 2 — Anchor (resist 1), Warden (resist 1),
-Colossus (resist 2): "you'll pay properly to fish me." Quarry King Footing 0 — DELIBERATE:
-shell tokens are his only anti-displacement; the post-shell vulnerability is the fight's
-payoff. Heavy Husk reserved at Footing 2 (unfielded; pairs with the bloody shoulder as the
-named elite). Balance variants as base kin.
 
 Behavior rules: published deterministic priority lists; intents locked and shown fully;
 lowest-id tiebreaks; enemies rescue clinging allies (below lethal-kill in every list); enemy
@@ -513,34 +415,12 @@ alternate signature spender from the parked pool, or one pre-baked mod; never st
 Duplicated classes are possible only if the town raised two of that line. Three divergence
 layers, three jobs: Dock = intent, Camp/Molt = adaptation, Generations = permanence.
 
-**Act 1 — THE WARRENS, authored act with seeded editions (v2, locked w; boards and editions in
-§8.8).**
-
-```
-first-contact ─┬─ bait-and-break ─┬─ the-shrine ───── STILL POND ──┬─ break-the-gate ─┐
-  (FIXED — the  │  (kill-all,      │  (protect, waves)   (heal OR   │  (raid, 18 HP)   │
-   control      │   traffic)       ├─ MOLTING POOL ─┐    forge)     │                  ├─ STILL
-   group)       │                  │   (offer)      │              │                  │   POND
-                └─ the-teeth ──────┴─ broken-bridge ┴─ HIGH ROAD ───┴─ the-trench ─────┘  (floor)
-                   (brambles)         (drains,         (ELITE ✦gilt    (mastery: drains    │
-                                       structures)      legendary)      + resistance)  RUSHMASTER
-```
-
-**Route identity.** *Comfort* — 4 combat picks, two recovery points, safer objective control and
-Forge access. *Hungry* — 5 combat picks, pre-boss recovery only, and **a visible permanent
-legendary after High Road that must arrive BEFORE the Trench**: risk without its promised payout
-is not a valid balance test. *Cross-route* — the Molting Pool as body investment and route
-correction.
-
-**Node preview (before every vote):** objective type · enemy silhouettes · two or three pressure
-tags · turn limit and reinforcement rounds · the exact reward class (Camp / Forge / gilt
-legendary) · whether the edition holds drains, brambles, high ground, structures or waves.
-Starting coordinates stay hidden until entry; once entered, board, intents, activation order and
-wave schedule are hard facts.
-
-**First Contact is FIXED — no edition roll.** It is the control group for every run: it shows how
-the unmodified party performs, which is what makes the first Camp pick's effect legible.
-hold-the-gate and the unused trials become the event-fight pool.
+**Build stepping stone (current milestone — the linear 10):** first-contact (re-cut: Husk queue
+in the Vanguard's lane) → bait-and-break → the-teeth → broken-bridge → the-shrine (Protect,
+Raiders) → break-the-gate (Destroy: 3-tile gate 24 HP, Warden arch, 3 debris, waves r2/r4,
+limit 10) → high-road (Perch fielded) → the-trench → hold-the-gate → quarry-king. Rest nodes per
+the act map; the linear 10 approximates them after fights 4 and 8 until the map ships. This
+ships and playtests first; the act structure re-groups it.
 
 Run seam: pluggable node sequence in Core (`ApplyRun` mirror of `Apply`); node types (Camp,
 Rest, Molt, ChooseDoor, Event) are handlers on the same seam. Run-level determinism: seed + full
@@ -563,8 +443,8 @@ and tricks. A fully-swept side ends the run. Collision damage stays allegiance-b
 **A run's act is a VISIBLE lane graph** (~7 columns, 2–3 nodes wide, ~11–13 nodes; a run plays
 ~7): Start → middle columns → **the boss, always rendered at the end of every lane**. No fog.
 Every node wears its type: swords (kill-all) · shield (defend) · broken gate (raid) · hourglass
-(survive) · skull (elite) · `?` (event) · **a still pond (Rest)** · boss sigil. **Lanes are unequal by
-design — the comfort gradient:** a safer lane (more ponds, plainer fights) vs a hungry lane
+(survive) · skull (elite) · `?` (event) · campfire (Rest) · boss sigil. **Lanes are unequal by
+design — the comfort gradient:** a safer lane (more campfires, plainer fights) vs a hungry lane
 (elites, maybe zero mid-lane Rest, visibly richer rewards — a gilt edge means a legendary is
 LITERALLY there, promise not probability). Floors: the pre-boss column always holds a Rest
 reachable from every lane; HP-priced events never spawn on zero-Rest lanes; act 1's `?`s skew
@@ -584,12 +464,44 @@ stats tier is purged; "durability and power live inside decisions" enforced at l
 - **Second Wind conditions** (promoted from Molt-exclusive) — new ways a duck earns Pluck.
 - **Tactical unlocks** — one-sentence rule additions per duck ("brambles cost this duck 1 AP").
 - **Consumables** — see below.
+**Camp 1 is authored (locked q).** The first camp of a run always deals **two Techniques from
+the Engine Starter subset** — never a Second Wind, never a Rare, never a pocket item. The two
+must target **different classes** and, where possible, **different players**. Pocket items
+become eligible from **Camp 2** onward. Rationale, and the general law it states: *a consumable
+cannot establish how a run's party plays — it only creates one tactical exception*, so nothing
+one-shot or conditional may displace the run's first build-defining decision. This is an
+authored floor like the map generator's (pre-boss Rest, act-1 Offer skew), and it carries the
+same instrument: the director **emits a proof log naming which constraint bound where**, and
+sweeps verify CARD-level distribution across seeds, not merely reward categories. Identical
+reward KINDS across a seed range is the rule working; identical CARDS would be the defect.
+
+**Rarity is metadata, not kind (locked q).** Every reward carries a tier — **Common /
+Uncommon / Rare** — on an axis **orthogonal to its kind** (Technique / Second Wind / Pocket
+Item / Legendary). Tier drives Forge offers, hungry-route weights, the pre-boss Deep Forge, and
+per-source odds (§14 #9 stays open: the ladder is locked, the odds are not). **Guard:** the
+orthogonal axis must not become a back door — no tier may place a **Legendary** into a camp
+pool. Camps and destinations are separated by the law below, not by rarity.
+
+**Full pocket (locked q).** While no replace/drop surface exists, a duck with a full pocket is
+simply dealt no one-shot: the director **removes pocket items from the eligible pool** and
+still produces two valid permanent choices. **"Pick 1 of 2" is the camp's shape and is never
+reduced** — suppression may never leave a camp short an offer. This is the standing answer
+until a replace/drop interaction is designed; it is recorded as a deliberate narrowing of the
+free-drop sentence below, not an accident of weighting.
+
 **No legendaries in camps.** Legendaries are DESTINATIONS: the Molt, gilt-marked map nodes
 (Sunken Cache prizes, hungry-lane terminals, elite spoils where the map says so), and Strait
-bargains. Drop is always free; curses are the licensed exception.
+bargains. Drop is always free for PERMANENTS; curses are the licensed exception. **Pocket
+one-shots have no drop surface yet** — a full pocket is handled by suppression at the camp
+(above) rather than by a discard, and this narrowing is deliberate: if a replace/drop
+interaction is ever built, suppression retires with it and the camp simply offers the item
+against the pocket's cost.
 
-**Consumables:** each duck has **1 pocket**; use is 0 AP, free-timing in its own activation,
-one-shot. Tactical pool (camps/events): Dried Minnow (gain 2 Pluck now) · Bramble Salve (heal 3
+**Consumables:** each duck has **1 pocket** — **reaffirmed (q) as deliberate scarcity: the
+pocket count is not a progression axis.** A second slot buys inventory UI and weakens
+commitment, and would widen the pocket before the central progression system has been tested;
+Deep Pockets is struck from §8.6 accordingly, and the doc's own "never add slots" (below)
+governs. Use is 0 AP, free-timing in its own activation, one-shot. Tactical pool (camps/events): Dried Minnow (gain 2 Pluck now) · Bramble Salve (heal 3
 — legal ONLY as a carried one-shot competing for the pocket; if every pocket carries one, price
 it out of camps, never add slots) · Old Rope (rescue an adjacent clinger as a free action —
 doomed-cling's "no possible rescuer" check must include held Ropes) · Duck Feather Charm
@@ -620,8 +532,8 @@ removable at a price.** WATERLOGGED: occupies a spender slot, does nothing, cann
 on it instead of heal-or-forge. Requires an open slot to be inflicted; both full → the event
 shows a printed alternate face. Un-scraped curses carry into Generations as story.
 
-**Rest nodes — the Still Pond, the only healing:** ducks glide on and tuck their heads — heal
-~half **and clear Bedraggled from any duck that rests (locked x)** OR forge (a guaranteed strong camp-tier pick) OR scrape a curse. Preen remains the lone in-fight exception. **The Molt (boss reward):** full
+**Rest nodes — the only healing:** heal ~half OR forge (a guaranteed strong camp-tier pick) OR
+scrape a curse. Preen remains the lone in-fight exception. **The Molt (boss reward):** full
 heal rides the boss Rest + the guaranteed big pick — Second Wind, Deep Mastery (3rd mod slot),
 Broad Back (cap 7), Fresh Slot Learn (3rd spender slot — camps can no longer grant it).
 
@@ -630,246 +542,88 @@ variant); votes are self-agreeing so coins never fire in baseline runs; per-lane
 telemetry is the gradient's pricing instrument. **Implementation sequences behind the Playtest
 Gate:** stall diagnosis → cb-06 tune → multi-seed three-way → then the map build.
 
-# 8.6 · Reward pools v2 (content, not law — numbers expect tuning; locked w)
+# 8.6 · V1 reward pools (content, not law — numbers expect tuning)
 
-**Design test every card must pass: does it change what the players ATTEMPT on the next board?**
-A card that only changes a number when an action resolves is a low-weight utility card, never a
-transformative one. **The category the v1 pool lacked was RELAY — cross-flock handoffs.** The
-act's final sentence is the target: *one duck solves the immediate threat, and the consequence of
-that solution becomes the other duck's opportunity.*
-
-**Tags (offer validity, not a player resource):** TRAFFIC (moves several bodies / preserves
-lanes) · IMPACT (collisions continue, spread, or set up another) · RELAY (hands value to the
-other flock) · CONTROL (changes where an action ENDS without adding range) · GUARD (converts
-hostile pressure into position) · FINISH (turns a developed setup into tempo).
-
-## Technique modifiers (24; hosted on a named ability, 2 sockets each, 3rd via Molt)
-
-**Vanguard** — *Follow-In* (C·TRAFFIC, Basic): after the target is pushed ≥1, he may enter its
-old tile · *Crosscheck* (C·TRAFFIC/CONTROL, Bull Rush): on a unit collision with an open tile
-beyond, choose Crash **or Carry** (push the far unit 1, first target takes its tile, no
-unit-collision damage between them) · *Sidecar* (U·RELAY, Bull Rush): ending adjacent to the
-other flock's duck banks it a free 1-tile step toward him (owner accepts) · *Rattling Impact*
-(U·IMPACT/RELAY): the first enemy he collides each round is **Rattled** — the other flock's next
-displacement of it gains +1 distance and consumes it · *Freight Train* (R·IMPACT, Wrecking
-Weight): +2 distance instead of +1 · *Wall Ride* (R·IMPACT/CONTROL): after a charged wall
-collision, displace the target 1 along the wall.
-
-**Fisher** — *Short Line* (C·CONTROL, Reel): choose any legal stopping tile on the drag path
-(collisions and hazards still stop it earlier) · *Catch and Release* (C·CONTROL/RELAY, Reel): a
-drag ending adjacent may attempt 1 more tile left or right of the pull line · *Clothesline*
-(U·IMPACT/TRAFFIC, Reel): the first unit collision deals normal impact but does NOT end the pull
-if the next path tile is open · *Hand-Off* (U·RELAY): a displacement ending adjacent to the other
-flock's duck gives that duck's next Basic Attack on the target Push 1 · *Big Splash* (R·IMPACT,
-Cast): the landing also deals 2 to every enemy adjacent to it · *Undertow* (R·CONTROL/TRAFFIC,
-Cast): after landing, pull one other adjacent enemy 1 toward the landing tile.
-
-**Archer** — *Spotter* (C·RELAY): she ignores minimum range against an enemy adjacent to the
-other flock's duck · *Pinning Feather* (C·CONTROL, Stagger Shot): until the target finishes its
-next activation it cannot voluntarily re-enter the tile it left (forced movement still legal) ·
-*Crossing Shot* (U·RELAY, reaction): once per round, when the other flock displaces an enemy
-through her valid range-2–3 firing line, deal 2 — the initiating preview shows the shot ·
-*Angle Shot* (U·CONTROL/IMPACT, Stagger Shot): a push that ends without a collision may attempt
-1 more tile left or right · *Throughline* (R·TRAFFIC/FINISH, Basic): a kill pushes the unit
-directly behind the target 1 away · *Mixed Quiver* (R·RELAY/CONTROL, Double Nock): the two shots
-may take different targets, and one may be Stagger Shot.
-
-**Wardbearer** — *Stored Force* (C·GUARD/IMPACT): each tile of hostile displacement his
-resistance cancels stores 1 Force (max 2); his next tip-tile Spear hit may spend it as a push ·
-*Set the Point* (C·CONTROL, Spear): on the tip, choose 4 damage OR 2 + Push 1 · *Shelter Step*
-(U·GUARD/RELAY, Guard Stance): if a redirect moves him, the protected duck banks a free step into
-the tile he left · *Reprisal* (U·GUARD/IMPACT): the first direct attack each round he absorbs
-while moving 0 Staggers the attacker · *Long Brace* (R·GUARD): Guard also covers a duck or allied
-structure exactly two clear orthogonal tiles behind him · *Passing Guard* (R·GUARD/RELAY, Spear):
-if the tip hits an enemy the other flock displaced this round, he enters Guard Stance after the
-attack.
-
-## Second Winds (8; class-bound income, max one trigger per resolved action)
-
-Vanguard *Crowd Roar* (+1 first Stagger each round) · *Clean Connection* (+1 when Bull Rush
-connects after moving ≥2) ·· Fisher *Chum the Water* (+1 when an enemy she displaced this round
-dies before round end) · *Close Catch* (+1 first time each round her displacement ends with an
-enemy adjacent to her) ·· Archer *Moving Target* (+1 first time each round she hits an
-already-displaced enemy) · *Exact Range* (+1 on a kill at exactly range 3) ·· Wardbearer
-*Stonewall* (+1 first time each round Guard reduces hostile displacement to 0) · *Tip Work* (+1
-on a tip-tile Spear hit).
-
-## Tactical unlocks (3 — **Steady Hands deleted**, locked w)
-
-*Sure-Footed* (brambles cost this duck 1 AP) · *Long Boot* (Kick-in at range 2) · *Deep Pockets*
-(a second pocket; rare). **Rescue is a universal 3 AP emergency action and gets no discounts and
-no build family** — the Clinging countdown is the drama; a 3→2 AP card is bookkeeping.
-
-## Pocket items — tactical (1 pocket, 0 AP, one-shot)
-
-*Dried Minnow* (+2 Pluck) · *Duck Feather Charm* (refill Footing) · *Crate of Debris* (place a
-4 HP debris adjacent) · *Old Rope* (free-action rescue of an adjacent clinger) · *Bramble Salve*
-(heal 3) · *Signal Whistle* (swap the activation order of two enemies that have not acted;
-intents unchanged) · *Greased Feather* (this duck's next displacement +1 distance) · *Split Reed*
-(swap with an adjacent allied duck — placement, both owners consent) · *Thorn Pouch* (temporary
-brambles on one adjacent tile until round end) · *Chalk Mark* (mark an enemy; the other flock's
-next displacement of it gains +1 distance).
-
-## Pocket items — legendary (destinations only; the crime printed)
-
-*Drift Scroll* (place a duck on any open tile — placement, landing terrain applies) · *Second
-Wind Whistle* (after acting, the activation does not end: refresh to 3 AP, one more action) ·
-*Stone Feather* (undisplaceable until its next activation) · *Peddler's Coin* (re-flip one
-revealed coin; the second is final) · *Bottled Current* (next Cast or Reel costs 0 Pluck or 0 AP,
-carrier chooses) · *Borrowed Bell* (after intents lock, move one enemy to the final enemy slot
-this round; intents unchanged).
-
-## Permanent legendaries (destinations only; one per duck = its epithet)
-
-Vanguard **Follow Through** (move 2 after causing a collision) · **Aftershock** (his collisions
-deal 2 to every enemy adjacent to the impact) ·· Fisher **Friendly Cast** (may target allies;
-owner consents) · **Twin Lines** (Reel pulls two enemies on one line, nearer first) · **Sure
-Cast** (cannot be refused by Footing — locked t) ·· Archer **Kestrel Step** (move 2 after
-shooting) · **Point Blank** (no minimum range) ·· Wardbearer **Deep Roots** (Guard persists
-through his next activation; he may act while it holds) · **Turnabout** (once per round, when
-Guard cancels hostile displacement, push the source by the cancelled distance, max 2 — replaces
-Bulwark Oath, which is retired for renewable-Footing probation) ·· **FLOCK legendaries** (the
-first rewards owned by the pair, not a duck): **Butt Bump** (once per round when ducks of
-different flocks become adjacent by voluntary movement, both may shift 1 to separate legal tiles
-and the mover refunds 1 AP; both consent) · **Relay Feather** (once per round, when one flock
-displaces an enemy adjacent to the other flock, that player may redirect it 1 tile through the
-normal pipeline) ·· Any: **Third Slot** (spender slot 3).
-
-## The Camp offer director (locked w)
-
-| Camp | Rule |
+**Mods (the Modify pool — 3 per spender, cheaper/stronger/economy):**
+| Spender | Mods |
 |---|---|
-| 1 (after First Contact) | two **engine starters**, different classes, preferably different players |
-| 2 | ≥1 **connector** matching an owned tag; the other may start a second family |
-| 3 | ≥1 **payoff** or rare connector; no two cards on the same ability |
-| 4+ | weighted from all valid cards; ≥1 must strengthen an owned RELATIONSHIP, not add an isolated trick |
+| Wrecking Weight | *Heavier* — contact damage 4 · *Freight* — +2 distance instead of +1 · *Echo* — if the charged push collides, refund 1 Pluck |
+| Cast | *Light Line* — cost 2 · *Long Rod* — grab range 4 · *Big Splash* — the landing also deals 2 to enemies adjacent to the landing tile |
+| Double Nock | *Fletcher's Rhythm* — cost 3 · *Long Draw* — both shots range 4 · *Hunter's Refund* — a killing shot refunds 1 |
+| Preen | *Thorough* — also clears his Stagger · *Neighborly* — may target an adjacent ally · *Quick* — cost 2 **(probation vs the negative-sum invariant)** |
 
-Also: two consumables are never paired · a pure cost/range card is never paired against a
-transformative card at the same rarity (utility lives at low weight) · a Second Wind is not
-offered to a duck at 5 Pluck with no spender available before the next fight (the spender state
-prints on the card) · if the last two picks went to one player's ducks, the next offer contains a
-card for the other player and a shared-use card · **no named permanent appears twice in a run** ·
-a consumable may be offered with full pockets only if the UI shows a visible replace/drop choice.
-**Rarity by node: safe 60/35/5 · hungry 35/50/15.** A Still Pond **Forge** shows three valid
-Uncommon/Rare cards, at least one a connector for the current build.
+**Second Wind conditions (camp-tier; additional class-bound income):**
+Vanguard — *+1 when he Staggers an enemy* · *+1 when Bull Rush connects* ·· Fisher — *Chum the
+Water: +1 when an enemy she displaced this round is killed by anyone* · *+1 first time each
+round an enemy ends a displacement adjacent to her* ·· Archer — *+1 on kills at range 3* ·
+*+1 first time each fight she ends a round on high ground* ·· Wardbearer — *+1 when Guard
+Stance expires unabsorbed (patience pays)* · *+1 when the Spear's tip tile hits*.
 
-## Example build families (discoverable, not set bonuses)
+**Tactical unlocks (per duck, one sentence each):** *Sure-Footed* — brambles cost this duck
+1 AP · *Climber* — high ground costs this duck 1 AP · *Steady Hands* — Rescue costs this duck
+2 AP · *Long Boot* — may Kick-in at range 2. *(Deep Pockets — a second consumable pocket —
+STRUCK (q): contradicted §8.5's "never add slots"; the pocket is scarcity, not an axis.
+Removed from the pool and from the current milestone, not deferred.)*
 
-**Pinball** (Rattling Impact + Wall Ride + Angle Shot + Undertow) · **Relay** (Sidecar + Hand-Off
-+ Crossing Shot + Passing Guard) · **Traffic Control** (Crosscheck + Short Line + Throughline +
-Set the Point) · **Stored Force** (Catch and Release + Moving Target + Stored Force + Shelter
-Step) · **Crowd Burst** (Clothesline + Big Splash + Aftershock + Mixed Quiver). Every board stays
-solvable by every family; the build changes which threats can be solved *together*.
+**Permanent legendary catalog (destinations only; one per duck = its epithet; the broken law
+printed on each):**
+| Class | Legendary | The crime |
+|---|---|---|
+| Vanguard | **Follow Through** — move 2 after causing a collision | no movement after acting |
+| Vanguard | **Aftershock** — his collisions deal 2 to every enemy adjacent to the impact | impacts strike one body |
+| Archer | **Kestrel Step** — move 2 after shooting | no movement after acting |
+| Archer | **Point Blank** — minimum range ignored entirely | the dead zone |
+| Fisher | **Friendly Cast** — Cast may target allies (throw semantics; landing hazards apply) | abilities target enemies |
+| Fisher | **Twin Lines** — one Reel pulls two enemies on the same line | one target per action |
+| Wardbearer | **Deep Roots** — Guard Stance persists through his next activation (he may act while it holds) | stance timing |
+| Wardbearer | **Bulwark Oath** — once per fight, grant an adjacent ally 1 Footing | Footing scarcity **(probation)** |
+| Any | **Third Slot** — unlock spender slot 3 | the two-slot cap |
 
-# 8.7 · PROPOSAL — The Four Waters (pick-scene stations; council-endorsed, not locked)
+**Events, four more (joining §8.5's six):**
+**The Ferryman** (Strait) — the crossing is paid: EVERY duck pays 3 HP, OR one duck of your
+choice empties its Pluck meter to 0. Pick the poison; both faces printed. · **The Nesting
+Thief** (Offer) — a magpie has your kind's things: fight (event pool) to take back a shown
+legendary consumable; walk away and it keeps it. · **The Duckling Lost** (Offer) — an escort
+vignette: a neutral duckling unit must survive the fight; reward a consumable and a Generations
+story tag ("the ones who went back"). · **The Marsh Light** (Offer) — follow it: arrive at ANY
+node of your choice in the next column, but every duck arrives at −2 HP. Route freedom, priced
+in blood.
 
-**Status: proposal.** Every progression moment would declare a duck-fiction station, so the
-scene itself teaches which economy the player is in — four registers of one substance, the
-game's stakes told in states of water:
+**Act 1 destination payouts (v1):** high-road (Elite, gilt) — **pick 1 of 2 permanent
+legendaries** (seeded draw, both shown). · Sunken Cache — **pick 1 of 2 legendary consumables**
+(shown on the sign beside the guard roster). · Toll Gate — the reward IS the skipped column. ·
+Quarry King — the Molt, as ruled.
 
-1. **The Current** (camps): offers drift past on moving surface water; snatch one; the
-   unpicked washes downstream AFTER you choose. Surface-lit, drift loops, never timed — the
-   fiction IS the mechanic (seeded draw + discard made diegetic).
-2. **The Dive** (the Still Pond's forge): head under — murk, fish, held breath. The committed
-   pick, entered by SPENDING your Rest; the plunge-and-muffle transition is the "this one is
-   serious" signal.
-3. **The Raft & the Road** (events): characters and bargains — the Peddler's raft, the Toll
-   Gate, the Ferryman. The only station where someone talks to you; the shop fiction fenced
-   into events where currency-implication cannot leak into camps.
-4. **The Nest** (the Molt; later town/Generations): permanence — picks woven in; the nest you
-   feather is the one the ducklings hatch in (gives the Nesting Grounds their visual language
-   for free).
+**Reward taxonomy (locked q — two axes, never one).**
 
-**Constants (bind on adoption):** one offer-card component under all wrappers — any floating
-option resolves flat, lit, and legible on focus, identical across scenes; stations are pure
-presentation over unchanged commands (CampPickCommand does not know about fish); every future
-progression moment must declare or reuse a station; the Current's drift is the one wrapper
-where motion is load-bearing (budget it first; static-ship the others); paint ships on the art
-track behind the Playtest Gate. Fish carry permanents, bubbles hold consumables — caught vs
-popped. If adopted, station ASSIGNMENTS lock immediately (they are design); art defers.
+| Axis | Values | Governs |
+|---|---|---|
+| **Kind** | Technique · Second Wind · Pocket Item · Legendary | what the reward *is*; camp eligibility; the Camp 1 floor |
+| **Tier** | Common · Uncommon · Rare | Forge offers, hungry-route weights, the pre-boss Deep Forge, per-source odds |
 
-# 8.8 · Warrens editions & generation constraints (locked w)
+Tier never overrides kind: **no tier admits a Legendary to a camp pool** (§8.5). Existing tier
+references in this file fold onto the ladder — Tempo's "+1 AP" promotion (§3) reads Uncommon.
 
-**The seed chooses editions, never tiles.** Per run it selects: one authored board edition for
-every non-opener combat node · one published reinforcement schedule where a fight has waves · the
-Camp deck order (subject to §8.6's director) · which two legendaries appear at High Road · the
-boss's shift schedule · the seeded coins for split votes. **It never** scatters terrain or enemy
-coordinates, rolls stats or hidden procs, decides whether an action succeeds, offers a reward with
-no legal recipient, or repeats the previous fight's exact pressure thesis.
+**OWED before the Camp 1 rule can be codified — the Technique mapping.** "Technique" is a
+build-side umbrella and does not yet map onto §8.5's five camp categories (Modify ·
+Learn/Replace/Swap · Second Wind · Tactical unlocks · Consumables). Second Wind and Pocket Item
+are their own kinds, so Technique covers *at most* Modify, Learn/Replace/Swap and Tactical
+unlocks — but which, and the roster of the **Engine Starter subset** (referred to as eight
+cards; §8.6 currently prints 12 mods and 4 tactical unlocks), is unwritten. Renames are data
+(§15), but this is the rule every Camp 1 keys off: the mapping and the subset roster are owed
+as a written table before implementation. Until then the director's Camp 1 behaviour is
+accepted design with an unsourced content list.
 
-**Generator proof log — the constraints it must certify:** every combat board is 7×7 · First
-Contact is fixed · every hazard-thesis board opens with at least one *previewable beneficial*
-hazard play (the old Teeth failed this: its signature hazard read as self-harm) · no legal
-deployment tile takes unavoidable damage before its owner gets a slot · every structure, resistant
-enemy and boss advantage has a costly baseline answer (gradients, not lock-and-key) · every Camp
-offer holds at least one card connecting to an owned kit · across any three offers both players
-see at least two ownable cards · no duplicate named permanent · **High Road always pays its
-legendary before the Trench** · every path reaches the pre-boss Still Pond · seed + command log
-recreates editions, offers, votes, waves and boss schedule exactly.
-
-**Per-node pressure theses (each board's one question):** first-contact COLLISION+RANGED (fixed) ·
-bait-and-break SWARM/TRAFFIC (a walled pocket: who holds the mouth) · the-teeth BRAMBLES/RANGED/
-PUSH (must open with a visible 6-damage bramble shove) · the-shrine OBJECTIVE/TWO LANES/WAVES
-(Shrine 12 HP, visible; Raider intents name it and predict the resulting HP) · broken-bridge
-DRAINS/STRUCTURES (6 HP breakable blockers — one collision opens a crossing, attacks chip it) ·
-high-road HIGH GROUND/PULL/RANGED (ridge *ownership*, no entry tax) · **break-the-gate
-STRUCTURE/WAVES/AMMUNITION — gate 24 → 18 HP, and an ANTI-DRAG rule: three clean structure
-collisions end the fight** (attacks deal 2, so nine direct actions is the costly baseline; do not
-raise HP until human wins routinely finish before round 5 with threats unresolved) · the-trench
-DRAINS/RESISTANCE/MIRROR (the Fisher's thesis, with a costly route for every other class) ·
-Still Ponds: mid-act = heal ~half **and clear Bedraggled** OR Forge; **pre-boss floor = full heal
-(Bedraggled cleared) OR Deep Forge (heal half + one of three Rares; downed ducks return at
-quarter and stay Bedraggled for boss round 1)** — never both full health and a free Rare.
-
-Editions are validated by four deterministic policies (baseline / collision-seeking /
-objective-first / random-legal) before human testing. Policies do not decide fun; they certify no
-unwinnable deployment, no unreachable enemy or structure, no reinforcement deadlock, no false
-preview, and that **at least one base-kit policy wins each hungry edition** — upgrades improve
-consistency and tempo, never legal possibility.
-
-# 8.9 · The Rushmaster — Warrens boss (locked w; species provisional)
-
-Traffic foreman and keeper of the Warrens' work bells: authority through controlling bodies,
-shifts and passage — not a crown. **Objective: defeat or sweep him; the workers flee when he
-falls. Limit 9 rounds.**
-
-| State | HP | Move | Attack | Resist | Footing |
-|---|---|---|---|---|---|
-| **Harnessed** | 26–14 | 1 | melee 4 + Push 1 | 1 | 1 |
-| **Cut Loose** | 13–1 | 3 | melee 4 + Push 1, gains **Stampede** | 1 | remaining |
-
-**Work Bells** (3 × 6 HP standing structures, each paired to a spawn mouth): attacks deal 2, a
-structure collision deals 6; destroying a Bell cancels its mouth's remaining spawns. Bells sit
-where the boss, a Husk or debris can be driven into them. Bell HP, its mouth, and the next spawn
-are visible in inspection and the objective panel. Racing the boss and ignoring the Bells is legal
-and gets progressively more expensive.
-
-**Crew Cover** (his defence, and it is positional, not a damage reduction): once per round, when a
-direct attack targets him, one adjacent standing Husk may **swap places** with him and take it
-(placement, not displacement; both tiles must be legal; he picks the Husk leaving him nearest his
-declared target, lowest id breaks ties). The attacker's preview shows the swap, the interceptor
-and the final coordinates. **It does not stop impact, hazard, or area damage** — the board still
-reaches him.
-
-**Cut Loose** at ≤13 HP, after the triggering action fully resolves: the harness breaks, Move 3,
-he stops walking Bell-ward, Crew Cover only if a worker is already adjacent, and no off-turn
-attack — the new intent is declared in the next normal window. **Stampede:** move ≤3 in a line,
-first unit hit pushed 2, he stops adjacent — **allies included**, carrying the bloody-shoulder
-rider (2 contact + full board consequences). Priority: stampede that creates a drain entry, unit
-collision, Bell collision or debris collision (in that order) → lethal melee → adjacent attack →
-move toward the largest cluster. He becomes more dangerous and more *usable* at once.
-
-**Published shift schedules** (seed picks one, visible at deployment): Day — r2 Husks at the outer
-mouths, r3 the **Bellhand**, r5 outer Husks, r6 centre Husk. Night — r2 centre, r3 outer, r4
-Bellhand, r5 centre, r6 outer. A spawn is cancelled if its Bell is down; an occupied mouth delays
-the worker, never relocates it. **The Bellhand** (once per fight, boss only): 8 HP, Move 3, melee
-2, Footing 1, and the reserved **bloody shoulder** — its jostle of an ally also deals 2. Its full
-rule shows in the wave preview before deployment.
-
-**Tuning targets:** 6–8 rounds · 1–2 Bells destroyed in a typical win · 1–3 workers alive at the
-phase change · direct damage 25–55% of his HP and impact/hazard 45–75% (the board must out-damage
-the sword here too) · Crew Cover 1–3 triggers · drain finishes 5–15% of wins · comfort-route win
-rate 65–75% after learning, hungry 70–80% (fewer arrivals, more explosive builds).
+**Thorn Pouch (new; pocket item, tier owed).** The first rule in the game that changes terrain
+mid-fight. Implementation ratified: it **stores the underlying tile rather than assuming
+`Open`**, and this is promoted from item behaviour to **terrain-mutation tech** — the same
+primitive **Cracked** (§3, collapse tech, unbuilt) and the collapse clock (§13, "the flood")
+will need, so it is built as a system with reversion semantics, not as item-local state.
+Coverage owed: save/load · undo · **expiry with a unit standing on the tile** · AI pathing ·
+action preview · temporary terrain placed over another temporary effect. Inspection parity
+(§7) applies — a mutated tile inspects and appears in push previews like any other. Open:
+whether mutation may be *created* beneath a standing unit (Crate of Debris's "adjacent open
+tile" is the natural precedent for creation; **expiry has none** — see §14 #16).
 
 # 9 · World & tone
 
@@ -925,6 +679,14 @@ Husk Shoulder session; broken-bridge stall diagnosis; Pluck economy pass (Cast 3
 4→3, measured charge-condition gate); cb-06 tune; comparative re-baseline. Then: human playtest
 of campaign 1–6 (the gate through which everything else passes) → Camp/Map/Molt & Bedraggled →
 collapse clock ("the flood") → territories → Generations → endgame.
+**Stage D work order (locked q):** (1) close the first-Camp queue item as accepted design and
+codify it — gated on the §14 #13 mapping; (2) move natural-play pocket tests to Camp 2 or
+later; (3) remove Deep Pockets from the milestone; (4) implement the Rare tier as metadata;
+(5) complete D3; (6) director sweeps verifying CARD distribution, not reward categories.
+**Stage D is complete on (6)** — Deep Pockets is struck, not outstanding, so it no longer marks
+the stage incomplete. Testing discipline recorded as standing practice: **reach states by
+playing, not by restoring saves** — a restored full pocket passes and teaches nothing; playing
+to one is what exposed the authored Camp 1.
 **Shelved/held:** Momentum + commander cards; Direct/Arcing shapes (ruled to promote, unscheduled
 — **when shapes land, the Archer is ARCING**; Direct-LoS is her NEXT balance lever if min-range +
 Perch + Move-then-Act prove insufficient in human play); Archer damage change (RETIRED — replaced
@@ -949,14 +711,19 @@ Behemoth/multi-tile enemies (flagship later); drain-plugging.
 9. Rarity odds per source — tuning number, post-playtest.
 10. Legendary catalog draft (~2 per class) — workshop.
 11. Spoils-draft camp variant (3 revealed / 2 taken / 1 lost, low-HP picks first) — workshop.
-12. **Class Build Seeds** — one randomised kit-interaction per class per run (HELD, locked w):
-    revisit only once the transformative pool is proven, so a camp pick's effect stays legible
-    against a fixed control group.
-13. **Reactions** — Crossing Shot fires outside its owner's activation. The first off-turn player
-    effect in the game: rule its grammar (preview ownership, timing window, one-per-round) before
-    it ships.
-15. Mid-fight reload restores Bedraggled's quarter HP but returns the skipped slot — known gap,
+12. Mid-fight reload restores Bedraggled's quarter HP but returns the skipped slot — known gap,
     closes when saves become seed+command-log (D-050's own stated fix; recorded, not papered).
+13. **Technique↔category mapping + the Engine Starter roster** (§8.6) — owed as a written
+    table; blocks codification of the Camp 1 floor. The one item on this list holding up build.
+14. **Who makes the camp pick?** Unruled anywhere. Map movement is a blind vote with a seeded
+    coin; camps are silent. Camp 1's "different players where possible" presumes an ownership
+    routing that has never been locked — one sentence owed.
+15. **Rarity odds per source** — see #9; the ladder is now locked (q), the odds still aren't.
+16. **Temporary terrain and standing units** — may mutation be created beneath one, and what
+    happens when it expires under one? Crate of Debris ("adjacent open tile") is the precedent
+    for creation; expiry has none.
+17. **The pre-boss Deep Forge** — referenced by the tier ruling but not yet furniture in §8.5,
+    which has Rest (heal OR forge OR scrape) and the Molt. Needs a home and a definition.
 
 # 15 · Naming
 
