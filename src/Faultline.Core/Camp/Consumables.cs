@@ -482,13 +482,23 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Grows brambles on an adjacent open tile and books the way back for the end of the round.
+        /// Grows brambles on an adjacent open tile, for as long as <see cref="TerrainMutation"/> says
+        /// a thing booked through this round lasts.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// The tile genuinely becomes <see cref="TileType.Spikes"/>, so walking on it, being displaced
         /// onto it and Sure-Footed all cost exactly what they already cost. Nothing about brambles is
         /// restated here — the point of changing the board rather than keeping a parallel list of
         /// pretend hazards is that there is no second copy of the rule to drift (D-191).
+        /// </para>
+        /// <para>
+        /// <b>And nothing about reversion is restated here either.</b> The pouch decides which tile and
+        /// which terrain; <see cref="TerrainMutation"/> owns the booking, the stacking rule and the
+        /// change back, because Cracked and the collapse clock change terrain too and a booking rule
+        /// living inside one consumable is a booking rule the next feature copies (D-210). This method
+        /// is a call site.
+        /// </para>
         /// </remarks>
         private static GameState Scatter(
             GameState state, UnitId unitId, UseConsumableCommand command, List<GameEvent> events)
@@ -513,52 +523,8 @@ namespace Faultline.Core
                 throw new IllegalCommandException("That is not an open tile beside this duck.");
             }
 
-            var booked = new List<TemporaryTerrain>(state.TemporaryTerrain.Count + 1);
-            booked.AddRange(state.TemporaryTerrain);
-            booked.Add(new TemporaryTerrain(tile, state.Board.At(tile), state.Round));
-
             events.Add(new BramblesGrew(unitId, tile, state.Round));
-            return state with
-            {
-                Board = state.Board.With(tile, TileType.Spikes),
-                TemporaryTerrain = booked,
-            };
-        }
-
-        /// <summary>
-        /// Fades every temporary tile whose round is over, restoring what each one used to be.
-        /// </summary>
-        /// <remarks>
-        /// Run at the round's end beside the Clinging sweep, and before the objective clock: brambles
-        /// that expire this round are gone when the next one opens, which is the same instant Stagger
-        /// and the §8.6 marks lapse. One answer to "how long does a round-long thing last".
-        /// </remarks>
-        /// <param name="state">Current state.</param>
-        /// <param name="events">Sink for the resulting events.</param>
-        /// <returns>The state after any expired terrain changed back.</returns>
-        public static GameState FadeTemporaryTerrain(GameState state, List<GameEvent> events)
-        {
-            if (state is null || state.TemporaryTerrain.Count == 0)
-            {
-                return state!;
-            }
-
-            var board = state.Board;
-            var kept = new List<TemporaryTerrain>(state.TemporaryTerrain.Count);
-
-            foreach (var temporary in state.TemporaryTerrain)
-            {
-                if (temporary.ThroughRound > state.Round)
-                {
-                    kept.Add(temporary);
-                    continue;
-                }
-
-                board = board.With(temporary.At, temporary.Was);
-                events.Add(new BramblesFaded(temporary.At, temporary.Was));
-            }
-
-            return state with { Board = board, TemporaryTerrain = kept };
+            return TerrainMutation.Mutate(state, tile, TileType.Spikes, state.Round);
         }
 
         /// <summary>

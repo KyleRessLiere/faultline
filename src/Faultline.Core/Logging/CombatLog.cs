@@ -113,7 +113,7 @@ namespace Faultline.Core
             SplitReedOffered => nameof(SplitReedOffered),
             DucksSwapped => nameof(DucksSwapped),
             BramblesGrew => nameof(BramblesGrew),
-            BramblesFaded => nameof(BramblesFaded),
+            TerrainReverted => nameof(TerrainReverted),
             GreasedFeatherSpent => nameof(GreasedFeatherSpent),
             HandOffGranted => nameof(HandOffGranted),
             StepBanked => nameof(StepBanked),
@@ -310,7 +310,10 @@ namespace Faultline.Core
             BramblesGrew e => "scatters brambles on " + e.At
                 + ", until the end of round " + Number(e.ThroughRound),
 
-            BramblesFaded e => "brambles on " + e.At + " die back to " + e.Now,
+            TerrainReverted e => "the ground at " + e.At + " goes back to " + Ground(e.Now)
+                + (e.Beneath is { } beneath
+                    ? ", with " + Actor(state, beneath) + " standing on it"
+                    : string.Empty),
 
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
@@ -564,5 +567,18 @@ namespace Faultline.Core
 
         // Culture-invariant so the log is identical whichever machine renders it.
         private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+        // The canonical player-facing words for terrain (CLAUDE.md "Naming": Drain never Pit,
+        // Brambles never Spikes). Printing the enum would put "Spikes" and "Pit" in a log a human
+        // reads, which is the one place the code identifiers are not allowed to surface.
+        private static string Ground(TileType tile) => tile switch
+        {
+            TileType.Wall => "a wall",
+            TileType.Pit => "a drain",
+            TileType.Spikes => "brambles",
+            TileType.HighGround => "high ground",
+            TileType.Cracked => "cracked ground",
+            _ => "open ground",
+        };
     }
 }

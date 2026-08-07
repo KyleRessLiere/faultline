@@ -1,10 +1,15 @@
 namespace Faultline.Core
 {
     /// <summary>
-    /// One tile whose terrain has been changed for a while and will change back — today only the
-    /// brambles a Thorn Pouch scatters (MASTER_DESIGN §8.6).
+    /// One tile whose terrain has been changed for a while and will change back. The bookkeeping of
+    /// <see cref="TerrainMutation"/>, which is where the rules for writing and honouring one live.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Today only a Thorn Pouch writes one (MASTER_DESIGN §8.6), but the record is deliberately about
+    /// terrain rather than about thorns: <b>Cracked</b> and the collapse clock are the same shape
+    /// (§3, §13) and will book their changes here rather than inventing a second ledger.
+    /// </para>
     /// <para>
     /// <b>The board carries the change; this carries the way back.</b> A tile that has grown brambles
     /// is genuinely <see cref="TileType.Spikes"/> in <see cref="GameState.Board"/>, so every rule that

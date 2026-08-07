@@ -1,5 +1,23 @@
 # Changelog
 
+## Temporary terrain becomes the terrain-mutation system Cracked will call
+
+- **Promoted out of the card.** The booking, the stacking rule and the reversion move from
+  `Consumables` to `TerrainMutation`; `Consumables.Scatter` is now a call site that picks a tile and
+  a terrain, and nothing about changing the board back is left in `Camp/` (D-210). `BramblesFaded`
+  becomes `TerrainReverted`, because a cracked tile going back to floor must not tell the log that
+  brambles died.
+- **Two unruled questions answered conservatively and named.** Nothing is mutated under a standing
+  body (D-212, following the Crate of Debris). When a mutation expires under one, the ground changes
+  and the body is not touched (D-211) — behind the single seam `TerrainMutation.ExpiryBeneathUnit`,
+  with the three alternatives written down, so the designer's ruling is one edit.
+- **A mutation on a mutation keeps the first one's `Was`** and the later clock, so reversion can never
+  restore a tile that was itself temporary (D-213). No card can reach this yet; Cracked will.
+- **Coverage the promotion owed:** save/load round-trip through `RunRecord`, undo, AI pathing (both
+  the per-tile price and the field that spends it), action previews projecting against the mutated
+  board, terrain over terrain, and §7 inspection parity asserted on rendered markup — a grown bramble
+  tile inspects byte-for-byte like an authored one and carries the same push-preview chip.
+
 ## The Rare tier lands as metadata, and the camp still cannot hold a legendary
 
 - **Two axes, never one.** §8.6's reward taxonomy is built as the design states it: TIER

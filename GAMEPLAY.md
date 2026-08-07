@@ -1657,7 +1657,27 @@ so walking onto it, being displaced onto it and Sure-Footed all cost exactly wha
 there is no parallel list of pretend hazards to drift from the real ones. The tile is restored to
 **what it was**, not to open ground, at the **end of the round it was thrown in** — the same instant
 Stagger and the §8.6 marks lapse. This is the first rule in the game that changes terrain mid-fight
-(D-191).
+(D-191), and the pouch is now a **call site** rather than the owner of it (D-210).
+
+**Terrain mutation is one system, and every source will use it.** The pouch, **Cracked** and the
+collapse clock are the same shape — change a tile, book the way back — so the booking, the stacking
+rule and the reversion live in one place and each source only chooses *which* tile and *what* terrain
+(§3, §13). Three rules follow, and they hold for any source, not just the pouch:
+
+- **Nothing is mutated under a body.** A tile with a unit, debris or a structure on it is refused **by
+  name**. Unruled in §14 #16; the Crate of Debris's "adjacent open tile" is the nearest precedent and
+  the narrow reading ships.
+- **When a mutation expires under a body, the ground changes and the body is not touched.** No damage,
+  no displacement, no Footing, no Clinging, and no second walk-on price for ground it never walked
+  onto. Also unruled in §14 #16 — expiry has no precedent at all, so the most conservative option
+  ships and the combat log names the unit it happened under so the case is never invisible.
+- **A mutation on a mutation keeps the first one's "was".** Reversion restores the tile the board was
+  authored with, never a tile that was itself temporary; the booking's clock takes whichever round is
+  later, so neither source's promise is cut short. No card can reach this today — the pouch's filter
+  takes ordinary open ground only.
+
+**A mutated tile is not a special tile.** It inspects, is priced by movement, is projected by every
+push preview and is drawn exactly like a tile the board was authored with (§7 inspection parity).
 
 **A Chalk Mark and Rattling Impact are one mark, not two.** They say the same sentence, so they write
 the same state; the chalk needed no new arithmetic. It follows that a chalk **lapses at the round

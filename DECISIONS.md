@@ -200,11 +200,21 @@ in this file when the question comes back.
 | D-193 | [The activation queue is the order of `state.Units`, so a Signal Whistle swaps two entries in it - and re-publishes the contract the moment it does.](#d-193-the-activation-queue-is-the-order-of-stateunits-so-a-signal-whistle-swaps-two-entries-in-it---and-re-publishes-the-contract-the-moment-it-does) | 2026-08-07 |  |
 | D-194 | [With no replace/drop surface, a full pocket is offered no one-shot at all.](#d-194-with-no-replacedrop-surface-a-full-pocket-is-offered-no-one-shot-at-all) | 2026-08-07 |  |
 | D-195 | [Deep Pockets is struck, and one pocket per duck becomes an invariant with a name.](#d-195-deep-pockets-is-struck-and-one-pocket-per-duck-becomes-an-invariant-with-a-name) | 2026-08-07 |  |
-| D-196 | [Every legendary is Rare, and being Rare is exactly what does not get it into a camp.](#d-196-every-legendary-is-rare-and-being-rare-is-exactly-what-does-not-get-it-into-a-camp) | unreleased |  |
-| D-197 | [`OfferCategory` is 8.5's camp-category cut, NOT 8.6's kind axis, and the difference is left standing rather than resolved.](#d-197-offercategory-is-85s-camp-category-cut-not-86s-kind-axis-and-the-difference-is-left-standing-rather-than-resolved) | unreleased |  |
-| D-198 | [Tier odds are a table keyed by source, because the ladder is locked and the numbers are not.](#d-198-tier-odds-are-a-table-keyed-by-source-because-the-ladder-is-locked-and-the-numbers-are-not) | unreleased |  |
+| D-196 | [Every legendary is Rare, and being Rare is exactly what does not get it into a camp.](#d-196-every-legendary-is-rare-and-being-rare-is-exactly-what-does-not-get-it-into-a-camp) | 2026-08-07 |  |
+| D-197 | [`OfferCategory` is 8.5's camp-category cut, NOT 8.6's kind axis, and the difference is left standing rather than resolved.](#d-197-offercategory-is-85s-camp-category-cut-not-86s-kind-axis-and-the-difference-is-left-standing-rather-than-resolved) | 2026-08-07 |  |
+| D-198 | [Tier odds are a table keyed by source, because the ladder is locked and the numbers are not.](#d-198-tier-odds-are-a-table-keyed-by-source-because-the-ladder-is-locked-and-the-numbers-are-not) | 2026-08-07 |  |
+| D-210 | [Reversion belongs to the terrain-mutation system, and the Thorn Pouch is a call site.](#d-210-reversion-belongs-to-the-terrain-mutation-system-and-the-thorn-pouch-is-a-call-site) | unreleased |  |
+| D-211 | [When a mutation expires under a standing body, the ground changes and the body is not touched.](#d-211-when-a-mutation-expires-under-a-standing-body-the-ground-changes-and-the-body-is-not-touched) | unreleased |  |
+| D-212 | [Nothing is mutated under a standing body, and the refusal is the system's rather than the card's.](#d-212-nothing-is-mutated-under-a-standing-body-and-the-refusal-is-the-systems-rather-than-the-cards) | unreleased |  |
+| D-213 | [A mutation on a mutation keeps the first one's `Was`, and the booking's clock takes whichever round is later.](#d-213-a-mutation-on-a-mutation-keeps-the-first-ones-was-and-the-bookings-clock-takes-whichever-round-is-later) | unreleased |  |
+| D-199 | [A citation in code names a ruling that exists, and this file is where that is enforced.](#d-199-a-citation-in-code-names-a-ruling-that-exists-and-this-file-is-where-that-is-enforced) | unreleased |  |
+| D-200 | [A mark gilds exactly when the game can pay it, in both directions.](#d-200-a-mark-gilds-exactly-when-the-game-can-pay-it-in-both-directions) | unreleased |  |
+| D-201 | [Only a legendary whose rule is built is a member of the enum.](#d-201-only-a-legendary-whose-rule-is-built-is-a-member-of-the-enum) | unreleased |  |
+| D-202 | [Free movement a legendary owes is neither half of the activation, and the activation is held open to pay it.](#d-202-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-the-activation-is-held-open-to-pay-it) | unreleased |  |
+| D-203 | [Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.](#d-203-deep-roots-buys-exactly-one-skip-of-the-stance-drop-and-a-latch-is-what-bounds-it) | unreleased |  |
+| D-204 | [A free step's destination is a column in the replay log, because it is a choice.](#d-204-a-free-steps-destination-is-a-column-in-the-replay-log-because-it-is-a-choice) | unreleased |  |
 
-**184 rulings.**
+**194 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4927,3 +4937,215 @@ rate nobody ruled.
 left in the pool contributes no weight, which is what lets the Rare rung sit empty at zero cost -
 the whole camp pool is Common and Uncommon, so today's 5 and 15 buy nothing and no table is short a
 card because of it. Integers throughout; Core does no float arithmetic in rules.
+
+
+---
+
+**D-210 - Reversion belongs to the terrain-mutation system, and the Thorn Pouch is a call site.**
+
+D-191 ruled *how* temporary terrain works - change the real board, book what the tile used to be - and
+built it beside the one card that needed it. `Consumables.Scatter` wrote the booking and
+`Consumables.FadeTemporaryTerrain` honoured it, which made a system out of a consumable's private
+bookkeeping by accident.
+
+**MASTER_DESIGN says out loud that it is not private.** §3 calls the stored-underlying-tile approach
+"Cracked's intended primitive" and §13 has the collapse clock queued behind it. Two more sources are
+coming for the same machinery, and a booking rule that lives inside a pouch is a booking rule the next
+feature copies rather than calls - which is how two answers to "what does this tile go back to" come
+to exist.
+
+**So the rules move to `TerrainMutation` and the pouch keeps only its aim.** `Mutate` writes the board
+and the booking; `FadeExpired` runs at the round seam for every source at once; `CanMutate`,
+`IsMutated`, `Underlying` and `BookingAt` are the queries. `Consumables.Scatter` is now three lines:
+check the tile is open ground beside the duck, say `BramblesGrew`, call `Mutate`. **Nothing about
+reversion is left in `Camp/`.** The alternative - leave it where it was and let Cracked call into
+`Consumables` - was rejected on its face: the collapse clock is not a camp item, and a dependency that
+points that way is one nobody will keep pointing that way.
+
+**The system emits the revert event; the caller emits its own creation event.** A pouch narrating
+`BramblesGrew` and a collapse clock narrating something of its own are two different sentences about
+two different causes, so `Mutate` emits nothing and each source speaks for itself. Reversion has no
+cause standing over it - it is the clock running out - so `FadeExpired` speaks, and **`BramblesFaded`
+is renamed `TerrainReverted`**: a cracked tile going back to floor must not tell the log that brambles
+died. The combat log gained a private terrain-word table on the way, because the old line printed the
+`TileType` enum and would have put "Spikes" and "Pit" in front of a player the day the filter widened.
+
+**Behaviour is unchanged for the pouch**, which is the point: the same board, the same booking, the
+same seam, the same instant. What changed is who owns it.
+
+
+---
+
+**D-211 - When a mutation expires under a standing body, the ground changes and the body is not
+touched.**
+
+MASTER_DESIGN §14 #16 asks two questions. This is the second one, and the design records that it has
+**no precedent at all** - creation can borrow the Crate of Debris's filter, expiry can borrow nothing.
+
+**It cannot be ducked the way creation can.** Creation refuses to happen under a body (D-212), but
+expiry has nothing to refuse: a duck can walk onto brambles a pouch grew, pay the walk-on price
+honestly, and still be standing there when the round ends. Somebody has to say what happens.
+
+**The most conservative option ships: nothing happens to the unit.** No damage, no displacement, no
+Footing spend, no Clinging, and no second walk-on price for ground it never walked onto - the duck
+simply finds itself standing on what the tile used to be. It is the option that changes the least
+about the unit, and the only one that cannot cost a player a body before the designer has ruled.
+
+**Three alternatives were considered and are cheap to switch to**, which is the actual deliverable
+here: (a) the unit pays the entry price of the terrain it is left standing on, the honest reading if
+reversion is a kind of arrival - except nobody arrived; (b) expiry is **deferred** while a body stands
+there and the tile changes back when it is vacated, a bramble field that outlives its round because
+somebody is standing in it; (c) the unit is displaced to the nearest legal tile, the reading that
+treats reversion as the ground reasserting itself.
+
+**One seam, one edit.** All of it is behind `TerrainMutation.ExpiryBeneathUnit`, which today returns
+the state unchanged. The designer's answer is a change to that one method and to no call site.
+
+**It is not silent.** `TerrainReverted.Beneath` names the unit that was standing there, so the combat
+log says the case happened and says that nothing followed it. A no-op nobody can see is the bug this
+repo has killed three times; a no-op with its reason written down is a ruling.
+
+
+---
+
+**D-212 - Nothing is mutated under a standing body, and the refusal is the system's rather than the
+card's.**
+
+The first half of MASTER_DESIGN §14 #16. §8.6 prints only "one adjacent tile" for the Thorn Pouch and
+the Crate of Debris's filter - "adjacent open tile", nobody and nothing on it - already refused it, so
+D-191 shipped the narrow reading without deciding whether it was a rule or an accident of which filter
+the pouch borrowed.
+
+**It is a rule, and it belongs to the system.** `TerrainMutation.CanMutate` asks it now, so a collapse
+clock that never heard of `Consumables.DebrisTiles` inherits the answer. The wide reading was rejected
+for what it costs to ship: growing ground under a body raises a damage question no card answers - does
+the body pay the walk-on price for terrain it never walked onto? - and a rule that has to invent an
+answer to ship is a rule shipping a guess. D-211 is that same question with no precedent to lean on,
+and it is exactly the one worth not asking twice.
+
+**What the system does *not* ask** is adjacency or whether the tile is ordinary open ground. Those
+belong to whoever is mutating: a pouch reaches one tile and refuses hazards, a collapse clock reaches
+the whole board and eats them. The system asks only the question every mutation shares, which is what
+keeps `CanMutate` from becoming a second copy of one card's aim.
+
+
+---
+
+**D-213 - A mutation on a mutation keeps the first one's `Was`, and the booking's clock takes whichever
+round is later.**
+
+Not reachable by play today - the pouch takes ordinary open ground only, so no card can mutate a tile
+that is already mutated - and that is precisely why it was worth ruling before Cracked arrives rather
+than after.
+
+**The second mutation's "before" is itself temporary.** Storing it would make reversion restore a tile
+that was never really there, and the drain or bramble the first booking was protecting would be
+deleted by a pair of effects that each individually promised to put it back. That is the same trick
+`DebrisTiles` was narrowed to refuse, arriving through a door nobody was watching. So a re-mutation
+rewrites the existing booking in place and keeps its `Was`.
+
+**The clock takes the later round** rather than the newer value, so a short mutation laid over a long
+one does not cut the long one short, and a long one laid over a short one does not get truncated by
+it. Taking "whichever was written last" was rejected: it makes the outcome depend on the order two
+independent sources happened to fire in, which is exactly the kind of dependency that is invisible
+until a collapse clock and a card land on the same tile in the same round.
+
+
+---
+
+**D-199 - A citation in code names a ruling that exists, and this file is where that is enforced.**
+
+Fifteen comments across ten committed files cited **D-200 through D-204** when `DECISIONS.md` ended
+at D-185. The session that wrote them was told to take a D-200+ block, wrote the citations as it
+built, and was killed by an API limit before it wrote the entries; the work was finished and
+committed by another hand that recorded a single entry (D-185) and did not check the code's own
+references. Numbering then continued upward, so the citations were on course to point at unrelated
+rulings - a footnote that resolves to the wrong page is worse than no footnote, because it is
+believed.
+
+**Fixed by writing the entries the code already describes, at the numbers it already cites**
+(D-200-D-204 below), rather than by repointing fifteen comments at D-185. Two reasons: the citations
+are specific and D-185 is not - the code distinguishes five separate claims and one entry cannot
+carry all five - and the rulings themselves were genuinely unrecorded, which is the debt CLAUDE.md
+names when it says a ruling written only in a handoff is a ruling that will be lost. Repointing
+would have preserved the link and thrown away the reasoning.
+
+**The practice this earns:** a block of numbers reserved in a packet is not a block of numbers
+written. When a session is interrupted, its **citations are a to-do list**, and `grep -rn "D-[0-9]"`
+against the TOC is the check that finds it.
+
+Running that check across the whole repo turned up **one older instance**: `FightNodeHandler` cited
+a **D-056** that has never existed - the numbering skips D-055 to D-057, and the gap predates this
+session by weeks. Dropped rather than guessed, because D-051 carries the claim on its own and
+inventing a D-056 to receive an orphaned footnote would be inventing a ruling. **Every remaining
+`D-nnn` in Core and the tests now resolves to an entry in this file.**
+
+---
+
+**D-200 - A mark gilds exactly when the game can pay it, in both directions.**
+
+`RewardMark.Payable` is true for `LegendaryPick` because the legendary destination is built. The
+promise rule was never "never gild" - it is "gild exactly when the game can pay", and it had only
+ever been exercised in the silent direction because nothing had ever been payable.
+
+`LegendaryConsumablePick` remains typed, named and **unpayable**, so it still draws silence rather
+than a smaller promise, and both directions are pinned by test. What has **not** changed is that a
+mark is never run state: entering the elite promises the legendary and hands over nothing.
+
+---
+
+**D-201 - Only a legendary whose rule is built is a member of the enum.**
+
+Section 8.6 prints nine class legendaries and two FLOCK cards; three are in `Legendary`. That is the
+promise rule applied to content rather than to pixels: a gilt edge means a legendary is literally
+there, so **a card that could be drawn and would then do nothing is worse than a card that is not in
+the pool**. Adding a member is the same act as building its rule.
+
+**No FLOCK member.** Butt Bump and Relay Feather are "owned by the pair, not a duck", and nothing in
+the run layer can hold a card belonging to no squad member. Their rules and their ownership are both
+unbuilt, and inventing an owner to hold them would invent the ownership model the design has not
+ruled (14 #14).
+
+Where one side has no legal recipient the destination table steps aside rather than offering a card
+nobody can take.
+
+---
+
+**D-202 - Free movement a legendary owes is neither half of the activation, and the activation is
+held open to pay it.**
+
+Follow Through's tiles after a collision and Kestrel Step's after a shot are movement the card has
+already bought. They are banked **after the action resolves and before the activation is allowed to
+end**, because holding the activation open is the payment mechanism: nothing leaves the AP purse,
+the move half stays shut, and `EndActivationCommand` is how a player declines the rest.
+
+Once per activation, because the activation is the thing the payout holds open. A free step is still
+a step and the board charges terrain for it exactly as for a walked one - the ruling
+`ApplyBankedStep` already makes, and the reason "free of the economy" was never "free of the
+brambles".
+
+---
+
+**D-203 - Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.**
+
+Guard normally drops when the Wardbearer next activates. Deep Roots makes the stance persist
+**through** that activation and lets him act while it holds - which 3's "one action ends the
+activation" would otherwise forbid, so it is a real exception and is written as one.
+
+**The latch is the whole ruling.** `GuardHeldByRoots` is set when the skip is taken and cleared when
+that activation ends, so the next activation drops the stance normally. Without it the card reads
+"persists through his next activation" and behaves as "a stance that never drops", which is a
+different card.
+
+---
+
+**D-204 - A free step's destination is a column in the replay log, because it is a choice.**
+
+`TakeBankedStepCommand` needs no tile: a banked step has one legal landing and Core re-derives it. A
+legendary's free step **chooses** between every adjacent tile, so a log that dropped the column would
+replay the duck onto a different tile - which is a different fight, and a determinism break that no
+test would report as one.
+
+The general rule it instances: **a command's log line carries every choice the player made and
+nothing Core can re-derive.** Re-derivable state in the log is noise; a dropped choice is a silent
+desync.

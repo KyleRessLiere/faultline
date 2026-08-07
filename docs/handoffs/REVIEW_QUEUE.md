@@ -328,3 +328,35 @@ write first.
 - ~~**Deep Pockets is still unbuilt**, and is the last piece of the D1 brief.~~ **Closed by the
   design, not by a build:** v2026-08-06q struck the card from §8.6 and from the milestone. Stage D
   no longer waits on it. See D-195 and the retired next-step section of the D1 handoff.
+
+---
+
+## From the terrain-mutation promotion (D-210 … D-213)
+
+- **§14 #16 is now half-answered by code and needs the designer's word.** Both halves ship
+  conservatively: creation under a body is refused (D-212), and expiry under a body touches nothing
+  (D-211). The second is the one with no precedent behind it. It sits entirely inside
+  `TerrainMutation.ExpiryBeneathUnit`, with the three alternatives written into its doc comment — a
+  ruling either way is one method's body, no call site.
+- **Enemies pay no bramble surcharge, but MASTER_DESIGN §3's table says the tile "costs 1 extra
+  movement".** `Movement.StepCost` charges `Activation.BrambleCost` only to AP users, with the
+  comment "enemies keep movement-point semantics, so terrain prices them exactly as it always did".
+  Pre-existing and untouched here, but the promotion put it under a light: a collapse clock that
+  brambles a lane will slow ducks and not Raiders. Design or drift, not decided.
+- **`PlaytestText.TerrainWalk` prices brambles unit-blind.** It hardcodes `Activation.BrambleCost`
+  with no unit, so the inspector tells a **Sure-Footed** duck the doubled price while
+  `Movement.StepCost` charges it the plain one. The unit-aware answer already exists next door in
+  `ActionPoints.TileCost`. Pre-existing; found while asserting §7 parity on rendered markup, and it
+  is the one thing about a mutated tile that a player could be told wrong.
+- **A terrain change does not invalidate a declared enemy intent.** `Ai.ReplanInvalidated` re-declares
+  on target death, stat-block swap, guard redirect and rescue-slot changes — not on the ground moving.
+  The enemy re-derives its route from the live board when it activates (D-021), so nothing resolves
+  wrongly; what can go stale is the **telegraph** drawn between the pouch landing and the enemy's
+  slot. Cheap to add to the trigger list, and worth deciding before the collapse clock makes it
+  routine rather than rare.
+- **Two `InspectSubject Resolve(GameSession)` implementations disagree.**
+  `Playtest/Inspection.cs` orders selection → inspected unit → inspected tile;
+  `Playtest/BattleSurfaces.cs` orders inspected unit → inspected tile → selection. Both read the live
+  board, so neither is wrong about a mutated tile, but they answer differently when a selection and
+  an inspected tile both exist. Pre-existing, noted in `BattleSurfacesTests` already; naming it here
+  because §7 parity is asserted through the first one.
