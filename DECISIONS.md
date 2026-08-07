@@ -4780,3 +4780,36 @@ camp. Attempting exactly that turned up a finding worth its own look: **the firs
 `Technique, Technique` for every seed 1-40 tried**, so no first camp in that range can hand out a
 one-shot at all. Whether that is the director's intended weighting or a bug is a designer question,
 and it is in the review queue.
+
+---
+
+**D-195 - Deep Pockets is struck, and one pocket per duck becomes an invariant with a name.**
+
+MASTER_DESIGN v2026-08-06q removes *Deep Pockets* from 8.6's tactical unlocks and reaffirms 8.5's
+single pocket: "the pocket count is not a progression axis... a second slot buys inventory UI and
+weakens commitment, and would widen the pocket before the central progression system has been
+tested". 13's Stage D work order says the same thing about the milestone - "Deep Pockets is struck,
+not outstanding, so it no longer marks the stage incomplete".
+
+**Nothing was deleted, because nothing was built.** The D1 session left it un-started rather than
+half-started and wrote down what it would have taken. That is why this ruling cost one afternoon of
+prose instead of a revert: `Unlock` never held a member for it, `DuckLoadout.Pocket` was always a
+single nullable, and `UseConsumableCommand` never needed a pocket index. The audit was: `Unlock.cs`,
+`CardRarity.cs`, `PocketSlots.cs`, `UseConsumableCommand.cs`, `UnlockTests`, `PocketUiTests`,
+GAMEPLAY, BATTLE_SCREEN_INVENTORY, the review queue and the D1 handoff - **every one of them a
+sentence promising the card would arrive**, and not one of them a rule site.
+
+**Struck is not deferred, and the difference is a document.** A handoff whose "exact next step" is a
+struck card is a handoff that gets executed. So the D1 handoff's next-step section is retired in
+place - the plan deleted rather than kept as reference - and the review-queue item is closed by the
+design rather than by a build. `RunSave.ParseLoadout`'s missing capacity guard stays in the queue but
+is downgraded: it was "reachable the moment Deep Pockets makes two pockets legal", and that moment
+is now never.
+
+**The invariant is asserted over cards, not over the enum.** "No Deep Pockets member exists" is a
+fact any future session can falsify by typing one. `DuckLoadout.PocketSlots = 1` names the number,
+and `NoCardInAnyPoolCanGrantASecondPocket_BecauseDeepPocketsIsStruck` applies **every card in every
+pool** - mods, Second Winds, unlocks, techniques and the legendary catalogue - to a duck and then
+asks its pocket to take two. A second pocket would stop `WithPocket` throwing, which is the
+observable rather than the flag. `AWholePlayedRun_LeavesEveryDuckWithExactlyOnePocket` reaches the
+same claim by playing three whole runs, per 13's standing practice.

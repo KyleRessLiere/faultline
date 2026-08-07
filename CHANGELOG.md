@@ -1,5 +1,16 @@
 # Changelog
 
+## Deep Pockets is struck, and one pocket per duck gets a name
+
+- **Deep Pockets is removed from the design and from the milestone** (MASTER_DESIGN v2026-08-06q).
+  It was never built, so nothing was deleted — what changed is nine documents and comments that
+  each promised it would arrive. The D1 handoff's "exact next step" section is retired in place,
+  because a handoff whose next step is a struck card is a handoff that gets executed (D-195).
+- **One pocket per duck is now an invariant, not a starting number.** `DuckLoadout.PocketSlots` names
+  it, and a test applies **every card in every pool** — mods, Second Winds, unlocks, techniques and
+  the legendary catalogue — to a duck before asking its pocket to take two. Three whole played runs
+  make the same claim from the other side.
+
 ## §8.6's ten tactical pockets are all built, and the queue learns to say when it changed
 
 - **Signal Whistle ships.** It swaps the activation order of two enemies that have not acted and

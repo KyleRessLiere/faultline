@@ -63,6 +63,21 @@ namespace Faultline.Core
         /// <summary>True when every technique socket is taken.</summary>
         public bool TechniquesAreFull => Techniques.Count >= TechniqueSlots;
 
+        /// <summary>
+        /// Pockets a duck has. <b>One, and it is an invariant rather than a starting number</b>
+        /// (MASTER_DESIGN §8.5, locked q): the pocket is deliberate scarcity and not a progression
+        /// axis, and §8.6's <i>Deep Pockets</i> was struck for contradicting it — struck, not
+        /// deferred (D-195). Unlike <see cref="ModSlots"/> and <see cref="TechniqueSlots"/>, which
+        /// name ceilings the Molt is designed to raise, nothing in the game may raise this one.
+        /// </summary>
+        /// <remarks>
+        /// It is a constant rather than a count because <see cref="Pocket"/> is a single optional
+        /// slot in the type system, which is where the invariant actually lives; this names the
+        /// number so a shell never types it (<c>PocketSlots</c> in the Web shell reads the shape) and
+        /// so a test can say the sentence out loud.
+        /// </remarks>
+        public const int PocketSlots = 1;
+
         /// <summary>What is in the duck's one pocket, or <c>null</c> when it is empty.</summary>
         public Consumable? Pocket { get; init; }
 

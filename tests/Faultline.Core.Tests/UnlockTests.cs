@@ -199,12 +199,12 @@ public class UnlockTests
     // ---- what the enum is allowed to hold ----------------------------------------------------
 
     [Fact]
-    public void TheUnlockPool_IsExactlyTheThreeBuilt_WithDeepPocketsStillDeferred()
+    public void TheUnlockPool_IsExactlyTheThreeBuilt_WithDeepPocketsStruckNotDeferred()
     {
-        // §8.6 lists a fifth, Deep Pockets — a second consumable pocket. It is deliberately not in
-        // the enum: DuckLoadout has one pocket by construction, so it ships with the pocket rework
-        // and not before. An enum entry with no rule site behind it is a promise the camp would
-        // start offering.
+        // §8.6 once listed a fifth, Deep Pockets — a second consumable pocket. v2026-08-06q STRUCK
+        // it: the pocket is deliberate scarcity and never a progression axis, so this enum is not
+        // holding a slot open for it. It was never built and it is not owed (D-195). One pocket per
+        // duck is asserted in ConsumableTests, over every card in every pool.
         Assert.Equal(3, Enum.GetValues(typeof(Unlock)).Length);
 
         Assert.Equal(

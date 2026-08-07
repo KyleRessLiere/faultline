@@ -41,10 +41,10 @@ regions — which took the status band, the toasts *and* the board's legend row 
 
 **Known gap, named rather than papered.** §I's `Used` state does not exist: Core spends the item out
 of the loadout, so a used pocket *is* an empty one and the shell keeps no third picture of its own.
-A second pocket (§8.6's *Deep Pockets*) cannot be rendered or tested today because
-`DuckLoadout.Pocket` is a single nullable and `Unlock.cs` records the absence as deliberate — the
-shell reads capacity from one place so it grows the slot for free, but the fixture the brief asked
-for cannot be built without a Core change.
+A second pocket (§8.6's *Deep Pockets*) **is no longer a gap**: v2026-08-06q struck the card, so one
+pocket per duck is an invariant (`DuckLoadout.PocketSlots`, D-195) and the fixture the brief asked
+for describes a state the game cannot reach. The shell still reads capacity from one place rather
+than typing it — that is what kept it honest while the answer was open.
 
 ---
 

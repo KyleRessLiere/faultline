@@ -5,11 +5,12 @@
     /// Each is exactly one conditional at exactly one rule site.
     /// </summary>
     /// <remarks>
-    /// §8.6's fifth unlock, <b>Deep Pockets</b> (a second consumable pocket), is deliberately absent:
-    /// it is a change to how many pockets a duck has, and the pocket is
-    /// <see cref="DuckLoadout.Pocket"/> — one slot, by construction. It ships with the pocket rework,
-    /// not before it, and until then GAMEPLAY.md names it as pending rather than the enum pretending
-    /// to hold it.
+    /// <b>There is no Deep Pockets, and there is not going to be one.</b> §8.6 once listed a fifth
+    /// unlock granting a second consumable pocket; v2026-08-06q <b>struck it</b> for contradicting
+    /// §8.5's "never add slots" — the pocket is deliberate scarcity, not a progression axis. It was
+    /// never built, and it is removed from the milestone rather than deferred to it (D-195). One
+    /// pocket per duck is the invariant named at <see cref="DuckLoadout.PocketSlots"/>; an unlock
+    /// that moved it would be an unlock this enum may not hold.
     /// </remarks>
     public enum Unlock
     {

@@ -337,7 +337,8 @@ ACTIVATION.
 ### The pocket {D} rendered from data
 
 At the foot of the rail: one block per pocket the duck actually has, read off its loadout rather than
-typed into the markup. That is **one** today; a second appears the day Deep Pockets ships in Core.
+typed into the markup. That is **one**, permanently: *Deep Pockets* was struck from §8.6 by
+v2026-08-06q, so one pocket per duck is an invariant and not a number waiting to grow (D-195).
 
 What is in a pocket got there from a camp pick or an event earlier in the run, so **an empty pocket
 draws its socket** — an empty rail on a fresh fight is the honest picture, not a missing feature.
@@ -1570,8 +1571,10 @@ its table"*. The camp screen carries **no** replace, drop or discard control, an
 asserted on the drawn markup — a silent overwrite or an offer that no-ops is the bug class this repo
 has shipped before (D-194).
 
-§8.6's fifth, **Deep Pockets** (a second consumable pocket), is **not built**: the pocket is one slot
-by construction, and a second one is a rework of the pocket rather than a conditional at a rule site.
+§8.6's fifth, **Deep Pockets** (a second consumable pocket), is **struck — not deferred**
+(v2026-08-06q, D-195). The pocket is deliberate scarcity and never a progression axis, so
+`DuckLoadout.PocketSlots` is **1** as an invariant: no card in any pool, camp or destination, moves
+it, and a test applies every card in the game to a duck and then asks the pocket to take two.
 
 **Consumables — one pocket per duck.** Use is **0 AP, free-timing inside that duck's own activation,
 one-shot**. It costs neither half of the activation and does not end it. A used one-shot is spent for
@@ -1645,9 +1648,10 @@ takes the design at its word rather than pathfinding (D-131).
 - **No stat lines, no heal, no legendaries.** The stats tier is purged; healing is the campfire's and
   Preen's; legendaries are destinations.
 - **No skip.** Declining a reward is not a decision worth a button.
-- **Learn / Replace / Swap** (kit surgery), **Deep Pockets**, the **legendary consumables** (Drift
-  Scroll, Second Wind Whistle, Stone Feather, Peddler's Coin, Bottled Current) and **destination
-  payouts** are all unbuilt and undrawable.
+- **Learn / Replace / Swap** (kit surgery), the **legendary consumables** (Drift Scroll, Second Wind
+  Whistle, Stone Feather, Peddler's Coin, Bottled Current) and the **Sunken Cache payout** are
+  unbuilt and undrawable. **Deep Pockets** is not on that list — it is *struck*, and will not
+  arrive (D-195).
 - **No screen.** Core deals and applies; the offer-card surface is the next pass.
 
 ## Fight 1 — "Kill All"

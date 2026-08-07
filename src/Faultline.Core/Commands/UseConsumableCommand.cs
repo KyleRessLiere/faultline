@@ -5,9 +5,10 @@ namespace Faultline.Core
     /// (MASTER_DESIGN §8.5).
     /// </summary>
     /// <remarks>
-    /// It names no item. A duck has one pocket, so "use the pocket" is unambiguous, and a command
-    /// that named the item would be a command a stale UI could get wrong — the pocket is the
-    /// authority on what comes out of it.
+    /// It names no item. A duck has one pocket — <see cref="DuckLoadout.PocketSlots"/>, an invariant
+    /// since v2026-08-06q struck Deep Pockets (D-195) rather than a number waiting to grow — so "use
+    /// the pocket" is unambiguous, and a command that named the item would be a command a stale UI
+    /// could get wrong. The pocket is the authority on what comes out of it.
     /// </remarks>
     /// <param name="UnitId">Duck using it.</param>
     /// <param name="TargetId">Who it is used on — the clinger an Old Rope hauls out.</param>

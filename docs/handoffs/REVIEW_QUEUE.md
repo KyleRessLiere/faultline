@@ -319,8 +319,12 @@ write first.
   no longer merely incidental and a future writer should not re-sort it casually (D-193).
 - **`RunSave.ParseLoadout` is the one `WithPocket` caller with no capacity guard.** It validates the
   enum but not `Pocket is null`, so a loadout token carrying two `p|` segments for one duck throws
-  `InvalidOperationException` out of restore, where every other malformed field is skipped. Latent
-  today; it becomes reachable the moment Deep Pockets makes two pockets legal.
+  `InvalidOperationException` out of restore, where every other malformed field is skipped. **Now
+  permanently latent**, not merely latent: Deep Pockets is struck (D-195) and two pockets are never
+  legal, so the only way to reach this is a hand-edited save. Still worth the guard, no longer worth
+  a milestone.
 - **`Pits.AnyRope` cites D-127, `GAMEPLAY.md` cites D-131** for the same Old Rope doomed-cling rule.
   One of the two is wrong; not touched here.
-- **Deep Pockets is still unbuilt**, and is the last piece of the D1 brief. See the handoff.
+- ~~**Deep Pockets is still unbuilt**, and is the last piece of the D1 brief.~~ **Closed by the
+  design, not by a build:** v2026-08-06q struck the card from §8.6 and from the milestone. Stage D
+  no longer waits on it. See D-195 and the retired next-step section of the D1 handoff.

@@ -5,10 +5,11 @@ namespace Faultline.Core
     /// <b>safe 60/35/5, hungry 35/50/15</b>.
     /// </summary>
     /// <remarks>
-    /// §8.6 labels rarity on the twenty-four technique modifiers and on exactly one other card
-    /// (<i>Deep Pockets</i>, "rare", unbuilt). Everything else the v1 camp draws — the twelve spender
-    /// mods, the eight Second Winds, the built unlocks, the five pocket one-shots — is unlabelled, so
-    /// the director has to give them one to weight them at all. They are Common (D-159).
+    /// §8.6 labels rarity on the twenty-four technique modifiers and on nothing else the camp draws
+    /// — the twelve spender mods, the eight Second Winds, the built unlocks, the pocket one-shots are
+    /// all unlabelled, so the director has to give them one to weight them at all. They are Common
+    /// (D-159). The one other card §8.6 once labelled, <i>Deep Pockets</i> ("rare"), was struck by
+    /// v2026-08-06q and is not coming back (D-195).
     /// </remarks>
     public enum CardRarity
     {

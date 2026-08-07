@@ -77,8 +77,9 @@ public sealed class PocketUiTests
 
     /// <summary>
     /// The slot count comes from the loadout, never from a literal in the markup. A mockup drew
-    /// three; three is art. One pocket per duck is <see cref="DuckLoadout"/>'s shape today, and the
-    /// day a second one ships in Core this surface grows it without being edited.
+    /// three; three is art. One pocket per duck is <see cref="DuckLoadout"/>'s shape and, since
+    /// v2026-08-06q struck Deep Pockets, an invariant rather than a number in transit (D-195) —
+    /// reading the shape is still what keeps the markup honest about it.
     /// </summary>
     [Fact]
     public void ThePocketIsRenderedFromData_OneSlotPerPocketTheDuckActuallyHas()

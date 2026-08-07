@@ -52,8 +52,11 @@ public sealed record PocketSlot(
 /// <para>
 /// <b>The slot count is never a literal in a component.</b> A mockup drew three; three is art. What a
 /// duck actually has is <see cref="DuckLoadout"/>'s shape, which is one pocket
-/// (MASTER_DESIGN §8.5) — so this returns one slot, and the day §8.6's <c>Deep Pockets</c> unlock
-/// ships in Core this file grows a second entry and every consumer of it grows one for free.
+/// (MASTER_DESIGN §8.5, <see cref="DuckLoadout.PocketSlots"/>) — so this returns one slot. That is
+/// now an invariant and not a number in transit: §8.6's <c>Deep Pockets</c> was <b>struck</b> by
+/// v2026-08-06q for contradicting "never add slots" (D-195), so nothing in the game will ever hand
+/// this file a second entry. Reading the shape rather than typing the number stays right anyway —
+/// it is why the shell never had to be edited when the answer was still open.
 /// </para>
 /// <para>
 /// <b>It is not a battle inventory.</b> What is in a pocket got there from a camp pick or an event
@@ -187,7 +190,7 @@ public static class PocketSlots
 
     /// <summary>
     /// The duck's pockets as Core models them. One entry per pocket that exists, holding whatever is
-    /// in it — the single place a second pocket would be added.
+    /// in it — and one is the whole answer, permanently (<see cref="DuckLoadout.PocketSlots"/>).
     /// </summary>
     private static IReadOnlyList<Consumable?> PocketsOf(Unit unit) =>
         new[] { unit.Loadout.Pocket };

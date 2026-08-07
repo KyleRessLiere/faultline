@@ -49,6 +49,106 @@ public class ConsumableTests
             carried.WithEmptyPocket().WithPocket(Consumable.BrambleSalve).Pocket);
     }
 
+    /// <summary>
+    /// <b>One pocket per duck is an invariant, not a starting number.</b> §8.6's <i>Deep Pockets</i>
+    /// was struck by v2026-08-06q — struck, not deferred — so the assertion is not "no such card
+    /// exists" (a card can be added) but "<em>nothing the run can hand a duck moves the count</em>".
+    /// Every card in every pool is put on a duck and the pocket is then asked to take two.
+    /// </summary>
+    /// <remarks>
+    /// Exhaustive over the pools rather than over a seed range on purpose: a seeded sweep proves a
+    /// card was not dealt, and the claim here is about cards that are never dealt either. The refusal
+    /// is the observable — a second <c>WithPocket</c> throwing is what a second pocket would stop
+    /// doing (D-195).
+    /// </remarks>
+    [Fact]
+    public void NoCardInAnyPoolCanGrantASecondPocket_BecauseDeepPocketsIsStruck()
+    {
+        Assert.Equal(1, DuckLoadout.PocketSlots);
+
+        foreach (var loadout in EveryLoadoutOneCardCanMake(UnitKind.Vanguard))
+        {
+            var carrying = loadout.WithPocket(Consumable.DriedMinnow);
+
+            Assert.Equal(Consumable.DriedMinnow, carrying.Pocket);
+            Assert.Throws<InvalidOperationException>(
+                () => carrying.WithPocket(Consumable.BrambleSalve));
+        }
+    }
+
+    /// <summary>
+    /// The same invariant, reached by playing rather than by assembling loadouts: a whole run, every
+    /// camp it held, every card it took — and every duck still has one pocket at the end of it.
+    /// </summary>
+    [Fact]
+    public void AWholePlayedRun_LeavesEveryDuckWithExactlyOnePocket()
+    {
+        for (int seed = 1; seed <= 3; seed++)
+        {
+            var run = RunFixture.PlayWholeRun(seed).State;
+
+            Assert.NotEmpty(run.Squad);
+
+            foreach (var duck in run.Squad)
+            {
+                var carrying = duck.Loadout.Pocket is null
+                    ? duck.Loadout.WithPocket(Consumable.DriedMinnow)
+                    : duck.Loadout;
+
+                Assert.Throws<InvalidOperationException>(
+                    () => carrying.WithPocket(Consumable.BrambleSalve));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every loadout one card off one pool can produce for a duck of this class, the bare one
+    /// included. The pocket is left out — it is the thing under test.
+    /// </summary>
+    private static IEnumerable<DuckLoadout> EveryLoadoutOneCardCanMake(UnitKind kind)
+    {
+        yield return DuckLoadout.Empty;
+
+        foreach (var mod in CampCatalogue.ModPool())
+        {
+            if (CampCatalogue.KindOf(mod) == kind)
+            {
+                yield return DuckLoadout.Empty.With(mod);
+            }
+        }
+
+        foreach (var wind in CampCatalogue.SecondWindPool())
+        {
+            if (CampCatalogue.KindOf(wind) == kind)
+            {
+                yield return DuckLoadout.Empty.With(wind);
+            }
+        }
+
+        foreach (var unlock in CampCatalogue.UnlockPool())
+        {
+            yield return DuckLoadout.Empty.With(unlock);
+        }
+
+        foreach (var technique in CampCatalogue.TechniquePool())
+        {
+            if (CampCatalogue.KindOf(technique) == kind)
+            {
+                yield return DuckLoadout.Empty.With(technique);
+            }
+        }
+
+        // Destinations pay these, not camps — but "nothing raises the count" is a claim about every
+        // reward in the game, so the legendary catalogue is swept beside the camp's pools.
+        foreach (var definition in LegendaryCatalogue.All())
+        {
+            if (definition.Class == kind)
+            {
+                yield return DuckLoadout.Empty.With(definition.Card);
+            }
+        }
+    }
+
     [Fact]
     public void UsingThePocket_SpendsIt_AndASecondUseIsRejected()
     {
