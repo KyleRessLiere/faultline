@@ -191,16 +191,20 @@ in this file when the question comes back.
 | D-184 | [A projection resolves in the order the action does, so the shove is aimed at whoever the blow left standing.](#d-184-a-projection-resolves-in-the-order-the-action-does-so-the-shove-is-aimed-at-whoever-the-blow-left-standing) | 2026-08-07 |  |
 | D-185 | [Free movement a legendary owes is neither half of the activation, and declining it is a command.](#d-185-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-declining-it-is-a-command) | 2026-08-07 |  |
 | D-186 | [A structure collision deals 6, a body collision still deals 4, and they are two constants because they were always two numbers.](#d-186-a-structure-collision-deals-6-a-body-collision-still-deals-4-and-they-are-two-constants-because-they-were-always-two-numbers) | 2026-08-07 |  |
-| D-187 | [High Road deploys both flocks on the south flanks, and the opposite-corners guideline is refused here for the same reason the Trench refuses it.](#d-187-high-road-deploys-both-flocks-on-the-south-flanks-and-the-opposite-corners-guideline-is-refused-here-for-the-same-reason-the-trench-refuses-it) | unreleased |  |
-| D-188 | [HELD: a displacement that makes a body Clinging and then damages it inside the same resolution is still previewed wrong.](#d-188-held-a-displacement-that-makes-a-body-clinging-and-then-damages-it-inside-the-same-resolution-is-still-previewed-wrong) | unreleased | *held* |
-| D-189 | ["This duck's next displacement" is the displacement it causes, because that is how §8.6 uses the possessive everywhere else.](#d-189-this-ducks-next-displacement-is-the-displacement-it-causes-because-that-is-how-86-uses-the-possessive-everywhere-else) | unreleased |  |
-| D-190 | [Chalk Mark is Rattling Impact's mark with a different author, so it is the same field — and Greased Feather is its mirror on the pusher.](#d-190-chalk-mark-is-rattling-impacts-mark-with-a-different-author-so-it-is-the-same-field--and-greased-feather-is-its-mirror-on-the-pusher) | unreleased |  |
-| D-191 | [Temporary terrain is a real change to the board plus a booked way back, not a parallel list of pretend hazards.](#d-191-temporary-terrain-is-a-real-change-to-the-board-plus-a-booked-way-back-not-a-parallel-list-of-pretend-hazards) | unreleased |  |
-| D-192 | [A Split Reed offers; the other owner's yes is a command they may never send, and the swap it completes is a placement.](#d-192-a-split-reed-offers-the-other-owners-yes-is-a-command-they-may-never-send-and-the-swap-it-completes-is-a-placement) | unreleased |  |
-| D-193 | [The activation queue is the order of state.Units, so a Signal Whistle swaps two entries in it — and re-publishes the contract the moment it does.](#d-193-the-activation-queue-is-the-order-of-stateunits-so-a-signal-whistle-swaps-two-entries-in-it--and-re-publishes-the-contract-the-moment-it-does) | unreleased |  |
-| D-194 | [With no replace/drop surface, a full pocket is offered no one-shot at all.](#d-194-with-no-replacedrop-surface-a-full-pocket-is-offered-no-one-shot-at-all) | unreleased |  |
+| D-187 | [High Road deploys both flocks on the south flanks, and the opposite-corners guideline is refused here for the same reason the Trench refuses it.](#d-187-high-road-deploys-both-flocks-on-the-south-flanks-and-the-opposite-corners-guideline-is-refused-here-for-the-same-reason-the-trench-refuses-it) | 2026-08-07 |  |
+| D-188 | [HELD: a displacement that makes a body Clinging and then damages it inside the same resolution is still previewed wrong.](#d-188-held-a-displacement-that-makes-a-body-clinging-and-then-damages-it-inside-the-same-resolution-is-still-previewed-wrong) | 2026-08-07 | *held* |
+| D-189 | ["This duck's next displacement" is the displacement it causes, because that is how §8.6 uses the possessive everywhere else.](#d-189-this-ducks-next-displacement-is-the-displacement-it-causes-because-that-is-how-86-uses-the-possessive-everywhere-else) | 2026-08-07 |  |
+| D-190 | [Chalk Mark is Rattling Impact's mark with a different author, so it is the same field - and Greased Feather is its mirror on the pusher.](#d-190-chalk-mark-is-rattling-impacts-mark-with-a-different-author-so-it-is-the-same-field---and-greased-feather-is-its-mirror-on-the-pusher) | 2026-08-07 |  |
+| D-191 | [Temporary terrain is a real change to the board plus a booked way back, not a parallel list of pretend hazards.](#d-191-temporary-terrain-is-a-real-change-to-the-board-plus-a-booked-way-back-not-a-parallel-list-of-pretend-hazards) | 2026-08-07 |  |
+| D-192 | [A Split Reed offers; the other owner's yes is a command they may never send, and the swap it completes is a placement.](#d-192-a-split-reed-offers-the-other-owners-yes-is-a-command-they-may-never-send-and-the-swap-it-completes-is-a-placement) | 2026-08-07 |  |
+| D-193 | [The activation queue is the order of `state.Units`, so a Signal Whistle swaps two entries in it - and re-publishes the contract the moment it does.](#d-193-the-activation-queue-is-the-order-of-stateunits-so-a-signal-whistle-swaps-two-entries-in-it---and-re-publishes-the-contract-the-moment-it-does) | 2026-08-07 |  |
+| D-194 | [With no replace/drop surface, a full pocket is offered no one-shot at all.](#d-194-with-no-replacedrop-surface-a-full-pocket-is-offered-no-one-shot-at-all) | 2026-08-07 |  |
+| D-195 | [Deep Pockets is struck, and one pocket per duck becomes an invariant with a name.](#d-195-deep-pockets-is-struck-and-one-pocket-per-duck-becomes-an-invariant-with-a-name) | 2026-08-07 |  |
+| D-196 | [Every legendary is Rare, and being Rare is exactly what does not get it into a camp.](#d-196-every-legendary-is-rare-and-being-rare-is-exactly-what-does-not-get-it-into-a-camp) | unreleased |  |
+| D-197 | [`OfferCategory` is 8.5's camp-category cut, NOT 8.6's kind axis, and the difference is left standing rather than resolved.](#d-197-offercategory-is-85s-camp-category-cut-not-86s-kind-axis-and-the-difference-is-left-standing-rather-than-resolved) | unreleased |  |
+| D-198 | [Tier odds are a table keyed by source, because the ladder is locked and the numbers are not.](#d-198-tier-odds-are-a-table-keyed-by-source-because-the-ladder-is-locked-and-the-numbers-are-not) | unreleased |  |
 
-**174 rulings.**
+**184 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4813,3 +4817,113 @@ pool** - mods, Second Winds, unlocks, techniques and the legendary catalogue - t
 asks its pocket to take two. A second pocket would stop `WithPocket` throwing, which is the
 observable rather than the flag. `AWholePlayedRun_LeavesEveryDuckWithExactlyOnePocket` reaches the
 same claim by playing three whole runs, per 13's standing practice.
+
+---
+
+**D-196 - Every legendary is Rare, and being Rare is exactly what does not get it into a camp.**
+
+8.6 (locked q) puts every reward on two orthogonal axes - KIND (Technique / Second Wind / Pocket Item
+/ Legendary) and TIER (Common / Uncommon / Rare) - and then states the guard: "no tier may place a
+Legendary into a camp pool. Camps and destinations are separated by the law below, not by rarity."
+
+**The design labels no tier on a legendary, so this ruling gives them one: Rare.** It is a ruling
+rather than a reading, which is why it is written here. Two reasons.
+
+**It makes the guard mean something.** If legendaries were Common, "no tier admits a legendary to a
+camp" would be a sentence about an empty set - the top rung would hold nothing, and a test bucketing
+the pool by tier would prove nothing at any rung. With them Rare, the build genuinely ships Rare
+rewards, none of which a camp can deal, and the reason it cannot is their KIND. That is the
+orthogonality made observable instead of asserted.
+
+**It is the only tier the surrounding prose supports.** 8.5 calls curses "the legendary tier's dark
+mirror" and prices the Deep Forge as "one of three Rares" - the top rung is where the design already
+talks about legendaries. Nothing about that ruling puts one in a camp: `CampOffer` cannot spell a
+`Legendary`, `LegendaryCatalogue` and `CampCatalogue` never meet, and
+`NoTierAdmitsALegendaryToACampPool` sweeps every tier bucket of every camp pool over 40 seeds and
+both lanes. `ACampOfferCannotSpellALegendary_AndTheDrawableSetIsTheWholeEnum` pins the structural
+half so a future `OfferCategory` member cannot slip past.
+
+**What was NOT done: no tier was invented for anything else.** D-159 stands unchanged - 8.6 still
+labels tier on the technique modifiers alone, and the twelve mods, eight Second Winds, built unlocks
+and ten one-shots stay Common and untagged. Legendaries are a different case from the v1 pools: D-159
+refused to invent a *spread* across cards the designer never graded, and this grades a whole kind at
+once, where the design's own prose already puts it. Tempo's "+1 AP" promotion (3) reads Uncommon and
+the card is not built, so that fold tags nothing.
+
+**The mistake this ruling exists to prevent** is a `Rare` on `OfferCategory` or a `Legendary` on
+`CardRarity`. Either would collapse two axes into one and make the guard unstateable. `CampDirector`
+no longer casts a tier to an int either - the ladder is an explicit array, so nothing reads a tier's
+position as though it meant something.
+
+---
+
+**D-197 - `OfferCategory` is 8.5's camp-category cut, NOT 8.6's kind axis, and the difference is left
+standing rather than resolved.**
+
+8.6's taxonomy names four KINDS: Technique, Second Wind, Pocket Item, Legendary. `OfferCategory`
+holds five values: Mod, SecondWind, Unlock, Consumable, Technique. **These are two different cuts of
+the same space**, and it is tempting to call them the same thing because three names overlap.
+
+**They are not, and 8.6 says so itself:** "Technique is a build-side umbrella and does not yet map
+onto 8.5's five camp categories... Technique covers *at most* Modify, Learn/Replace/Swap and Tactical
+unlocks - but which, and the roster of the Engine Starter subset, is unwritten." 14 #13 records the
+mapping as **owed** and calls it "the one item on this list holding up build".
+
+**So the tier axis was built and the kind axis was not.** Tier is answerable on every reward today
+(`CampOffer.Rarity`, `LegendaryOffer.Rarity`, one ladder). Kind is answerable only where the design
+has already ruled it - `Legendary` is its own type, its own catalogue and its own destination
+surface, which is what makes the camp guard structural. Whether `Mod` and `Unlock` are "Techniques"
+is exactly the unwritten question, and folding them into a `RewardKind` enum here would be inventing
+the designer's owed table and then building four more Stage D items on the guess. `OfferCategory`'s
+remarks now say which cut it is, so the next session cannot mistake it for the other one.
+
+**Two stale citations found while doing it, both recorded rather than papered.**
+
+1. **Section 8.8 does not exist in v2026-08-06q.** Twenty-one comments across thirteen Core files
+   cite an "8.8" for Still Pond, destination and legendary-table rulings; the current stamp has no
+   8.8 at all (an intermediate stamp used the number for "Warrens editions"). The citations in this
+   session's own files - `StillPond`, `PondReward` - are repointed at 8.5 and 14 #17. **The other
+   nineteen are a mechanical sweep across `Destination`, `ActMap`, `Campaign`, `LegendaryTable`,
+   `PondChoice`, `PondDepth`, `PondHealing`, `MapRestNode*`, `Camp` and `LegendaryCatalogue`,
+   deliberately not done inside a features diff.** Queued.
+2. **Code cites D-200 through D-204, which do not exist.** The D2 session (`39eeb61`) wrote comments
+   in `Legendary.cs`, `Destination.cs`, `RewardMark.cs`, `RunRecord.cs`, `Game.cs`, `Legendaries.cs`,
+   `Unit.cs` and three test files against decision numbers it never wrote; DECISIONS ended at D-185
+   in that commit and at D-194 before this one. The numbers D-195 onward are now being consumed from
+   the bottom, so those citations will eventually point at unrelated rulings. **Not renumbered here**
+   - rewriting another session's comments is a sweep with real risk of pointing them somewhere wrong,
+   and the right fix is for the D2 author to say which rulings they meant. Queued and reported.
+
+**And the Deep Forge was not defined.** 14 #17: "referenced by the tier ruling but not yet furniture
+in 8.5... needs a home and a definition." Nothing in the tier work required it: the odds table has
+rows for the two sources that actually deal, `RewardSource` has no `DeepForge` member, and
+`StillPond`'s existing stub keeps refusing by counting the camp pool. The stub's honesty was extended
+- it now says "camp pool", because the build *does* ship Rare rewards and a Forge counting those
+would promise a card its own law forbids it to deal - and the node's rules were not invented.
+
+---
+
+**D-198 - Tier odds are a table keyed by source, because the ladder is locked and the numbers are
+not.**
+
+14 #9 and #15 say the same thing twice: the Common/Uncommon/Rare ladder is locked as of q, the odds
+per source are a post-playtest tuning job. A rate that lives in an `if` is a rate nobody can tune
+without a code change and a test rewrite, so `CampDirector.SafeWeights` and `HungryWeights` - two
+`static readonly` arrays beside the dealing logic - become rows of `RarityOdds`, keyed by
+`RewardSource`.
+
+**Zero behaviour change, and that is checked.** The numbers are the same 60/35/5 and 35/50/15, the
+RNG is consumed in the same order, and the determinism suite and the whole camp-director sweep are
+unchanged. What moved is where a tuner edits.
+
+**Keyed by source, not by lane.** The two rows happen to divide the way 8.5's comfort gradient
+divides, but a Forge is not a lane and neither is a destination; keying on `MapLane` would make the
+next row impossible to add without inventing a second concept. `RewardSource` therefore holds only
+the two sources that actually deal today - the Forge and the Deep Forge get rows when 14 #17 gives
+the Deep Forge a definition, and a member with invented numbers behind an undefined node would be a
+rate nobody ruled.
+
+**Weights, not probabilities.** They need not sum to 100 and nothing divides: a tier with nothing
+left in the pool contributes no weight, which is what lets the Rare rung sit empty at zero cost -
+the whole camp pool is Common and Uncommon, so today's 5 and 15 buy nothing and no table is short a
+card because of it. Integers throughout; Core does no float arithmetic in rules.

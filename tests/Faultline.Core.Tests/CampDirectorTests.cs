@@ -208,8 +208,10 @@ public class CampDirectorTests
     [Fact]
     public void TheWeightsAreTheDesignsNumbers_AndTheLaneChoosesBetweenThem()
     {
-        Assert.Equal(new[] { 60, 35, 5 }, CampDirector.SafeWeights);
-        Assert.Equal(new[] { 35, 50, 15 }, CampDirector.HungryWeights);
+        // The numbers themselves live in RarityOdds now — a tunable table keyed by source, because
+        // §14 #9 leaves the odds open (D-198). What the director owes is the lookup, not the rate.
+        Assert.Equal(new RarityOdds(60, 35, 5), RarityOdds.For(RewardSource.SafeCamp));
+        Assert.Equal(new RarityOdds(35, 50, 15), RarityOdds.For(RewardSource.HungryCamp));
 
         var safe = Fresh(1) with { MapState = MapState.At("c2-bait-and-break") };
         var hungry = Fresh(1) with { MapState = MapState.At("c2-the-teeth") };
@@ -217,12 +219,12 @@ public class CampDirectorTests
         Assert.Equal(MapLane.Safe, safe.CurrentMapNode!.Lane);
         Assert.Equal(MapLane.Hungry, hungry.CurrentMapNode!.Lane);
 
-        Assert.Equal(CampDirector.SafeWeights, CampDirector.WeightsFor(safe));
-        Assert.Equal(CampDirector.HungryWeights, CampDirector.WeightsFor(hungry));
+        Assert.Equal(RarityOdds.For(RewardSource.SafeCamp), CampDirector.WeightsFor(safe));
+        Assert.Equal(RarityOdds.For(RewardSource.HungryCamp), CampDirector.WeightsFor(hungry));
 
         // And a run with no map at all — the linear campaign — is priced as safe rather than as
         // nothing: plain fights are the safe reading of "safe".
-        Assert.Equal(CampDirector.SafeWeights, CampDirector.WeightsFor(RunFixture.Start()));
+        Assert.Equal(RarityOdds.For(RewardSource.SafeCamp), CampDirector.WeightsFor(RunFixture.Start()));
     }
 
     [Fact]
@@ -306,9 +308,8 @@ public class CampDirectorTests
 
             // The lane is the only thing that differs, so the weights are asked for directly rather
             // than by walking the run down two different routes — which would also change the squad.
-            var weights = lane == MapLane.Hungry
-                ? CampDirector.HungryWeights
-                : CampDirector.SafeWeights;
+            var weights = RarityOdds.For(
+                lane == MapLane.Hungry ? RewardSource.HungryCamp : RewardSource.SafeCamp);
 
             count += Dealt(run, rng, weights);
         }
@@ -316,7 +317,7 @@ public class CampDirectorTests
         return count;
     }
 
-    private static int Dealt(RunState run, SeededRng rng, IReadOnlyList<int> weights)
+    private static int Dealt(RunState run, SeededRng rng, RarityOdds weights)
     {
         // A direct weighted draw over the same pool: this measures the weights, which is what the row
         // is about, without needing a board on each lane.
@@ -333,14 +334,14 @@ public class CampDirectorTests
                 if (pool.Any(o => o.Rarity == rarity))
                 {
                     tiers.Add(rarity);
-                    total += weights[(int)rarity];
+                    total += weights.Of(rarity);
                 }
             }
 
             int roll = rng.Next(total);
             foreach (var tier in tiers)
             {
-                if (roll < weights[(int)tier])
+                if (roll < weights.Of(tier))
                 {
                     if (tier == CardRarity.Uncommon)
                     {
@@ -350,7 +351,7 @@ public class CampDirectorTests
                     break;
                 }
 
-                roll -= weights[(int)tier];
+                roll -= weights.Of(tier);
             }
         }
 

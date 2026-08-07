@@ -22,6 +22,13 @@ namespace Faultline.Core
         /// <summary>The class that wears it.</summary>
         public UnitKind Class => LegendaryCatalogue.KindOf(Card);
 
+        /// <summary>
+        /// Its rung of the tier ladder, read the same way <see cref="CampOffer.Rarity"/> is — the
+        /// tier axis is answerable on any reward without first asking what kind of reward it is
+        /// (MASTER_DESIGN §8.6's taxonomy, D-196).
+        /// </summary>
+        public CardRarity Rarity => LegendaryCatalogue.RarityOf(Card);
+
         /// <inheritdoc/>
         public override string ToString() => Duck + " " + Name;
     }

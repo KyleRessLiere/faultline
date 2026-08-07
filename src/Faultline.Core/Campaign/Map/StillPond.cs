@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Faultline.Core
 {
     /// <summary>
-    /// What a Still Pond puts on the table, and the arithmetic behind it (MASTER_DESIGN §8.5, §8.8).
+    /// What a Still Pond puts on the table, and the arithmetic behind it (MASTER_DESIGN §8.5).
     /// </summary>
     /// <remarks>
     /// <para>
@@ -14,12 +14,19 @@ namespace Faultline.Core
     /// </para>
     /// <para>
     /// <b>The Forge is not built, and says so.</b> §8.6 asks a Forge for three valid Uncommon-or-Rare
-    /// cards and §8.8 asks a Deep Forge for one of three Rares. The shipped pool holds no Rare card at
-    /// all, and at most one Uncommon per class, so neither can be dealt — see
+    /// cards, and the pre-boss Deep Forge for one of three Rares. The camp pool holds no Rare card at
+    /// all and at most one Uncommon per class, so neither can be dealt — see
     /// <see cref="RaresInPool"/> and <see cref="WidestUncommonOrRarePool"/>, which are counted rather
     /// than asserted so the refusal cannot go stale. Rendering a Forge that quietly handed out
     /// something else would break the promise rule; leaving it off the table entirely would hide a
-    /// choice §8.8 says the node has. It is drawn, named, and refused.
+    /// choice the node has. It is drawn, named, and refused.
+    /// </para>
+    /// <para>
+    /// <b>The Deep Forge has no definition to build against</b>, and the tier ruling did not give it
+    /// one: §14 #17 says it is "referenced by the tier ruling but not yet furniture in §8.5... needs
+    /// a home and a definition". Earlier stamps carried a §8.8 that this file cited; v2026-08-06q has
+    /// no such section. The face keeps its honest refusal and nothing here invents the node's rules
+    /// (D-197).
     /// </para>
     /// </remarks>
     public static class StillPond
@@ -44,7 +51,8 @@ namespace Faultline.Core
         /// A voided duck is untouched: voiding is the run's one permanent loss and a pond that undid
         /// it would leave the game with none (D-053). A downed duck is carrying zero, so a mid-act
         /// pond stands it up on half — the pond ends the downing, it does not make the downing good —
-        /// while the pre-boss floor stands it up on everything (§8.8).
+        /// while the pre-boss floor stands it up on everything (§8.5, "the pre-boss column always
+        /// holds a Rest reachable from every lane").
         /// </remarks>
         /// <param name="depth">Which pond this is.</param>
         /// <param name="unit">The duck.</param>
@@ -65,10 +73,12 @@ namespace Faultline.Core
             return to > unit.MaxHp ? unit.MaxHp : to;
         }
 
-        /// <summary>How many Rare cards the camp pool can currently deal.</summary>
+        /// <summary>How many Rare cards the <b>camp</b> pool can currently deal.</summary>
         /// <remarks>
         /// Counted from <see cref="CampCatalogue"/> rather than written down, so the Deep Forge's
-        /// refusal reports the pool as it is on the day it is read.
+        /// refusal reports the pool as it is on the day it is read. It is the camp pool on purpose:
+        /// the build does ship Rare rewards — every destination legendary is one — and a Forge that
+        /// counted those would be promising a card its own law forbids it to deal (§8.5, D-196).
         /// </remarks>
         /// <returns>The count.</returns>
         public static int RaresInPool()
@@ -189,7 +199,7 @@ namespace Faultline.Core
             PondReward.Rare,
             clearsBedraggled: false,
             command: null,
-            "Not built yet. A Deep Forge pays one of three Rares and the card pool holds "
+            "Not built yet. A Deep Forge pays one of three Rares and the camp pool holds "
             + RaresInPool() + ". Rest is the only thing this pond can actually do.");
     }
 }

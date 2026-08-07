@@ -1,5 +1,23 @@
 # Changelog
 
+## The Rare tier lands as metadata, and the camp still cannot hold a legendary
+
+- **Two axes, never one.** §8.6's reward taxonomy is built as the design states it: TIER
+  (`CardRarity`) is readable on any reward — `CampOffer.Rarity` and `LegendaryOffer.Rarity` answer
+  through the same ladder — and it is never a kind. **Every legendary is Rare**, and being Rare is
+  exactly what does *not* get one dealt at a campfire: what keeps it out is its KIND (D-196).
+- **The guard, tested.** `NoTierAdmitsALegendaryToACampPool` buckets every camp pool by tier across
+  40 seeds and both lanes and finds no legendary in any bucket; a structural test pins that
+  `CampOffer` cannot even spell one. Verified by mutation — the guard was made to go red before it
+  was allowed to go green.
+- **Odds are tunable data, not constants in logic.** `CampDirector.SafeWeights`/`HungryWeights`
+  become rows of `RarityOdds`, keyed by `RewardSource`. Same numbers, same RNG order, zero behaviour
+  change — what moved is where a tuner edits (D-198).
+- **`OfferCategory` is reported, not redefined.** It is §8.5's camp-category cut and NOT §8.6's kind
+  axis; the mapping between them is owed by §14 #13 and was left owed rather than guessed (D-197).
+  The **pre-boss Deep Forge** was likewise not defined — §14 #17 leaves it without a home, so its
+  stub keeps refusing and only its honesty was extended.
+
 ## Deep Pockets is struck, and one pocket per duck gets a name
 
 - **Deep Pockets is removed from the design and from the milestone** (MASTER_DESIGN v2026-08-06q).

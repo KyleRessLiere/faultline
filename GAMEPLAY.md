@@ -1340,7 +1340,7 @@ the boss (`ActMap.IsPreBossRest`, D-180). On Act 1 that is `c6-rest`; `c4-rest` 
 | | Mid-act pond | Pre-boss pond |
 | --- | --- | --- |
 | **Rest** | `ceil(MaxHp / 2)` back, per duck off its own ceiling, capped there. Bedraggled cleared. | **Back to `MaxHp`**, per duck. Bedraggled cleared. |
-| **The other face** | **Forge** — three Uncommon-or-Rare cards, no healing. **Not built.** | **Deep Forge** — half a ceiling each plus one of three Rares, downed ducks staying Bedraggled through boss round 1. **Not built.** |
+| **The other face** | **Forge** — three Uncommon-or-Rare cards, no healing. **Not built**: refused by counting the camp pool, not by asserting. | **Deep Forge** — half a ceiling each plus one of three Rares, downed ducks staying Bedraggled through boss round 1. **Not built, and has no definition to build against** — §14 #17 says it is referenced by the tier ruling but is not furniture in §8.5 (D-197). |
 
 - Mid-act numbers: a Vanguard or Wardbearer on 14 heals **7**; an Archer or Fisher on 8 heals **4**; a
   duck that bought a raise at the Molting Pool has a ceiling of 16 and heals **8**. On the pre-boss
@@ -1469,10 +1469,37 @@ actually bound — the proof log the map generator owes, applied to the camp (D-
 | **No duplicate permanent** | a named mod, Second Wind, unlock or technique already on **any** duck is never offered again |
 | **Never two consumables** | a table pairs at most one one-shot |
 | **Ownership fairness** | when the **last two picks** went to one player's ducks, the next table holds a card for the other |
-| **Rarity by node** | **safe 60/35/5**, **hungry 35/50/15** (Common/Uncommon/Rare). A run with no lane is priced as safe. |
+| **Tier odds by source** | `RarityOdds.For(RewardSource.SafeCamp)` = **60/35/5**, `HungryCamp` = **35/50/15** (Common/Uncommon/Rare). A run with no lane is priced as safe. |
 
 Everything outside the technique pool is **Common** and carries **no tag** — §8.6 labels neither for
-the v1 cards, and inventing labels would make the director connect builds nobody authored (D-159).
+the v1 cards, and inventing labels would make the director connect builds nobody authored (D-159,
+still standing after the tier ruling).
+
+### The reward taxonomy — two axes, never one
+
+§8.6 (locked q) puts every reward on **two orthogonal axes**, and neither is readable off the other.
+
+| Axis | Values | Where it lives |
+|---|---|---|
+| **Kind** | Technique · Second Wind · Pocket Item · **Legendary** | **partly built.** `Legendary` is its own type and its own catalogue — that separation *is* the law. The other three do not yet map onto §8.5's five camp categories: `OfferCategory` is the **camp-category cut**, not the kind cut, and the mapping is owed (§14 #13, D-197). |
+| **Tier** | Common · Uncommon · Rare | **built.** `CardRarity`, readable on any reward: `CampOffer.Rarity` and `LegendaryOffer.Rarity` answer the same question through the same ladder. |
+
+**Odds are tunable data, not constants in logic** (D-198). `RarityOdds` is a table keyed by
+`RewardSource`; the director looks the row up and holds no rate of its own, because §14 #9 and #15
+both say the ladder is locked and the numbers are not. The Forge and the pre-boss **Deep Forge** have
+**no rows** — the Deep Forge has no definition anywhere in v2026-08-06q (§14 #17), and a row of
+invented numbers behind an undefined node would be worse than a refusal.
+
+**The guard: no tier admits a Legendary to a camp pool.** Every legendary the build ships is
+**Rare**, and being Rare is exactly what does *not* get one dealt at a campfire — the thing keeping
+it out is its **kind**. `NoTierAdmitsALegendaryToACampPool` buckets every camp pool by tier across 40
+seeds and both lanes and finds no legendary in any bucket;
+`ACampOfferCannotSpellALegendary_AndTheDrawableSetIsTheWholeEnum` pins the structural half, because
+`CampOffer` has no way to carry one. Nothing in the camp pool is Rare, which is why the Forge and
+Deep Forge faces still refuse by counting rather than by asserting.
+
+**Tempo's "+1 AP" promotion (§3) reads Uncommon** — the card is **not built**, so the reading tags
+nothing and nothing was invented for it.
 
 ### Technique modifiers — the v2 pool (8 of §8.6's 24 built)
 

@@ -16,6 +16,13 @@ namespace Faultline.Core
     /// <see cref="CampCatalogue"/>, the destination reads this, and neither knows about the other.
     /// </para>
     /// <para>
+    /// <b>That separation is by KIND, and rarity may never do it instead.</b> §8.6's taxonomy makes
+    /// tier orthogonal to kind and then says the guard out loud: "no tier admits a Legendary to a
+    /// camp pool". Every card here is <see cref="CardRarity.Rare"/>, so the two axes really are
+    /// carrying different weight — being the top rung is precisely what does <em>not</em> get one
+    /// dealt at a campfire. <c>NoTierAdmitsALegendaryToACampPool</c> is the test (D-196).
+    /// </para>
+    /// <para>
     /// <b>One per duck = its epithet.</b> A duck already wearing one is not eligible for another,
     /// which is what <see cref="DuckLoadout.Epithet"/> being a single slot says in the type system.
     /// </para>
@@ -27,18 +34,21 @@ namespace Faultline.Core
             new LegendaryDefinition(
                 Legendary.FollowThrough,
                 UnitKind.Vanguard,
+                CardRarity.Rare,
                 "Follow Through",
                 "After causing a collision, he may move 2 more tiles — free, and the activation waits."),
 
             new LegendaryDefinition(
                 Legendary.KestrelStep,
                 UnitKind.Archer,
+                CardRarity.Rare,
                 "Kestrel Step",
                 "After shooting, she may move 2 more tiles — free, and the activation waits."),
 
             new LegendaryDefinition(
                 Legendary.DeepRoots,
                 UnitKind.Wardbearer,
+                CardRarity.Rare,
                 "Deep Roots",
                 "Guard persists through his next activation, and he may act while it holds."),
         };
@@ -69,6 +79,15 @@ namespace Faultline.Core
         /// <param name="card">The legendary.</param>
         /// <returns>Its archetype.</returns>
         public static UnitKind KindOf(Legendary card) => Of(card).Class;
+
+        /// <summary>
+        /// Which rung of the tier ladder a card sits on. Every legendary is
+        /// <see cref="CardRarity.Rare"/>, and that is a fact about the tier axis alone: what keeps
+        /// it out of a camp is its KIND, not its rung (D-196).
+        /// </summary>
+        /// <param name="card">The legendary.</param>
+        /// <returns>Its tier.</returns>
+        public static CardRarity RarityOf(Legendary card) => Of(card).Tier;
 
         /// <summary>Display name — the epithet the duck earns.</summary>
         /// <param name="card">The legendary.</param>

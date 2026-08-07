@@ -34,20 +34,23 @@ namespace Faultline.Core
         /// <summary>Cards on a camp's table. One pick out of two, and there is no skip.</summary>
         public const int CardsPerCamp = 2;
 
-        /// <summary>Rarity weights on a safe node: Common / Uncommon / Rare.</summary>
-        public static readonly IReadOnlyList<int> SafeWeights = new[] { 60, 35, 5 };
-
-        /// <summary>Rarity weights on a hungry node: Common / Uncommon / Rare.</summary>
-        public static readonly IReadOnlyList<int> HungryWeights = new[] { 35, 50, 15 };
+        // The tier ladder, bottom rung first. Written out rather than reflected off the enum so the
+        // draw order a seed sees can never change with an enum edit, and so no rule casts a tier to
+        // an int - the two axes stay separate all the way down (D-196).
+        private static readonly CardRarity[] Ladder =
+        {
+            CardRarity.Common, CardRarity.Uncommon, CardRarity.Rare,
+        };
 
         /// <summary>
-        /// The weights this run's current node draws on. A run with no act map has no lane, and a
-        /// linear campaign's plain fights are the safe reading of "safe".
+        /// The tier odds this run's current node draws on, read off <see cref="RarityOdds"/> rather
+        /// than written here: §14 #9 leaves the numbers open, so the director asks the tunable table
+        /// and holds no rate of its own (D-198).
         /// </summary>
         /// <param name="state">Run standing at its camp.</param>
-        /// <returns>Weights per <see cref="CardRarity"/>, in enum order.</returns>
-        public static IReadOnlyList<int> WeightsFor(RunState state) =>
-            state?.CurrentMapNode?.Lane == MapLane.Hungry ? HungryWeights : SafeWeights;
+        /// <returns>The odds row for the source it is standing on.</returns>
+        public static RarityOdds WeightsFor(RunState state) =>
+            RarityOdds.For(RarityOdds.SourceAt(state));
 
         /// <summary>
         /// Deals one camp: two cards from the whole squad's eligible pool, chosen against §8.6's rows.
@@ -296,29 +299,33 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// One card, drawn against the node's rarity weights. Rarities with nothing left in the pool
+        /// One card, drawn against the source's tier odds. Tiers with nothing left in the pool
         /// contribute no weight, so a table is never short a card because the dice asked for a tier
-        /// that is empty.
+        /// that is empty — which is also what keeps an empty Rare rung from costing anything.
         /// </summary>
-        private static CampOffer Weighted(IReadOnlyList<CampOffer> pool, IReadOnlyList<int> weights, SeededRng rng)
+        private static CampOffer Weighted(IReadOnlyList<CampOffer> pool, RarityOdds odds, SeededRng rng)
         {
+            var ladder = Ladder;
             int total = 0;
-            var tally = new int[weights.Count];
+            var tally = new int[ladder.Length];
 
             foreach (var offer in pool)
             {
-                int tier = (int)offer.Rarity;
-                if (tier >= 0 && tier < tally.Length)
+                for (int tier = 0; tier < ladder.Length; tier++)
                 {
-                    tally[tier]++;
+                    if (offer.Rarity == ladder[tier])
+                    {
+                        tally[tier]++;
+                        break;
+                    }
                 }
             }
 
-            for (int tier = 0; tier < tally.Length; tier++)
+            for (int tier = 0; tier < ladder.Length; tier++)
             {
                 if (tally[tier] > 0)
                 {
-                    total += weights[tier];
+                    total += odds.Of(ladder[tier]);
                 }
             }
 
@@ -328,28 +335,28 @@ namespace Faultline.Core
             }
 
             int roll = rng.Next(total);
-            int chosenTier = 0;
-            for (int tier = 0; tier < tally.Length; tier++)
+            var chosen = ladder[0];
+            for (int tier = 0; tier < ladder.Length; tier++)
             {
                 if (tally[tier] == 0)
                 {
                     continue;
                 }
 
-                if (roll < weights[tier])
+                int weight = odds.Of(ladder[tier]);
+                chosen = ladder[tier];
+                if (roll < weight)
                 {
-                    chosenTier = tier;
                     break;
                 }
 
-                roll -= weights[tier];
-                chosenTier = tier;
+                roll -= weight;
             }
 
             var tierPool = new List<CampOffer>();
             foreach (var offer in pool)
             {
-                if ((int)offer.Rarity == chosenTier)
+                if (offer.Rarity == chosen)
                 {
                     tierPool.Add(offer);
                 }
