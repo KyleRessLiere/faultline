@@ -166,14 +166,20 @@ public class BreakableBlockerTests
     // ---- what it costs to break one ----------------------------------------------------------
 
     [Fact]
-    public void SixHitPoints_IsThreeSpearThrusts_OrOneCollisionAndOne()
+    public void SixHitPoints_IsThreeSpearThrusts_OrExactlyOneCollision()
     {
         // The arithmetic the ruling turns on, read off the constants rather than retyped: an attack
-        // chips masonry for a flat 2 whatever swung it (D-060), a collision lands its full 4.
+        // chips masonry for a flat 2 whatever swung it (D-060), and a collision takes a structure's
+        // 6 — more than the 4 it costs a body, because masonry is what a slam is for (D-186).
         Assert.Equal(2, Objectives.AttackDamageToStructure);
+        Assert.Equal(6, Displacement.StructureCollisionDamage);
         Assert.Equal(4, Displacement.CollisionDamage);
-        Assert.Equal(6, (3 * Objectives.AttackDamageToStructure));
-        Assert.Equal(6, Displacement.CollisionDamage + Objectives.AttackDamageToStructure);
+
+        // Three swings from anybody, or one slam. §8.8 asks broken-bridge for exactly this — "one
+        // collision opens a crossing, attacks chip it" — and until D-186 it was a slam PLUS a swing,
+        // which is a different board: it made the shove an opener rather than an answer.
+        Assert.Equal(6, 3 * Objectives.AttackDamageToStructure);
+        Assert.Equal(6, Displacement.StructureCollisionDamage);
     }
 
     [Fact]
@@ -194,8 +200,17 @@ public class BreakableBlockerTests
         Assert.Equal(4, result.NewState.StructureAt(new Coord(1, 0))!.Hp);
     }
 
+    /// <summary>
+    /// One slam opens the crossing, which is what §8.8 asks broken-bridge for in so many words:
+    /// "6 HP breakable blockers — one collision opens a crossing, attacks chip it".
+    /// </summary>
+    /// <remarks>
+    /// This asserted hit points until D-186, when a structure collision became 6 and the blocker
+    /// stopped surviving one. Asserting the rubble rather than the arithmetic is the better test
+    /// anyway: what the board promises a player is a way through, not a number going down.
+    /// </remarks>
     [Fact]
-    public void ShovingAUnitIntoABlocker_TakesTheFullCollisionOffIt()
+    public void ShovingAUnitIntoABlocker_BringsItDownInOne_AndOpensTheTile()
     {
         var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Vanguard, 3, 0)
@@ -213,7 +228,10 @@ public class BreakableBlockerTests
             events,
             by: state.Find(UnitKind.Vanguard).Id);
 
-        Assert.Equal(6 - Displacement.CollisionDamage, state.StructureAt(new Coord(1, 0))!.Hp);
+        // Six hit points, one collision worth six: the masonry is rubble and the tile is walkable.
+        Assert.Equal(6, Displacement.StructureCollisionDamage);
+        Assert.Null(state.StructureAt(new Coord(1, 0)));
+        Assert.Contains(events, e => e is StructureDestroyed);
     }
 
     // ---- helpers -----------------------------------------------------------------------------

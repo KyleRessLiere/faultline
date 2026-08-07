@@ -235,27 +235,22 @@ public class CuratedSetBoardTests
     }
 
     /// <summary>
-    /// MASTER_DESIGN §8.8's anti-drag rule, and the one place it does not close.
+    /// MASTER_DESIGN §8.8's anti-drag rule, which now closes on both halves.
     /// </summary>
     /// <remarks>
     /// The rule is "gate 24 → 18 HP, and three clean structure collisions end the fight (attacks deal
-    /// 2, so nine direct actions is the costly baseline)". The baseline half is exactly right. The
-    /// collision half needs a structure collision of <b>6</b> — which is what §7 prices it at
-    /// ("collisions deal full damage (6 typical)"), what §2's price-gap line says ("collision 6 vs
-    /// attack 2 on structures"), and what §8.9 prints on the Rushmaster's Work Bells. The shipped
-    /// constant is <see cref="Displacement.CollisionDamage"/> = 4, so as built the fast route is five
-    /// collisions. <b>This test states the drift rather than blessing it</b> (DECISIONS.md D-166): the
-    /// day the constant moves to 6 it goes red and is deleted, not edited.
+    /// 2, so nine direct actions is the costly baseline)". Both numbers are read off the constants
+    /// rather than retyped, so the board and the rule cannot drift apart again. The collision half
+    /// was five rather than three until D-186 gave structures their own collision price of 6 — the
+    /// number §7, §2 and §8.9's Work Bells all already printed.
     /// </remarks>
     [Fact]
-    public void BreakTheGate_AntiDrag_CostsNineAttacksAsDesigned_ButFiveCollisionsRatherThanThree()
+    public void BreakTheGate_AntiDrag_IsNineAttacksOrThreeCollisions_AsDesigned()
     {
         var gate = Game.Start(FightLibrary.ById("break-the-gate"), seed: 4242).NewState.Structures.Single();
 
         Assert.Equal(9, Ceiling(gate.MaxHp, Objectives.AttackDamageToStructure));
-
-        Assert.Equal(3, Ceiling(gate.MaxHp, 6));
-        Assert.Equal(5, Ceiling(gate.MaxHp, Displacement.CollisionDamage));
+        Assert.Equal(3, Ceiling(gate.MaxHp, Displacement.StructureCollisionDamage));
     }
 
     private static int Ceiling(int total, int each) => (total + each - 1) / each;

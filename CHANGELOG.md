@@ -1,5 +1,21 @@
 # Changelog
 
+## A slam hurts masonry more than it hurts a duck
+
+- **A structure collision deals 6; a body collision still deals 4.** They were always two numbers —
+  the design prices them apart in three places — and one constant doing both jobs is what stopped
+  the Warrens' arithmetic closing (D-186, closing D-166's flagged drift).
+- **Break the Gate is three clean collisions again**, as §8.8 asks, or nine swings as the costly
+  baseline. It was five, and the evidence that settled it was a measurement rather than an argument:
+  a certification sweep left the gate at **18/18 in every round of every run of all four policies**.
+  No policy ever judged it worth hitting, so a Destroy board was only winnable by clearing the field
+  — the kill-all win §7 says Destroy does not have.
+- **Broken Bridge's blockers open in one slam**, not a slam plus a swing, which is the difference
+  between the shove being an answer and being an opener.
+- Three tests changed subject rather than numbers: a 16-point structure is three slams and not four,
+  and a 6-point blocker is now rubble rather than a damaged wall — so they assert the rubble and a
+  derived count instead of a typed number that would rot at the next price change.
+
 ## The preview stops shoving corpses, and High Road finally pays what it promised
 
 - **A preview now resolves in the order the action does.** The projection aimed its shove at the

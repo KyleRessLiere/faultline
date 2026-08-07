@@ -261,12 +261,12 @@ public class QuickReferenceTests
         Assert.Equal(2, Objectives.AttackDamageToStructure);
     }
 
-    // A collision into a structure lands full collision damage (GAMEPLAY.md's Objectives section:
-    // "a collision lands its full 4"); Core does not carry a separate structure-collision constant,
-    // it reuses Displacement.CollisionDamage — pinned above already, cross-checked here by name.
+    // A collision into a structure lands 6, not the 4 a body takes — masonry is what a slam is for,
+    // and one constant doing both jobs is what stopped §8.8's gate arithmetic closing (D-186).
     [Fact]
-    public void QuickReference_StructureCollisionDamage_ReusesCollisionDamage()
+    public void QuickReference_StructureCollision_CostsMoreThanABodyCollision()
     {
+        Assert.Equal(6, Displacement.StructureCollisionDamage);
         Assert.Equal(4, Displacement.CollisionDamage);
     }
 

@@ -417,11 +417,11 @@ public class ConsumableTests
         state = state.WithPocket(duck, Consumable.CrateOfDebris);
 
         Assert.Equal(0, state.Fight.BlockerHp);
-        Assert.Equal(Displacement.CollisionDamage, Consumables.DebrisHp(state));
+        Assert.Equal(Displacement.StructureCollisionDamage, Consumables.DebrisHp(state));
 
         var after = state.Then(new UseConsumableCommand(duck, null, new Coord(1, 0)));
 
-        Assert.Equal(Displacement.CollisionDamage, after.StructureAt(new Coord(1, 0))!.Hp);
+        Assert.Equal(Displacement.StructureCollisionDamage, after.StructureAt(new Coord(1, 0))!.Hp);
     }
 
     [Fact]
@@ -458,11 +458,16 @@ public class ConsumableTests
             state, husk, new Coord(3, 0), DisplacementKind.Push, 2, events, by: vanguard);
 
         Assert.Equal(
-            Displacement.CollisionDamage,
+            Displacement.StructureCollisionDamage,
             events.OfType<StructureDamaged>().Single().Amount);
-        Assert.Equal(BoardBlockerHp - Displacement.CollisionDamage, after.StructureAt(tile)!.Hp);
 
-        // And the shove stopped on it rather than travelling through.
+        // This board's masonry is 6 and a structure collision is 6, so one slam is exactly enough:
+        // the crate is rubble rather than a damaged wall (D-186).
+        Assert.Equal(BoardBlockerHp, Displacement.StructureCollisionDamage);
+        Assert.Null(after.StructureAt(tile));
+
+        // And the shove still stopped ON it rather than travelling through — the crate did its job
+        // on the way down, which is the whole point of throwing one in front of a shove.
         Assert.Equal(new Coord(2, 0), after.Get(husk).Position);
     }
 

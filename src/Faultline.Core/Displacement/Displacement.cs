@@ -10,8 +10,30 @@ namespace Faultline.Core
     /// </summary>
     public static class Displacement
     {
-        /// <summary>Damage each party takes from a collision.</summary>
+        /// <summary>Damage each party takes from a collision between two bodies.</summary>
         public const int CollisionDamage = 4;
+
+        /// <summary>
+        /// Damage a <see cref="Structure"/> takes from a collision — more than a body takes, because
+        /// masonry is what a slam is <em>for</em> (MASTER_DESIGN §2 "collision 6 vs attack 2 on
+        /// structures", §7 "collisions deal full damage (6 typical)", §8.9's Work Bells).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This was <see cref="CollisionDamage"/> until D-186, and one constant doing both jobs is
+        /// what made the design's arithmetic fail to close: §8.8 prices break-the-gate at 18 hit
+        /// points so that <b>three clean collisions</b> end it and nine direct attacks are the costly
+        /// baseline. The attack half closed exactly at 2 a swing; the collision half needed 6 and had
+        /// 4, so the fast route cost five slams and no evaluator policy ever judged the gate worth
+        /// hitting — it recorded 18/18 in every run of every policy.
+        /// </para>
+        /// <para>
+        /// Bodies are unchanged at <see cref="CollisionDamage"/>. The asymmetry is the point: a slam
+        /// hurts a duck a fixed amount and hurts a wall more, which is what makes the board an answer
+        /// to masonry rather than a slower sword.
+        /// </para>
+        /// </remarks>
+        public const int StructureCollisionDamage = 6;
 
         /// <summary>Damage from being displaced onto spikes.</summary>
         public const int SpikeDamage = 6;
@@ -857,15 +879,16 @@ namespace Faultline.Core
                     break;
                 }
 
-                // An objective structure blocks its tile exactly as a unit does, and takes the same 4
-                // for it. Collision is physics, not a rule about who is attackable: it is the one way
-                // to hurt a Destroy structure, and the reason a Protect structure is dangerous to
-                // fight next to (DECISIONS.md D-033).
+                // An objective structure blocks its tile exactly as a unit does — but takes MORE for
+                // it than a body would (D-186). Collision is physics, not a rule about who is
+                // attackable: it is the one way to hurt a Destroy structure, and the reason a Protect
+                // structure is dangerous to fight next to (DECISIONS.md D-033). The body that hit it
+                // still takes the ordinary CollisionDamage, inside Collide.
                 var structure = state.StructureAt(next);
                 if (structure is not null)
                 {
                     Collide(sim, target, null);
-                    sim.StructureHits.Add(new StructureHit(next, CollisionDamage));
+                    sim.StructureHits.Add(new StructureHit(next, StructureCollisionDamage));
                     break;
                 }
 

@@ -166,7 +166,7 @@ namespace Faultline.Core
         public static int DebrisHp(GameState state) =>
             state is not null && state.Fight.BlockerHp > 0
                 ? state.Fight.BlockerHp
-                : Displacement.CollisionDamage;
+                : Displacement.StructureCollisionDamage;
 
         /// <summary>
         /// Empties the pocket and applies what came out. The caller has already established that the

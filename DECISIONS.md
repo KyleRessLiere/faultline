@@ -188,10 +188,11 @@ in this file when the question comes back.
 | D-165 | [Every act-1 combat board is 7x7, and nothing else is re-cut. This supersedes D-153's hold.](#d-165-every-act-1-combat-board-is-7x7-and-nothing-else-is-re-cut-this-supersedes-d-153s-hold) | 2026-08-06 |  |
 | D-166 | [A structure collision deals 4, MASTER_DESIGN prices it at 6 in three places, and the boards are authored to the design's numbers with the constant left alone.](#d-166-a-structure-collision-deals-4-masterdesign-prices-it-at-6-in-three-places-and-the-boards-are-authored-to-the-designs-numbers-with-the-constant-left-alone) | 2026-08-06 |  |
 | D-167 | [A `protect` board cannot be won by its own clock, and the-shrine ships as "clear the lanes in eight" rather than "hold the shrine for eight".](#d-167-a-protect-board-cannot-be-won-by-its-own-clock-and-the-shrine-ships-as-clear-the-lanes-in-eight-rather-than-hold-the-shrine-for-eight) | 2026-08-06 |  |
-| D-184 | [A projection resolves in the order the action does, so the shove is aimed at whoever the blow left standing.](#d-184-a-projection-resolves-in-the-order-the-action-does-so-the-shove-is-aimed-at-whoever-the-blow-left-standing) | unreleased |  |
-| D-185 | [Free movement a legendary owes is neither half of the activation, and declining it is a command.](#d-185-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-declining-it-is-a-command) | unreleased |  |
+| D-184 | [A projection resolves in the order the action does, so the shove is aimed at whoever the blow left standing.](#d-184-a-projection-resolves-in-the-order-the-action-does-so-the-shove-is-aimed-at-whoever-the-blow-left-standing) | 2026-08-07 |  |
+| D-185 | [Free movement a legendary owes is neither half of the activation, and declining it is a command.](#d-185-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-declining-it-is-a-command) | 2026-08-07 |  |
+| D-186 | [A structure collision deals 6, a body collision still deals 4, and they are two constants because they were always two numbers.](#d-186-a-structure-collision-deals-6-a-body-collision-still-deals-4-and-they-are-two-constants-because-they-were-always-two-numbers) | unreleased |  |
 
-**171 rulings.**
+**172 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4432,3 +4433,37 @@ Free of the *economy* is not free of the *terrain*, and the two were never the s
 
 Every refusal names itself: owed no steps, not adjacent, unwalkable or occupied, or a duck that
 cannot step at all.
+
+
+---
+
+**D-186 - A structure collision deals 6, a body collision still deals 4, and they are two constants
+because they were always two numbers.**
+
+`Displacement.CollisionDamage` did both jobs. MASTER_DESIGN prices them apart in three places - §2's
+price-gap line ("collision 6 vs attack 2 on structures"), §7's standing structure rules ("collisions
+deal full damage (6 typical)"), and §8.9's Work Bells - and §3 separately prices a body collision at
+"4 + Stagger". One constant could not be both, and the code kept the body's number.
+
+**This resolves D-166's flagged drift**, and the evidence that settled it is a measurement rather
+than an argument. §8.8 prices break-the-gate at 18 so that **three clean collisions** end it, with
+nine direct attacks as the costly baseline. The attack half closed exactly at 2 a swing. The
+collision half wanted 6 and had 4, so the fast route cost five slams - and the certification sweep
+recorded the gate at **18/18 in every round of every run of all four evaluator policies**. No policy
+ever judged the gate worth hitting, so a Destroy board was only ever won by clearing the field,
+which is the kill-all win §7 says Destroy does not have.
+
+**Two boards get the shape they were authored for.** break-the-gate is three collisions or nine
+swings. broken-bridge's 6-point blockers now open **in one slam** - "one collision opens a crossing,
+attacks chip it" is §8.8's own sentence, and until now it was a slam *plus* a swing, which made the
+shove an opener rather than an answer.
+
+**Bodies are untouched at 4**, and the asymmetry is the point: a slam hurts a duck a fixed amount and
+hurts masonry more. That is what makes the board an answer to a wall rather than a slower sword.
+`Consumables.DebrisHp` follows the structure number for the same reason - "one collision's worth" was
+always its intent, and it now means what it says.
+
+**What it cost:** eight tests moved off the body constant. Three were rewritten rather than
+repointed, because their subject changed - a 16-point structure is three slams and not four, and a
+6-point blocker is now rubble rather than a damaged wall, so they assert the rubble and the derived
+count instead of a typed number that would rot at the next price change.

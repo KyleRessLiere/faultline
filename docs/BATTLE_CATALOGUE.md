@@ -124,7 +124,7 @@ Warrens node 3, edition A - DRAINS/STRUCTURES (MASTER_DESIGN 8.8). The one quest
 Six-hit-point breakable blockers, and NO class is required to open one. Any attack chips masonry for 2 whatever the weapon (D-060), so three swings from anybody opens a crossing; a collision lands more in one go, so shoving a Husk into the barricade is the fast route and hurts the Husk as much as the wall; the Fisher's Reel does it as a drag rather than a shove. Four ways in, priced differently - gradients, not lock-and-key.
 
 
-MASTER_DESIGN 7 prices a structure collision at 6, which would open a crossing in a single slam. The shipped constant is Displacement.CollisionDamage = 4, so today one slam plus one swing does it. The gap is recorded in DECISIONS D-166 rather than papered over here.
+ONE SLAM OPENS A CROSSING. A structure collision deals 6 and these blockers hold 6, so a shove is a single clean answer and three swings from anybody is the patient one (D-186). It took a slam PLUS a swing while structures and bodies shared a collision constant, which made the shove an opener rather than an answer - a different board than the one 8.8 asks for.
 
 
 This board used to be two boards. The trench row leaves exactly two open tiles and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
@@ -284,7 +284,7 @@ Warrens node 6, edition A - STRUCTURE/WAVES/AMMUNITION (MASTER_DESIGN 8.8). The 
 GATE 18 HP, down from 24, and it is the anti-drag rule rather than a difficulty knob. Any attack chips masonry for 2 whatever the weapon (D-060), so nine direct actions is the costly baseline that always exists and always works; the intended fast route is three clean structure collisions. Do not raise the hit points until human wins routinely finish before round 5 with threats unresolved.
 
 
-THE ARITHMETIC DOES NOT CLOSE TODAY. Three clean collisions into 18 requires a structure collision to deal 6, which is what MASTER_DESIGN 7 prices it at ("collisions deal full damage (6 typical)") and what 8.9 prints on the Rushmaster's Work Bells. The shipped constant is Displacement.CollisionDamage = 4, so as built the fast route is five collisions, not three. The HP is authored at 18 as the design asks and the gap is recorded in DECISIONS D-166 - it is one constant, not a board problem.
+THE ARITHMETIC CLOSES ON BOTH HALVES. Nine direct actions at 2 a swing, or three clean structure collisions at 6 apiece - Displacement.StructureCollisionDamage, which is its own constant precisely so this board and the rule cannot drift apart again (D-186, closing D-166). It read five collisions while structures and bodies shared one number, and every evaluator policy left the gate at 18/18 rather than pay it.
 
 
 BOTH FLOCKS DEPLOY SOUTH of the gate, which is why the opposite-corners guideline is refused here. The gate is the far wall of the room, not a line between two armies, and the fight is the two flocks working the same door from the same side.

@@ -326,8 +326,10 @@ public class ObjectiveTests
 
         var damaged = result.Single<StructureDamaged>();
         Assert.Equal(DamageSource.Collision, damaged.Source);
-        Assert.Equal(4, damaged.Amount);
-        Assert.Equal(8, result.NewState.StructureAt(new Coord(2, 0))!.Hp);
+        Assert.Equal(Displacement.StructureCollisionDamage, damaged.Amount);
+        Assert.Equal(
+            12 - Displacement.StructureCollisionDamage,
+            result.NewState.StructureAt(new Coord(2, 0))!.Hp);
     }
 
     // ---- destroy <coords> -------------------------------------------------------------------
@@ -398,8 +400,8 @@ public class ObjectiveTests
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Vanguard).Id, state.Find(UnitKind.Husk).Id));
 
         var damaged = result.Single<StructureDamaged>();
-        Assert.Equal(4, damaged.Amount);
-        Assert.Equal(12, damaged.RemainingHp);
+        Assert.Equal(Displacement.StructureCollisionDamage, damaged.Amount);
+        Assert.Equal(16 - Displacement.StructureCollisionDamage, damaged.RemainingHp);
         Assert.Equal(DamageSource.Collision, damaged.Source);
         Assert.True(result.Has<Collision>());
     }
@@ -416,22 +418,31 @@ public class ObjectiveTests
         Assert.Equal(husk.Hp - 6, result.NewState.Get(husk.Id).Hp);
     }
 
+    /// <summary>
+    /// The slam count is derived from the constant, not typed — a 16-point structure was four
+    /// collisions and is three since D-186, and a test that spelled "four" would have to be edited
+    /// every time the price moves instead of simply continuing to be true.
+    /// </summary>
     [Fact]
-    public void Destroy_WinsOnTheFourthSlam()
+    public void Destroy_WinsOnTheSlamThatTakesTheLastHitPoint()
     {
-        var state = DestroyBoard(hp: 16);
+        const int hp = 16;
+        int each = Displacement.StructureCollisionDamage;
+        int slamsToWin = (hp + each - 1) / each;
+
+        var state = DestroyBoard(hp: hp);
         var at = new Coord(2, 0);
 
-        for (int slam = 1; slam <= 4; slam++)
+        for (int slam = 1; slam <= slamsToWin; slam++)
         {
             var events = new List<GameEvent>();
-            state = Objectives.Damage(state, at, Displacement.CollisionDamage, DamageSource.Collision, events);
+            state = Objectives.Damage(state, at, each, DamageSource.Collision, events);
             state = Objectives.Check(state, false, events);
 
-            if (slam < 4)
+            if (slam < slamsToWin)
             {
                 Assert.Equal(FightOutcome.InProgress, state.Outcome);
-                Assert.Equal(16 - (slam * 4), state.StructureAt(at)!.Hp);
+                Assert.Equal(hp - (slam * each), state.StructureAt(at)!.Hp);
             }
             else
             {
@@ -447,7 +458,7 @@ public class ObjectiveTests
         var state = DestroyBoard(hp: 4);
         var at = new Coord(2, 0);
 
-        state = Objectives.Damage(state, at, Displacement.CollisionDamage, DamageSource.Collision, new List<GameEvent>());
+        state = Objectives.Damage(state, at, Displacement.StructureCollisionDamage, DamageSource.Collision, new List<GameEvent>());
 
         Assert.Null(state.StructureAt(at));
         Assert.False(state.IsOccupied(at));

@@ -84,7 +84,8 @@ via the `footing:` key). Bulwark: hold aura caps displacement on adjacent allies
 | Protect (default) | 12 |
 | Destroy (default) | 16 |
 
-An attack takes **2** off a structure regardless of weapon; a collision takes **4**.
+An attack takes **2** off a structure regardless of weapon; a collision takes **6** — more than
+the **4** it costs a body, because masonry is what a slam is for (D-186).
 
 ### Bedraggled — the downed return
 
@@ -1691,16 +1692,15 @@ and finally the turn limit.
 it is destroyed the tile clears — which can open a route. Protect defaults to 12 HP and Destroy to 16,
 both authorable — `break-the-gate` authors **18** (§8.8's anti-drag rule). **Every structure is
 attackable and an attack takes exactly 2 off it**, whatever the weapon and whoever swung it (D-060);
-**a collision lands its full 4**, so the board stays the better answer without being the only one.
+**a collision lands 6**, so the board stays the better answer without being the only one.
 Because collision is universal physics, shoving an enemy into a structure you are guarding damages it
 too.
 
-> **Known drift: a structure collision should be 6, and ships as 4.** MASTER_DESIGN says so in three
-> places — §2's price-gap line ("collision 6 vs attack 2 on structures"), §7's standing-structure
-> rules ("collisions deal full damage (6 typical)") and §8.9's Work Bells ("a structure collision
-> deals 6"). At 4, break-the-gate's "three clean structure collisions end the fight" is five, and
-> broken-bridge's "one collision opens a crossing" is a collision and a swing. The boards are authored
-> to the design's numbers and the constant is not changed here (D-166).
+**The two collisions are two constants** (D-186). `Displacement.CollisionDamage` is 4 and is what a
+*body* takes; `Displacement.StructureCollisionDamage` is 6 and is what *masonry* takes. One constant
+doing both jobs is what stopped §8.8's arithmetic closing: break-the-gate is **three** clean
+collisions or nine swings, and broken-bridge's 6-point blockers open in **one** slam rather than a
+slam plus a swing.
 
 In practice only two things a player has reach masonry at all: a **collision**, and the Wardbearer's
 **Spear Thrust**, which is the only attack aimed at a tile rather than at a unit. A basic attack
