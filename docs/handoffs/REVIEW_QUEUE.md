@@ -6,6 +6,23 @@ move the ruling into `DECISIONS.md` where it belongs.
 
 ---
 
+## Blocked on a designer's yes — ranked
+
+Nothing below this heading can be settled in the repo. Everything else in this file is either a call
+already made (reversibly, with reasoning) or a question engineering can answer for itself.
+
+| # | Question | What it blocks | Where |
+|---|---|---|---|
+| 1 | **The card pool has no Rare tier.** Zero cards declare `CardRarity.Rare`; the widest per-class Uncommon-or-Rare pool is 1. | **Stage D3 entirely.** The Forge and Deep Forge are stubbed and say so on screen. No amount of engineering unblocks it — it is content. | §8.6 |
+| 2 | **Should `Threat.DamageRound1` see a displacement-only enemy?** A Grappler's `Damage` is 0, so a board that opens by slamming your Archer into your own Wardbearer reads as safe. | Every board's agency check. High Road is the first board it cost, and it cost the whole board. Undecided in GAMEPLAY since D-080. | D-187 |
+| 3 | **The camp deals half the cards it used to** — one table of two, one pick. The ruling was about legibility; the halving was a side effect nobody asked for. | Act 1's whole progression rate: 8 cards → 4. | D-154 |
+| 4 | **Multi-tile structures get a full HP pool per tile.** §7 says they share one; the code would build a 3-tile 24-HP gate as 72. | Latent — every live board is single-tile. Fires the first time a board wants a wide gate. | A2 |
+| 5 | **A Destroy board can still be won by clearing the field**, which §7 says it cannot. `break-the-gate` dodges it by geometry, not by rule. | The next Destroy board, which will not have a convenient wall. | D-167 |
+| 6 | **§8.6 contradicts itself about technique hosts** — the heading says all 24 are hosted on a named ability; the card text names one for 3 of 8. Sockets ship per-duck. | The socket model, and every future modifier. | D-158 |
+| 7 | **MASTER_DESIGN lists Steady Hands as DELETED in (w)**, while `Unlock.SteadyHands` is live and is the only thing making a rescue cost 2 instead of the full pool. | Rescue pricing. | — |
+
+---
+
 ## Calls made to keep moving
 
 ### cb-06's removed Husk stays at `(7,2)` — not re-aimed to `(1,2)`
@@ -33,19 +50,17 @@ stays on `AgencyTests.KnownUnsafe` either way.
 
 ## Stage C1 — Warrens edition A
 
-### A structure collision deals 4; the design prices it at 6, and two published board rules need 6
+### ~~A structure collision deals 4~~ — RULED, D-186
 
-D-166. `break-the-gate`'s anti-drag rule ("three clean structure collisions end the fight" against 18
-HP) and `broken-bridge`'s "one collision opens a crossing" (6 HP blockers) are the same arithmetic
-twice, and both close at 6 and at no other number. MASTER_DESIGN says 6 in §2, §7 and §8.9;
-`Displacement.CollisionDamage` is 4 and is applied to structures by the same line that applies it to
-units. **The boards are authored to 18 and 6 as the design asks; the constant was not touched.** As
-shipped the gate is five collisions and a crossing is a slam plus a swing.
+Closed. A structure collision is its own constant at **6**
+(`Displacement.StructureCollisionDamage`); a body collision stays at **4**. break-the-gate is three
+clean collisions or nine swings, and broken-bridge's blockers open in one slam, both as §8.8 prices
+them.
 
-**This is the one thing on this list that is a rules question rather than a board question**, it is a
-one-constant change, and it needs a designer's yes: does a structure collision deal 6 while unit and
-wall collisions stay at 4? Two tests assert the designed number and the shipped number side by side
-so the change is red-then-delete rather than red-then-edit.
+What settled it was a measurement rather than an argument: the certification sweep recorded the gate
+at **18/18 in every round of every run of all four policies**. No policy ever judged it worth
+hitting, so a Destroy board was only winnable by clearing the field. Both boards' design lines and
+the catalogue were updated with the ruling (D-092).
 
 ### A Destroy board can still be won by clearing the board
 
@@ -106,13 +121,15 @@ The ×2 paragraph is in neither `docs/MASTER_DESIGN.md` nor the designer's live 
 "a ruling not reflected here is not final" — the doubling is shipped but not formally ruled.
 D-104 says so rather than papering over it. Designer action, not a repo one.
 
-### v1's map has no visible stakes
+### ~~v1's map has no visible stakes~~ — PAID, D2
 
-The promise rule says render only what v1 can pay, so `high-road`'s gilt edge and its 1-of-2
-legendary pick stay hidden until the legendary session ships. Correct — never promise what the game
-cannot grant — but the consequence is that Act 1's **only** differentiated destination is invisible,
-so a route vote has nothing on screen to prefer one door over another. Worth knowing before playtest
-feedback says "the map choices feel arbitrary".
+Closed. The legendary destination shipped, so `RewardMark.Payable` is true for High Road's pick and
+the map draws the gilt, the promise and the prize by name. A route vote now has something on screen
+to prefer one door over another.
+
+**The rule it was testing is unchanged and still live**: the legendary *consumable* mark is typed,
+named and unpayable, and still draws silence rather than a smaller promise. Both directions are
+pinned by test, so "gild exactly when the game can pay" cannot rot in either direction.
 
 ### The camp now hands out half as many cards, and nobody asked for that
 
