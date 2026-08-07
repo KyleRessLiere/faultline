@@ -2,8 +2,8 @@ namespace Faultline.Core
 {
     /// <summary>
     /// A modification bolted onto a duck's spender (MASTER_DESIGN §8.6, the Modify pool). Three per
-    /// spender along the cheaper / stronger / economy axes; a duck may hold
-    /// <see cref="DuckLoadout.ModSlots"/> of them.
+    /// spender along the cheaper / stronger / economy axes; the spender's slot holds
+    /// <see cref="Kits.ModsPerSlot"/> of them, and loses them all if that slot is ever replaced.
     /// </summary>
     /// <remarks>
     /// The whole pool is here rather than one enum per spender, because a mod is drawn out of a

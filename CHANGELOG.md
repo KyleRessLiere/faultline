@@ -1,5 +1,22 @@
 # Changelog
 
+## A duck's kit is slots now, and the Wardbearer carries four of them
+
+- **Ability slots** (D-225): §4's kits become the *starting contents* of a fixed number of slots
+  rather than the definition of a class — 3 per duck, **4 for the Wardbearer, because his stance and
+  his spear are two halves of one job**. Every ceiling is counted in `Kits` and nowhere else.
+- **Three mods per ability, all classes** (D-226), counted per **slot** instead of the old two per
+  duck. A mod's host slot is derived from the card, so the ceiling costs no run state. The ability
+  bar's third socket is open and no longer labelled Deep Mastery's.
+- **A duck with no attack is legal** and nothing gates it: its stat block reads `AttackKind.None`, it
+  is offered no swing, and it still moves, spends Pluck, interacts and rescues.
+- **A rearranged kit rides in the save**; an untouched one writes nothing and reads back as the class
+  kit.
+- **Reported, not resolved:** "spender slot" and "ability slot" are two different axes and three of
+  the doc's reward cards grant the wrong one (D-227); forfeited mods currently return to the offers
+  and the alternative needs a run-long ledger (D-228); a duck's legendary epithet has never survived
+  a save (D-229).
+
 ## Boss down ends the fight, and the crowd's disappearance is something you watch
 
 - **A boss board has its own win condition** (D-222): `objective: boss` wins when the fight's boss

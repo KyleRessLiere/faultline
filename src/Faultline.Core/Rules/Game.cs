@@ -625,7 +625,7 @@ namespace Faultline.Core
 
                 // A spend costs neither half of the activation, so it is offered on its own terms
                 // rather than under the action gate above.
-                var spend = Verve.SpendFor(unit.Kind);
+                var spend = Verve.SpendFor(unit);
                 if (spend.HasValue && Verve.CanSpend(state, unit, spend.Value))
                 {
                     if (spend.Value == VerveSpend.Cast)

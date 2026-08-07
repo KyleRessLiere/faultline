@@ -298,12 +298,23 @@ namespace Faultline.Core
         /// <see cref="Enraged"/> is set, so every rule that asks a unit for its numbers — movement,
         /// damage, push resistance, the planner's dispatch — sees the swap at the same instant.
         /// </summary>
+        /// <remarks>
+        /// <b>A duck that has traded its basic attack away reads as having none</b>, here rather than
+        /// at each rule that asks. <see cref="AttackKind.None"/> is a shape the fight layer already
+        /// understands — targeting, the AI, the attack path and the objectives all check it, because
+        /// enemies without attacks exist — so trading the slot away needs no new refusal anywhere and
+        /// cannot be half-applied. §3: the game never decides what is useful, so nothing gates it.
+        /// </remarks>
         public UnitTemplate Template
         {
             get
             {
                 var template = UnitTemplate.For(Kind);
-                return Enraged && template.Enraged is not null ? template.Enraged : template;
+                template = Enraged && template.Enraged is not null ? template.Enraged : template;
+
+                return Kits.BasicFor(Kind) is { } basic && !Kits.Holds(Kind, Loadout, basic)
+                    ? template with { Attack = AttackKind.None, Damage = 0 }
+                    : template;
             }
         }
 

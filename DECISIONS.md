@@ -224,9 +224,14 @@ in this file when the question comes back.
 | D-222 | [RULED: the boss's death ends the fight, and the crowd's disappearance is a rendered beat.](#d-222-ruled-the-bosss-death-ends-the-fight-and-the-crowds-disappearance-is-a-rendered-beat) | 2026-08-07 |  |
 | D-223 | [RULED: clearing the board no longer wins under every objective; it wins the five that have nothing else to say about an empty board.](#d-223-ruled-clearing-the-board-no-longer-wins-under-every-objective-it-wins-the-five-that-have-nothing-else-to-say-about-an-empty-board) | 2026-08-07 |  |
 | D-224 | [RULED: Crew Cover's preview promises the collision the board is about to collect.](#d-224-ruled-crew-covers-preview-promises-the-collision-the-board-is-about-to-collect) | 2026-08-07 |  |
-| D-222 | [A Core phase with no screen is a bricked run, and this is the third time.](#d-222-a-core-phase-with-no-screen-is-a-bricked-run-and-this-is-the-third-time) | unreleased |  |
+| D-222 | [A Core phase with no screen is a bricked run, and this is the third time.](#d-222-a-core-phase-with-no-screen-is-a-bricked-run-and-this-is-the-third-time) | 2026-08-07 |  |
+| D-225 | [RULED: a duck's kit is slots holding data, and the Wardbearer's fourth slot is the first deliberate exception to "pools are grammar".](#d-225-ruled-a-ducks-kit-is-slots-holding-data-and-the-wardbearers-fourth-slot-is-the-first-deliberate-exception-to-pools-are-grammar) | unreleased |  |
+| D-226 | [RULED: mods are counted per slot, three per ability, not two per duck; and Deep Mastery now has nothing left to raise.](#d-226-ruled-mods-are-counted-per-slot-three-per-ability-not-two-per-duck-and-deep-mastery-now-has-nothing-left-to-raise) | unreleased |  |
+| D-227 | [OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of the eight built techniques hang on neither.](#d-227-open-reported-not-resolved-spender-slot-and-ability-slot-are-two-axes-and-five-of-the-eight-built-techniques-hang-on-neither) | unreleased |  |
+| D-228 | [OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.](#d-228-open-implemented-one-way-behind-a-named-seam-forfeited-mods-return-to-the-runs-offers) | unreleased |  |
+| D-229 | [FOUND, not fixed: a duck's legendary epithet does not survive a save.](#d-229-found-not-fixed-a-ducks-legendary-epithet-does-not-survive-a-save) | unreleased |  |
 
-**206 rulings.**
+**211 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5618,3 +5623,144 @@ Named in the test rather than hidden.
 **One thing was reused rather than copied.** `CampFlow` was already generic over "pick one of N,
 confirm, change your mind" - only its `Begin` knew what a camp was. It takes a count now, so the
 destination runs the same ceremony instead of a second copy with its own off-by-one bugs.
+
+---
+
+**D-225 — RULED: a duck's kit is slots holding data, and the Wardbearer's fourth slot is the first
+deliberate exception to "pools are grammar".**
+
+The designer locked 3 ability slots per duck, **except the Wardbearer, who has 4**, with the reason
+attached: *"the Wardbearer carries four; his stance and his spear are two halves of one job."* §4
+prints Spear Thrust and Guard Stance as one *"per activation choose"* line — one kit entry wearing
+two names. Slots cannot hold a choice, so the choice becomes two slots, and the fourth is what lets
+his kit hold what every other class holds in three. §4 also gives every class a basic attack and §5
+gives each one spender, which is what makes the other three exactly 3: basic + action + spender.
+
+**This is a deliberate exception to §3's "pools are grammar… differentiation lives in ACTION COSTS
+and EARNED upgrades, never in base pools", and it is the first one.** Flagged as such rather than
+absorbed quietly: the exception's cost is that a future reader can cite it for per-class slot counts
+generally. It is not that licence. A second exception needs its own ruling and its own reason written
+beside this one in `Kits.WardbearerSlots`, which is why the reason lives on the constant rather than
+in a commit message.
+
+**§4 is inbound-only, so the sentence could not be written there.** It is written into GAMEPLAY.md
+and here instead, and the designer is asked to carry it into the next stamp — a slot count without
+its reason attached is exactly the thing this entry exists to prevent.
+
+**The intended consequence is legal and is not gated.** Spear Thrust and Guard Stance are separate
+slots, so the Wardbearer may drop Guard Stance and keep the spear — the tank may trade away the
+tanking. §3: *"the game never decides what is useful… mistakes and unorthodox plays belong to the
+player."* The confirm surface must say so plainly; `Kits.LossesFrom` supplies the sentence.
+
+**Rejected: hardcoding the kit and adding a "replaced" flag per class.** §4's kits were the
+*definition* of a class in the shipped code — `AbilityDefinition.ByKind`, `Verve.SpendFor(kind)` and
+`UnitTemplate.For(kind)`, three registries keyed by archetype. A flag beside each would have put the
+question "what can this duck do?" in four places. Slots make §4 the *starting contents* and leave one
+question in one place. The three registries still hold the definitions; what changed is that
+`Abilities.AllOf`, `Verve.SpendFor(Unit)` and `Unit.Template` now ask the duck's slots which of them
+it still owns.
+
+**An empty slot list means "the class kit, untouched".** A loadout does not know its duck's archetype
+and cannot fill itself in, so the list is materialised only when surgery first happens. That keeps a
+fresh duck `IsEmpty`, keeps a pre-slots save readable, and means the save writes a kit only for a
+duck whose kit actually changed.
+
+**A duck with no attack is legal, and it needed no new refusal.** `AttackKind.None` was already a
+shape the fight layer understood — enemies without attacks exist, so targeting, the AI, the attack
+path and the objectives all check it. `Unit.Template` reports it when the basic-attack slot is gone,
+which is one place rather than at each rule, so the state cannot be half-applied.
+
+---
+
+**D-226 — RULED: mods are counted per slot, three per ability, not two per duck; and Deep Mastery now
+has nothing left to raise.**
+
+The designer locked **3 mods per ability, all classes**. The shipped model was `DuckLoadout.ModSlots
+= 2` — two mods per **duck**, bolted to "the spender" — because each duck had exactly one moddable
+ability, so per-spender and per-duck were the same number. They are not the same number once a duck
+has slots: the Wardbearer may now carry three on Preen and three more on Guard Stance's techniques.
+
+**A mod's host slot is derived from the card, never stored beside it.** `Kits.HostOf(Mod)` reads the
+spender the mod bolts onto; `Kits.HostOf(TechniqueModifier)` reads the host §8.6 names. So the
+per-slot ceiling, the forfeit-on-replacement rule and the never-offer-a-mod-for-an-unowned-ability
+filter all cost **no new run state and no new save field** — the only state the slot system added is
+the slot list itself.
+
+**Consequence the designer should see: the spender-slot ceiling is now unreachable.** §8.6 prints
+exactly three mods per spender, and the ceiling is three, so the pool exhausts at the same number the
+cap stops at. The cap only ever bites for techniques. The test asserts the ceiling through
+`Kits.RefusalFor` rather than by fitting a fourth, because there is no fourth mod for any spender.
+
+**Consequence the designer must rule on: Deep Mastery is now inert.** §8.5's Molt reward *Deep
+Mastery (3rd mod slot)* existed to raise 2 → 3. Three is the starting ceiling now, so the reward
+either does nothing or grants a fourth — and the slot ruling says nothing may grant a mod beyond
+three. The Web shell's third socket, which rendered locked and said *"the third slot is Deep
+Mastery's, and Deep Mastery is a Molt reward"*, is open and unlabelled;
+`AllThreeSocketsAreOpen_AndNoneIsHeldBackForDeepMastery` pins that. **Not resolved here** — retiring
+or repricing a Molt reward is the designer's call.
+
+---
+
+**D-227 — OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of
+the eight built techniques hang on neither.**
+
+The kit-surgery ruling was checked against §8.5 and §8.6 as instructed, and the wording does not
+collide with the slot model — **it describes a different axis.** §8.5's *Fresh Slot Learn (3rd
+spender slot)*, §8.6's *Third Slot (spender slot 3)* and WATERLOGGED's *"occupies a spender slot"* all
+count **Pluck spenders**, of which §5 gives each class exactly one and which §8.5 says are fillable
+to three. The new ruling counts **ability slots**, of which a duck has 3 (Wardbearer 4). A duck's
+spender is one ability among its slots, so the two axes overlap without being the same.
+
+**What the designer must decide.** Under this model those three cards grant a *spender*, which needs
+an ability slot to sit in — so on a Vanguard at 3 slots, Fresh Slot Learn and Third Slot are grants
+that push him to 4, which the ruling forbids ("nothing may grant a slot beyond the class's count").
+Three of the doc's reward cards are therefore inert or illegal as written. Either the ability-slot
+count rises with them, or they become *replacements* rather than additions, or they retire. **None of
+those was assumed; nothing was built for them.**
+
+**And the hostless techniques.** §8.6's heading says all twenty-four modifiers are *"hosted on a named
+ability, 2 sockets each"* while the entries name a host for only three of the eight built — the
+contradiction D-158 recorded, which the slot model makes load-bearing rather than cosmetic. A
+technique with no host hangs on no slot, so it is **never forfeited by a replacement, never filtered
+by the owned-ability rule, and does not count against the per-slot three**; it is capped only by the
+old per-duck `DuckLoadout.TechniqueSlots` = 2. That is the honest reading of what the doc says, kept
+behind one named seam (`Kits.HostOf(TechniqueModifier)`) rather than resolved by assigning hosts
+nobody wrote.
+
+---
+
+**D-228 — OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.**
+
+The designer left this unruled and asked for one named seam and a statement of which way it went.
+**It went "returned", and by architecture rather than by choice.** §8.6's *"no named permanent
+appears twice in a run"* is implemented as `CampDirector.AnybodyHolds` — a question about what the
+squad **currently holds**, not a ledger of what the run has ever dealt. A mod stripped by a
+replacement is held by nobody, so the same rule that made it unique makes it eligible again.
+
+**So "gone" is not a flag flip.** It needs a record of everything the run has handed out, on
+`RunState`, carried by the save, and consulted by `CampDirector.Pool` beside `AnybodyHolds` — new run
+state, a new save field, and a **new meaning for an existing law**. That is too much to build on a
+guess, so it is not built. `Kits.ForfeitedModsReturnToTheOffers` names the seam and its doc names the
+ledger that would replace it; `AForfeitedMod_ReturnsToTheOffers_WhichIsTheUnruledSeam` asserts the
+behaviour so the answer cannot ship by accident.
+
+**What hangs on it:** returning makes replacement a **pivot** — trade an ability away, trade it back,
+re-earn its mods — and gone makes it **one-way**. That is a game-feel decision, so it is the
+designer's.
+
+---
+
+**D-229 — FOUND, not fixed: a duck's legendary epithet does not survive a save.**
+
+`DuckLoadout.Epithet` is part of `IsEmpty`, `Equals` and `GetHashCode`, but `RunSave.LoadoutText`
+never writes it and `ParseLoadout` has no case for it. A duck wearing a permanent legendary loses it
+across a reload — and because `Epithet` counts toward `IsEmpty`, a duck carrying *only* an epithet is
+written as the bare `-`. Destinations shipped shortly before this session (D-222) and this is the
+same class of defect: **Core grew a field and the save dropped it**, now for the fourth time (D-125,
+the camp, D-222, this).
+
+Found while adding the slot list to the same token, and **left alone** — it is outside this packet
+and a one-line fix in the wrong session is how the last three shipped. `RunPersistenceTests` builds
+its loadout fixture out of mods, a Second Wind, an unlock and a pocket and never an epithet, which is
+why nothing caught it; a round-trip test over a loadout carrying **one of everything** would have.
+The next session should fix both together.

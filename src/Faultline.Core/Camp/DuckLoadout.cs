@@ -29,17 +29,29 @@ namespace Faultline.Core
         private static readonly SecondWind[] NoWinds = new SecondWind[0];
         private static readonly Unlock[] NoUnlocks = new Unlock[0];
         private static readonly TechniqueModifier[] NoTechniques = new TechniqueModifier[0];
+        private static readonly KitEntry[] NoSlots = new KitEntry[0];
 
         /// <summary>A duck with nothing on it. The shared instance every fresh squad member gets.</summary>
         public static readonly DuckLoadout Empty = new DuckLoadout();
 
         /// <summary>
-        /// Mods a duck's one spender can hold. Two, with the third arriving only from the Molt's Deep
-        /// Mastery (MASTER_DESIGN §8.5) — which is not built, so two is the whole ceiling today.
+        /// What is in this duck's ability slots, in slot order — <b>empty while no surgery has
+        /// happened</b>, which reads as "the class's starting kit, untouched"
+        /// (<see cref="Kits.SlotsOf"/>).
         /// </summary>
-        public const int ModSlots = 2;
+        /// <remarks>
+        /// A loadout does not know its duck's archetype, so it cannot fill itself in with §4's kit and
+        /// does not try. The empty list is the honest statement of what a camp has changed, which is
+        /// also what keeps a fresh duck <see cref="IsEmpty"/> and a pre-slots save readable.
+        /// </remarks>
+        public IReadOnlyList<KitEntry> Slots { get; init; } = NoSlots;
 
-        /// <summary>Mods on this duck's spender, in the order they were taken.</summary>
+        /// <summary>Mods on this duck, in the order they were taken. Each hangs on one slot.</summary>
+        /// <remarks>
+        /// Which slot is <i>derived</i> from the card rather than stored beside it —
+        /// <see cref="Kits.HostOf(Mod)"/> — so the per-slot ceiling costs no run state and no save
+        /// field, and a mod cannot end up filed under a slot it does not modify.
+        /// </remarks>
         public IReadOnlyList<Mod> Mods { get; init; } = NoMods;
 
         /// <summary>Extra Pluck charge conditions, in the order they were taken.</summary>
@@ -54,21 +66,19 @@ namespace Faultline.Core
         public IReadOnlyList<TechniqueModifier> Techniques { get; init; } = NoTechniques;
 
         /// <summary>
-        /// Technique sockets a duck has. §8.6 says "2 sockets each" per hosted ability and then names
-        /// a host for only three of the eight built techniques, so the ceiling is counted per duck —
-        /// see <see cref="TechniqueDefinition"/> and D-158.
+        /// Sockets for the techniques §8.6 gives <b>no host ability</b>. Hosted cards are counted
+        /// against their slot (<see cref="Kits.ModsPerSlot"/>); the five hostless ones hang on the
+        /// duck rather than on any slot, and this is the only ceiling they have — see
+        /// <see cref="Kits.HostOf(TechniqueModifier)"/>, D-158 and D-227.
         /// </summary>
         public const int TechniqueSlots = 2;
-
-        /// <summary>True when every technique socket is taken.</summary>
-        public bool TechniquesAreFull => Techniques.Count >= TechniqueSlots;
 
         /// <summary>
         /// Pockets a duck has. <b>One, and it is an invariant rather than a starting number</b>
         /// (MASTER_DESIGN §8.5, locked q): the pocket is deliberate scarcity and not a progression
         /// axis, and §8.6's <i>Deep Pockets</i> was struck for contradicting it — struck, not
-        /// deferred (D-195). Unlike <see cref="ModSlots"/> and <see cref="TechniqueSlots"/>, which
-        /// name ceilings the Molt is designed to raise, nothing in the game may raise this one.
+        /// deferred (D-195). Unlike <see cref="Kits.ModsPerSlot"/> and <see cref="TechniqueSlots"/>,
+        /// which name ceilings the Molt is designed to raise, nothing in the game may raise this one.
         /// </summary>
         /// <remarks>
         /// It is a constant rather than a count because <see cref="Pocket"/> is a single optional
@@ -88,13 +98,13 @@ namespace Faultline.Core
         /// </summary>
         public Legendary? Epithet { get; init; }
 
-        /// <summary>True when this duck carries nothing at all.</summary>
+        /// <summary>
+        /// True when this duck carries nothing at all — and its kit is still the one its class
+        /// started with. A rearranged kit is something a camp did, so it counts.
+        /// </summary>
         public bool IsEmpty =>
             Mods.Count == 0 && SecondWinds.Count == 0 && Unlocks.Count == 0
-            && Techniques.Count == 0 && Pocket is null && Epithet is null;
-
-        /// <summary>True when every mod slot is taken, so no mod may be offered for this duck.</summary>
-        public bool SpenderIsFull => Mods.Count >= ModSlots;
+            && Techniques.Count == 0 && Slots.Count == 0 && Pocket is null && Epithet is null;
 
         /// <summary>Whether this duck's spender carries a mod.</summary>
         /// <param name="mod">Mod to look for.</param>
@@ -132,10 +142,9 @@ namespace Faultline.Core
                 throw new InvalidOperationException("That kit already carries " + technique + ".");
             }
 
-            if (TechniquesAreFull)
+            if (Kits.RefusalFor(this, technique) is { } refusal)
             {
-                throw new InvalidOperationException(
-                    "That kit is full: " + TechniqueSlots + " technique sockets is the ceiling.");
+                throw new InvalidOperationException(refusal);
             }
 
             return this with { Techniques = Append(Techniques, technique) };
@@ -152,10 +161,9 @@ namespace Faultline.Core
                 throw new InvalidOperationException("That spender already carries " + mod + ".");
             }
 
-            if (SpenderIsFull)
+            if (Kits.RefusalFor(this, mod) is { } refusal)
             {
-                throw new InvalidOperationException(
-                    "That spender is full: " + ModSlots + " mods is the ceiling until Deep Mastery.");
+                throw new InvalidOperationException(refusal);
             }
 
             return this with { Mods = Append(Mods, mod) };
@@ -200,6 +208,101 @@ namespace Faultline.Core
         /// <returns>The new loadout.</returns>
         public DuckLoadout WithEmptyPocket() => Pocket is null ? this : this with { Pocket = null };
 
+        /// <summary>
+        /// This loadout with one slot's contents swapped for something else, <b>forfeiting every mod
+        /// that hung on what left</b>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The forfeit is the price of the surgery and it is not optional: a mod names the thing it
+        /// modifies, so a mod whose host has gone is a rule about nothing.
+        /// </para>
+        /// <para>
+        /// <b>This is the seam the forfeited-mod ruling turns on</b> — see
+        /// <see cref="Kits.ForfeitedModsReturnToTheOffers"/>.
+        /// </para>
+        /// </remarks>
+        /// <param name="slot">Index into the duck's slots.</param>
+        /// <param name="taken">What goes into it.</param>
+        /// <param name="kit">The slots as they stand, from <see cref="Kits.SlotsOf"/>.</param>
+        /// <returns>The new loadout.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">There is no slot at that index.</exception>
+        public DuckLoadout Replacing(int slot, KitEntry taken, IReadOnlyList<KitEntry> kit)
+        {
+            if (kit is null)
+            {
+                throw new ArgumentNullException(nameof(kit));
+            }
+
+            if (slot < 0 || slot >= kit.Count)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(slot), slot, "That duck has " + kit.Count + " slots, so there is none at " + slot + ".");
+            }
+
+            var dropped = kit[slot];
+            var next = new KitEntry[kit.Count];
+            for (int i = 0; i < kit.Count; i++)
+            {
+                next[i] = i == slot ? taken : kit[i];
+            }
+
+            return Forfeiting(dropped) with { Slots = next };
+        }
+
+        /// <summary>This loadout with every mod that hung on one slot's contents stripped off.</summary>
+        /// <param name="dropped">What has left the slot.</param>
+        /// <returns>The new loadout.</returns>
+        public DuckLoadout Forfeiting(KitEntry dropped)
+        {
+            var mods = new List<Mod>(Mods.Count);
+            foreach (var mod in Mods)
+            {
+                if (Kits.HostOf(mod) != dropped)
+                {
+                    mods.Add(mod);
+                }
+            }
+
+            var techniques = new List<TechniqueModifier>(Techniques.Count);
+            foreach (var technique in Techniques)
+            {
+                if (Kits.HostOf(technique) != dropped)
+                {
+                    techniques.Add(technique);
+                }
+            }
+
+            return mods.Count == Mods.Count && techniques.Count == Techniques.Count
+                ? this
+                : this with { Mods = mods.ToArray(), Techniques = techniques.ToArray() };
+        }
+
+        /// <summary>Every mod and technique this loadout would forfeit if a slot's contents left.</summary>
+        /// <param name="dropped">What would leave the slot.</param>
+        /// <returns>Their display names, in the order they were taken.</returns>
+        public IReadOnlyList<string> ForfeitNames(KitEntry dropped)
+        {
+            var names = new List<string>();
+            foreach (var mod in Mods)
+            {
+                if (Kits.HostOf(mod) == dropped)
+                {
+                    names.Add(CampCatalogue.NameOf(mod));
+                }
+            }
+
+            foreach (var technique in Techniques)
+            {
+                if (Kits.HostOf(technique) == dropped)
+                {
+                    names.Add(CampCatalogue.NameOf(technique));
+                }
+            }
+
+            return names;
+        }
+
         /// <inheritdoc/>
         public bool Equals(DuckLoadout? other) =>
             other is not null
@@ -208,7 +311,8 @@ namespace Faultline.Core
             && Same(Mods, other.Mods)
             && Same(SecondWinds, other.SecondWinds)
             && Same(Unlocks, other.Unlocks)
-            && Same(Techniques, other.Techniques);
+            && Same(Techniques, other.Techniques)
+            && Same(Slots, other.Slots);
 
         /// <inheritdoc/>
         public override int GetHashCode()
@@ -235,6 +339,11 @@ namespace Faultline.Core
                 foreach (var technique in Techniques)
                 {
                     hash = (hash * 43) + (int)technique + 1;
+                }
+
+                foreach (var slot in Slots)
+                {
+                    hash = (hash * 53) + (int)slot + 1;
                 }
 
                 return hash;

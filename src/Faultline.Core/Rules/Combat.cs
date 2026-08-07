@@ -41,7 +41,7 @@ namespace Faultline.Core
 
             bool longDraw = attacker.Has(Mod.LongDraw)
                 && attacker.HasSpentVerve
-                && Verve.SpendFor(attacker.Kind) == VerveSpend.DoubleNock;
+                && Verve.SpendFor(attacker) == VerveSpend.DoubleNock;
 
             return longDraw && LongDrawRange > range ? LongDrawRange : range;
         }

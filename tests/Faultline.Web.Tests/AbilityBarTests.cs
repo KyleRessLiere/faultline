@@ -184,28 +184,25 @@ public sealed class AbilityBarTests
     }
 
     /// <summary>
-    /// The reconciliation the rebuild owes: the design draws three sockets and the capacity rule is
-    /// <see cref="DuckLoadout.ModSlots"/>, which is two until the Molt's Deep Mastery. Rendering
-    /// three and locking the last is how both stay true without the shell inventing a capacity.
+    /// The reconciliation the rebuild owed is over: the design drew three sockets and the capacity
+    /// rule was two, so the third was rendered locked and labelled Deep Mastery's. The kit-surgery
+    /// ruling made the capacity three (<see cref="Kits.ModsPerSlot"/>), so <b>all three are open and
+    /// nothing on the bar says Deep Mastery any more</b>. Deep Mastery itself is now a Molt reward
+    /// with nothing left to raise — flagged to the designer, not resolved here (D-226).
     /// </summary>
     [Fact]
-    public void TheThirdSocketIsLocked_AndSaysItIsDeepMasterys()
+    public void AllThreeSocketsAreOpen_AndNoneIsHeldBackForDeepMastery()
     {
         var sockets = AbilityCards.Sockets(Fresh(UnitKind.Threadcaster));
 
         Assert.Equal(AbilityCards.SocketsDrawn, sockets.Count);
-        Assert.Equal(DuckLoadout.ModSlots, sockets.Count(s => !s.Locked));
+        Assert.Equal(Kits.ModsPerSlot, sockets.Count(s => !s.Locked));
+        Assert.DoesNotContain(sockets, s => s.Locked);
 
-        var locked = sockets.Single(s => s.Locked);
-
-        Assert.Equal(AbilityCards.SocketsDrawn - 1, locked.Index);
-        Assert.Null(locked.Fitted);
-        Assert.Contains("Deep Mastery", locked.Note, StringComparison.Ordinal);
-
-        // And on screen, with the same sentence on the tooltip rather than a bare padlock.
+        // And on screen: no padlock, and the sentence that explained one is gone with it.
         string html = RenderBar(Fisher(out _));
-        Assert.Contains("socket locked", html, StringComparison.Ordinal);
-        Assert.Contains("Deep Mastery", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("socket locked", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Deep Mastery", html, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -224,7 +221,10 @@ public sealed class AbilityBarTests
 
         Assert.Null(sockets[1].Fitted);
         Assert.False(sockets[1].Locked);
-        Assert.True(sockets[2].Locked);
+
+        // The third is open now too — three per slot, all classes (D-226).
+        Assert.Null(sockets[2].Fitted);
+        Assert.False(sockets[2].Locked);
     }
 
     // ---- the name ---------------------------------------------------------------------------------

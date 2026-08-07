@@ -171,11 +171,12 @@ public sealed class CampScreenTests
             Loadout = DuckLoadout.Empty
                 .With(Mod.Heavier)
                 .With(Mod.Freight)
+                .With(Mod.Echo)
                 .WithPocket(Consumable.DriedMinnow),
         };
 
         var run = session.State.WithUnit(loaded);
-        Assert.True(run.FindUnit(vanguard.Id)!.Loadout.SpenderIsFull);
+        Assert.True(Kits.SlotIsFull(run.FindUnit(vanguard.Id)!.Loadout, KitEntry.WreckingWeight));
 
         // Core's own filter: nothing on this duck's list is a mod or a one-shot any more.
         var eligible = CampCatalogue.EligibleFor(run.FindUnit(vanguard.Id)!);
@@ -185,7 +186,9 @@ public sealed class CampScreenTests
         var lines = CampCards.DucksFor(run, Team.PlayerA);
         var line = lines.Single(l => l.Kind == UnitKind.Vanguard);
 
-        Assert.Contains("spender full", line.Reason);
+        // The slot is named, not "the spender": a duck has slots now, and which one filled up is the
+        // useful half of the sentence (D-225).
+        Assert.Contains(Naming.Of(VerveSpend.WreckingWeight) + " full at " + Kits.ModsPerSlot, line.Reason);
         Assert.Contains(CampCatalogue.NameOf(Consumable.DriedMinnow), line.Reason);
     }
 

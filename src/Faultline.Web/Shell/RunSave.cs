@@ -387,13 +387,21 @@ public sealed record RunSave
     }
 
     /// <summary>
-    /// What the camps gave one duck, as one space-free token: <c>m0,3|w1|u2|p4</c>, and a bare
+    /// What the camps gave one duck, as one space-free token: <c>m0,3|w1|u2|p4|s0,4,9</c>, and a bare
     /// <c>-</c> for a duck carrying nothing.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Positional and appended, like every field before it, so a record written before camps existed
     /// still reads — <see cref="ParseUnit"/> needs four and takes seven. Indices rather than names,
     /// because these are enum members and the file is not a document anybody edits by hand.
+    /// </para>
+    /// <para>
+    /// <b><c>s</c> is the duck's ability slots</b>, written only once surgery has changed them: an
+    /// absent <c>s</c> reads back as the class's starting kit, which is what an empty
+    /// <see cref="DuckLoadout.Slots"/> means everywhere else. Three saves have now shipped that
+    /// dropped a field Core had grown (D-125, the camp, D-222), so this one arrives with the state.
+    /// </para>
     /// </remarks>
     private static string LoadoutText(DuckLoadout loadout)
     {
@@ -408,6 +416,12 @@ public sealed record RunSave
         text.Append("|u").Append(Numbers(loadout.Unlocks));
         text.Append("|t").Append(Numbers(loadout.Techniques));
         text.Append("|p").Append(loadout.Pocket is { } pocket ? Number((int)pocket) : string.Empty);
+
+        if (loadout.Slots.Count > 0)
+        {
+            text.Append("|s").Append(Numbers(loadout.Slots));
+        }
+
         return text.ToString();
     }
 
@@ -421,6 +435,30 @@ public sealed record RunSave
         }
 
         return string.Join(",", parts);
+    }
+
+    /// <summary>The saved ability slots, or <c>null</c> when any entry is unreadable.</summary>
+    private static KitEntry[]? ParseSlots(string body)
+    {
+        var raw = body.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        if (raw.Length == 0)
+        {
+            return null;
+        }
+
+        var slots = new KitEntry[raw.Length];
+        for (int i = 0; i < raw.Length; i++)
+        {
+            if (!int.TryParse(raw[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+                || !Enum.IsDefined(typeof(KitEntry), value))
+            {
+                return null;
+            }
+
+            slots[i] = (KitEntry)value;
+        }
+
+        return slots;
     }
 
     private static DuckLoadout ParseLoadout(string token)
@@ -448,6 +486,20 @@ public sealed record RunSave
                     && Enum.IsDefined(typeof(Consumable), pocket))
                 {
                     loadout = loadout.WithPocket((Consumable)pocket);
+                }
+
+                continue;
+            }
+
+            if (kind == 's')
+            {
+                // All of the slots or none of them. The others are a bag where dropping one unknown
+                // member costs that member; this is an ordered kit of a fixed length, so a dropped
+                // entry would silently hand the duck a shorter kit than it saved — a class quietly
+                // losing a slot. An unreadable list falls back to the starting kit instead.
+                if (ParseSlots(body) is { } slots)
+                {
+                    loadout = loadout with { Slots = slots };
                 }
 
                 continue;

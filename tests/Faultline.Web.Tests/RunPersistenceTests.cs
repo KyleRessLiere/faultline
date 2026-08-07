@@ -244,6 +244,46 @@ public sealed class RunPersistenceTests
     }
 
     /// <summary>
+    /// <b>A rearranged kit is run state, so the save carries it.</b> Three saves have now shipped
+    /// that dropped a field Core had grown (D-125, the camp, D-222's destination); a duck that came
+    /// back from a reload with the class kit it had traded away would be the fourth, and the most
+    /// expensive, because nothing about it would look wrong.
+    /// </summary>
+    [Fact]
+    public void ADucksAbilitySlots_RideInTheSaveAndComeBackInOrder()
+    {
+        var run = Campaign.Start(CampaignLibrary.Faultline, Seed).NewState;
+        var ward = run.Squad.First(u => u.Kind == UnitKind.Wardbearer);
+        var kit = Kits.SlotsOf(ward.Kind, ward.Loadout);
+
+        // He trades Guard Stance away and keeps the spear — legal, and the point of the ruling.
+        int stance = kit.ToList().IndexOf(KitEntry.GuardStance);
+        var traded = run.WithUnit(ward with
+        {
+            Loadout = ward.Loadout.With(Mod.Thorough).Replacing(stance, KitEntry.StaggerShot, kit),
+        });
+
+        var text = RunSave.Of("0000000000000000005", traded).Render();
+
+        // Still one space-free token, so the positional unit line still parses.
+        var line = text.Split('\n').First(l => l.StartsWith("unit: " + ward.Id.Value + " ", StringComparison.Ordinal));
+        Assert.Equal(8, line.Split(' ').Length);
+        Assert.Contains("|s", line, StringComparison.Ordinal);
+
+        var read = RunSave.Parse(text)!.Restore();
+        var back = read.FindUnit(ward.Id)!;
+
+        Assert.Equal(traded.FindUnit(ward.Id)!.Loadout, back.Loadout);
+        Assert.Equal(KitEntry.StaggerShot, Kits.SlotsOf(back.Kind, back.Loadout)[stance]);
+        Assert.DoesNotContain(KitEntry.GuardStance, Kits.SlotsOf(back.Kind, back.Loadout));
+
+        // A duck whose kit is untouched writes no slot list at all, and still fields its whole kit.
+        var fresh = read.Squad.First(u => u.Kind == UnitKind.Vanguard);
+        Assert.Empty(fresh.Loadout.Slots);
+        Assert.Equal(Kits.StartingKit(UnitKind.Vanguard), Kits.SlotsOf(fresh.Kind, fresh.Loadout));
+    }
+
+    /// <summary>
     /// A camp is a phase the save has to carry, for the reason a fork is: the node under it has
     /// already been cleared (D-125).
     /// </summary>

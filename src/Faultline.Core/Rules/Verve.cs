@@ -177,6 +177,22 @@ namespace Faultline.Core
             _ => (VerveSpend?)null,
         };
 
+        /// <summary>
+        /// The spend this unit's kit actually holds, or <c>null</c> when it holds none — a duck may
+        /// have traded its spender's slot away (D-225).
+        /// </summary>
+        /// <param name="unit">Unit to ask about.</param>
+        /// <returns>Its spend, or null.</returns>
+        public static VerveSpend? SpendFor(Unit? unit)
+        {
+            if (unit is null || SpendFor(unit.Kind) is not { } spend)
+            {
+                return null;
+            }
+
+            return Kits.Holds(unit.Kind, unit.Loadout, Kits.EntryOf(spend)) ? spend : (VerveSpend?)null;
+        }
+
         /// <summary>The spend's name, for a card or a button.</summary>
         /// <param name="spend">The spend.</param>
         /// <returns>Its display name.</returns>
@@ -385,7 +401,10 @@ namespace Faultline.Core
                 return false;
             }
 
-            if (SpendFor(unit.Kind) != spend
+            // The unit overload, not the archetype's: a duck that traded its spender's slot away has
+            // no spend, and the command that names one anyway is refused here rather than resolving
+            // into a rule its kit no longer contains (D-225).
+            if (SpendFor(unit) != spend
                 || unit.HasSpentVerve
                 || unit.Verve < CostOf(spend, unit)
                 || !unit.IsOnBoard

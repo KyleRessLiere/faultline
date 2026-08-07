@@ -165,17 +165,17 @@ public class CampTests
         var run = AtACamp(out _);
         var fisher = run.Squad.Single(u => u.Kind == UnitKind.Threadcaster);
 
-        // Two is the ceiling until the Molt's Deep Mastery, which is not built.
+        // Three per slot, all classes (D-226). Cast's whole pool is these three.
         var full = fisher with
         {
-            Loadout = DuckLoadout.Empty.With(Mod.LightLine).With(Mod.LongRod),
+            Loadout = DuckLoadout.Empty.With(Mod.LightLine).With(Mod.LongRod).With(Mod.BigSplash),
         };
 
-        Assert.True(full.Loadout.SpenderIsFull);
+        Assert.True(Kits.SlotIsFull(full.Loadout, KitEntry.Cast));
         Assert.DoesNotContain(
             CampCatalogue.EligibleFor(full), o => o.Category == OfferCategory.Mod);
 
-        // And it is the run's answer too, not just the catalogue's: no camp can deal her a third.
+        // And it is the run's answer too, not just the catalogue's: no camp can deal her a fourth.
         var loaded = run.WithUnit(full);
         Assert.DoesNotContain(
             CampDirector.Pool(loaded),
@@ -436,14 +436,32 @@ public class CampTests
 
     // ---- the model ----------------------------------------------------------------------------------
 
+    /// <summary>
+    /// Three mods on one slot, and the pool runs out at exactly the same number — §8.6 prints three
+    /// mods per spender, so a spender slot's ceiling is never the thing that stops a fourth. The
+    /// ceiling is asserted through <see cref="Kits.RefusalFor(DuckLoadout, Mod)"/> rather than by
+    /// fitting a fourth, because <b>there is no fourth mod for any spender to fit</b> (D-226).
+    /// </summary>
     [Fact]
-    public void ADuckTakesTwoModsAndRefusesAThird_AndRefusesTheSameOneTwice()
+    public void ADuckTakesThreeModsOnOneSlot_AndTheSameOneNeverTwice()
     {
-        var loadout = DuckLoadout.Empty.With(Mod.Heavier).With(Mod.Freight);
+        var loadout = DuckLoadout.Empty.With(Mod.Heavier).With(Mod.Freight).With(Mod.Echo);
 
-        Assert.True(loadout.SpenderIsFull);
-        Assert.Equal(DuckLoadout.ModSlots, loadout.Mods.Count);
-        Assert.Throws<InvalidOperationException>(() => loadout.With(Mod.Echo));
+        Assert.Equal(Kits.ModsPerSlot, loadout.Mods.Count);
+        Assert.Equal(Kits.ModsPerSlot, Kits.ModsOn(loadout, KitEntry.WreckingWeight));
+        Assert.True(Kits.SlotIsFull(loadout, KitEntry.WreckingWeight));
+
+        // The pool holds no fourth Wrecking Weight mod, so the ceiling and the pool agree.
+        Assert.Equal(
+            Kits.ModsPerSlot,
+            CampCatalogue.ModPool().Count(m => Kits.HostOf(m) == KitEntry.WreckingWeight));
+
+        // A refusal names its reason rather than returning a quiet false.
+        Assert.Contains(
+            "which is the ceiling for one slot",
+            Kits.RefusalFor(loadout, Mod.Heavier) ?? string.Empty,
+            StringComparison.Ordinal);
+
         Assert.Throws<InvalidOperationException>(
             () => DuckLoadout.Empty.With(Mod.Heavier).With(Mod.Heavier));
     }

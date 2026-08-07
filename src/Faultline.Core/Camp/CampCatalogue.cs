@@ -252,14 +252,14 @@ namespace Faultline.Core
 
             var loadout = duck.Loadout;
 
-            if (!loadout.SpenderIsFull)
+            foreach (var mod in AllMods)
             {
-                foreach (var mod in AllMods)
+                if (KindOf(mod) == duck.Kind
+                    && !loadout.Has(mod)
+                    && Kits.Holds(duck.Kind, loadout, Kits.HostOf(mod))
+                    && Kits.RefusalFor(loadout, mod) is null)
                 {
-                    if (KindOf(mod) == duck.Kind && !loadout.Has(mod))
-                    {
-                        offers.Add(CampOffer.Of(duck.Id, mod));
-                    }
+                    offers.Add(CampOffer.Of(duck.Id, mod));
                 }
             }
 
@@ -279,14 +279,24 @@ namespace Faultline.Core
                 }
             }
 
-            if (!loadout.TechniquesAreFull)
+            foreach (var technique in AllTechniques)
             {
-                foreach (var technique in AllTechniques)
+                if (KindOf(technique) != duck.Kind || loadout.Has(technique))
                 {
-                    if (KindOf(technique) == duck.Kind && !loadout.Has(technique))
-                    {
-                        offers.Add(CampOffer.Of(duck.Id, technique));
-                    }
+                    continue;
+                }
+
+                // A hosted card needs the duck to still own what it modifies; a hostless one hangs on
+                // the duck, so there is no ability to own (D-227).
+                if (Kits.HostOf(technique) is { } host
+                    && !Kits.Holds(duck.Kind, loadout, host))
+                {
+                    continue;
+                }
+
+                if (Kits.RefusalFor(loadout, technique) is null)
+                {
+                    offers.Add(CampOffer.Of(duck.Id, technique));
                 }
             }
 

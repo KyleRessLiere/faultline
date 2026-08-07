@@ -10,19 +10,45 @@ namespace Faultline.Core
     {
         private static readonly LineHit[] NoLineHits = new LineHit[0];
 
-        /// <summary>The archetype's headline ability, or <c>null</c> for enemies.</summary>
+        /// <summary>The unit's headline ability, or <c>null</c> when its kit holds none.</summary>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Its first ability descriptor.</returns>
-        public static AbilityDefinition? Of(Unit unit) => AbilityDefinition.ForKind(unit.Kind);
+        public static AbilityDefinition? Of(Unit unit)
+        {
+            var all = AllOf(unit);
+            return all.Count > 0 ? all[0] : null;
+        }
 
         /// <summary>
-        /// Every ability the unit brings. The Wardbearer has two and picks one each activation
-        /// (D-058); everybody else has one or none.
+        /// Every ability the unit's kit currently holds. The Wardbearer starts with two and picks one
+        /// each activation (D-058); everybody else starts with one or none.
         /// </summary>
+        /// <remarks>
+        /// Read from the duck's slots rather than from its archetype: §4's kit is what a class
+        /// <i>starts</i> with, and a camp may have traded any of it away since (D-225). An archetype
+        /// with nothing in the loadout still gets its whole kit — see <see cref="Kits.SlotsOf"/>.
+        /// </remarks>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Its abilities, in the order they should be offered.</returns>
-        public static IReadOnlyList<AbilityDefinition> AllOf(Unit unit) =>
-            AbilityDefinition.AllForKind(unit.Kind);
+        public static IReadOnlyList<AbilityDefinition> AllOf(Unit unit)
+        {
+            var byKind = AbilityDefinition.AllForKind(unit.Kind);
+            if (byKind.Count == 0)
+            {
+                return byKind;
+            }
+
+            var held = new List<AbilityDefinition>(byKind.Count);
+            foreach (var definition in byKind)
+            {
+                if (Kits.Holds(unit.Kind, unit.Loadout, Kits.EntryOf(definition.Ability)))
+                {
+                    held.Add(definition);
+                }
+            }
+
+            return held;
+        }
 
         /// <summary>True when the unit could use any of its abilities right now, ignoring target choice.</summary>
         /// <param name="unit">Unit to inspect.</param>

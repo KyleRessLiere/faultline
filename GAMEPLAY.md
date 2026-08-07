@@ -310,9 +310,11 @@ never an AP cost.** There is no generic "activate Pluck" control.
 - **Cards print final values** — the price this duck actually pays with its mods fitted, not the
   design's printed cost. A Fisher carrying Light Line reads `2 Pluck`, and `Base: 3 Pluck` is in the
   tooltip.
-- **The class spender draws three modifier sockets. Two are fillable and the third is drawn locked**,
-  saying it is Deep Mastery's and Deep Mastery is a Molt reward. Two is Core's capacity
-  (`DuckLoadout.ModSlots`) until that ships.
+- **The class spender draws three modifier sockets and all three are fillable.** Three is Core's
+  capacity (`Kits.ModsPerSlot`), counted **per slot rather than per duck** (D-226). The third socket
+  used to render locked and labelled Deep Mastery's; the ruling that made the base ceiling three left
+  Deep Mastery with nothing to raise, so the padlock and its sentence are gone — see the open item
+  under *Known gaps*.
 - **Clicking a card expands one detail panel upward, out of flow.** The bar's height never changes and
   the board is untouched.
 - **Every disabled card carries its reason**, from Core: `1 AP short` (with `Move 2 tiles less to
@@ -1456,6 +1458,47 @@ Named here so the gap between intent and build stays visible, not to promise a d
   draft (D-121).
 - **The Peddler's Coin**, the one licensed re-flip. When it lands it re-flips the coin, not the vote.
 
+## Ability slots — the kit as data
+
+A duck's kit is a **fixed number of slots holding data**, not a list of abilities hardcoded to its
+class. MASTER_DESIGN §4's kits are the **starting contents** of those slots. Every ceiling in the kit
+is counted in `Kits` and nowhere else, so nothing can grant a slot or a mod past the ruling.
+
+| Class | Slots | Starting contents |
+|---|---|---|
+| **Vanguard** | 3 | basic attack · Bull Rush · Wrecking Weight |
+| **Archer** | 3 | basic attack · Stagger Shot · Double Nock |
+| **Fisher** | 3 | basic attack (the flick) · Reel · Cast |
+| **Wardbearer** | **4** | basic attack · Spear Thrust · Guard Stance · Preen |
+
+**The Wardbearer carries four, and the reason travels with the number: his stance and his spear are
+two halves of one job.** §4 prints them as one "per activation choose" line, which is one kit entry
+wearing two names; slots cannot hold a choice, so the choice becomes two slots and he gets a fourth to
+pay for it. This is a **deliberate exception** to §3's *"pools are grammar — differentiation lives in
+action costs and earned upgrades, never in base pools"*, and it is **the first one**. It is not
+licence for per-class slot counts generally: a second exception needs its own ruling and its own
+reason written beside this one (D-225). **§4 needs this sentence carried into the next stamp** — it is
+inbound-only, so it cannot be written there from here.
+
+- **Every slot is replaceable, including the basic attack.**
+- **Mods are counted per slot: three per ability, all classes** (D-226). A mod's host slot is
+  *derived* from the card — a mod bolts onto its spender, a technique onto the ability §8.6 names —
+  so the ceiling costs no run state.
+- **Replacing a slot forfeits every mod that hung on what left.** A mod names the thing it modifies,
+  so a mod whose host has gone is a rule about nothing.
+- **A duck is never offered a mod for an ability it does not own.** This applies to mods only; Second
+  Winds, unlocks and one-shots are unaffected, or a kit could never change.
+- **A duck with no attack is legal and nothing gates it.** Its stat block reads `AttackKind.None`, it
+  is offered no swing, and it still moves, spends Pluck, interacts and rescues. §3: the game never
+  decides what is useful.
+- **A rearranged kit rides in the save** as an `s` field on the duck's loadout token. A duck whose kit
+  is untouched writes no slot list at all, and an absent list reads back as the class's starting kit.
+
+**Not built yet:** the camp offer and the command that perform the replacement, and the confirm
+surface that prints the forfeited mods and the category of play being lost. `Kits.LossesFrom` already
+supplies those warnings — Preen as the game's only in-fight healing, Guard Stance as the only damage
+redirect, and the last damage source — and they are tested; nothing renders them yet.
+
 ## The Camp — two cards, one pick, after every won fight
 
 After every **Fight or Elite node that ends in a win**, the run stops at a **Camp**. **Two cards go on
@@ -1531,8 +1574,16 @@ nothing and nothing was invented for it.
 
 ### Technique modifiers — the v2 pool (8 of §8.6's 24 built)
 
-Data on a duck's kit, **two sockets per duck** (D-158). Class-bound, always. One Common and one
-Uncommon per class.
+Data on a duck's kit. Class-bound, always. One Common and one Uncommon per class.
+
+**Where they socket depends on whether §8.6 names a host.** Three of the eight name one — Follow-In
+(Bull Rush), Short Line (Reel), Shelter Step (Guard Stance) — and those count against **that slot's**
+three, are forfeited if it is replaced, and are never offered to a duck that no longer owns it. **The
+other five name none**, so they hang on the duck rather than on any slot: never forfeited, never
+filtered, and capped only by `DuckLoadout.TechniqueSlots` = 2. That is D-158's recorded contradiction
+— the §8.6 heading says all twenty-four are "hosted on a named ability, 2 sockets each" while the
+entries name a host for three — surfacing again under the slot model rather than being resolved
+(D-227).
 
 | Card | Class | Rarity | Tags | What it does |
 |---|---|---|---|---|

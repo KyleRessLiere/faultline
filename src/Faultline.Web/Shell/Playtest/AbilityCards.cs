@@ -124,8 +124,10 @@ public static class AbilityCards
     }
 
     /// <summary>
-    /// The three sockets, in order: the fitted mods, then the empty fillable ones, then the locked
-    /// one. The fillable count is <see cref="DuckLoadout.ModSlots"/> — Core's, never a literal here.
+    /// The three sockets, in order: the fitted mods, then the empty ones. The count is
+    /// <see cref="Kits.ModsPerSlot"/> — Core's, never a literal here — and since the kit-surgery
+    /// ruling made that three, <b>none of them is locked any more</b>: the third socket was Deep
+    /// Mastery's, and the ceiling it was going to raise is now the starting ceiling (D-226).
     /// </summary>
     /// <param name="unit">The duck whose spender is being drawn.</param>
     /// <returns>Exactly <see cref="SocketsDrawn"/> sockets.</returns>
@@ -136,7 +138,7 @@ public static class AbilityCards
 
         for (int i = 0; i < SocketsDrawn; i++)
         {
-            bool locked = i >= DuckLoadout.ModSlots;
+            bool locked = i >= Kits.ModsPerSlot;
 
             if (!locked && i < mods.Count)
             {

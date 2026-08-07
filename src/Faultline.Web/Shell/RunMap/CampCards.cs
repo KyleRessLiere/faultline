@@ -229,10 +229,11 @@ public static class CampCards
         var loadout = duck.Loadout;
         var said = new List<string>();
 
-        if (loadout.SpenderIsFull)
+        if (Verve.SpendFor(duck.Kind) is { } spend
+            && Kits.SlotIsFull(loadout, Kits.EntryOf(spend)))
         {
             said.Add(
-                "spender full at " + DuckLoadout.ModSlots + " — no mod is on its table");
+                Naming.Of(spend) + " full at " + Kits.ModsPerSlot + " — no mod is on its table");
         }
 
         if (loadout.Pocket is { } pocket)
