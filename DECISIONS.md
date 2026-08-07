@@ -4486,6 +4486,31 @@ hurts masonry more. That is what makes the board an answer to a wall rather than
 `Consumables.DebrisHp` follows the structure number for the same reason - "one collision's worth" was
 always its intent, and it now means what it says.
 
+**CORRECTION, same day, after the certification was re-run at the new price.** The paragraph above
+says the evidence that settled this was a measurement. **That measurement did not change, and the
+claim built on it was wrong.** Re-run after the constant moved to 6, break-the-gate still records
+**18/18 in every round of every run of all four policies** - and the waves table shows why the
+pricing was never the binding constraint: **zero structure collisions, zero player chips, zero
+structures destroyed**, on every policy, before and after. No policy attacks the gate by any means at
+any price.
+
+So the cause is upstream of the price and is still unknown: the evaluator policies appear not to
+value structures at all, which makes **break-the-gate's Destroy objective untested by the harness**
+and means those runs are decided by the kill-all win 7 says Destroy does not have (D-167's flagged
+contradiction, now the live explanation rather than a theoretical one).
+
+**The ruling stands; its justification is narrower than it was written.** 6 is what MASTER_DESIGN
+prices a structure collision at in three places - 2, 7, and 8.9's Work Bells, the last of which was
+only readable once the stamp was corrected (D-214) - and conforming to the design is reason enough
+on its own. What 6 does **not** have is measured evidence that it changes play, and it should not be
+cited as if it did. What it demonstrably fixes is arithmetic: three collisions into 18, and one slam
+through a 6-point blocker.
+
+**The lesson is the one D-184 already taught in the other direction:** an instrument that reports a
+number is not the same as an instrument that reports *why*. "The gate is at 18/18" was read as "the
+price is wrong" when it equally supported "nobody is aiming at it", and the second reading was the
+true one. **A measurement that admits two explanations settles neither.**
+
 **What it cost:** eight tests moved off the body constant. Three were rewritten rather than
 repointed, because their subject changed - a 16-point structure is three slams and not four, and a
 6-point blocker is now rubble rather than a damaged wall, so they assert the rubble and the derived
