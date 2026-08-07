@@ -91,16 +91,21 @@ namespace Faultline.Core
                 // collision it causes cannot come back round and read the flag again.
                 state = state.WithUnit(state.UnitById(holder.Id) with { RetortArmed = false });
 
-                events.Add(new VerveRetorted(holder.Id, attackerId, holder.Position, PushDistance));
+                int distance = PushDistanceFor(state.UnitById(holder.Id));
+                events.Add(new VerveRetorted(holder.Id, attackerId, holder.Position, distance));
+
+                // Where the shove's own events begin, so Grudge asks about this shove and not about
+                // anything the command did before it.
+                int shoveFrom = events.Count;
 
                 state = Displacement.ResolveAuto(
-                    state,
-                    attackerId,
-                    holder.Position,
-                    DisplacementKind.Push,
-                    PushDistanceFor(state.UnitById(holder.Id)),
-                    events,
+                    state, attackerId, holder.Position, DisplacementKind.Push, distance, events,
                     by: holder.Id);
+
+                if (holder.Has(Mod.Grudge) && Collided(events, shoveFrom))
+                {
+                    state = Verve.Gain(state, holder.Id, GrudgeRefund, VerveSource.Collision, events);
+                }
             }
 
             return state;
@@ -122,5 +127,21 @@ namespace Faultline.Core
 
         /// <summary>Pluck <see cref="Mod.Grudge"/> hands back when the retort's shove collides.</summary>
         public const int GrudgeRefund = 2;
+
+        // Whether the shove that starts at this index ended against something. Asked of the events
+        // the pipeline actually emitted rather than recomputed, so "caused a collision" means here
+        // exactly what it means everywhere else.
+        private static bool Collided(List<GameEvent> events, int from)
+        {
+            for (int i = from; i < events.Count; i++)
+            {
+                if (events[i] is Collision)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

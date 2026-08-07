@@ -282,6 +282,36 @@ public class AlternateKitTests
         Assert.Equal("collisions you cause", Verve.ConditionFor(UnitKind.Vanguard));
     }
 
+    [Fact]
+    public void Grudge_RefundsWhenTheRetortsShoveCollides_AndOnlyThen()
+    {
+        // A wall two tiles behind the Husk, so the retort's shove ends against it. The collision is
+        // the pipeline's; Grudge only asks whether one happened.
+        var state = BoardBuilder.Rows(
+                ".........",
+                ".........",
+                "..#......",
+                ".........",
+                ".........")
+            .PlayerA(UnitKind.Vanguard, 0, 2)
+            .Enemy(UnitKind.Husk, 1, 2)
+            .Build();
+
+        var vanguard = state.Units.First(u => u.Kind == UnitKind.Vanguard).Id;
+        var husk = state.Units.First(u => u.Team == Team.Enemy).Id;
+
+        state = TeachSpender(state, vanguard, KitEntry.Retort);
+        state = state.WithUnit(state.Get(vanguard) with { Loadout = state.Get(vanguard).Loadout.With(Mod.Grudge) });
+        state = Arm(state, vanguard, VerveSpend.Retort);
+
+        int banked = state.Get(vanguard).Verve;
+
+        var result = state.PassCurrent().NewState.Step(new AttackCommand(husk, vanguard));
+
+        Assert.True(result.Has<Collision>());
+        Assert.True(result.NewState.Get(vanguard).Verve > banked);
+    }
+
     // ---- Punt: Reel's mirror, and a plain effect list ------------------------------------------
 
     [Fact]
