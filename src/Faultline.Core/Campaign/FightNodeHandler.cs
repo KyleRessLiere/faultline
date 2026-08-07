@@ -35,7 +35,11 @@ namespace Faultline.Core
             // A side with nothing left to field cannot deploy, and Game.Start has no answer for it:
             // deployment opens on that side, offers no legal command, and never reaches the objective
             // check — so the fight does not start, does not end, and cannot be left. The run stops
-            // here instead, which is a loss rather than a frozen board (DECISIONS.md D-051, D-056).
+            // here instead, which is a loss rather than a frozen board (DECISIONS.md D-051).
+            //
+            // This also cited a ruling number that has never existed - the file skips from D-055
+            // straight to D-057. Dropped rather than guessed: D-051 carries the claim on its own,
+            // and a footnote that resolves to nothing is the defect D-199 names.
             //
             // The whole-squad guard in Resolve does not catch this. The campaign fights split the
             // same four classes across the two players differently, so losing one player's two
