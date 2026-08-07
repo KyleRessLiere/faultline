@@ -82,7 +82,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `protected:` | no | Space-separated `x,y` coordinates the M4 collapse clock never cracks. No space inside a pair. |
 | `retired:` | no | Why this battle is out of the playable set. Presence retires it; the value is the reason and is **required**. |
 | `footing:` | no | Footing tokens this fight grants. Space-separated `target=count`; target is a side (`a`, `b`, `enemy`) or a unit kind. Omitted means nobody has any. |
-| `objective:` | no | What winning means. `<kind> [tiles...] [for <n>] [hp <n>]`. Kinds: `kill-all` (default), `survive`, `hold`, `reach`, `protect`, `destroy`. |
+| `objective:` | no | What winning means. `<kind> [tiles...] [for <n>] [hp <n>]`. Kinds: `kill-all` (default), `survive`, `hold`, `reach`, `protect`, `destroy`, `boss`. |
 | `turn-limit:` | no | Round cap, 1 or more. Reaching it loses the fight unless the objective wins on expiry. |
 | `blocker-hp:` | when the board uses `X` | Hit points every breakable blocker on this board starts with. 1 or more. |
 | `wave <n> = <c>@<x>,<y> ...` | no | Enemies arriving at the start of round `n`, one line per round. Letters come from `spawn` lines. |
@@ -130,11 +130,19 @@ objective: hold 4,3 4,4 for 7    # win at the end of round 7 if no enemy is on t
 objective: reach 6,0             # win the moment a player unit stands there
 objective: protect 3,3 hp 12     # a 12 HP structure; lose if it falls. hp defaults to 12
 objective: destroy 2,3 hp 16     # a 16 HP structure. Attacks chip it for 2; collisions hurt properly
+objective: boss                  # win when the board's boss falls. Names no tiles: it is about a body
 ```
 
-**Clearing the board always wins**, under every objective — an empty board cannot stop anything.
+**Clearing the board wins `kill-all`, `protect`, `survive`, `hold` and `reach`** — an empty board
+cannot stop any of those. It does **not** win `destroy` (§7: objective only, and turn-limit expiry is
+a loss) or `boss` (won by the body falling), so **give a `destroy` or `boss` board a `turn-limit:`**
+or a board that cannot reach its objective has nothing to end it (D-223).
 **Every player unit down or voided always loses.** `hold` has no early loss: an enemy standing on the
 ground in round 2 of a round-7 hold costs nothing, and only the deadline check judges it.
+
+A `boss` board is over the instant its boss is down: every remaining schedule is cancelled, the
+standing enemies leave the board, and the win resolves there rather than at end of round. A `boss`
+objective on a board that fields no boss archetype never wins.
 
 A structure occupies its tile. Nothing walks onto it, and anything displaced into it collides — 4 to
 the unit and 4 to the structure. **An ordinary attack chips a structure for 2 whatever the weapon;

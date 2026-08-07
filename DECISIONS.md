@@ -214,10 +214,18 @@ in this file when the question comes back.
 | D-203 | [Deep Roots buys exactly one skip of the stance drop, and a latch is what bounds it.](#d-203-deep-roots-buys-exactly-one-skip-of-the-stance-drop-and-a-latch-is-what-bounds-it) | 2026-08-07 |  |
 | D-204 | [A free step's destination is a column in the replay log, because it is a choice.](#d-204-a-free-steps-destination-is-a-column-in-the-replay-log-because-it-is-a-choice) | 2026-08-07 |  |
 | D-214 | [HELD: Stage E cannot be built, because v2026-08-06q deletes the section that specifies it.](#d-214-held-stage-e-cannot-be-built-because-v2026-08-06q-deletes-the-section-that-specifies-it) | 2026-08-07 | *held* |
-| D-215 | ["Zero structures destroyed" means two different things on two boards, and only one of them is a defect.](#d-215-zero-structures-destroyed-means-two-different-things-on-two-boards-and-only-one-of-them-is-a-defect) | unreleased |  |
-| D-216 | [HELD: Stage D item 6 cannot certify, because an inert seed makes its assertion unfalsifiable.](#d-216-held-stage-d-item-6-cannot-certify-because-an-inert-seed-makes-its-assertion-unfalsifiable) | unreleased | *held* |
+| D-215 | ["Zero structures destroyed" means two different things on two boards, and only one of them is a defect.](#d-215-zero-structures-destroyed-means-two-different-things-on-two-boards-and-only-one-of-them-is-a-defect) | 2026-08-07 |  |
+| D-216 | [HELD: Stage D item 6 cannot certify, because an inert seed makes its assertion unfalsifiable.](#d-216-held-stage-d-item-6-cannot-certify-because-an-inert-seed-makes-its-assertion-unfalsifiable) | 2026-08-07 | *held* |
+| D-217 | [RULED: the Rushmaster carries Footing 1 and no shell, and that is the fight's whole shape.](#d-217-ruled-the-rushmaster-carries-footing-1-and-no-shell-and-that-is-the-fights-whole-shape) | 2026-08-07 |  |
+| D-218 | [RULED: a Work Bell is a paired structure, not a blocker, and it cancels its mouth from the one place a structure dies.](#d-218-ruled-a-work-bell-is-a-paired-structure-not-a-blocker-and-it-cancels-its-mouth-from-the-one-place-a-structure-dies) | 2026-08-07 |  |
+| D-219 | [RULED: Stampede is the basic shove with two clauses, and allegiance is the ability's business rather than the board's.](#d-219-ruled-stampede-is-the-basic-shove-with-two-clauses-and-allegiance-is-the-abilitys-business-rather-than-the-boards) | 2026-08-07 |  |
+| D-220 | [RULED: the Rushmaster's priority list is one list across both phases, and the walk is what the harness turns around.](#d-220-ruled-the-rushmasters-priority-list-is-one-list-across-both-phases-and-the-walk-is-what-the-harness-turns-around) | 2026-08-07 |  |
+| D-221 | [RULED: Crew Cover needed no timing mechanism, because the codebase already had both halves of it.](#d-221-ruled-crew-cover-needed-no-timing-mechanism-because-the-codebase-already-had-both-halves-of-it) | 2026-08-07 |  |
+| D-222 | [RULED: the boss's death ends the fight, and the crowd's disappearance is a rendered beat.](#d-222-ruled-the-bosss-death-ends-the-fight-and-the-crowds-disappearance-is-a-rendered-beat) | unreleased |  |
+| D-223 | [RULED: clearing the board no longer wins under every objective; it wins the five that have nothing else to say about an empty board.](#d-223-ruled-clearing-the-board-no-longer-wins-under-every-objective-it-wins-the-five-that-have-nothing-else-to-say-about-an-empty-board) | unreleased |  |
+| D-224 | [RULED: Crew Cover's preview promises the collision the board is about to collect.](#d-224-ruled-crew-covers-preview-promises-the-collision-the-board-is-about-to-collect) | unreleased |  |
 
-**197 rulings.**
+**205 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5443,3 +5451,126 @@ damage and where the preview is produced. A player *ability* that deals direct d
 currently draw it. That is under-implementation of §8.9's "direct attack" and it is **consistent**
 rather than a preview lie: the resolution and the projection agree in both cases. Queued in
 `REVIEW_QUEUE.md` rather than half-wired.
+
+---
+
+**D-222 — RULED: the boss's death ends the fight, and the crowd's disappearance is a rendered beat.**
+
+MASTER_DESIGN §8.9: "defeat or sweep him; **the workers flee when he falls**." §8 already says what
+happens next — "Boss down → Rest (full heal) → the Molt" — so a mop-up phase between those two things
+measures nothing the stage cares about. Concretely: **the boss's death cancels every mouth's
+remaining schedule and removes the standing workers, and victory resolves immediately rather than at
+round end.**
+
+**Three reasons, in the designer's order.** The turn limit should be pricing the boss fight; if it is
+also pricing cleanup, "6–8 rounds" is not a target but a sum of two different fights. Pillar 3 wants
+the crowd's disappearance to be a rendered event with its own beat rather than a silent despawn — the
+rout is the fiction paying off the mechanic, and it is cheap to author. And the strategic worry
+("then just rush him and ignore the crowd") is already priced by **Crew Cover**: the crowd is his
+armour, so rushing through it is the expensive line, not the free one. The design self-regulates and
+needs no extra rule.
+
+**Built as one clause in `Objectives.Check`, beside Destroy's and Reach's own wins.** `Objectives.Rout`
+runs *before* `Win`, so the beat is in the log before the fight is declared over, and `Check` is
+already asked after every command (`Game.CheckOutcome`) — which is what makes "immediately" true
+without a new timing mechanism, the same bargain D-221 struck for Crew Cover. Two events carry it:
+`WorkersRouted` (who fell, how many ran, how many arrivals died with them) and one `UnitFled` per
+body, so a renderer can animate them leaving rather than find them missing on the next frame.
+
+**Fleeing is not dying, and that is the point of the second event.** A routed worker emits
+`UnitFled`, never `UnitDowned`, so no condition that pays on a death fires — **Chum the Water** is the
+visible one and has a named test. The fight ended; nothing was earned. Correct, and it does mean the
+last round of a boss fight quietly stops paying: recorded here as a **tuning note, not a bug**. The
+workers keep their hit points and stop being deployed; nothing is voided, because nothing died.
+
+**A duck that is Clinging when the boss falls survives.** Cling resolves at round end, the fight
+ended before one arrived, and swept is permanent and out of the gene pool — ending combat on a
+technicality is the wrong way to lose a duck to Generations. §3's doomed-cling rule does not reach
+this case: it is about *no possible rescuer*, and here the answer is that **no one needed rescuing**.
+A clinging *enemy* is left hanging for the mirror reason — it is not standing, so it does not flee.
+`Game.CheckOutcome`'s order is unchanged (D-081's sweep still precedes the check), which is sound
+because that sweep only fires when a whole side is nothing but hands on ledges, and a side that just
+killed the boss has somebody standing.
+
+**Which unit is "the boss" is a property of the priority list, not the archetype** —
+`EnemyPlanDefinition.IsBoss`, set on `QuarryKing` and `Rushmaster`. D-221's reason exactly: every boss
+clause in this codebase is keyed off the list the stat block names, so a rebalanced variant that
+reuses a boss's list is a boss and cannot drift into not being one.
+
+**Rejected: routing only Husks.** §8.9 says "workers", and `CrewCover.IsWorker` already means Husk —
+but a rule that left one Lobber standing on a completed board would be the silent-despawn problem
+wearing the other hat. Every standing enemy routs. On a Rushmaster board the two readings coincide
+today, and the wider one is the one that stays honest when the Bellhand and the Night Shift land.
+
+**Rejected: winning on round one when the board fields no boss.** `Objectives.BossHasFallen` requires
+the fight to have *fielded* one, so a `boss` objective written onto a board with nobody to kill runs
+out its turn limit instead. A loud failure beats a silent win.
+
+---
+
+**D-223 — RULED: clearing the board no longer wins under every objective; it wins the five that have
+nothing else to say about an empty board.**
+
+Narrows D-032/D-034. D-034 made the cleared-board win universal so that "a Destroy fight that killed its own ammunition"
+could not deadlock, and preferred one fallback to a per-objective exception list. §7 says the
+opposite in as many words: Destroy has **no kill-all win** — "objective only; turn-limit expiry is a
+loss; enemies + debris are ammunition". The deadlock D-034 feared **is** the loss §7 is asking for.
+The contradiction was observed and queued twice (D-186's postscript, D-215) and is fixed here,
+because D-222's boss objective would otherwise have resolved correctly *by accident* under the same
+universal clause — and an accident that covers for a missing win condition goes on covering for it.
+
+`Objectives.ClearedBoardWins(kind)` is the whole rule. It is **true** for:
+
+- `kill-all` — this is its entire win condition;
+- `protect` — it has **no other win condition at all** (D-186's postscript: the only two authorable
+  protect shapes are "clear the board before round N or lose" and "clear the board, no clock");
+- `survive` and `hold` — their deadlines are the *latest* the fight can end, not the earliest; a
+  cleared board before round N has already survived and already holds;
+- `reach` — without it a board whose tile turns out to be unreachable would have no ending at all,
+  which is D-034's argument surviving in the one place it was really about.
+
+It is **false** for `destroy` and for `boss`.
+
+**`break-the-gate` is unaffected**, and for the reason D-215 already established: both Lobbers are
+sealed north of the wall band and unreachable until the gate falls, so the board cannot be cleared
+before it is broken. That board still declares no `turn-limit:` — a real data gap, still queued, and
+now the only thing standing between it and an unendable fight is its own geometry. **Not fixed here:
+`.fight` data is out of this packet's scope.**
+
+**One test fixture encoded the old rule and was corrected, not deleted.** `RunFixture.EndFightInAWin`
+won any campaign fight by emptying the board; on a Destroy node that now settles nothing, so it brings
+the objective structure down as well. The fixture is still satisfying the game's own win condition
+rather than setting a flag behind the rules' back.
+
+---
+
+**D-224 — RULED: Crew Cover's preview promises the collision the board is about to collect.**
+
+D-184's rule, applied to a case D-184 did not reach. §8.9 states one thing about this rule's interface: *the attacker's preview shows the swap, the
+interceptor and the final coordinates*. D-221 built that on `ActionOutlook.CrewCover` and projected
+the swap first, so **Core's projection was already right**: `Displacement.ObstacleId` is the boss and
+`DamageToObstacle` is the full 4, because the shove that rides the swing drives the swapped-in worker
+straight into him. What was wrong was **the shell**. `GameSession` never asked `Abilities.Outlook` for
+a basic attack: it re-derived the damage from `Combat.CanAttack` and the shove from
+`Displacement.PreviewAuto`, both against the **un-swapped** board — so it drew the blow on the boss,
+drew a shove of the boss that will not happen, and read the collision's tile off the position he was
+about to leave. A player who is told "covered" and not told about the 4 has been told the wrong thing,
+and that is A1's contract, not E's flourish.
+
+**Fixed by reading, not by re-deriving.** The attack case now asks `Abilities.Outlook`, and when it
+comes back intercepted the marks are laid out against `CrewCover.Placed(State, cover)` — the same
+swapped board Core projected against. `HoveredDisplacement` and `HoveredCandidates` return the
+outlook's own displacement, so the route line and the sentence beside the board cannot describe a
+different shove from the chips. `DescribeAttack` names the worker, both destinations and the collision
+instead of naming the one body the swing does not touch. `GameSession.HoveredOutlook` exposes the
+projection so a test can assert against what the rules said rather than against a second opinion.
+
+**Rejected: widening Crew Cover's scope while here.** It fires on `AttackCommand`/`AttackMode.Damage`
+and not on damaging abilities, and it stays that way — consistent under-implementation with preview
+and resolution agreeing is a defensible ship; half-wiring it is not (D-221). The principle for
+whoever rules it later is recorded in `REVIEW_QUEUE.md`, not in code: **"direct attack" means the
+sword — a targeted damage action aimed at him, likely including damaging abilities, and pointedly
+excluding anything routed through the board.**
+
+**Still open and deliberately untouched: D-188**, the held preview lie about damage to a Clinging
+unit.

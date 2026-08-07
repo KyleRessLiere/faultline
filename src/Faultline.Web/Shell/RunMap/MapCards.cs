@@ -256,6 +256,7 @@ public static class MapCards
         ObjectiveKind.Protect => "protect",
         ObjectiveKind.Destroy => "break it down",
         ObjectiveKind.Reach => "get through",
+        ObjectiveKind.Boss => "bring the boss down",
         _ => "kill all",
     };
 

@@ -10,7 +10,7 @@ namespace Faultline.Core
     /// shipped before objectives existed.
     /// </summary>
     /// <remarks>
-    /// One record covers all six kinds rather than a hierarchy, because the fields are few and the
+    /// One record covers every kind rather than a hierarchy, because the fields are few and the
     /// format has to serialise them on one line. Which fields mean anything depends on
     /// <see cref="Kind"/>, and <see cref="FightParser"/> refuses a combination that does not.
     /// </remarks>
@@ -80,6 +80,7 @@ namespace Faultline.Core
                 case ObjectiveKind.Reach: return "reach";
                 case ObjectiveKind.Protect: return "protect";
                 case ObjectiveKind.Destroy: return "destroy";
+                case ObjectiveKind.Boss: return "boss";
                 default: return "kill-all";
             }
         }
@@ -98,6 +99,7 @@ namespace Faultline.Core
                 case "reach": kind = ObjectiveKind.Reach; return true;
                 case "protect": kind = ObjectiveKind.Protect; return true;
                 case "destroy": kind = ObjectiveKind.Destroy; return true;
+                case "boss": kind = ObjectiveKind.Boss; return true;
                 default: kind = ObjectiveKind.KillAll; return false;
             }
         }

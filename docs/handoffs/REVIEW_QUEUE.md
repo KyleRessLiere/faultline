@@ -388,3 +388,32 @@ write first.
   keeps the shift running, he does not fight the Bell — but it means a harnessed boss with a Bell
   beside him and no player in reach stands still. Fine at Move 1 on a designed board; worth a look
   once a real board exists.
+
+## From Stage E's ruling — the rout, the boss objective and A1's preview (2026-08-07)
+
+- **What "a direct attack" means, when somebody finally widens Crew Cover.** The scope stays where
+  D-221 left it — `AttackCommand`/`AttackMode.Damage` only — and the designer's principle for whoever
+  rules it later is recorded here rather than half-built in code: **"direct attack" means the sword —
+  a targeted damage action aimed at him, likely including damaging abilities, and pointedly excluding
+  anything routed through the board** (impact, hazard, area; §8.9 already says the board reaches him
+  through his crowd). One predicate, reused at `Abilities.Outlook`'s ability case and at whichever
+  resolution path a damaging ability takes.
+- **`break-the-gate` still declares no `turn-limit:`.** D-215 flagged it as a data fault and D-223
+  has now made it matter: a `destroy` board no longer wins by being cleared, so the only thing that
+  ends that fight is the gate coming down. The board is safe today by geometry — its Lobbers are
+  sealed north of the wall band — but the clock §7 asks for ("turn-limit expiry is a loss") is still
+  not on the file. `.fight` data was out of scope for this packet.
+- **Fleeing workers pay no death income, and the last round of a boss fight therefore stops paying.**
+  Ruled correct — the fight ended, nothing was earned (D-222) — and recorded by the designer as a
+  **tuning note, not a bug**. Worth measuring once E1's board exists: a Fisher running Chum the Water
+  into a boss fight loses whatever the mop-up used to hand her.
+- **`Objectives.Rout` removes every standing enemy, not only Husks.** §8.9 says "workers" and
+  `CrewCover.IsWorker` means Husk; the two readings coincide on today's boards and will stop
+  coinciding the day the Bellhand or a non-worker elite stands on a boss board. Ruled deliberately
+  (D-222) and worth re-reading then, not patching.
+- **`Game.CheckOutcome` still sweeps doomed clingers before it asks the objective.** D-081's order is
+  unchanged and D-222's clinging-duck rule does not need it changed: the sweep only fires when a
+  whole side is nothing but hands on ledges, and the side that just killed the boss has somebody
+  standing. The corner where it would bite — the *last* standing duck clinging in the same command
+  that kills the boss — is not reachable by play as far as this session could construct it. Named
+  because "not reachable as far as I could tell" is not the same as "unreachable".

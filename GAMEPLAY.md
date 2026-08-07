@@ -567,6 +567,17 @@ Three consequences that were bugs until D-151:
 A guard standing beside the target intercepts, and the projection follows the body that will really
 move — the chip is never drawn on a unit that stays put.
 
+**Crew Cover is the same promise, and the board draws it on the swapped tiles** (D-224). When a swing
+is aimed at the Rushmaster and a worker steps in, Core projects the swap **first** and everything
+else against the board the swap produces — so the damage lands on the worker, and the shove that
+rides the swing drives that worker into the boss now standing behind it, for a full collision. The
+shell reads its tiles off the same swapped board: the blow is chipped on the tile the worker will
+occupy, the collision on the tile *he* will occupy, and the sentence beside the board reads
+"Husk steps in for Rushmaster — 2 damage to Husk on (2,3), Rushmaster to (3,3), then push 1 into
+Rushmaster — 4 damage to both, staggered". Drawing the un-swapped board told the player his crowd
+had absorbed the action, which is the opposite of what §8.9's defence does: it stops the sword and
+hands the board a free 4.
+
 **A projection resolves in the order the action does (D-184).** An action's direct damage lands
 first and the shove is aimed at whatever it left standing — or at nobody, when it left nothing. The
 projection used to be taken against the undamaged board, which produced two lies: an exactly-lethal
@@ -1824,11 +1835,46 @@ original battles are.
 | `reach <tiles>` | a player unit stands on one, the moment it happens |
 | `protect <tile>` | the fight ends with the structure standing. It falls, you lose |
 | `destroy <tile>` | the structure falls |
+| `boss` | the fight's boss falls — **and the moment he does, his crew routs** |
 
 Outcomes are checked in a fixed order: every player unit down or voided → loss; a Protect structure
-in rubble → loss; a Destroy structure in rubble or a Reach tile occupied → win; **no enemy left and
-none due → win under every objective** (D-034); then, at end of round only, the objective deadline
-and finally the turn limit.
+in rubble → loss; a Destroy structure in rubble, a Reach tile occupied, or a `boss` board's boss down
+→ win; **no enemy left and none due → win under the objectives an empty board answers**; then, at end
+of round only, the objective deadline and finally the turn limit.
+
+**Clearing the board is no longer a win under every objective** (D-223, narrowing D-032/D-034). It
+still wins `kill-all`, `protect`, `survive`, `hold` and `reach` — Protect has no other win condition
+at all, Survive's and Hold's deadlines are the latest the fight can end rather than the earliest, and
+Reach would otherwise deadlock. It does **not** win `destroy`, which §7 gives "no kill-all win —
+objective only; turn-limit expiry is a loss", nor `boss`, which is won by a body falling. So a
+`destroy` board that kills its own ammunition without breaking the structure now runs out its clock
+and loses, which is what the design asks for. `break-the-gate` is unaffected: its Lobbers are sealed
+north of the wall band and unreachable until the gate falls.
+
+### The rout — boss down ends the fight
+
+A `boss` board's win is the boss, not the board. When he falls, in the same command that killed or
+swept him and **not at end of round**:
+
+1. every mouth's remaining schedule is **cancelled** — nothing else arrives;
+2. every standing enemy **leaves the board** — a `WorkersRouted` announcement naming who fell, how
+   many ran and how many arrivals died with them, then one `UnitFled` per body;
+3. the fight resolves as a win.
+
+The turn limit is therefore pricing the boss fight and nothing else. Three consequences are rules,
+not side effects:
+
+- **Fleeing is not dying.** A routed worker emits `UnitFled`, never `UnitDowned`, so nothing that
+  pays on a death fires for it — Chum the Water most visibly. The fight ended; nothing was earned.
+  The workers keep their hit points and simply stop being deployed.
+- **A duck that is Clinging when he falls goes home.** Cling resolves at round end and the fight
+  ended before one arrived, so nothing resolves its grip. A clinging *enemy* is left hanging for the
+  same reason: it is not standing, so it does not flee either.
+- **A `boss` board that fields no boss never wins.** It runs out its turn limit instead of winning on
+  round one against an absence.
+
+The objective panel measures him and not the crowd: the bar is his hit points (`Rushmaster 18/26`)
+and the goal line says his crew scatters when he falls.
 
 **Structures** are board state, not units (D-035). A structure blocks its tile like a unit, and when
 it is destroyed the tile clears — which can open a route. Protect defaults to 12 HP and Destroy to 16,

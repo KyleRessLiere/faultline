@@ -410,7 +410,7 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Reads <c>objective: hold 4,3 4,4 for 7</c>. One grammar covers all six kinds: the first
+        /// Reads <c>objective: hold 4,3 4,4 for 7</c>. One grammar covers every kind: the first
         /// token is the kind, then any number of <c>x,y</c> tiles, <c>for N</c> (or a bare <c>N</c>)
         /// for the deadline, and <c>hp N</c> for a structure's hit points.
         /// </summary>
@@ -427,7 +427,8 @@ namespace Faultline.Core
             {
                 issues.Add(new FightIssue(
                     FightIssueCode.ObjectiveMalformed,
-                    "'" + tokens[0] + "' is not an objective. Use kill-all, survive, hold, reach, protect or destroy.",
+                    "'" + tokens[0]
+                    + "' is not an objective. Use kill-all, survive, hold, reach, protect, destroy or boss.",
                     lineNo));
                 return Objective.KillAll;
             }
@@ -523,7 +524,11 @@ namespace Faultline.Core
         private static bool Validate(Objective objective, bool hpGiven, int lineNo, List<FightIssue> issues)
         {
             string keyword = Objective.KeywordFor(objective.Kind);
-            bool wantsTiles = objective.Kind != ObjectiveKind.KillAll && objective.Kind != ObjectiveKind.Survive;
+            // Boss names no tiles for the same reason kill-all does not: what it is about is a body,
+            // and the body is on the roster rather than at a coordinate (D-222).
+            bool wantsTiles = objective.Kind != ObjectiveKind.KillAll
+                && objective.Kind != ObjectiveKind.Survive
+                && objective.Kind != ObjectiveKind.Boss;
             bool wantsRounds = objective.Deadline > 0 || objective.Kind == ObjectiveKind.Survive
                 || objective.Kind == ObjectiveKind.Hold;
 

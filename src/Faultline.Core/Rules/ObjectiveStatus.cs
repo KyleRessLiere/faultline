@@ -172,6 +172,29 @@ namespace Faultline.Core
                         structures);
                 }
 
+                case ObjectiveKind.Boss:
+                {
+                    var boss = Boss(state);
+                    int max = boss?.MaxHp ?? 0;
+                    int hp = boss?.IsAlive == true ? boss.Hp : 0;
+
+                    // The bar is his hit points and nothing else's — the crowd is not progress, which
+                    // is the whole reason the objective is not Kill All (MASTER_DESIGN §8.9, D-222).
+                    return new ObjectiveStatus(
+                        objective.Kind,
+                        "Bring " + (boss?.Name ?? "the boss") + " down. His crew scatters when he falls.",
+                        state.Fight.TurnLimit > 0
+                            ? "Run out of turns, or lose every unit."
+                            : "Lose every unit.",
+                        max - hp,
+                        max,
+                        (boss?.Name ?? "Boss") + " " + Number(hp) + "/" + Number(max),
+                        clock,
+                        clockTight || (max > 0 && hp * 2 <= max),
+                        tiles,
+                        structures);
+                }
+
                 default:
                 {
                     int total = 0;
@@ -239,6 +262,28 @@ namespace Faultline.Core
         {
             string noun = structures.Count == 1 ? structures[0].Name : "Structures";
             return noun + " " + Number(progress) + "/" + Number(target) + suffix;
+        }
+
+        // The body a boss fight is about, lowest id first — the same one Objectives.Rout names, so
+        // the panel and the win check cannot be about two different units.
+        private static Unit? Boss(GameState state)
+        {
+            Unit? boss = null;
+
+            foreach (var unit in state.Units)
+            {
+                if (unit.Team != Team.Enemy || !EnemyPlanDefinition.IsBossPlan(unit.Template))
+                {
+                    continue;
+                }
+
+                if (boss is null || unit.Id.Value < boss.Id.Value)
+                {
+                    boss = unit;
+                }
+            }
+
+            return boss;
         }
 
         private static int Clamp(int value, int max) => value < 0 ? 0 : value > max ? max : value;

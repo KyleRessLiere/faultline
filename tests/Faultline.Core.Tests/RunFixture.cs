@@ -60,9 +60,13 @@ internal static class RunFixture
     }
 
     /// <summary>
-    /// Wins the fight in progress by clearing the board of everything hostile and applying one
-    /// command so the run notices. That is the game's own universal win condition rather than a flag
-    /// set behind the rules' back.
+    /// Wins the fight in progress by satisfying its own win condition and applying one command so
+    /// the run notices. Never a flag set behind the rules' back.
+    ///
+    /// For most objectives that is clearing the board of everything hostile. <b>Not for a Destroy
+    /// board</b>: §7 gives it "no kill-all win" and D-223 stopped the universal clause covering for
+    /// that, so an emptied Destroy board settles nothing and the structure has to come down too —
+    /// which is the only thing that ends that fight.
     ///
     /// There is deliberately no matching "lose" helper. Emptying a board of players between commands
     /// produces a state nothing can leave — the outcome is only checked when a command is applied —
@@ -85,11 +89,20 @@ internal static class RunFixture
             units.Add(unit.Team == Team.Enemy ? unit with { Hp = 0, IsDeployed = false } : unit);
         }
 
+        var structures = new List<Structure>();
+        bool destroy = (state.Fight.Fight.Objective ?? Objective.KillAll).Kind == ObjectiveKind.Destroy;
+
+        foreach (var structure in state.Fight.Structures)
+        {
+            structures.Add(destroy && !structure.IsBlocker ? structure with { Hp = 0 } : structure);
+        }
+
         state = state with
         {
             Fight = state.Fight with
             {
                 Units = units,
+                Structures = structures,
                 Reinforcements = Array.Empty<PendingReinforcement>(),
             },
         };

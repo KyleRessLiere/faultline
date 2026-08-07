@@ -1,5 +1,35 @@
 # Changelog
 
+## Boss down ends the fight, and the crowd's disappearance is something you watch
+
+- **A boss board has its own win condition** (D-222): `objective: boss` wins when the fight's boss
+  falls, not when the board empties. Which unit is the boss is a property of the priority list
+  (`EnemyPlanDefinition.IsBoss`, on the Quarry King and the Rushmaster), the way every boss clause in
+  this codebase is keyed. A `boss` objective on a board that fields no boss never wins — it runs out
+  its clock rather than winning against an absence.
+- **The rout.** The instant he is down, in the same command and **not at end of round**: every
+  mouth's remaining schedule is cancelled, every standing enemy leaves the board, and the fight
+  resolves. The turn limit is therefore pricing the boss fight and not the cleanup. It is a rendered
+  beat, not a silent despawn — `WorkersRouted` names who fell, how many ran and how many arrivals
+  died with them, then one `UnitFled` per body for the board to animate.
+- **Fleeing is not dying.** A routed worker never emits `UnitDowned`, so nothing that pays on a death
+  fires for it — **Chum the Water** most visibly, and it has a named test. The fight ended; nothing
+  was earned. That the last round of a boss fight quietly stops paying is a tuning note, not a bug.
+- **A duck that is Clinging when the boss falls goes home.** Cling resolves at round end and the fight
+  ended before one arrived, so nothing resolves its grip. §3's doomed-cling rule is about *no possible
+  rescuer*; here nobody needed rescuing, and swept is permanent and out of the gene pool.
+- **Clearing the board is no longer a win under every objective** (D-223, narrowing D-032/D-034). It
+  still wins `kill-all`, `protect`, `survive`, `hold` and `reach` — Protect has no other win condition
+  at all, and Reach would deadlock without it. It does not win `destroy`, which §7 gives "no kill-all
+  win — objective only; turn-limit expiry is a loss", nor `boss`. Fixed in the same change as the
+  boss objective, deliberately: the universal clause would otherwise have made a boss board resolve
+  correctly by accident and gone on covering for the missing condition.
+- **Crew Cover's preview promises the 4** (D-224). Core's projection was already right; the shell was
+  re-deriving the swing and the shove from the **un-swapped** board, so it drew the blow on the boss,
+  drew a shove of the boss that never happens, and put the collision on a tile he was about to leave.
+  `GameSession` now reads `Abilities.Outlook` and lays every chip out against the board the swap
+  produces. A player told "covered" is now also told what his own worker is about to do to him.
+
 ## The Rushmaster arrives, and his crowd is the weapon on both sides
 
 - **The Warrens boss is built to §8.9's numbers** (D-217): 26 HP, Move 1, melee 4 + Push 1,

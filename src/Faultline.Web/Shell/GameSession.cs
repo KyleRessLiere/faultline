@@ -1437,6 +1437,22 @@ public sealed class GameSession
             {
                 case AttackCommand { Mode: AttackMode.Damage } attack:
                 {
+                    // MASTER_DESIGN §8.9: a worker may swap in front of the Rushmaster before the
+                    // blow lands, which changes which tile every number below belongs on — the sword
+                    // falls where he is standing now, and the shove drives the worker into where he
+                    // will be standing. Core projects the whole action against the swapped board
+                    // (D-221); reading the tiles off the un-swapped one drew the collision on top of
+                    // the blow and promised the player nothing about it (D-224).
+                    if (Abilities.Outlook(State, attack) is { CrewCover: { } cover } covered)
+                    {
+                        var swapped = CrewCover.Placed(State, cover);
+
+                        Add(marks, cover.InterceptorTo, covered.Damage, DisplacementStop.RanOut,
+                            covered.Finishes, board: swapped);
+                        AddDisplacement(marks, covered.Displacement, swapped);
+                        break;
+                    }
+
                     var target = State.UnitById(attack.TargetId);
                     Combat.CanAttack(State, unit, target, out int damage);
                     Add(marks, target.Position, damage, DisplacementStop.RanOut, damage >= target.Hp);
@@ -1526,35 +1542,44 @@ public sealed class GameSession
         }
     }
 
-    private void AddDisplacement(List<PreviewMark> marks, DisplacementPreview? preview)
+    /// <param name="board">
+    /// The board the projection was made against, when that is not the live one — a Crew Cover swap
+    /// stands the bodies somewhere else before the shove resolves, and a tile read off the live board
+    /// would put the collision on the wrong square.
+    /// </param>
+    private void AddDisplacement(
+        List<PreviewMark> marks, DisplacementPreview? preview, GameState? board = null)
     {
         if (preview is null)
         {
             return;
         }
 
+        var projected = board ?? State;
+
         if (preview.IsNoOp)
         {
             Add(marks, preview.Destination, 0, DisplacementStop.Immovable, false,
-                PlaytestText.NoMovement(preview), landing: true);
+                PlaytestText.NoMovement(preview), landing: true, board: projected);
             return;
         }
 
         Add(marks, preview.Destination, preview.DamageToUnit, preview.Stop, preview.WouldDown,
-            PlaytestText.Aftermath(preview), landing: true);
+            PlaytestText.Aftermath(preview), landing: true, board: projected);
 
         // A collision hurts both bodies, and the second one is the half a player forgets.
         if (preview.ObstacleId is { } obstacleId
-            && State.FindUnit(obstacleId) is { } obstacle
+            && projected.FindUnit(obstacleId) is { } obstacle
             && preview.DamageToObstacle > 0)
         {
             Add(marks, obstacle.Position, preview.DamageToObstacle, DisplacementStop.Collision,
-                preview.DamageToObstacle >= obstacle.Hp, PlaytestText.StaggerNote);
+                preview.DamageToObstacle >= obstacle.Hp, PlaytestText.StaggerNote, board: projected);
         }
 
         if (preview.StructureAt is { } structureAt && preview.DamageToStructure > 0)
         {
-            Add(marks, structureAt, preview.DamageToStructure, DisplacementStop.Collision, false);
+            Add(marks, structureAt, preview.DamageToStructure, DisplacementStop.Collision, false,
+                board: projected);
         }
     }
 
@@ -1580,8 +1605,11 @@ public sealed class GameSession
         DisplacementStop stop,
         bool fatal,
         string note = "",
-        bool landing = false)
+        bool landing = false,
+        GameState? board = null)
     {
+        var projected = board ?? State;
+
         if (!landing && damage <= 0 && stop is DisplacementStop.RanOut or DisplacementStop.Immovable)
         {
             return;
@@ -1603,7 +1631,7 @@ public sealed class GameSession
                 // The louder cause names the tile: a landing on brambles is drawn as brambles even
                 // when the shot that put it there is the smaller half of the number.
                 damage > existing.Damage ? stop : existing.Stop,
-                State.UnitAt(at) is { } standing ? total >= standing.Hp : existing.Fatal || fatal,
+                projected.UnitAt(at) is { } standing ? total >= standing.Hp : existing.Fatal || fatal,
                 // The note survives the merge — losing it is how a drain that also deals damage
                 // stops saying "paddling".
                 note.Length > 0 ? note : existing.Note);
@@ -2006,6 +2034,27 @@ public sealed class GameSession
             : null;
     }
 
+    /// <summary>
+    /// Core's whole projection of the hovered command, or <c>null</c> when nothing is aimed.
+    /// </summary>
+    /// <remarks>
+    /// A read, never a second opinion: <see cref="Abilities.Outlook"/> is where the rules decide what
+    /// an action does, Crew Cover's swap included, and the shell only decides which tile each of its
+    /// numbers belongs on.
+    /// </remarks>
+    public ActionOutlook? HoveredOutlook
+    {
+        get
+        {
+            if (Hovered is null || !Targets.TryGetValue(Hovered.Value, out var command))
+            {
+                return null;
+            }
+
+            return Abilities.Outlook(State, command);
+        }
+    }
+
     private DisplacementPreview? HoveredDisplacement(DisplacementAim aim = DisplacementAim.Default)
     {
         var unit = SelectedUnit;
@@ -2018,6 +2067,14 @@ public sealed class GameSession
         {
             case AbilityCommand { TargetId: { } targetId }:
                 return Abilities.PreviewTarget(State, unit, targetId, aim);
+
+            // The swap resolves before the shove does, so the body this displacement moves is the
+            // worker and the thing it drives into is the boss standing behind it. Core already
+            // projects that; a shell that re-derived the shove from the live board would draw the
+            // one displacement the action is certain not to perform (§8.9, D-224).
+            case AttackCommand { Mode: AttackMode.Damage } covered
+                when Abilities.Outlook(State, covered) is { IsIntercepted: true } intercepted:
+                return intercepted.Displacement;
 
             case AttackCommand { Mode: AttackMode.Pull } pull:
                 return Displacement.PreviewAuto(
@@ -2053,6 +2110,14 @@ public sealed class GameSession
         {
             case AbilityCommand { TargetId: { } targetId }:
                 return Abilities.TargetCandidates(State, unit, targetId);
+
+            // One candidate, because his crowd is not a diagonal and a melee shove has no second
+            // tile to choose between. Kept in step with HoveredDisplacement so the ghosts and the
+            // sentence beside them can never describe two different shoves.
+            case AttackCommand { Mode: AttackMode.Damage } covered
+                when Abilities.Outlook(State, covered) is
+                    { IsIntercepted: true, Displacement: { } shove }:
+                return new[] { shove };
 
             case AttackCommand { Mode: AttackMode.Pull } pull:
                 return Displacement.Candidates(
@@ -2095,6 +2160,20 @@ public sealed class GameSession
     {
         var target = State.UnitById(attack.TargetId);
         Combat.CanAttack(State, unit, target, out int damage);
+
+        // §8.9's interface clause in a sentence: the swap, who takes it, and where they both end up.
+        // Without it the line named the one body the swing does not touch (D-224).
+        if (Abilities.Outlook(State, attack) is { CrewCover: { } cover } covered)
+        {
+            var worker = State.UnitById(cover.InterceptorId);
+            string swap = $"{worker.Name} steps in for {target.Name} — {covered.Damage} damage to "
+                + $"{worker.Name} on {cover.InterceptorTo}, {target.Name} to {cover.BossTo}";
+
+            var driven = HoveredDisplacement();
+            return driven is null
+                ? swap
+                : swap + ", then " + Describe("push " + unit.Template.AttackPush, driven);
+        }
 
         string text = $"{damage} damage to {target.Name}";
         if (Combat.IsElevatedShot(State, unit))

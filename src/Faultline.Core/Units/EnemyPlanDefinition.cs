@@ -150,6 +150,24 @@ namespace Faultline.Core
         /// </summary>
         public bool IgnoresPlayerUnits { get; init; }
 
+        /// <summary>
+        /// True when this list belongs to an act's boss — the body an <see cref="ObjectiveKind.Boss"/>
+        /// fight is about.
+        /// </summary>
+        /// <remarks>
+        /// Registered here rather than asked of an archetype, for D-221's reason: every boss clause in
+        /// this codebase is keyed off the priority list the stat block names, so a rebalanced variant
+        /// that reuses a boss's list is a boss and cannot drift into not being one. It is what
+        /// <see cref="Objectives.Check"/> asks when it decides a boss fight is over (D-222).
+        /// </remarks>
+        public bool IsBoss { get; init; }
+
+        /// <summary>Whether a unit running this plan is an act's boss.</summary>
+        /// <param name="template">Stat block to ask about.</param>
+        /// <returns>Whether its plan is a boss's.</returns>
+        public static bool IsBossPlan(UnitTemplate? template) =>
+            template is not null && ForPlan(template.Plan) is { IsBoss: true };
+
         /// <summary>Every registered plan, in roster order.</summary>
         public static IReadOnlyList<EnemyPlan> Plans => Order;
 
@@ -438,6 +456,7 @@ namespace Faultline.Core
                 + "in force carries a standalone shove.",
                 Ai.PlanQuarryKing)
             {
+                IsBoss = true,
                 Priorities = Steps(
                     ("Charge, once a stat block with a standalone shove is in force",
                      "Runs up to its movement in a straight line, stops adjacent to the first player "
@@ -508,6 +527,7 @@ namespace Faultline.Core
                 + "it — his own workers included.",
                 Ai.PlanRushmaster)
             {
+                IsBoss = true,
                 Priorities = Steps(
                     ("Stampede, once the harness is off",
                      "Runs up to its movement in a straight line, stops adjacent to the first body on "

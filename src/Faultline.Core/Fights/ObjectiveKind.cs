@@ -23,5 +23,11 @@ namespace Faultline.Core
 
         /// <summary>A structure immune to attacks that only collision damage hurts. Win when it falls.</summary>
         Destroy = 5,
+
+        /// <summary>
+        /// Win the moment the fight's boss falls — not when the board empties. His crowd routs with
+        /// him (MASTER_DESIGN §8.9, DECISIONS.md D-222).
+        /// </summary>
+        Boss = 6,
     }
 }

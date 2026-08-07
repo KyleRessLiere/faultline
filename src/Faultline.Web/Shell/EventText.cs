@@ -34,6 +34,12 @@ public static class EventText
             ? $"{Name(state, e.UnitId)} takes {e.Amount} ({e.Source}) → 0 HP, {e.Overkill} over."
             : $"{Name(state, e.UnitId)} takes {e.Amount} ({e.Source}) → {e.RemainingHp} HP.",
         UnitDowned e => $"{Name(state, e.UnitId)} is down.",
+        // The rout gets a beat of its own — the crowd's disappearance is the fiction paying off the
+        // mechanic, and a silent despawn would throw it away (MASTER_DESIGN §8.9, D-222).
+        WorkersRouted e => e.Cancelled > 0
+            ? $"⚑ {Name(state, e.BossId)} falls — the crew breaks and runs: {e.Fled} scatter, {e.Cancelled} more never arrive."
+            : $"⚑ {Name(state, e.BossId)} falls — the crew breaks and runs: {e.Fled} scatter.",
+        UnitFled e => $"{Name(state, e.UnitId)} drops everything and runs.",
         AbilityUsed e => $"{Name(state, e.UnitId)} uses {AbilityDefinition.For(e.Ability).Name}.",
         UnitPushed e => e.Kind switch
         {

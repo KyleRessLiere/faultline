@@ -28,8 +28,8 @@ namespace Faultline.Core
         /// <list type="number">
         /// <item><description>every player unit down or voided — a loss under every objective;</description></item>
         /// <item><description>a Protect structure in rubble — a loss;</description></item>
-        /// <item><description>the objective's own immediate win (Destroy's structure down, Reach's tile occupied);</description></item>
-        /// <item><description>no enemy left and none due — a win under every objective;</description></item>
+        /// <item><description>the objective's own immediate win (Destroy's structure down, Reach's tile occupied, Boss's boss fallen);</description></item>
+        /// <item><description>no enemy left and none due — a win under the objectives an empty board answers;</description></item>
         /// <item><description>at end of round only: the objective's deadline, then the turn limit.</description></item>
         /// </list>
         /// </remarks>
@@ -76,9 +76,22 @@ namespace Faultline.Core
                 return Win(state, events);
             }
 
-            // The universal win: nothing hostile is left and nothing is due. It applies under every
-            // objective, because an empty board cannot stop anything (DECISIONS.md D-032).
-            if (!AnyEnemyLeft(state))
+            // "Defeat or sweep him; the workers flee when he falls" (MASTER_DESIGN §8.9). The rout
+            // runs first so its beat is in the log before the fight is declared over, and the win
+            // resolves here — mid-round, wherever the killing blow landed — because the turn limit
+            // is pricing the boss fight and must not also be pricing the cleanup (D-222).
+            if (objective.Kind == ObjectiveKind.Boss && BossHasFallen(state))
+            {
+                return Win(Rout(state, events), events);
+            }
+
+            // Clearing the board wins — under the objectives an empty board actually answers.
+            // D-032/D-034 made this universal so that a Destroy fight which killed its own ammunition
+            // could not deadlock; §7 says in as many words that a Destroy board has **no kill-all
+            // win** ("objective only; turn-limit expiry is a loss"), and a boss board is won by the
+            // boss falling. Both are excluded here, and the deadlock D-034 feared is the loss §7 asks
+            // for (D-223).
+            if (ClearedBoardWins(objective.Kind) && !AnyEnemyLeft(state))
             {
                 return Win(state, events);
             }
@@ -108,6 +121,141 @@ namespace Faultline.Core
 
             return state;
         }
+
+        /// <summary>
+        /// Whether an empty board is a win under this objective.
+        /// </summary>
+        /// <remarks>
+        /// True for the four objectives that have nothing else to say about a board with nothing
+        /// hostile on it: Kill All, whose whole condition this is; Protect, which has no other win
+        /// condition at all; and Survive and Hold, whose deadlines are the *latest* the fight can end
+        /// rather than the earliest. False for Destroy — §7 gives it "no kill-all win" — and false for
+        /// <see cref="ObjectiveKind.Boss"/>, whose win is a body falling (DECISIONS.md D-223).
+        /// </remarks>
+        /// <param name="kind">The objective's kind.</param>
+        /// <returns>Whether clearing the board wins it.</returns>
+        public static bool ClearedBoardWins(ObjectiveKind kind) =>
+            kind != ObjectiveKind.Destroy && kind != ObjectiveKind.Boss;
+
+        /// <summary>
+        /// Whether this fight's boss is down: it fielded one, and none is left alive.
+        /// </summary>
+        /// <remarks>
+        /// A board that fields no boss at all answers <c>false</c> for ever, so a <c>boss</c>
+        /// objective written onto a board with nobody to kill runs out its turn limit rather than
+        /// winning on round one against an absence (D-222).
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <returns>Whether the boss fight is over.</returns>
+        public static bool BossHasFallen(GameState state)
+        {
+            if (state is null)
+            {
+                return false;
+            }
+
+            bool fielded = false;
+
+            foreach (var unit in state.Units)
+            {
+                if (unit.Team != Team.Enemy || !EnemyPlanDefinition.IsBossPlan(unit.Template))
+                {
+                    continue;
+                }
+
+                fielded = true;
+
+                if (unit.IsAlive)
+                {
+                    return false;
+                }
+            }
+
+            return fielded;
+        }
+
+        /// <summary>
+        /// The rout: the boss is down, so every mouth's remaining schedule is cancelled and the
+        /// standing crowd leaves the board (MASTER_DESIGN §8.9).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Not kills.</b> The workers leave by <see cref="UnitFled"/>, never
+        /// <see cref="UnitDowned"/>, so no condition that pays on a death fires for them — Chum the
+        /// Water is the visible one, and the correct reading is that the fight ended and nothing was
+        /// earned (D-222). They keep their hit points and simply stop being deployed.
+        /// </para>
+        /// <para>
+        /// <b>Standing only.</b> A worker hanging off a lip is not standing and is left where it is,
+        /// exactly as a duck in the same position is: the fight ends before any round end arrives, so
+        /// nothing resolves either grip.
+        /// </para>
+        /// <para>
+        /// <b>Cancelled, not delayed</b> — the same reading <see cref="CancelMouth"/> takes. Waiting
+        /// units stay in <see cref="GameState.Units"/> undeployed so every id a command log replays
+        /// against is the id it had at <see cref="Game.Start(FightDefinition, int)"/> (D-218).
+        /// </para>
+        /// </remarks>
+        /// <param name="state">State with the boss already down.</param>
+        /// <param name="events">Sink for the rout's events.</param>
+        /// <returns>The state with the crowd gone and the timetable empty.</returns>
+        public static GameState Rout(GameState state, List<GameEvent> events)
+        {
+            if (state is null || events is null)
+            {
+                return state!;
+            }
+
+            var fleeing = new List<Unit>();
+
+            foreach (var unit in state.Units)
+            {
+                if (unit.Team == Team.Enemy && unit.IsOnBoard && !unit.Clinging)
+                {
+                    fleeing.Add(unit);
+                }
+            }
+
+            int cancelled = state.Reinforcements.Count;
+
+            events.Add(new WorkersRouted(FallenBoss(state), BossTile(state), fleeing.Count, cancelled));
+
+            foreach (var unit in fleeing)
+            {
+                state = state.WithUnit(unit with { IsDeployed = false });
+                events.Add(new UnitFled(unit.Id, unit.Team, unit.Position));
+            }
+
+            return cancelled == 0
+                ? state
+                : state with { Reinforcements = new List<PendingReinforcement>() };
+        }
+
+        // The boss the rout is about: the fallen one, lowest id first, so a board that somehow
+        // fielded two names the same one on every replay.
+        private static Unit? Fallen(GameState state)
+        {
+            Unit? boss = null;
+
+            foreach (var unit in state.Units)
+            {
+                if (unit.Team != Team.Enemy || !EnemyPlanDefinition.IsBossPlan(unit.Template))
+                {
+                    continue;
+                }
+
+                if (boss is null || unit.Id.Value < boss.Id.Value)
+                {
+                    boss = unit;
+                }
+            }
+
+            return boss;
+        }
+
+        private static UnitId FallenBoss(GameState state) => Fallen(state)?.Id ?? UnitId.None;
+
+        private static Coord BossTile(GameState state) => Fallen(state)?.Position ?? default;
 
         /// <summary>Builds the structures an objective calls for, one per tile it names.</summary>
         /// <param name="objective">The fight's objective.</param>

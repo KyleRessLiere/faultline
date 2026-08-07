@@ -142,6 +142,8 @@ namespace Faultline.Core
             StructureDestroyed => nameof(StructureDestroyed),
             UnitStampeded => nameof(UnitStampeded),
             CrewCovered => nameof(CrewCovered),
+            WorkersRouted => nameof(WorkersRouted),
+            UnitFled => nameof(UnitFled),
             SpawnsCancelled => nameof(SpawnsCancelled),
             ReinforcementScheduled => nameof(ReinforcementScheduled),
             ReinforcementArrived => nameof(ReinforcementArrived),
@@ -345,6 +347,14 @@ namespace Faultline.Core
                 + " and takes it on " + e.At
                 + "; " + Actor(state, e.BossId) + " is now on " + e.BossTo,
 
+            WorkersRouted e => "is down at " + e.At + " and the crew breaks: "
+                + Number(e.Fled) + " worker(s) scatter"
+                + (e.Cancelled > 0
+                    ? ", " + Number(e.Cancelled) + " arrival(s) cancelled"
+                    : ", nothing left to arrive"),
+
+            UnitFled e => "flees the board from " + e.At + " — no one killed it",
+
             UnitStampeded e => "stampedes into " + Actor(state, e.TargetId)
                 + " at " + e.At + " for " + Number(e.Damage)
                 + (e.Ally ? " — his own, and it still costs them" : string.Empty),
@@ -453,6 +463,8 @@ namespace Faultline.Core
             UnitTrampled e => e.UnitId,
             UnitStampeded e => e.UnitId,
             CrewCovered e => e.UnitId,
+            WorkersRouted e => e.BossId,
+            UnitFled e => e.UnitId,
             VerveCharged e => e.UnitId,
             UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,
