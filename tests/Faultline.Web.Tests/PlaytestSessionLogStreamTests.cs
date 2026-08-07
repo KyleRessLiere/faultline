@@ -10,36 +10,60 @@ namespace Faultline.Web.Tests;
 /// <summary>
 /// What actually reaches the transport as a sitting proceeds: that it is the same stream the Dev
 /// panel reads, that it goes out in pieces rather than in one lump at the end, and that a host which
-/// never answers costs nothing and says nothing.
+/// has not answered YET is buffered for rather than dropped.
 /// </summary>
 public sealed class PlaytestSessionLogStreamTests
 {
+    /// <summary>
+    /// A host that has not answered yet is buffered for, not given up on — and the surface says which
+    /// of the two is happening.
+    /// </summary>
+    /// <remarks>
+    /// <b>This test asserted the opposite, by name, and the opposite is what cost an evening of
+    /// play.</b> It read <c>Start_WithNoHostListening_IsSilentAndWritesNothing</c>, on the reasonable
+    /// argument that a plain static file server is a supported way to run the game and is nobody's
+    /// error. True — but the consequence was that a sitting played against the dev server instead of
+    /// the launcher wrote nothing, said nothing, and could not be recovered afterwards, because the
+    /// lines were dropped at the source rather than held. Silence about a missing host is correct;
+    /// silence about a lost session is not (D-245).
+    /// </remarks>
     [Fact]
-    public async Task Start_WithNoHostListening_IsSilentAndWritesNothing()
-    {
-        // A plain static file server is a supported way to run the game. There is nobody to post to,
-        // and that is not an error anybody should be told about.
-        var js = new FakeJsRuntime { LogHostAnswers = false };
-        var log = New(js, out _, out _);
-
-        await log.StartAsync("http://example.test/");
-
-        Assert.False(log.Active);
-        Assert.Empty(js.LogPushes);
-        Assert.Equal(string.Empty, log.Path);
-    }
-
-    [Fact]
-    public async Task Start_WithNoHostListening_KeepsQuietWhenPlayCarriesOn()
+    public async Task Start_WithNoHostListeningYet_BuffersTheSitting_AndSaysItIsNotReachingDisk()
     {
         var js = new FakeJsRuntime { LogHostAnswers = false };
         var log = New(js, out var session, out _);
 
         await log.StartAsync("http://example.test/");
+
+        Assert.False(log.Active);
+        Assert.True(log.Searching);
+
+        // The header is handed over rather than withheld, so a launcher adopted later gets a whole
+        // file rather than one starting mid-fight.
+        Assert.NotEmpty(js.LogPushes);
+
+        // And the path is known before a host exists — it names where the sitting WILL land.
+        Assert.NotEqual(string.Empty, log.Path);
+
+        // The sentence a surface prints, so "on" and "reaching disk" can be told apart at a glance.
+        Assert.Contains("NOT LOGGING", log.Where(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Start_WithNoHostListeningYet_KeepsBufferingWhenPlayCarriesOn()
+    {
+        var js = new FakeJsRuntime { LogHostAnswers = false };
+        var log = New(js, out var session, out _);
+
+        await log.StartAsync("http://example.test/");
+        int afterHeader = js.LogPushes.Count;
+
         session.StartFight(FightLibrary.ById("the-teeth"), 99);
         log.Pump();
 
-        Assert.Empty(js.LogPushes);
+        // Play carries on and so does the record of it. Dropping here is what made a hostless
+        // session unrecoverable rather than merely late.
+        Assert.True(js.LogPushes.Count > afterHeader);
     }
 
     [Fact]

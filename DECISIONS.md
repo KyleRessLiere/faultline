@@ -234,9 +234,10 @@ in this file when the question comes back.
 | D-231 | [RULED: slot counts are class-initialisation data and are adjustable per duck; a runtime-mutable class-wide count is refused, because it cannot survive a replay.](#d-231-ruled-slot-counts-are-class-initialisation-data-and-are-adjustable-per-duck-a-runtime-mutable-class-wide-count-is-refused-because-it-cannot-survive-a-replay) | 2026-08-07 |  |
 | D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | 2026-08-07 |  |
 | D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 |  |
-| D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | unreleased |  |
+| D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | 2026-08-07 |  |
+| D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | unreleased |  |
 
-**216 rulings.**
+**217 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5966,3 +5967,33 @@ fixing the fourth. None was found by the suite, because the suite tested the fie
 each test was written.
 
 Proven by neutering: the write was removed and the test went red before it was allowed green.
+
+
+---
+
+**D-245 - Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.**
+
+The session shipper probed for a host once, and on no answer **went quiet forever - no retry, no
+toast, no console noise.** The argument was sound: a plain static file server is a supported way to
+run the game and is nobody's error.
+
+**The consequence was not sound.** "Logging is on" and "logging is reaching disk" looked identical
+from inside the app, and an entire evening of play against the dev server instead of the launcher
+wrote nothing and said nothing. The designer only found out by asking whether logs were being kept.
+
+**Three layers were dropping lines, not one.** `PlaytestLogHost.Push` gated on `Active`;
+`PlaytestSessionLog.Pump` returned early on `!Active`; and `StartAsync` skipped the header and never
+subscribed. So a hostless sitting was not merely unshipped - it was **discarded at the source**, and
+no launcher started later could recover it.
+
+Now: the shipper **re-probes on a slow timer**, so a launcher started at any point in a session is
+adopted without a reload and is handed the backlog from the first line. Lines are buffered rather
+than dropped at all three layers. `Searching` distinguishes "buffering into a tab" from "writing to
+disk", and `Where()` prints one sentence saying which.
+
+**Silence about a missing host is correct. Silence about a lost session is not** - and the old test
+pinned the wrong one of those by name, `Start_WithNoHostListening_IsSilentAndWritesNothing`. It now
+asserts the sitting is buffered and the surface says it is not reaching disk.
+
+The folder shape was already right and is unchanged: `docs/playtest/<date>/<session-timestamp>/`,
+one folder per sitting, with `fights/` inside it.

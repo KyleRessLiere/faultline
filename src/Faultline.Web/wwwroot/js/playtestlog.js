@@ -10,18 +10,26 @@
 // — no preflight, so a host only has to answer the POST itself. The sidecar answers with
 // `Access-Control-Allow-Origin: *`; the launcher is same-origin and needs nothing.
 //
-// When nothing answers the probe, this goes quiet forever: no retry, no toast, no console noise. A
-// plain static file server is a legitimate way to run the game and it is not an error.
+// WHEN NOTHING ANSWERS, THIS KEEPS LOOKING AND SAYS SO. It used to go quiet forever on the argument
+// that a plain static file server is a legitimate way to run the game — true, but it made "logging is
+// on" and "logging is reaching disk" look identical from inside the app, and a whole evening of play
+// was lost to a server started the wrong way with nothing on screen to say so. The probe now repeats
+// on a slow timer, so a launcher started AFTER the tab is adopted without a reload, and `state()`
+// reports `searching` so a surface can show it (D-245).
 window.faultlinePlaytestLog = (() => {
   const PING = 'playtest/log/ping';
   const WRITE = 'playtest/log';
   const EXPECT = 'faultline-log';
   const FLUSH_MS = 2000;
+  const PROBE_MS = 5000;   // How often to look again while no host has answered.
 
   let base = null;      // Resolved host, with trailing slash. '' is never used; null means "no host".
   let started = false;
   let date = '';
   let file = '';
+
+  let hosts = [];       // Candidates to keep probing while `base` is null.
+  let probe = null;     // The re-probe timer; cleared the moment a host answers.
 
   let pending = [];
   let queued = 0;       // Characters waiting.
@@ -99,6 +107,25 @@ window.faultlinePlaytestLog = (() => {
     }
   }
 
+  // One sweep of the candidates. Stops the re-probe the moment somebody answers, and flushes
+  // immediately so everything buffered since the tab opened lands at once.
+  async function look() {
+    for (const candidate of hosts) {
+      if (await answers(candidate)) {
+        base = candidate;
+        if (probe) {
+          clearInterval(probe);
+          probe = null;
+        }
+
+        flush();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   return {
     // Finds a host and starts the clock. `candidates` are tried in order and the first that answers
     // wins, so same-origin beats the sidecar and a launcher can never be shadowed by a stale one.
@@ -108,21 +135,22 @@ window.faultlinePlaytestLog = (() => {
       date = forDate;
       file = forFile;
 
-      for (const candidate of candidates || []) {
-        if (await answers(candidate)) {
-          base = candidate;
-          break;
-        }
-      }
+      hosts = candidates || [];
 
-      if (!base) return '';
-
+      // The sinks are wired before a host is found, so lines buffer from the first one rather than
+      // being dropped while the probe runs. Nothing is lost by a launcher that starts late.
       timer = setInterval(flush, FLUSH_MS);
       addEventListener('pagehide', flushNow);
       addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') flushNow();
       });
-      return base;
+
+      await look();
+      if (!base) {
+        probe = setInterval(look, PROBE_MS);
+      }
+
+      return base || '';
     },
 
     // The hot path: synchronous, allocation only, never awaited by the caller.
@@ -141,7 +169,26 @@ window.faultlinePlaytestLog = (() => {
     },
 
     state() {
-      return { base: base || '', queued, written, failed };
+      // One sweep of the candidates. Stops the re-probe the moment somebody answers, and flushes
+  // immediately so everything buffered since the tab opened lands at once.
+  async function look() {
+    for (const candidate of hosts) {
+      if (await answers(candidate)) {
+        base = candidate;
+        if (probe) {
+          clearInterval(probe);
+          probe = null;
+        }
+
+        flush();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return { base: base || '', queued, written, failed };
     },
   };
 })();

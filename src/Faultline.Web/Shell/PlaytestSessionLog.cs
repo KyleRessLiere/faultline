@@ -66,7 +66,19 @@ public sealed class PlaytestSessionLog
     public bool Active => _host.Active;
 
     /// <summary>Where the file is, for the Dev panel to show, or empty when nothing answered.</summary>
-    public string Path => Active ? "docs/playtest/" + Date + "/" + File : string.Empty;
+    public string Path => Date.Length > 0 ? "docs/playtest/" + Date + "/" + File : string.Empty;
+
+    /// <summary>Whether lines are buffering in the tab because no launcher has answered yet.</summary>
+    public bool Searching => _host.Searching;
+
+    /// <summary>One line fit to print on a surface: where this sitting is going, or why it is not.</summary>
+    /// <returns>The sentence.</returns>
+    public string Where() => Active
+        ? "Session log -> " + Path
+        : Searching
+            ? "NOT LOGGING - no launcher answered. Buffering in this tab; start ./run.ps1 and this "
+              + "sitting is picked up whole, without a reload."
+            : "Session log not started.";
 
     /// <summary>
     /// Names this sitting's day folder and file from the browser's Eastern clock.
@@ -161,15 +173,15 @@ public sealed class PlaytestSessionLog
         File = file;
 
         await _host.StartAsync(origin, date, file);
-        if (!_host.Active)
-        {
-            return;
-        }
 
+        // SUBSCRIBED WHETHER OR NOT A HOST ANSWERED. It used to return here when none had, which
+        // dropped every line of a sitting played against a plain file server — and the shipper had
+        // already given up silently, so nothing said so. The shipper now keeps probing and buffers
+        // meanwhile, so a launcher started at any point in a session is handed the whole thing
+        // rather than the tail (D-245). The cost of subscribing hostless is a redraw's worth of
+        // list-walking, which is what an evening of lost play is worth many times over.
         _host.Push(Header(date, file, zone));
 
-        // Subscribed only once a host has answered. With nobody listening these would be a redraw's
-        // worth of list-walking on every step for a file that is never written.
         _session.Changed += Pump;
         _runs.Changed += Pump;
         Pump();
@@ -185,11 +197,8 @@ public sealed class PlaytestSessionLog
     /// </remarks>
     public void Pump()
     {
-        if (!_host.Active)
-        {
-            return;
-        }
-
+        // No Active check. Lines are handed over regardless and the shipper buffers them until a
+        // host answers; dropping them here is what made a hostless session unrecoverable (D-245).
         var text = new StringBuilder();
 
         Drain(_runs.Journal, ref _runCursor, text, "run  ", string.Empty);
