@@ -299,3 +299,28 @@ write first.
 - **Two blues exist for Player A** — `--player-a` (identity) and `--pt-blue` (AP badges, current
   activation, focus). Deliberate, so an AP badge is not mistaken for a side, but it means board
   A-tokens shifted hue when the colour tokens landed. Wants a look on screen.
+
+---
+
+## From D1 — the §8.6 pocket system (D-189 … D-194)
+
+- **The first camp deals `Technique, Technique` for every seed 1–40 tried.** Found while trying to
+  reach a full pocket by playing: no first camp in that range can hand out a one-shot at all, so a
+  consumable is unreachable until at least the second camp. Whether that is the director's intended
+  weighting (D-159) or a defect is a designer question. It is also what stopped the D-194 reason line
+  being asserted on drawn markup rather than on the view-model.
+- **`Unit.RattledFor` is now a misnomer** — two authors (Rattling Impact and Chalk Mark), one field,
+  one name. Renaming it to something author-neutral touches `Unit`, `Techniques`,
+  `TechniqueListeners`, `Displacement`, `Game`, `CombatLog` and the technique suite: a mechanical
+  sweep with no behaviour in it, deliberately kept out of a features diff (D-190).
+- **`state.Units` order is now load-bearing.** A Signal Whistle swaps two entries in it, so anything
+  that walks that list — the doomed-cling sweep's event order, intent declaration order at round
+  start — sees the new order. Nothing changes an outcome and it stays deterministic, but the list is
+  no longer merely incidental and a future writer should not re-sort it casually (D-193).
+- **`RunSave.ParseLoadout` is the one `WithPocket` caller with no capacity guard.** It validates the
+  enum but not `Pocket is null`, so a loadout token carrying two `p|` segments for one duck throws
+  `InvalidOperationException` out of restore, where every other malformed field is skipped. Latent
+  today; it becomes reachable the moment Deep Pockets makes two pockets legal.
+- **`Pits.AnyRope` cites D-127, `GAMEPLAY.md` cites D-131** for the same Old Rope doomed-cling rule.
+  One of the two is wrong; not touched here.
+- **Deep Pockets is still unbuilt**, and is the last piece of the D1 brief. See the handoff.
