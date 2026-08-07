@@ -33,6 +33,12 @@ namespace Faultline.Core
 
         /// <summary>Paddling in a drain (<see cref="Unit.Clinging"/>).</summary>
         Paddling = 4,
+
+        /// <summary>
+        /// The next displacement this unit causes asks for a tile more
+        /// (<see cref="Unit.GreasedFeatherArmed"/>).
+        /// </summary>
+        GreasedFeatherArmed = 5,
     }
 
     /// <summary>The spendable meters a standard effect may move.</summary>

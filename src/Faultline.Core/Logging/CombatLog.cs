@@ -108,6 +108,8 @@ namespace Faultline.Core
             SpikeHit => nameof(SpikeHit),
             Staggered => nameof(Staggered),
             Rattled => nameof(Rattled),
+            ChalkMarked => nameof(ChalkMarked),
+            GreasedFeatherSpent => nameof(GreasedFeatherSpent),
             HandOffGranted => nameof(HandOffGranted),
             StepBanked => nameof(StepBanked),
             CrossingShotFired => nameof(CrossingShotFired),
@@ -213,6 +215,15 @@ namespace Faultline.Core
             Rattled e => "rattled by " + Actor(state, e.ByUnitId)
                 + ", " + e.ForFlock + "'s next displacement of it +"
                 + Number(Techniques.RattledDistanceBonus),
+
+            ChalkMarked e => "chalked by " + Actor(state, e.ByUnitId)
+                + ", " + e.ForFlock + "'s next displacement of it +"
+                + Number(Techniques.RattledDistanceBonus),
+
+            // Named even when the tile it bought was eaten by resistance or a refusal: the feather is
+            // spent by the attempt, and a player who saw nothing move is owed the reason (D-190).
+            GreasedFeatherSpent e => "greased feather spent on " + Actor(state, e.TargetId)
+                + ", displacement +" + Number(Consumables.GreaseDistanceBonus),
 
             HandOffGranted e => "handed off by " + Actor(state, e.ByUnitId)
                 + ": next basic attack on " + Actor(state, e.AgainstId)
@@ -355,6 +366,8 @@ namespace Faultline.Core
             SpikeHit e => e.UnitId,
             Staggered e => e.UnitId,
             Rattled e => e.UnitId,
+            ChalkMarked e => e.UnitId,
+            GreasedFeatherSpent e => e.UnitId,
             HandOffGranted e => e.UnitId,
             StepBanked e => e.UnitId,
             CrossingShotFired e => e.ArcherId,

@@ -24,6 +24,66 @@ namespace Faultline.Core
         /// <summary>Footing a Duck Feather Charm hands over — one more whole refusal.</summary>
         public const int CharmFooting = 1;
 
+        /// <summary>Tiles a Greased Feather adds to the request of the next displacement it causes.</summary>
+        public const int GreaseDistanceBonus = 1;
+
+        /// <summary>
+        /// Tiles a Greased Feather adds to this displacement, and zero when none is armed.
+        /// </summary>
+        /// <remarks>
+        /// The pusher's mirror of <see cref="Techniques.RattleBonus"/>, and applied at the very same
+        /// place: the <em>request</em>, beside Wrecking Weight's tile (D-076, D-156). Riding the
+        /// request is what makes the feather compose with Stagger, push resistance and the hold aura
+        /// instead of stepping around all three (D-190).
+        /// </remarks>
+        /// <param name="state">Current state, to look <paramref name="by"/> up.</param>
+        /// <param name="by">Unit causing the displacement, where one is known.</param>
+        /// <returns><see cref="GreaseDistanceBonus"/> or zero.</returns>
+        public static int GreaseBonus(GameState state, UnitId? by)
+        {
+            if (state is null || by is not { } byId)
+            {
+                return 0;
+            }
+
+            var pusher = state.FindUnit(byId);
+            return pusher is not null && pusher.GreasedFeatherArmed ? GreaseDistanceBonus : 0;
+        }
+
+        /// <summary>
+        /// Enemies a Chalk Mark could be put on: on the board, alive, and not already carrying the
+        /// mark for the flock this one would hand it to.
+        /// </summary>
+        /// <remarks>
+        /// The last clause is the "would buy nothing" filter every one-shot gets — re-chalking an
+        /// enemy the other flock is already owed a tile on spends the item for no change, and a
+        /// one-shot is gone once used. Range is deliberately the whole board: §8.6 prints no range on
+        /// the card, and inventing one would be inventing content.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">Duck spending the chalk.</param>
+        /// <returns>The legal targets, in unit order.</returns>
+        public static IReadOnlyList<UnitId> ChalkTargets(GameState state, Unit unit)
+        {
+            var targets = new List<UnitId>();
+            if (state is null || unit is null || !unit.Team.IsPlayer())
+            {
+                return targets;
+            }
+
+            var owed = unit.Team.OtherPlayer();
+            foreach (var enemy in state.Units)
+            {
+                if (enemy.Team == Team.Enemy && enemy.IsOnBoard && enemy.IsAlive
+                    && enemy.RattledFor != owed)
+                {
+                    targets.Add(enemy.Id);
+                }
+            }
+
+            return targets;
+        }
+
         /// <summary>
         /// Whether this duck could empty its pocket right now, ignoring what is in it: its own
         /// activation, on the board, and something to empty.
@@ -104,6 +164,14 @@ namespace Faultline.Core
                     foreach (var tile in DebrisTiles(state, unit))
                     {
                         commands.Add(new UseConsumableCommand(unit.Id, null, tile));
+                    }
+
+                    break;
+
+                case ConsumableRule.Chalk:
+                    foreach (var target in ChalkTargets(state, unit))
+                    {
+                        commands.Add(new UseConsumableCommand(unit.Id, target));
                     }
 
                     break;
@@ -209,6 +277,9 @@ namespace Faultline.Core
                 case ConsumableRule.Debris:
                     return Place(state, unit.Id, command, events);
 
+                case ConsumableRule.Chalk:
+                    return Chalk(state, unit.Id, command, events);
+
                 default:
                     return Effects.Apply(
                         state,
@@ -250,6 +321,44 @@ namespace Faultline.Core
             });
 
             events.Add(new Rescued(clingingId, unitId, to));
+            return state;
+        }
+
+        private static GameState Chalk(
+            GameState state, UnitId unitId, UseConsumableCommand command, List<GameEvent> events)
+        {
+            var marker = state.UnitById(unitId);
+
+            if (command.TargetId is not { } targetId)
+            {
+                throw new IllegalCommandException("A Chalk Mark needs an enemy to put it on.");
+            }
+
+            bool legal = false;
+            foreach (var candidate in ChalkTargets(state, marker))
+            {
+                if (candidate.Equals(targetId))
+                {
+                    legal = true;
+                    break;
+                }
+            }
+
+            if (!legal)
+            {
+                throw new IllegalCommandException(
+                    "That is not an enemy this chalk would change — it is gone, or the other flock is "
+                    + "already owed a tile on it.");
+            }
+
+            // The very field Rattling Impact writes. The mark is one game object with two authors, so
+            // there is nothing to compose here: the request site already knows what to do with it
+            // (D-190).
+            var owed = marker.Team.OtherPlayer();
+            var target = state.UnitById(targetId);
+            state = state.WithUnit(target with { RattledFor = owed });
+
+            events.Add(new ChalkMarked(targetId, owed, unitId, target.Position));
             return state;
         }
 

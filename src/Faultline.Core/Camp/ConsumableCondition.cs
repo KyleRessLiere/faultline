@@ -20,5 +20,12 @@ namespace Faultline.Core
 
         /// <summary>The carrier's class meter is not already at <see cref="Verve.Cap"/>.</summary>
         CarrierMeterBelowCap = 2,
+
+        /// <summary>
+        /// The carrier has no Greased Feather armed already. A second feather on an armed duck adds
+        /// nothing — the bonus is a flag, not a stack — so offering it is offering a player the
+        /// chance to throw a one-shot away.
+        /// </summary>
+        CarrierNotGreased = 3,
     }
 }

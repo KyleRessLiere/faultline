@@ -115,6 +115,7 @@ namespace Faultline.Core
         {
             ConsumableCondition.CarrierBelowMaximumHp => carrier.Hp < carrier.MaxHp,
             ConsumableCondition.CarrierMeterBelowCap => carrier.Verve < Verve.Cap,
+            ConsumableCondition.CarrierNotGreased => !carrier.GreasedFeatherArmed,
             _ => true,
         };
 
@@ -179,6 +180,35 @@ namespace Faultline.Core
                 ConsumableAim.Tile)
             {
                 CustomRule = ConsumableRule.Debris,
+            },
+
+            // Pure data again, and the second acceptance case for the refactor: an armed flag on the
+            // user is a status the vocabulary already has, so a card that arms one is a row and not a
+            // rule.
+            new ConsumableDefinition(
+                Consumable.GreasedFeather,
+                "Greased Feather",
+                "Your next displacement gains " + Consumables.GreaseDistanceBonus + " distance.",
+                ConsumableAim.None)
+            {
+                Preconditions = new[] { ConsumableCondition.CarrierNotGreased },
+                Effects = new AbilityEffect[]
+                {
+                    new StatusEffect(UnitStatus.GreasedFeatherArmed, true)
+                    {
+                        Subject = EffectSubject.User,
+                    },
+                },
+            },
+
+            new ConsumableDefinition(
+                Consumable.ChalkMark,
+                "Chalk Mark",
+                "Mark an enemy: the other flock's next displacement of it gains "
+                + Techniques.RattledDistanceBonus + " distance.",
+                ConsumableAim.Unit)
+            {
+                CustomRule = ConsumableRule.Chalk,
             },
         };
     }

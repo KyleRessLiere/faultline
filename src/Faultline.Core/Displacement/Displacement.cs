@@ -107,9 +107,12 @@ namespace Faultline.Core
             // never reaches the charge at all, exactly as in Resolve, where the refusal returns
             // before Wrecking Weight is consulted.
             // Rattling Impact rides on the request beside Wrecking Weight's tile, so the mark composes
-            // with Stagger, resistance and the hold aura rather than sidestepping them (D-156).
+            // with Stagger, resistance and the hold aura rather than sidestepping them (D-156). A
+            // Chalk Mark is the same mark by another author and needs no second rule here; a Greased
+            // Feather is its mirror on the pusher and rides the same request (D-190).
             int rattle = refused ? 0 : Techniques.RattleBonus(target, by, state);
             distance += rattle;
+            distance += refused ? 0 : Consumables.GreaseBonus(state, by);
 
             int contactDamage = 0;
             if (!refused && ArmedPush(state, by, kind, ref distance, out int rawContact))
@@ -268,6 +271,18 @@ namespace Faultline.Core
                 distance += rattle;
                 state = state.WithUnit(before with { RattledFor = null });
                 before = state.UnitById(targetId);
+            }
+
+            // A Greased Feather is spent on exactly the same terms and for the same reason: "this
+            // duck's NEXT displacement" is one displacement, not one that works, so a shove the
+            // target's resistance ate still burns it (D-190).
+            int grease = Consumables.GreaseBonus(state, by);
+            if (grease > 0)
+            {
+                distance += grease;
+                var greased = state.UnitById(by!.Value);
+                state = state.WithUnit(greased with { GreasedFeatherArmed = false });
+                events.Add(new GreasedFeatherSpent(greased.Id, targetId, greased.Position));
             }
 
             if (ArmedPush(state, by, kind, ref distance, out int contactDamage))

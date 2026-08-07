@@ -148,17 +148,38 @@ namespace Faultline.Core
         public int DisplacedInRound { get; init; }
 
         /// <summary>
-        /// The flock whose next displacement of this unit gains a tile, from Rattling Impact
-        /// (MASTER_DESIGN §8.6). <c>null</c> when the unit is not Rattled.
+        /// The flock whose next displacement of this unit gains a tile. <c>null</c> when the unit
+        /// carries no such mark.
         /// </summary>
         /// <remarks>
-        /// Held on the victim rather than as a list on the Vanguard, for the reason
+        /// <para>
+        /// Held on the victim rather than as a list on the marker, for the reason
         /// <see cref="DisplacedBy"/> gives: a list on a unit compares by reference under the record's
         /// generated equality and quietly breaks replay. The team rather than a bool, because the mark
         /// is spent by <em>the other flock</em> and by nobody else — a Vanguard who shoves his own
         /// Rattled enemy again must not consume it.
+        /// </para>
+        /// <para>
+        /// <b>Two authors, one mark.</b> Rattling Impact writes it on a collision and a
+        /// <see cref="Consumable.ChalkMark"/> writes it out of a pocket (MASTER_DESIGN §8.6). They
+        /// say the identical sentence, so they are the identical field: a second, parallel mark
+        /// would need its own composition rule at the request site and the two would drift (D-190).
+        /// </para>
         /// </remarks>
         public Team? RattledFor { get; init; }
+
+        /// <summary>
+        /// Whether a Greased Feather has armed this unit's next displacement for a tile more
+        /// (MASTER_DESIGN §8.6). Spent by the attempt, not by the result.
+        /// </summary>
+        /// <remarks>
+        /// The mirror of <see cref="RattledFor"/> across the displacement: that one rides on the body
+        /// being moved and this one on the body doing the moving, which is the difference between
+        /// "the other flock's next displacement <em>of it</em>" and "<em>this duck's</em> next
+        /// displacement". Shaped after <see cref="WreckingWeightArmed"/> and read at the same request
+        /// site, so all three compose instead of layering (D-190).
+        /// </remarks>
+        public bool GreasedFeatherArmed { get; init; }
 
         /// <summary>
         /// Round in which this unit last applied Rattling Impact. Zero when it never has. The latch

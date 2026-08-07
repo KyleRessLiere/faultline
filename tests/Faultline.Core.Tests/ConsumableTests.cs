@@ -23,12 +23,14 @@ public class ConsumableTests
     // ---- the pool ----------------------------------------------------------------------------
 
     [Fact]
-    public void TheTacticalPool_IsTheFiveThatAreBuilt()
+    public void TheTacticalPool_IsTheSevenThatAreBuilt()
     {
         // MASTER_DESIGN §8.5 also names five legendary one-shots — Drift Scroll, Second Wind Whistle,
         // Stone Feather, Peddler's Coin, Bottled Current. They are destinations, deliberately not
-        // built, and deliberately not sitting in the enum unreachable.
-        Assert.Equal(5, Enum.GetValues(typeof(Consumable)).Length);
+        // built, and deliberately not sitting in the enum unreachable. §8.6's tactical row names ten;
+        // Signal Whistle, Split Reed and Thorn Pouch are the three still to come (D-193).
+        Assert.Equal(7, Enum.GetValues(typeof(Consumable)).Length);
+        Assert.Equal(7, CampCatalogue.ConsumablePool().Count);
     }
 
     // ---- the pocket --------------------------------------------------------------------------

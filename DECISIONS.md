@@ -193,6 +193,8 @@ in this file when the question comes back.
 | D-186 | [A structure collision deals 6, a body collision still deals 4, and they are two constants because they were always two numbers.](#d-186-a-structure-collision-deals-6-a-body-collision-still-deals-4-and-they-are-two-constants-because-they-were-always-two-numbers) | 2026-08-07 |  |
 | D-187 | [High Road deploys both flocks on the south flanks, and the opposite-corners guideline is refused here for the same reason the Trench refuses it.](#d-187-high-road-deploys-both-flocks-on-the-south-flanks-and-the-opposite-corners-guideline-is-refused-here-for-the-same-reason-the-trench-refuses-it) | unreleased |  |
 | D-188 | [HELD: a displacement that makes a body Clinging and then damages it inside the same resolution is still previewed wrong.](#d-188-held-a-displacement-that-makes-a-body-clinging-and-then-damages-it-inside-the-same-resolution-is-still-previewed-wrong) | unreleased | *held* |
+| D-189 | ["This duck's next displacement" is the displacement it causes, because that is how §8.6 uses the possessive everywhere else.](#d-189-this-ducks-next-displacement-is-the-displacement-it-causes-because-that-is-how-86-uses-the-possessive-everywhere-else) | unreleased |  |
+| D-190 | [Chalk Mark is Rattling Impact's mark with a different author, so it is the same field — and Greased Feather is its mirror on the pusher.](#d-190-chalk-mark-is-rattling-impacts-mark-with-a-different-author-so-it-is-the-same-field--and-greased-feather-is-its-mirror-on-the-pusher) | unreleased |  |
 
 **174 rulings.**
 
@@ -4559,3 +4561,66 @@ preview" column until it is done, and the certification report names the exact c
 **What would unblock it:** a test that Reels a unit off high ground into a drain and asserts
 `WouldDown` and the damage against what `Game.Apply` produces - then teach `Displacement.Preview` to
 carry the cling forward through the rest of the travel it is projecting.
+
+
+---
+
+**D-189 - "This duck's next displacement" is the displacement it causes, because that is how §8.6
+uses the possessive everywhere else.**
+
+§8.6 prints *Greased Feather* as "this duck's next displacement +1 distance" and nothing else. Read
+cold, that is two cards: the next displacement this duck **causes**, or the next time this duck **is
+displaced**. The second reading is a downside printed as a reward, which is already a reason to doubt
+it, but the deciding evidence is the section's own grammar.
+
+*Rattling Impact* and *Chalk Mark* both read "**the other flock's** next displacement **of it**". The
+possessive names the **author** of the displacement and the trailing "of it" names the **victim** —
+which is why both cards need the trailing clause at all. *Greased Feather* has the possessive and no
+"of it", so it names an author and no victim: the displacement this duck causes, against whatever it
+aims at.
+
+So the card arms the pusher, and it is built as an armed flag on the carrier
+(`Unit.GreasedFeatherArmed`) shaped after `WreckingWeightArmed` rather than as a mark on a victim.
+
+**What this does not decide.** Whether the feather should also cover a displacement the duck causes
+*indirectly* — a collision chain, a Relay Feather redirect. Today it is read exactly where
+`Displacement` already knows who `by` is, so an effect with no named causer gets nothing. If a
+designer wants the wider reading, it is a change at one line, and the narrow one is the one that
+cannot silently pay out.
+
+---
+
+**D-190 - Chalk Mark is Rattling Impact's mark with a different author, so it is the same field - and
+Greased Feather is its mirror on the pusher.**
+
+§8.6's *Chalk Mark* ("mark an enemy; the other flock's next displacement of it gains +1 distance") is
+word-for-word the sentence *Rattling Impact* already prints. D-156 built that one: the tile rides the
+**requested** distance beside Wrecking Weight's, so it composes with Stagger, push resistance and the
+hold aura instead of stepping around them, and the mark is **spent by the attempt, not by the
+result**, because a displacement resistance ate is still a displacement and a mark consumed only on
+success lets a flock probe the board for free.
+
+**A second mark would have been a second copy of that ruling.** So the chalk writes `Unit.RattledFor`
+- the identical field - and the request site needed no new case at all. `Consumables.Chalk` sets the
+team; `Techniques.RattleBonus` reads it; `Displacement.Resolve` clears it. The two events stay
+separate (`ChalkMarked`, `Rattled`) because a log reader is owed the author, but the state is one
+thing. `PocketItemTests.BothNewMarks_AreOneMechanism_NotTwo` fails loudly if a future writer splits
+them.
+
+*Greased Feather* is the same arithmetic from the other end - the mark rides the body **doing** the
+moving instead of the body being moved (D-189) - so it is read at the same request site, in the same
+two lines, and is spent on the same terms. `GreasedFeatherSpent` is emitted even when the tile it
+bought was eaten, because a player who watched the shove go nowhere is owed the reason; a silent
+consumption is the no-op bug class this repo has shipped three times.
+
+**Both lapse at the round seam.** §8.6 prints no duration on either card. `RattledFor` already
+cleared in `BeginRound` under D-157 ("a mark that outlived the round it was made in would be a second
+duration nobody wrote down"), and the chalk inherits that by being the same field; the feather is
+cleared beside it so there is one answer to "how long does a mark last" rather than two. In practice
+a pocket is emptied inside its own duck's activation, so the mark almost always resolves in the round
+it was drawn.
+
+**What this does not decide.** `Unit.RattledFor` is now a misnomer - two authors, one name. Renaming
+it to something author-neutral touches `Unit`, `Techniques`, `TechniqueListeners`, `Displacement`,
+`Game`, `CombatLog` and the technique suite, which is a mechanical sweep with no behaviour in it and
+no place in a features diff. Logged for the review queue instead.

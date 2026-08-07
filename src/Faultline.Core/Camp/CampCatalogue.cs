@@ -51,11 +51,17 @@ namespace Faultline.Core
 
         private static readonly Consumable[] AllConsumables =
         {
+            // Enum order, and it has to stay that way: ConsumableDefinition's registry is asserted to
+            // match this list exactly, so that which card a seed deals never depends on hashing. New
+            // one-shots append here for the same reason they append to the enum — a saved run's
+            // pocket keeps its meaning.
             Consumable.DriedMinnow,
             Consumable.BrambleSalve,
             Consumable.OldRope,
             Consumable.DuckFeatherCharm,
             Consumable.CrateOfDebris,
+            Consumable.GreasedFeather,
+            Consumable.ChalkMark,
         };
 
         private static readonly TechniqueModifier[] AllTechniques =

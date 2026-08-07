@@ -1577,6 +1577,21 @@ it back emptied.
 | **Old Rope** | rescue an **adjacent** clinger as a free action, to any legal drop tile |
 | **Duck Feather Charm** | **+1** Footing — one more whole refusal |
 | **Crate of Debris** | place debris on an **adjacent open** tile — a breakable blocker with the board's own blocker hit points, or one collision's worth when the board declares none. Not onto a drain, brambles or high ground. |
+| **Greased Feather** | **this duck's next displacement asks for +1 distance**. Not offered to a duck already carrying one. |
+| **Chalk Mark** | mark **any enemy on the board**: **the other flock's** next displacement of it asks for **+1 distance**. Not offered on an enemy that other flock is already owed a tile on. |
+
+**Both +1s ride the request, and both are spent by the attempt.** A Greased Feather and a Chalk Mark
+add their tile to the **requested** distance, beside Wrecking Weight's, exactly as Rattling Impact's
+mark does (D-076, D-156) — so they meet Stagger, push resistance and the hold aura instead of stepping
+around them. Each is consumed by the displacement that used it **whether or not the extra tile
+survived**: a shove that resistance ate is still a displacement, and a mark spent only on success
+would let a flock probe the board for free (D-190).
+
+**A Chalk Mark and Rattling Impact are one mark, not two.** They say the same sentence, so they write
+the same state; the chalk needed no new arithmetic. It follows that a chalk **lapses at the round
+seam** with every other §8.6 mark (D-157) — §8.6 prints no duration on the card, and a mark that
+outlived its round would be a second duration nobody wrote down. A **Greased Feather lapses there
+too**, for the same reason.
 
 **Old Rope changes the doomed-cling sweep.** A side that is nothing but hands on ledges is normally
 swept the instant it becomes hopeless (D-081). **Any living ally holding an Old Rope counts as a

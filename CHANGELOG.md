@@ -1,5 +1,18 @@
 # Changelog
 
+## Two pockets learn to push a tile further, and neither one invents a way to do it
+
+- **Greased Feather and Chalk Mark ship.** A Greased Feather arms this duck's next displacement for
+  +1 distance; a Chalk Mark hands the **other** flock +1 on its next displacement of a named enemy
+  (D-189, D-190).
+- **The chalk *is* Rattling Impact's mark.** It writes the same field, so the displacement pipeline
+  grew no second case: both tiles ride the **requested** distance beside Wrecking Weight's, meet
+  Stagger and push resistance head-on, and are spent by the attempt rather than by the result
+  (D-076, D-156). Both lapse at the round seam with every other §8.6 mark (D-157).
+- **Neither can be thrown away by mistake.** A feather is not offered to a duck already carrying one
+  and a chalk is not offered on an enemy that flock is already owed a tile on — and `Greased feather
+  spent` is logged even when resistance ate the tile it bought.
+
 ## The High Road stops being two fights and starts being one ridge
 
 - **`high-road` is winnable again.** It lost with all four certification policies — two wipes at

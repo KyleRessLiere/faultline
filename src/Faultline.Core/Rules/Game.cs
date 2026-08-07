@@ -909,6 +909,13 @@ namespace Faultline.Core
                     RattledFor = null,
                     HandOffTarget = null,
                     BankedStepTo = null,
+
+                    // A Greased Feather and a Chalk Mark lapse with them. §8.6 prints no duration on
+                    // either card, and the alternative — a mark that outlives the round it was made
+                    // in — is the second duration D-157 refused to add. The chalk shares RattledFor,
+                    // so it was already lapsing; saying the feather does too keeps one answer to
+                    // "how long does a mark last" (D-190).
+                    GreasedFeatherArmed = false,
                 };
             }
 

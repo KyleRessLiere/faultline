@@ -241,6 +241,9 @@ namespace Faultline.Core
                 case UnitStatus.Paddling:
                     return state.WithUnit(unit with { Clinging = effect.Apply });
 
+                case UnitStatus.GreasedFeatherArmed:
+                    return state.WithUnit(unit with { GreasedFeatherArmed = effect.Apply });
+
                 default:
                     return state;
             }

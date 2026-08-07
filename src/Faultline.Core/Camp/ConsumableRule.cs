@@ -36,5 +36,13 @@ namespace Faultline.Core
         /// placing a structure is not something the standard effect vocabulary can say.
         /// </summary>
         Debris = 2,
+
+        /// <summary>
+        /// Chalk Mark: pick an enemy and hand the other flock a tile on its next displacement of it.
+        /// Custom because the mark is a <see cref="Team"/> rather than a flag, which
+        /// <see cref="StatusEffect"/> cannot say, and because the offer is filtered by who already
+        /// carries it (<see cref="Consumables.ChalkTargets"/>).
+        /// </summary>
+        Chalk = 3,
     }
 }

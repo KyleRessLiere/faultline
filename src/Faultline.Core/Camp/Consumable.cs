@@ -5,7 +5,7 @@ namespace Faultline.Core
     /// costs 0 AP, is free-timing inside that duck's own activation, and spends the item.
     /// </summary>
     /// <remarks>
-    /// This is the <b>tactical</b> pool — the five a camp or an event can hand out. The legendary
+    /// This is the <b>tactical</b> pool — the ones a camp or an event can hand out. The legendary
     /// consumables (Drift Scroll, Second Wind Whistle, Stone Feather, Peddler's Coin, Bottled
     /// Current) are destinations only and are not built; they are named in GAMEPLAY.md as pending
     /// rather than sitting here unreachable.
@@ -26,5 +26,11 @@ namespace Faultline.Core
 
         /// <summary>Place debris on an adjacent open tile.</summary>
         CrateOfDebris = 4,
+
+        /// <summary>This duck's next displacement gains a tile of requested distance.</summary>
+        GreasedFeather = 5,
+
+        /// <summary>Mark an enemy: the other flock's next displacement of it gains a tile.</summary>
+        ChalkMark = 6,
     }
 }
