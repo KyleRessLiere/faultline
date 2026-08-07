@@ -111,6 +111,27 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// The channel <see cref="Damage"/> arrives on. Read off <see cref="Effects"/> beside the
+        /// amount, because a projection that assumed Attack would mis-apply Guard Stance's halving to
+        /// an ability authored on any other channel.
+        /// </summary>
+        public DamageSource DamageChannel
+        {
+            get
+            {
+                foreach (var effect in Effects)
+                {
+                    if (effect is DamageEffect damage && effect.Subject == EffectSubject.Target)
+                    {
+                        return damage.Source;
+                    }
+                }
+
+                return DamageSource.Attack;
+            }
+        }
+
+        /// <summary>
         /// Push distance applied to the target, zero when it does not push. Read off
         /// <see cref="Effects"/>.
         /// </summary>

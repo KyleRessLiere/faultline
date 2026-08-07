@@ -388,10 +388,19 @@ public static class View
 
         var parts = new List<string>();
 
+        // Whether it kills is Core's answer (ActionOutlook.Finishes), never this renderer's. Deciding
+        // it here by subtracting the damage from the target's hit points was a second copy of the
+        // rules, and it had the wrong answer for a body on a ledge: any damage at all voids a
+        // Clinging unit, so a 2 into a ten-point Grappler read "leaves 8" and took all ten.
         if (outlook.Damage > 0 && outlook.TargetId is { } hurtId && state.FindUnit(hurtId) is { } hurt)
         {
             parts.Add($"for {outlook.Damage}"
-                + (hurt.Hp <= outlook.Damage ? "  KILLS" : $"  (leaves {hurt.Hp - outlook.Damage})"));
+                + (outlook.Finishes ? "  KILLS" : $"  (leaves {hurt.Hp - outlook.Damage})"));
+        }
+        else if (outlook.Finishes && outlook.TargetId is { } takenId)
+        {
+            // A shove that finishes a body it deals no direct damage to still has to say so.
+            parts.Add($"KILLS {Name(state, takenId)}");
         }
 
         foreach (var hit in outlook.LineHits)

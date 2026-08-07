@@ -555,6 +555,21 @@ Three consequences that were bugs until D-151:
 A guard standing beside the target intercepts, and the projection follows the body that will really
 move — the chip is never drawn on a unit that stays put.
 
+**A projection resolves in the order the action does (D-184).** An action's direct damage lands
+first and the shove is aimed at whatever it left standing — or at nobody, when it left nothing. The
+projection used to be taken against the undamaged board, which produced two lies: an exactly-lethal
+ability drew a destination for a corpse, and a shot into a **Clinging** body promised its 2 damage
+and a tile to land on when any damage at all voids a clinger where it hangs and takes its whole bar.
+
+| Ask | Ask this, not that |
+|---|---|
+| "Does this action kill the target?" | `ActionOutlook.Finishes` — **never** `Damage` against the target's hit points |
+| "What channel does this damage arrive on?" | `AbilityDefinition.DamageChannel` — **never** assume `Attack`, or Guard Stance halves the wrong things |
+
+`Damage` is **what the blow is worth, not what the board will remove.** The two part company
+whenever a rule finishes a body for less than its hit points, so subtracting one from the other is
+keeping a second and wrong copy of the Clinging rule.
+
 ### Which way — the diagonal is the acting side's choice
 
 The direction is the dominant axis of the vector between the source and the target. When the two
@@ -1467,6 +1482,15 @@ owner's yes. Crossing Shot and Rattling Impact are automatic — and their full 
 
 **The per-round marks** — Rattled, an outstanding Hand-Off, a banked Shelter Step — clear when the
 round turns over, with Stagger (D-157).
+
+**Free steps a legendary owes** (D-185): Follow Through gives the Vanguard two tiles after he causes
+a collision, Kestrel Step gives the Archer two after she shoots. `TakeFreeStepCommand` spends one
+tile at a time — **nothing leaves the AP purse and the move half stays shut**, because the card has
+already paid. The activation is held open for exactly this, and `EndActivationCommand` is how a
+player declines the rest.
+
+**Free of the economy is not free of the terrain.** A free step is still a step, so brambles bite on
+entry exactly as they do on a walked one — the same ruling a banked Shelter Step already follows.
 
 **Reel is now attributed to the Fisher** (D-155), so **Chum the Water fires off a Reel kill**, which
 its card text has always said.

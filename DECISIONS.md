@@ -169,7 +169,7 @@ in this file when the question comes back.
 | D-150 | [A diagonal displacement vector is resolved by the acting side, and the choice rides the acting command rather than a prompt of its own.](#d-150-a-diagonal-displacement-vector-is-resolved-by-the-acting-side-and-the-choice-rides-the-acting-command-rather-than-a-prompt-of-its-own) | 2026-08-06 |  |
 | D-151 | [Every action has exactly one projection, it lives in Core, and no renderer decides which half of an action applies.](#d-151-every-action-has-exactly-one-projection-it-lives-in-core-and-no-renderer-decides-which-half-of-an-action-applies) | 2026-08-06 |  |
 | D-152 | [The climb surcharge is deleted on both sides, and the two perks that bought a discount on it are deleted with it.](#d-152-the-climb-surcharge-is-deleted-on-both-sides-and-the-two-perks-that-bought-a-discount-on-it-are-deleted-with-it) | 2026-08-06 |  |
-| D-153 | [HELD (released, and superseded by D-165): the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-released-and-superseded-by-d-165-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | unreleased | **superseded** |
+| D-153 | [HELD (released, and superseded by D-165): the "every fight is 7x7" sweep, because MASTER_DESIGN says the opposite in the same stamp.](#d-153-held-released-and-superseded-by-d-165-the-every-fight-is-7x7-sweep-because-masterdesign-says-the-opposite-in-the-same-stamp) | 2026-08-06 | **superseded** |
 | D-154 | [The camp deals one table of two, and the flock takes one pick.](#d-154-the-camp-deals-one-table-of-two-and-the-flock-takes-one-pick) | 2026-08-06 |  |
 | D-155 | [A haul is attributed to its hauler, and Chum the Water starts firing off Reel.](#d-155-a-haul-is-attributed-to-its-hauler-and-chum-the-water-starts-firing-off-reel) | 2026-08-06 |  |
 | D-156 | [Rattling Impact's tile rides on the request, and the mark is spent by the attempt.](#d-156-rattling-impacts-tile-rides-on-the-request-and-the-mark-is-spent-by-the-attempt) | 2026-08-06 |  |
@@ -185,11 +185,13 @@ in this file when the question comes back.
 | D-181 | ["Never both full health and a free Rare" is a constructor guard, not a convention.](#d-181-never-both-full-health-and-a-free-rare-is-a-constructor-guard-not-a-convention) | 2026-08-06 |  |
 | D-182 | [Both Forges ship printed and refused, with the pool size counted rather than asserted.](#d-182-both-forges-ship-printed-and-refused-with-the-pool-size-counted-rather-than-asserted) | 2026-08-06 |  |
 | D-183 | ["Clear Bedraggled" clears the run status; no status effect was introduced to remove.](#d-183-clear-bedraggled-clears-the-run-status-no-status-effect-was-introduced-to-remove) | 2026-08-06 |  |
-| D-165 | [Every act-1 combat board is 7x7, and nothing else is re-cut. This supersedes D-153's hold.](#d-165-every-act-1-combat-board-is-7x7-and-nothing-else-is-re-cut-this-supersedes-d-153s-hold) | unreleased |  |
-| D-166 | [A structure collision deals 4, MASTER_DESIGN prices it at 6 in three places, and the boards are authored to the design's numbers with the constant left alone.](#d-166-a-structure-collision-deals-4-masterdesign-prices-it-at-6-in-three-places-and-the-boards-are-authored-to-the-designs-numbers-with-the-constant-left-alone) | unreleased |  |
-| D-167 | [A `protect` board cannot be won by its own clock, and the-shrine ships as "clear the lanes in eight" rather than "hold the shrine for eight".](#d-167-a-protect-board-cannot-be-won-by-its-own-clock-and-the-shrine-ships-as-clear-the-lanes-in-eight-rather-than-hold-the-shrine-for-eight) | unreleased |  |
+| D-165 | [Every act-1 combat board is 7x7, and nothing else is re-cut. This supersedes D-153's hold.](#d-165-every-act-1-combat-board-is-7x7-and-nothing-else-is-re-cut-this-supersedes-d-153s-hold) | 2026-08-06 |  |
+| D-166 | [A structure collision deals 4, MASTER_DESIGN prices it at 6 in three places, and the boards are authored to the design's numbers with the constant left alone.](#d-166-a-structure-collision-deals-4-masterdesign-prices-it-at-6-in-three-places-and-the-boards-are-authored-to-the-designs-numbers-with-the-constant-left-alone) | 2026-08-06 |  |
+| D-167 | [A `protect` board cannot be won by its own clock, and the-shrine ships as "clear the lanes in eight" rather than "hold the shrine for eight".](#d-167-a-protect-board-cannot-be-won-by-its-own-clock-and-the-shrine-ships-as-clear-the-lanes-in-eight-rather-than-hold-the-shrine-for-eight) | 2026-08-06 |  |
+| D-184 | [A projection resolves in the order the action does, so the shove is aimed at whoever the blow left standing.](#d-184-a-projection-resolves-in-the-order-the-action-does-so-the-shove-is-aimed-at-whoever-the-blow-left-standing) | unreleased |  |
+| D-185 | [Free movement a legendary owes is neither half of the activation, and declining it is a command.](#d-185-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-declining-it-is-a-command) | unreleased |  |
 
-**169 rulings.**
+**171 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4375,3 +4377,58 @@ is a loss". `break-the-gate` dodges the contradiction by geometry rather than by
 are sealed north of the wall band and unreachable until the gate falls, so the board cannot be cleared
 before it is broken. That is a board-shaped answer to a rules-shaped question and is queued for
 review, not fixed here.
+
+
+---
+
+**D-184 - A projection resolves in the order the action does, so the shove is aimed at whoever the
+blow left standing.**
+
+`Abilities.Outlook` projected the displacement against the **undamaged** board while
+`Effects.Apply` runs the effect list front to back — damage first, and stopping the moment the
+subject leaves the board. Every damaging displacer in the game is authored damage-first, so the two
+disagreed whenever the direct damage mattered.
+
+**One cause, two visible shapes**, both reported by the certification harness on all eight act-1
+boards:
+
+- an ability whose direct damage is exactly lethal **drew a destination for a corpse** and reported
+  `WouldDown` false;
+- Stagger Shot into an already-**Clinging** body promised its 2 damage and a tile to land on, when
+  `Combat.ApplyDamage` voids a Clinging unit where it hangs (Brief §2) and takes its whole bar. That
+  is the `promised 2 damage, took 10` row: a 2-point shot into a ten-point Grappler on a ledge.
+
+The fix is `AfterDirectDamage` + `StillStanding`: project the shove against the state the action's
+own damage produced, and project no shove at all when it left nothing to shove.
+
+**`Damage` keeps its meaning — what the blow is worth, not what the board will remove.** The two
+part company whenever a rule finishes a body for less than its hit points, so a renderer that
+subtracted `Damage` from the target's bar to decide "does this kill" was keeping a second, wrong
+copy of the Clinging rule. `ActionOutlook.Finishes` is the question to ask instead, and it is the
+whole action's answer — direct damage and displacement together.
+
+**`AbilityDefinition.DamageChannel`** is read off `Effects` beside the amount for the same reason: a
+projection that assumed `DamageSource.Attack` applied Guard Stance's halving to abilities authored
+on another channel.
+
+**Stage A did not hold, and this is what it missed.** A1's acceptance test asserted the destination
+and the rendering; it never asserted damage totals or the kill flag, which is exactly the gap a
+later instrument found. The lesson is not that the boards were wrong — it is that an acceptance
+test names the properties it checks, and the unnamed ones are unguarded.
+
+---
+
+**D-185 - Free movement a legendary owes is neither half of the activation, and declining it is a
+command.**
+
+Follow Through's two tiles after a collision and Kestrel Step's after a shot (§8.6) are movement the
+card has already paid for. `TakeFreeStepCommand` spends one tile at a time: nothing leaves the AP
+purse, the move half stays shut, and `EndActivationCommand` is how a player declines the rest. The
+activation is held open for exactly this and for nothing else.
+
+**A free step is still a step.** The board charges for it exactly as it charges for a walked one —
+brambles bite on entry — which is the same ruling `ApplyBankedStep` already makes for Shelter Step.
+Free of the *economy* is not free of the *terrain*, and the two were never the same claim.
+
+Every refusal names itself: owed no steps, not adjacent, unwalkable or occupied, or a duck that
+cannot step at all.

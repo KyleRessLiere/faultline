@@ -48,6 +48,21 @@ namespace Faultline.Core
     /// displacement: the receiving owner elects whether to spend it, so what the initiating preview
     /// promises is the offer and not the other player's next move.
     /// </param>
+    /// <param name="Finishes">
+    /// Whether taking this action leaves <paramref name="TargetId"/> off the board — the whole
+    /// action's answer, direct damage and displacement together.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// <b><paramref name="Damage"/> is what the blow is worth, not what the board will remove.</b>
+    /// The two part company whenever a rule finishes a body for less than its hit points: any damage
+    /// at all to a Clinging unit voids it where it hangs (Brief §2), so a 2-point shot into a
+    /// ten-point Grappler on a ledge takes all ten. A renderer that subtracted
+    /// <paramref name="Damage"/> from the target's hit points to decide whether an action kills was
+    /// a second copy of that rule, and it had the wrong answer — which is what
+    /// <paramref name="Finishes"/> exists to be asked instead.
+    /// </para>
+    /// </remarks>
     public sealed record ActionOutlook(
         UnitId ActorId,
         UnitId? TargetId,
@@ -57,7 +72,8 @@ namespace Faultline.Core
         DisplacementPreview? Displacement,
         Coord? ActorMovesTo = null,
         CrossingShotProjection? Reaction = null,
-        UnitId? GrantsTo = null)
+        UnitId? GrantsTo = null,
+        bool Finishes = false)
     {
         /// <summary>True when the action moves a body — its own or somebody else's.</summary>
         public bool Displaces => Displacement is not null || Charge?.Contact is not null;

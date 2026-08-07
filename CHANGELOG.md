@@ -1,5 +1,25 @@
 # Changelog
 
+## The preview stops shoving corpses, and High Road finally pays what it promised
+
+- **A preview now resolves in the order the action does.** The projection aimed its shove at the
+  board *before* the action's own damage landed, so an exactly-lethal ability drew a destination for
+  a body that was already gone, and a shot into a **clinging** enemy promised 2 damage and a tile
+  when any damage at all voids a clinger and takes its whole bar — the two-into-ten row a
+  certification sweep found on all eight boards. One cause, both shapes (D-184).
+- **"Does this kill?" is now a question the projection answers**, instead of one every renderer
+  answered for itself by subtracting damage from hit points — which was a second, wrong copy of the
+  clinging rule. Damage is what the blow is worth; `Finishes` is what the board will do.
+- **Guard Stance no longer halves damage that never came on the attack channel.** The channel is
+  read off the ability beside the amount rather than assumed.
+- **High Road's gilt edge is lit.** Its legendary pick is payable, so the map may finally draw it and
+  name it — the promise rule was never "never gild", it was "gild exactly when the game can pay".
+  The legendary *consumable* mark is still unpayable and still draws silence rather than a smaller
+  promise.
+- **Follow Through and Kestrel Step spend free steps** that cost neither the AP purse nor the move
+  half — but still pay the terrain, because free of the economy was never free of the brambles
+  (D-185).
+
 ## The Warrens' eight boards each ask one question, and none of them hit you first
 
 - **Every act-1 combat board is 7×7 and every one of them fields both flocks out of round-1 reach.**

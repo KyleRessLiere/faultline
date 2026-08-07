@@ -130,6 +130,125 @@ public class PreviewTruthTests
         Assert.Equal(before - after.Get(husk.Id).Hp, outlook.Damage + outlook.Displacement!.DamageToUnit);
     }
 
+    // ---- What the action's own damage does to the shove it drew ------------------------------
+
+    /// <summary>
+    /// Certification found this on `hz-09-the-trench`: Stagger Shot into an already-Clinging Grappler
+    /// promised 2 damage and a tile to land on, and the board took its whole bar and moved it nowhere.
+    /// Any damage to a Clinging unit voids it where it hangs (<see cref="Combat"/>, Brief §2), so the
+    /// ability's own 2 removes the body before its push has anything left to move.
+    /// </summary>
+    [Fact]
+    public void AnAbilityThatVoidsAClingingBody_NeverPromisesToShoveIt()
+    {
+        var (state, command, target) = ClingingTargetBoard();
+
+        var outlook = Abilities.Outlook(state, command)!;
+
+        var after = state.Then(command);
+        var settled = after.Get(target);
+
+        Assert.False(settled.IsAlive, "the fixture must void the body for the claim to be testable");
+
+        // Nothing may be promised about a body that is not going to be there to move.
+        Assert.Null(outlook.Displacement);
+
+        // The blow is still worth what it is worth — but the outcome it buys is the whole body, and
+        // that is the claim a player has to be able to read.
+        Assert.True(outlook.Finishes);
+    }
+
+    /// <summary>
+    /// The same defect without the drain, found on `broken-bridge` and `hz-09-the-trench`: the
+    /// ability's direct damage is exactly lethal, <see cref="Effects.Apply"/> stops the effect list
+    /// when the subject leaves the board, and the push never happens — but the projection drew a
+    /// destination for it anyway, and said <c>WouldDown</c> was false.
+    /// </summary>
+    [Fact]
+    public void AnAbilityThatKillsOutright_NeverPromisesToShoveTheBody()
+    {
+        var (state, command, target) = LethalTargetBoard();
+
+        var outlook = Abilities.Outlook(state, command)!;
+        int hpBefore = state.Get(target).Hp;
+
+        var after = state.Then(command);
+        var settled = after.Get(target);
+
+        Assert.False(settled.IsAlive, "the fixture must kill outright for the claim to be testable");
+        Assert.Equal(state.Get(target).Position, settled.Position);
+        Assert.Null(outlook.Displacement);
+        Assert.True(outlook.Finishes);
+        Assert.Equal(hpBefore - settled.Hp, outlook.Damage);
+    }
+
+    /// <summary>
+    /// The player has to be able to see the kill coming. Both boards above are actions whose direct
+    /// damage finishes the target, and MASTER_DESIGN §3 wants the outcome out loud.
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AnActionThatFinishesItsTarget_SaysSoBeforeItIsTaken(bool clinging)
+    {
+        var (state, command, target) = clinging ? ClingingTargetBoard() : LethalTargetBoard();
+
+        string rendered = View.Describe(state, command);
+        var before = state.Get(target);
+        var settled = state.Then(command).Get(target);
+
+        Assert.False(settled.IsAlive, "the fixture must finish the target for the claim to be testable");
+
+        // The kill, out loud — and no "leaves N" for a body that is left with nothing.
+        Assert.Contains("KILLS", rendered);
+        Assert.DoesNotContain("leaves", rendered);
+
+        // And no ghost on a tile the body never reaches: it dies where it is standing.
+        Assert.Equal(before.Position, settled.Position);
+    }
+
+    // An Archer, and a Grappler already hanging in the drain beside her. The second enemy is on the
+    // far row so the doomed-cling sweep (D-081) never fires: with one enemy left and it clinging,
+    // the sweep and not the shot would be what took the body, and this is a test about the shot.
+    private static (GameState State, Command Command, UnitId Target) ClingingTargetBoard()
+    {
+        var state = BoardBuilder.Rows("..O....", ".......")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Grappler, 2, 0)
+            .Enemy(UnitKind.Husk, 6, 1, hp: 40)
+            .Active(Team.PlayerA)
+            .Build();
+
+        var grappler = state.Find(UnitKind.Grappler);
+        state = state.WithUnit(grappler with { Clinging = true, ClingingSinceRound = state.Round });
+
+        return (
+            state,
+            new AbilityCommand(state.Find(UnitKind.Archer).Id, Ability.StaggerShot, grappler.Id),
+            grappler.Id);
+    }
+
+    // The same shot into a body holding exactly what the shot deals, with open ground behind it —
+    // so the only reason it does not travel is that the shot killed it first.
+    private static (GameState State, Command Command, UnitId Target) LethalTargetBoard()
+    {
+        var damage = AbilityDefinition.For(Ability.StaggerShot).Damage;
+
+        var state = BoardBuilder.Open(7, 2)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: damage)
+            .Enemy(UnitKind.Husk, 6, 1, hp: 40)
+            .Active(Team.PlayerA)
+            .Build();
+
+        var doomed = state.Units.First(u => u.Team == Team.Enemy && u.Position == new Coord(2, 0));
+
+        return (
+            state,
+            new AbilityCommand(state.Find(UnitKind.Archer).Id, Ability.StaggerShot, doomed.Id),
+            doomed.Id);
+    }
+
     // ---- The general rule --------------------------------------------------------------------
 
     /// <summary>

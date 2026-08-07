@@ -439,7 +439,13 @@ namespace Faultline.Core
                     // the same distance the resolution will (D-161).
                     distance += GrantedPush(unit, target.Id, attack.Technique);
 
-                    var shove = Redirected(state, unit, target, kind, distance, attack.Aim);
+                    // Damage first, then the shove — the order the resolution takes, so the shove is
+                    // projected against whoever the blow left standing.
+                    var struck = AfterDirectDamage(state, target.Id, damage, DamageSource.Attack);
+                    var standing = StillStanding(struck, target.Id);
+                    var shove = standing is { } body
+                        ? Redirected(struck, unit, body, kind, distance, attack.Aim)
+                        : null;
 
                     return new ActionOutlook(
                         unit.Id,
@@ -450,7 +456,8 @@ namespace Faultline.Core
                         shove,
                         FollowInTile(state, unit, target, shove, attack.Technique),
                         Techniques.CrossingShot(state, unit.Id, target.Id, Traversed(shove)),
-                        Granted(state, unit, shove));
+                        Granted(state, unit, shove),
+                        Finishes(standing, shove, target.Id));
                 }
 
                 case AbilityCommand ability:
@@ -506,9 +513,16 @@ namespace Faultline.Core
                         return new ActionOutlook(unit.Id, null, 0, NoLineHits, null, null);
                     }
 
+                    // Damage first, then the shove — the order Effects.Apply takes, so the shove is
+                    // projected against whoever the ability's own damage left standing.
+                    var struck = AfterDirectDamage(
+                        state, aimedId, descriptor.Damage, descriptor.DamageChannel);
+
+                    var standing = StillStanding(struck, aimedId);
                     var shove = Shove(
                         state, unit, aimedId, out var kind, out int distance, out bool bypass, ability.StopAt)
-                        ? Redirected(state, unit, aimed, kind, distance, ability.Aim, bypass)
+                        && standing is { } body
+                        ? Redirected(struck, unit, body, kind, distance, ability.Aim, bypass)
                         : null;
 
                     return new ActionOutlook(
@@ -520,7 +534,8 @@ namespace Faultline.Core
                         shove,
                         null,
                         Techniques.CrossingShot(state, unit.Id, aimedId, Traversed(shove)),
-                        Granted(state, unit, shove));
+                        Granted(state, unit, shove),
+                        Finishes(standing, shove, aimedId));
                 }
 
                 default:
@@ -666,6 +681,64 @@ namespace Faultline.Core
 
         /// <summary>Distance from the user to the tip tile of a two-tile Line.</summary>
         private const int SpearTipDistance = 2;
+
+        /// <summary>
+        /// The board a displacement is really projected against: the one the action's own direct
+        /// damage leaves behind.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>An action resolves in order, so its projection has to.</b> <see cref="Effects.Apply"/>
+        /// runs the effect list front to back and stops the moment the subject leaves the board, and
+        /// every damaging displacer is authored damage-first — so the shove is dealt to whatever the
+        /// damage left standing, and to nobody at all when it left nothing.
+        /// </para>
+        /// <para>
+        /// Projecting the shove against the undamaged board is what made the certification harness
+        /// report contradictions on all eight act-1 boards. Two shapes, one cause: an ability whose
+        /// direct damage is exactly lethal drew a destination for a corpse and reported
+        /// <c>WouldDown</c> false, and Stagger Shot into an already-Clinging body promised 2 damage
+        /// and a tile to land on when <see cref="Combat.ApplyDamage"/> voids a Clinging unit where it
+        /// hangs (Brief §2) and takes its whole bar.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="targetId">Unit the action's direct damage lands on.</param>
+        /// <param name="damage">Direct damage the action deals, before any displacement.</param>
+        /// <param name="source">Channel the damage arrives on.</param>
+        /// <returns>The state after that damage, or <paramref name="state"/> when it deals none.</returns>
+        private static GameState AfterDirectDamage(
+            GameState state, UnitId targetId, int damage, DamageSource source) =>
+            damage <= 0
+                ? state
+                : Combat.ApplyDamage(state, targetId, damage, source, new List<GameEvent>());
+
+        /// <summary>
+        /// The target as the displacement will find it, or <c>null</c> when the action's own damage
+        /// already took it off the board and there is nothing left to shove.
+        /// </summary>
+        /// <param name="state">The state after the action's direct damage.</param>
+        /// <param name="targetId">Unit the displacement was aimed at.</param>
+        /// <returns>The standing body, or <c>null</c>.</returns>
+        private static Unit? StillStanding(GameState state, UnitId targetId) =>
+            state.FindUnit(targetId) is { IsOnBoard: true } body ? body : null;
+
+        /// <summary>
+        /// Whether the whole action leaves its target off the board: the direct damage took it, or
+        /// what the direct damage left standing is taken by the shove that follows.
+        /// </summary>
+        /// <remarks>
+        /// Neither half can answer this alone, which is exactly why it is answered here. The direct
+        /// damage does not know the shove is coming, and <see cref="DisplacementPreview.WouldDown"/>
+        /// is the shove's own claim about a body the damage has already reduced — a renderer holding
+        /// both and subtracting for itself is the second copy of the rules that got this wrong.
+        /// </remarks>
+        /// <param name="standing">The target after direct damage, or <c>null</c> when it is gone.</param>
+        /// <param name="shove">The displacement projected against that body, or <c>null</c>.</param>
+        /// <param name="targetId">The unit the action is aimed at.</param>
+        /// <returns>Whether the target ends the action off the board.</returns>
+        private static bool Finishes(Unit? standing, DisplacementPreview? shove, UnitId targetId) =>
+            standing is null || (shove is not null && shove.UnitId == targetId && shove.WouldDown);
 
         // The displacement as the board will really take it. Game.Redirected sends a shove aimed at a
         // guarded ally to the guard instead, vector preserved; a projection that ignored that would
