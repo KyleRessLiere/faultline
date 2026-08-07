@@ -178,6 +178,37 @@ public sealed class CampScreenTests
     }
 
     /// <summary>
+    /// <b>The full-pocket ruling, proved on the drawn screen.</b> The brief allows a consumable to be
+    /// offered to a duck with no room <em>only</em> if the surface shows a visible replace/drop
+    /// choice. <b>That surface does not exist, so the offer is suppressed instead</b> — Core deals no
+    /// one-shot to a full pocket at all, and the strip beneath the cards says so in words
+    /// (D-194).
+    /// </summary>
+    /// <remarks>
+    /// This asserts the half that is renderable today: that the camp screen carries <b>no</b>
+    /// replace, drop or discard control, so a full pocket cannot be silently overwritten and an offer
+    /// cannot no-op. The companion assertion — the reason line drawn for a duck that is actually
+    /// carrying something — is
+    /// <see cref="AnOfferWhoseTargetIsFull_IsNeverDealt_AndTheScreenSaysWhy"/>. The two together are
+    /// the ruling; if a replace/drop surface is ever built, this is the test that should fail first.
+    /// </remarks>
+    [Fact]
+    public async Task TheCampScreen_OffersNoWayToThrowACarriedOneShotAway()
+    {
+        var session = await AtACamp();
+        var visible = VisibleText(Render(session));
+
+        foreach (string word in
+                 new[] { "Replace", "replace", "Drop", "drop", "Discard", "discard", "Swap out" })
+        {
+            Assert.DoesNotContain(word, visible);
+        }
+
+        // And Core agrees there is nothing of that shape to send: every legal command is a pick.
+        Assert.All(session.Legal, c => Assert.IsType<CampPickCommand>(c));
+    }
+
+    /// <summary>
     /// No skip, no decline, no pass. Camps are the reward and turning one down is not a decision
     /// worth a button (§8.5) — asserted on the drawn markup, because the rule is about what a player
     /// can press.

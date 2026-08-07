@@ -228,6 +228,15 @@ namespace Faultline.Core
             {
                 CustomRule = ConsumableRule.Reed,
             },
+
+            new ConsumableDefinition(
+                Consumable.SignalWhistle,
+                "Signal Whistle",
+                "Swap the activation order of two enemies that have not acted. Intents unchanged.",
+                ConsumableAim.TwoUnits)
+            {
+                CustomRule = ConsumableRule.Whistle,
+            },
         };
     }
 }

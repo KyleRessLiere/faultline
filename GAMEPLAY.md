@@ -1562,6 +1562,14 @@ A condition held by the wrong class pays nothing: the listener checks the class 
 | **Steady Hands** | rescue costs this duck **2 AP** instead of the whole pool — so it may walk one tile first. It still ends the activation. |
 | **Long Boot** | may kick a clinger in at range **2** instead of 1 |
 
+**A full pocket is offered no one-shot at all.** A consumable may be offered to a duck with no room
+only if the surface shows a **visible replace/drop choice**. There is no such surface, so the camp
+**suppresses the offer** instead: `CampCatalogue.EligibleFor` contributes no consumable for a duck
+whose pocket is full, and the strip beneath the cards prints *"pocket holds a X — no one-shot is on
+its table"*. The camp screen carries **no** replace, drop or discard control, and that absence is
+asserted on the drawn markup — a silent overwrite or an offer that no-ops is the bug class this repo
+has shipped before (D-194).
+
 §8.6's fifth, **Deep Pockets** (a second consumable pocket), is **not built**: the pocket is one slot
 by construction, and a second one is a rework of the pocket rather than a conditional at a rule site.
 
@@ -1581,6 +1589,7 @@ it back emptied.
 | **Chalk Mark** | mark **any enemy on the board**: **the other flock's** next displacement of it asks for **+1 distance**. Not offered on an enemy that other flock is already owed a tile on. |
 | **Thorn Pouch** | grow **brambles** on an **adjacent open** tile **until the end of the round**. Same tile filter as the Crate: not onto a drain, brambles or high ground, and not under a body. |
 | **Split Reed** | **offer** an **adjacent allied duck** a swap of places. Nothing moves until that duck's owner accepts. Never onto or from a ledge, and never an enemy. |
+| **Signal Whistle** | swap the **activation order** of **two enemies that have not acted**. **Intents unchanged.** No range — a whistle is a sound. |
 
 **Both +1s ride the request, and both are spent by the attempt.** A Greased Feather and a Chalk Mark
 add their tile to the **requested** distance, beside Wrecking Weight's, exactly as Rattling Impact's
@@ -1588,6 +1597,17 @@ mark does (D-076, D-156) — so they meet Stagger, push resistance and the hold 
 around them. Each is consumed by the displacement that used it **whether or not the extra tile
 survived**: a shove that resistance ate is still a displacement, and a mark spent only on success
 would let a flock probe the board for free (D-190).
+
+**A Signal Whistle rewrites the published order, and re-publishes it.** §3 makes the activation
+order a **contract** (D-103): intents say *what* each enemy will do and the order is the only thing
+that says *when*. So a whistle emits **`ActivationOrderChanged`**, carrying the **whole resulting
+enemy queue**, the moment the order changes — an order that changed in silence would leave a player
+planning against a queue the game had already thrown away.
+
+**Intents are untouched.** Nothing is re-declared, re-targeted or re-aimed; no `IntentDeclared` rides
+the swap. An intent's **target** is what is locked, and its geometry resolves against the live board
+when it runs (D-021). What changes is *when* each enemy acts, and only that. Only enemies that
+**have not acted** can be swapped — a spent slot has no place left in the queue to trade (D-193).
 
 **A Split Reed is an offer, and the swap is a placement.** Spending the reed moves nobody: it puts a
 standing offer on the named duck, and the swap happens only when **that duck's owner** issues the

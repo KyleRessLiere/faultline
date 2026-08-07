@@ -435,6 +435,103 @@ public class PocketItemTests
         Assert.Null(next.Get(mine).Loadout.Pocket);
     }
 
+    // ---- Signal Whistle · swap two enemies in the queue, intents unchanged -----------------------
+
+    [Fact]
+    public void SignalWhistle_SwapsTwoEnemiesInThePublishedOrder()
+    {
+        var state = ThreeEnemies(out var duck, out var first, out var second, out var third);
+
+        // The order as published before anything happens.
+        Assert.Equal(new[] { first, second, third }, EnemyOrder(state));
+
+        var blown = state.WithPocket(duck, Consumable.SignalWhistle)
+            .Step(new UseConsumableCommand(duck, first, null, third));
+
+        // TurnOrder — the strip the player actually reads — now names them the other way round.
+        Assert.Equal(new[] { third, second, first }, EnemyOrder(blown.NewState));
+    }
+
+    [Fact]
+    public void SignalWhistle_RepublishesTheOrderTheMomentItChanges()
+    {
+        var state = ThreeEnemies(out var duck, out var first, out var second, out var third);
+
+        var blown = state.WithPocket(duck, Consumable.SignalWhistle)
+            .Step(new UseConsumableCommand(duck, first, null, third));
+
+        // §3 makes the order a contract, so a change to it is announced, not merely performed: the
+        // event carries the whole resulting queue, so a renderer redraws the strip from the event and
+        // never has to query state to notice (D-103, D-193).
+        var announced = blown.Single<ActivationOrderChanged>();
+
+        Assert.Equal(duck, announced.ByUnitId);
+        Assert.Equal(new[] { third, second, first }, announced.EnemyOrder.ToArray());
+
+        // And what it announces is exactly what the published order became — one contract, not two.
+        Assert.Equal(EnemyOrder(blown.NewState), announced.EnemyOrder.ToArray());
+    }
+
+    [Fact]
+    public void SignalWhistle_LeavesEveryIntentExactlyAsItWasDeclared()
+    {
+        var state = ThreeEnemies(out var duck, out var first, out var second, out var third)
+            .WithIntents();
+
+        Assert.NotEmpty(state.Intents);
+
+        var blown = state.WithPocket(duck, Consumable.SignalWhistle)
+            .Step(new UseConsumableCommand(duck, first, null, third));
+
+        // Nothing re-declared: no IntentDeclared rides the swap. An intent's target is what is locked,
+        // and its geometry resolves against the live board when it runs (D-021).
+        Assert.False(blown.Has<IntentDeclared>());
+
+        // And every intent is the same object it was, for every enemy — same action, same target,
+        // same aim. The queue moved; the plans did not.
+        foreach (var before in state.Intents)
+        {
+            var after = blown.NewState.Intents.Single(i => i.UnitId.Equals(before.UnitId));
+            Assert.Equal(before, after);
+        }
+    }
+
+    [Fact]
+    public void SignalWhistle_WillNotReorderAnEnemyThatHasAlreadyActed()
+    {
+        var state = ThreeEnemies(out var duck, out var first, out var second, out var third);
+
+        // "Two enemies that have not acted" is the whole gate: a spent slot has no place left in the
+        // queue to trade, so swapping it would be a promise about a round that is over.
+        var spent = state.WithUnit(state.Get(first) with { HasActivated = true })
+            .WithPocket(duck, Consumable.SignalWhistle);
+
+        Assert.DoesNotContain(first, Consumables.WhistleTargets(spent));
+        TestPlay.AssertIllegal(spent, new UseConsumableCommand(duck, first, null, third));
+
+        // The two that remain are still tradeable.
+        TestPlay.AssertLegal(spent, new UseConsumableCommand(duck, second, null, third));
+    }
+
+    [Fact]
+    public void SignalWhistle_RefusesOneEnemyTwice_AndOffersEachPairOnlyOnce()
+    {
+        var state = ThreeEnemies(out var duck, out var first, out _, out _);
+        var holding = state.WithPocket(duck, Consumable.SignalWhistle);
+
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(duck, first, null, first));
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(duck, first));
+
+        // Three enemies is three unordered pairs, offered once each. Offering (a,b) and (b,a) would be
+        // two commands for one outcome, and a duplicate on the legal list is one a policy weights twice.
+        var offered = Consumables.Legal(holding, holding.Get(duck))
+            .OfType<UseConsumableCommand>()
+            .ToList();
+
+        Assert.Equal(3, offered.Count);
+        Assert.Equal(3, offered.Distinct().Count());
+    }
+
     // ---- the shared ruling ------------------------------------------------------------------------
 
     [Fact]
@@ -451,6 +548,36 @@ public class PocketItemTests
         var rattled = state.WithUnit(state.Get(husk) with { RattledFor = Team.PlayerA });
 
         Assert.Equal(rattled.Get(husk).RattledFor, chalked.Get(husk).RattledFor);
+    }
+
+    /// <summary>
+    /// The enemy queue as the player reads it: what <see cref="TurnOrder"/> publishes, not what any
+    /// private list happens to hold. Asserting on this rather than on <c>state.Units</c> is the point
+    /// — a swap that moved a list without moving the strip would pass the wrong test.
+    /// </summary>
+    private static UnitId[] EnemyOrder(GameState state) =>
+        TurnOrder.Upcoming(state)
+            .Where(e => e.Kind == ActivationKind.Enemy && e.Round == state.Round && e.UnitId.HasValue)
+            .Select(e => e.UnitId!.Value)
+            .ToArray();
+
+    private static GameState ThreeEnemies(
+        out UnitId duck, out UnitId first, out UnitId second, out UnitId third)
+    {
+        var state = BoardBuilder.Open(9, 3)
+            .PlayerA(UnitKind.Vanguard, 0, 1)
+            .Enemy(UnitKind.Husk, 4, 0)
+            .Enemy(UnitKind.Anchor, 6, 1)
+            .Enemy(UnitKind.Husk, 8, 2)
+            .Build();
+
+        duck = state.Find(UnitKind.Vanguard).Id;
+
+        var enemies = state.Units.Where(u => u.Team == Team.Enemy).Select(u => u.Id).ToList();
+        first = enemies[0];
+        second = enemies[1];
+        third = enemies[2];
+        return state;
     }
 
     private static GameState TwoFlocks(out UnitId mine, out UnitId theirs)

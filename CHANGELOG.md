@@ -1,5 +1,15 @@
 # Changelog
 
+## §8.6's ten tactical pockets are all built, and the queue learns to say when it changed
+
+- **Signal Whistle ships.** It swaps the activation order of two enemies that have not acted and
+  **re-publishes the order** — `ActivationOrderChanged` carries the whole resulting enemy queue, so a
+  strip redraws from the event. **Intents are untouched**: nothing is re-declared or re-aimed, and
+  the tests compare every intent before and after (D-193).
+- **A full pocket is dealt no one-shot at all.** There is no replace/drop surface, so the offer is
+  suppressed rather than silently overwriting or no-opping; the camp screen is asserted on its drawn
+  markup to carry no replace, drop or discard control (D-194).
+
 ## Two pockets learn to push a tile further, and neither one invents a way to do it
 
 - **Split Reed ships, and consent stays structural.** Spending the reed offers an adjacent ally a

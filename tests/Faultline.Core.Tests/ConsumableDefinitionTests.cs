@@ -112,11 +112,11 @@ public class ConsumableDefinitionTests
     // ---- aiming --------------------------------------------------------------------------------
 
     [Fact]
-    public void TheAimKinds_AreTheFourThatAreBuilt()
+    public void TheAimKinds_AreTheFiveThatAreBuilt()
     {
-        // Four members and no fifth: an aim kind nothing aims with is a shape no legality generator
+        // Five members and no sixth: an aim kind nothing aims with is a shape no legality generator
         // has ever been asked to produce.
-        Assert.Equal(4, Enum.GetValues(typeof(ConsumableAim)).Length);
+        Assert.Equal(5, Enum.GetValues(typeof(ConsumableAim)).Length);
     }
 
     [Fact]
@@ -168,6 +168,13 @@ public class ConsumableDefinitionTests
                     case ConsumableAim.Tile:
                         Assert.Null(command.TargetId);
                         Assert.NotNull(command.To);
+                        break;
+
+                    case ConsumableAim.TwoUnits:
+                        Assert.NotNull(command.TargetId);
+                        Assert.NotNull(command.SecondTargetId);
+                        Assert.NotEqual(command.TargetId, command.SecondTargetId);
+                        Assert.Null(command.To);
                         break;
 
                     default:

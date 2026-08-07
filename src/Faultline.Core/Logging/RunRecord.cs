@@ -442,10 +442,15 @@ namespace Faultline.Core
         {
             UnitId? target = null;
             Coord? to = null;
+            UnitId? second = null;
 
             foreach (var part in Field(fields, offset + 2).Split(';'))
             {
-                if (part.StartsWith("target=", StringComparison.Ordinal))
+                if (part.StartsWith("target2=", StringComparison.Ordinal))
+                {
+                    second = ParseUnit(part.Substring(8));
+                }
+                else if (part.StartsWith("target=", StringComparison.Ordinal))
                 {
                     target = ParseUnit(part.Substring(7));
                 }
@@ -455,7 +460,8 @@ namespace Faultline.Core
                 }
             }
 
-            return new UseConsumableCommand(ParseUnit(Field(fields, offset + 1)), target, to);
+            return new UseConsumableCommand(
+                ParseUnit(Field(fields, offset + 1)), target, to, second);
         }
 
         private static string PocketAim(UseConsumableCommand command)
@@ -470,6 +476,14 @@ namespace Faultline.Core
             if (command.To.HasValue)
             {
                 parts.Add("to=" + command.To.Value);
+            }
+
+            // The one card that names two bodies. Its own key rather than a repeated "target=", so a
+            // reader never has to know which one-shot it is looking at to parse the line. "target2="
+            // does not collide with the "target=" test above: the seventh character differs.
+            if (command.SecondTargetId.HasValue)
+            {
+                parts.Add("target2=" + command.SecondTargetId.Value);
             }
 
             return parts.Count == 0 ? CombatLog.NoActor : string.Join(";", parts);

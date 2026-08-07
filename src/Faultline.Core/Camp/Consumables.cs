@@ -51,6 +51,40 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Enemies a Signal Whistle can still reorder: on the board, alive, and yet to act this round.
+        /// </summary>
+        /// <remarks>
+        /// <b>"Have not acted" is the whole gate</b> (MASTER_DESIGN §8.6). An enemy that has already
+        /// taken its slot has no place left in the queue to trade, so swapping it would be a promise
+        /// about a round that is over. Range is deliberately absent: §8.6 prints none on the card, and
+        /// a whistle is a sound.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <returns>The reorderable enemies, in the order they will act.</returns>
+        public static IReadOnlyList<UnitId> WhistleTargets(GameState state)
+        {
+            var pending = new List<UnitId>();
+            if (state is null)
+            {
+                return pending;
+            }
+
+            // Read off state.Units, because that IS the queue: the rules hand the slot to the first
+            // pending enemy in this order, so the list below is both what can be swapped and what the
+            // swap rearranges (D-193).
+            foreach (var enemy in state.Units)
+            {
+                if (enemy.Team == Team.Enemy && enemy.IsOnBoard && enemy.IsAlive
+                    && !enemy.HasActivated && !enemy.Clinging)
+                {
+                    pending.Add(enemy.Id);
+                }
+            }
+
+            return pending;
+        }
+
+        /// <summary>
         /// Allied ducks a Split Reed could offer a swap to: adjacent, on the board, standing, and not
         /// already holding an offer.
         /// </summary>
@@ -235,6 +269,23 @@ namespace Faultline.Core
 
                     break;
 
+                case ConsumableRule.Whistle:
+                    var queue = WhistleTargets(state);
+
+                    // Each unordered pair once. Offering both (a,b) and (b,a) would be two commands
+                    // for one outcome, and a legality list with a duplicate in it is a list a policy
+                    // can weight twice.
+                    for (int i = 0; i < queue.Count; i++)
+                    {
+                        for (int j = i + 1; j < queue.Count; j++)
+                        {
+                            commands.Add(new UseConsumableCommand(
+                                unit.Id, queue[i], null, queue[j]));
+                        }
+                    }
+
+                    break;
+
                 default:
                     if (definition.Aim == ConsumableAim.None)
                     {
@@ -344,6 +395,9 @@ namespace Faultline.Core
 
                 case ConsumableRule.Reed:
                     return Offer(state, unit.Id, command, events);
+
+                case ConsumableRule.Whistle:
+                    return Whistle(state, unit.Id, command, events);
 
                 default:
                     return Effects.Apply(
@@ -505,6 +559,89 @@ namespace Faultline.Core
             }
 
             return state with { Board = board, TemporaryTerrain = kept };
+        }
+
+        /// <summary>
+        /// Exchanges two enemies' places in the activation queue and re-publishes the order.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>The queue is the order of <see cref="GameState.Units"/></b>: the rules hand the enemy
+        /// slot to the first pending enemy in that list, and <c>TurnOrder.Upcoming</c> walks the very
+        /// same picker over a scratch board. So swapping two enemies' positions in the list <em>is</em>
+        /// swapping their activation order, and the published strip recomputes correctly with no
+        /// second mechanism to keep in step (D-193).
+        /// </para>
+        /// <para>
+        /// <b><see cref="GameState.Intents"/> is not touched.</b> It is a separate list keyed by unit,
+        /// nothing is re-declared, and no <c>IntentDeclared</c> is emitted — an intent's target is what
+        /// is locked and its geometry resolves against the live board when it runs (D-021). What
+        /// changes is when each enemy acts, and only that.
+        /// </para>
+        /// </remarks>
+        private static GameState Whistle(
+            GameState state, UnitId unitId, UseConsumableCommand command, List<GameEvent> events)
+        {
+            if (command.TargetId is not { } firstId || command.SecondTargetId is not { } secondId)
+            {
+                throw new IllegalCommandException("A Signal Whistle needs two enemies to exchange.");
+            }
+
+            if (firstId.Equals(secondId))
+            {
+                throw new IllegalCommandException(
+                    "A Signal Whistle exchanges two enemies, and that is one enemy twice.");
+            }
+
+            var queue = WhistleTargets(state);
+            if (!Holds(queue, firstId) || !Holds(queue, secondId))
+            {
+                throw new IllegalCommandException(
+                    "Both must be enemies that have not acted yet — one of those has taken its slot, "
+                    + "or is no longer on the board.");
+            }
+
+            int a = IndexOf(state.Units, firstId);
+            int b = IndexOf(state.Units, secondId);
+
+            var units = new List<Unit>(state.Units);
+            (units[a], units[b]) = (units[b], units[a]);
+
+            state = state with { Units = units };
+
+            // Re-published the moment it changes, and visibly: §3 makes the order a contract, and an
+            // order that changed in silence would leave a player planning against a queue the game had
+            // already thrown away (D-103, D-193).
+            events.Add(new ActivationOrderChanged(
+                unitId, firstId, secondId, WhistleTargets(state)));
+
+            return state;
+        }
+
+        private static bool Holds(IReadOnlyList<UnitId> ids, UnitId id)
+        {
+            foreach (var candidate in ids)
+            {
+                if (candidate.Equals(id))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static int IndexOf(IReadOnlyList<Unit> units, UnitId id)
+        {
+            for (int i = 0; i < units.Count; i++)
+            {
+                if (units[i].Id.Equals(id))
+                {
+                    return i;
+                }
+            }
+
+            throw new IllegalCommandException("That unit is not on this board.");
         }
 
         /// <summary>

@@ -447,6 +447,12 @@ public class CombatLogTests
             return new[] { new Coord(1, 2), new Coord(1, 3) };
         }
 
+        // A queue an event carries — ActivationOrderChanged's re-published enemy order.
+        if (typeof(IReadOnlyList<UnitId>).IsAssignableFrom(type))
+        {
+            return new[] { new UnitId(1), new UnitId(2) };
+        }
+
         // Payload records nested inside an event (an enemy intent, say) build the same way, so a new
         // event type is covered by this test the moment it is added.
         var ctor = type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();

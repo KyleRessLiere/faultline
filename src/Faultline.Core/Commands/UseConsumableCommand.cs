@@ -15,8 +15,14 @@ namespace Faultline.Core
     /// The tile it acts on: where the Rope sets the rescued duck down, or where the Crate of Debris
     /// lands.
     /// </param>
+    /// <param name="SecondTargetId">
+    /// The other body, for the one card that names two: the second of the enemies a Signal Whistle
+    /// swaps in the queue. Null for everything else — a one-shot that aims at one thing says so by
+    /// leaving this empty rather than by repeating <paramref name="TargetId"/>.
+    /// </param>
     public sealed record UseConsumableCommand(
         UnitId UnitId,
         UnitId? TargetId = null,
-        Coord? To = null) : Command;
+        Coord? To = null,
+        UnitId? SecondTargetId = null) : Command;
 }

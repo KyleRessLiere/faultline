@@ -64,6 +64,7 @@ namespace Faultline.Core
             Consumable.ChalkMark,
             Consumable.ThornPouch,
             Consumable.SplitReed,
+            Consumable.SignalWhistle,
         };
 
         private static readonly TechniqueModifier[] AllTechniques =

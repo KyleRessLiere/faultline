@@ -30,5 +30,11 @@ namespace Faultline.Core
 
         /// <summary>One unit and the tile it is put down on.</summary>
         UnitAndTile = 3,
+
+        /// <summary>
+        /// Two units, in the order the card reads them — the pair a Signal Whistle exchanges in the
+        /// activation queue.
+        /// </summary>
+        TwoUnits = 4,
     }
 }

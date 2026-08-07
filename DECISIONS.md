@@ -197,6 +197,8 @@ in this file when the question comes back.
 | D-190 | [Chalk Mark is Rattling Impact's mark with a different author, so it is the same field — and Greased Feather is its mirror on the pusher.](#d-190-chalk-mark-is-rattling-impacts-mark-with-a-different-author-so-it-is-the-same-field--and-greased-feather-is-its-mirror-on-the-pusher) | unreleased |  |
 | D-191 | [Temporary terrain is a real change to the board plus a booked way back, not a parallel list of pretend hazards.](#d-191-temporary-terrain-is-a-real-change-to-the-board-plus-a-booked-way-back-not-a-parallel-list-of-pretend-hazards) | unreleased |  |
 | D-192 | [A Split Reed offers; the other owner's yes is a command they may never send, and the swap it completes is a placement.](#d-192-a-split-reed-offers-the-other-owners-yes-is-a-command-they-may-never-send-and-the-swap-it-completes-is-a-placement) | unreleased |  |
+| D-193 | [The activation queue is the order of state.Units, so a Signal Whistle swaps two entries in it — and re-publishes the contract the moment it does.](#d-193-the-activation-queue-is-the-order-of-stateunits-so-a-signal-whistle-swaps-two-entries-in-it--and-re-publishes-the-contract-the-moment-it-does) | unreleased |  |
+| D-194 | [With no replace/drop surface, a full pocket is offered no one-shot at all.](#d-194-with-no-replacedrop-surface-a-full-pocket-is-offered-no-one-shot-at-all) | unreleased |  |
 
 **174 rulings.**
 
@@ -4705,3 +4707,76 @@ move is free of the economy and never of the board (D-185, and `ApplyBankedStep`
 `TakeSplitReedCommand` needs no partner argument. If two reeds should ever be able to court the same
 duck, the command grows an argument and the log format grows a column - and that is a change worth
 making deliberately rather than by accident.
+
+
+---
+
+**D-193 - The activation queue is the order of `state.Units`, so a Signal Whistle swaps two entries in
+it - and re-publishes the contract the moment it does.**
+
+MASTER_DESIGN 8.6's *Signal Whistle* is "swap the activation order of two enemies that have not acted;
+intents unchanged". Two things had to be decided: what the order *is*, and what a player is owed when
+it moves.
+
+**What the order is.** The rules hand the enemy slot to the first pending enemy in `state.Units`, and
+`TurnOrder.Upcoming` publishes the strip by walking that very same picker over a scratch board. There
+is exactly one queue and it is that list. So the whistle exchanges the two units' positions in it -
+and the published strip recomputes correctly with **no new code in the picker and no second ordering
+key to keep in step**. The alternative, an explicit per-unit order key read only by the activation
+picker, was considered and dropped: it would be a second source of truth for a fact the list already
+holds, and reinforcements landing mid-fight would each need a key invented for them.
+
+**The cost, stated plainly:** iteration order elsewhere moves with it. Anything that walks
+`state.Units` - the doomed-cling sweep's event order, intent declaration order at round start - now
+sees the swapped pair in the new order. None of it changes an outcome and all of it is still
+deterministic; it is recorded because "the order of `Units` is the activation order" is now
+load-bearing rather than incidental.
+
+**What a player is owed.** Section 3 makes the published order a contract (D-103): intents have always
+said *what* each enemy will do, and the order is the only thing that says *when*. An order that
+changed silently is worse than one that cannot change, so the swap emits **`ActivationOrderChanged`
+carrying the whole resulting enemy queue** - a renderer redraws the strip from the event and never
+queries state to notice. `PocketItemTests` asserts the event's queue equals what `TurnOrder.Upcoming`
+then publishes, so there is one contract rather than two.
+
+**Intents are untouched, and that is asserted rather than assumed.** No `IntentDeclared` is emitted,
+and `GameState.Intents` is neither reordered nor rewritten; the test compares every intent before and
+after for equality. An intent's target is what is locked and its geometry resolves against the live
+board when it runs (D-021), so a body acting earlier or later needs no re-plan.
+
+**Only enemies that have not acted.** A spent slot has no place left in the queue to trade, so
+swapping it would be a promise about a round that is already over. Each unordered pair is offered
+once: `(a,b)` and `(b,a)` are one outcome, and a duplicate on the legality list is one a policy
+weights twice.
+
+**The command grew a fourth field.** `UseConsumableCommand.SecondTargetId`, with
+`ConsumableAim.TwoUnits` beside it, because this is the only card that names two bodies. `RunRecord`
+encodes it as its own `target2=` key rather than a repeated `target=`, so a log line parses without
+knowing which one-shot produced it.
+
+---
+
+**D-194 - With no replace/drop surface, a full pocket is offered no one-shot at all.**
+
+The rule as handed down: a consumable may be offered to a duck with full pockets **only if** the UI
+shows a visible replace/drop choice. There is no such surface anywhere in the shell, and building one
+was not this packet.
+
+**So the offer is suppressed, which is what the code already did** - `CampCatalogue.EligibleFor`
+contributes no consumable for a duck whose pocket is full, and the reason is drawn beneath the cards:
+*"pocket holds a X - no one-shot is on its table"*. This ruling records the choice explicitly rather
+than leaving it an implementation detail, because the alternative failure modes are exactly the ones
+this repo has shipped before: a silent discard, or an offer that can be taken and does nothing.
+
+**Proved on rendered output, in two halves.** `TheCampScreen_OffersNoWayToThrowACarriedOneShotAway`
+renders the camp panel and asserts the visible text carries no replace, drop or discard control, and
+that every legal command is a pick. `AnOfferWhoseTargetIsFull_IsNeverDealt_AndTheScreenSaysWhy`
+asserts the reason line for a loaded duck.
+
+**What is not proved, and why.** The reason line is asserted on the view-model rather than on the
+drawn markup, because a duck cannot arrive at the *first* camp with a full pocket and the shell's
+`RunSession.State` is deliberately private-set - the only honest way in is to play forward to a second
+camp. Attempting exactly that turned up a finding worth its own look: **the first camp deals
+`Technique, Technique` for every seed 1-40 tried**, so no first camp in that range can hand out a
+one-shot at all. Whether that is the director's intended weighting or a bug is a designer question,
+and it is in the review queue.

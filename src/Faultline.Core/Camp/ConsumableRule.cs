@@ -59,5 +59,13 @@ namespace Faultline.Core
         /// <see cref="TakeSplitReedCommand"/> (D-192).
         /// </summary>
         Reed = 5,
+
+        /// <summary>
+        /// Signal Whistle: pick two enemies that have not acted and exchange their places in the
+        /// queue. Custom because the offer is a cross product of two choices and because what it
+        /// rewrites is the activation order itself, which nothing else in the effect vocabulary
+        /// reaches (D-193).
+        /// </summary>
+        Whistle = 6,
     }
 }

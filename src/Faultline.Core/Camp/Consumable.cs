@@ -38,5 +38,8 @@ namespace Faultline.Core
 
         /// <summary>Offer an adjacent allied duck a swap of tiles; its owner accepts or does not.</summary>
         SplitReed = 8,
+
+        /// <summary>Swap the activation order of two enemies that have not acted. Intents unchanged.</summary>
+        SignalWhistle = 9,
     }
 }

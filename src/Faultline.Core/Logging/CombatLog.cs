@@ -109,6 +109,7 @@ namespace Faultline.Core
             Staggered => nameof(Staggered),
             Rattled => nameof(Rattled),
             ChalkMarked => nameof(ChalkMarked),
+            ActivationOrderChanged => nameof(ActivationOrderChanged),
             SplitReedOffered => nameof(SplitReedOffered),
             DucksSwapped => nameof(DucksSwapped),
             BramblesGrew => nameof(BramblesGrew),
@@ -296,6 +297,10 @@ namespace Faultline.Core
 
             DebrisPlaced e => "drops debris on " + e.At + " with " + Number(e.Hp) + " hp",
 
+            ActivationOrderChanged e => "swaps the queue places of " + Actor(state, e.FirstId)
+                + " and " + Actor(state, e.SecondId) + ", order now "
+                + Names(state, e.EnemyOrder) + ", intents unchanged",
+
             SplitReedOffered e => "offered a swap by " + Actor(state, e.ByUnitId)
                 + ", " + e.To + " for " + e.At + ", its owner answers or does not",
 
@@ -362,6 +367,31 @@ namespace Faultline.Core
                 : unit.Name + " [" + TeamTag(unit.Team) + "] " + id;
         }
 
+        /// <summary>Names a run of units in order, for an event that carries a queue.</summary>
+        /// <param name="state">Any state from the same fight, used only to name units.</param>
+        /// <param name="ids">Units to name, in order.</param>
+        /// <returns>Their names, comma-separated, or <see cref="NoActor"/> when there are none.</returns>
+        public static string Names(GameState state, IReadOnlyList<UnitId> ids)
+        {
+            if (ids is null || ids.Count == 0)
+            {
+                return NoActor;
+            }
+
+            var text = new StringBuilder();
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (i > 0)
+                {
+                    text.Append(", ");
+                }
+
+                text.Append(Actor(state, ids[i]));
+            }
+
+            return text.ToString();
+        }
+
         /// <summary>The unit an event is primarily about.</summary>
         /// <param name="evt">Event to inspect.</param>
         /// <returns>The subject unit, or <see cref="UnitId.None"/> for fight- and round-level events.</returns>
@@ -382,6 +412,7 @@ namespace Faultline.Core
             Staggered e => e.UnitId,
             Rattled e => e.UnitId,
             ChalkMarked e => e.UnitId,
+            ActivationOrderChanged e => e.ByUnitId,
             SplitReedOffered e => e.UnitId,
             DucksSwapped e => e.UnitId,
             BramblesGrew e => e.UnitId,
