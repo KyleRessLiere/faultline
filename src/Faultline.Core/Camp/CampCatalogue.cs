@@ -62,6 +62,7 @@ namespace Faultline.Core
             Consumable.CrateOfDebris,
             Consumable.GreasedFeather,
             Consumable.ChalkMark,
+            Consumable.ThornPouch,
         };
 
         private static readonly TechniqueModifier[] AllTechniques =
@@ -91,7 +92,7 @@ namespace Faultline.Core
         public static IReadOnlyList<Unlock> UnlockPool() => AllUnlocks;
 
         /// <summary>Every tactical consumable, in pool order.</summary>
-        /// <returns>The five one-shots.</returns>
+        /// <returns>The built one-shots.</returns>
         public static IReadOnlyList<Consumable> ConsumablePool() => AllConsumables;
 
         /// <summary>Every technique modifier built, in pool order.</summary>

@@ -1798,6 +1798,11 @@ namespace Faultline.Core
                 // Brief §2 round end: Clinging resolution, then Stagger clears in BeginRound.
                 state = Pits.ResolveEndOfRound(state, events);
 
+                // A Thorn Pouch's brambles die back here, after the Clinging sweep has read the board
+                // as it stood all round. "Until round end" is the same instant Stagger and the §8.6
+                // marks lapse, and there is one answer to that instant (D-191).
+                state = Consumables.FadeTemporaryTerrain(state, events);
+
                 // The round's last act is the objective's clock: a survive or hold deadline resolves
                 // here, and an expired turn limit ends the fight here too.
                 state = Objectives.Check(state, true, events);

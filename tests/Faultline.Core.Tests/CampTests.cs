@@ -242,7 +242,7 @@ public class CampTests
         Assert.Equal(12, CampCatalogue.ModPool().Count);
         Assert.Equal(8, CampCatalogue.SecondWindPool().Count);
         Assert.Equal(3, CampCatalogue.UnlockPool().Count);
-        Assert.Equal(7, CampCatalogue.ConsumablePool().Count);
+        Assert.Equal(8, CampCatalogue.ConsumablePool().Count);
 
         // Three mods per spender, one spender per class (MASTER_DESIGN §8.6).
         foreach (var spend in new[]

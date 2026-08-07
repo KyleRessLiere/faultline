@@ -2,6 +2,11 @@
 
 ## Two pockets learn to push a tile further, and neither one invents a way to do it
 
+- **Thorn Pouch ships, and the board learns to change back.** Brambles grow on an adjacent open
+  tile and die back at the end of the round they were thrown in. The tile genuinely becomes
+  brambles, so every rule that already prices brambles needed no new case; what is remembered is
+  only what the tile used to be (D-191). First rule in the game to change terrain mid-fight.
+
 - **Greased Feather and Chalk Mark ship.** A Greased Feather arms this duck's next displacement for
   +1 distance; a Chalk Mark hands the **other** flock +1 on its next displacement of a named enemy
   (D-189, D-190).

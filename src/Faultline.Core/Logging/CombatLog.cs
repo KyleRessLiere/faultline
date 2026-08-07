@@ -109,6 +109,8 @@ namespace Faultline.Core
             Staggered => nameof(Staggered),
             Rattled => nameof(Rattled),
             ChalkMarked => nameof(ChalkMarked),
+            BramblesGrew => nameof(BramblesGrew),
+            BramblesFaded => nameof(BramblesFaded),
             GreasedFeatherSpent => nameof(GreasedFeatherSpent),
             HandOffGranted => nameof(HandOffGranted),
             StepBanked => nameof(StepBanked),
@@ -292,6 +294,11 @@ namespace Faultline.Core
 
             DebrisPlaced e => "drops debris on " + e.At + " with " + Number(e.Hp) + " hp",
 
+            BramblesGrew e => "scatters brambles on " + e.At
+                + ", until the end of round " + Number(e.ThroughRound),
+
+            BramblesFaded e => "brambles on " + e.At + " die back to " + e.Now,
+
             FightWon e => "fight " + Number(e.FightNumber) + " won",
 
             FightLost e => "fight " + Number(e.FightNumber) + " lost, " + Clean(e.Reason),
@@ -367,6 +374,7 @@ namespace Faultline.Core
             Staggered e => e.UnitId,
             Rattled e => e.UnitId,
             ChalkMarked e => e.UnitId,
+            BramblesGrew e => e.UnitId,
             GreasedFeatherSpent e => e.UnitId,
             HandOffGranted e => e.UnitId,
             StepBanked e => e.UnitId,

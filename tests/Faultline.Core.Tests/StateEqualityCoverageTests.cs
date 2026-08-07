@@ -183,6 +183,13 @@ public class StateEqualityCoverageTests
                 {
                     Reinforcements = new[] { new PendingReinforcement(new UnitId(9), 3, new Coord(0, 0)) },
                 },
+                ["TemporaryTerrain"] = s => s with
+                {
+                    TemporaryTerrain = new[]
+                    {
+                        new TemporaryTerrain(new Coord(0, 0), TileType.Open, 1),
+                    },
+                },
                 ["Round"] = s => s with { Round = s.Round + 1 },
                 ["Phase"] = s => s with { Phase = Phase.Complete },
                 ["ActiveTeam"] = s => s with { ActiveTeam = Team.Enemy },

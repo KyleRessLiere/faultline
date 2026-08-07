@@ -210,6 +210,15 @@ namespace Faultline.Core
             {
                 CustomRule = ConsumableRule.Chalk,
             },
+
+            new ConsumableDefinition(
+                Consumable.ThornPouch,
+                "Thorn Pouch",
+                "Grow brambles on an adjacent open tile until the end of the round.",
+                ConsumableAim.Tile)
+            {
+                CustomRule = ConsumableRule.Thorns,
+            },
         };
     }
 }

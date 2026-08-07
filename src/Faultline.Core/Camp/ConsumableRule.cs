@@ -44,5 +44,12 @@ namespace Faultline.Core
         /// carries it (<see cref="Consumables.ChalkTargets"/>).
         /// </summary>
         Chalk = 3,
+
+        /// <summary>
+        /// Thorn Pouch: pick an adjacent open tile and grow brambles on it until the round ends.
+        /// Custom because changing terrain — and booking the change back in — is not something the
+        /// standard effect vocabulary can say.
+        /// </summary>
+        Thorns = 4,
     }
 }

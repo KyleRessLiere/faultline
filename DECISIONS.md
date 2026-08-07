@@ -195,6 +195,7 @@ in this file when the question comes back.
 | D-188 | [HELD: a displacement that makes a body Clinging and then damages it inside the same resolution is still previewed wrong.](#d-188-held-a-displacement-that-makes-a-body-clinging-and-then-damages-it-inside-the-same-resolution-is-still-previewed-wrong) | unreleased | *held* |
 | D-189 | ["This duck's next displacement" is the displacement it causes, because that is how §8.6 uses the possessive everywhere else.](#d-189-this-ducks-next-displacement-is-the-displacement-it-causes-because-that-is-how-86-uses-the-possessive-everywhere-else) | unreleased |  |
 | D-190 | [Chalk Mark is Rattling Impact's mark with a different author, so it is the same field — and Greased Feather is its mirror on the pusher.](#d-190-chalk-mark-is-rattling-impacts-mark-with-a-different-author-so-it-is-the-same-field--and-greased-feather-is-its-mirror-on-the-pusher) | unreleased |  |
+| D-191 | [Temporary terrain is a real change to the board plus a booked way back, not a parallel list of pretend hazards.](#d-191-temporary-terrain-is-a-real-change-to-the-board-plus-a-booked-way-back-not-a-parallel-list-of-pretend-hazards) | unreleased |  |
 
 **174 rulings.**
 
@@ -4624,3 +4625,40 @@ it was drawn.
 it to something author-neutral touches `Unit`, `Techniques`, `TechniqueListeners`, `Displacement`,
 `Game`, `CombatLog` and the technique suite, which is a mechanical sweep with no behaviour in it and
 no place in a features diff. Logged for the review queue instead.
+
+
+---
+
+**D-191 - Temporary terrain is a real change to the board plus a booked way back, not a parallel list
+of pretend hazards.**
+
+§8.6's *Thorn Pouch* grows "temporary brambles on one adjacent tile until round end". Nothing in the
+game had ever changed terrain during a fight: `Board.With` existed and no rule called it.
+
+Two ways to build it. Keep the board fixed and hold a list of "tiles that also count as brambles",
+which every rule that cares about brambles then has to consult - movement cost, displacement damage,
+the walk-on price, Sure-Footed, the AI's pathing, the renderer. Or change the tile and remember what
+it was.
+
+**The second, because the first is a second copy of the bramble rules.** A tile a Thorn Pouch has
+covered *is* `TileType.Spikes` in `GameState.Board`, so every one of those rules needs no new case and
+none of them can disagree with a shadow list. What cannot live on the board is what the tile used to
+be, and that is the whole of `TemporaryTerrain` - `(At, Was, ThroughRound)`.
+
+**`Was` rather than an assumed `Open`.** The fade is a restore, not a reset. Today the only placeable
+tile is open ground so the two agree, but a fade that wrote `Open` would silently repair a drain the
+day the filter widens, and deleting a hazard with a one-shot is exactly the trick `DebrisTiles` was
+narrowed to refuse.
+
+**It fades at the end of the round it was thrown in**, beside the Clinging sweep and before the
+objective clock - the same instant Stagger and the §8.6 marks lapse (D-157, D-190). The Clinging sweep
+runs first so it reads the board as it stood all round.
+
+**The tile filter is the Crate of Debris's, unchanged**: adjacent, in bounds, ordinary open ground,
+nobody and nothing on it. Two cards that place something beside the duck ask the same geometric
+question, and asking it twice in two places is how the two answers drift.
+
+**What this does not decide.** Whether brambles should be placeable *under* a standing body. §8.6
+prints only "one adjacent tile" and the debris filter already refuses it, so the narrow reading ships;
+the wide one is a damage question (does the body take the walk-on price immediately?) that the card
+does not answer. Held for the designer.

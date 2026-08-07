@@ -176,6 +176,14 @@ namespace Faultline.Core
 
                     break;
 
+                case ConsumableRule.Thorns:
+                    foreach (var tile in DebrisTiles(state, unit))
+                    {
+                        commands.Add(new UseConsumableCommand(unit.Id, null, tile));
+                    }
+
+                    break;
+
                 default:
                     if (definition.Aim == ConsumableAim.None)
                     {
@@ -280,6 +288,9 @@ namespace Faultline.Core
                 case ConsumableRule.Chalk:
                     return Chalk(state, unit.Id, command, events);
 
+                case ConsumableRule.Thorns:
+                    return Scatter(state, unit.Id, command, events);
+
                 default:
                     return Effects.Apply(
                         state,
@@ -360,6 +371,86 @@ namespace Faultline.Core
 
             events.Add(new ChalkMarked(targetId, owed, unitId, target.Position));
             return state;
+        }
+
+        /// <summary>
+        /// Grows brambles on an adjacent open tile and books the way back for the end of the round.
+        /// </summary>
+        /// <remarks>
+        /// The tile genuinely becomes <see cref="TileType.Spikes"/>, so walking on it, being displaced
+        /// onto it and Sure-Footed all cost exactly what they already cost. Nothing about brambles is
+        /// restated here — the point of changing the board rather than keeping a parallel list of
+        /// pretend hazards is that there is no second copy of the rule to drift (D-191).
+        /// </remarks>
+        private static GameState Scatter(
+            GameState state, UnitId unitId, UseConsumableCommand command, List<GameEvent> events)
+        {
+            if (command.To is not { } tile)
+            {
+                throw new IllegalCommandException("A Thorn Pouch needs a tile to scatter on.");
+            }
+
+            bool legal = false;
+            foreach (var candidate in DebrisTiles(state, state.UnitById(unitId)))
+            {
+                if (candidate == tile)
+                {
+                    legal = true;
+                    break;
+                }
+            }
+
+            if (!legal)
+            {
+                throw new IllegalCommandException("That is not an open tile beside this duck.");
+            }
+
+            var booked = new List<TemporaryTerrain>(state.TemporaryTerrain.Count + 1);
+            booked.AddRange(state.TemporaryTerrain);
+            booked.Add(new TemporaryTerrain(tile, state.Board.At(tile), state.Round));
+
+            events.Add(new BramblesGrew(unitId, tile, state.Round));
+            return state with
+            {
+                Board = state.Board.With(tile, TileType.Spikes),
+                TemporaryTerrain = booked,
+            };
+        }
+
+        /// <summary>
+        /// Fades every temporary tile whose round is over, restoring what each one used to be.
+        /// </summary>
+        /// <remarks>
+        /// Run at the round's end beside the Clinging sweep, and before the objective clock: brambles
+        /// that expire this round are gone when the next one opens, which is the same instant Stagger
+        /// and the §8.6 marks lapse. One answer to "how long does a round-long thing last".
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="events">Sink for the resulting events.</param>
+        /// <returns>The state after any expired terrain changed back.</returns>
+        public static GameState FadeTemporaryTerrain(GameState state, List<GameEvent> events)
+        {
+            if (state is null || state.TemporaryTerrain.Count == 0)
+            {
+                return state!;
+            }
+
+            var board = state.Board;
+            var kept = new List<TemporaryTerrain>(state.TemporaryTerrain.Count);
+
+            foreach (var temporary in state.TemporaryTerrain)
+            {
+                if (temporary.ThroughRound > state.Round)
+                {
+                    kept.Add(temporary);
+                    continue;
+                }
+
+                board = board.With(temporary.At, temporary.Was);
+                events.Add(new BramblesFaded(temporary.At, temporary.Was));
+            }
+
+            return state with { Board = board, TemporaryTerrain = kept };
         }
 
         private static GameState Place(

@@ -37,6 +37,16 @@ namespace Faultline.Core
         /// </summary>
         public IReadOnlyList<PendingReinforcement> Reinforcements { get; init; } = new PendingReinforcement[0];
 
+        /// <summary>
+        /// Tiles whose terrain will change back, in the order they were changed. Empty on almost every
+        /// board — a Thorn Pouch is the only thing that writes it (MASTER_DESIGN §8.6).
+        /// </summary>
+        /// <remarks>
+        /// The board already holds the change itself; this holds only the way back. See
+        /// <see cref="TemporaryTerrain"/> for why the two are separate.
+        /// </remarks>
+        public IReadOnlyList<TemporaryTerrain> TemporaryTerrain { get; init; } = new TemporaryTerrain[0];
+
         /// <summary>One-based round number; zero during deployment.</summary>
         public int Round { get; init; }
 
@@ -248,7 +258,8 @@ namespace Faultline.Core
                 || Units.Count != other.Units.Count
                 || Intents.Count != other.Intents.Count
                 || Structures.Count != other.Structures.Count
-                || Reinforcements.Count != other.Reinforcements.Count)
+                || Reinforcements.Count != other.Reinforcements.Count
+                || TemporaryTerrain.Count != other.TemporaryTerrain.Count)
             {
                 return false;
             }
@@ -293,6 +304,14 @@ namespace Faultline.Core
                 }
             }
 
+            for (int i = 0; i < TemporaryTerrain.Count; i++)
+            {
+                if (!TemporaryTerrain[i].Equals(other.TemporaryTerrain[i]))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -329,6 +348,11 @@ namespace Faultline.Core
                 foreach (var pending in Reinforcements)
                 {
                     hash = (hash * 31) + pending.GetHashCode();
+                }
+
+                foreach (var temporary in TemporaryTerrain)
+                {
+                    hash = (hash * 31) + temporary.GetHashCode();
                 }
 
                 hash = (hash * 31) + (FootingPrompt?.GetHashCode() ?? 0);

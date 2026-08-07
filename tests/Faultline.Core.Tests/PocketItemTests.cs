@@ -195,6 +195,74 @@ public class PocketItemTests
         TestPlay.AssertIllegal(state, new UseConsumableCommand(archer));
     }
 
+    // ---- Thorn Pouch · brambles on one adjacent tile until round end ----------------------------
+
+    [Fact]
+    public void ThornPouch_GrowsRealBrambles_SoEveryRuleThatKnowsBramblesNeedsNoNewCase()
+    {
+        var state = Vanguard(out var duck, out _);
+        var tile = new Coord(1, 0);
+
+        Assert.Equal(TileType.Open, state.Board.At(tile));
+
+        var scattered = state.WithPocket(duck, Consumable.ThornPouch)
+            .Step(new UseConsumableCommand(duck, null, tile));
+
+        // The board itself changed. Not a parallel list of pretend hazards — the tile *is* brambles,
+        // which is what stops a second copy of the bramble rules existing (D-191).
+        Assert.Equal(TileType.Spikes, scattered.NewState.Board.At(tile));
+
+        var grew = scattered.Single<BramblesGrew>();
+        Assert.Equal(tile, grew.At);
+        Assert.Equal(state.Round, grew.ThroughRound);
+
+        // And the way back is booked, remembering what the tile used to be rather than assuming.
+        var booked = Assert.Single(scattered.NewState.TemporaryTerrain);
+        Assert.Equal(tile, booked.At);
+        Assert.Equal(TileType.Open, booked.Was);
+    }
+
+    [Fact]
+    public void ThornPouch_FadesAtTheEndOfTheRoundItWasThrownIn()
+    {
+        var state = Vanguard(out var duck, out _);
+        var tile = new Coord(1, 0);
+
+        var scattered = state.WithPocket(duck, Consumable.ThornPouch)
+            .Then(new UseConsumableCommand(duck, null, tile));
+
+        int round = scattered.Round;
+
+        // Played to the seam, not restored to it.
+        var next = scattered;
+        for (int i = 0; i < 40 && next.Round == round; i++)
+        {
+            next = next.PassCurrent().NewState;
+        }
+
+        Assert.Equal(round + 1, next.Round);
+        Assert.Equal(TileType.Open, next.Board.At(tile));
+        Assert.Empty(next.TemporaryTerrain);
+    }
+
+    [Fact]
+    public void ThornPouch_WillNotScatterOnAnythingButOpenGroundBesideTheDuck()
+    {
+        var state = Vanguard(out var duck, out var husk);
+
+        var holding = state.WithPocket(duck, Consumable.ThornPouch);
+
+        // Not on a tile two away, not on the duck's own tile, and not under a body: the same filter
+        // the Crate of Debris uses, so a pouch cannot delete a hazard or land somewhere unreachable.
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(duck, null, new Coord(4, 0)));
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(duck, null, holding.Get(duck).Position));
+        TestPlay.AssertIllegal(holding, new UseConsumableCommand(duck, null, holding.Get(husk).Position));
+
+        // Every refusal names its reason rather than quietly spending the pouch.
+        Assert.Throws<IllegalCommandException>(
+            () => holding.Then(new UseConsumableCommand(duck)));
+    }
+
     // ---- the shared ruling ------------------------------------------------------------------------
 
     [Fact]
@@ -211,6 +279,18 @@ public class PocketItemTests
         var rattled = state.WithUnit(state.Get(husk) with { RattledFor = Team.PlayerA });
 
         Assert.Equal(rattled.Get(husk).RattledFor, chalked.Get(husk).RattledFor);
+    }
+
+    private static GameState Vanguard(out UnitId duck, out UnitId husk)
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Vanguard, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Build();
+
+        duck = state.Find(UnitKind.Vanguard).Id;
+        husk = state.Find(UnitKind.Husk).Id;
+        return state;
     }
 
     private static GameState Archer(out UnitId archer, out UnitId husk)

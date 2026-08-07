@@ -1579,6 +1579,7 @@ it back emptied.
 | **Crate of Debris** | place debris on an **adjacent open** tile — a breakable blocker with the board's own blocker hit points, or one collision's worth when the board declares none. Not onto a drain, brambles or high ground. |
 | **Greased Feather** | **this duck's next displacement asks for +1 distance**. Not offered to a duck already carrying one. |
 | **Chalk Mark** | mark **any enemy on the board**: **the other flock's** next displacement of it asks for **+1 distance**. Not offered on an enemy that other flock is already owed a tile on. |
+| **Thorn Pouch** | grow **brambles** on an **adjacent open** tile **until the end of the round**. Same tile filter as the Crate: not onto a drain, brambles or high ground, and not under a body. |
 
 **Both +1s ride the request, and both are spent by the attempt.** A Greased Feather and a Chalk Mark
 add their tile to the **requested** distance, beside Wrecking Weight's, exactly as Rattling Impact's
@@ -1586,6 +1587,13 @@ mark does (D-076, D-156) — so they meet Stagger, push resistance and the hold 
 around them. Each is consumed by the displacement that used it **whether or not the extra tile
 survived**: a shove that resistance ate is still a displacement, and a mark spent only on success
 would let a flock probe the board for free (D-190).
+
+**A Thorn Pouch changes the board, and the board changes back.** The tile genuinely becomes brambles,
+so walking onto it, being displaced onto it and Sure-Footed all cost exactly what they already cost —
+there is no parallel list of pretend hazards to drift from the real ones. The tile is restored to
+**what it was**, not to open ground, at the **end of the round it was thrown in** — the same instant
+Stagger and the §8.6 marks lapse. This is the first rule in the game that changes terrain mid-fight
+(D-191).
 
 **A Chalk Mark and Rattling Impact are one mark, not two.** They say the same sentence, so they write
 the same state; the chalk needed no new arithmetic. It follows that a chalk **lapses at the round

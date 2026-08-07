@@ -32,5 +32,8 @@ namespace Faultline.Core
 
         /// <summary>Mark an enemy: the other flock's next displacement of it gains a tile.</summary>
         ChalkMark = 6,
+
+        /// <summary>Grow brambles on one adjacent tile until the end of the round.</summary>
+        ThornPouch = 7,
     }
 }
