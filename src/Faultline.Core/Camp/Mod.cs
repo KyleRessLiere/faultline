@@ -47,5 +47,45 @@ namespace Faultline.Core
 
         /// <summary>Preen, cheaper: cost 2.</summary>
         Quick = 11,
+
+        // The alternate spenders' mods. Each set keeps the same three axes the shipped twelve use —
+        // cheaper, stronger, economy — because a fourth axis would be a new kind of card, and §8.6
+        // sizes its pools by what the axes are, not by how many entries there happen to be.
+
+        /// <summary>Retort, cheaper: cost 1.</summary>
+        HairTrigger = 12,
+
+        /// <summary>Retort, stronger: the shove is 3.</summary>
+        Backhand = 13,
+
+        /// <summary>Retort, economy: refund 2 Pluck if the retort's shove causes a collision.</summary>
+        Grudge = 14,
+
+        /// <summary>Skyfall, cheaper in reach rather than price: usable from any tile, range 3.</summary>
+        LowSky = 15,
+
+        /// <summary>Skyfall, stronger: also Staggers enemies adjacent to the target.</summary>
+        Shatterfall = 16,
+
+        /// <summary>Skyfall, economy: refund 1 Pluck on a kill.</summary>
+        Updraft = 17,
+
+        /// <summary>Whirl, cheaper: cost 2.</summary>
+        Riptide = 18,
+
+        /// <summary>Whirl, stronger: the shove is 2.</summary>
+        WideWhirl = 19,
+
+        /// <summary>Whirl, economy: +1 Pluck if 2 or more enemies are shoved.</summary>
+        Churn = 20,
+
+        /// <summary>Breakwater, cheaper: cost 2.</summary>
+        LowWall = 21,
+
+        /// <summary>Breakwater, stronger: the shove is 2.</summary>
+        SeaWall = 22,
+
+        /// <summary>Breakwater, economy: +1 Pluck the first time each round it triggers.</summary>
+        Toll = 23,
     }
 }

@@ -141,13 +141,25 @@ public class PluckNamingTests
     }
 
     [Fact]
-    public void RetortIsGone_AndPreenIsTheWardbearersSpender()
+    public void TheOldRetortIsStillGone_AndPreenIsStillTheWardbearersSpender()
     {
+        // D-087 parked Retort and this test guarded the parking by banning the NAME. §5's parked
+        // spender list has since handed the name back to the Vanguard for a different rule, so the
+        // ban is now too broad: what D-087 actually ruled is that the Wardbearer opens with Preen
+        // and the stance-ending shove is not coming back to him (D-235).
         Assert.Equal(VerveSpend.Preen, Verve.SpendFor(UnitKind.Wardbearer));
 
+        // The old Retort was the Wardbearer's. The new one is the Vanguard's, and no Wardbearer
+        // entry names it — which is the half of D-087 that still bites.
+        Assert.Equal(UnitKind.Vanguard, Kits.KindOf(KitEntry.Retort));
         Assert.DoesNotContain(
-            Enum.GetNames(typeof(VerveSpend)),
-            n => n.Equals("Retort", StringComparison.Ordinal));
+            Kits.StartingSpenders(UnitKind.Wardbearer),
+            e => e == KitEntry.Retort);
+
+        // And it is not what he starts with either way.
+        Assert.DoesNotContain(
+            Kits.StartingSpenders(UnitKind.Vanguard),
+            e => e == KitEntry.Retort);
     }
 }
 

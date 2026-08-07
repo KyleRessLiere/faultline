@@ -96,8 +96,17 @@ namespace Faultline.Core
         /// </remarks>
         public bool IsIntercepted => CrewCover is not null;
 
+        /// <summary>
+        /// The projected run of an Overrun, or <c>null</c>. Separate from <see cref="Charge"/> because
+        /// a charge contacts one body and a run contacts every body on the line — one shove and a list
+        /// of them are different facts, and collapsing them would have made the preview promise the
+        /// first shove and deliver several.
+        /// </summary>
+        public OverrunPreview? Overrun { get; init; }
+
         /// <summary>True when the action moves a body — its own or somebody else's.</summary>
-        public bool Displaces => Displacement is not null || Charge?.Contact is not null;
+        public bool Displaces =>
+            Displacement is not null || Charge?.Contact is not null || Overrun?.Shoves.Count > 0;
 
         /// <summary>
         /// True when the action does nothing at all: no damage, no line hit, no run and no shove.
@@ -110,6 +119,7 @@ namespace Faultline.Core
             Damage == 0
             && LineHits.Count == 0
             && (Charge is null || Charge.IsNoOp)
+            && (Overrun is null || Overrun.IsNoOp)
             && (Displacement is null || Displacement.IsNoOp);
     }
 }

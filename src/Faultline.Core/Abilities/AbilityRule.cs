@@ -35,5 +35,18 @@ namespace Faultline.Core
 
         /// <summary>Guard Stance: take up the stance and open its absorbed mark clean (D-058).</summary>
         GuardStance = 3,
+
+        /// <summary>
+        /// Overrun's run: travel along a line and shoulder <em>every</em> enemy in the path aside,
+        /// stopping only where a body cannot vacate. The side choice and the vacate test are
+        /// <see cref="Trample"/>'s, called rather than copied.
+        /// </summary>
+        Overrun = 4,
+
+        /// <summary>
+        /// Interpose: offer an adjacent ally a swap. A placement whose second half is the other
+        /// owner's answer, so it reuses the Split Reed offer field and its command (D-192).
+        /// </summary>
+        Interpose = 5,
     }
 }

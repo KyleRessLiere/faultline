@@ -154,6 +154,48 @@ namespace Faultline.Core
                 "Cost " + Verve.QuickPreenCost + ".",
                 VerveSpend.Preen, UnitKind.Wardbearer, UpgradeMechanic.SpenderCost),
 
+            // ---- the alternate spenders' mods, on the same three axes ------------------------------
+            Of(Mod.HairTrigger, "Hair Trigger",
+                "Cost " + Retort.HairTriggerCost + ".",
+                VerveSpend.Retort, UnitKind.Vanguard, UpgradeMechanic.SpenderCost),
+            Of(Mod.Backhand, "Backhand",
+                "The shove is " + Retort.BackhandPushDistance + ".",
+                VerveSpend.Retort, UnitKind.Vanguard, UpgradeMechanic.ShoveDistance),
+            Of(Mod.Grudge, "Grudge",
+                "Refund " + Retort.GrudgeRefund + " Pluck if the retort's shove causes a collision.",
+                VerveSpend.Retort, UnitKind.Vanguard, UpgradeMechanic.MeterRefund),
+
+            Of(Mod.LowSky, "Low Sky",
+                "Usable from any tile, range " + Skyfall.LowSkyRange + ".",
+                VerveSpend.Skyfall, UnitKind.Archer, UpgradeMechanic.ShotRule),
+            Of(Mod.Shatterfall, "Shatterfall",
+                "Also Staggers enemies adjacent to the target.",
+                VerveSpend.Skyfall, UnitKind.Archer, UpgradeMechanic.ShotRule),
+            Of(Mod.Updraft, "Updraft",
+                "Refund " + Skyfall.UpdraftRefund + " Pluck on a kill.",
+                VerveSpend.Skyfall, UnitKind.Archer, UpgradeMechanic.MeterRefund),
+
+            Of(Mod.Riptide, "Riptide",
+                "Cost " + Whirl.RiptideCost + ".",
+                VerveSpend.Whirl, UnitKind.Threadcaster, UpgradeMechanic.SpenderCost),
+            Of(Mod.WideWhirl, "Wide Whirl",
+                "The shove is " + Whirl.WideWhirlPushDistance + ".",
+                VerveSpend.Whirl, UnitKind.Threadcaster, UpgradeMechanic.ShoveDistance),
+            Of(Mod.Churn, "Churn",
+                "+" + Whirl.ChurnPayout + " Pluck if " + Whirl.ChurnThreshold
+                + " or more enemies are shoved.",
+                VerveSpend.Whirl, UnitKind.Threadcaster, UpgradeMechanic.MeterRefund),
+
+            Of(Mod.LowWall, "Low Wall",
+                "Cost " + Breakwater.LowWallCost + ".",
+                VerveSpend.Breakwater, UnitKind.Wardbearer, UpgradeMechanic.SpenderCost),
+            Of(Mod.SeaWall, "Sea Wall",
+                "The shove is " + Breakwater.SeaWallPushDistance + ".",
+                VerveSpend.Breakwater, UnitKind.Wardbearer, UpgradeMechanic.ShoveDistance),
+            Of(Mod.Toll, "Toll",
+                "+" + Breakwater.TollPayout + " Pluck the first time each round the wall triggers.",
+                VerveSpend.Breakwater, UnitKind.Wardbearer, UpgradeMechanic.MeterRefund),
+
             // ---- Second Winds: two per class, and class-bound without exception --------------------
             Of(SecondWind.StaggerAnEnemy, "Rattle",
                 "+1 when he Staggers an enemy.", UnitKind.Vanguard),

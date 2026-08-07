@@ -173,7 +173,14 @@ public class UpgradeDefinitionTests
                     // A mod bolts onto a spender, and the spender is what makes it class-bound.
                     Assert.NotNull(definition.Spender);
                     Assert.NotNull(definition.Kind);
-                    Assert.Equal(definition.Spender, Verve.SpendFor(definition.Kind!.Value));
+
+                    // The class that OWNS the spender, not the class's default spender. Since G4
+                    // every class has an alternate, so "this mod's spender is the one the class
+                    // starts with" stopped being the invariant — a Grudge is a Vanguard's card
+                    // because Retort is a Vanguard's spender, whether or not he opened with it.
+                    Assert.Equal(
+                        definition.Kind,
+                        Kits.KindOf(Kits.EntryOf(definition.Spender!.Value)));
                     break;
 
                 case OfferCategory.SecondWind:
@@ -209,7 +216,7 @@ public class UpgradeDefinitionTests
     }
 
     [Fact]
-    public void EveryClass_HasThreeModsAndTwoSecondWinds()
+    public void EveryClass_HasSixModsAndTwoSecondWinds()
     {
         // The shape of §8.6's pool, asserted off the registry rather than off a copy of the table.
         foreach (var kind in new[]
@@ -217,8 +224,11 @@ public class UpgradeDefinitionTests
             UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
         })
         {
+            // Three per spender, and since G4 every class has two spenders: the one it opens with
+            // and the alternate that can replace it. The axes are unchanged — cheaper, stronger,
+            // economy — which is the shape §8.6 actually sizes its pool by.
             Assert.Equal(
-                3,
+                6,
                 UpgradeDefinition.All().Count(d => d.Category == OfferCategory.Mod && d.Kind == kind));
 
             Assert.Equal(

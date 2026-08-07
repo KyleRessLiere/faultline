@@ -34,6 +34,15 @@ namespace Faultline.Core
             Mod.LightLine, Mod.LongRod, Mod.BigSplash,
             Mod.FletchersRhythm, Mod.LongDraw, Mod.HuntersRefund,
             Mod.Thorough, Mod.Neighborly, Mod.Quick,
+
+            // The alternate spenders' mods. They sit in the same pool because they are drawn the
+            // same way and filtered the same way: EligibleFor already refuses a mod whose host slot
+            // the duck does not hold, so a Vanguard who never took Retort is never offered a Grudge
+            // and nothing new had to learn that (G4).
+            Mod.HairTrigger, Mod.Backhand, Mod.Grudge,
+            Mod.LowSky, Mod.Shatterfall, Mod.Updraft,
+            Mod.Riptide, Mod.WideWhirl, Mod.Churn,
+            Mod.LowWall, Mod.SeaWall, Mod.Toll,
         };
 
         private static readonly SecondWind[] AllSecondWinds =

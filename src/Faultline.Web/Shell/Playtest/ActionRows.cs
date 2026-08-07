@@ -325,11 +325,16 @@ public static class ActionRows
 
     private static IEnumerable<ActionRow> AbilityRows(GameSession session, Unit unit, GameState state)
     {
-        // One row per ability the archetype brings, never one row called "the ability": the
-        // Wardbearer has two and the player has to be able to say which is being aimed. Asked of
-        // the archetype rather than of the selection, so a duck that is being read still lists the
-        // kit it owns — what it brings is a fact about the class, not about whose turn it is.
-        foreach (var descriptor in AbilityDefinition.AllForKind(unit.Kind))
+        // One row per ability the duck HOLDS, never one row called "the ability": the Wardbearer
+        // has two and the player has to be able to say which is being aimed. Asked of the duck's
+        // slots rather than of the selection, so a duck that is being read still lists the kit it
+        // owns — what it holds is a fact about that duck, not about whose turn it is.
+        //
+        // It used to be asked of the archetype, which was the same list until G4 gave three classes
+        // an alternate action: a Fisher was then offered a Punt nobody had taught her, greyed with
+        // no reason, because there is no reason to give — she does not have it. Abilities.AllOf is
+        // Core's answer to "what does this duck hold" and the shell must not keep its own.
+        foreach (var descriptor in Abilities.AllOf(unit))
         {
             bool usable = descriptor.Targeting != AbilityTargeting.Passive
                 && session.IsAbilityAvailable(descriptor.Ability);
@@ -354,7 +359,11 @@ public static class ActionRows
         // The class's one named spender, and nothing generic beside it. There is deliberately no
         // "activate your charge" row: a meter with an anonymous button on it is a meter nobody can
         // plan around, and the whole point of the spender is that it is a named, priced move.
-        if (Verve.SpendFor(unit.Kind) is not { } spend)
+        // The duck's spender, not the class's: since G4 every class has an alternate that can take
+        // the Pluck slot, and a Vanguard carrying Retort must not be shown a Wrecking Weight button
+        // he cannot press. Verve.SpendFor(Unit) reads the slot; the archetype overload answers a
+        // different question and is no longer this one.
+        if (Verve.SpendFor(unit) is not { } spend)
         {
             yield break;
         }
@@ -364,7 +373,17 @@ public static class ActionRows
         // off. Core owns the arithmetic; the base is kept for the tooltip by AbilityCards.BaseNote.
         int cost = Verve.CostOf(spend, unit);
         bool available = session.CanSpendVerve;
-        bool armed = spend == VerveSpend.Cast ? session.AimingCast : unit.WreckingWeightArmed;
+        // "Armed" means a different flag per spender, and each one names its own: a stance that is
+        // standing has to read as standing on the button that bought it, or the player has no way to
+        // tell a spent Retort from an unspent one.
+        bool armed = spend switch
+        {
+            VerveSpend.Cast => session.AimingCast,
+            VerveSpend.Skyfall => session.AimingCast,
+            VerveSpend.Retort => unit.RetortArmed,
+            VerveSpend.Breakwater => unit.BreakwaterArmed,
+            _ => unit.WreckingWeightArmed,
+        };
 
         string reason = unit.Verve < cost
             ? "Need " + cost + " " + Naming.Meter

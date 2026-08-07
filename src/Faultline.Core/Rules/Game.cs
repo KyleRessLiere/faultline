@@ -290,9 +290,18 @@ namespace Faultline.Core
             // The window every stream listener reads, snapshotted before any of them can widen it.
             int produced = events.Count;
 
+            // The standing spenders answer first, on the command's own window. They go BEFORE the
+            // meter rather than after it because a retort's shove and a breakwater's shove are
+            // displacements the acting duck caused, and §5 pays the Vanguard for causing collisions —
+            // charging before they resolve would have quietly excluded them from the only condition
+            // that could pay for them (G4).
+            next = Retort.Fire(next, events, produced);
+            next = Breakwater.Fire(next, events, produced);
+
             // Verve reads the finished stream rather than being threaded through the rules that
             // produced it, so it goes here — after the command, before re-planning, so a charge is
-            // logged next to the thing that earned it (D-073).
+            // logged next to the thing that earned it (D-073). It snapshots its own window, so the
+            // shoves above are inside it.
             next = Verve.Charge(next, events);
 
             // The §8.6 marks, grants and reactions read the same window, last (D-157).
@@ -1425,6 +1434,14 @@ namespace Faultline.Core
                         "That direction does nothing.");
                     break;
 
+                case AbilityTargeting.Ally:
+                    Require(command.TargetId.HasValue, "That ability needs an ally to aim at.");
+                    Require(
+                        Contains(Abilities.LegalAllies(state, unit, descriptor), command.TargetId!.Value),
+                        "That is not an ally this can reach — it is not beside this duck, it is over "
+                        + "a ledge, or it is already holding an offer.");
+                    break;
+
                 case AbilityTargeting.Self:
                     break;
 
@@ -1761,12 +1778,17 @@ namespace Faultline.Core
                     "That ally is not somewhere this Preen can reach.");
             }
 
-            // Retort reads Guard Stance, and taking the activation slot is what drops it (D-058), so
-            // the spend is worked out first and the slot taken after. Every other spend is unaffected
-            // by the order.
+            // The slot is taken FIRST, and then the spend resolves into the activation it opened.
+            //
+            // It used to be the other way round, for the sake of the Retort that D-087 parked: that
+            // card read Guard Stance, and taking the slot is what drops it (D-058, D-077). Nothing
+            // has read the stance from here since it was removed, and the order had become actively
+            // wrong — CommitActivation is where a standing spender lapses, so a spend that armed one
+            // and then committed was wiping the flag it had just set (G4).
+            state = CommitActivation(state, unit, events);
+
             var spent = Verve.Spend(
                 state, command.UnitId, command.Spend, events, command.TargetId, command.To);
-            spent = CommitActivation(spent, spent.UnitById(command.UnitId), events);
 
             return AfterAction(spent, command.UnitId, events);
         }
@@ -1850,6 +1872,21 @@ namespace Faultline.Core
             {
                 state = state.WithUnit(state.UnitById(unit.Id) with { Guarding = false });
                 events.Add(new GuardStanceChanged(unit.Id, unit.Position, false));
+            }
+
+            // Retort and Breakwater lapse on exactly the same beat and for exactly the same reason:
+            // §5 words both "until his next activation", and this is that instant. Guard Stance's
+            // expiry above is the precedent the wording was copied from (D-058), so they drop here
+            // rather than at end of round — the enemy round each was bought to cover happens after
+            // the round it was declared in.
+            var standing = state.UnitById(unit.Id);
+            if (standing.RetortArmed || standing.BreakwaterArmed)
+            {
+                state = state.WithUnit(standing with
+                {
+                    RetortArmed = false,
+                    BreakwaterArmed = false,
+                });
             }
 
             return state with { ActiveUnitId = unit.Id };

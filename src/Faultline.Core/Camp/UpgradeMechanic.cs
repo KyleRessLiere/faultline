@@ -53,5 +53,12 @@ namespace Faultline.Core
 
         /// <summary>How far a Kick-in reaches: <see cref="Pits.KickRangeFor"/>.</summary>
         KickRange = 10,
+
+        /// <summary>
+        /// Lengthens the shove a spender asks the displacement pipeline for — Backhand, Sea Wall,
+        /// Wide Whirl. Distinct from <see cref="ContactDistance"/>, which is Wrecking Weight's bonus
+        /// on somebody else's push rather than a distance the spender itself requests.
+        /// </summary>
+        ShoveDistance = 11,
     }
 }

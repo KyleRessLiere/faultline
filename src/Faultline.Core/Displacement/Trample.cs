@@ -61,7 +61,39 @@ namespace Faultline.Core
             }
 
             var victim = state.UnitAt(tile);
-            if (victim is null)
+            return victim is null ? null : SideFor(state, victim, tile, heading, Distance);
+        }
+
+        /// <summary>
+        /// The side a body standing on <paramref name="tile"/> would be knocked toward by something
+        /// walking through it on <paramref name="heading"/>, or <c>null</c> when it cannot vacate and
+        /// is therefore a wall.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>The Shoulder's geometry, without the Shoulder's owner.</b> <see cref="Side"/> asks this
+        /// after establishing that the mover is a trampler at all; the Vanguard's Overrun asks it
+        /// directly, because a player verb that reproduces this resolution rather than calling it is
+        /// exactly the second copy that ends up disagreeing about which way a body goes.
+        /// </para>
+        /// <para>
+        /// Sides are the two directions perpendicular to the heading, considered in the fixed order
+        /// N/E/S/W, and a side counts only when the body ends up standing on it. That clause is doing
+        /// the work: push resistance, a Footing refusal and a body already standing in the way all turn
+        /// the shove into a halt without any of them needing a rule here, because it asks
+        /// <see cref="Displacement.PreviewAuto"/> and reads where the body really stops.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="victim">Body standing in the way.</param>
+        /// <param name="tile">Tile it is standing on.</param>
+        /// <param name="heading">Direction the mover is walking.</param>
+        /// <param name="distance">Tiles to knock it.</param>
+        /// <returns>The side it is knocked toward, or <c>null</c>.</returns>
+        public static Direction? SideFor(
+            GameState state, Unit victim, Coord tile, Direction heading, int distance)
+        {
+            if (state is null || victim is null || distance <= 0)
             {
                 return null;
             }
@@ -74,7 +106,7 @@ namespace Faultline.Core
                 }
 
                 var preview = Displacement.PreviewAuto(
-                    state, victim.Id, From(tile, side), DisplacementKind.Push, Distance);
+                    state, victim.Id, From(tile, side), DisplacementKind.Push, distance);
 
                 // Vacating is the whole test. A shove that reports a distance but leaves the unit
                 // where it stood (D-057) has not cleared the doorway, and the mover is still stopped.
@@ -85,6 +117,56 @@ namespace Faultline.Core
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Knocks one body aside and reports what it cost it: the trample event, the contact damage
+        /// when there is any, and then the shove through the shared pipeline.
+        /// </summary>
+        /// <remarks>
+        /// <b>One resolution, two callers.</b> The Husk's Shoulder passes
+        /// <see cref="ContactDamage"/>; the Vanguard's Overrun passes zero, because §4 gives his
+        /// charge base contact damage 0 and the alternate action does not change that. Everything
+        /// after the damage — collisions, drain entries, Stagger, resistance and Footing — comes from
+        /// <see cref="Displacement.ResolveAuto"/> and from nowhere else.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="moverId">Unit walking through.</param>
+        /// <param name="victimId">Body being knocked aside.</param>
+        /// <param name="tile">Tile it is standing on.</param>
+        /// <param name="heading">Direction the mover is walking.</param>
+        /// <param name="side">Side it is knocked toward.</param>
+        /// <param name="contactDamage">Hit points the contact takes; zero for a contactless shoulder.</param>
+        /// <param name="distance">Tiles to knock it.</param>
+        /// <param name="events">Sink for the resulting events.</param>
+        /// <returns>The state after the shoulder.</returns>
+        public static GameState Shoulder(
+            GameState state,
+            UnitId moverId,
+            UnitId victimId,
+            Coord tile,
+            Direction heading,
+            Direction side,
+            int contactDamage,
+            int distance,
+            List<GameEvent> events)
+        {
+            events.Add(new UnitTrampled(moverId, victimId, tile, heading, side, contactDamage));
+
+            // Contact first, then the shove. A body the contact finishes off has already left the
+            // doorway and there is nothing to shove — the walk simply continues over it.
+            if (contactDamage > 0)
+            {
+                state = Combat.ApplyDamage(state, victimId, contactDamage, DamageSource.Trample, events);
+
+                if (!state.UnitById(victimId).IsOnBoard)
+                {
+                    return state;
+                }
+            }
+
+            return Displacement.ResolveAuto(
+                state, victimId, From(tile, side), DisplacementKind.Push, distance, events, by: moverId);
         }
 
         /// <summary>
@@ -157,25 +239,11 @@ namespace Faultline.Core
         {
             var side = Side(state, mover, tile, heading);
             var victim = state.UnitAt(tile);
-            if (side is null || victim is null)
-            {
-                return state;
-            }
-
-            events.Add(new UnitTrampled(mover.Id, victim.Id, tile, heading, side.Value, ContactDamage));
-
-            // Contact first, then the shove. A blocker the contact finishes off has already left the
-            // doorway and there is nothing to shove — the walk simply continues over it.
-            state = Combat.ApplyDamage(state, victim.Id, ContactDamage, DamageSource.Trample, events);
-
-            if (!state.UnitById(victim.Id).IsOnBoard)
-            {
-                return state;
-            }
-
-            return Displacement.ResolveAuto(
-                state, victim.Id, From(tile, side.Value), DisplacementKind.Push, Distance, events,
-                by: mover.Id);
+            return side is null || victim is null
+                ? state
+                : Shoulder(
+                    state, mover.Id, victim.Id, tile, heading, side.Value, ContactDamage, Distance,
+                    events);
         }
 
         /// <summary>

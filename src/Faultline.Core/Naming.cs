@@ -89,6 +89,10 @@ namespace Faultline.Core
             VerveSpend.Cast => "Cast",
             VerveSpend.DoubleNock => "Double Nock",
             VerveSpend.Preen => "Preen",
+            VerveSpend.Retort => "Retort",
+            VerveSpend.Skyfall => "Skyfall",
+            VerveSpend.Whirl => "Whirl",
+            VerveSpend.Breakwater => "Breakwater",
             _ => spend.ToString(),
         };
 

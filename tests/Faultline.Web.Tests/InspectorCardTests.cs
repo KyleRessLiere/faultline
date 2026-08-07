@@ -69,12 +69,16 @@ public sealed class InspectorCardTests
         Assert.Contains(rows, r => r.Kind == ActionKind.Move);
         Assert.Contains(rows, r => r.Kind == ActionKind.Basic);
 
-        // One row per ability the archetype brings, from Core's own table — the kit is a fact about
-        // the class, not about whose turn it is.
-        foreach (var descriptor in AbilityDefinition.AllForKind(unit.Kind))
+        // One row per ability the duck HOLDS, from Core's own query — the kit is a fact about that
+        // duck, not about whose turn it is. Asked of Abilities.AllOf rather than of the archetype's
+        // table since G4: the two agreed until a class could own an alternate action it had not been
+        // taught, and the archetype's table would have listed a Punt this Fisher does not have.
+        foreach (var descriptor in Abilities.AllOf(unit))
         {
             Assert.Contains(rows, r => r.Ability == descriptor.Ability);
         }
+
+        Assert.NotEmpty(Abilities.AllOf(unit));
     }
 
     [Fact]

@@ -185,6 +185,14 @@ namespace Faultline.Core
                     parts.Add("stance");
                 }
 
+                // A swap is the whole of what an Ally ability does to the board, and it is not a
+                // displacement — so it is named here rather than being read off a PushEffect that
+                // deliberately does not exist.
+                if (Targeting == AbilityTargeting.Ally)
+                {
+                    parts.Add("swap places");
+                }
+
                 if (TileDamage.Count > 0)
                 {
                     parts.Add(string.Join("/", TileDamage) + " dmg");
@@ -296,6 +304,24 @@ namespace Faultline.Core
                         CustomRule = AbilityRule.Charge,
                         Effects = new AbilityEffect[] { new PushEffect(2) },
                     },
+
+                    // Custom for the reason Bull Rush is: the run is path traversal, terrain and
+                    // stopping rules. What it does on contact is not a second charge rule — it is
+                    // Trample's, called. The shove is authored here as a standard effect so the
+                    // preview and the resolution read the same 1.
+                    new AbilityDefinition(
+                        Ability.Overrun,
+                        UnitKind.Vanguard,
+                        "Overrun",
+                        "Run up to 3 tiles in a straight line, shouldering every enemy in the path 1 tile "
+                        + "aside as you pass. You end where you stop; a body with nowhere to go stops you.",
+                        AbilityTargeting.Direction,
+                        Cost: Activation.OverrunCost,
+                        Range: 3)
+                    {
+                        CustomRule = AbilityRule.Overrun,
+                        Effects = new AbilityEffect[] { new PushEffect(1) },
+                    },
                 },
 
                 [UnitKind.Archer] = new[]
@@ -339,6 +365,23 @@ namespace Faultline.Core
                             new PullEffect(0) { ToAdjacent = true, BypassResistance = true },
                         },
                     },
+
+                    // Reel's mirror, and a plain effect list on purpose: a shove of 3 through the
+                    // shared pipeline is not an algorithm. Resistance applies — Reel's bypass exists
+                    // because "all the way to adjacent" cannot survive being shortened (D-139), and
+                    // a fixed 3 survives being shortened perfectly well.
+                    new AbilityDefinition(
+                        Ability.Punt,
+                        UnitKind.Threadcaster,
+                        "Punt",
+                        "Range 3. Shoves one enemy 3 tiles directly away from you, every tile on the way "
+                        + "resolved. The drain-shove she could only ever make standing at the edge.",
+                        AbilityTargeting.Enemy,
+                        Cost: Activation.PuntCost,
+                        Range: 3)
+                    {
+                        Effects = new AbilityEffect[] { new PushEffect(3) },
+                    },
                 },
 
                 [UnitKind.Wardbearer] = new[]
@@ -374,6 +417,22 @@ namespace Faultline.Core
                         Range: 1)
                     {
                         CustomRule = AbilityRule.GuardStance,
+                    },
+
+                    // Custom because the swap's second half is another player's answer, not an
+                    // effect: this offers, and TakeSplitReedCommand accepts. Placement, not
+                    // displacement — it reuses Game.ApplySplitReed's path whole (D-192).
+                    new AbilityDefinition(
+                        Ability.Interpose,
+                        UnitKind.Wardbearer,
+                        "Interpose",
+                        "Offer to swap places with an adjacent ally. Placement, not displacement — neither "
+                        + "body travels — and it happens only when that duck's owner accepts.",
+                        AbilityTargeting.Ally,
+                        Cost: Activation.ActionCost,
+                        Range: 1)
+                    {
+                        CustomRule = AbilityRule.Interpose,
                     },
                 },
             };

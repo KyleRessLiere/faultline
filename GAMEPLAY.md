@@ -33,6 +33,26 @@ changes, this table and that test go red together. Numbers are the doubled scale
 
 Rescue: **3 AP** (the whole pool). Pluck cap for every class: **5**.
 
+**The alternate kits** — nobody starts with any of these. They are the pool a run's kit surgery
+draws from; each replaces something above.
+
+| Class | Alternate | AP | Pluck | Range | Effect | Replaces |
+|---|---|---|---|---|---|---|
+| Vanguard | Overrun | **3** | — | line 3 | runs the line, shoulders **every** enemy 1 aside | Bull Rush |
+| Vanguard | Retort (spend) | 0 | 2 | — | until his next activation, the first enemy that damages him is shoved 2 | Wrecking Weight |
+| Archer | Skyfall (spend) | 0 | 3 | 2–5 | **from high ground only**: 6 dmg + Stagger | Double Nock |
+| Fisher | Punt | 2 | — | 3 | shoves one enemy 3 tiles away, every tile resolved | Reel |
+| Fisher | Whirl (spend) | 0 | 3 | adjacent | every enemy beside her shoved 1 away and Staggered | Cast |
+| Wardbearer | Interpose | 1 | — | 1 | offers an adjacent ally a swap of tiles (placement) | Spear Thrust |
+| Wardbearer | Breakwater (spend) | 0 | 3 | adjacent | until his next activation, any enemy ending a move beside him is shoved 1 and Staggered | Preen |
+
+**Grounding Shot is specified but NOT built** — it wants a halved Move until end of round, which is a
+status this game does not have. See D-236.
+
+**Charge conditions do not travel.** An alternate spender changes the spend and never the income:
+Retort is funded by the Vanguard causing collisions exactly as Wrecking Weight is, Whirl by the
+Fisher's displacements, Skyfall by the Archer's high ground, Breakwater by the Wardbearer's absorbs.
+
 ### Ranges and minimum range
 
 **Only the Archer has a minimum range: 2** — for both her basic shot and Stagger Shot. Every other
@@ -1476,6 +1496,12 @@ class's spender lives on the second axis and never occupies one of the first (D-
 
 So every class but the Wardbearer opens **using two of three ability slots, with one free to grow
 into**, and the Wardbearer three of four.
+
+**What fills that free slot is the alternate pool** (Quick Reference, above). Seven entries: three
+actions and four spenders, each class-bound, none in any opening kit. An alternate action learns into
+a free ability slot; an alternate spender needs the Pluck slot, which means **replacing** the class's
+own spender rather than learning alongside it — there is one Pluck slot and §5 gives each class one
+spender. The offer that hands them over is not built: that is G2's replacement command.
 
 **The Wardbearer starts with four, and the reason travels with the number: his stance and his spear
 are two halves of one job.** §4 prints them as one "per activation choose" line, which is one kit

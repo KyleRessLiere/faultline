@@ -111,7 +111,10 @@ namespace Faultline.Core
             ChalkMarked => nameof(ChalkMarked),
             ActivationOrderChanged => nameof(ActivationOrderChanged),
             SplitReedOffered => nameof(SplitReedOffered),
+            DucksOfferedSwap => nameof(DucksOfferedSwap),
             DucksSwapped => nameof(DucksSwapped),
+            VerveRetorted => nameof(VerveRetorted),
+            EnemyBrokeOnBreakwater => nameof(EnemyBrokeOnBreakwater),
             BramblesGrew => nameof(BramblesGrew),
             TerrainReverted => nameof(TerrainReverted),
             GreasedFeatherSpent => nameof(GreasedFeatherSpent),
@@ -309,6 +312,15 @@ namespace Faultline.Core
             SplitReedOffered e => "offered a swap by " + Actor(state, e.ByUnitId)
                 + ", " + e.To + " for " + e.At + ", its owner answers or does not",
 
+            DucksOfferedSwap e => "offered an Interpose by " + Actor(state, e.ByUnitId)
+                + ", " + e.To + " for " + e.At + ", its owner answers or does not",
+
+            VerveRetorted e => "answers " + Actor(state, e.AttackerId) + " from " + e.At
+                + ", shoving it " + e.Distance,
+
+            EnemyBrokeOnBreakwater e => "breaks " + Actor(state, e.EnemyId) + " on the wall at "
+                + e.At + ", shoving it " + e.Distance + " and Staggering it",
+
             DucksSwapped e => "swaps places with " + Actor(state, e.WithUnitId)
                 + ", " + e.At + " and " + e.WithAt + ", a placement",
 
@@ -444,7 +456,10 @@ namespace Faultline.Core
             ChalkMarked e => e.UnitId,
             ActivationOrderChanged e => e.ByUnitId,
             SplitReedOffered e => e.UnitId,
+            DucksOfferedSwap e => e.UnitId,
             DucksSwapped e => e.UnitId,
+            VerveRetorted e => e.UnitId,
+            EnemyBrokeOnBreakwater e => e.UnitId,
             BramblesGrew e => e.UnitId,
             GreasedFeatherSpent e => e.UnitId,
             HandOffGranted e => e.UnitId,

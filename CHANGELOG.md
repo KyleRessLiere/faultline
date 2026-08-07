@@ -1,5 +1,35 @@
 # Changelog
 
+## Seven alternate kits, and the eighth that stopped at the design's edge
+
+- **Seven abilities a run can put in a duck's free slot** — Vanguard **Overrun** (3 AP, runs a line
+  and shoulders every enemy aside) and **Retort** (2 Pluck, the first enemy that damages him is shoved
+  2); Archer **Skyfall** (3 Pluck, from high ground, 6 + Stagger at range 5); Fisher **Punt** (2 AP,
+  shove 3 at range 3) and **Whirl** (3 Pluck, everything beside her shoved and Staggered); Wardbearer
+  **Interpose** (1 AP, offer an adjacent ally a swap) and **Breakwater** (3 Pluck, any enemy ending a
+  move beside him is shoved and Staggered). Nobody starts with any of them.
+- **Grounding Shot is specified and NOT built** (D-236): it wants a halved Move until end of round,
+  and nothing in this game has ever changed a unit's movement budget. The cost of adding it is written
+  down so the designer can rule rather than re-derive.
+- **Twelve new mods**, three per alternate spender on the same cheaper / stronger / economy axes. The
+  pool is 24; a mod is still never offered for a slot the duck does not hold.
+- **Overrun is the Husk's Shoulder, called rather than copied** (D-239): `Trample.SideFor` and
+  `Trample.Shoulder` are now shared by the enemy's walk and the player's verb, so "a body that cannot
+  vacate is a wall" is one rule. **Interpose is Split Reed's offer**, same field, same command, same
+  consent — no new `Command` and no new offer state.
+- **Retort and Breakwater are flags read off the finished event stream** (D-237), the shape
+  `CrewCoverRound` and `CrossingShotRound` already have. No reaction window.
+- **Fixed: a Pluck spend committed its activation *after* resolving** (D-237), which wiped any stance
+  the spend had just armed. Commit now happens first; the ordering comment it replaced was about a
+  card removed in D-087.
+- **Fixed: the ability bar and the inspector asked the archetype what a duck holds** (D-238), so a
+  Fisher was offered a Punt she had never learned, greyed with no reason. All three reads now ask
+  Core.
+- **Fixed: four previews resolved "the ability being aimed" as "the unit's first ability"** (D-240) —
+  a Fisher holding Reel and Punt would have had her Punt drawn as a Reel.
+- **D-087's Retort ban is narrowed, not deleted** (D-235): it pinned a name, and §5's parked list
+  hands that name back to a different class for a different rule. The old mechanic survives as Whirl.
+
 ## Pluck gets its own slot, and an ability you trade away is still yours
 
 - **The spender moves off the ability slots onto a Pluck slot of its own** (D-230), counted

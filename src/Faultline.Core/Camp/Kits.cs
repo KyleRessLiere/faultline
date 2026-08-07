@@ -297,6 +297,17 @@ namespace Faultline.Core
             KitEntry.SpearThrust => UnitKind.Wardbearer,
             KitEntry.GuardStance => UnitKind.Wardbearer,
             KitEntry.Preen => UnitKind.Wardbearer,
+
+            // The alternates. Each sits in its own class's kit and nowhere else — §5's charge
+            // conditions are class-bound, so an alternate spender changes the spend and never the
+            // income, and an alternate action belongs to the legs that carry it.
+            KitEntry.Overrun => UnitKind.Vanguard,
+            KitEntry.Retort => UnitKind.Vanguard,
+            KitEntry.Skyfall => UnitKind.Archer,
+            KitEntry.Punt => UnitKind.Threadcaster,
+            KitEntry.Whirl => UnitKind.Threadcaster,
+            KitEntry.Interpose => UnitKind.Wardbearer,
+            KitEntry.Breakwater => UnitKind.Wardbearer,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "No class for that kit entry."),
         };
 
@@ -322,6 +333,9 @@ namespace Faultline.Core
             KitEntry.Reel => Ability.Reel,
             KitEntry.SpearThrust => Ability.SpearThrust,
             KitEntry.GuardStance => Ability.GuardStance,
+            KitEntry.Overrun => Ability.Overrun,
+            KitEntry.Punt => Ability.Punt,
+            KitEntry.Interpose => Ability.Interpose,
             _ => (Ability?)null,
         };
 
@@ -334,6 +348,10 @@ namespace Faultline.Core
             KitEntry.Cast => VerveSpend.Cast,
             KitEntry.DoubleNock => VerveSpend.DoubleNock,
             KitEntry.Preen => VerveSpend.Preen,
+            KitEntry.Retort => VerveSpend.Retort,
+            KitEntry.Skyfall => VerveSpend.Skyfall,
+            KitEntry.Whirl => VerveSpend.Whirl,
+            KitEntry.Breakwater => VerveSpend.Breakwater,
             _ => (VerveSpend?)null,
         };
 
@@ -347,6 +365,9 @@ namespace Faultline.Core
             Ability.Reel => KitEntry.Reel,
             Ability.SpearThrust => KitEntry.SpearThrust,
             Ability.GuardStance => KitEntry.GuardStance,
+            Ability.Overrun => KitEntry.Overrun,
+            Ability.Punt => KitEntry.Punt,
+            Ability.Interpose => KitEntry.Interpose,
             _ => throw new ArgumentOutOfRangeException(nameof(ability), ability, "No kit entry for that ability."),
         };
 
@@ -359,6 +380,10 @@ namespace Faultline.Core
             VerveSpend.Cast => KitEntry.Cast,
             VerveSpend.DoubleNock => KitEntry.DoubleNock,
             VerveSpend.Preen => KitEntry.Preen,
+            VerveSpend.Retort => KitEntry.Retort,
+            VerveSpend.Skyfall => KitEntry.Skyfall,
+            VerveSpend.Whirl => KitEntry.Whirl,
+            VerveSpend.Breakwater => KitEntry.Breakwater,
             _ => throw new ArgumentOutOfRangeException(nameof(spend), spend, "No kit entry for that spender."),
         };
 
@@ -677,6 +702,16 @@ namespace Faultline.Core
             KitEntry.Preen => false,
             KitEntry.Cast => false,
             KitEntry.WreckingWeight => false,
+
+            // The alternates that only ever move a body. Whirl, Retort and Breakwater shove and
+            // Stagger, exactly as Cast places and Wrecking Weight arms: the collisions they set up
+            // are the board hurting somebody, which is not the same sentence as "this duck can hurt
+            // something". Interpose does not even touch an enemy. Overrun and Punt sit with Bull Rush
+            // and Reel on the other side of that line, and Skyfall deals 6 outright.
+            KitEntry.Retort => false,
+            KitEntry.Whirl => false,
+            KitEntry.Breakwater => false,
+            KitEntry.Interpose => false,
             _ => true,
         };
 
