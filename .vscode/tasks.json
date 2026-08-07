@@ -101,11 +101,18 @@
         },
         {
             // The fix for README's "unhandled error on a page that worked a minute ago": an orphaned
-            // server still serving its own old build. Sweeps the range play.ps1 walks.
+            // server still serving its own old build.
+            //
+            // IT MUST COVER 5137. That is the port launchSettings.json names, so it is the port F5
+            // and Ctrl-F5 use — and this task swept only 5199-5210, the range play.ps1 walks. The
+            // one server a player is most likely to leave running was the one server this could not
+            // stop, while launch.json's own comment sent them here to stop it. That failure looks
+            // exactly like a code bug: the browser holds a boot manifest naming fingerprinted assets
+            // ("dotnet.<hash>.js") that the newer build no longer has, and every one of them 404s.
             "label": "Faultline: stop servers",
-            "detail": "Stop anything left listening on ports 5199-5210",
+            "detail": "Stop anything left listening on 5137 (F5) or 5199-5210 (play.ps1)",
             "type": "shell",
-            "command": "5199..5210 | ForEach-Object { ./run.ps1 -Stop -Port $_ }",
+            "command": "@(5137) + 5199..5210 | ForEach-Object { ./run.ps1 -Stop -Port $_ }",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",

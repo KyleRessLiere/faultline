@@ -10,6 +10,12 @@
     // a browser at it. If that port is already held by a server you forgot about, run the
     // "Faultline: stop servers" task first — a stale dev server keeps handing out its own old build
     // and the page fails in a way that looks like a code bug (see README).
+    //
+    // What that failure actually looks like, since it has now happened once for real: the browser
+    // loads, then dies with a 404 on "/_framework/dotnet.<hash>.js" and "Failed to start platform".
+    // The hash is fingerprinted per build, so a server started before your last build hands out a
+    // boot manifest naming assets that no longer exist. Nothing is wrong with the code. Stop the
+    // server, rebuild, and hard-reload the browser (Ctrl-Shift-R) so it drops the cached manifest.
     "version": "0.2.0",
     "configurations": [
         {

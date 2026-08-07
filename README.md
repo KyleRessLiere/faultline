@@ -186,7 +186,16 @@ Flags combine, so `./run.sh -w -o` is the usual loop when iterating on the shell
 
 **If the page loads to "An unhandled error has occurred", you almost certainly have a stale server.**
 A dev server left running keeps serving its own build output, and a later `dotnet build` rewrites
-that directory underneath it, so the assets it hands the browser stop matching each other. Fix:
+that directory underneath it, so the assets it hands the browser stop matching each other.
+
+**The other face of the same fault**, which reads much more like a code bug: the page dies with
+`Failed to load resource: 404` on `/_framework/dotnet.<hash>.js`, then
+`Failed to start platform. Reason: TypeError: Failed to fetch dynamically imported module`. Those
+hashes are fingerprinted per build, so a server started before your last build hands the browser a
+boot manifest naming assets that no longer exist. Nothing is wrong with the code. After stopping the
+server and rebuilding, **hard-reload the browser** (Ctrl-Shift-R) so it drops the cached manifest.
+
+Fix:
 
 ```bash
 ./run.sh -s && ./run.sh        # or:  .\run.ps1 -Stop ; .\run.ps1
@@ -221,7 +230,9 @@ Both use `src/Faultline.Web/Properties/launchSettings.json`, so they serve on **
 from the dropdown in the Run panel. Debugging needs the C# extension (`ms-dotnettools.csharp`).
 
 If F5 fails to bind, a server you forgot about is holding 5137 — run **Faultline: stop servers**
-first. That task sweeps 5199–5210; for 5137 use `run.ps1 -Stop -Port 5137`.
+first. That task now sweeps **5137 as well as 5199–5210**, so it covers the port F5 itself uses; it
+used to sweep only the script range, which meant the task named as the fix could not stop the server
+most likely to need stopping.
 
 `Ctrl-Shift-P → Tasks: Run Task`:
 
