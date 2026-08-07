@@ -489,6 +489,15 @@ campaign board that breaks the law, which is what the promotion would buy.
 so a rule worded as damage does not see them — even though a round-1 shove into a pit takes the whole
 unit. Counted and reported separately; whether to widen the law is undecided.
 
+**And it cost a board.** `high-road`'s edition-A cut fielded Player B on the only two damage-safe
+tiles in its zone, which were adjacent, three tiles from a Grappler at (3,0). The Grappler's round-1
+pull needed no pit: it slammed the Archer into the Wardbearer for **4 apiece**, repeated it on round
+2 and killed her, and the board lost with every one of §8.8's four policies. A Grappler's round-1
+envelope is *move 3 + range 3 = 6*, which on a 7×7 cannot be dodged by moving the Grappler — no tile
+is 7 steps from both of two opposite corners — so the deployment is the only lever. Two ducks placed
+adjacent are 8 hit points of free collision to anything that pulls (D-187). The law still reports
+zero damage on that round.
+
 ## Displacement — the core system
 
 Push and Pull resolve **one tile at a time**, checking each tile as it is entered. Distance is
@@ -570,6 +579,14 @@ and a tile to land on when any damage at all voids a clinger where it hangs and 
 `Damage` is **what the blow is worth, not what the board will remove.** The two part company
 whenever a rule finishes a body for less than its hit points, so subtracting one from the other is
 keeping a second and wrong copy of the Clinging rule.
+
+**One case D-184 did not reach, and it is open.** The clinging rule is still applied to the board the
+*preview* was taken against, so a displacement that makes a body Clinging **and then damages it
+inside the same resolution** is drawn wrong. The exact play, on `high-road`: Reel a Grappler off the
+ridge and on into a drain — the fall off high ground is 2 and the travel continues, so it lands in
+the drain, Clings, and is then voided by the very 2 the fall owed it (`Voided … Reason = took damage
+while clinging`). The projection promises `WouldCling = true`, `WouldDown = false` and 2 damage; the
+board removes the whole bar and the enemy is gone. Filed, not fixed — see D-188 and the review queue.
 
 ### Which way — the diagonal is the acting side's choice
 

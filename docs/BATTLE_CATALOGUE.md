@@ -179,13 +179,16 @@ CONTESTED LINES. The causeway runs (3,1) to (3,5), five tiles, one column. It ca
 GRAPPLER PRIORITY ON THE ARCHER, and it is already in the rules rather than authored here: Ai.PickGrab ranks anything standing on HighGround first and the Archer second. So the Grappler at the north end pulls whoever climbed, and if nobody has climbed it comes for the Archer anyway. Range 3 and pull 2, and a pull is not shortened by the ledge.
 
 
-The Perch is the ranged half of the thesis and the reason the ridge is not free real estate: it walks to the nearest reachable HighGround, hits for 4 from up there, and does not come down. It starts in the far corner, so both flocks have a turn to get there first.
+The Perch is the ranged half of the thesis and the reason the ridge is not free real estate: it walks to the nearest reachable HighGround, hits for 4 from up there, and does not come down. It starts on the north edge at (2,0), two steps from the ridge's north end - so the causeway is split on round one, the enemy holding the head and the flock able to hold the foot, and the fight is over the three tiles in between.
 
 
 The Anchor at the ridge's south foot shrugs one tile off every push, so it cannot simply be shoved out of the causeway's mouth. Pull is the answer, which is the same lesson the Trench asks for later on the hungry lane.
 
 
-7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch in the far corner poses the same ranged question without taking a hit point off anybody before they have had a turn.
+BOTH FLOCKS DEPLOY SOUTH, on either flank of the causeway's mouth, and the opposite-corners guideline is refused here exactly as the Trench refuses it (D-187). Edition A put Player B in the north-east corner, three tiles from the Grappler: its round-one pull slammed the Archer into the Wardbearer for 4 apiece and killed her on round two, and the flock the Anchor walked at fought it two-against-one. No tile on the east half was out of a Grappler's round-one reach, so the deployment was the defect and not the tuning. The ridge is now the thing between the squad and the enemy line rather than the wall between two armies, which is the thesis stated more plainly, not less.
+
+
+7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch away from both flanks poses the same ranged question without taking a hit point off anybody before they have had a turn. All six deployment tiles are now outside every enemy's round-one damage AND outside the Grappler's round-one pull, which the shipped cut was not.
 
 
 **Asks:** Is a raised causeway worth contesting?
@@ -202,13 +205,13 @@ The Anchor at the ridge's south foot shrugs one tile off every push, so it canno
 Legend: `g` Grappler, `h` Husk, `n` Anchor, `p` Perch
 
 ```
-...g.BB
-.h.H..B
+..pg...
+.h.H...
 .O.H.O.
 ...H...
-.O.H.O.
-A..H...
-AA.n..p
+.O.H.OB
+A..H..B
+AA.n..B
 ```
 
 ### 5 · The Shrine

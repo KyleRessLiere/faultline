@@ -1,5 +1,22 @@
 # Changelog
 
+## The High Road stops being two fights and starts being one ridge
+
+- **`high-road` is winnable again.** It lost with all four certification policies — two wipes at
+  round 10, one at round 9, and a 61-round stall — and now board-first and objective-first both take
+  it at **round 4 with no ducks down** (D-187).
+- **The deployment was the defect, not the tuning.** Player B's zone held exactly two damage-safe
+  tiles and they were adjacent, three steps from a Grappler whose list names the Archer: its round-1
+  pull slammed her into the Wardbearer for 4 apiece and killed her on round 2, and the law saw no
+  damage because a Grappler deals none. Both flocks now deploy on the south flanks of the causeway,
+  as the Trench already does — the only change is geometry, and **no stat on the board was touched**.
+- **The ridge is the fight now.** Vanguard takes the south end on round 1, the Perch takes the north
+  end in the same round, the Husk and the Grappler climb for the middle, and the Archer wins it and
+  fires 6 from the ledge while the Fisher reels the Grappler off it into a drain.
+- **One preview lie survives D-184 and is filed, not fixed:** a displacement that makes a body
+  Clinging and *then* damages it inside the same resolution still promises a cling and delivers a
+  corpse (D-188).
+
 ## A slam hurts masonry more than it hurts a duck
 
 - **A structure collision deals 6; a body collision still deals 4.** They were always two numbers —

@@ -243,6 +243,24 @@ second place a hand-typed constant drifted from `Objectives`, and there may be m
 `Objectives.Damage` still says "chips a structure for exactly 1" in prose beside the constant it sets
 to 2.
 
+### Two questions the High Road re-cut raised and did not answer (D-187, D-188)
+
+**Should the round-1 safety law see a displacement-only enemy?** `Threat.DamageRound1` counts only
+enemies with `Damage > 0`, so a Grappler is invisible to it. On edition-A `high-road` that Grappler
+took 8 hit points off the squad on round 1 and killed the Archer on round 2 without dealing a point
+of its own — it pulled one duck into another, and a deployment zone whose only safe tiles are
+adjacent hands it that for free. The law reported the board clean. GAMEPLAY.md has carried "whether
+to widen the law is undecided" since D-080; this is the first board it cost, and the cheap form of
+the fix is to count a puller's collision potential rather than its damage. **A designer call, not an
+executor's.**
+
+**A preview lie D-184 did not reach.** A displacement that makes a body Clinging and then damages it
+inside the same resolution promises `WouldCling = true, WouldDown = false` and delivers a corpse —
+Reel a Grappler off high ground into a drain and the 2 the fall owes it voids it where it hangs.
+`high-road` and `hz-09-the-trench` both fail §8.8's "no false preview" column on it;
+`docs/playtest/warrens-certification.md` names the exact commands. Held as D-188 with the test to
+write first.
+
 ---
 
 ## Known defects, filed not fixed

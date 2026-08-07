@@ -190,9 +190,11 @@ in this file when the question comes back.
 | D-167 | [A `protect` board cannot be won by its own clock, and the-shrine ships as "clear the lanes in eight" rather than "hold the shrine for eight".](#d-167-a-protect-board-cannot-be-won-by-its-own-clock-and-the-shrine-ships-as-clear-the-lanes-in-eight-rather-than-hold-the-shrine-for-eight) | 2026-08-06 |  |
 | D-184 | [A projection resolves in the order the action does, so the shove is aimed at whoever the blow left standing.](#d-184-a-projection-resolves-in-the-order-the-action-does-so-the-shove-is-aimed-at-whoever-the-blow-left-standing) | 2026-08-07 |  |
 | D-185 | [Free movement a legendary owes is neither half of the activation, and declining it is a command.](#d-185-free-movement-a-legendary-owes-is-neither-half-of-the-activation-and-declining-it-is-a-command) | 2026-08-07 |  |
-| D-186 | [A structure collision deals 6, a body collision still deals 4, and they are two constants because they were always two numbers.](#d-186-a-structure-collision-deals-6-a-body-collision-still-deals-4-and-they-are-two-constants-because-they-were-always-two-numbers) | unreleased |  |
+| D-186 | [A structure collision deals 6, a body collision still deals 4, and they are two constants because they were always two numbers.](#d-186-a-structure-collision-deals-6-a-body-collision-still-deals-4-and-they-are-two-constants-because-they-were-always-two-numbers) | 2026-08-07 |  |
+| D-187 | [High Road deploys both flocks on the south flanks, and the opposite-corners guideline is refused here for the same reason the Trench refuses it.](#d-187-high-road-deploys-both-flocks-on-the-south-flanks-and-the-opposite-corners-guideline-is-refused-here-for-the-same-reason-the-trench-refuses-it) | unreleased |  |
+| D-188 | [HELD: a displacement that makes a body Clinging and then damages it inside the same resolution is still previewed wrong.](#d-188-held-a-displacement-that-makes-a-body-clinging-and-then-damages-it-inside-the-same-resolution-is-still-previewed-wrong) | unreleased | *held* |
 
-**172 rulings.**
+**174 rulings.**
 
 <!-- toc:end -->
 ---
@@ -4467,3 +4469,93 @@ always its intent, and it now means what it says.
 repointed, because their subject changed - a 16-point structure is three slams and not four, and a
 6-point blocker is now rubble rather than a damaged wall, so they assert the rubble and the derived
 count instead of a typed number that would rot at the next price change.
+
+
+---
+
+**D-187 - High Road deploys both flocks on the south flanks, and the opposite-corners guideline is
+refused here for the same reason the Trench refuses it.**
+
+Edition A of `high-road` **lost with all four of §8.8's policies** - board-first and objective-first
+wiped at round 10, random-legal at round 9, and shover ran 61 rounds without resolving. §8.8 requires
+at least one base-kit policy to win each hungry edition, so this was not a tuning miss.
+
+**Three separate failures, and only one of them was the ridge.** Traced rather than guessed:
+
+1. *The deployment was the fight.* Player B's zone held exactly two damage-safe tiles, `(5,0)` and
+   `(6,0)`, and they are adjacent - the only legal safe arrangement puts two ducks side by side. A
+   Grappler sat at `(3,0)`, three steps away, and `Ai.PickGrab` names the Archer. Round 1 it pulled
+   her into the Wardbearer for **4 apiece**; round 2 it did it again and she was dead on 8 hit
+   points, before Player B had taken an action worth the name. The Grappler deals no damage, so
+   `Threat.DamageRound1` reported the board clean.
+2. *The Anchor was never at the mouth.* It runs `EnemyPlan.Melee`, so it walked off the causeway's
+   foot at the first opportunity and brawled. 12 hit points behind resistance 1, hitting for 4,
+   against a two-duck flock with 22 hit points between them dealing 4 a round: the Anchor beats
+   Player A's half of the squad on its own, and the ridge is never mentioned.
+3. *The Perch could not be finished.* `Ai.PlanPerch` never comes off a ledge of its own accord. On a
+   five-tile causeway it took the south end and the surviving pair camped a corner seven steps away -
+   neither able to reach the other, which is the 61-round stall.
+
+Underneath all three: **each flock fought alone.** Opposite corners on a 7x7 with the causeway
+between them is eleven steps of separation, so 22 hit points and 4 damage a round met 32 hit points
+of enemy, twice, instead of 44 and 10 meeting it once.
+
+**What changed, and it is geometry only.** Player B's zone moves from the north-east corner to the
+south-east flank - `(6,4) (6,5) (6,6)` - and the Perch vacates `(6,6)`, now a deployment tile, for
+`(2,0)`. **Nothing else moves**: Player A's zone, the Husk, the Grappler, the Anchor, the five ridge
+tiles, the four drains, both rosters and every stat are untouched. No stat was edited on this board.
+
+**Why not move the Grappler instead**, which is the smaller-sounding fix: a Grappler's round-1
+envelope is move 3 plus range 3 = **6**, and no tile on a 7x7 is 7 steps from both of two opposite
+corners. With flocks in opposite corners a round-1 pull on one of them is unavoidable, so the
+Grappler's position is not the lever and the deployment is. `hz-09-the-trench` reached the same
+conclusion from the other direction and already fields both flocks on one bank on purpose; this is
+the second board to spend that licence, and `DESIGN_PRINCIPLES` §9 lists "how far apart the two
+players start" as a thing to vary rather than a thing to fix.
+
+**The thesis is unchanged and is now actually posed.** In the winning line the Vanguard takes the
+causeway's south end on round 1 and the Perch takes the north end in the same round; the Husk and
+then the Grappler climb to contest the middle; the Archer wins it and fires **6** from the ledge; the
+Fisher reels the Grappler off the ridge into a drain. Both ends owned, the middle fought over, and
+the drains doing what §8.8's "shoved off high ground, and the displacement continues" places them
+for. The `ZonesNotOppositeCorners` lint now fires on this board, as it does on the Trench and the
+siege boards. It is a lint.
+
+**After:** board-first won r4 with 26/44 and no ducks down, objective-first the same, shover and
+random-legal lost. Winnable deployment, reinforcement deadlock and base-kit win all clear; all six
+deployment tiles are now outside every enemy's round-1 damage **and** outside the Grappler's round-1
+pull, which the shipped cut was not. `AgencyTests`' known-unsafe list stays empty.
+
+**What this does not decide.** Whether `Threat.DamageRound1` should widen to cover a displacement-only
+enemy that can manufacture a collision out of a legal deployment. GAMEPLAY.md has recorded that
+question as undecided since D-080; this is the first board it cost. Held for the designer.
+
+
+---
+
+**D-188 - HELD: a displacement that makes a body Clinging and then damages it inside the same
+resolution is still previewed wrong.**
+
+D-184 made the projection resolve in the order the action does, which killed the "shot into a body
+that is *already* Clinging" lie. It did not reach the case where the same displacement creates the
+cling and then owes the body damage.
+
+The play is `high-road`'s own thesis: Reel a Grappler off the ridge and on into a drain. Coming off
+high ground is 2 and the travel **continues**, so the body lands in the drain, Clings, and is then
+voided by the 2 the fall already owed it - `Voided { Reason = took damage while clinging }`. The
+projection promises destination `(1,2)`, 2 damage, `WouldCling = true`, `WouldDown = false`; the
+board takes all 8 hit points and the enemy is gone. Three contradictions from one ordering.
+
+**Surfaced by D-187, not caused by it.** The pre-D-184 certification report recorded the identical
+triple on `hz-09-the-trench` ("promised 2 damage, took 10 / cling promised True, was False / down
+promised False, alive False"), which is the same board shape - a ledge with a drain in reach. High
+Road began exercising it only because the re-cut put the play in a policy's hands.
+
+**Not fixed here, deliberately.** It is a Core projection change with its own failing test to write
+first, and this session's packet was a board. Fixing it inside a board re-cut would have hidden the
+board's evidence in a rules diff. `high-road` and `hz-09-the-trench` both fail §8.8's "no false
+preview" column until it is done, and the certification report names the exact commands.
+
+**What would unblock it:** a test that Reels a unit off high ground into a drain and asserts
+`WouldDown` and the damage against what `Game.Apply` produces - then teach `Displacement.Preview` to
+carry the cling forward through the rest of the travel it is projecting.
