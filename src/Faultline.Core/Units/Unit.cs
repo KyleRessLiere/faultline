@@ -194,6 +194,18 @@ namespace Faultline.Core
         public int CrossingShotRound { get; init; }
 
         /// <summary>
+        /// Round in which this unit last had a blow taken for it by Crew Cover. Zero when it never
+        /// has. The whole of the defence's "once per round" (MASTER_DESIGN §8.9).
+        /// </summary>
+        /// <remarks>
+        /// The same shape as <see cref="CrossingShotRound"/> and for the same reason: a round number
+        /// on the body the rule belongs to is a latch the existing command grammar already reads, and
+        /// D-157 settled that a reaction gets one of those rather than a timing system of its own
+        /// (D-221).
+        /// </remarks>
+        public int CrewCoverRound { get; init; }
+
+        /// <summary>
         /// Force banked by Stored Force, capped at <see cref="Techniques.StoredForceCap"/>. Spent as a
         /// push by a tip-tile Spear hit.
         /// </summary>

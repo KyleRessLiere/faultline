@@ -5307,3 +5307,139 @@ supports **"no seed ever reached the director"**. The Camp 1 floor survives beca
 **authored intent** rather than an inference from that sweep - but the finding that prompted it was
 never established, and the Engine Starter **distribution** question is untestable until the seed is
 live. Two explanations again, and this one is not yet split.
+
+---
+
+**D-217 — RULED: the Rushmaster carries Footing 1 and no shell, and that is the fight's whole shape.**
+
+MASTER_DESIGN §8.9 prints Footing 1 and prints no shell. The shell is the Quarry King's: three
+refusals that are his only anti-displacement and whose loss is his fight's payoff. Importing it here
+would have made the Warrens boss a second Locks boss, and §8.9 wants the opposite — a body the board
+can move from the first round, so that his own crowd is ammunition rather than scenery.
+
+Built as one number on the stat block (`Footing: 1`) plus push resistance 1, and nothing else. He
+gets the shipped `StatBlockFooting` and `LipStrip` lifecycle every Footing-carrying archetype gets,
+and `UnitRule.QuarryKingShell` is deliberately absent — a test asserts that absence, because "no
+shell" is a design decision and not an omission somebody could tidy up.
+
+---
+
+**D-218 — RULED: a Work Bell is a paired structure, not a blocker, and it cancels its mouth from the
+one place a structure dies.**
+
+§8.9's Bells are three 6 HP standing structures, "each paired to a spawn mouth: destroying a Bell
+cancels its mouth's remaining spawns". Two questions had to be answered deliberately.
+
+**Which side of `IsBlocker`/`Role`?** `IsBlocker` separates "objective" from "in the way" (D-114).
+A Bell is emphatically *not* in the way — it is the switch on a spawn mouth, and §8.9 asks for its
+hit points in the objective panel — so `IsBlocker` is **false** and it appears in
+`StructureStatus.ObjectivesOn`. Its `Role` is **destroy**, which keeps `IsSiegeTarget` false so no
+enemy claws its own Bell and no Guard shields it, and which is inert under the boss's own kill-all
+objective so it is neither a win nor a loss condition. Named **Work Bell** by
+`Naming.Of(Structure)`, still a pure function of what the board authored, so D-162's argument
+against a name key in the `.fight` format stands.
+
+**Where does the cancellation live?** In `Objectives.Damage`, at the point remaining hit points reach
+zero — the one place a structure loses any. Nothing can route around it, so a Bell slammed into by
+the boss's own Stampede cancels exactly what a Bell shot by an Archer does. **No Bell-specific damage
+rule was added**: §8.9 already prices a structure collision at 6 and a Bell has 6 hit points, so "one
+clean slam ends a Bell" is `Displacement.StructureCollisionDamage` doing what it already did.
+
+Cancelled, never delayed — the opposite case to `Reinforce`'s postponement, and the vanishing is what
+the player bought. The waiting unit stays undeployed in the unit list, so every id a command log
+replays against is the id it had at `Game.Start`.
+
+---
+
+**D-219 — RULED: Stampede is the basic shove with two clauses, and allegiance is the ability's
+business rather than the board's.**
+
+§8.9: "move ≤3 in a line, first unit hit pushed 2, he stops adjacent — **allies included**, carrying
+the bloody-shoulder rider (2 contact + full board consequences)."
+
+The run, the stop and the shove are `BasicPush` and `AttackMode.Push` exactly as the Stalker and the
+enraged Quarry King already have them: same command, same displacement pipeline, same preview. A
+second shove implementation was not written. What `Rules/Stampede.cs` owns is only what §8.9 adds —
+whom it may be aimed at, and what contact costs.
+
+**The ally clause is one conditional at the rule it modifies**, in `Combat.CanPush`, exactly as a
+loadout mod is one conditional at the rule it modifies. §6 records the precedent this respects
+(council n, dissent recorded): *abilities may carry allegiance-shaped riders; board resolution never
+does.* So the shove it delegates to still does not check jerseys — a stampeded Husk collides with a
+wall for 4 and drops into a drain like anybody else.
+
+**The rider is the reserved bloody shoulder**, spent here. §6 holds "contact damage vs allies too"
+for a named Warrens elite; §8.9 is where that reservation is cashed. It is `Trample.ContactDamage`
+read from the same constant, because it is the same shoulder — and it lands *before* the shove,
+which is `Trample.Resolve`'s order and the order D-184 makes the projection promise.
+
+---
+
+**D-220 — RULED: the Rushmaster's priority list is one list across both phases, and the walk is what
+the harness turns around.**
+
+§8.9 prints the list in its Cut Loose paragraph — "stampede that creates a drain entry, unit
+collision, Bell collision or debris collision (in that order) → lethal melee → adjacent attack →
+move toward the largest cluster" — and the same paragraph says what the harnessed half differs by:
+"he **stops** walking Bell-ward". Built as one registration with four branches, with which branches
+are live read off the stat block in force, exactly as the Quarry King's Bull Rush is (D-040). The
+harnessed block carries no standalone shove, so branch 1 is absent rather than suppressed, and the
+same read turns the walk around.
+
+Three readings were made where §8.9 is silent, and are recorded rather than buried:
+
+1. **The Stampede's gate is achievement, not comparison.** `PlanRush` weighs a charge against the
+   swing it replaces; this does not. §8.9 lists four endings that make a Stampede worth taking, so a
+   run producing none of them is simply not on the list and the melee branches run. Ranked in bands
+   rather than summed, because the design states an *order* and a sum would let two cheap endings
+   outrank the expensive one it put first.
+2. **"The largest cluster" is the body with the most company within 2 tiles**, ties broken by
+   proximity then lowest id. Two tiles because that is the reach of the Stampede's own shove, so the
+   walk aims at the crowd a single run could actually put into each other.
+3. **With every Bell down and the harness still on**, he closes on the nearest, which is the shared
+   melee list and not a branch of his own. §8.9 does not cover this state; a boss standing still in
+   it would be a silent no-op wearing a stat block.
+
+---
+
+**D-221 — RULED: Crew Cover needed no timing mechanism, because the codebase already had both halves
+of it.**
+
+§8.9 makes two timing claims about Crew Cover — "once per round", and it fires "when a direct attack
+targets him". D-157 settled how this repo answers that kind of claim: find the reading the existing
+command grammar already takes, and refuse to invent a window. Both halves were already here.
+
+**"Once per round" is a round number on the unit.** `Unit.CrossingShotRound` and
+`Unit.RattlingImpactRound` are the two latches already shipped in that shape; `Unit.CrewCoverRound`
+is the third. No reaction step, no interrupt, no priority queue.
+
+**"When a direct attack targets him" is a step inside the attacking command's own resolution.**
+`Game.ApplyAttack` already asks `Guard.Interceptor` whether somebody else takes this blow; Crew Cover
+is asked in the same place, before legality — because the swap changes who is standing in front of
+the sword and therefore what "can be attacked" means — and before the damage, because a placement is
+not a reaction to a blow that already landed.
+
+**It is a placement, and every swap in this codebase is a placement** (D-192's Split Reed, and §8.9
+says so itself): neither body travels, so nothing is collided with, no push resistance shortens
+anything and no Footing refusal is owed — but both ends go through `LandOn`, so brambles bite each
+body that arrives on them.
+
+**The preview rides `ActionOutlook`.** §8.9 states one thing about the interface — *the attacker's
+preview shows the swap, the interceptor and the final coordinates* — and `ActionOutlook.CrewCover`
+is that clause, in the place D-184 put every other projection. The swap is projected **first** and
+the whole outlook computed against the swapped board, so `TargetId` is the worker the blow will
+actually land on, `Damage` is what that worker takes and `Finishes` answers about it. A preview that
+still named the boss would be the lie Stage A existed to kill.
+
+**Two clauses of §8.9 turn out to be the same rule.** "Crew Cover only if a worker is already
+adjacent" reads, in code, identically to the harnessed clause: the query never moves anybody to
+arrange cover in either phase. The difference §8.9 is describing is in the *walk* — walking Bell-ward
+keeps him among his crew and walking at the crowd does not — which is D-220's branch 4, not a second
+interception rule. **No phase check is applied to Crew Cover, deliberately.**
+
+**Scope, stated rather than discovered later.** Crew Cover is asked on the basic attack —
+`AttackCommand` with `AttackMode.Damage` — which is where `Guard.Interceptor` is asked for direct
+damage and where the preview is produced. A player *ability* that deals direct damage does not
+currently draw it. That is under-implementation of §8.9's "direct attack" and it is **consistent**
+rather than a preview lie: the resolution and the projection agree in both cases. Queued in
+`REVIEW_QUEUE.md` rather than half-wired.

@@ -363,3 +363,28 @@ write first.
   board, so neither is wrong about a mutated tile, but they answer differently when a selection and
   an inspected tile both exist. Pre-existing, noted in `BattleSurfacesTests` already; naming it here
   because §7 parity is asserted through the first one.
+
+## From Stage E — the Rushmaster (2026-08-07)
+
+- **Crew Cover fires on the basic attack and not on a damage-dealing ability.** §8.9 says "a direct
+  attack"; the rule is asked at `Game.ApplyAttack` and projected at `Abilities.Outlook`'s
+  `AttackCommand` case, which is exactly where `Guard.Interceptor` is asked for direct damage. Spear
+  Thrust, Stagger Shot and the rest do not draw the swap. **Not a preview lie** — the resolution and
+  the projection agree in both cases — but it is under-implementation of §8.9, and it was left
+  consistent rather than half-wired (D-221). Deciding it is one predicate reused in two more places.
+- **The Rushmaster is fielded by no `.fight` file.** E1's board is unbuilt: the archetype, the Bells'
+  rules and the whole priority list ship, but no battle deploys them, so §8.9's tuning targets have
+  **not been measured** and no number in this stage's report is a playtest number. Authoring the
+  board needs a format change (a Bell board character plus a `bell x,y = mx,my` line and a `bell-hp:`
+  key, in `blocker-hp:`'s shape), which drags `FIGHT_FORMAT.md` and the catalogue behind it (D-092).
+- **`Objectives.Check` still wins on `!AnyEnemyLeft` under every objective (D-032).** Checked, not
+  fixed, per the stage's own instruction. For §8.9's "defeat or sweep him" this is plausibly the
+  *correct* behaviour — his objective is kill-all and the workers flee when he falls — but "the
+  workers flee when he falls" is **not built**: today the Bells' mouths keep their schedule and the
+  standing workers keep fighting after the boss is down, and only the universal empty-board win ends
+  it. Worth ruling before the board lands, because it changes what a 9-round limit measures.
+- **The harnessed walk has no clause for a Bell he is already standing next to.** He walks toward the
+  nearest standing Bell and, once adjacent, `March` returns a Hold. That is faithful to §8.9 — he
+  keeps the shift running, he does not fight the Bell — but it means a harnessed boss with a Bell
+  beside him and no player in reach stands still. Fine at Move 1 on a designed board; worth a look
+  once a real board exists.

@@ -85,6 +85,12 @@ namespace Faultline.Core
         /// test's.
         /// </summary>
         EscortDuckling = 22,
+
+        /// <summary>
+        /// Enemy: HP 26 boss — the Warrens' traffic foreman. Move 1 in harness behind a crowd that is
+        /// his armour, Move 3 and a Stampede once the harness breaks at 13 HP (MASTER_DESIGN §8.9).
+        /// </summary>
+        Rushmaster = 23,
     }
 
     /// <summary>
@@ -142,6 +148,13 @@ namespace Faultline.Core
         /// one that never acts on anybody.
         /// </summary>
         Escort = 10,
+
+        /// <summary>
+        /// The Rushmaster's published list (MASTER_DESIGN §8.9): a Stampede branch that reads the
+        /// stat block in force, then lethal melee, then an adjacent attack, then a walk — Bell-ward
+        /// while the harness holds, and at the largest cluster once it breaks.
+        /// </summary>
+        Rushmaster = 11,
     }
 
     /// <summary>How a unit's basic attack reaches its target.</summary>

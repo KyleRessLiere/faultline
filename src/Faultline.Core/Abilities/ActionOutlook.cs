@@ -63,6 +63,10 @@ namespace Faultline.Core
     /// <paramref name="Finishes"/> exists to be asked instead.
     /// </para>
     /// </remarks>
+    /// <param name="CrewCover">
+    /// The Crew Cover swap this action draws from the Rushmaster's crowd, or <c>null</c>; see
+    /// <see cref="ActionOutlook.IsIntercepted"/>.
+    /// </param>
     public sealed record ActionOutlook(
         UnitId ActorId,
         UnitId? TargetId,
@@ -73,8 +77,25 @@ namespace Faultline.Core
         Coord? ActorMovesTo = null,
         CrossingShotProjection? Reaction = null,
         UnitId? GrantsTo = null,
-        bool Finishes = false)
+        bool Finishes = false,
+        CrewCoverProjection? CrewCover = null)
     {
+        /// <summary>
+        /// True when the Rushmaster's crowd will take this blow instead of the body it was aimed at.
+        /// </summary>
+        /// <remarks>
+        /// §8.9 states one thing about Crew Cover's interface — <i>the attacker's preview shows the
+        /// swap, the interceptor and the final coordinates</i> — and <see cref="CrewCover"/> is that
+        /// clause, in the place D-184 put every other projection. <b>Everything else on this record is
+        /// already computed against the swapped board</b>: <see cref="TargetId"/> is the worker the
+        /// blow will actually land on — the swap really happens, so the body under the sword really
+        /// changes — <see cref="Damage"/> is what that worker takes, <see cref="Displacement"/> is the
+        /// shove aimed at it, and <see cref="Finishes"/> answers about it.
+        /// <see cref="CrewCoverProjection.BossId"/> names who was aimed at, and
+        /// <see cref="CrewCoverProjection.BossTo"/> where he ends up.
+        /// </remarks>
+        public bool IsIntercepted => CrewCover is not null;
+
         /// <summary>True when the action moves a body — its own or somebody else's.</summary>
         public bool Displaces => Displacement is not null || Charge?.Contact is not null;
 

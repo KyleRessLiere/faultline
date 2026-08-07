@@ -1,5 +1,31 @@
 # Changelog
 
+## The Rushmaster arrives, and his crowd is the weapon on both sides
+
+- **The Warrens boss is built to §8.9's numbers** (D-217): 26 HP, Move 1, melee 4 + Push 1,
+  resistance 1 and **Footing 1 with no shell** — the shell is the Quarry King's and is reserved for
+  the Locks, so displacement against the Rushmaster is legal from the first round and a duck may
+  Rescue him off a drain lip like anything else.
+- **Cut Loose needed no new timing.** At 13 HP or below the harness breaks into a whole second stat
+  block — Move 3, plus Stampede — on the shipped `Enraged`/`EnrageAt` phase swap, which already
+  fires after the triggering action fully resolves and already re-declares the intent (D-040).
+- **Crew Cover needed no new timing either** (D-221). "Once per round" is a round number on the unit,
+  the shape `CrossingShotRound` already had; "when a direct attack targets him" is a step inside the
+  attacking command's own resolution, beside the guard question that was already asked there. It is a
+  **placement** (D-192's Split Reed), and `ActionOutlook.CrewCover` carries the swap, the interceptor
+  and both final coordinates — with the whole rest of the outlook computed against the swapped
+  board, so nothing about the preview is left true only of a body that has moved.
+- **Stampede is the basic shove with two clauses** (D-219), not a second shove: the ally clause is one
+  conditional in `Combat.CanPush`, and the rider is the reserved bloody shoulder at
+  `Trample.ContactDamage`. The displacement it delegates to still never checks jerseys.
+- **Work Bells are paired structures** (D-218) — `Structure.Mouth`, cancelled from the one place a
+  structure reaches zero, so a Bell slammed into cancels exactly what a Bell shot does. Deliberately
+  not blockers: they belong in the objective panel, and `StructureStatus` carries the mouth and its
+  next arrival rather than a parallel readout. No Bell-specific damage rule — 6 HP against a 6-damage
+  structure collision is the shipped price doing its job.
+- **Day Shift only.** Night Shift and the Bellhand are unbuilt on §8.9's own reasoning, and so is the
+  boss board: the archetype is fielded by no `.fight` file yet.
+
 ## Temporary terrain becomes the terrain-mutation system Cracked will call
 
 - **Promoted out of the card.** The booking, the stacking rule and the reversion move from

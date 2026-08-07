@@ -140,6 +140,9 @@ namespace Faultline.Core
             StructureAttacked => nameof(StructureAttacked),
             StructureDamaged => nameof(StructureDamaged),
             StructureDestroyed => nameof(StructureDestroyed),
+            UnitStampeded => nameof(UnitStampeded),
+            CrewCovered => nameof(CrewCovered),
+            SpawnsCancelled => nameof(SpawnsCancelled),
             ReinforcementScheduled => nameof(ReinforcementScheduled),
             ReinforcementArrived => nameof(ReinforcementArrived),
             ReinforcementDelayed => nameof(ReinforcementDelayed),
@@ -337,6 +340,20 @@ namespace Faultline.Core
             StructureDestroyed e => Objective.KeywordFor(e.Role) + " structure at " + e.At
                 + " is rubble, tile is clear",
 
+            CrewCovered e => "swaps in for " + Actor(state, e.BossId)
+                + " against " + Actor(state, e.AttackerId)
+                + " and takes it on " + e.At
+                + "; " + Actor(state, e.BossId) + " is now on " + e.BossTo,
+
+            UnitStampeded e => "stampedes into " + Actor(state, e.TargetId)
+                + " at " + e.At + " for " + Number(e.Damage)
+                + (e.Ally ? " — his own, and it still costs them" : string.Empty),
+
+            SpawnsCancelled e => e.Cancelled > 0
+                ? "the mouth at " + e.Mouth + " is shut: " + Number(e.Cancelled)
+                    + " arrival(s) cancelled"
+                : "the mouth at " + e.Mouth + " is shut, but it had nothing left to send",
+
             ReinforcementScheduled e => UnitTemplate.For(e.Kind).Name
                 + " due on round " + Number(e.Round) + " at " + e.At,
 
@@ -434,6 +451,8 @@ namespace Faultline.Core
             GuardIntercepted e => e.UnitId,
             GuardShielded e => e.UnitId,
             UnitTrampled e => e.UnitId,
+            UnitStampeded e => e.UnitId,
+            CrewCovered e => e.UnitId,
             VerveCharged e => e.UnitId,
             UnitHealed e => e.UnitId,
             VerveSpent e => e.UnitId,

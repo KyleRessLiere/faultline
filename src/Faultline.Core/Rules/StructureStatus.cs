@@ -25,14 +25,55 @@ namespace Faultline.Core
     /// <param name="MaxHp">Hit points it started with.</param>
     /// <param name="Role">Whether the fight wants it kept up or brought down.</param>
     /// <param name="IsBlocker">True for scenery that is nobody's objective (D-114).</param>
+    /// <param name="Mouth">
+    /// The spawn mouth this structure is paired to, or <c>null</c>. §8.9 asks for the mouth on the
+    /// same card as the hit points, because "6 hit points" and "and it shuts that door" are one fact
+    /// about whether the slam is worth taking.
+    /// </param>
+    /// <param name="NextSpawnKind">What the mouth sends next, or <c>null</c> when it is spent.</param>
+    /// <param name="NextSpawnRound">The round that arrival is due; zero when the mouth is spent.</param>
+    /// <param name="DueAtMouth">How many arrivals the mouth still owes.</param>
     public sealed record StructureStatus(
         string Name,
         Coord At,
         int Hp,
         int MaxHp,
         ObjectiveKind Role,
-        bool IsBlocker)
+        bool IsBlocker,
+        Coord? Mouth = null,
+        UnitKind? NextSpawnKind = null,
+        int NextSpawnRound = 0,
+        int DueAtMouth = 0)
     {
+        /// <summary>True when this structure shuts a spawn mouth as it falls.</summary>
+        public bool IsPaired => Mouth is not null;
+
+        /// <summary>
+        /// The mouth line a panel draws, e.g. <c>mouth 0,1 · next Husk r5 · 2 due</c>, or <c>null</c>
+        /// when the structure is paired to nothing.
+        /// </summary>
+        /// <remarks>
+        /// A spent mouth says so in words rather than by leaving the line off. "The Bell is still
+        /// standing and there is nothing left behind it" is the fact that tells a player to stop
+        /// spending shoves on it, and it is exactly the fact an absent line hides.
+        /// </remarks>
+        public string? MouthLabel
+        {
+            get
+            {
+                if (Mouth is not { } mouth)
+                {
+                    return null;
+                }
+
+                string line = "mouth " + Number(mouth.X) + "," + Number(mouth.Y);
+                return NextSpawnKind is { } kind
+                    ? line + " · next " + Naming.Of(kind) + " r" + Number(NextSpawnRound)
+                        + " · " + Number(DueAtMouth) + " due"
+                    : line + " · nothing due";
+            }
+        }
+
         /// <summary>True while it still blocks its tile.</summary>
         public bool IsStanding => Hp > 0;
 
@@ -71,7 +112,45 @@ namespace Faultline.Core
             structure.Hp,
             structure.MaxHp,
             structure.Role,
-            structure.IsBlocker);
+            structure.IsBlocker,
+            structure.Mouth);
+
+        /// <summary>
+        /// Reads a structure's status <em>and</em> what its spawn mouth still owes, which needs the
+        /// schedule and so needs state.
+        /// </summary>
+        /// <remarks>
+        /// The paired overload rather than a second record: the panel, the inspector and the telegraph
+        /// already read <see cref="StructureStatus"/>, and §8.9 asks for the mouth on the card they
+        /// already draw. A parallel readout would be the second copy this type exists to prevent.
+        /// </remarks>
+        /// <param name="state">Current state, for the arrival schedule.</param>
+        /// <param name="structure">Structure to describe.</param>
+        /// <returns>Its status, with the mouth's next arrival filled in when it has one.</returns>
+        public static StructureStatus Of(GameState state, Structure structure)
+        {
+            var status = Of(structure);
+            if (state is null || structure?.Mouth is not { } mouth)
+            {
+                return status;
+            }
+
+            var due = Objectives.DueAt(state, mouth);
+            if (due.Count == 0)
+            {
+                return status with { DueAtMouth = 0 };
+            }
+
+            // The schedule is held in round order, so the first entry is the next one — the same
+            // order Objectives.Schedule publishes and the wave preview draws.
+            var next = due[0];
+            return status with
+            {
+                NextSpawnKind = state.UnitById(next.UnitId).Kind,
+                NextSpawnRound = next.Round,
+                DueAtMouth = due.Count,
+            };
+        }
 
         /// <summary>
         /// The structure on a tile, or <c>null</c> when nothing stands there.
@@ -91,7 +170,7 @@ namespace Faultline.Core
             }
 
             var structure = state.StructureAt(at);
-            return structure is null ? null : Of(structure);
+            return structure is null ? null : Of(state, structure);
         }
 
         /// <summary>
@@ -114,7 +193,7 @@ namespace Faultline.Core
                     continue;
                 }
 
-                statuses.Add(Of(structure));
+                statuses.Add(Of(state, structure));
             }
 
             return statuses;

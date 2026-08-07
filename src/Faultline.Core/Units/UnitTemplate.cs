@@ -153,6 +153,17 @@ namespace Faultline.Core
                 UnitKind.QuarryKing, "Quarry King", 28, 3, AttackKind.Melee, 1, 6, 3,
                 AttackPush: 1, BasicPush: 2, Plan: EnemyPlan.QuarryKing);
 
+            // MASTER_DESIGN §8.9: the Rushmaster's second stat block, in force at 13 HP or below.
+            // The harness breaks — Move 1 becomes Move 3 — and the standalone shove that appears is
+            // Stampede. Same read as the Quarry King's: which branches his list has is a property of
+            // the block in force, so a phase swap adds the branch and there are never two lists.
+            // Footing is deliberately the same number: a phase swap is a stat block, and §8.9 prints
+            // "remaining" because what is left is the LIVE counter on the unit, which nothing here
+            // refills — Unit.Footing is set once at FromTemplate and only ever spent.
+            var rushmasterCutLoose = new UnitTemplate(
+                UnitKind.Rushmaster, "Rushmaster", 26, 3, AttackKind.Melee, 1, 4, 1,
+                AttackPush: 1, BasicPush: 2, Plan: EnemyPlan.Rushmaster, PushResistance: 1);
+
             var all = new[]
             {
                 // Brief §2: Player classes. Move 3 for all player units. Footing is 0 for everyone —
@@ -213,6 +224,15 @@ namespace Faultline.Core
                     UnitKind.QuarryKing, "Quarry King", 28, 1, AttackKind.Melee, 1, 6, 3,
                     AttackPush: 1, Plan: EnemyPlan.QuarryKing,
                     Enraged: quarryKingEnraged, EnrageAt: 14),
+
+                // MASTER_DESIGN §8.9: the Warrens boss. Footing ONE and no shell — the shell is the
+                // Quarry King's and is reserved for the Locks. Displacement against the Rushmaster is
+                // always legal after his single refusal, which is what makes his own crowd ammunition
+                // instead of armour once you have spent it (D-217).
+                new UnitTemplate(
+                    UnitKind.Rushmaster, "Rushmaster", 26, 1, AttackKind.Melee, 1, 4, 1,
+                    AttackPush: 1, Plan: EnemyPlan.Rushmaster, PushResistance: 1,
+                    Enraged: rushmasterCutLoose, EnrageAt: 13),
             };
 
             var table = new Dictionary<UnitKind, UnitTemplate>(all.Length);

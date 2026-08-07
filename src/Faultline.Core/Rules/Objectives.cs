@@ -218,9 +218,79 @@ namespace Faultline.Core
             if (remaining == 0)
             {
                 events.Add(new StructureDestroyed(at, structure.Role));
+                state = CancelMouth(state, damaged, events);
             }
 
             return state;
+        }
+
+        /// <summary>
+        /// Cancels the arrivals a fallen structure's spawn mouth still owed (MASTER_DESIGN §8.9).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Here rather than at the call sites, for the reason the flat chip above is here: this is the
+        /// one place a structure reaches zero hit points, so no weapon — swing, collision or the
+        /// boss's own Stampede driving a body into it — can route around the consequence. A Bell
+        /// destroyed by being slammed into cancels exactly what a Bell destroyed by an Archer does.
+        /// </para>
+        /// <para>
+        /// <b>Cancelled, never delayed.</b> <see cref="Reinforce"/> postpones an arrival that has
+        /// nowhere to stand because a wave that vanished would silently change the fight; this is the
+        /// opposite case and the vanishing is the point — the player bought it. The waiting unit stays
+        /// in <see cref="GameState.Units"/> undeployed, so every id the command log replays against is
+        /// still the id it was at <see cref="Game.Start(FightDefinition, int)"/> (D-218).
+        /// </para>
+        /// </remarks>
+        private static GameState CancelMouth(
+            GameState state, Structure fallen, List<GameEvent> events)
+        {
+            if (fallen.Mouth is not { } mouth)
+            {
+                return state;
+            }
+
+            var keeping = new List<PendingReinforcement>(state.Reinforcements.Count);
+            int cancelled = 0;
+
+            foreach (var pending in state.Reinforcements)
+            {
+                if (pending.At == mouth)
+                {
+                    cancelled++;
+                    continue;
+                }
+
+                keeping.Add(pending);
+            }
+
+            events.Add(new SpawnsCancelled(fallen.At, mouth, cancelled));
+            return cancelled == 0 ? state : state with { Reinforcements = keeping };
+        }
+
+        /// <summary>
+        /// Every arrival still due at a spawn mouth — what a Bell's inspection line promises to cancel.
+        /// </summary>
+        /// <param name="state">Current state.</param>
+        /// <param name="mouth">The mouth tile.</param>
+        /// <returns>The arrivals due there, in schedule order; empty when the mouth is spent.</returns>
+        public static IReadOnlyList<PendingReinforcement> DueAt(GameState state, Coord mouth)
+        {
+            var due = new List<PendingReinforcement>();
+            if (state is null)
+            {
+                return due;
+            }
+
+            foreach (var pending in state.Reinforcements)
+            {
+                if (pending.At == mouth)
+                {
+                    due.Add(pending);
+                }
+            }
+
+            return due;
         }
 
         /// <summary>

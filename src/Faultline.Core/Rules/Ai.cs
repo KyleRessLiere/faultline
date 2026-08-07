@@ -20,6 +20,11 @@ namespace Faultline.Core
         // so that planning one allocates nothing.
         private static readonly Unit[] NoUnits = new Unit[0];
 
+        // How close two bodies have to be to count as one cluster for MASTER_DESIGN §8.9's walk. Two
+        // tiles: the reach of the Stampede's own shove, so "the largest cluster" means the crowd a
+        // single run could actually put into each other rather than a general crowd metric.
+        private const int ClusterRadius = 2;
+
         /// <summary>
         /// The single command this enemy will submit next. Callers apply it through
         /// <see cref="Game.Apply(GameState, Command)"/> like any other command, which is what keeps
@@ -666,6 +671,270 @@ namespace Faultline.Core
             }
 
             return PlanMelee(state, enemy, all, choices);
+        }
+
+        // MASTER_DESIGN §8.9, the Rushmaster. §8.9 publishes the list in its Cut Loose paragraph:
+        // "stampede that creates a drain entry, unit collision, Bell collision or debris collision
+        // (in that order) -> lethal melee -> adjacent attack -> move toward the largest cluster",
+        // and the same paragraph says what the harnessed half differs by — he *stops* walking
+        // Bell-ward, so while the harness holds that is what the walk branch does.
+        //
+        // ONE list across both phases, not two. Which branches are live is read off the stat block in
+        // force exactly as the Quarry King's is (D-040): the harnessed block carries no standalone
+        // shove, so branch 1 turns itself off, and it is the same read that turns the walk around.
+        internal static EnemyIntent PlanRushmaster(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
+        {
+            bool cutLoose = enemy.Template.BasicPush > 0;
+
+            if (cutLoose)
+            {
+                var stampede = PlanStampede(state, enemy);
+                if (stampede is not null)
+                {
+                    return stampede;
+                }
+            }
+
+            // Lethal melee above a plain adjacent attack. Every other melee list takes the first
+            // adjacent body and §8.9 gives this one a finisher clause instead, so it is written here
+            // rather than in PlanMelee: growing the shared list a branch would re-tier five shipped
+            // archetypes behind a boss's rule.
+            var finish = FirstAdjacentLethal(state, enemy, choices);
+            if (finish is not null)
+            {
+                return Strike(state, enemy, finish, null);
+            }
+
+            var adjacent = FirstAdjacent(enemy.Position, choices);
+            if (adjacent is not null)
+            {
+                return Strike(state, enemy, adjacent, null);
+            }
+
+            if (!cutLoose)
+            {
+                // Bell-ward. He is the foreman and the Bells are his: he walks to them, he does not
+                // swing at them — an enemy clawing its own Bell would be Objectives.Besiege, and a
+                // paired Bell is deliberately not a siege target so that it cannot happen.
+                var bells = BellTiles(state);
+                if (bells.Count > 0)
+                {
+                    var field = PathField.ToAnyOf(state, enemy, bells);
+                    var toward = BestTile(
+                        state, enemy,
+                        coord => new Score(field.At(coord), NearestTileDistance(coord, bells)));
+
+                    return March(
+                        enemy,
+                        NearestTile(enemy.Position, bells),
+                        toward == enemy.Position ? (Coord?)null : toward);
+                }
+
+                // Every Bell is rubble and the harness has nothing left to walk toward. He closes,
+                // which is what the shared melee list does and is not a branch of his own — a boss
+                // that stood still here would be a silent no-op wearing a stat block (D-220).
+                return PlanMelee(state, enemy, all, choices);
+            }
+
+            // "Move toward the largest cluster." A Stampede is worth what it runs into, so once the
+            // harness is off he walks at the crowd rather than at the nearest body — which is the
+            // same step that makes the next round's branch 1 find something.
+            var cluster = LargestCluster(enemy, choices);
+            if (cluster is null)
+            {
+                return Hold(enemy);
+            }
+
+            var destination = ClosingTile(state, enemy, cluster.Position);
+            var walk = destination == enemy.Position ? (Coord?)null : destination;
+
+            return destination.IsAdjacentTo(cluster.Position)
+                ? Strike(state, enemy, cluster, walk)
+                : Advance(enemy, cluster, walk);
+        }
+
+        // The thickest part of the crowd: the candidate with the most company inside the radius,
+        // ties broken by proximity to the enemy and then by lowest id — the fixed order every other
+        // list breaks its ties on, so the walk is reproducible from the board alone.
+        private static Unit? LargestCluster(Unit enemy, IReadOnlyList<Unit> choices)
+        {
+            Unit? best = null;
+            int bestCompany = -1;
+            int bestDistance = int.MaxValue;
+
+            foreach (var candidate in choices)
+            {
+                if (!candidate.IsOnBoard)
+                {
+                    continue;
+                }
+
+                int company = 0;
+                foreach (var other in choices)
+                {
+                    if (other.Id != candidate.Id
+                        && other.IsOnBoard
+                        && candidate.Position.DistanceTo(other.Position) <= ClusterRadius)
+                    {
+                        company++;
+                    }
+                }
+
+                int distance = enemy.Position.DistanceTo(candidate.Position);
+
+                if (company > bestCompany
+                    || (company == bestCompany && distance < bestDistance))
+                {
+                    best = candidate;
+                    bestCompany = company;
+                    bestDistance = distance;
+                }
+            }
+
+            return best;
+        }
+
+        // §8.9's Stampede: "move <=3 in a line, first unit hit pushed 2, he stops adjacent — allies
+        // included". The run is PlanRush's geometry with the allegiance filter taken off; what
+        // differs is the gate. PlanRush weighs a charge against the swing it would replace, and this
+        // does not: §8.9 lists the four endings that make a Stampede worth taking and a run that
+        // produces none of them is simply not on the list, so it falls through to the melee branches.
+        private static EnemyIntent? PlanStampede(GameState state, Unit enemy)
+        {
+            var reachable = Movement.Reachable(state, enemy);
+            var board = state.Board;
+            int distance = enemy.Template.BasicPush;
+
+            Unit? best = null;
+            Coord? bestMove = null;
+            int bestScore = 0;
+
+            foreach (var direction in Directions.All)
+            {
+                var position = enemy.Position;
+
+                for (int step = 0; step <= enemy.Move; step++)
+                {
+                    if (position != enemy.Position && !reachable.ContainsKey(position))
+                    {
+                        break;
+                    }
+
+                    var next = position.Step(direction);
+                    if (!board.InBounds(next) || state.StructureAt(next) is not null)
+                    {
+                        break;
+                    }
+
+                    var occupant = state.UnitAt(next);
+                    if (occupant is not null)
+                    {
+                        // No Holds check and no team check: "allies included" is the whole of what
+                        // this branch does differently from a Bull Rush.
+                        if (occupant.Id != enemy.Id && occupant.IsOnBoard)
+                        {
+                            var from = position == enemy.Position ? (Coord?)null : position;
+                            int score = StampedeScore(state, enemy, occupant, from, distance);
+                            if (score > bestScore)
+                            {
+                                bestScore = score;
+                                best = occupant;
+                                bestMove = from;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    var tile = board.At(next);
+                    if (!Movement.IsWalkable(tile) || tile == TileType.HighGround)
+                    {
+                        break;
+                    }
+
+                    position = next;
+                }
+            }
+
+            return best is null
+                ? null
+                : Displace(state, enemy, best, bestMove, DisplacementKind.Push, distance);
+        }
+
+        // §8.9's four endings, ranked in the order it prints them: a drain entry, then a unit
+        // collision, then a Bell collision, then a debris collision. Bands rather than a sum, because
+        // the design states an ORDER and a sum would let two cheap endings outrank the expensive one
+        // it put first. Damage is the tie-break inside a band and can never cross one — the widest a
+        // band has to hold is a structure collision at 6 plus the rider, well under 100.
+        private static int StampedeScore(
+            GameState state, Unit enemy, Unit target, Coord? moveTo, int distance)
+        {
+            var from = moveTo ?? enemy.Position;
+            var view = moveTo.HasValue ? state.WithUnit(enemy with { Position = moveTo.Value }) : state;
+            var preview = Displacement.PreviewAuto(view, target.Id, from, DisplacementKind.Push, distance);
+
+            int damage = preview.DamageToUnit + preview.DamageToObstacle + preview.DamageToStructure;
+
+            if (preview.WouldCling)
+            {
+                return 400 + damage;
+            }
+
+            if (preview.ObstacleId is not null)
+            {
+                return 300 + damage;
+            }
+
+            if (preview.StructureAt is { } at)
+            {
+                return (view.StructureAt(at)?.IsPaired == true ? 200 : 100) + damage;
+            }
+
+            return 0;
+        }
+
+        // The first adjacent body this enemy's own attack would finish, or null. Whoever would
+        // actually take the blow is who has to be killed by it, which is the same read Lethal makes.
+        private static Unit? FirstAdjacentLethal(
+            GameState state, Unit enemy, IReadOnlyList<Unit> choices)
+        {
+            var template = enemy.Template;
+            if (template.Attack == AttackKind.None || template.Damage <= 0)
+            {
+                return null;
+            }
+
+            foreach (var candidate in choices)
+            {
+                if (!candidate.IsOnBoard || !enemy.Position.IsAdjacentTo(candidate.Position))
+                {
+                    continue;
+                }
+
+                var victim = Guard.Interceptor(state, candidate) ?? candidate;
+                if (Guard.Mitigate(state, victim.Id, template.Damage, DamageSource.Attack) >= victim.Hp)
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        // Every standing Bell: a structure paired to a spawn mouth (MASTER_DESIGN §8.9).
+        private static List<Coord> BellTiles(GameState state)
+        {
+            var tiles = new List<Coord>();
+            foreach (var structure in state.Structures)
+            {
+                if (structure.IsStanding && structure.IsPaired)
+                {
+                    tiles.Add(structure.At);
+                }
+            }
+
+            return tiles;
         }
 
         // Bull Rush as the Vanguard has it: a straight run of up to Move tiles that stops adjacent to

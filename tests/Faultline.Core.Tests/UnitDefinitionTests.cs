@@ -350,8 +350,10 @@ public class UnitDefinitionTests
                 definition.Lifecycle.OnHpThreshold.Any(e => e.CustomRule == UnitRule.PhaseSwap));
         }
 
+        // The two bosses, and nobody else. A phase swap is a whole second stat block (D-040) and
+        // adding one is a design decision, so this pin moves only when a boss does.
         Assert.Equal(
-            new[] { UnitKind.QuarryKing },
+            new[] { UnitKind.QuarryKing, UnitKind.Rushmaster },
             UnitDefinition.All()
                 .Where(d => d.Lifecycle.OnHpThreshold.Count > 0)
                 .Select(d => d.Kind)

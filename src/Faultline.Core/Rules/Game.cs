@@ -1157,12 +1157,26 @@ namespace Faultline.Core
                 unit = state.UnitById(unit.Id);
                 state = state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
 
+                // MASTER_DESIGN §8.9: the bloody-shoulder rider lands before the shove, which is the
+                // order Trample.Resolve already uses and the order D-184 makes the projection promise.
+                // A body the contact finishes has already left, and Redirected does nothing to it.
+                state = Stampede.Contact(state, unit, target.Id, events);
+
                 state = Redirected(
                     state, unit, target, DisplacementKind.Push, unit.Template.BasicPush, events,
                     command.Aim);
 
                 return AfterAction(state, unit.Id, events);
             }
+
+            // MASTER_DESIGN §8.9, Crew Cover. Before legality, because the swap changes who is
+            // standing in front of the sword and therefore what "can be attacked" means — and before
+            // the damage, because a placement is not a reaction to a blow that already landed. The
+            // whole of its timing is that it happens here, inside the attacking command's own
+            // resolution: no interrupt, no window, no priority queue (D-221).
+            state = TakeCover(state, unit, target, events, out var covered);
+            unit = state.UnitById(unit.Id);
+            target = state.UnitById(covered);
 
             Require(Combat.CanAttack(state, unit, target, out int damage), "Target cannot be attacked.");
 
@@ -1228,6 +1242,47 @@ namespace Faultline.Core
             }
 
             return AfterAction(state, unit.Id, events);
+        }
+
+        /// <summary>
+        /// Crew Cover: a worker swaps places with the Rushmaster and takes the blow aimed at him
+        /// (MASTER_DESIGN §8.9).
+        /// </summary>
+        /// <remarks>
+        /// <b>A placement, exactly as <see cref="ApplySplitReed"/> is one</b> (D-192, and §8.9 says so
+        /// itself): neither body travels, so nothing is collided with, no push resistance shortens
+        /// anything and no Footing refusal is owed — but the tile each body lands on charges what it
+        /// charges, which is why both ends go through <see cref="LandOn"/>. The latch is spent by the
+        /// swap, not by the blow: a worker that steps in and is then missed has still stepped in.
+        /// </remarks>
+        private static GameState TakeCover(
+            GameState state, Unit attacker, Unit target, List<GameEvent> events, out UnitId covered)
+        {
+            covered = target.Id;
+
+            // Only a direct attack. The board — impact, hazard, area — reaches him through the crowd,
+            // and none of it comes through here (§8.9).
+            var projection = CrewCover.Project(state, target);
+            if (projection is null || !attacker.Team.IsHostileTo(target.Team))
+            {
+                return state;
+            }
+
+            covered = projection.InterceptorId;
+
+            state = CrewCover.Placed(state, projection);
+            state = state.WithUnit(
+                state.UnitById(projection.BossId) with { CrewCoverRound = state.Round });
+
+            events.Add(new CrewCovered(
+                projection.InterceptorId,
+                projection.BossId,
+                attacker.Id,
+                projection.InterceptorTo,
+                projection.BossTo));
+
+            state = LandOn(state, projection.InterceptorId, projection.InterceptorTo, events);
+            return LandOn(state, projection.BossId, projection.BossTo, events);
         }
 
         /// <summary>

@@ -128,7 +128,7 @@ namespace Faultline.Core
         {
             EnemyPlan.Melee, EnemyPlan.Lobber, EnemyPlan.Grappler, EnemyPlan.Stalker,
             EnemyPlan.Warden, EnemyPlan.Perch, EnemyPlan.Harrier, EnemyPlan.Raider,
-            EnemyPlan.QuarryKing, EnemyPlan.Escort,
+            EnemyPlan.QuarryKing, EnemyPlan.Escort, EnemyPlan.Rushmaster,
         };
 
         private static readonly Dictionary<EnemyPlan, EnemyPlanDefinition> ByPlan = Build();
@@ -493,6 +493,50 @@ namespace Faultline.Core
                 {
                     PrefersLethalAttack = false,
                     TargetSelection = EnemyTargetSelection.None,
+                },
+            };
+
+            // MASTER_DESIGN §8.9, the Warrens boss. Four branches, published exactly as §8.9 prints
+            // them, and ONE list across both phases: which branches are live is read off the stat
+            // block in force, so the harness breaking adds the Stampede and turns the walk around
+            // without there being a second list to keep in step (D-040's read, D-220's list).
+            table[EnemyPlan.Rushmaster] = new EnemyPlanDefinition(
+                EnemyPlan.Rushmaster,
+                "boss — the crowd is the weapon",
+                "Walks his own Bells while the harness holds. Once it breaks he runs at the thickest "
+                + "part of the crowd and puts whatever is in front of him through whatever is behind "
+                + "it — his own workers included.",
+                Ai.PlanRushmaster)
+            {
+                Priorities = Steps(
+                    ("Stampede, once the harness is off",
+                     "Runs up to its movement in a straight line, stops adjacent to the first body on "
+                     + "it — ally or not — and shoves it 2, with 2 contact damage on the way in. "
+                     + "Taken only for one of four endings, ranked in this order: a drain entry, a "
+                     + "collision with a unit, a collision with a Bell, a collision with debris. A run "
+                     + "that produces none of them is not on the list and the next branch runs "
+                     + "instead. The branch exists only while the stat block in force carries a "
+                     + "standalone shove, which the harnessed block does not."),
+                    ("Finish an adjacent body",
+                     "An adjacent unit its own attack would take to zero is attacked before any "
+                     + "other, counting whoever would actually take the blow rather than who was "
+                     + "aimed at."),
+                    ("Attack an adjacent body",
+                     "Otherwise the first adjacent unit is attacked, and shoved by the same swing. It "
+                     + "does not reposition first."),
+                    ("Walk — Bell-ward, or at the crowd",
+                     "While the harness holds he walks toward the nearest standing Bell and never "
+                     + "swings at it. Once it breaks he walks toward the largest cluster instead — "
+                     + "the body with the most company within 2 tiles, ties broken by proximity and "
+                     + "then by lowest id — and attacks if the step lands him adjacent (D-022). With "
+                     + "every Bell down and the harness still on, he closes on the nearest.")),
+                Quirks = new[]
+                {
+                    "The Stampede reaches his own side. Everything else in the game that shoves an "
+                    + "ally does it for nothing; this one carries the reserved bloody shoulder, so a "
+                    + "worker he runs through takes the contact damage a player would.",
+                    "He is telegraphed like everybody else. The run, the body it stops on, the shove "
+                    + "and the whole collision chain are on the intent before he takes it.",
                 },
             };
 

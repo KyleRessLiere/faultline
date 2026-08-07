@@ -167,7 +167,10 @@ namespace Faultline.Core
                 return false;
             }
 
-            if (!attacker.Team.IsHostileTo(target.Team))
+            // One conditional at the rule it modifies, rather than a parallel rulebook: MASTER_DESIGN
+            // §8.9's Stampede is this shove aimed at "allies included", and every other clause about
+            // it — range, reach, the displacement itself — is unchanged (D-219).
+            if (!attacker.Team.IsHostileTo(target.Team) && !Stampede.Reaches(attacker, target))
             {
                 return false;
             }

@@ -68,7 +68,7 @@ namespace Faultline.Core
             UnitKind.BracedHusk,
             // The objective enemies, last: they are the two that need something on the board other
             // than a player unit to have anything to do (docs/archive/CURATED_SET.md §5).
-            UnitKind.Raider, UnitKind.QuarryKing,
+            UnitKind.Raider, UnitKind.QuarryKing, UnitKind.Rushmaster,
             // The neutral, last. Documented here because every archetype is documented here — a kind
             // with no bestiary entry fails EnemyBehaviourTests — but fielded by no .fight file and
             // named by no campaign or acquisition pool.
@@ -295,6 +295,8 @@ namespace Faultline.Core
             var raider = UnitTemplate.For(UnitKind.Raider);
             var king = UnitTemplate.For(UnitKind.QuarryKing);
             var kingEnraged = king.Enraged!;
+            var rushmaster = UnitTemplate.For(UnitKind.Rushmaster);
+            var cutLoose = rushmaster.Enraged!;
 
             var table = new Dictionary<UnitKind, EnemyBehaviour>(Order.Length);
 
@@ -955,6 +957,64 @@ namespace Faultline.Core
                     + $"and set the geometry before he drops to {king.EnrageAt} and starts charging.",
                     $"Then void him. Once the tokens are gone he is a {king.MaxHp} HP unit with no push "
                     + "resistance at all, and the pit does not care how many hit points he has left.",
+                });
+
+            table[UnitKind.Rushmaster] = new EnemyBehaviour(
+                UnitKind.Rushmaster,
+                "boss — his crowd is his armour and your ammunition",
+                $"{rushmaster.MaxHp} HP at Move {rushmaster.Move} in harness, hitting for "
+                + $"{rushmaster.Damage} and shoving {rushmaster.AttackPush} with the same swing. "
+                + $"Push resistance {rushmaster.PushResistance} and {rushmaster.Footing} Footing — no "
+                + $"shell — and a second stat block waiting at {rushmaster.EnrageAt} HP.",
+                Steps(
+                    ("Stampede, once the harness is off",
+                     $"At {rushmaster.EnrageAt} HP or below he runs up to Move {cutLoose.Move} tiles "
+                     + "in a straight line, stops adjacent to the first body on it and shoves it "
+                     + $"{cutLoose.BasicPush}, dealing {Stampede.ContactDamage} on contact first. "
+                     + "Allies included: a worker in his lane is hit exactly as hard as you are. He "
+                     + "takes it only for a drain entry, a unit collision, a Bell collision or a "
+                     + "debris collision, ranked in that order."),
+                    ("Finish an adjacent body",
+                     $"An adjacent unit his {rushmaster.Damage} would take to zero is attacked before "
+                     + "any other, counting whoever would actually take the blow."),
+                    ("Attack an adjacent body",
+                     $"Otherwise the first adjacent unit is attacked for {rushmaster.Damage} and "
+                     + $"shoved {rushmaster.AttackPush} by the same swing. He does not reposition "
+                     + "first."),
+                    ("Walk — Bell-ward, or at the crowd",
+                     $"Move {rushmaster.Move} while the harness holds, walking at the nearest standing "
+                     + "Bell and never swinging at it. Once it breaks he walks at the largest cluster "
+                     + $"instead, at Move {cutLoose.Move}, and attacks if the step lands him adjacent "
+                     + "(D-022).")),
+                new[]
+                {
+                    "Crew Cover is his defence and it is positional, not a damage reduction: once a "
+                    + "round a direct attack aimed at him may be taken by an adjacent standing worker "
+                    + "swapping places with him. It is a placement — neither body travels, nothing is "
+                    + "collided with, no Footing is owed — and the tile each one lands on charges what "
+                    + "it charges.",
+                    "It does not stop the board. Impact, hazard and area damage reach him through the "
+                    + "swap, because the swap only moves who is standing in front of the sword.",
+                    "Once the harness is off, Crew Cover only fires if a worker is ALREADY adjacent — "
+                    + "he no longer arranges his own cover.",
+                    $"He carries {rushmaster.Footing} Footing and no shell. Displacement against him "
+                    + "is legal from the first round, and a duck may Rescue him off a drain lip like "
+                    + "anything else.",
+                    $"The Bells are {Displacement.StructureCollisionDamage}-damage masonry with 6 hit "
+                    + "points: one clean slam ends one, and it shuts the mouth it is paired to.",
+                },
+                new[]
+                {
+                    "Spend his workers on him. Every body you put into him is damage he did not have "
+                    + "to be hit for, and the Bells turn each one into a shut door as well.",
+                    "Drive him into a Bell. A structure collision is "
+                    + $"{Displacement.StructureCollisionDamage} to him and "
+                    + $"{Displacement.StructureCollisionDamage} to the Bell — the Bell dies, the mouth "
+                    + "shuts, and he is 6 closer to the harness breaking.",
+                    "Strip his cover before you swing. A direct attack into a crowd is a direct attack "
+                    + "on a worker; a direct attack with nobody beside him is a direct attack on him.",
+                    "Then let him charge. Cut Loose is more dangerous and more usable at once: his own "
+                    + "Stampede will put his workers through walls and over lips for you.",
                 });
 
             // ---- the neutral (component review, step 8's proof) --------------------------------

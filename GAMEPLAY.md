@@ -67,6 +67,7 @@ Collision, spike and fall damage all ignore mitigation.
 |---|---|---|
 | Warden | 2 | 0 |
 | Quarry King | 3 | 0 |
+| Rushmaster | 1 | 1 |
 | Braced Husk | 2 | 0 |
 | Anchor | 0 | 1 |
 | Mobile Anchor | 0 | 1 |
@@ -794,6 +795,22 @@ not settle.
 | Mobile Anchor | 12 | 2 | melee, 4 dmg | Anchor list and shrug, at double the speed |
 | Raider | 4 | 3 | melee, 2 dmg | **never targets a player unit at all.** Walks at the nearest standing Protect structure and takes 2 off it whenever it ends an activation adjacent. No self-defence, and no free finish on a clinging unit. With no Protect structure standing anywhere, it holds (D-045) |
 | Quarry King | 28 | **1** | melee, 6 dmg **+ push 1** | **boss.** **Footing 3** — three whole refusals, spent one per instance and on the same drain-only policy as everybody else, so an ordinary shove moves him and only a drain-bound one is braced against (D-143, superseding D-043's unspendable token). A token is also stripped by a collision he suffers, or by ending a round next to a drain. At **14 HP or below** the stat block swaps to Move 3 and the list gains Bull Rush; he re-declares his intent on the spot (D-044) |
+| Rushmaster | 26 | **1** | melee, 4 dmg **+ push 1** | **boss (the Warrens).** **Footing 1 and push resistance 1 — no shell**: the shell is the Quarry King's and displacement against the Rushmaster is legal from the first round. **Crew Cover:** once per round a direct attack aimed at him may be taken by an adjacent standing Husk **swapping places** with him — a placement, so neither body travels, nothing is collided with and no Footing is owed, but the tile each lands on charges what it charges. He picks the Husk leaving him nearest his declared target, lowest id breaks ties, and the attacker's preview carries the swap, the interceptor and both final coordinates. It does **not** stop impact, hazard or area damage. At **13 HP or below** the harness breaks: Move 3, he stops walking Bell-ward, and the list gains **Stampede** — run up to Move in a line, stop adjacent to the first body on it and shove it 2, **allies included**, with 2 contact damage on the way in (the reserved bloody shoulder). Taken only for a drain entry, a unit collision, a Bell collision or a debris collision, in that order (D-217, D-219, D-220, D-221) |
+
+**Work Bells — a structure paired to a spawn mouth.** A `Structure` may carry a **mouth**: a
+coordinate the fight's arrival schedule sends reinforcements to. Bringing that structure down
+**cancels every arrival still due at that mouth**, whoever brought it down and however — a swing, a
+collision, or the boss's own Stampede driving a body into it, because the cancellation lives in the
+one place a structure reaches zero hit points. A cancelled arrival is *cancelled*, never postponed:
+the unit stays undeployed in the unit list so every id a command log replays against is unchanged.
+
+A Bell is **not debris**. `IsBlocker` stays false, so it appears in the objective panel and in
+`StructureStatus.ObjectivesOn`; its role is `destroy`, so nothing besieges it, no Guard shields it,
+and it is nobody's win or loss condition. Its inspection card carries the mouth, what that mouth
+sends next and how many arrivals it still owes — `mouth 0,1 · next Husk r5 · 2 due`, or
+`mouth 0,1 · nothing due` once it is spent, which is the fact that tells a player to stop spending
+shoves on it. It takes the ordinary structure damage: **2 from any attack, 6 from a collision**, so
+at 6 hit points one clean slam ends it (D-218).
 
 **A variant shares its archetype's priority list rather than copying it** (D-032). The planner
 dispatches on the plan named by the stat block, not on the archetype, so a stat-block variant and the

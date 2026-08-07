@@ -44,6 +44,31 @@ namespace Faultline.Core
         /// </remarks>
         public bool IsBlocker { get; init; }
 
+        /// <summary>
+        /// The spawn mouth this structure is paired to, or <c>null</c> for the ordinary structure that
+        /// is paired to nothing. Bringing a paired structure down cancels every arrival still due at
+        /// that tile (MASTER_DESIGN §8.9, the Work Bells).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A coordinate on the structure rather than a table beside it, for the reason
+        /// <see cref="Unit.DisplacedBy"/> gives: a list held next to the thing it describes compares by
+        /// reference under the record's generated equality and quietly breaks replay. One nullable
+        /// scalar on the body that has to fall says the whole rule (D-218).
+        /// </para>
+        /// <para>
+        /// It is <em>not</em> a second physics. A paired structure occupies its tile, takes
+        /// <see cref="Objectives.AttackDamageToStructure"/> from a swing and the full amount from a
+        /// collision, and turns to rubble at zero, exactly like every other one — §8.9's "6 HP means
+        /// one clean slam" is <see cref="Displacement.StructureCollisionDamage"/> doing what it already
+        /// does, not a rule the Bells brought with them.
+        /// </para>
+        /// </remarks>
+        public Coord? Mouth { get; init; }
+
+        /// <summary>True when this structure cancels a spawn mouth's arrivals as it falls.</summary>
+        public bool IsPaired => Mouth is not null;
+
         /// <summary>True while the structure still blocks its tile.</summary>
         public bool IsStanding => Hp > 0;
 

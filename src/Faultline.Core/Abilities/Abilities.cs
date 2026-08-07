@@ -429,6 +429,23 @@ namespace Faultline.Core
                         _ => unit.Template.AttackPush,
                     };
 
+                    // MASTER_DESIGN §8.9: a direct attack aimed at the Rushmaster may be taken by a
+                    // worker swapping places with him, and "the attacker's preview shows the swap,
+                    // the interceptor and the final coordinates". Projected FIRST and everything
+                    // below computed against the swapped board — the damage, the shove and the
+                    // finish are all about whoever is standing in front of the sword once it lands,
+                    // which is exactly the order the resolution takes (D-184, D-221).
+                    var cover = attack.Mode == AttackMode.Damage
+                        ? CrewCover.Project(state, target)
+                        : null;
+
+                    if (cover is not null)
+                    {
+                        state = CrewCover.Placed(state, cover);
+                        unit = state.UnitById(unit.Id);
+                        target = state.UnitById(cover.InterceptorId);
+                    }
+
                     int damage = 0;
                     if (attack.Mode == AttackMode.Damage)
                     {
@@ -457,7 +474,8 @@ namespace Faultline.Core
                         FollowInTile(state, unit, target, shove, attack.Technique),
                         Techniques.CrossingShot(state, unit.Id, target.Id, Traversed(shove)),
                         Granted(state, unit, shove),
-                        Finishes(standing, shove, target.Id));
+                        Finishes(standing, shove, target.Id),
+                        cover);
                 }
 
                 case AbilityCommand ability:

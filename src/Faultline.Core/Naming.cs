@@ -63,9 +63,21 @@ namespace Faultline.Core
 
             // Never "blocker": that is the identifier, and the word players are given for masonry
             // that is nobody's objective is Debris.
-            return structure.IsBlocker
-                ? "Debris"
-                : structure.Role == ObjectiveKind.Protect ? "Shrine" : "Gate";
+            if (structure.IsBlocker)
+            {
+                return "Debris";
+            }
+
+            // A paired structure is named for what pairing it means, not for its role: "Gate" would be
+            // true about the ObjectiveKind and a lie about the thing — the Bells are not a Destroy
+            // objective, they are the mouths' switches (MASTER_DESIGN §8.9, D-218). Still a pure
+            // function of what the board authored, so D-162's argument against a name key stands.
+            if (structure.IsPaired)
+            {
+                return "Work Bell";
+            }
+
+            return structure.Role == ObjectiveKind.Protect ? "Shrine" : "Gate";
         }
 
         /// <summary>The display name of a spender.</summary>
