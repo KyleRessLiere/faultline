@@ -511,12 +511,25 @@ public sealed class GameSession
     /// <summary>Loads a fight and starts it from the beginning, outside any campaign run.</summary>
     /// <param name="fight">Authored or hand-built fight.</param>
     /// <param name="seed">Run seed.</param>
-    public void StartFight(FightDefinition fight, int seed)
+    public void StartFight(FightDefinition fight, int seed) => StartFight(fight, seed, null);
+
+    /// <summary>Starts a one-off battle with the ducks a tester built.</summary>
+    /// <remarks>
+    /// <b>The same <see cref="Game.Start(FightDefinition, int, SquadLoadout)"/> a run uses.</b> A run
+    /// hands its squad's carried hit points, ceilings and camp loadouts across a node boundary
+    /// through exactly this parameter, so a board played from the picker with a built loadout is
+    /// played by the shipped path and not a test-only one. <c>null</c> takes the plain path, so an
+    /// untouched picker cannot change a fight.
+    /// </remarks>
+    /// <param name="fight">The board.</param>
+    /// <param name="seed">Seed for the fight's own draws.</param>
+    /// <param name="loadout">What each roster slot opens holding, or <c>null</c> for the board's own.</param>
+    public void StartFight(FightDefinition fight, int seed, SquadLoadout? loadout)
     {
         _run = null;
         Reset(fight, seed);
 
-        var start = Game.Start(fight, seed);
+        var start = Game.Start(fight, seed, loadout);
         _recorder?.RecordStart(start);
         Adopt(start);
     }

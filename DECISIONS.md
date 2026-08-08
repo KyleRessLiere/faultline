@@ -258,10 +258,11 @@ in this file when the question comes back.
 | D-255 | [RULED: a design doc states intent and never a live defect report, because text describing today's code cannot correct itself when the code is fixed.](#d-255-ruled-a-design-doc-states-intent-and-never-a-live-defect-report-because-text-describing-todays-code-cannot-correct-itself-when-the-code-is-fixed) | 2026-08-08 |  |
 | D-256 | [RULED: the deployment draft's snake generalises to unequal rosters by PASSING an exhausted player's slot to the other player, never by dropping it.](#d-256-ruled-the-deployment-drafts-snake-generalises-to-unequal-rosters-by-passing-an-exhausted-players-slot-to-the-other-player-never-by-dropping-it) | 2026-08-08 |  |
 | D-257 | [FOUND: §3's draft dissolved the per-side half of the agency lint, and the deployment guideline lints with it. The law is unchanged; what it can distinguish is not.](#d-257-found-3s-draft-dissolved-the-per-side-half-of-the-agency-lint-and-the-deployment-guideline-lints-with-it-the-law-is-unchanged-what-it-can-distinguish-is-not) | 2026-08-08 |  |
-| D-258 | [RULED: board size is DECLARED and cross-checked, and a declared size is what makes an off-7×7 board deliberate rather than drifted.](#d-258-ruled-board-size-is-declared-and-cross-checked-and-a-declared-size-is-what-makes-an-off-77-board-deliberate-rather-than-drifted) | unreleased |  |
-| D-259 | [FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and what is actually missing is narrower.](#d-259-found-the-board-picker-was-never-removed-the-stage-p-packets-p5-premise-is-false-and-what-is-actually-missing-is-narrower) | unreleased |  |
+| D-258 | [RULED: board size is DECLARED and cross-checked, and a declared size is what makes an off-7×7 board deliberate rather than drifted.](#d-258-ruled-board-size-is-declared-and-cross-checked-and-a-declared-size-is-what-makes-an-off-77-board-deliberate-rather-than-drifted) | 2026-08-08 |  |
+| D-259 | [FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and what is actually missing is narrower.](#d-259-found-the-board-picker-was-never-removed-the-stage-p-packets-p5-premise-is-false-and-what-is-actually-missing-is-narrower) | 2026-08-08 |  |
+| D-260 | [RULED: the battle picker's test bench sets health, items and cards through the run's own loadout seam, and it is for isolating a board rather than for showing a state is reachable.](#d-260-ruled-the-battle-pickers-test-bench-sets-health-items-and-cards-through-the-runs-own-loadout-seam-and-it-is-for-isolating-a-board-rather-than-for-showing-a-state-is-reachable) | unreleased |  |
 
-**241 rulings.**
+**242 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6890,3 +6891,47 @@ reach them.
 **Recorded rather than acted on** because the difference between "restore what was lost" and "build
 three things that never existed" is the difference between a session's work and a packet's, and
 guessing which was wanted is exactly the kind of scope decision that belongs to the designer.
+
+---
+
+**D-260 — RULED: the battle picker's test bench sets health, items and cards through the run's own
+loadout seam, and it is for isolating a board rather than for showing a state is reachable.**
+
+The gap D-259 named — no way to choose what a duck starts a one-off battle holding — closed for the
+three things a tester actually reaches for: **total health, a pocket item, and ability cards**.
+
+**Core needed no change.** `SquadLoadout` already carries starting hit points, a raised ceiling,
+Verve, Bedraggled and a whole `DuckLoadout` per roster slot, because a run has to hand exactly those
+across a node boundary; `Game.Start(fight, seed, loadout)` already took it. The bench is a shell-side
+editor over that seam, so **a board played from the picker is started by the same call a run makes**
+and nothing downstream can tell the difference.
+
+**Rejected: a test-only path into `Game.Start`.** A bench that reached the board by a route no run
+uses would be a bench that proves the board works *under the bench*. Sharing the seam is what makes
+a benched board's behaviour evidence about the board.
+
+**A ceiling can be raised and never lowered, and the bench says so rather than pretending.**
+`Game.WithRaisedMax` refuses a smaller maximum on purpose — a loadout naming one is a stale save
+quietly nerfing a class rather than an intended change. That rule is not worth rewriting for a dev
+tool, so `TestLoadout.MaxHpOf` returns the number the board will actually use and the field snaps
+back when a smaller one is typed. **To make a duck fragile you lower what it starts on**, which is
+unclamped from below and is what "dies in two hits" means anyway. Said in the panel, not just here.
+
+**Benches are per board, keyed by fight id.** A loadout is positional: slot 0 of one board is a
+Vanguard and of another a Fisher, so one shared bench would apply a Vanguard's hit points to whatever
+another board happened to roster first — and it lit every card's "edited" tag at once. Caught by
+playing it in a browser, not by a test.
+
+**Gated on `DevBuild.ShowDevTools`**, the same flag the dev panel uses, so there is no arrangement of
+switches that ships an arbitrary-loadout editor with the game (§7.5). The picker *itself* stays
+ungated — it is the shippable Trials surface (§8) and the bench is a detail hanging inside it, which
+is what keeps the two separable.
+
+**The boundary is written where a tester will read it**, at the top of the panel: *for isolating a
+board, not for proving a state is reachable*. The standing practice is to reach states by playing —
+that is what caught the authored Camp 1 and the empty destination table — and a loadout picker is
+the same hazard wearing a friendlier face. Anything set here is asserted, not earned.
+
+**Side effect worth having:** this is the first surface that can equip a technique at all. Nothing in
+a played run can (D-253), which is why Stage L's proximity instrumentation measured zero cross-flock
+firings. A tester can now put Spotter or Hand-Off on a duck and watch it fire.

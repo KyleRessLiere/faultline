@@ -222,6 +222,10 @@
     {
         var fight = result.Fight;
 
+        // This board's own bench. Never shared across cards: a loadout is positional, so one bench
+        // would apply a Vanguard's hit points to whatever another board happens to roster first.
+        var bench = fight is null ? new TestLoadout() : Bench(fight.Id);
+
         <article class="fight-card @(result.Ok ? string.Empty : "broken")">
             <header>
                 <span class="num">@(fight is null ? "—" : "#" + fight.Number)</span>
@@ -299,6 +303,85 @@
                     Compiled into the app, so nothing running in the browser can change it. Edit opens it
                     in the creator as a <em>new</em> scenario; the original stays as shipped.
                 </p>
+            }
+
+            @* The test bench. Internal builds only, and gated on the same flag the dev panel is, so
+               there is no arrangement of switches that ships an arbitrary-loadout editor with the
+               game (§7.5). It edits THIS board's roster, because a loadout is only meaningful
+               against the slots a board actually fields. *@
+            @if (DevBuild.ShowDevTools && fight is not null)
+            {
+                <details class="bench">
+                    <summary>
+                        Test loadout
+                        @if (bench.IsCustom)
+                        {
+                            <span class="tag custom">edited</span>
+                        }
+                    </summary>
+
+                    <p class="note bench-note">
+                        <strong>For isolating a board, not for proving a state is reachable.</strong>
+                        Reaching a state by playing is what catches the bugs; anything set here is
+                        asserted, not earned, and says nothing about whether a run could produce it.
+                        Internal builds only.
+                    </p>
+                    <p class="note bench-note">
+                        <strong>Total health only goes up.</strong> Core raises a ceiling and never
+                        lowers one, so a smaller number is refused and this field will snap back — to
+                        make a duck fragile, lower what it <em>starts on</em> instead.
+                    </p>
+
+                    @foreach (var (team, kind, slot) in Slots(fight))
+                    {
+                        var duck = bench.For(team, slot);
+
+                        <div class="bench-duck team-@(team == Team.PlayerA ? "a" : "b")">
+                            <span class="bench-who">@UnitTemplate.For(kind).Name · @(team == Team.PlayerA ? "A" : "B")</span>
+
+                            <label class="bench-field">
+                                Total health
+                                <input type="number" min="1" max="200"
+                                       value="@bench.MaxHpOf(kind, team, slot)"
+                                       @onchange="e => SetMaxHp(fight.Id, team, slot, e)" />
+                            </label>
+
+                            <label class="bench-field">
+                                Starts on
+                                <input type="number" min="1" max="200"
+                                       value="@bench.HpOf(kind, team, slot)"
+                                       @onchange="e => SetHp(fight.Id, team, slot, e)" />
+                            </label>
+
+                            <label class="bench-field">
+                                Item
+                                <select value="@(duck.Item?.ToString() ?? string.Empty)"
+                                        @onchange="e => SetItem(fight.Id, team, slot, e)">
+                                    <option value="">— none —</option>
+                                    @foreach (var item in AllItems)
+                                    {
+                                        <option value="@item">@CampCatalogue.NameOf(item)</option>
+                                    }
+                                </select>
+                            </label>
+
+                            <div class="bench-cards">
+                                <span class="bench-label">Abilities</span>
+                                @foreach (var technique in AllTechniques)
+                                {
+                                    <label class="bench-card">
+                                        <input type="checkbox"
+                                               checked="@duck.Techniques.Contains(technique)"
+                                               @onchange="e => ToggleTechnique(fight.Id, team, slot, technique, e)" />
+                                        @TechniqueDefinition.For(technique).Name
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <button class="action secondary" @onclick="() => ResetLoadout(fight.Id)">Back to the board's own</button>
+                </details>
             }
 
             <footer>
@@ -379,7 +462,9 @@
             return;
         }
 
-        Session.StartFight(fight, _seed);
+        // Null unless a tester actually changed something, so an untouched picker plays the board
+        // exactly as it ships.
+        Session.StartFight(fight, _seed, Bench(fight.Id).Build(fight));
         Nav.NavigateTo("play");
     }
 
@@ -388,4 +473,84 @@
         await Store.DeleteAsync(id);
         StateHasChanged();
     }
+
+    // ---- The test bench --------------------------------------------------------------------------
+
+    /// <summary>
+    /// What each duck starts holding, <b>per board</b>. Shell-side and per-visit: a bench setup is
+    /// scratch work, not something to persist and later wonder about.
+    /// </summary>
+    /// <remarks>
+    /// Keyed by fight id rather than shared across the picker, because a loadout is positional —
+    /// slot 0 of one board is a Vanguard and of another is a Fisher, so one shared bench would apply
+    /// a Vanguard's hit points to whatever happened to be rostered first somewhere else. It also
+    /// kept every card's "edited" tag lit as soon as any one of them was touched.
+    /// </remarks>
+    private readonly Dictionary<string, TestLoadout> _benches = new();
+
+    /// <summary>That board's bench, created on first ask.</summary>
+    private TestLoadout Bench(string id)
+    {
+        if (!_benches.TryGetValue(id, out var bench))
+        {
+            bench = new TestLoadout();
+            _benches[id] = bench;
+        }
+
+        return bench;
+    }
+
+    private static readonly Consumable[] AllItems =
+        (Consumable[])Enum.GetValues(typeof(Consumable));
+
+    private static readonly TechniqueModifier[] AllTechniques =
+        (TechniqueModifier[])Enum.GetValues(typeof(TechniqueModifier));
+
+    /// <summary>Both rosters as (side, archetype, slot), in the order the board fields them.</summary>
+    private static IEnumerable<(Team Team, UnitKind Kind, int Slot)> Slots(FightDefinition fight)
+    {
+        for (int i = 0; i < fight.RosterA.Count; i++)
+        {
+            yield return (Team.PlayerA, fight.RosterA[i], i);
+        }
+
+        for (int i = 0; i < fight.RosterB.Count; i++)
+        {
+            yield return (Team.PlayerB, fight.RosterB[i], i);
+        }
+    }
+
+    private void SetMaxHp(string id, Team team, int slot, ChangeEventArgs e) =>
+        Bench(id).For(team, slot).MaxHp = Positive(e);
+
+    private void SetHp(string id, Team team, int slot, ChangeEventArgs e) =>
+        Bench(id).For(team, slot).Hp = Positive(e);
+
+    private void SetItem(string id, Team team, int slot, ChangeEventArgs e)
+    {
+        var text = e.Value?.ToString();
+        Bench(id).For(team, slot).Item =
+            Enum.TryParse<Consumable>(text, out var item) ? item : (Consumable?)null;
+    }
+
+    private void ToggleTechnique(string id, Team team, int slot, TechniqueModifier technique, ChangeEventArgs e)
+    {
+        var held = Bench(id).For(team, slot).Techniques;
+        bool on = e.Value is bool value && value;
+
+        if (on && !held.Contains(technique))
+        {
+            held.Add(technique);
+        }
+        else if (!on)
+        {
+            held.Remove(technique);
+        }
+    }
+
+    private void ResetLoadout(string id) => Bench(id).Reset();
+
+    /// <summary>A typed number, or null for anything that is not a positive one.</summary>
+    private static int? Positive(ChangeEventArgs e) =>
+        int.TryParse(e.Value?.ToString(), out int value) && value > 0 ? value : (int?)null;
 }

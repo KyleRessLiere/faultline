@@ -1986,6 +1986,27 @@ playtest verdict.**
 
 Win: every enemy down. Lose: every player unit down or voided.
 
+## The test bench — playing a board with the ducks you want
+
+The battle picker (`/battles`, linked from the front door as **All battles**) plays any board
+directly, outside a run. Each board's card carries a **Test loadout** panel — **internal builds
+only**, gated on the same `DevBuild.ShowDevTools` flag as the dev panel — that sets, per roster slot:
+
+- **Total health.** Raised only: Core refuses a smaller ceiling, because a loadout naming one is a
+  stale save quietly nerfing a class (`Game.WithRaisedMax`). The field snaps back rather than
+  pretending. **To make a duck fragile, lower what it starts on.**
+- **Starting hit points.** Unclamped from below, clamped to the ceiling above.
+- **One pocket item**, and **ability cards** (technique modifiers). This is the only surface that can
+  equip a technique at all — nothing in a played run can (D-253).
+
+It builds a `SquadLoadout` and hands it to the same `Game.Start(fight, seed, loadout)` a run uses, so
+a benched board is started by the shipped path. Untouched, it passes `null` and the board plays
+exactly as it ships. Benches are per board, because a loadout is positional.
+
+**It is for isolating a board, not for showing a state is reachable** (D-260). Reaching states by
+playing is what catches the bugs — it caught the authored Camp 1 and the empty destination table.
+Anything set on the bench is asserted, not earned.
+
 ## Known gaps in what design can evaluate
 
 - **Momentum is gone.** Verve replaced it and `GameState.Momentum` has been deleted (D-074). The
