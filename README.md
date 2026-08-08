@@ -225,14 +225,18 @@ nothing to add to your own `keybindings.json`:
 | **F5** | Build, serve, open a browser, and attach the debugger — breakpoints in C# hit in the browser |
 | **Ctrl-F5** | The same without the debugger, which starts faster |
 
-Both use `src/Faultline.Web/Properties/launchSettings.json`, so they serve on **5137** rather than the
-5199 the scripts use — the two can run side by side. There is a Chrome config and an Edge one; pick
+Both use `src/Faultline.Web/Properties/launchSettings.json`, so they serve on **5199** — the same port
+the scripts use, on purpose. F5 used to serve 5137 and this file used to call the split a feature
+("the two can run side by side"). It is not one: two ports means two servers on two builds, with the
+browser pointed at whichever launched last, and a stale-asset failure that reads exactly like a code
+bug. One port makes a second server a bind error you can see. There is a Chrome config and an Edge one; pick
 from the dropdown in the Run panel. Debugging needs the C# extension (`ms-dotnettools.csharp`).
 
-If F5 fails to bind, a server you forgot about is holding 5137 — run **Faultline: stop servers**
-first. That task now sweeps **5137 as well as 5199–5210**, so it covers the port F5 itself uses; it
-used to sweep only the script range, which meant the task named as the fix could not stop the server
-most likely to need stopping.
+F5 also starts the session-log sidecar first, so a debugged sitting is written to
+`docs/playtest/<date>/<timestamp>/session.log` like a scripted one.
+
+If F5 fails to bind, a server you forgot about is holding 5199 — run **Faultline: stop servers**
+first. That task sweeps **5137 (the old F5 port), 5178 (the log host) and 5199–5210**.
 
 `Ctrl-Shift-P → Tasks: Run Task`:
 

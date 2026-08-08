@@ -6,8 +6,14 @@
     //   F5        start it with the debugger attached — breakpoints in C# hit in the browser
     //   Ctrl-F5   start it without the debugger, which starts faster
     //
-    // Both serve on the port src/Faultline.Web/Properties/launchSettings.json names (5137) and open
-    // a browser at it. If that port is already held by a server you forgot about, run the
+    // Both serve on the port src/Faultline.Web/Properties/launchSettings.json names — now **5199**,
+    // the same port run.ps1 and play.ps1 use, and they open a browser at it.
+    //
+    // ONE PORT ON PURPOSE. F5 used to serve 5137 while every script served 5199, and the README
+    // called that a feature ("the two can run side by side"). In practice it meant two servers could
+    // be up on two builds, and a browser tab pointed at whichever one you launched last — which is
+    // exactly how three separate stale-asset failures were mistaken for code bugs in one evening.
+    // A single port makes a second server a bind error you can see instead of a silent second truth. If that port is already held by a server you forgot about, run the
     // "Faultline: stop servers" task first — a stale dev server keeps handing out its own old build
     // and the page fails in a way that looks like a code bug (see README).
     //
@@ -28,7 +34,11 @@
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/src/Faultline.Web",
-            "browser": "chrome"
+            "browser": "chrome",
+
+            // So an F5 sitting is logged like a scripted one. The blazorwasm launch type runs no
+            // script of its own, so without this the session log had nowhere to post (D-245).
+            "preLaunchTask": "Faultline: log host"
         },
         {
             // The same thing in Edge, for when Chrome is not the default or is already driving a
@@ -37,7 +47,8 @@
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/src/Faultline.Web",
-            "browser": "edge"
+            "browser": "edge",
+            "preLaunchTask": "Faultline: log host"
         }
     ]
 }

@@ -100,6 +100,26 @@
             }
         },
         {
+            // Started before F5 so a debugged sitting is logged like a scripted one. Blazor's
+            // "blazorwasm" launch type runs no script of its own, so without this F5 played into a
+            // tab whose log had nowhere to go — and until D-245 it said nothing about it.
+            //
+            // Fire-and-forget on purpose: it must not block the launch, and a sidecar already
+            // listening is the common case. `run.ps1 -Stop -Port 5178` stops it.
+            "label": "Faultline: log host",
+            "detail": "Start the session-log sidecar on 5178 if it is not already up",
+            "type": "shell",
+            "command": "if (-not (Get-NetTCPConnection -LocalPort 5178 -State Listen -ErrorAction SilentlyContinue)) { Start-Process -FilePath 'dotnet' -ArgumentList 'run','--project','tools/Faultline.Launcher','--','--log-only' -WorkingDirectory '${workspaceFolder}' -WindowStyle Minimized }",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "group": "faultline",
+                "close": true,
+                "showReuseMessage": false
+            }
+        },
+        {
             // The fix for README's "unhandled error on a page that worked a minute ago": an orphaned
             // server still serving its own old build.
             //
@@ -110,9 +130,9 @@
             // exactly like a code bug: the browser holds a boot manifest naming fingerprinted assets
             // ("dotnet.<hash>.js") that the newer build no longer has, and every one of them 404s.
             "label": "Faultline: stop servers",
-            "detail": "Stop anything left listening on 5137 (F5) or 5199-5210 (play.ps1)",
+            "detail": "Stop anything left listening on 5137 (old F5 port), 5178 (log host) or 5199-5210",
             "type": "shell",
-            "command": "@(5137) + 5199..5210 | ForEach-Object { ./run.ps1 -Stop -Port $_ }",
+            "command": "@(5137, 5178) + 5199..5210 | ForEach-Object { ./run.ps1 -Stop -Port $_ }",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",
