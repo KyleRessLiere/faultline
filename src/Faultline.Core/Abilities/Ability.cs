@@ -23,6 +23,25 @@ namespace Faultline.Core
         /// land on it instead, and attack damage it takes is halved (D-058).
         /// </summary>
         GuardStance = 4,
+
+        /// <summary>
+        /// Vanguard, the alternate action: run up to 3 in a line and shove <em>every</em> enemy in
+        /// the path 1 tile aside, ending where the run stops. The Husk's Shoulder as a player verb —
+        /// it reuses <see cref="Trample"/>'s resolution rather than restating it.
+        /// </summary>
+        Overrun = 5,
+
+        /// <summary>
+        /// Fisher, the alternate action: the mirror of <see cref="Reel"/> — shove one enemy within
+        /// range 3 three tiles away, every tile resolved.
+        /// </summary>
+        Punt = 6,
+
+        /// <summary>
+        /// Wardbearer, the alternate action: swap places with an adjacent ally. A placement, and the
+        /// ally's owner consents by answering — the Split Reed path, unchanged (D-192).
+        /// </summary>
+        Interpose = 7,
     }
 
     /// <summary>What an ability needs the player to pick before it can resolve.</summary>
@@ -46,5 +65,13 @@ namespace Faultline.Core
 
         /// <summary>Pick nothing: the ability is used on the unit itself.</summary>
         Self = 4,
+
+        /// <summary>
+        /// Pick a friendly unit within range. The command grammar is unchanged —
+        /// <see cref="AbilityCommand.TargetId"/> already carries a unit id and never asked which side
+        /// it was on; only the legality question differs, which is why this is a targeting shape and
+        /// not a second command.
+        /// </summary>
+        Ally = 5,
     }
 }

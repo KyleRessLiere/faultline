@@ -59,5 +59,26 @@ namespace Faultline.Core
 
         /// <summary>Wardbearer's spender (<see cref="VerveSpend.Preen"/>).</summary>
         Preen = 12,
+
+        /// <summary>Vanguard's alternate action (<see cref="Ability.Overrun"/>).</summary>
+        Overrun = 13,
+
+        /// <summary>Fisher's alternate action (<see cref="Ability.Punt"/>).</summary>
+        Punt = 14,
+
+        /// <summary>Wardbearer's alternate action (<see cref="Ability.Interpose"/>).</summary>
+        Interpose = 15,
+
+        /// <summary>Vanguard's alternate spender (<see cref="VerveSpend.Retort"/>).</summary>
+        Retort = 16,
+
+        /// <summary>Archer's alternate spender (<see cref="VerveSpend.Skyfall"/>).</summary>
+        Skyfall = 17,
+
+        /// <summary>Fisher's alternate spender (<see cref="VerveSpend.Whirl"/>).</summary>
+        Whirl = 18,
+
+        /// <summary>Wardbearer's alternate spender (<see cref="VerveSpend.Breakwater"/>).</summary>
+        Breakwater = 19,
     }
 }

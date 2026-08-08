@@ -129,27 +129,56 @@ public static class PlaytestText
         unit.Voided ? "voided" : unit.IsAlive ? $"{unit.Hp}/{unit.MaxHp}" : "down";
 
     /// <summary>
+    /// <b>Everything any surface needs to draw one duck's meter</b>, from the duck's own Pluck slots
+    /// — the token's dots, the strip's pips, the inspector's block and the tooltip behind all three.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>One reading, because the question is one question.</b> Three razors each asked
+    /// <c>Verve.SpendFor(unit.Kind)</c> and priced readiness off the unmodded cost, which was the
+    /// same answer as the duck's only while a class's spender and its archetype's spender were the
+    /// same card. G4 ended that: a Vanguard holding Retort had his meter labelled Wrecking Weight,
+    /// a duck that traded its Pluck slot away still drew a meter, and a Fisher wearing Light Line lit
+    /// "ready" one point late (D-242).
+    /// </para>
+    /// <para>
+    /// <see cref="Verve.ConditionFor(UnitKind)"/> stays archetype-derived on purpose: §5's
+    /// charge-condition table is class-bound and an alternate spender changes the spend, never the
+    /// income (D-241).
+    /// </para>
+    /// </remarks>
+    /// <param name="unit">Unit to read, or <c>null</c>.</param>
+    /// <returns>The reading, or <c>null</c> when this duck holds no spender and draws no meter.</returns>
+    public static MeterReading? MeterOf(Unit? unit)
+    {
+        if (unit is null || Verve.SpendFor(unit) is not { } spend)
+        {
+            return null;
+        }
+
+        int cost = Verve.CostOf(spend, unit);
+        string state = unit.Verve >= cost
+            ? $"{Verve.NameOf(spend)} ready"
+            : $"{cost - unit.Verve} more for {Verve.NameOf(spend)}";
+
+        return new MeterReading(
+            spend,
+            Verve.NameOf(spend),
+            cost,
+            unit.Verve,
+            unit.Verve >= cost,
+            Verve.ConditionFor(unit.Kind),
+            $"{Naming.Meter} {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.");
+    }
+
+    /// <summary>
     /// The tooltip behind a unit's Verve dots: what it holds, what earns more, and what it is saving
     /// for. Every word of it comes from Core, so the meter on the board and the rule behind it cannot
     /// drift apart.
     /// </summary>
     /// <param name="unit">Unit to describe.</param>
-    /// <returns>A one-line tooltip, empty for a class with no meter.</returns>
-    public static string VerveTitle(Unit unit)
-    {
-        var spender = Verve.SpendFor(unit.Kind);
-        if (spender is null)
-        {
-            return string.Empty;
-        }
-
-        int cost = Verve.CostOf(spender.Value);
-        string state = unit.Verve >= cost
-            ? $"{Verve.NameOf(spender.Value)} ready"
-            : $"{cost - unit.Verve} more for {Verve.NameOf(spender.Value)}";
-
-        return $"{Naming.Meter} {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.";
-    }
+    /// <returns>A one-line tooltip, empty for a duck with no spender.</returns>
+    public static string VerveTitle(Unit unit) => MeterOf(unit)?.Title ?? string.Empty;
 
     /// <summary>
     /// The loud label a Bedraggled duck carries on its deployment card and its board token.

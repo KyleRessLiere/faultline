@@ -10,21 +10,35 @@ public class AbilityTests
     // Changed by D-058: the Wardbearer went from one passive ability to two active ones, so "exactly
     // one each" is no longer the rule. Three classes bring one; the Wardbearer brings two.
     [Fact]
-    public void EveryPlayerClass_HasAtLeastOneAbility_AndTheWardbearerHasTwo()
+    public void EveryPlayerClass_HasItsOpeningAbilityFirst_AndItsAlternatesAfter()
     {
-        Assert.Equal(5, AbilityDefinition.All().Count);
+        // Eight since G4: the five §4 prints, plus the three alternate ACTIONS that can replace one
+        // of them. The alternate SPENDERS are not here — a spender is a VerveSpend, on its own axis
+        // (D-230), and the registry that mixed them would be the second list D-232 warns about.
+        Assert.Equal(8, AbilityDefinition.All().Count);
+
+        // ForKind is the headline, and the headline is still what §4 prints. An alternate is
+        // something a run puts in a slot, never what the class arrives holding.
         Assert.Equal(Ability.BullRush, AbilityDefinition.ForKind(UnitKind.Vanguard)!.Ability);
         Assert.Equal(Ability.StaggerShot, AbilityDefinition.ForKind(UnitKind.Archer)!.Ability);
         Assert.Equal(Ability.Reel, AbilityDefinition.ForKind(UnitKind.Threadcaster)!.Ability);
+        Assert.Equal(Ability.SpearThrust, AbilityDefinition.ForKind(UnitKind.Wardbearer)!.Ability);
 
         Assert.Equal(
-            new[] { Ability.SpearThrust, Ability.GuardStance },
-            AbilityDefinition.AllForKind(UnitKind.Wardbearer).Select(d => d.Ability));
+            new[] { Ability.BullRush, Ability.Overrun },
+            AbilityDefinition.AllForKind(UnitKind.Vanguard).Select(d => d.Ability));
 
-        foreach (var kind in new[] { UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster })
-        {
-            Assert.Single(AbilityDefinition.AllForKind(kind));
-        }
+        Assert.Equal(
+            new[] { Ability.StaggerShot },
+            AbilityDefinition.AllForKind(UnitKind.Archer).Select(d => d.Ability));
+
+        Assert.Equal(
+            new[] { Ability.Reel, Ability.Punt },
+            AbilityDefinition.AllForKind(UnitKind.Threadcaster).Select(d => d.Ability));
+
+        Assert.Equal(
+            new[] { Ability.SpearThrust, Ability.GuardStance, Ability.Interpose },
+            AbilityDefinition.AllForKind(UnitKind.Wardbearer).Select(d => d.Ability));
     }
 
     [Fact]

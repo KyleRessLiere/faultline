@@ -105,11 +105,11 @@
                     <p class="status">@flags</p>
                 }
 
-                @if (Verve.SpendFor(own.Kind) is { } spend)
+                @if (PlaytestText.MeterOf(own) is { } meter)
                 {
                     <div class="meter-block">
                         <p class="line-head">@Naming.Meter <span class="figure">@own.Verve/@Verve.Cap</span></p>
-                        <div class="meter @(own.Verve >= Verve.CostOf(spend, own) ? "ready" : string.Empty)"
+                        <div class="meter @(meter.Ready ? "ready" : string.Empty)"
                              role="meter"
                              aria-valuenow="@own.Verve"
                              aria-valuemin="0"
@@ -120,10 +120,10 @@
                                 <i class="seg @(v < own.Verve ? "on" : string.Empty)"></i>
                             }
                         </div>
-                        <p class="earns" title="@Verve.ConditionFor(own.Kind)">Earns from @Verve.ConditionFor(own.Kind).</p>
+                        <p class="earns" title="@meter.EarnsFrom">Earns from @meter.EarnsFrom.</p>
                         <p class="spender">
                             <span class="feather" aria-hidden="true">✦</span>
-                            @Verve.NameOf(spend) · @Verve.CostOf(spend, own) @Naming.Meter
+                            @meter.Name · @meter.Cost @Naming.Meter
                         </p>
                     </div>
                 }

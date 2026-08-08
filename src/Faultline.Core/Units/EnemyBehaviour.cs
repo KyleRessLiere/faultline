@@ -138,7 +138,11 @@ namespace Faultline.Core
             return kind switch
             {
                 UnitKind.Vanguard => "front line — closes and shoves",
-                UnitKind.Archer => "ranged damage, free climber",
+                // Not "free climber": the ledge has cost everybody an ordinary step since
+                // MASTER_DESIGN §3 (locked u), which is what DescribeClimb below says in its own
+                // remark while this line went on printing the perk. A rendered string naming a
+                // removed feature is a defect, not documentation (D-242).
+                UnitKind.Archer => "ranged damage, reaches the far side of the board",
                 UnitKind.Threadcaster => "hook — pulls the enemy line apart",
                 UnitKind.Wardbearer => "bodyguard — steps in front of the units beside it",
                 _ => "unclassified",

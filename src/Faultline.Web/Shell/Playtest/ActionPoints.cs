@@ -22,8 +22,8 @@ namespace Faultline.Web.Shell.Playtest;
 /// </remarks>
 public static class ActionPoints
 {
-    /// <summary>What the pool is called on screen.</summary>
-    public const string Label = "AP";
+    /// <summary>What the pool is called on screen — Core's word, never a second copy of it.</summary>
+    public const string Label = Naming.ActionPoints;
 
     /// <summary>Whether this unit gets an AP display at all.</summary>
     /// <param name="unit">Unit being drawn.</param>

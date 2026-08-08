@@ -66,12 +66,13 @@
                         </span>
                         <span class="hp">@unit.Hp/@unit.MaxHp</span>
                         @* Charges are readable without selecting anybody: one dot per point, filled
-                           up to what the unit holds. Drawn for every class that can earn, so an
-                           empty meter still says the class has one. *@
-                        @if (Verve.SpendFor(unit.Kind) is { } spender)
+                           up to what the unit holds. Drawn for every duck that holds a spender, so
+                           an empty meter still says there is something to save for — and drawn for
+                           none that does not, which is a fact about the duck and not its class. *@
+                        @if (PlaytestText.MeterOf(unit) is { } meter)
                         {
-                            <span class="verve @(unit.Verve >= Verve.CostOf(spender) ? "ready" : string.Empty) @(Animator.IsCharging(unit.Id) ? "ticking" : string.Empty)"
-                                  title="@PlaytestText.VerveTitle(unit)">
+                            <span class="verve @(meter.Ready ? "ready" : string.Empty) @(Animator.IsCharging(unit.Id) ? "ticking" : string.Empty)"
+                                  title="@meter.Title">
                                 @for (int v = 0; v < Verve.Cap; v++)
                                 {
                                     <i class="vp @(v < unit.Verve ? "on" : string.Empty)"></i>

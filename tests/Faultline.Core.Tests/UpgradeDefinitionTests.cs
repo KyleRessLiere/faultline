@@ -170,22 +170,30 @@ public class UpgradeDefinitionTests
             switch (definition.Category)
             {
                 case OfferCategory.Mod:
-                    // A mod bolts onto a spender, and the spender is what makes it class-bound.
-                    Assert.NotNull(definition.Spender);
+                    // A mod bolts onto an ABILITY, and the ability is what makes it class-bound. A
+                    // spender is one kind of ability, so this reads the host and never the spender —
+                    // eight of the mods have no spender to read (D-243).
+                    Assert.NotNull(definition.Host);
                     Assert.NotNull(definition.Kind);
-                    Assert.Equal(definition.Spender, Verve.SpendFor(definition.Kind!.Value));
+
+                    // The class that OWNS the host, not the class's opening kit. Since G4 every class
+                    // has alternates on both axes, so "this mod's host is what the class starts with"
+                    // stopped being the invariant — a Grudge is a Vanguard's card because Retort is a
+                    // Vanguard's spender, and a Ploughshare is because Overrun is his action, whether
+                    // or not he opened with either.
+                    Assert.Equal(definition.Kind, Kits.KindOf(definition.Host!.Value));
                     break;
 
                 case OfferCategory.SecondWind:
-                    // Class-bound without a spender: it is an extra charge condition, not a button.
+                    // Class-bound without a host: it is an extra charge condition, not a button.
                     Assert.NotNull(definition.Kind);
-                    Assert.Null(definition.Spender);
+                    Assert.Null(definition.Host);
                     break;
 
                 default:
                     // Any duck may hold any unlock — each is one conditional at one rule site.
                     Assert.Null(definition.Kind);
-                    Assert.Null(definition.Spender);
+                    Assert.Null(definition.Host);
                     break;
             }
         }
@@ -199,7 +207,11 @@ public class UpgradeDefinitionTests
             if (definition.Category == OfferCategory.Mod)
             {
                 Assert.Equal(definition.Kind, CampCatalogue.KindOf(definition.AsMod));
-                Assert.Equal(definition.Spender, CampCatalogue.SpenderOf(definition.AsMod));
+                Assert.Equal(definition.Host, Kits.HostOf(definition.AsMod));
+
+                // A spender-hosted mod still answers the spender question; an action-hosted one
+                // answers null rather than a wrong spender.
+                Assert.Equal(definition.Spender, Kits.SpenderOf(definition.Host!.Value));
             }
             else if (definition.Category == OfferCategory.SecondWind)
             {
@@ -209,17 +221,29 @@ public class UpgradeDefinitionTests
     }
 
     [Fact]
-    public void EveryClass_HasThreeModsAndTwoSecondWinds()
+    public void EveryClass_HasThreeModsPerHostedAbility_AndTwoSecondWinds()
     {
         // The shape of §8.6's pool, asserted off the registry rather than off a copy of the table.
+        // Six per class was "three per spender, two spenders"; the count is now derived from how many
+        // of the class's abilities the pool actually hosts on, so the Archer's missing three do not
+        // read as a bug. Grounding Shot did not ship (D-236), so her Long Stake did not either.
         foreach (var kind in new[]
         {
             UnitKind.Vanguard, UnitKind.Archer, UnitKind.Threadcaster, UnitKind.Wardbearer,
         })
         {
-            Assert.Equal(
-                3,
-                UpgradeDefinition.All().Count(d => d.Category == OfferCategory.Mod && d.Kind == kind));
+            var mods = UpgradeDefinition.All()
+                .Where(d => d.Category == OfferCategory.Mod && d.Kind == kind)
+                .ToList();
+
+            foreach (var host in mods.Select(d => d.Host!.Value).Distinct())
+            {
+                // The axes are unchanged — cheaper, stronger, economy — which is the shape §8.6
+                // actually sizes its pool by. Interpose carries two: its third, Shield Arm, halves
+                // incoming damage until his next activation and was not commissioned here.
+                Assert.InRange(mods.Count(d => d.Host == host), 2, Kits.ModsPerSlot);
+                Assert.Equal(kind, Kits.KindOf(host));
+            }
 
             Assert.Equal(
                 2,

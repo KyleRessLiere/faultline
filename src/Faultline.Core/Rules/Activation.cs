@@ -89,6 +89,21 @@
         /// </remarks>
         public const int BullRushCost = 2;
 
+        /// <summary>
+        /// Overrun — the whole pool, and deliberately <em>not</em> <see cref="FullPool"/>.
+        /// </summary>
+        /// <remarks>
+        /// The number is the same three and the reason is not the rescue's, which is why this is its
+        /// own constant: <see cref="FullPool"/>'s remark forbids a second ability sharing it, because
+        /// that is how "the whole pool" quietly becomes a tier. Overrun costs everything because it
+        /// travels three tiles <em>and</em> displaces every body on the way — Bull Rush's price plus
+        /// the tile of run-up it no longer gets.
+        /// </remarks>
+        public const int OverrunCost = PlayerPool;
+
+        /// <summary>Punt — two of the three, the same heavy price <see cref="ReelCost"/> pays.</summary>
+        public const int PuntCost = 2;
+
         /// <summary>Kicking in a clinging unit, and any Pluck spend — free-timing, priced at nothing.</summary>
         public const int Free = 0;
 

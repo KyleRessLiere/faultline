@@ -1,5 +1,69 @@
 # Changelog
 
+## Every technique hangs on an ability now, and none of them can hide from a trade
+
+- **The five techniques §8.6 left hostless were assigned hosts**, on the rule that a technique hangs
+  on the ability that *triggers* it and a cross-flock card's beneficiary is the effect: Rattling
+  Impact on Bull Rush, Hand-Off on Reel, Spotter and Crossing Shot on the Archer's basic attack,
+  Stored Force on Spear Thrust. They are now forfeited, filtered and counted exactly as mods are —
+  five permanently unloseable upgrades are gone from an economy whose §4 law is that every slot is
+  replaceable. `TechniqueDefinition.Host` stopped being nullable and `DuckLoadout.TechniqueSlots`,
+  which only ever capped the cards that hung on nothing, is deleted.
+
+## A mod learns to hang on an action, and six more places stopped asking the archetype
+
+- **Eight new mods on the alternate actions** — Overrun's *Downhill* (2 AP from the ledge),
+  *Ploughshare* (everything he shoulders is Staggered) and *Full Weight* (+1 Pluck for two or more);
+  Punt's *Short Pole* (1 AP, shove 2), *Long Punt* (range 4) and *Downstream* (+1 Pluck for the whole
+  shove); Interpose's *Long Reach* (range 2) and *Changing of the Guard* (+1 Pluck for swapping onto a
+  tile an enemy declared). The pool is **32**.
+- **`Mod` hosts on an ability, and a spender is one kind of ability** (D-243). A widening, not a new
+  concept: `Kits.HostOf` answers a `KitEntry` either way, so **the never-offer-a-mod-for-an-unowned-
+  ability filter did not change by one character** and still spans both host kinds. Action-hosted mods
+  are **not** `TechniqueModifier`s — D-158/D-227's host contradiction stays visibly open.
+- **The archetype audit** (D-242): six more places asked the class what the duck holds. Four razors
+  labelled a Vanguard's meter *Wrecking Weight* while he held Retort and lit "ready" a point late for a
+  Fisher wearing Light Line; the camp strip reported a spender slot he no longer had; and the harness
+  scored a Fisher's Punt as a Reel. The meter is now **one reading** every surface prints, and
+  `Kits.SpenderHeldBy` is the one place the question is answered.
+- **Two rendered strings named removed features.** The Bestiary called the Archer a *"free climber"*
+  seventy lines below the method that removes the clause and explains why; the ability bar carried a
+  *"the third slot is Deep Mastery's"* note against a field D-226 deleted — which was hiding two
+  numbers for one ceiling and a socket list that drew every mod a duck wore.
+- **Not built, on purpose**: Grounding Shot's status and its *Long Stake*; *Deep Mire*, which is
+  struck outright (it forbids a climb D-165 removed); and Interpose's *Shield Arm*. All recorded in
+  D-244 for the next §8.6 stamp.
+
+## Seven alternate kits, and the eighth that stopped at the design's edge
+
+- **Seven abilities a run can put in a duck's free slot** — Vanguard **Overrun** (3 AP, runs a line
+  and shoulders every enemy aside) and **Retort** (2 Pluck, the first enemy that damages him is shoved
+  2); Archer **Skyfall** (3 Pluck, from high ground, 6 + Stagger at range 5); Fisher **Punt** (2 AP,
+  shove 3 at range 3) and **Whirl** (3 Pluck, everything beside her shoved and Staggered); Wardbearer
+  **Interpose** (1 AP, offer an adjacent ally a swap) and **Breakwater** (3 Pluck, any enemy ending a
+  move beside him is shoved and Staggered). Nobody starts with any of them.
+- **Grounding Shot is specified and NOT built** (D-236): it wants a halved Move until end of round,
+  and nothing in this game has ever changed a unit's movement budget. The cost of adding it is written
+  down so the designer can rule rather than re-derive.
+- **Twelve new mods**, three per alternate spender on the same cheaper / stronger / economy axes. The
+  pool is 24; a mod is still never offered for a slot the duck does not hold.
+- **Overrun is the Husk's Shoulder, called rather than copied** (D-239): `Trample.SideFor` and
+  `Trample.Shoulder` are now shared by the enemy's walk and the player's verb, so "a body that cannot
+  vacate is a wall" is one rule. **Interpose is Split Reed's offer**, same field, same command, same
+  consent — no new `Command` and no new offer state.
+- **Retort and Breakwater are flags read off the finished event stream** (D-237), the shape
+  `CrewCoverRound` and `CrossingShotRound` already have. No reaction window.
+- **Fixed: a Pluck spend committed its activation *after* resolving** (D-237), which wiped any stance
+  the spend had just armed. Commit now happens first; the ordering comment it replaced was about a
+  card removed in D-087.
+- **Fixed: the ability bar and the inspector asked the archetype what a duck holds** (D-238), so a
+  Fisher was offered a Punt she had never learned, greyed with no reason. All three reads now ask
+  Core.
+- **Fixed: four previews resolved "the ability being aimed" as "the unit's first ability"** (D-240) —
+  a Fisher holding Reel and Punt would have had her Punt drawn as a Reel.
+- **D-087's Retort ban is narrowed, not deleted** (D-235): it pinned a name, and §5's parked list
+  hands that name back to a different class for a different rule. The old mechanic survives as Whirl.
+
 ## Every player picks at every camp
 
 - **Two tables of two, one pick each**, each table's cards addressed to that player's own ducks

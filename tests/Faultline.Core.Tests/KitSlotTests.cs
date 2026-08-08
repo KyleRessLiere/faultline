@@ -252,17 +252,40 @@ public class KitSlotTests
         Assert.Equal(Kits.ModsPerSlot, Kits.ModsOn(both, KitEntry.Preen));
     }
 
-    /// <summary>A mod's host slot is derived from the card, never stored beside it.</summary>
+    /// <summary>
+    /// A mod's host slot is derived from the card, never stored beside it — and the host is an
+    /// <b>ability</b>, of which a spender is one kind. Every mod in the pool hangs on a real slot of
+    /// its own class's kit, whichever kind that slot is (D-243).
+    /// </summary>
     [Fact]
-    public void EveryModHangsOnTheSlotItModifies()
+    public void EveryModHangsOnASlotOfItsOwnClass_WhicheverKindOfAbilityThatSlotIs()
     {
+        bool sawASpenderHost = false;
+        bool sawAnActionHost = false;
+
         foreach (var mod in CampCatalogue.ModPool())
         {
             var host = Kits.HostOf(mod);
 
-            Assert.Equal(CampCatalogue.SpenderOf(mod), Kits.SpenderOf(host));
             Assert.Equal(CampCatalogue.KindOf(mod), Kits.KindOf(host));
+            Assert.Contains(host, Kits.For(Kits.KindOf(host)).Abilities
+                .Concat(Kits.For(Kits.KindOf(host)).Spenders)
+                .Concat(new[] { KitEntry.Overrun, KitEntry.Punt, KitEntry.Interpose,
+                    KitEntry.Retort, KitEntry.Skyfall, KitEntry.Whirl, KitEntry.Breakwater }));
+
+            if (Kits.SpenderOf(host) is not null)
+            {
+                sawASpenderHost = true;
+            }
+            else
+            {
+                sawAnActionHost = true;
+                Assert.NotNull(Kits.AbilityOf(host));
+            }
         }
+
+        Assert.True(sawASpenderHost, "the pool should still host mods on spenders");
+        Assert.True(sawAnActionHost, "the pool should now host mods on actions too");
     }
 
     // ---- the offer filter ---------------------------------------------------------------------------
@@ -303,26 +326,177 @@ public class KitSlotTests
         Assert.Contains(left, o => o.Category == OfferCategory.Consumable);
     }
 
-    /// <summary>A technique §8.6 hangs on no ability is filtered by nothing, because it hosts on
-    /// nothing — the D-158 contradiction, surfacing again under slots (D-227).</summary>
+    /// <summary>
+    /// <b>A duck is never shown a technique for an ability it does not own, by the same line that
+    /// refuses it a mod.</b> Asserted once, because it is implemented once: the filter reads
+    /// <see cref="Kits.HostOf(TechniqueModifier)"/> beside <see cref="Kits.HostOf(Mod)"/> and does
+    /// not branch on which kind of card it is holding.
+    /// </summary>
     [Fact]
-    public void AHostlessTechnique_HangsOnNoSlotAndIsNeverForfeited()
+    public void NoTechniqueIsOfferedForAnAbilityTheDuckNoLongerOwns()
     {
-        var hostless = CampCatalogue.TechniquePool().Where(t => Kits.HostOf(t) is null).ToList();
-        var hosted = CampCatalogue.TechniquePool().Where(t => Kits.HostOf(t) is not null).ToList();
+        var run = RunFixture.StartedInFirstFight(out _);
+        var archer = run.Squad.Single(u => u.Kind == UnitKind.Archer);
 
-        Assert.Equal(5, hostless.Count);
-        Assert.Equal(3, hosted.Count);
+        // Spotter and Crossing Shot are on her table while her basic attack is.
+        Assert.Contains(
+            CampCatalogue.EligibleFor(archer),
+            o => o.Category == OfferCategory.Technique && o.AsTechnique == TechniqueModifier.Spotter);
 
-        var loadout = DuckLoadout.Empty.With(TechniqueModifier.StoredForce);
-        Assert.Equal(1, Kits.HostlessTechniquesOn(loadout));
-
-        // Nothing leaving a slot takes it with it, on either axis.
-        foreach (var entry in Kits.StartingKit(UnitKind.Wardbearer)
-                     .Concat(Kits.StartingSpenders(UnitKind.Wardbearer)))
+        var kit = Kits.SlotsOf(archer.Kind, archer.Loadout);
+        var traded = archer with
         {
-            Assert.Contains(TechniqueModifier.StoredForce, loadout.Forfeiting(entry).Techniques);
+            Loadout = archer.Loadout.Replacing(
+                kit.ToList().IndexOf(KitEntry.ArcherBasic), KitEntry.Punt, kit),
+        };
+
+        Assert.DoesNotContain(KitEntry.ArcherBasic, Kits.SlotsOf(traded.Kind, traded.Loadout));
+        Assert.DoesNotContain(
+            CampCatalogue.EligibleFor(traded),
+            o => o.Category == OfferCategory.Technique
+                && (o.AsTechnique == TechniqueModifier.Spotter
+                    || o.AsTechnique == TechniqueModifier.CrossingShot));
+    }
+
+    /// <summary>
+    /// <b>Every technique hosts on a named ability — there is no hostless card left.</b> D-158's
+    /// nullable host was the design's gap carried in the type; Stage K closes it by assigning the
+    /// five §8.6 left unnamed, so the type stops being nullable and this asserts that it can.
+    /// </summary>
+    /// <remarks>
+    /// The host is a <see cref="KitEntry"/> and not an <see cref="Ability"/> for the reason a mod's
+    /// is (D-243): a basic attack is a slot a duck owns and can trade, but it is not an
+    /// <c>Ability</c> enum member, and two of the five host on one.
+    /// </remarks>
+    [Fact]
+    public void EveryTechniqueHangsOnASlotOfItsOwnClass_AndNoneHangsOnNothing()
+    {
+        foreach (var technique in CampCatalogue.TechniquePool())
+        {
+            var host = Kits.HostOf(technique);
+
+            Assert.Equal(CampCatalogue.KindOf(technique), Kits.KindOf(host));
+            Assert.Contains(host, Kits.For(Kits.KindOf(host)).Abilities
+                .Concat(Kits.For(Kits.KindOf(host)).Spenders));
         }
+    }
+
+    /// <summary>
+    /// <b>The five §8.6 left unnamed, each pinned to the trigger that names it</b> — so that a later
+    /// reader can check the assignment against the card text rather than trusting the table.
+    /// </summary>
+    [Theory]
+    // "the first enemy HE COLLIDES each round" — the collision is his, and Bull Rush is the ability
+    // that makes them; the other flock's +1 is the effect, never the host.
+    [InlineData(TechniqueModifier.RattlingImpact, KitEntry.BullRush)]
+    // "A DISPLACEMENT ending adjacent to the other flock's duck" — her displacement action is Reel.
+    // The duck that receives Push 1 hosts nothing.
+    [InlineData(TechniqueModifier.HandOff, KitEntry.Reel)]
+    // "she ignores MINIMUM RANGE" — §4 prints minimum range 2 on her basic attack, and Stagger Shot
+    // is defined by reference to it ("same min range").
+    [InlineData(TechniqueModifier.Spotter, KitEntry.ArcherBasic)]
+    // "her valid RANGE-2–3 FIRING LINE" — that band is her basic attack's. Replace it and the card
+    // has no line to cross.
+    [InlineData(TechniqueModifier.CrossingShot, KitEntry.ArcherBasic)]
+    // "his next TIP-TILE SPEAR HIT may spend it" — his resistance is innate (§4) and an innate is not
+    // a slot, so the host is the ability the card pays out through.
+    [InlineData(TechniqueModifier.StoredForce, KitEntry.SpearThrust)]
+    public void TheFiveTechniquesSection86LeftUnnamed_HostOnTheAbilityThatTriggersThem(
+        TechniqueModifier technique, KitEntry expected) =>
+        Assert.Equal(expected, Kits.HostOf(technique));
+
+    /// <summary>
+    /// <b>A technique is forfeited with its host, exactly as a mod is.</b> The whole of Stage K:
+    /// a card that can never be lost is not playing by the same rules as the ones that can.
+    /// </summary>
+    [Fact]
+    public void ReplacingAnAbility_ForfeitsItsTechniquesAndItsModsTogether()
+    {
+        var loadout = DuckLoadout.Empty
+            .With(TechniqueModifier.StoredForce)
+            .With(TechniqueModifier.ShelterStep);
+
+        // Stored Force goes with the spear; the stance keeps Shelter Step.
+        var afterSpear = loadout.Forfeiting(KitEntry.SpearThrust);
+        Assert.DoesNotContain(TechniqueModifier.StoredForce, afterSpear.Techniques);
+        Assert.Contains(TechniqueModifier.ShelterStep, afterSpear.Techniques);
+
+        var afterStance = loadout.Forfeiting(KitEntry.GuardStance);
+        Assert.Contains(TechniqueModifier.StoredForce, afterStance.Techniques);
+        Assert.DoesNotContain(TechniqueModifier.ShelterStep, afterStance.Techniques);
+    }
+
+    /// <summary>
+    /// <b>A cross-flock technique is forfeited when its OWNER's host leaves, never when the
+    /// beneficiary's kit changes.</b> Hand-Off writes onto the other flock's duck and Spotter reads
+    /// its position, but neither hangs there: K1's rule is that the beneficiary is the effect.
+    /// </summary>
+    [Fact]
+    public void ACrossFlockTechnique_IsForfeitedByItsOwnersHostAndNotTheBeneficiarys()
+    {
+        var fisher = DuckLoadout.Empty.With(TechniqueModifier.HandOff);
+        var archer = DuckLoadout.Empty.With(TechniqueModifier.Spotter);
+
+        // The beneficiary's slots are not the host: nothing the other flock trades touches these.
+        foreach (var entry in Kits.StartingKit(UnitKind.Vanguard)
+                     .Concat(Kits.StartingSpenders(UnitKind.Vanguard)))
+        {
+            Assert.Contains(TechniqueModifier.HandOff, fisher.Forfeiting(entry).Techniques);
+            Assert.Contains(TechniqueModifier.Spotter, archer.Forfeiting(entry).Techniques);
+        }
+
+        // The owner's host is.
+        Assert.DoesNotContain(
+            TechniqueModifier.HandOff, fisher.Forfeiting(KitEntry.Reel).Techniques);
+        Assert.DoesNotContain(
+            TechniqueModifier.Spotter, archer.Forfeiting(KitEntry.ArcherBasic).Techniques);
+    }
+
+    /// <summary>
+    /// <b>A run that deals techniques replays to an identical state and hash</b> with the host data
+    /// in the path — the offer filter now reads <see cref="Kits.HostOf(TechniqueModifier)"/> for
+    /// every technique it considers, so a host that varied between passes would diverge the draw.
+    /// </summary>
+    /// <remarks>
+    /// <b>This is not the assertion Stage K's packet asked for, and it cannot be.</b> K5 asked for
+    /// replay determinism <i>across a replacement that forfeits a technique</i>, reached by playing.
+    /// A replacement cannot be reached by playing: <see cref="DuckLoadout.Replacing"/> and
+    /// <see cref="DuckLoadout.ReplacingSpender"/> have <b>no caller anywhere in <c>src/</c></b> —
+    /// there is no run command and no <see cref="OfferCategory"/> for kit surgery, so §8.5's
+    /// Learn/Replace/Swap is a Core API that only tests can call. The forfeit itself is covered
+    /// directly by <see cref="ReplacingAnAbility_ForfeitsItsTechniquesAndItsModsTogether"/>; what is
+    /// uncovered is the replay of a surgery no player can perform yet.
+    /// </remarks>
+    [Fact]
+    public void ARunDealingTechniques_ReplaysToAnIdenticalStateAndHash()
+    {
+        var (played, log) = RunFixture.PlayWholeRun(seed: 4242);
+
+        Assert.Contains(
+            log.OfType<CampPickCommand>(),
+            c => c.Chosen is { Category: OfferCategory.Technique });
+
+        var replayed = Campaign.Replay(CampaignLibrary.Faultline, 4242, log);
+
+        Assert.Equal(played, replayed);
+        Assert.Equal(played.GetHashCode(), replayed.GetHashCode());
+    }
+
+    /// <summary>
+    /// <b>The forfeit is named on the rendered confirm line, not left to a flag.</b> §4: losing a
+    /// category of play reads louder than losing a card, so the card has to say its own name.
+    /// </summary>
+    [Fact]
+    public void TheConfirmSurfaceNamesAForfeitedTechniqueByName()
+    {
+        var loadout = DuckLoadout.Empty
+            .With(TechniqueModifier.StoredForce)
+            .With(TechniqueModifier.ShelterStep);
+
+        var named = loadout.ForfeitNames(KitEntry.SpearThrust);
+
+        Assert.Contains("Stored Force", named);
+        Assert.DoesNotContain("Shelter Step", named);
     }
 
     // ---- replacement --------------------------------------------------------------------------------

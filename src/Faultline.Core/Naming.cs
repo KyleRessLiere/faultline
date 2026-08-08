@@ -28,6 +28,13 @@ namespace Faultline.Core
         public const string MeterLower = "pluck";
 
         /// <summary>
+        /// The activation pool, as players know it. Here rather than only in the shell because a card
+        /// priced in action points is written in Core — a mod's text and the rule it names must not be
+        /// able to drift apart, which is the whole reason this class exists.
+        /// </summary>
+        public const string ActionPoints = "AP";
+
+        /// <summary>
         /// What an archetype is called on screen. The identifier stays put — the Fisher is
         /// <see cref="UnitKind.Threadcaster"/> in the code, in every command log and in every ruling
         /// that cites her (D-090).
@@ -89,6 +96,10 @@ namespace Faultline.Core
             VerveSpend.Cast => "Cast",
             VerveSpend.DoubleNock => "Double Nock",
             VerveSpend.Preen => "Preen",
+            VerveSpend.Retort => "Retort",
+            VerveSpend.Skyfall => "Skyfall",
+            VerveSpend.Whirl => "Whirl",
+            VerveSpend.Breakwater => "Breakwater",
             _ => spend.ToString(),
         };
 

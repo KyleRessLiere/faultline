@@ -483,20 +483,33 @@ public class CampTests
     [Fact]
     public void TheCatalogueHoldsTheWholeV1Pool_AndNothingBeyondIt()
     {
-        Assert.Equal(12, CampCatalogue.ModPool().Count);
+        // 24 hosted on spenders + 8 hosted on actions (D-243). §8.6 prints 24 and needs the widening
+        // carried into the next stamp; the count is asserted here so the doc gap cannot go quiet.
+        Assert.Equal(32, CampCatalogue.ModPool().Count);
         Assert.Equal(8, CampCatalogue.SecondWindPool().Count);
         Assert.Equal(3, CampCatalogue.UnlockPool().Count);
         Assert.Equal(10, CampCatalogue.ConsumablePool().Count);
 
-        // Three mods per spender, one spender per class (MASTER_DESIGN §8.6).
+        // Three mods per spender (MASTER_DESIGN §8.6), and since G4 there are eight spenders: the
+        // four §5 prints and the four alternates that can replace them. The rule the pool is sized
+        // by is unchanged — it is the number of spenders that doubled, not the number per spender.
         foreach (var spend in new[]
                  {
                      VerveSpend.WreckingWeight, VerveSpend.Cast,
                      VerveSpend.DoubleNock, VerveSpend.Preen,
+                     VerveSpend.Retort, VerveSpend.Whirl,
+                     VerveSpend.Skyfall, VerveSpend.Breakwater,
                  })
         {
-            Assert.Equal(3, CampCatalogue.ModPool().Count(m => CampCatalogue.SpenderOf(m) == spend));
+            Assert.Equal(3, CampCatalogue.ModsFor(Kits.EntryOf(spend)).Count);
         }
+
+        // And the three alternate ACTIONS that shipped carry theirs on the same three axes. Overrun
+        // and Punt carry three each; Interpose carries two, because its third — Shield Arm — was not
+        // commissioned. Grounding Shot's are absent with the ability (D-236).
+        Assert.Equal(3, CampCatalogue.ModsFor(KitEntry.Overrun).Count);
+        Assert.Equal(3, CampCatalogue.ModsFor(KitEntry.Punt).Count);
+        Assert.Equal(2, CampCatalogue.ModsFor(KitEntry.Interpose).Count);
 
         // Two conditions per class.
         foreach (var kind in new[]

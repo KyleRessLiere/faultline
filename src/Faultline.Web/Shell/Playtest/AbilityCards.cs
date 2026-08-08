@@ -55,23 +55,22 @@ public sealed record AbilityCard(
 /// player asks once and needs answered.
 /// </para>
 /// <para>
-/// <b>Three sockets, two fillable.</b> The design draws three; <see cref="DuckLoadout.ModSlots"/> is
-/// the capacity rule and it is 2 until the Molt's Deep Mastery ships. Rendering three and locking the
-/// last is how those two reconcile without the shell inventing a capacity of its own: the socket
-/// count is drawn from <see cref="Sockets"/> below and the fillable count is read off Core.
+/// <b>One socket per mod the slot can hold, and the number is Core's.</b> The shell used to draw a
+/// fixed three and lock the last against <c>DuckLoadout.ModSlots</c> = 2, on a note saying the third
+/// was Deep Mastery's — a field D-226 deleted and a reward that never shipped. Two numbers for one
+/// ceiling stayed equal by luck; there is now one, <see cref="Kits.ModsPerSlot"/>, so a locked socket
+/// is not a state this can reach (D-243).
 /// </para>
 /// </remarks>
 public static class AbilityCards
 {
-    /// <summary>How many sockets a spender's card draws — the design's always-three.</summary>
-    public const int SocketsDrawn = 3;
+    /// <summary>
+    /// How many sockets a slot's card draws: exactly what the slot can hold, from Core.
+    /// </summary>
+    public const int SocketsDrawn = Kits.ModsPerSlot;
 
-    /// <summary>What the locked socket says when asked.</summary>
-    public const string LockedSocketNote =
-        "Locked. The third slot is Deep Mastery's, and Deep Mastery is a Molt reward.";
-
-    /// <summary>What an empty, fillable socket says.</summary>
-    public const string EmptySocketNote = "Empty — camps offer mods for this spender.";
+    /// <summary>What an empty socket says.</summary>
+    public const string EmptySocketNote = "Empty — camps offer mods for this ability.";
 
     /// <summary>
     /// Every card the bar draws for the active duck, left to right. Move is always leftmost: it is
@@ -120,41 +119,65 @@ public static class AbilityCards
             Icon(row),
             isSpender ? SpenderEffect(unit, row.Spend!.Value) : row.Effect,
             isSpender ? BaseNote(unit, row.Spend!.Value) : string.Empty,
-            isSpender ? Sockets(unit) : new ModSocket[0]);
+            SlotOf(row) is { } slot && CampCatalogue.ModsFor(slot).Count > 0
+                ? Sockets(unit, slot)
+                : new ModSocket[0]);
     }
 
     /// <summary>
-    /// The three sockets, in order: the fitted mods, then the empty ones. The count is
-    /// <see cref="Kits.ModsPerSlot"/> — Core's, never a literal here — and since the kit-surgery
-    /// ruling made that three, <b>none of them is locked any more</b>: the third socket was Deep
-    /// Mastery's, and the ceiling it was going to raise is now the starting ceiling (D-226).
+    /// Which kit slot a row's card is about, or <c>null</c> when the row is not an ability at all.
     /// </summary>
-    /// <param name="unit">The duck whose spender is being drawn.</param>
+    /// <remarks>
+    /// A spender row and an action row both name a slot, which is the whole of what the widened mod
+    /// host asked of this file: sockets are drawn for a slot, and a spender is one kind of slot.
+    /// Move, Rescue and the interact rows name none and draw none (D-243).
+    /// </remarks>
+    /// <param name="row">The action.</param>
+    /// <returns>Its slot, or <c>null</c>.</returns>
+    public static KitEntry? SlotOf(ActionRow row) =>
+        row is null ? null
+        : row.Spend is { } spend ? Kits.EntryOf(spend)
+        : row.Ability is { } ability ? Kits.EntryOf(ability)
+        : (KitEntry?)null;
+
+    /// <summary>
+    /// One slot's sockets, in order: the mods hanging on <em>that</em> slot, then the empty ones.
+    /// </summary>
+    /// <remarks>
+    /// <b>Filtered by host, not by "everything this duck wears."</b> Reading the whole of
+    /// <see cref="DuckLoadout.Mods"/> was right for exactly as long as a duck could only own mods for
+    /// one ability; once a Vanguard can wear Ploughshare on Overrun and Heavier on Wrecking Weight,
+    /// an unfiltered read draws one card's mods in the other card's sockets.
+    /// <see cref="Kits.HostOf(Mod)"/> is the same question <see cref="CampCatalogue.EligibleFor"/>
+    /// asks to decide whether to offer it at all (D-243).
+    /// </remarks>
+    /// <param name="unit">The duck whose card is being drawn.</param>
+    /// <param name="slot">The slot the card is for.</param>
     /// <returns>Exactly <see cref="SocketsDrawn"/> sockets.</returns>
-    public static IReadOnlyList<ModSocket> Sockets(Unit? unit)
+    public static IReadOnlyList<ModSocket> Sockets(Unit? unit, KitEntry slot)
     {
-        var mods = unit?.Loadout.Mods ?? new Mod[0];
         var sockets = new List<ModSocket>(SocketsDrawn);
+        var fitted = new List<Mod>(SocketsDrawn);
+
+        foreach (var mod in unit?.Loadout.Mods ?? (IReadOnlyList<Mod>)new Mod[0])
+        {
+            if (Kits.HostOf(mod) == slot)
+            {
+                fitted.Add(mod);
+            }
+        }
 
         for (int i = 0; i < SocketsDrawn; i++)
         {
-            bool locked = i >= Kits.ModsPerSlot;
-
-            if (!locked && i < mods.Count)
+            if (i < fitted.Count)
             {
-                var mod = mods[i];
+                var mod = fitted[i];
                 sockets.Add(new ModSocket(
                     i, mod, false, CampCatalogue.NameOf(mod), CampCatalogue.SummaryOf(mod), string.Empty));
                 continue;
             }
 
-            sockets.Add(new ModSocket(
-                i,
-                null,
-                locked,
-                string.Empty,
-                string.Empty,
-                locked ? LockedSocketNote : EmptySocketNote));
+            sockets.Add(new ModSocket(i, null, false, string.Empty, string.Empty, EmptySocketNote));
         }
 
         return sockets;
@@ -182,9 +205,11 @@ public static class AbilityCards
 
         // Everything a mod adds rather than re-prices, in the mod's own words. Appended rather than
         // rewritten: the shell does not get to paraphrase a rule.
-        foreach (var mod in unit?.Loadout.Mods ?? new Mod[0])
+        foreach (var mod in unit?.Loadout.Mods ?? (IReadOnlyList<Mod>)new Mod[0])
         {
-            if (CampCatalogue.SpenderOf(mod) == spend && !ChangesANumberInTheLine(mod))
+            // By host, not by spender: eight mods have no spender to compare against and asking for
+            // one throws (D-243).
+            if (Kits.HostOf(mod) == Kits.EntryOf(spend) && !ChangesANumberInTheLine(mod))
             {
                 line += " " + CampCatalogue.SummaryOf(mod);
             }

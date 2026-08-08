@@ -235,6 +235,16 @@ in this file when the question comes back.
 | D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | 2026-08-07 |  |
 | D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 |  |
 | D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | 2026-08-07 |  |
+| D-235 | [RULED: the name Retort comes back for a different rule on a different class, and D-087's test was guarding the name rather than the ruling.](#d-235--ruled-the-name-retort-comes-back-for-a-different-rule-on-a-different-class-and-d-087s-test-was-guarding-the-name-rather-than-the-ruling) | unreleased | *supersedes part of D-087* |
+| D-236 | [STOPPED, not built: Grounding Shot wants a status this game does not have, and a status is not something an executor adds.](#d-236--stopped-not-built-grounding-shot-wants-a-status-this-game-does-not-have-and-a-status-is-not-something-an-executor-adds) | unreleased | **designer** |
+| D-237 | [The alternate spenders are flags read off the finished event stream, not reaction windows - and the spend path had to commit its activation first.](#d-237--the-alternate-spenders-are-flags-read-off-the-finished-event-stream-not-reaction-windows--and-the-spend-path-had-to-commit-its-activation-first) | unreleased |  |
+| D-238 | [Three shell reads of "what does this duck have" were asking the archetype, and G4 is what made them wrong.](#d-238--three-shell-reads-of-what-does-this-duck-have-were-asking-the-archetype-and-g4-is-what-made-them-wrong) | unreleased |  |
+| D-239 | [Overrun calls the Husk's Shoulder rather than reproducing it, and Interpose calls Split Reed's offer rather than growing a second one.](#d-239--overrun-calls-the-husks-shoulder-rather-than-reproducing-it-and-interpose-calls-split-reeds-offer-rather-than-growing-a-second-one) | unreleased |  |
+| D-240 | ["The unit's first held ability" stopped being the same question as "the ability being aimed", and four previews were asking the wrong one.](#d-240--the-units-first-held-ability-stopped-being-the-same-question-as-the-ability-being-aimed-and-four-previews-were-asking-the-wrong-one) | unreleased |  |
+| D-241 | [What §4 and §5 need carried into the next stamp.](#d-241--what-4-and-5-need-carried-into-the-next-stamp) | unreleased | **designer** |
+| D-242 | [The archetype-assumption audit: six more places asked the class what the duck holds, and two rendered strings named features that had been removed.](#d-242--the-archetype-assumption-audit-six-more-places-asked-the-class-what-the-duck-holds-and-two-rendered-strings-named-features-that-had-been-removed) | unreleased |  |
+| D-243 | [RULED: `Mod` grows an ability host, and a spender is one kind of ability. Action-hosted mods are not `TechniqueModifier`s.](#d-243--ruled-mod-grows-an-ability-host-and-a-spender-is-one-kind-of-ability-action-hosted-mods-are-not-techniquemodifiers) | unreleased |  |
+| D-244 | [What §8.6 needs carried into the next stamp.](#d-244--what-86-needs-carried-into-the-next-stamp) | unreleased | **designer** |
 | D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | 2026-08-07 |  |
 | D-246 | [One folder per sitting, and the filename check stays as strict as it was.](#d-246-one-folder-per-sitting-and-the-filename-check-stays-as-strict-as-it-was) | 2026-08-07 |  |
 | D-247 | [Every player picks at every camp, and §8.6's director rows are restated about two tables.](#d-247-every-player-picks-at-every-camp-and-86s-director-rows-are-restated-about-two-tables) | 2026-08-08 |  |
@@ -244,7 +254,7 @@ in this file when the question comes back.
 | D-251 | [A camp with an unspent table has no completion path, because a pick does nothing until the camp resolves.](#d-251-a-camp-with-an-unspent-table-has-no-completion-path-because-a-pick-does-nothing-until-the-camp-resolves) | 2026-08-08 |  |
 | D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | unreleased |  |
 
-**224 rulings.**
+**234 rulings.**
 
 <!-- toc:end -->
 ---
@@ -5975,6 +5985,346 @@ each test was written.
 
 Proven by neutering: the write was removed and the test went red before it was allowed green.
 
+---
+
+**D-235 — RULED: the name Retort comes back for a different rule on a different class, and D-087's
+test was guarding the name rather than the ruling.**
+
+D-087 parked Retort — *"end Guard Stance, shove every adjacent enemy a tile away, clockwise from
+north"* — removed it from `VerveSpend`, and left `PluckNamingTests.RetortIsGone_...` asserting that no
+member of that enum is ever called Retort again.
+
+MASTER_DESIGN §5's **parked spender list** names Retort as source material for *"the legendary catalog,
+starting-kit variants, and Generations hybrid verbs"*, and G4 is the starting-kit variants. So the
+design hands the name back — to the **Vanguard**, for a rule that shares nothing with the old one but
+the word: *until his next activation, the first enemy that damages him is shoved 2 away*.
+
+**The test's ban was too broad and is narrowed rather than deleted.** What D-087 actually ruled is
+that the Wardbearer opens with Preen and that the stance-ending shove is not coming back to him. Both
+still hold and are both still asserted: `Verve.SpendFor(UnitKind.Wardbearer)` is Preen, and
+`Kits.KindOf(KitEntry.Retort)` is the Vanguard. A test that pins a *name* rather than a *rule* fails
+the day the design reuses the name, which is what happened here.
+
+**The old Retort's mechanic is not lost — it is Whirl.** "Shove every adjacent enemy a tile away" is
+now the Fisher's alternate spender, with the Stagger §5's parked entry did not have. D-077's ordering
+rule does not travel with it: Whirl reads no stance, so nothing constrains it to the opening move.
+
+---
+
+**D-236 — STOPPED, not built: Grounding Shot wants a status this game does not have, and a status is
+not something an executor adds.**
+
+G4's packet commissioned eight alternates and said that any one needing new grammar, a new status or
+new timing must stop and be reported — the Crossing Shot precedent. **Seven were built from existing
+physics. Grounding Shot was not.**
+
+**What it wanted:** *range 3, 2 damage, and the target's Move is halved — round up, min 1 — until end
+of round.* The damage and the range are ordinary. The halved Move is not:
+
+- **Nothing in this codebase has ever changed a unit's movement budget.** `Unit.Move` reads
+  `Template.Move` off a static table, and `Activation.Pool` is its only consumer. Not one mod,
+  legendary, technique, consumable or unlock touches it — `Unlock.SureFooted` changes a *tile's* cost,
+  never the pool.
+- **MASTER_DESIGN §3's Statuses paragraph does not contain it.** The list is Staggered, Footing,
+  Clinging, Voided/Swept and Bedraggled. A slow is a sixth, and §3 is inbound-only.
+- **`UnitStatus` is a closed list on purpose**, and its own remark says adding one is "a code change
+  with a test, not a spelling" — exactly the kind of change the packet reserved to the designer.
+
+**What it would cost, so the decision can be made rather than re-derived:** one `bool Slowed` on
+`Unit` cleared beside `Staggered` at round end (`Game.cs`, the round-open rewrite), one `UnitStatus`
+member so a `StatusEffect` can name it, one branch in `Activation.Pool`, and a rendering of it on the
+unit card and on the enemy's reachable overlay — because a slowed enemy whose threat range still draws
+at full is the preview lying. That is a small change and it is still not an executor's to make.
+
+**The mods go with it.** *Long Stake* (range 4) is ordinary; **Deep Mire** — *"the target also cannot
+climb this round"* — is a **second** new status and a worse one, since D-165's climb removal means
+there is no climb cost left for it to forbid. *Stakeholder* depends on the slow existing.
+
+**The 2 AP price is recorded here so it is not lost with the ability.** §3: *"acting costs legs…
+kiting is a countdown, not a stall."* A slowed Husk (3→2) covers exactly what an acting Archer covers;
+at 2 AP she moves one tile and fires, so she cannot kite behind her own slow. **No mod may discount
+it** — and none of the three written for it did.
+
+---
+
+**D-237 — The alternate spenders are flags read off the finished event stream, not reaction windows —
+and the spend path had to commit its activation first.**
+
+Retort (*"the first enemy that damages him"*) and Breakwater (*"any enemy that ends a move adjacent to
+him"*) both fire in answer to somebody else's command. Neither gets a reaction window. Each is a
+`bool` on `Unit`, read by a listener in the window `Verve.Charge` has read since D-073 — the same
+shape `CrewCoverRound`, `RattlingImpactRound` and `CrossingShotRound` already have (D-157, D-221).
+`UnitDamaged` names who was hurt and never who hurt them, so the attacker comes back out of the stream
+through `Verve.Causer`: the identical question the meter already asks of the identical list.
+
+**They fire before `Verve.Charge`, deliberately.** A retort's shove is a displacement the holder
+caused, and §5 pays the Vanguard for causing collisions. Charging first would have quietly excluded
+the only shove the card exists to make from the only condition that could pay for it.
+
+**And a real bug fell out of building them.** `Game.ApplySpendVerve` resolved the spend and *then*
+committed the activation, on a comment citing D-058: the parked Retort read Guard Stance, and taking
+the slot is what drops it. Nothing has read the stance from there since D-087 removed that card — but
+`CommitActivation` is where a standing spender lapses, so a spend that armed one and then committed
+was **wiping the flag it had just set**. The order is now commit-then-spend. The old comment said in
+its own last line that "every other spend is unaffected by the order", and the suite agrees.
+
+**Breakwater is not consumed by firing and Retort is.** A retort answers one enemy; a breakwater is a
+standing thing that charges every body that walks into it until the stance lapses. Only the Toll mod's
+payout is once per round, and that latch is `Unit.BreakwaterTollRound`. Both stances lapse at the
+start of the holder's next activation — §5 words both "until his next activation", which is Guard
+Stance's own expiry (D-058) and not end of round.
+
+---
+
+**D-238 — Three shell reads of "what does this duck have" were asking the archetype, and G4 is what
+made them wrong.**
+
+`GameSession.SelectedAbilities`, `ActionRows.AbilityRows` and `ActionRows.SpendRows` each asked
+`AbilityDefinition.AllForKind(kind)` or `Verve.SpendFor(kind)`. Those agreed with the duck's actual
+kit for as long as a class's kit and its archetype's list were the same thing. G4 ends that: the bar
+began offering a Fisher a **Punt nobody had taught her**, greyed with an empty reason — because there
+is no reason to give, she does not have it — which
+`AbilityBarTests.EveryDisabledCardStillCarriesItsReason` caught, being the test that exists for "a
+silent no-op is a bug".
+
+All three now ask Core: `Abilities.AllOf(unit)` and `Verve.SpendFor(unit)`, both built by G1 for
+exactly this. **This is CLAUDE.md's third prime directive, not a tidy-up** — the shell was keeping its
+own answer to a question about game legality, and a second copy of a rule is how a screen comes to
+contradict the board.
+
+`InspectorCardTests.ANonActivePlayersDuck_StillListsItsWholeKit` asserted against the archetype's
+table and now asserts against the duck's slots. Its intent is untouched: the kit is a fact about that
+duck, not about whose turn it is.
+
+---
+
+**D-239 — Overrun calls the Husk's Shoulder rather than reproducing it, and Interpose calls Split
+Reed's offer rather than growing a second one.**
+
+Two alternates were specified as player versions of rules the enemy side already has. Neither got a
+second implementation.
+
+**Overrun → `Trample`.** The side a body is knocked toward, the fixed N/E/S/W order, and the "it must
+actually vacate or the mover stops" clause were already `Trample.Side`, gated behind
+`mover.Template.Tramples`. That gate was split out: `Trample.SideFor` is the geometry and the vacate
+test, `Trample.Shoulder` is the resolution, and `Trample.Side`/`Resolve` are now the Husk's two
+callers of them. The one number that differs is contact damage — §4 gives the Vanguard's charge base
+contact damage 0, so he passes zero where a Husk passes 2. **The vacate test is what keeps a
+Wardbearer a door rather than a speed bump, in both directions, from one place.**
+
+Overrun's projection resolves in the order the action does (D-184): each shove is computed against the
+board the previous shove left behind, because the second body's escape route genuinely depends on
+whether the first one is still standing in it.
+
+**Interpose → `Unit.SplitReedOfferFrom` and `TakeSplitReedCommand`.** §8.5's bodily-consent rule means
+nothing moves another player's duck without that owner saying so, and D-192 settled the shape: the
+offer rides on the answering duck and never issuing the command is a legal answer that costs the
+answerer nothing. Two rules saying the identical sentence are the **identical field** (D-190), so
+there is no second offer field and **no new `Command`** — which also means no `RunRecord.Format` case
+was owed. What is not shared is the *announcement*: `DucksOfferedSwap` is not `SplitReedOffered`,
+because a log reporting an Interpose as a spent pocket item would describe a card the player does not
+hold. The two tiles' legality is `CrewCover.TilesAreLegal`, asked rather than restated.
+
+**`AbilityTargeting.Ally` is the one judgement call in this packet.** It is a new value in a closed
+list, not new grammar: `AbilityCommand.TargetId` already carries a unit id and never asked which side
+it was on, so the existing command takes Interpose unchanged — which is the Crossing Shot test,
+passed. Flagged here because it is the only place a reasonable reader could say the stop condition
+should have fired.
+
+---
+
+**D-240 — "The unit's first held ability" stopped being the same question as "the ability being
+aimed", and four previews were asking the wrong one.**
+
+`Abilities.Shove`, `PreviewTarget`, `TargetCandidates` and `PreviewCharge` all resolved the ability
+under test by calling `Abilities.Of(unit)` — the *first* ability in the duck's slots. That was correct
+while no class held two abilities of the same targeting shape. G4 gives the Fisher a second `Enemy`
+ability and the Vanguard a second `Direction` one, at which point a Fisher holding Reel and Punt would
+have had her **Punt previewed and resolved as a Reel**, and a Vanguard holding Bull Rush and Overrun
+would have had both drawn as whichever sat lower in his slots.
+
+The descriptor is now threaded through. `PreviewLine` already took its ability by name for this exact
+reason and says so in its own remark — *"a preview that quietly describes a different ability is worse
+than no preview"* — so this is that ruling applied to the other four rather than a new one.
+
+---
+
+**D-241 — What §4 and §5 need carried into the next stamp.**
+
+Inbound-only, so it is recorded here rather than written there.
+
+- **§4** prints each class's kit as its definition. It is the **starting contents of slots**, and
+  there are now seven alternates that can sit in them. §4 needs a line saying so, and needs the three
+  alternate *actions* named: Overrun (Vanguard), Punt (Fisher), Interpose (Wardbearer).
+- **§5**'s parked spender list is now half-spent: Retort, Overrun, Grounding Shot, Skyfall and
+  Interpose have been taken off it, and Whirl and Breakwater were added to it by G4's packet without
+  ever appearing in the doc. §5 needs the four alternate spenders printed with their costs — Retort 2,
+  Skyfall 3, Whirl 3, Breakwater 3 — and needs to say that a class may hold **one** spender, so an
+  alternate replaces rather than joins.
+- **§5's charge-condition table is unchanged and must stay unchanged.** Every alternate spender was
+  built against the class's existing income. This is worth printing beside the alternates, because it
+  is the law they are most likely to be read as breaking.
+- **§3's Statuses list is the reason Grounding Shot did not ship** (D-236). If the designer wants it,
+  the status goes in §3 first.
+- **§8.6's mod pool doubles to 24** — three per spender, and there are now eight spenders. The axes
+  are unchanged: cheaper, stronger, economy.
+
+---
+
+**D-242 — The archetype-assumption audit: six more places asked the class what the duck holds, and
+two rendered strings named features that had been removed.**
+
+D-238 found three of these by content colliding with them. The packet's instruction was to grep for
+the rest before the remaining classes land, on the reading that **all three Stage G bugs shared one
+cause: something asked the ARCHETYPE what a duck holds, when under kit surgery the answer lives on
+the DUCK.** Six more were found; every one is fixed and pinned.
+
+**Four were the same call, written four times.** `PlaytestText.VerveTitle`, `CoordinateGrid`,
+`TurnOrderList` and `InspectorPanel` each asked `Verve.SpendFor(unit.Kind)` and priced readiness off
+the *printed* cost. Three consequences, all visible: a Vanguard holding Retort had his meter
+**labelled Wrecking Weight**; a Fisher wearing Light Line lit "ready" **one point late**; and the
+"does this duck draw a meter at all" branch answered about the class, so a duck left without a
+spender would still have drawn one. They are now **one reading** —
+`PlaytestText.MeterOf(Unit)` returning a `MeterReading?` — and `null` is the whole of "draws no
+meter". Three razors sharing one wrong answer is why the fix is a shared right one rather than four
+edits.
+
+**The fifth was the camp strip.** `CampCards.ReasonFor` asked `Verve.SpendFor(duck.Kind)` and then
+tested *that* slot's fullness, so a Vanguard who had traded Wrecking Weight away was told **"Wrecking
+Weight full at 3"** about a slot he no longer had.
+
+**The sixth was the harness, and it is D-240 surviving where no test looks.** `Evaluator.AbilityScore`
+still called `Abilities.Of(unit)` and the descriptor-less `PreviewTarget`/`PreviewCharge` overloads,
+so a Fisher holding Reel and Punt had her **Punt scored as a Reel**. Core was threaded at D-240;
+`tools/Faultline.Playtest` has no test project, so nothing caught it. It now resolves
+`Abilities.DescriptorFor(unit, command.Ability)` and passes it to both previews.
+
+**One seam, not two overloads.** `Kits.SpenderHeldBy(UnitKind, DuckLoadout?)` is now the only place
+"what does this duck spend with" is answered; `Verve.SpendFor(Unit)` delegates to it and the run layer
+asks it directly. Two overloads each walking the slot list is two answers waiting to disagree.
+
+**Correct to be archetype-derived, pinned so the next audit does not re-open them.** A class's stat
+line (`MaxHp`, `Move`, `PushResistance`), its display name, §5's charge-condition table
+(`Verve.ConditionFor`), `AbilityDefinition.AllForKind` as the *universe* `Abilities.AllOf` filters,
+`Kits.BasicFor`, `Kits.KindOf`, `DefaultTeams.SideFor`, the AI's target priority, and the Create
+screen's class cards. **Kit surgery cuts what a duck can do, never what it is.**
+`ArchetypeLookupTests` asserts both halves.
+
+**And the stale-comment sweep, which found two rendered lies.**
+
+- `EnemyBehaviour.RoleFor(UnitKind.Archer)` returned *"ranged damage, **free climber**"* — a perk
+  MASTER_DESIGN §3 (locked u) removed and D-165 finished off. **`DescribeClimb`, seventy lines below
+  it in the same file, says in its own remark that a "climbs free" clause "would name a perk nobody is
+  without" and returns null.** One half of the file removed the clause and the other half went on
+  printing it, on the Bestiary. `UnitKind.Archer`'s own doc said the same thing.
+- `AbilityCards`'s class remark cited `DuckLoadout.ModSlots`, a field D-226 deleted, and held a
+  `LockedSocketNote` constant reading *"Locked. The third slot is Deep Mastery's."* The dead string
+  was the small half. What it was hiding: **two numbers for one ceiling** — the shell's
+  `SocketsDrawn = 3` and Core's `Kits.ModsPerSlot = 3`, equal by luck — and `Sockets(unit)` reading
+  **every mod the duck wore** rather than the ones on the card being drawn, which was correct only
+  while a duck could own mods for one ability. D-243 ends that. `SocketsDrawn` is now
+  `Kits.ModsPerSlot` and a locked socket is unreachable by construction.
+- `CampCards` also carried a `see cref` to `DuckLoadout.SpenderIsFull`, a member that no longer
+  exists.
+
+**A comment that names a removed thing is a defect indicator, not documentation.** All three found
+something live behind them.
+
+---
+
+**D-243 — RULED: `Mod` grows an ability host, and a spender is one kind of ability. Action-hosted
+mods are not `TechniqueModifier`s.**
+
+`Kits.HostOf(Mod) = EntryOf(CampCatalogue.SpenderOf(mod))` was an artifact of the pre-slot world,
+where spenders were the only thing a mod could hang on. Under kit surgery "spender" and "action" are
+both just abilities occupying slots, so the type follows: **a mod hosts on an ability**, and
+`UpgradeDefinition.Host` is a `KitEntry`. `Spender` is now derived from it and answers `null` for the
+eight whose host is an action, rather than a wrong spender.
+
+**Rejected: routing them into `TechniqueModifier`.** That silently changes what §8.6's pool of **24**
+counts, and D-158/D-227's host contradiction is already open. Adding a second quiet redefinition on
+top of an unresolved one is how a vocabulary rots. **D-158/D-227 stays visibly open. This ruling does
+not close it and does not absorb it** — the five hostless techniques still hang on no slot and are
+still the designer's.
+
+**The filter stayed one implementation, and that is the evidence the widening was the right shape.**
+`CampCatalogue.EligibleFor`'s mod branch did not change by one character: it still reads
+`Kits.Holds(duck.Kind, loadout, Kits.HostOf(mod))`. `HostOf` answers a `KitEntry` whichever kind of
+ability the host is, so a Fisher who never learned Punt is refused a Long Punt by the same line that
+already refused a Vanguard a Grudge. `ModsOn`, `SlotIsFull`, the per-slot ceiling of three and the
+forfeit-on-replacement rule all came through untouched. The one call that could not survive was
+`Naming.Of(CampCatalogue.SpenderOf(mod))` in the refusal message and on the camp card — both now
+`Kits.NameOf(Kits.HostOf(mod))`, which names either kind from one place.
+
+**Eight of nine built, and the ninth said out loud.** Grounding Shot's status is approved but is a
+separate packet, so **Long Stake is held with its ability**; **Deep Mire is struck** — it forbids a
+climb D-165 removed. *Shield Arm*, Interpose's third from G4's packet, was not commissioned here, so
+Interpose carries two. The pool is **32**: 24 on spenders, 8 on actions.
+
+**Two new Core seams, each because a number stopped being a constant.**
+
+- `Abilities.CostOf(state, unit, descriptor)` — the one place an action is priced, read by the legality
+  check, the charge and the card. Downhill's condition is the **board** (*"begins the charge on high
+  ground"*), so the same duck pays 2 from the ledge and 3 from the flat in the same activation, which
+  is why the query takes state.
+- `Abilities.RangeFor(unit, descriptor)` — read by the legal-target list, the greyed reason and the
+  aiming overlay. A mod that lengthened the reach in one of them would be a card that works only where
+  somebody remembered it.
+
+**Punt became a custom rule and Reel did not.** A bare `PushEffect` resolves the shove perfectly well
+and cannot *notice*. Downstream pays only when the body travels the whole shove, and that is a
+question about the state the pipeline left. **The measure is `UnitPushed.Path`, not the end
+positions**: measuring start-to-finish looked equivalent and paid Downstream for a punt that killed a
+body against a wall without moving it a tile, because an off-board body has no position left to
+compare. The path is what the displacement itself says it did.
+
+**And "the whole shove" is deliberately not "the full 3".** Short Pole and Downstream fit in the same
+slot — the slot holds three — so a literal 3 would have made the economy card inert the moment the
+cheaper one was worn. A card that cannot pay is a card the offer should never have dealt.
+
+**Changing of the Guard asks its question before the swap**, because afterwards the duck an enemy
+declared is standing somewhere else and the tile answers no. It is paid on the **accepted swap** and
+never on the offer: §8.5's bodily consent means the ally's owner is what turns an Interpose into a
+step. **The one place D-190's shared offer field shows through**: a Wardbearer who spent a Split Reed
+to make the identical swap is paid too. Telling them apart needs the second offer field D-190
+refused, and the mod is worn by a duck holding Interpose either way, so the payout never reaches a
+duck the card is not for.
+
+**Full Weight is paid once for the run, not per body**, because the card asks a question about the run
+— "if he pushes 2 or more". It is not paid at all if a collision takes the runner off the board, since
+banking Pluck to a duck that is no longer standing is Pluck nobody can spend.
+
+**Naming grew one word.** `Naming.ActionPoints = "AP"` moved into Core because a mod's card text is
+written there; the shell's `ActionPoints.Label` now reads it instead of holding a second copy.
+
+---
+
+**D-244 — What §8.6 needs carried into the next stamp.**
+
+Inbound-only, so it is recorded here rather than written there. This continues D-241.
+
+- **The Modify pool is 32, not 24.** §8.6 sizes its pools by their axes, and the axes are unchanged —
+  cheaper, stronger, economy. What changed is the number of **hosts**: 8 spenders at 3 each, plus 3
+  alternate actions carrying 3 + 3 + 2. §8.6 needs the eight action mods printed: *Downhill ·
+  Ploughshare · Full Weight* (Overrun) · *Short Pole · Long Punt · Downstream* (Punt) · *Long Reach ·
+  Changing of the Guard* (Interpose).
+- **§8.6 needs to say that a mod hosts on an ability**, of which a spender is one kind. The heading
+  currently reads as though Modify is a spender-only pool, and it is not.
+- **The 24 in §8.6's technique heading still means the techniques**, and must keep meaning them. That
+  is exactly why the action mods were not routed there (D-243).
+- **Interpose is one mod short.** G4's packet wrote three; *Shield Arm* — *"the swapped ally's
+  incoming damage is halved until his next activation"* — was not commissioned in this packet. It is a
+  damage-halving flag with a duration, which is closer to a status than to the other seven, so it
+  wants a ruling rather than an executor.
+- **Grounding Shot's three go with the ability.** *Long Stake* (range 4) is ordinary and ships the day
+  the status does. *Deep Mire* is **struck** and needs a replacement written: it forbids climbing, and
+  D-165 removed the climb surcharge, so there is nothing left for it to forbid. *Stakeholder* depends
+  on the slow existing.
+- **Deep Mastery is still inert** and still the designer's (D-226). Three mods per slot is the
+  starting ceiling; the Molt reward that was to raise 2 to 3 has nothing to raise, and the slot ruling
+  says nothing may grant a fourth.
+- **§8.6's mod pool is content, not law**, by its own header — so the eight are offered as tuning
+  candidates, not as fixed numbers.
 
 ---
 

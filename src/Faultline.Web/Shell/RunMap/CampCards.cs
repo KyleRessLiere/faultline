@@ -124,13 +124,16 @@ public static class CampCards
     /// <returns>One phrase.</returns>
     public static string BoundTo(CampOffer offer, string duckName) => offer.Category switch
     {
+        // The host, not the spender: a mod may now hang on an action, and Kits.NameOf names either
+        // kind of ability from one place (D-243). A technique reads the same line for the same
+        // reason — since Stage K it has a host of the same kind, so "'s kit" has nothing left to
+        // describe.
         OfferCategory.Mod =>
-            duckName + "'s " + Naming.Of(CampCatalogue.SpenderOf(offer.AsMod)),
+            duckName + "'s " + Kits.NameOf(Kits.HostOf(offer.AsMod)),
         OfferCategory.SecondWind => duckName + " earns it",
         OfferCategory.Unlock => duckName + " only",
-        OfferCategory.Technique => TechniqueDefinition.For(offer.AsTechnique).Host is { } host
-            ? duckName + "'s " + AbilityDefinition.For(host).Name
-            : duckName + "'s kit",
+        OfferCategory.Technique =>
+            duckName + "'s " + Kits.NameOf(Kits.HostOf(offer.AsTechnique)),
         _ => duckName + "'s pocket",
     };
 
@@ -184,7 +187,7 @@ public static class CampCards
     /// </summary>
     /// <remarks>
     /// Both capacity rules are read, not restated: a full spender contributes no mods
-    /// (<see cref="DuckLoadout.SpenderIsFull"/>) and a full pocket contributes no one-shots
+    /// (<see cref="Kits.SlotIsFull"/>) and a full pocket contributes no one-shots
     /// (<see cref="DuckLoadout.Pocket"/>). Saying so on the strip is what turns "why is there no mod
     /// on this table" from a mystery into a fact the player already knew.
     /// </remarks>
@@ -233,7 +236,10 @@ public static class CampCards
         }
         else
         {
-            if (Verve.SpendFor(duck.Kind) is { } spend
+            // The duck's own Pluck slot, not its class's opening one: a Vanguard who traded Wrecking
+            // Weight for Retort was told his Wrecking Weight was full, about a slot he no longer has
+            // (D-242).
+            if (Kits.SpenderHeldBy(duck.Kind, loadout) is { } spend
                 && Kits.SlotIsFull(loadout, Kits.EntryOf(spend)))
             {
                 said.Add(

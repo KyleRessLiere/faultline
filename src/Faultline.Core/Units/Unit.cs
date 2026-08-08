@@ -277,6 +277,41 @@ namespace Faultline.Core
         /// </summary>
         public bool GuardHeldByRoots { get; init; }
 
+        /// <summary>
+        /// True while Retort is standing: the first enemy that damages this unit before its next
+        /// activation is shoved away (MASTER_DESIGN §5's parked spender list).
+        /// </summary>
+        /// <remarks>
+        /// <b>A flag read at the moment, not a reaction window.</b> The shove is worked out from the
+        /// finished event stream of the command that dealt the damage — the same window
+        /// <see cref="Verve.Charge"/> reads, and the causer comes back out of it through
+        /// <see cref="Verve.Causer"/>. There is no interrupt, no priority queue and no timing system:
+        /// this is <see cref="WreckingWeightArmed"/>'s shape with a different trigger (D-157, D-221).
+        /// Consumed by the first enemy that lands damage, and dropped at the start of this unit's
+        /// next activation whether it fired or not — the same expiry <see cref="Guarding"/> has, for
+        /// the same reason: the enemy round it is meant to cover happens after the round it was
+        /// declared in (D-058).
+        /// </remarks>
+        public bool RetortArmed { get; init; }
+
+        /// <summary>
+        /// True while Breakwater is standing: any enemy that ends a move adjacent to this unit before
+        /// its next activation is shoved 1 away and Staggered.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="RetortArmed"/>'s twin, and read in the same window off the same stream — the
+        /// trigger is a finished <see cref="UnitMoved"/> rather than a finished
+        /// <see cref="UnitDamaged"/>. Unlike Retort it is <em>not</em> consumed by firing: the card is
+        /// a door, so it charges every body that walks into it until the stance drops.
+        /// </remarks>
+        public bool BreakwaterArmed { get; init; }
+
+        /// <summary>
+        /// Round in which Breakwater last took its toll for this unit. Zero when it never has — the
+        /// latch behind the Toll mod's "the first time each round".
+        /// </summary>
+        public int BreakwaterTollRound { get; init; }
+
         /// <summary>True while clinging to the lip of a pit.</summary>
         public bool Clinging { get; init; }
 

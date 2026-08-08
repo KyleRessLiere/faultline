@@ -87,6 +87,10 @@ namespace Faultline.Core
             VerveSpend.Cast => 3,
             VerveSpend.DoubleNock => 4,
             VerveSpend.Preen => 3,
+            VerveSpend.Retort => Faultline.Core.Retort.Cost,
+            VerveSpend.Skyfall => Faultline.Core.Skyfall.Cost,
+            VerveSpend.Whirl => Faultline.Core.Whirl.Cost,
+            VerveSpend.Breakwater => Faultline.Core.Breakwater.Cost,
             _ => 0,
         };
 
@@ -114,6 +118,9 @@ namespace Faultline.Core
                 VerveSpend.Cast when unit.Has(Mod.LightLine) => LightLineCost,
                 VerveSpend.DoubleNock when unit.Has(Mod.FletchersRhythm) => FletchersRhythmCost,
                 VerveSpend.Preen when unit.Has(Mod.Quick) => QuickPreenCost,
+                VerveSpend.Retort when unit.Has(Mod.HairTrigger) => Faultline.Core.Retort.HairTriggerCost,
+                VerveSpend.Whirl when unit.Has(Mod.Riptide) => Faultline.Core.Whirl.RiptideCost,
+                VerveSpend.Breakwater when unit.Has(Mod.LowWall) => Faultline.Core.Breakwater.LowWallCost,
                 _ => CostOf(spend),
             };
         }
@@ -183,15 +190,8 @@ namespace Faultline.Core
         /// </summary>
         /// <param name="unit">Unit to ask about.</param>
         /// <returns>Its spend, or null.</returns>
-        public static VerveSpend? SpendFor(Unit? unit)
-        {
-            if (unit is null || SpendFor(unit.Kind) is not { } spend)
-            {
-                return null;
-            }
-
-            return Kits.Holds(unit.Kind, unit.Loadout, Kits.EntryOf(spend)) ? spend : (VerveSpend?)null;
-        }
+        public static VerveSpend? SpendFor(Unit? unit) =>
+            unit is null ? null : Kits.SpenderHeldBy(unit.Kind, unit.Loadout);
 
         /// <summary>The spend's name, for a card or a button.</summary>
         /// <param name="spend">The spend.</param>
@@ -217,6 +217,19 @@ namespace Faultline.Core
                 "Attack twice this activation. Two separate targets, each resolved in full.",
             VerveSpend.Preen =>
                 "Patch yourself up for " + PreenHeal + ", never past your maximum.",
+            VerveSpend.Retort =>
+                "Until your next activation, the first enemy that damages you is shoved "
+                + Faultline.Core.Retort.PushDistance + " tiles away.",
+            VerveSpend.Skyfall =>
+                "From high ground only: an arcing shot out to " + Faultline.Core.Skyfall.Range
+                + " tiles for " + Faultline.Core.Skyfall.Damage
+                + " damage and a Stagger. Your minimum range is unchanged.",
+            VerveSpend.Whirl =>
+                "Every enemy standing beside you is shoved " + Faultline.Core.Whirl.PushDistance
+                + " tile away and Staggered.",
+            VerveSpend.Breakwater =>
+                "Until your next activation, any enemy that ends a move beside you is shoved "
+                + Faultline.Core.Breakwater.PushDistance + " tile away and Staggered.",
             _ => string.Empty,
         };
 
@@ -433,6 +446,17 @@ namespace Faultline.Core
                 // chance to burn three points on nothing — and with Neighborly fitted the same test
                 // has to look next door, or the mod would be unusable whenever he is unhurt.
                 VerveSpend.Preen => unit.Hp < unit.MaxHp || PreenTargets(state, unit).Count > 0,
+
+                // A stance is legal whenever he can pay for it: it is bought against what the enemy
+                // round is about to do, and §3's "the game never decides what is useful" forbids
+                // gating it on there being somebody in reach right now.
+                VerveSpend.Retort => true,
+                VerveSpend.Breakwater => true,
+
+                // These two need something to act on, exactly as Cast does — a spend with no legal
+                // subject would burn the meter on nothing.
+                VerveSpend.Skyfall => Faultline.Core.Skyfall.Targets(state, unit).Count > 0,
+                VerveSpend.Whirl => Faultline.Core.Whirl.Caught(state, unit).Count > 0,
                 _ => false,
             };
         }
@@ -513,6 +537,23 @@ namespace Faultline.Core
 
                 case VerveSpend.Preen:
                     return Preen(state, unitId, targetId ?? unitId, events);
+
+                // The two stances arm a flag and nothing else. What they do afterwards is read off
+                // the finished event stream by Retort.Fire and Breakwater.Fire, which is what keeps
+                // them flags read at a moment rather than reaction windows (D-157, D-221).
+                case VerveSpend.Retort:
+                    return state.WithUnit(state.UnitById(unitId) with { RetortArmed = true });
+
+                case VerveSpend.Breakwater:
+                    return state.WithUnit(state.UnitById(unitId) with { BreakwaterArmed = true });
+
+                case VerveSpend.Skyfall:
+                    return targetId is null
+                        ? state
+                        : Faultline.Core.Skyfall.Resolve(state, unitId, targetId.Value, events);
+
+                case VerveSpend.Whirl:
+                    return Faultline.Core.Whirl.Resolve(state, unitId, events);
 
                 default:
                     return state;

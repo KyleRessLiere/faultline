@@ -50,6 +50,63 @@ namespace Faultline.Core
             return held;
         }
 
+        /// <summary>
+        /// <b>What this ability costs <em>this</em> duck right now</b> — the printed price with every
+        /// fitted mod already in it.
+        /// </summary>
+        /// <remarks>
+        /// The one place an ability is priced, for the reason <see cref="Verve.CostOf(VerveSpend,
+        /// Unit)"/> is the one place a spend is: the legality check, the charge and the card have to
+        /// name the same number or the bar is lying at the moment of the choice. Mods overwrite the
+        /// price rather than discounting it — §8.6 states each as an absolute, and one cheaper mod per
+        /// ability is the whole of the pool (D-243).
+        /// </remarks>
+        /// <param name="state">Current state, for the mods whose condition is the board.</param>
+        /// <param name="unit">The duck acting, or <c>null</c> for the printed price.</param>
+        /// <param name="descriptor">The ability being priced.</param>
+        /// <returns>Its cost in action points.</returns>
+        public static int CostOf(GameState? state, Unit? unit, AbilityDefinition? descriptor)
+        {
+            if (descriptor is null)
+            {
+                return 0;
+            }
+
+            return descriptor.Ability switch
+            {
+                Ability.Overrun => Faultline.Core.Overrun.CostFor(state, unit),
+                Ability.Punt => Faultline.Core.Punt.CostFor(unit),
+                _ => descriptor.Cost,
+            };
+        }
+
+        /// <summary>
+        /// <b>How far this ability reaches for <em>this</em> duck</b> — the printed range with every
+        /// fitted mod already in it.
+        /// </summary>
+        /// <remarks>
+        /// Asked by every range test there is: the legal-target list, the greyed-out reason, the
+        /// aiming overlay. A mod that lengthened the reach in one of them and not the others would be
+        /// a card that works only where somebody remembered it.
+        /// </remarks>
+        /// <param name="unit">The duck acting, or <c>null</c> for the printed range.</param>
+        /// <param name="descriptor">The ability being aimed.</param>
+        /// <returns>Its reach in tiles.</returns>
+        public static int RangeFor(Unit? unit, AbilityDefinition? descriptor)
+        {
+            if (descriptor is null)
+            {
+                return 0;
+            }
+
+            return descriptor.Ability switch
+            {
+                Ability.Punt => Faultline.Core.Punt.RangeFor(unit, descriptor),
+                Ability.Interpose => Faultline.Core.Interpose.RangeFor(unit, descriptor),
+                _ => descriptor.Range,
+            };
+        }
+
         /// <summary>True when the unit could use any of its abilities right now, ignoring target choice.</summary>
         /// <param name="unit">Unit to inspect.</param>
         /// <returns>Whether at least one ability is usable at all.</returns>
@@ -126,7 +183,7 @@ namespace Faultline.Core
                 }
 
                 int distance = unit.Position.DistanceTo(candidate.Position);
-                if (distance == 0 || distance > descriptor.Range)
+                if (distance == 0 || distance > RangeFor(unit, descriptor))
                 {
                     continue;
                 }
@@ -184,7 +241,11 @@ namespace Faultline.Core
 
             foreach (var direction in Directions.All)
             {
-                if (!PreviewCharge(state, unit, direction).IsNoOp)
+                bool accomplishes = descriptor.CustomRule == AbilityRule.Overrun
+                    ? !Faultline.Core.Overrun.Preview(state, unit, direction, descriptor).IsNoOp
+                    : !PreviewCharge(state, unit, direction, descriptor).IsNoOp;
+
+                if (accomplishes)
                 {
                     directions.Add(direction);
                 }
@@ -382,7 +443,23 @@ namespace Faultline.Core
             {
                 foreach (var direction in Directions.All)
                 {
-                    var charge = PreviewCharge(state, unit, direction);
+                    if (descriptor.CustomRule == AbilityRule.Overrun)
+                    {
+                        var run = Faultline.Core.Overrun.Preview(state, unit, direction, descriptor);
+                        foreach (var tile in run.Path)
+                        {
+                            tiles.Add(tile);
+                        }
+
+                        foreach (var shove in run.Shoves)
+                        {
+                            tiles.Add(state.UnitById(shove.UnitId).Position);
+                        }
+
+                        continue;
+                    }
+
+                    var charge = PreviewCharge(state, unit, direction, descriptor);
                     foreach (var tile in charge.Path)
                     {
                         tiles.Add(tile);
@@ -400,7 +477,7 @@ namespace Faultline.Core
             foreach (var coord in state.Board.AllCoords())
             {
                 int distance = unit.Position.DistanceTo(coord);
-                if (distance > 0 && distance <= descriptor.Range)
+                if (distance > 0 && distance <= RangeFor(unit, descriptor))
                 {
                     tiles.Add(coord);
                 }
@@ -533,9 +610,29 @@ namespace Faultline.Core
                             Granted(state, unit, spear));
                     }
 
+                    if (descriptor.CustomRule == AbilityRule.Overrun && ability.Direction.HasValue)
+                    {
+                        var run = Faultline.Core.Overrun.Preview(
+                            state, unit, ability.Direction.Value, descriptor);
+
+                        return new ActionOutlook(
+                            unit.Id, null, 0, NoLineHits, null, null)
+                        {
+                            Overrun = run,
+                        };
+                    }
+
+                    // The offer moves nobody, so there is nothing to project: the swap itself is
+                    // previewed when the other owner is asked to answer it.
+                    if (descriptor.CustomRule == AbilityRule.Interpose)
+                    {
+                        return new ActionOutlook(
+                            unit.Id, ability.TargetId, 0, NoLineHits, null, null);
+                    }
+
                     if (descriptor.Targeting == AbilityTargeting.Direction && ability.Direction.HasValue)
                     {
-                        var charge = PreviewCharge(state, unit, ability.Direction.Value);
+                        var charge = PreviewCharge(state, unit, ability.Direction.Value, descriptor);
 
                         return new ActionOutlook(
                             unit.Id,
@@ -564,7 +661,8 @@ namespace Faultline.Core
 
                     var standing = StillStanding(struck, aimedId);
                     var shove = Shove(
-                        state, unit, aimedId, out var kind, out int distance, out bool bypass, ability.StopAt)
+                        state, unit, aimedId, out var kind, out int distance, out bool bypass,
+                        ability.StopAt, descriptor)
                         && standing is { } body
                         ? Redirected(struck, unit, body, kind, distance, ability.Aim, bypass)
                         : null;
@@ -814,11 +912,16 @@ namespace Faultline.Core
         /// <param name="unit">Acting unit.</param>
         /// <param name="targetId">Enemy to aim at.</param>
         /// <param name="aim">Which candidate the acting side picked; see <see cref="DisplacementAim"/>.</param>
+        /// <param name="aimed">The ability being aimed, or <c>null</c> for the unit's headline one.</param>
         /// <returns>The projected displacement, or <c>null</c> when the ability does not displace.</returns>
         public static DisplacementPreview? PreviewTarget(
-            GameState state, Unit unit, UnitId targetId, DisplacementAim aim = DisplacementAim.Default)
+            GameState state,
+            Unit unit,
+            UnitId targetId,
+            DisplacementAim aim = DisplacementAim.Default,
+            AbilityDefinition? aimed = null)
         {
-            if (!Shove(state, unit, targetId, out var kind, out int distance, out bool bypass))
+            if (!Shove(state, unit, targetId, out var kind, out int distance, out bool bypass, null, aimed))
             {
                 return null;
             }
@@ -840,17 +943,22 @@ namespace Faultline.Core
         /// <param name="state">Current state.</param>
         /// <param name="unit">Acting unit.</param>
         /// <param name="targetId">Enemy to aim at.</param>
+        /// <param name="aimed">The ability being aimed, or <c>null</c> for the unit's headline one.</param>
         /// <returns>The candidates, or an empty list when the ability does not displace.</returns>
         public static IReadOnlyList<DisplacementPreview> TargetCandidates(
-            GameState state, Unit unit, UnitId targetId)
+            GameState state, Unit unit, UnitId targetId, AbilityDefinition? aimed = null)
         {
-            return Shove(state, unit, targetId, out var kind, out int distance, out bool bypass)
+            return Shove(state, unit, targetId, out var kind, out int distance, out bool bypass, null, aimed)
                 ? Displacement.Candidates(state, targetId, unit.Position, kind, distance, bypass, unit.Id)
                 : new DisplacementPreview[0];
         }
 
         // What displacement this unit's targeted ability asks for, if any. One place, because the
         // preview, the ghosts and the resolution all have to be asking for the same shove.
+        // The descriptor is passed in rather than looked up, because "the unit's first held ability"
+        // stopped being the same question as "the ability being aimed" the moment a class could hold
+        // two targeted actions at once. A Fisher holding Reel and Punt would otherwise have previewed
+        // and resolved both as whichever sat in the lower slot (G4).
         private static bool Shove(
             GameState state,
             Unit unit,
@@ -858,13 +966,14 @@ namespace Faultline.Core
             out DisplacementKind kind,
             out int distance,
             out bool bypassResistance,
-            int? stopAt = null)
+            int? stopAt = null,
+            AbilityDefinition? aimed = null)
         {
             kind = DisplacementKind.Push;
             distance = 0;
             bypassResistance = false;
 
-            var descriptor = Of(unit);
+            var descriptor = aimed ?? Of(unit);
             if (descriptor is null)
             {
                 return false;
@@ -879,7 +988,9 @@ namespace Faultline.Core
                 return distance > 0;
             }
 
-            distance = descriptor.Push;
+            distance = descriptor.Ability == Ability.Punt
+                ? Faultline.Core.Punt.PushDistanceFor(unit)
+                : descriptor.Push;
             return distance > 0;
         }
 
@@ -949,17 +1060,24 @@ namespace Faultline.Core
         /// <param name="state">Current state.</param>
         /// <param name="unit">Charging unit.</param>
         /// <param name="direction">Line to charge along.</param>
+        /// <param name="aimed">The ability being aimed, or <c>null</c> for the unit's headline one.</param>
         /// <returns>The projected charge.</returns>
-        public static ChargePreview PreviewCharge(GameState state, Unit unit, Direction direction)
+        public static ChargePreview PreviewCharge(
+            GameState state, Unit unit, Direction direction, AbilityDefinition? aimed = null)
         {
-            var descriptor = Of(unit);
+            // Named rather than assumed, for the reason PreviewLine is: a Vanguard holding Bull Rush
+            // and Overrun at once would otherwise have had both projected as whichever sat lower in
+            // his slots, and a preview that quietly describes a different ability is worse than none.
+            var descriptor = aimed ?? Of(unit);
             var path = new List<Coord>();
             var board = state.Board;
             var position = unit.Position;
             int selfDamage = 0;
             Unit? contact = null;
 
-            int reach = descriptor is not null && descriptor.Targeting == AbilityTargeting.Direction
+            int reach = descriptor is not null
+                && descriptor.Targeting == AbilityTargeting.Direction
+                && descriptor.CustomRule == AbilityRule.Charge
                 ? descriptor.Range
                 : 0;
 
@@ -1042,6 +1160,17 @@ namespace Faultline.Core
                 case AbilityRule.Charge:
                     return ResolveCharge(state, unit, command.Direction!.Value, definition, events);
 
+                case AbilityRule.Overrun:
+                    return Faultline.Core.Overrun.Resolve(
+                        state, unit, command.Direction!.Value, definition, events);
+
+                case AbilityRule.Interpose:
+                    return ResolveInterpose(state, unit, command.TargetId, events);
+
+                case AbilityRule.Punt:
+                    return Faultline.Core.Punt.Resolve(
+                        state, unit, command.TargetId, command.Aim, events);
+
                 default:
                     return Effects.Apply(
                         state,
@@ -1067,6 +1196,85 @@ namespace Faultline.Core
             var guarding = state.UnitById(unit.Id) with { Guarding = true, GuardAbsorbed = false };
             events.Add(new GuardStanceChanged(guarding.Id, guarding.Position, true));
             return state.WithUnit(guarding);
+        }
+
+        /// <summary>
+        /// Interpose: he offers the swap, and the ally's owner answers.
+        /// </summary>
+        /// <remarks>
+        /// <b>The offer is the whole of what the action does</b>, and that is the design, not a
+        /// shortcut. §8.5's bodily-consent rule means nothing moves another player's duck without that
+        /// owner saying so, and D-192 settled the shape when Split Reed needed it: the offer rides on
+        /// the answering duck, the answer is <see cref="TakeSplitReedCommand"/>, and never issuing it
+        /// is a legal answer that costs the answerer nothing. Two cards saying the identical sentence
+        /// are the identical field (D-190) — a second offer field would need its own composition rule
+        /// and the two would drift.
+        /// </remarks>
+        private static GameState ResolveInterpose(
+            GameState state, Unit unit, UnitId? targetId, List<GameEvent> events)
+        {
+            if (targetId is not { } allyId || state.FindUnit(allyId) is not { } ally)
+            {
+                return state;
+            }
+
+            state = state.WithUnit(ally with { SplitReedOfferFrom = unit.Id });
+            events.Add(new DucksOfferedSwap(allyId, unit.Id, unit.Position, ally.Position));
+            return state;
+        }
+
+        /// <summary>
+        /// The allies an Interpose may be offered to: standing, not clinging, within reach, on tiles
+        /// both bodies could legally stand on, and not already holding an offer.
+        /// </summary>
+        /// <remarks>
+        /// The legality of the two tiles is <see cref="CrewCover.TilesAreLegal"/>'s question, asked
+        /// rather than restated — §8.9's swap and this one are the same placement and must not develop
+        /// two opinions about what a legal tile is.
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="unit">The Wardbearer.</param>
+        /// <param name="descriptor">The Interpose definition being aimed.</param>
+        /// <returns>Legal ally ids, in unit-id order.</returns>
+        public static IReadOnlyList<UnitId> LegalAllies(
+            GameState state, Unit unit, AbilityDefinition? descriptor)
+        {
+            var allies = new List<UnitId>();
+
+            if (descriptor is null
+                || descriptor.Targeting != AbilityTargeting.Ally
+                || !IsUsable(unit, descriptor))
+            {
+                return allies;
+            }
+
+            foreach (var candidate in state.Units)
+            {
+                if (candidate.Id == unit.Id
+                    || !candidate.IsOnBoard
+                    || candidate.Clinging
+                    || unit.Team.IsHostileTo(candidate.Team)
+                    || candidate.Team == Team.Enemy
+                    || candidate.SplitReedOfferFrom is not null)
+                {
+                    continue;
+                }
+
+                int distance = unit.Position.DistanceTo(candidate.Position);
+                if (distance == 0 || distance > RangeFor(unit, descriptor))
+                {
+                    continue;
+                }
+
+                if (!CrewCover.TilesAreLegal(state, unit, candidate))
+                {
+                    continue;
+                }
+
+                allies.Add(candidate.Id);
+            }
+
+            return allies;
         }
 
         // D-068: a Line is damage and nothing else — it displaces nobody, so the far-first ordering

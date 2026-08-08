@@ -34,6 +34,24 @@ namespace Faultline.Core
             Mod.LightLine, Mod.LongRod, Mod.BigSplash,
             Mod.FletchersRhythm, Mod.LongDraw, Mod.HuntersRefund,
             Mod.Thorough, Mod.Neighborly, Mod.Quick,
+
+            // The alternate spenders' mods. They sit in the same pool because they are drawn the
+            // same way and filtered the same way: EligibleFor already refuses a mod whose host slot
+            // the duck does not hold, so a Vanguard who never took Retort is never offered a Grudge
+            // and nothing new had to learn that (G4).
+            Mod.HairTrigger, Mod.Backhand, Mod.Grudge,
+            Mod.LowSky, Mod.Shatterfall, Mod.Updraft,
+            Mod.Riptide, Mod.WideWhirl, Mod.Churn,
+            Mod.LowWall, Mod.SeaWall, Mod.Toll,
+
+            // The alternate actions' mods, and the filter above them did not change by one character
+            // to take them: Kits.HostOf answers a KitEntry whichever kind of ability the host is, so
+            // a Fisher who never learned Punt is never offered a Long Punt by the same line that
+            // already refused her a Grudge. One filter over both host kinds is the evidence the
+            // widening was the right shape (D-243).
+            Mod.Downhill, Mod.Ploughshare, Mod.FullWeight,
+            Mod.ShortPole, Mod.LongPunt, Mod.Downstream,
+            Mod.LongReach, Mod.ChangingOfTheGuard,
         };
 
         private static readonly SecondWind[] AllSecondWinds =
@@ -81,9 +99,30 @@ namespace Faultline.Core
             OfferCategory.Consumable, OfferCategory.Technique,
         };
 
-        /// <summary>Every mod in the v1 pool, in pool order.</summary>
-        /// <returns>The twelve mods.</returns>
+        /// <summary>Every mod in the pool, in pool order.</summary>
+        /// <returns>The mods, spender-hosted first.</returns>
         public static IReadOnlyList<Mod> ModPool() => AllMods;
+
+        /// <summary>
+        /// The mods the pool hangs on one slot. <b>Empty is a real answer</b> — Guard Stance and the
+        /// basic attacks host none — and a surface that drew sockets anyway would be promising a
+        /// player cards no camp can deal (D-243).
+        /// </summary>
+        /// <param name="slot">Slot to ask about.</param>
+        /// <returns>Its mods, in pool order.</returns>
+        public static IReadOnlyList<Mod> ModsFor(KitEntry slot)
+        {
+            var mods = new List<Mod>();
+            foreach (var mod in AllMods)
+            {
+                if (Kits.HostOf(mod) == slot)
+                {
+                    mods.Add(mod);
+                }
+            }
+
+            return mods;
+        }
 
         /// <summary>Every Second Wind condition in the v1 pool, in pool order.</summary>
         /// <returns>The eight conditions.</returns>
@@ -286,10 +325,10 @@ namespace Faultline.Core
                     continue;
                 }
 
-                // A hosted card needs the duck to still own what it modifies; a hostless one hangs on
-                // the duck, so there is no ability to own (D-227).
-                if (Kits.HostOf(technique) is { } host
-                    && !Kits.Holds(duck.Kind, loadout, host))
+                // The same line that refuses a mod, asking the same question and taking the same kind
+                // of answer: a card needs the duck to still own what it modifies. Every technique has
+                // a host now, so there is no second branch for the ones that used not to.
+                if (!Kits.Holds(duck.Kind, loadout, Kits.HostOf(technique)))
                 {
                     continue;
                 }

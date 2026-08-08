@@ -53,5 +53,27 @@ namespace Faultline.Core
 
         /// <summary>How far a Kick-in reaches: <see cref="Pits.KickRangeFor"/>.</summary>
         KickRange = 10,
+
+        /// <summary>
+        /// Lengthens the shove a spender asks the displacement pipeline for — Backhand, Sea Wall,
+        /// Wide Whirl. Distinct from <see cref="ContactDistance"/>, which is Wrecking Weight's bonus
+        /// on somebody else's push rather than a distance the spender itself requests.
+        /// </summary>
+        ShoveDistance = 11,
+
+        /// <summary>
+        /// Prices an action rather than a spend: <see cref="Abilities.CostOf"/>. The action-point
+        /// twin of <see cref="SpenderCost"/>, and a separate site because the two currencies are
+        /// charged in different places (D-243).
+        /// </summary>
+        AbilityCost = 12,
+
+        /// <summary>How far an action reaches: <see cref="Abilities.RangeFor"/>.</summary>
+        AbilityRange = 13,
+
+        /// <summary>
+        /// What an action's shove leaves behind, in its own rule module — Ploughshare's Stagger.
+        /// </summary>
+        ShoveRule = 14,
     }
 }

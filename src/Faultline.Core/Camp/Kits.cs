@@ -198,6 +198,34 @@ namespace Faultline.Core
         public static IReadOnlyList<KitEntry> SpenderSlotsOf(UnitKind kind, DuckLoadout? loadout) =>
             loadout is { SpenderSlots: { Count: > 0 } slots } ? slots : StartingSpenders(kind);
 
+        /// <summary>
+        /// <b>The spender this duck actually holds</b>, or <c>null</c> when it holds none — the one
+        /// place that question is answered, whichever layer is asking.
+        /// </summary>
+        /// <remarks>
+        /// Takes the archetype and the loadout rather than a unit, because the same question is asked
+        /// of a fight <see cref="Unit"/> and of a <see cref="RunUnit"/> between fights, and two
+        /// overloads walking the slot list themselves would be two answers waiting to disagree.
+        /// <see cref="Verve.SpendFor(Unit)"/> is the fight layer's door onto this; the run layer asks
+        /// here directly. <b>Asking the archetype instead is the Stage H bug</b> (D-242): a class's
+        /// spender is what it starts with, and G4's alternates mean that is no longer what it has.
+        /// </remarks>
+        /// <param name="kind">The duck's archetype.</param>
+        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
+        /// <returns>The spender in its Pluck slots, or <c>null</c>.</returns>
+        public static VerveSpend? SpenderHeldBy(UnitKind kind, DuckLoadout? loadout)
+        {
+            foreach (var entry in SpenderSlotsOf(kind, loadout))
+            {
+                if (SpenderOf(entry) is { } held)
+                {
+                    return held;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>Which axis an entry sits on — derived from the entry, never stored beside it.</summary>
         /// <param name="entry">Entry to place.</param>
         /// <returns>Its axis.</returns>
@@ -297,6 +325,17 @@ namespace Faultline.Core
             KitEntry.SpearThrust => UnitKind.Wardbearer,
             KitEntry.GuardStance => UnitKind.Wardbearer,
             KitEntry.Preen => UnitKind.Wardbearer,
+
+            // The alternates. Each sits in its own class's kit and nowhere else — §5's charge
+            // conditions are class-bound, so an alternate spender changes the spend and never the
+            // income, and an alternate action belongs to the legs that carry it.
+            KitEntry.Overrun => UnitKind.Vanguard,
+            KitEntry.Retort => UnitKind.Vanguard,
+            KitEntry.Skyfall => UnitKind.Archer,
+            KitEntry.Punt => UnitKind.Threadcaster,
+            KitEntry.Whirl => UnitKind.Threadcaster,
+            KitEntry.Interpose => UnitKind.Wardbearer,
+            KitEntry.Breakwater => UnitKind.Wardbearer,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "No class for that kit entry."),
         };
 
@@ -322,6 +361,9 @@ namespace Faultline.Core
             KitEntry.Reel => Ability.Reel,
             KitEntry.SpearThrust => Ability.SpearThrust,
             KitEntry.GuardStance => Ability.GuardStance,
+            KitEntry.Overrun => Ability.Overrun,
+            KitEntry.Punt => Ability.Punt,
+            KitEntry.Interpose => Ability.Interpose,
             _ => (Ability?)null,
         };
 
@@ -334,6 +376,10 @@ namespace Faultline.Core
             KitEntry.Cast => VerveSpend.Cast,
             KitEntry.DoubleNock => VerveSpend.DoubleNock,
             KitEntry.Preen => VerveSpend.Preen,
+            KitEntry.Retort => VerveSpend.Retort,
+            KitEntry.Skyfall => VerveSpend.Skyfall,
+            KitEntry.Whirl => VerveSpend.Whirl,
+            KitEntry.Breakwater => VerveSpend.Breakwater,
             _ => (VerveSpend?)null,
         };
 
@@ -347,6 +393,9 @@ namespace Faultline.Core
             Ability.Reel => KitEntry.Reel,
             Ability.SpearThrust => KitEntry.SpearThrust,
             Ability.GuardStance => KitEntry.GuardStance,
+            Ability.Overrun => KitEntry.Overrun,
+            Ability.Punt => KitEntry.Punt,
+            Ability.Interpose => KitEntry.Interpose,
             _ => throw new ArgumentOutOfRangeException(nameof(ability), ability, "No kit entry for that ability."),
         };
 
@@ -359,32 +408,48 @@ namespace Faultline.Core
             VerveSpend.Cast => KitEntry.Cast,
             VerveSpend.DoubleNock => KitEntry.DoubleNock,
             VerveSpend.Preen => KitEntry.Preen,
+            VerveSpend.Retort => KitEntry.Retort,
+            VerveSpend.Skyfall => KitEntry.Skyfall,
+            VerveSpend.Whirl => KitEntry.Whirl,
+            VerveSpend.Breakwater => KitEntry.Breakwater,
             _ => throw new ArgumentOutOfRangeException(nameof(spend), spend, "No kit entry for that spender."),
         };
 
         /// <summary>
-        /// Which slot a mod hangs on. Mods bolt onto spenders (§8.6's Modify pool), so a mod's host is
-        /// its spender's slot.
-        /// </summary>
-        /// <param name="mod">Mod to place.</param>
-        /// <returns>The slot it needs the duck to own.</returns>
-        public static KitEntry HostOf(Mod mod) => EntryOf(CampCatalogue.SpenderOf(mod));
-
-        /// <summary>
-        /// Which slot a technique modifier hangs on, or <c>null</c> when §8.6 names no host for it.
+        /// Which slot a mod hangs on. <b>A mod hosts on an ability, and a spender is one kind of
+        /// ability</b> — so this answers a <see cref="KitEntry"/> whichever kind the host is, and
+        /// every caller of it kept working across the widening (D-243).
         /// </summary>
         /// <remarks>
-        /// <b>Five of the eight built techniques have no host</b> and therefore hang on no slot: they
-        /// are never forfeited by a replacement, never filtered by the owned-ability rule, and do not
-        /// count against <see cref="ModsPerSlot"/>. That is the §8.6 contradiction D-158 recorded —
-        /// the heading says all twenty-four are "hosted on a named ability" and the entries name a
-        /// host for three — surfacing again under the slot model rather than being resolved here
-        /// (D-227).
+        /// This used to read <c>EntryOf(CampCatalogue.SpenderOf(mod))</c>, which was an artifact of
+        /// the pre-slot world where spenders were the only thing a mod could hang on. It is a
+        /// widening and not a new concept: the host is still derived from the card and still stored
+        /// nowhere beside the duck (D-226). <b>It does not touch the hostless techniques</b>, which
+        /// are still §8.6's open contradiction (D-158/D-227).
+        /// </remarks>
+        /// <param name="mod">Mod to place.</param>
+        /// <returns>The slot it needs the duck to own.</returns>
+        public static KitEntry HostOf(Mod mod) =>
+            UpgradeDefinition.For(mod).Host
+            ?? throw new ArgumentOutOfRangeException(nameof(mod), mod, "No host slot for that mod.");
+
+        /// <summary>
+        /// Which slot a technique modifier hangs on. <b>Every technique has one</b>, so this is the
+        /// same question as <see cref="HostOf(Mod)"/> and gets the same kind of answer.
+        /// </summary>
+        /// <remarks>
+        /// <b>This used to be nullable, and that was D-158's gap carried in a type.</b> Five of the
+        /// eight built techniques hung on no slot: never forfeited by a replacement, never filtered
+        /// by the owned-ability rule, and not counted against <see cref="ModsPerSlot"/> — five
+        /// permanently unloseable upgrades inside an economy whose §4 law is that every slot is
+        /// replaceable, the basic attack included. Stage K assigns the five on the rule that <b>a
+        /// technique hosts on the ability that triggers it, on the duck that owns it</b>; the
+        /// beneficiary of a cross-flock card is the effect and hosts nothing.
         /// </remarks>
         /// <param name="technique">Technique to place.</param>
-        /// <returns>The slot it needs the duck to own, or <c>null</c>.</returns>
-        public static KitEntry? HostOf(TechniqueModifier technique) =>
-            TechniqueDefinition.For(technique).Host is { } host ? EntryOf(host) : (KitEntry?)null;
+        /// <returns>The slot it needs the duck to own.</returns>
+        public static KitEntry HostOf(TechniqueModifier technique) =>
+            TechniqueDefinition.For(technique).Host;
 
         /// <summary>How many mods a duck currently has hanging on one slot.</summary>
         /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
@@ -425,31 +490,6 @@ namespace Faultline.Core
             ModsOn(loadout, slot) >= ModsPerSlot;
 
         /// <summary>
-        /// How many hostless techniques a duck carries — the ones §8.6 hangs on no ability, counted
-        /// against <see cref="DuckLoadout.TechniqueSlots"/> because they hang on no slot either.
-        /// </summary>
-        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
-        /// <returns>The count.</returns>
-        public static int HostlessTechniquesOn(DuckLoadout? loadout)
-        {
-            if (loadout is null)
-            {
-                return 0;
-            }
-
-            int count = 0;
-            foreach (var technique in loadout.Techniques)
-            {
-                if (HostOf(technique) is null)
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
         /// Why this mod cannot go on this duck, or <c>null</c> when it can. <b>A refusal always names
         /// its reason</b> — a silent no-op is a bug.
         /// </summary>
@@ -460,7 +500,7 @@ namespace Faultline.Core
         {
             var host = HostOf(mod);
             return SlotIsFull(loadout, host)
-                ? Naming.Of(CampCatalogue.SpenderOf(mod)) + " already carries " + ModsPerSlot
+                ? NameOf(host) + " already carries " + ModsPerSlot
                     + " mods, which is the ceiling for one slot."
                 : null;
         }
@@ -473,17 +513,10 @@ namespace Faultline.Core
         /// <returns>The reason, or <c>null</c>.</returns>
         public static string? RefusalFor(DuckLoadout? loadout, TechniqueModifier technique)
         {
-            if (HostOf(technique) is { } host)
-            {
-                return SlotIsFull(loadout, host)
-                    ? NameOf(host) + " already carries " + ModsPerSlot
-                        + " mods, which is the ceiling for one slot."
-                    : null;
-            }
-
-            return HostlessTechniquesOn(loadout) >= DuckLoadout.TechniqueSlots
-                ? "That kit already carries " + DuckLoadout.TechniqueSlots
-                    + " techniques that hang on no one ability, which is the ceiling for those."
+            var host = HostOf(technique);
+            return SlotIsFull(loadout, host)
+                ? NameOf(host) + " already carries " + ModsPerSlot
+                    + " mods, which is the ceiling for one slot."
                 : null;
         }
 
@@ -677,6 +710,16 @@ namespace Faultline.Core
             KitEntry.Preen => false,
             KitEntry.Cast => false,
             KitEntry.WreckingWeight => false,
+
+            // The alternates that only ever move a body. Whirl, Retort and Breakwater shove and
+            // Stagger, exactly as Cast places and Wrecking Weight arms: the collisions they set up
+            // are the board hurting somebody, which is not the same sentence as "this duck can hurt
+            // something". Interpose does not even touch an enemy. Overrun and Punt sit with Bull Rush
+            // and Reel on the other side of that line, and Skyfall deals 6 outright.
+            KitEntry.Retort => false,
+            KitEntry.Whirl => false,
+            KitEntry.Breakwater => false,
+            KitEntry.Interpose => false,
             _ => true,
         };
 

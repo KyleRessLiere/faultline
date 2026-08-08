@@ -290,9 +290,18 @@ namespace Faultline.Core
             // The window every stream listener reads, snapshotted before any of them can widen it.
             int produced = events.Count;
 
+            // The standing spenders answer first, on the command's own window. They go BEFORE the
+            // meter rather than after it because a retort's shove and a breakwater's shove are
+            // displacements the acting duck caused, and §5 pays the Vanguard for causing collisions —
+            // charging before they resolve would have quietly excluded them from the only condition
+            // that could pay for them (G4).
+            next = Retort.Fire(next, events, produced);
+            next = Breakwater.Fire(next, events, produced);
+
             // Verve reads the finished stream rather than being threaded through the rules that
             // produced it, so it goes here — after the command, before re-planning, so a charge is
-            // logged next to the thing that earned it (D-073).
+            // logged next to the thing that earned it (D-073). It snapshots its own window, so the
+            // shoves above are inside it.
             next = Verve.Charge(next, events);
 
             // The §8.6 marks, grants and reactions read the same window, last (D-157).
@@ -575,8 +584,9 @@ namespace Faultline.Core
                         }
 
                         // Priced per ability, not per action: an attack at 1 and Reel or Bull Rush at
-                        // 2 drop off the list at different points in the same activation.
-                        if (!Activation.CanAfford(unit, descriptor.Cost))
+                        // 2 drop off the list at different points in the same activation. Priced for
+                        // this duck, not off the card: a Downhill Overrun from a ledge is 2 (D-243).
+                        if (!Activation.CanAfford(unit, Abilities.CostOf(state, unit, descriptor)))
                         {
                             continue;
                         }
@@ -1399,7 +1409,9 @@ namespace Faultline.Core
             Require(descriptor is not null, "That unit does not have that ability.");
             Require(Abilities.IsUsable(unit, descriptor), "That ability cannot be used.");
             Require(
-                Activation.CanAfford(unit, AbilityDefinition.For(command.Ability).Cost),
+                Activation.CanAfford(
+                    unit,
+                    Abilities.CostOf(state, unit, AbilityDefinition.For(command.Ability))),
                 "Not enough action points left for that ability.");
 
             switch (descriptor!.Targeting)
@@ -1425,6 +1437,14 @@ namespace Faultline.Core
                         "That direction does nothing.");
                     break;
 
+                case AbilityTargeting.Ally:
+                    Require(command.TargetId.HasValue, "That ability needs an ally to aim at.");
+                    Require(
+                        Contains(Abilities.LegalAllies(state, unit, descriptor), command.TargetId!.Value),
+                        "That is not an ally this can reach — it is not beside this duck, it is over "
+                        + "a ledge, or it is already holding an offer.");
+                    break;
+
                 case AbilityTargeting.Self:
                     break;
 
@@ -1441,7 +1461,8 @@ namespace Faultline.Core
             // movement, it is simply the one that was honest about it first. D-126 then dropped its
             // price to 2, and because "no pre-move" was never anything but the price, one tile of
             // run-up became legal here with nothing else to change.
-            state = state.WithUnit(Activation.Spend(unit, AbilityDefinition.For(command.Ability).Cost));
+            state = state.WithUnit(Activation.Spend(
+                unit, Abilities.CostOf(state, unit, AbilityDefinition.For(command.Ability))));
 
             state = Abilities.Resolve(state, state.UnitById(unit.Id), command, events);
 
@@ -1507,6 +1528,10 @@ namespace Faultline.Core
             var accepterTo = offerer.Position;
             var offererTo = accepter.Position;
 
+            // Changing of the Guard asks its question before the swap, because afterwards the duck
+            // an enemy declared is standing somewhere else and the tile answers no (D-243).
+            bool steppedIntoADeclaredBlow = Interpose.IsDeclaredTarget(state, offererTo);
+
             state = state.WithUnit(accepter with
             {
                 Position = accepterTo,
@@ -1520,7 +1545,9 @@ namespace Faultline.Core
             // no Footing counter is owed — but a free move is free of the economy and never of the
             // board, so brambles bite each body that arrives on them exactly as a walked step does.
             state = LandOn(state, accepter.Id, accepterTo, events);
-            return LandOn(state, offerer.Id, offererTo, events);
+            state = LandOn(state, offerer.Id, offererTo, events);
+
+            return Interpose.Pay(state, offerer.Id, steppedIntoADeclaredBlow, events);
         }
 
         /// <summary>Charges a placed body for the tile it arrived on.</summary>
@@ -1761,12 +1788,17 @@ namespace Faultline.Core
                     "That ally is not somewhere this Preen can reach.");
             }
 
-            // Retort reads Guard Stance, and taking the activation slot is what drops it (D-058), so
-            // the spend is worked out first and the slot taken after. Every other spend is unaffected
-            // by the order.
+            // The slot is taken FIRST, and then the spend resolves into the activation it opened.
+            //
+            // It used to be the other way round, for the sake of the Retort that D-087 parked: that
+            // card read Guard Stance, and taking the slot is what drops it (D-058, D-077). Nothing
+            // has read the stance from here since it was removed, and the order had become actively
+            // wrong — CommitActivation is where a standing spender lapses, so a spend that armed one
+            // and then committed was wiping the flag it had just set (G4).
+            state = CommitActivation(state, unit, events);
+
             var spent = Verve.Spend(
                 state, command.UnitId, command.Spend, events, command.TargetId, command.To);
-            spent = CommitActivation(spent, spent.UnitById(command.UnitId), events);
 
             return AfterAction(spent, command.UnitId, events);
         }
@@ -1850,6 +1882,21 @@ namespace Faultline.Core
             {
                 state = state.WithUnit(state.UnitById(unit.Id) with { Guarding = false });
                 events.Add(new GuardStanceChanged(unit.Id, unit.Position, false));
+            }
+
+            // Retort and Breakwater lapse on exactly the same beat and for exactly the same reason:
+            // §5 words both "until his next activation", and this is that instant. Guard Stance's
+            // expiry above is the precedent the wording was copied from (D-058), so they drop here
+            // rather than at end of round — the enemy round each was bought to cover happens after
+            // the round it was declared in.
+            var standing = state.UnitById(unit.Id);
+            if (standing.RetortArmed || standing.BreakwaterArmed)
+            {
+                state = state.WithUnit(standing with
+                {
+                    RetortArmed = false,
+                    BreakwaterArmed = false,
+                });
             }
 
             return state with { ActiveUnitId = unit.Id };

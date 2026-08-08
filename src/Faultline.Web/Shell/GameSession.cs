@@ -333,10 +333,17 @@ public sealed class GameSession
     public Unit? SelectedUnit => Selected is null ? null : State.FindUnit(Selected.Value);
 
     /// <summary>Every ability the selected unit brings, in the order Core offers them.</summary>
+    /// <remarks>
+    /// <b>The duck's slots, not its archetype's list.</b> <see cref="Abilities.AllOf"/> is the Core
+    /// query that answers "what does this duck hold" — G1 built it and this read the wrong list until
+    /// G4 gave a class a second action, at which point the bar started offering a Wardbearer an
+    /// Interpose nobody had taught him. A shell deciding for itself what a kit contains is the second
+    /// copy of a rule that CLAUDE.md's third prime directive exists to prevent.
+    /// </remarks>
     public IReadOnlyList<AbilityDefinition> SelectedAbilities =>
         SelectedUnit is null
             ? Array.Empty<AbilityDefinition>()
-            : AbilityDefinition.AllForKind(SelectedUnit.Kind);
+            : Abilities.AllOf(SelectedUnit);
 
     /// <summary>The armed ability's descriptor, or <c>null</c> when no ability is armed.</summary>
     public AbilityDefinition? ArmedDescriptor =>

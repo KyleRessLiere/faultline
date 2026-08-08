@@ -33,6 +33,33 @@ changes, this table and that test go red together. Numbers are the doubled scale
 
 Rescue: **3 AP** (the whole pool). Pluck cap for every class: **5**.
 
+**The alternate kits** — nobody starts with any of these. They are the pool a run's kit surgery
+draws from; each replaces something above.
+
+| Class | Alternate | AP | Pluck | Range | Effect | Replaces |
+|---|---|---|---|---|---|---|
+| Vanguard | Overrun | **3** | — | line 3 | runs the line, shoulders **every** enemy 1 aside | Bull Rush |
+| Vanguard | Retort (spend) | 0 | 2 | — | until his next activation, the first enemy that damages him is shoved 2 | Wrecking Weight |
+| Archer | Skyfall (spend) | 0 | 3 | 2–5 | **from high ground only**: 6 dmg + Stagger | Double Nock |
+| Fisher | Punt | 2 | — | 3 | shoves one enemy 3 tiles away, every tile resolved | Reel |
+| Fisher | Whirl (spend) | 0 | 3 | adjacent | every enemy beside her shoved 1 away and Staggered | Cast |
+| Wardbearer | Interpose | 1 | — | 1 | offers an adjacent ally a swap of tiles (placement) | Spear Thrust |
+| Wardbearer | Breakwater (spend) | 0 | 3 | adjacent | until his next activation, any enemy ending a move beside him is shoved 1 and Staggered | Preen |
+
+**Grounding Shot is specified but NOT built** — it wants a halved Move until end of round, which is a
+status this game does not have. See D-236.
+
+**What a duck holds is a fact about the duck, not about its class.** Every surface asks the duck:
+`Kits.SpenderHeldBy` for the spender its Pluck slot actually carries, `Abilities.AllOf` for the
+actions in its ability slots, `Abilities.CostOf` and `Abilities.RangeFor` for what those actions cost
+and reach with its mods on. A duck that holds no spender **draws no meter at all**. Asking the
+archetype instead was the Stage H bug class: the meter on the token, the strip and the inspector all
+named the card the class opens with (D-242).
+
+**Charge conditions do not travel.** An alternate spender changes the spend and never the income:
+Retort is funded by the Vanguard causing collisions exactly as Wrecking Weight is, Whirl by the
+Fisher's displacements, Skyfall by the Archer's high ground, Breakwater by the Wardbearer's absorbs.
+
 ### Ranges and minimum range
 
 **Only the Archer has a minimum range: 2** — for both her basic shot and Stagger Shot. Every other
@@ -1477,6 +1504,12 @@ class's spender lives on the second axis and never occupies one of the first (D-
 So every class but the Wardbearer opens **using two of three ability slots, with one free to grow
 into**, and the Wardbearer three of four.
 
+**What fills that free slot is the alternate pool** (Quick Reference, above). Seven entries: three
+actions and four spenders, each class-bound, none in any opening kit. An alternate action learns into
+a free ability slot; an alternate spender needs the Pluck slot, which means **replacing** the class's
+own spender rather than learning alongside it — there is one Pluck slot and §5 gives each class one
+spender. The offer that hands them over is not built: that is G2's replacement command.
+
 **The Wardbearer starts with four, and the reason travels with the number: his stance and his spear
 are two halves of one job.** §4 prints them as one "per activation choose" line, which is one kit
 entry wearing two names; slots cannot hold a choice, so the choice becomes two slots and his kit
@@ -1501,15 +1534,17 @@ itself is immutable, because a static a fight reads and something else pokes can
 - **The camp strip says what a duck still knows and cannot use** — "still knows Guard Stance, and
   cannot use it — no slot holds it any more". The sentence is Core's, so a shell cannot write a second
   version of the ruling.
-- **Mods are counted per slot: three per ability, all classes** (D-226). A mod's host slot is
-  *derived* from the card — a mod bolts onto its spender, a technique onto the ability §8.6 names —
-  so the ceiling costs no run state.
-- **Replacing a slot forfeits every mod that hung on what left.** A mod names the thing it modifies,
-  so a mod whose host has gone is a rule about nothing. **Mods are forfeited, not disabled** — the
-  owned-but-unavailable flag is about abilities, so §8.6's uniqueness law (`CampDirector.AnybodyHolds`,
-  "what the squad currently holds") answers exactly as it did before the flag existed.
-- **A duck is never offered a mod for an ability it does not own.** This applies to mods only; Second
-  Winds, unlocks and one-shots are unaffected, or a kit could never change.
+- **Mods are counted per slot: three per ability, all classes** (D-226). A host slot is *derived*
+  from the card, never stored beside it, so the ceiling costs no run state. **Mods and techniques
+  share that count** — since Stage K a technique hosts on an ability too, so the three sockets on an
+  ability hold whichever kind of card asks for them.
+- **Replacing a slot forfeits every mod and technique that hung on what left.** A card names the
+  thing it modifies, so a card whose host has gone is a rule about nothing. **They are forfeited, not
+  disabled** — the owned-but-unavailable flag is about abilities, so §8.6's uniqueness law
+  (`CampDirector.AnybodyHolds`, "what the squad currently holds") answers exactly as it did before
+  the flag existed.
+- **A duck is never offered a mod or a technique for an ability it does not own**, by one filter over
+  both kinds of card. Second Winds, unlocks and one-shots are unaffected, or a kit could never change.
 - **A duck with no attack is legal and nothing gates it.** Its stat block reads `AttackKind.None`, it
   is offered no swing, and it still moves, spends Pluck, interacts and rescues. §3: the game never
   decides what is useful.
@@ -1625,25 +1660,31 @@ nothing and nothing was invented for it.
 
 Data on a duck's kit. Class-bound, always. One Common and one Uncommon per class.
 
-**Where they socket depends on whether §8.6 names a host.** Three of the eight name one — Follow-In
-(Bull Rush), Short Line (Reel), Shelter Step (Guard Stance) — and those count against **that slot's**
-three, are forfeited if it is replaced, and are never offered to a duck that no longer owns it. **The
-other five name none**, so they hang on the duck rather than on any slot: never forfeited, never
-filtered, and capped only by `DuckLoadout.TechniqueSlots` = 2. That is D-158's recorded contradiction
-— the §8.6 heading says all twenty-four are "hosted on a named ability, 2 sockets each" while the
-entries name a host for three — surfacing again under the slot model rather than being resolved
-(D-227, still open on that half; the spender-slot half of D-227 is resolved by D-230).
+**Every technique hosts on a named ability, and there is no hostless card left.** All eight count
+against **that slot's** three, are forfeited if it is replaced, and are never offered to a duck that
+no longer owns it — the same rule, the same line of code, as a mod's. Five of them named no host
+until Stage K, which assigned them on one rule: **a technique hosts on the ability that triggers it,
+on the duck that owns it, and the beneficiary of a cross-flock card is the effect and hosts
+nothing.** That closes the half of D-227 D-230 left open, and retires D-158's nullable
+`TechniqueDefinition.Host` along with `DuckLoadout.TechniqueSlots`, which existed only to cap the
+cards that hung on nothing.
 
-| Card | Class | Rarity | Tags | What it does |
-|---|---|---|---|---|
-| **Follow-In** | Vanguard | C | TRAFFIC | after the target is pushed ≥1, he **may** enter the tile it left |
-| **Rattling Impact** | Vanguard | U | IMPACT/RELAY | the first enemy he collides each round is **Rattled**: the **other flock's** next displacement of it gains **+1** and consumes the mark |
-| **Short Line** | Fisher | C | CONTROL | she **may** choose any legal stopping tile on the drag path; collisions and hazards still stop it earlier |
-| **Hand-Off** | Fisher | U | RELAY | a displacement of hers ending adjacent to the other flock's duck gives that duck's next basic attack on the target **Push 1** |
-| **Spotter** | Archer | C | RELAY | she ignores her **minimum range** against an enemy adjacent to the other flock's duck |
-| **Crossing Shot** | Archer | U | RELAY | **once per round**, when the other flock displaces an enemy through her **range-2–3** firing line, deal **2**. The initiating preview shows the shot. |
-| **Stored Force** | Wardbearer | C | GUARD/IMPACT | each tile of hostile displacement his resistance cancels stores **1 Force (max 2)**; his next **tip-tile** Spear hit **may** spend it as a push |
-| **Shelter Step** | Wardbearer | U | GUARD/RELAY | if a redirect moves him, the duck he was covering **banks a free step** into the tile he left |
+| Card | Class | Rarity | Tags | Host | What it does |
+|---|---|---|---|---|---|
+| **Follow-In** | Vanguard | C | TRAFFIC | Bull Rush | after the target is pushed ≥1, he **may** enter the tile it left |
+| **Rattling Impact** | Vanguard | U | IMPACT/RELAY | Bull Rush | the first enemy he collides each round is **Rattled**: the **other flock's** next displacement of it gains **+1** and consumes the mark |
+| **Short Line** | Fisher | C | CONTROL | Reel | she **may** choose any legal stopping tile on the drag path; collisions and hazards still stop it earlier |
+| **Hand-Off** | Fisher | U | RELAY | Reel | a displacement of hers ending adjacent to the other flock's duck gives that duck's next basic attack on the target **Push 1** |
+| **Spotter** | Archer | C | RELAY | basic attack | she ignores her **minimum range** against an enemy adjacent to the other flock's duck |
+| **Crossing Shot** | Archer | U | RELAY | basic attack | **once per round**, when the other flock displaces an enemy through her **range-2–3** firing line, deal **2**. The initiating preview shows the shot. |
+| **Stored Force** | Wardbearer | C | GUARD/IMPACT | Spear Thrust | each tile of hostile displacement his resistance cancels stores **1 Force (max 2)**; his next **tip-tile** Spear hit **may** spend it as a push |
+| **Shelter Step** | Wardbearer | U | GUARD/RELAY | Guard Stance | if a redirect moves him, the duck he was covering **banks a free step** into the tile he left |
+
+**Two consequences of the assignment worth knowing at the table.** The Archer's pair both hang on her
+basic attack, so they share its three sockets with her mods and she loses **both** if she ever trades
+that attack away — she is the one class whose techniques do not spread. And **Follow-In's host is
+Bull Rush here while §8.6 prints "Basic"**; the code has read Bull Rush since it was built and Stage
+K did not flip it, because which push the card follows is a ruling and not an assignment.
 
 **The "may" cards are elected on the command** (`TechniqueOption` on `AttackCommand` and
 `AbilityCommand`, `StopAt` for Short Line). An election by a duck that does not hold the card is
@@ -1675,24 +1716,63 @@ Five categories are drawable: **Modify**, **Second Wind**, **Tactical unlock**, 
 **Technique**. §8.5's remaining one — **Learn / Replace / Swap** — is *not* built and is not a value
 the enum holds, so it can never be dealt.
 
-**Mods — 3 per spender, and a duck's spender holds 2 of them.** A mod offer is never dealt for a duck
-whose spender is full, and never for a class the mod does not fit. The third slot is the Molt's *Deep
-Mastery*, which is not built, so **2 is the whole ceiling today**.
+**Mods — 3 per ability, and an ability's slot holds 3 of them.** A mod hosts on an **ability**, and a
+spender is one kind of ability (D-243). A mod offer is never dealt for a duck that does not hold the
+ability it bolts onto, never for a class the ability does not belong to, and never for a slot that is
+already carrying three — **one filter, over both kinds of host** (`CampCatalogue.EligibleFor`).
+**Technique offers pass the same filter**, on the same line, since Stage K gave every technique a
+host: the ceiling they consume is the host ability's three, shared with its mods.
+
+Every socket a duck can fill is open: **3 is the starting ceiling**, so the Molt's *Deep Mastery*
+(which was to raise 2 → 3) has nothing left to raise. That is the designer's to retire or reprice
+(D-226).
+
+**Hosted on a spender — 24, three per spender, eight spenders:**
 
 | Spender | Mod | What it does now |
 |---|---|---|
 | Wrecking Weight (Vanguard) | **Heavier** | contact damage **4** instead of 2 |
 | | **Freight** | **+2** distance instead of +1 |
 | | **Echo** | if the charged push **collides**, refund **1** Pluck (`VerveSource.Refund`) |
+| Retort (Vanguard) | **Hair Trigger** | cost **1** instead of 2 |
+| | **Backhand** | the shove is **3** instead of 2 |
+| | **Grudge** | refund **2** Pluck if the retort's shove causes a collision |
 | Cast (Fisher) | **Light Line** | cost **2** instead of 3 |
 | | **Long Rod** | grab range **4** instead of 3 |
 | | **Big Splash** | the landing also deals **2** to every enemy adjacent to the landing tile |
+| Whirl (Fisher) | **Riptide** | cost **2** instead of 3 |
+| | **Wide Whirl** | the shove is **2** instead of 1 |
+| | **Churn** | **+1** Pluck if 2 or more enemies are shoved |
 | Double Nock (Archer) | **Fletcher's Rhythm** | cost **3** instead of 4 |
 | | **Long Draw** | both shots range **4** — while the spend is live this activation |
 | | **Hunter's Refund** | a **killing shot** refunds **1** Pluck |
+| Skyfall (Archer) | **Low Sky** | usable from **any** tile, range **3** |
+| | **Shatterfall** | also Staggers enemies adjacent to the target |
+| | **Updraft** | refund **1** Pluck on a kill |
 | Preen (Wardbearer) | **Thorough** | also clears **his own** Stagger |
 | | **Neighborly** | may heal an **adjacent hurt ally** instead of himself, for the same 4 |
 | | **Quick** | cost **2** instead of 3 |
+| Breakwater (Wardbearer) | **Low Wall** | cost **2** instead of 3 |
+| | **Sea Wall** | the shove is **2** instead of 1 |
+| | **Toll** | **+1** Pluck the first time each round the wall triggers |
+
+**Hosted on an action — 8.** Same three axes (cheaper, stronger, economy) and the same pool; only the
+host is a different kind of ability.
+
+| Action | Mod | What it does now |
+|---|---|---|
+| Overrun (Vanguard) | **Downhill** | **2 AP** instead of 3, when the run **begins on high ground** — a board condition, so the same duck pays 3 from the flat in the same activation |
+| | **Ploughshare** | every enemy he shoulders is **Staggered** |
+| | **Full Weight** | **+1** Pluck if the run shoulders **2 or more**. Paid once for the run, not per body, and not at all if a collision takes him off the board |
+| Punt (Fisher) | **Short Pole** | **1 AP** instead of 2, and the shove is **2** instead of 3 |
+| | **Long Punt** | range **4** instead of 3 |
+| | **Downstream** | **+1** Pluck if the enemy travels the **whole shove** — the whole shove, not a literal 3, so Short Pole does not make it inert. Measured off the displacement's own path, so a body a wall kills where it stands pays nothing |
+| Interpose (Wardbearer) | **Long Reach** | range **2** instead of 1 |
+| | **Changing of the Guard** | **+1** Pluck if he swaps onto a tile an enemy has **declared as its target**. Paid on the **accepted swap**, never on the offer — the ally's owner is what turns an Interpose into a step |
+
+**Grounding Shot's mods are absent with the ability** (D-236): *Long Stake* is held with it, and
+*Deep Mire* is **struck** — it forbids a climb cost D-165 removed. Interpose carries two rather than
+three; its third, *Shield Arm*, was not commissioned.
 
 **Second Wind conditions — 2 per class, class-bound like every other charge.** Each pays **+1** and
 carries its own `VerveSource`, so the log says which condition paid.
