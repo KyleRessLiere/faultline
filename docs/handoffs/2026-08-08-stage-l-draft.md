@@ -101,6 +101,11 @@ landed in code at all.**
 - **Core green did not mean the shell worked, for the third time.** `StatusBand.HasContent` did not
   know about the new prompt, so the band rendered nothing and step 1 never reached the screen while
   every test passed. `tools/ui-checks/draft-check.mjs` caught it. Run it.
+- **Step 1 is a modal at the screen root**, not a band item — scrim, centred panel, the command
+  dock's dialog tokens restated in `DraftOrderPrompt.razor.css` because Blazor scopes component CSS.
+  If a shared dialog stylesheet is ever added, the dock's confirms and this should move onto it
+  together. **The reveal is dismissible and clears**; whether a player has seen it is shell state,
+  because the draft order is a permanent fact but being shown it is not.
 
 ## Running the app check
 
