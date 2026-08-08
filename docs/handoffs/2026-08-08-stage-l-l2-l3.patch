@@ -1,0 +1,634 @@
+diff --git a/src/Faultline.Core/Fights/Data/break-the-gate.fight b/src/Faultline.Core/Fights/Data/break-the-gate.fight
+index 1c3ab1a..a2aa8e4 100644
+--- a/src/Faultline.Core/Fights/Data/break-the-gate.fight
++++ b/src/Faultline.Core/Fights/Data/break-the-gate.fight
+@@ -35,5 +35,5 @@ board:
+   ..^w^..
+   ...H...
+   .......
+-  A.....B
+-  AA...BB
++  S.....S
++  SS...SS
+diff --git a/src/Faultline.Core/Fights/Data/broken-bridge.fight b/src/Faultline.Core/Fights/Data/broken-bridge.fight
+index c82303b..92beed6 100644
+--- a/src/Faultline.Core/Fights/Data/broken-bridge.fight
++++ b/src/Faultline.Core/Fights/Data/broken-bridge.fight
+@@ -22,10 +22,10 @@ roster b: Wardbearer, Archer
+ blocker-hp: 6
+ 
+ board:
+-  h....BB
+-  .h....B
++  h....SS
++  .h....S
+   ..X....
+   OO.O.OO
+   ....X..
+-  A....h.
+-  AA....h
++  S....h.
++  SS....h
+diff --git a/src/Faultline.Core/Fights/Data/cb-06-bait-and-break.fight b/src/Faultline.Core/Fights/Data/cb-06-bait-and-break.fight
+index 8982a9a..108319a 100644
+--- a/src/Faultline.Core/Fights/Data/cb-06-bait-and-break.fight
++++ b/src/Faultline.Core/Fights/Data/cb-06-bait-and-break.fight
+@@ -19,10 +19,10 @@ roster a: Vanguard, Threadcaster
+ roster b: Wardbearer, Archer
+ 
+ board:
+-  h....BB
+-  .h....B
++  h....SS
++  .h....S
+   ..h....
+   ...h...
+   ....h..
+-  A..#.#.
+-  AA.#.#.
++  S..#.#.
++  SS.#.#.
+diff --git a/src/Faultline.Core/Fights/Data/first-contact.fight b/src/Faultline.Core/Fights/Data/first-contact.fight
+index 27d9fa5..ce175f7 100644
+--- a/src/Faultline.Core/Fights/Data/first-contact.fight
++++ b/src/Faultline.Core/Fights/Data/first-contact.fight
+@@ -18,10 +18,10 @@ roster a: Vanguard, Threadcaster
+ roster b: Wardbearer, Archer
+ 
+ board:
+-  #l#...B
+-  .^.H..B
+-  h.....B
++  #l#...S
++  .^.H..S
++  h.....S
+   hO...O.
+   #.....#
+-  A...^..
+-  AA....h
++  S...^..
++  SS....h
+diff --git a/src/Faultline.Core/Fights/Data/high-road.fight b/src/Faultline.Core/Fights/Data/high-road.fight
+index 4cc80f9..3bc55e1 100644
+--- a/src/Faultline.Core/Fights/Data/high-road.fight
++++ b/src/Faultline.Core/Fights/Data/high-road.fight
+@@ -29,6 +29,6 @@ board:
+   .h.H...
+   .O.H.O.
+   ...H...
+-  .O.H.OB
+-  A..H..B
+-  AA.n..B
++  .O.H.OS
++  S..H..S
++  SS.n..S
+diff --git a/src/Faultline.Core/Fights/Data/hold-the-gate.fight b/src/Faultline.Core/Fights/Data/hold-the-gate.fight
+index 2cf99eb..d97646e 100644
+--- a/src/Faultline.Core/Fights/Data/hold-the-gate.fight
++++ b/src/Faultline.Core/Fights/Data/hold-the-gate.fight
+@@ -27,10 +27,10 @@ objective: hold 4,3 4,4 for 7
+ turn-limit: 7
+ 
+ board:
+-  h...#..BB
+-  ...^#H.BB
++  h...#..SS
++  ...^#H.SS
+   ....#....
+   .O.......
+   .O.......
+-  ...^#H.AA
+-  h...#..AA
++  ...^#H.SS
++  h...#..SS
+diff --git a/src/Faultline.Core/Fights/Data/hz-09-the-trench.fight b/src/Faultline.Core/Fights/Data/hz-09-the-trench.fight
+index b14781c..146af80 100644
+--- a/src/Faultline.Core/Fights/Data/hz-09-the-trench.fight
++++ b/src/Faultline.Core/Fights/Data/hz-09-the-trench.fight
+@@ -29,5 +29,5 @@ board:
+   ..n.n..
+   OOO.OOO
+   .......
+-  A..H..B
+-  AA...BB
++  S..H..S
++  SS...SS
+diff --git a/src/Faultline.Core/Fights/Data/quarry-king.fight b/src/Faultline.Core/Fights/Data/quarry-king.fight
+index bf8fd47..4393882 100644
+--- a/src/Faultline.Core/Fights/Data/quarry-king.fight
++++ b/src/Faultline.Core/Fights/Data/quarry-king.fight
+@@ -23,10 +23,10 @@ wave 3 = h@0,2 h@0,4
+ wave 6 = h@0,1 h@0,5
+ 
+ board:
+-  l.....^BB
+-  ..h....BB
++  l.....^SS
++  ..h....SS
+   ....O....
+   ..q......
+   ....O....
+-  ..h....AA
+-  l.....^AA
++  ..h....SS
++  l.....^SS
+diff --git a/src/Faultline.Core/Fights/Data/the-shrine.fight b/src/Faultline.Core/Fights/Data/the-shrine.fight
+index fa134cc..d688a12 100644
+--- a/src/Faultline.Core/Fights/Data/the-shrine.fight
++++ b/src/Faultline.Core/Fights/Data/the-shrine.fight
+@@ -29,10 +29,10 @@ turn-limit: 8
+ wave 3 = r@3,0 h@3,6
+ 
+ board:
+-  r....BB
+-  ..#...B
++  r....SS
++  ..#...S
+   .^...^.
+   ...S...
+   .O..hO.
+-  A..#...
+-  AA....r
++  S..#...
++  SS....r
+diff --git a/src/Faultline.Core/Fights/Data/the-teeth.fight b/src/Faultline.Core/Fights/Data/the-teeth.fight
+index 1fd04b5..d77d460 100644
+--- a/src/Faultline.Core/Fights/Data/the-teeth.fight
++++ b/src/Faultline.Core/Fights/Data/the-teeth.fight
+@@ -19,10 +19,10 @@ roster a: Vanguard, Threadcaster
+ roster b: Wardbearer, Archer
+ 
+ board:
+-  .....BB
+-  .h....B
++  .....SS
++  .h....S
+   .......
+   ...h...
+   ..^^^..
+-  A....h.
+-  AA....l
++  S....h.
++  SS....l
+diff --git a/src/Faultline.Core/Fights/FightDefinition.cs b/src/Faultline.Core/Fights/FightDefinition.cs
+index c7f4874..7356bac 100644
+--- a/src/Faultline.Core/Fights/FightDefinition.cs
++++ b/src/Faultline.Core/Fights/FightDefinition.cs
+@@ -109,7 +109,65 @@ namespace Faultline.Core
+         /// </summary>
+         public IReadOnlyList<FootingGrant> FootingGrants { get; init; } = new FootingGrant[0];
+ 
++        /// <summary>
++        /// The board's deployment <b>spots</b>: tiles either player may draft into, owned by neither.
++        /// </summary>
++        /// <remarks>
++        /// §3's deployment draft (locked y). Empty on a board still written with the old per-side
++        /// <c>A</c>/<c>B</c> zones — read <see cref="Spots"/> rather than this, which unions the zones
++        /// for an unmigrated board so it drafts instead of breaking.
++        /// </remarks>
++        public IReadOnlyList<Coord> DeploymentSpots { get; init; } = new Coord[0];
++
++        /// <summary>
++        /// Every tile this board may be drafted into, in board order. <b>Not owned by either player</b>
++        /// — that is the whole of what §3 replaced zone-claiming with.
++        /// </summary>
++        /// <remarks>
++        /// An unmigrated board (one written with <c>A</c>/<c>B</c> marks and no <c>S</c>) answers the
++        /// union of its two zones. The bridge exists so that the format change and the eight-board
++        /// migration are separable; it is dead the day no board carries a zone.
++        /// </remarks>
++        public IReadOnlyList<Coord> Spots
++        {
++            get
++            {
++                if (DeploymentSpots.Count > 0)
++                {
++                    return DeploymentSpots;
++                }
++
++                if (DeploymentZoneA.Count == 0)
++                {
++                    return DeploymentZoneB;
++                }
++
++                if (DeploymentZoneB.Count == 0)
++                {
++                    return DeploymentZoneA;
++                }
++
++                var joined = new List<Coord>(DeploymentZoneA.Count + DeploymentZoneB.Count);
++                joined.AddRange(DeploymentZoneA);
++                foreach (var coord in DeploymentZoneB)
++                {
++                    if (!joined.Contains(coord))
++                    {
++                        joined.Add(coord);
++                    }
++                }
++
++                return joined;
++            }
++        }
++
+         /// <summary>The deployment zone belonging to a player team.</summary>
++        /// <remarks>
++        /// <b>Retiring.</b> §3's draft made spots unowned, so a rule that asks which tiles belong to
++        /// one side is asking a question the design no longer has — read <see cref="Spots"/>. This
++        /// survives for the boards not yet migrated and for the authoring checks that still speak in
++        /// sides.
++        /// </remarks>
+         /// <param name="team">Player team.</param>
+         /// <returns>That team's legal deployment tiles, or an empty list for the enemy team.</returns>
+         public IReadOnlyList<Coord> ZoneFor(Team team)
+@@ -215,6 +273,7 @@ namespace Faultline.Core
+                 && Same(DesignNotes, other.DesignNotes)
+                 && Same(DeploymentZoneA, other.DeploymentZoneA)
+                 && Same(DeploymentZoneB, other.DeploymentZoneB)
++                && Same(DeploymentSpots, other.DeploymentSpots)
+                 && Same(RosterA, other.RosterA)
+                 && Same(RosterB, other.RosterB)
+                 && Same(Enemies, other.Enemies)
+@@ -241,6 +300,7 @@ namespace Faultline.Core
+                 hash = Fold(hash, DesignNotes);
+                 hash = Fold(hash, DeploymentZoneA);
+                 hash = Fold(hash, DeploymentZoneB);
++                hash = Fold(hash, DeploymentSpots);
+                 hash = Fold(hash, RosterA);
+                 hash = Fold(hash, RosterB);
+                 hash = Fold(hash, Enemies);
+diff --git a/src/Faultline.Core/Fights/FightIssueCode.cs b/src/Faultline.Core/Fights/FightIssueCode.cs
+index df380b0..319cd9b 100644
+--- a/src/Faultline.Core/Fights/FightIssueCode.cs
++++ b/src/Faultline.Core/Fights/FightIssueCode.cs
+@@ -152,5 +152,18 @@ namespace Faultline.Core
+         /// still failing is pinned by a test so the number cannot quietly grow.
+         /// </remarks>
+         UnsafeRound1Deployment = 112,
++
++        /// <summary>
++        /// A board publishes fewer deployment spots than the two flocks have ducks, and says nothing
++        /// about it — §3's floor ("spots must outnumber ducks or the draft is assignment rather than
++        /// drafting", default 6–8 for 4).
++        /// </summary>
++        /// <remarks>
++        /// A lint, not an error, because §3 makes a short spot list a legitimate <b>board thesis</b>
++        /// (two distant pockets, a scattered flock) — but only when the author said so. The
++        /// difference between a thesis and a bug is whether a <c>design:</c> line mentions the
++        /// deployment, so this fires only on the boards that are silent about it.
++        /// </remarks>
++        SpotFloorUndeclared = 113,
+     }
+ }
+diff --git a/src/Faultline.Core/Fights/FightParser.cs b/src/Faultline.Core/Fights/FightParser.cs
+index ede4ebb..cbb0f67 100644
+--- a/src/Faultline.Core/Fights/FightParser.cs
++++ b/src/Faultline.Core/Fights/FightParser.cs
+@@ -19,6 +19,17 @@ namespace Faultline.Core
+         /// <summary>Deployment slot for Player B. The tile underneath is Open.</summary>
+         public const char DeployB = 'B';
+ 
++        /// <summary>
++        /// A deployment <b>spot</b>: a tile either player may draft into. The tile underneath is Open.
++        /// </summary>
++        /// <remarks>
++        /// §3's deployment draft (locked y) publishes spots that are <b>not owned by either player</b>,
++        /// which is the whole of what replaced zone-claiming — so there is one mark, not one per side.
++        /// A board still carrying <see cref="DeployA"/>/<see cref="DeployB"/> is read as unmigrated and
++        /// its two zones are unioned into the spot list, so an old board drafts rather than breaking.
++        /// </remarks>
++        public const char DeploySpot = 'S';
++
+         /// <summary>
+         /// The tile an <c>objective: protect</c> structure stands on. The terrain underneath is Open,
+         /// exactly as it is under a deploy slot or a spawn letter.
+@@ -668,6 +679,13 @@ namespace Faultline.Core
+                         continue;
+                     }
+ 
++                    if (c == DeploySpot)
++                    {
++                        built.Spots.Add(at);
++                        tiles.Add(TileType.Open);
++                        continue;
++                    }
++
+                     // A structure is the one thing an objective used to place by coordinate alone.
+                     // Marking it on the grid keeps the board WYSIWYG; the mark is checked against
+                     // the objective:' line rather than trusted, so the two can never disagree.
+@@ -755,8 +773,17 @@ namespace Faultline.Core
+                 issues.Add(new FightIssue(FightIssueCode.RosterEmpty, "Missing or empty 'roster b:'.", header.RosterBLine));
+             }
+ 
+-            CheckZone(grid.ZoneA, header.RosterA.Count, "A", boardStartLine, issues);
+-            CheckZone(grid.ZoneB, header.RosterB.Count, "B", boardStartLine, issues);
++            // A migrated board has spots and no zones, and asking it which tiles belong to player A is
++            // asking the question §3 deleted. The per-side checks run only while the board still
++            // speaks in sides.
++            if (grid.Spots.Count == 0)
++            {
++                CheckZone(grid.ZoneA, header.RosterA.Count, "A", boardStartLine, issues);
++                CheckZone(grid.ZoneB, header.RosterB.Count, "B", boardStartLine, issues);
++            }
++
++            CheckSpotFloor(
++                grid.Spots, header.RosterA.Count + header.RosterB.Count, header.Design, boardStartLine, issues);
+ 
+             // Waves resolve before the unused-spawn check, because a letter used only by a wave is
+             // used: the enemy is real, it just walks on later.
+@@ -793,6 +820,7 @@ namespace Faultline.Core
+                 RosterB = header.RosterB,
+                 DeploymentZoneA = grid.ZoneA,
+                 DeploymentZoneB = grid.ZoneB,
++                DeploymentSpots = grid.Spots,
+                 Enemies = grid.Spawns,
+                 ProtectedZone = protectedZone,
+                 Blockers = grid.Blockers,
+@@ -982,6 +1010,52 @@ namespace Faultline.Core
+             return grants;
+         }
+ 
++        // §3's floor: "spots must outnumber ducks or the draft is assignment rather than drafting",
++        // default 6-8 for 4. A board under the floor is either a declared THESIS or a bug, and the
++        // only thing that tells them apart is whether the author said so — so a design: line that
++        // talks about the deployment silences this, and silence is what gets flagged. Deliberately
++        // not fatal: §3 blesses the short list, it just will not let it happen by accident.
++        private static void CheckSpotFloor(
++            List<Coord> spots,
++            int ducks,
++            List<string> design,
++            int boardStartLine,
++            List<FightIssue> issues)
++        {
++            if (spots.Count == 0 || ducks == 0 || spots.Count > ducks)
++            {
++                return;
++            }
++
++            foreach (var note in design)
++            {
++                if (MentionsDeployment(note))
++                {
++                    return;
++                }
++            }
++
++            issues.Add(new FightIssue(
++                FightIssueCode.SpotFloorUndeclared,
++                "Board publishes " + spots.Count + " deployment spot(s) for " + ducks
++                    + " ducks. §3 wants spots to outnumber ducks (6-8 for 4); fewer is a board thesis, "
++                    + "and a thesis is stated on a 'design:' line. Say why, or add spots.",
++                boardStartLine));
++        }
++
++        private static bool MentionsDeployment(string note)
++        {
++            foreach (var word in new[] { "deploy", "spot", "draft", "placement", "pocket" })
++            {
++                if (note.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
++                {
++                    return true;
++                }
++            }
++
++            return false;
++        }
++
+         private static void CheckZone(
+             List<Coord> zone,
+             int rosterSize,
+@@ -1455,6 +1529,8 @@ namespace Faultline.Core
+ 
+             public List<Coord> ZoneB { get; } = new List<Coord>();
+ 
++            public List<Coord> Spots { get; } = new List<Coord>();
++
+             public List<EnemySpawn> Spawns { get; } = new List<EnemySpawn>();
+ 
+             public List<StructureMark> StructureMarks { get; } = new List<StructureMark>();
+diff --git a/src/Faultline.Core/Fights/FightWriter.cs b/src/Faultline.Core/Fights/FightWriter.cs
+index 7fe65df..c8047b4 100644
+--- a/src/Faultline.Core/Fights/FightWriter.cs
++++ b/src/Faultline.Core/Fights/FightWriter.cs
+@@ -214,6 +214,13 @@ namespace Faultline.Core
+                 grid[Index(board, coord, "deployment zone A")] = FightParser.DeployA;
+             }
+ 
++            // Painted last, so a migrated board round-trips as spots rather than as the zones it no
++            // longer has. A board carries one or the other, never both.
++            foreach (var coord in fight.DeploymentSpots)
++            {
++                grid[Index(board, coord, "deployment spot")] = FightParser.DeploySpot;
++            }
++
+             return grid;
+         }
+ 
+diff --git a/src/Faultline.Core/Rules/Game.cs b/src/Faultline.Core/Rules/Game.cs
+index 89d327c..6ba04cd 100644
+--- a/src/Faultline.Core/Rules/Game.cs
++++ b/src/Faultline.Core/Rules/Game.cs
+@@ -513,7 +513,7 @@ namespace Faultline.Core
+                         continue;
+                     }
+ 
+-                    foreach (var tile in state.Fight.ZoneFor(state.ActiveTeam))
++                    foreach (var tile in state.Fight.Spots)
+                     {
+                         if (CanDeployOnto(state, tile))
+                         {
+@@ -863,7 +863,10 @@ namespace Faultline.Core
+             var unit = state.UnitById(command.UnitId);
+             Require(unit.Team == state.ActiveTeam, "It is not that player's turn to deploy.");
+             Require(!unit.IsDeployed, "Unit is already deployed.");
+-            Require(Contains(state.Fight.ZoneFor(unit.Team), command.At), "Tile is outside the deployment zone.");
++            // §3: a spot is owned by NEITHER player, so the question is whether the tile is a spot at
++            // all, never whose spot it is. An unmigrated board answers the union of its two zones, so
++            // this reads the same either way (Fight.Spots).
++            Require(Contains(state.Fight.Spots, command.At), "Tile is not a deployment spot.");
+             Require(CanDeployOnto(state, command.At), "Tile cannot be deployed onto.");
+ 
+             var placed = unit with { Position = command.At, IsDeployed = true };
+diff --git a/src/Faultline.Core/Rules/Threat.cs b/src/Faultline.Core/Rules/Threat.cs
+index fabcf80..83c545c 100644
+--- a/src/Faultline.Core/Rules/Threat.cs
++++ b/src/Faultline.Core/Rules/Threat.cs
+@@ -146,7 +146,10 @@ namespace Faultline.Core
+             }
+ 
+             var threatened = new HashSet<Coord>(DamageRound1(state));
+-            foreach (var tile in state.Fight.ZoneFor(team))
++            // §3's spots belong to neither side, so "which tiles could this team stand on safely" is
++            // asked of the whole published list. On an unmigrated board Spots is the union of the two
++            // zones, which widens this from one side's corner to the board's real answer.
++            foreach (var tile in state.Fight.Spots)
+             {
+                 if (!threatened.Contains(tile))
+                 {
+@@ -199,7 +202,7 @@ namespace Faultline.Core
+                 int safe = SafeDeploymentTiles(state, team).Count;
+                 if (safe < needed)
+                 {
+-                    failures.Add(new UnsafeSide(team, needed, safe, state.Fight.ZoneFor(team).Count));
++                    failures.Add(new UnsafeSide(team, needed, safe, state.Fight.Spots.Count));
+                 }
+             }
+ 
+diff --git a/tests/Faultline.Core.Tests/AgencyTests.cs b/tests/Faultline.Core.Tests/AgencyTests.cs
+index fd681b8..fcfeddc 100644
+--- a/tests/Faultline.Core.Tests/AgencyTests.cs
++++ b/tests/Faultline.Core.Tests/AgencyTests.cs
+@@ -103,12 +103,14 @@ public class AgencyTests
+         var fight = FightLibrary.Fight1();
+         var state = Game.Start(fight, seed: 0).NewState;
+ 
++        // Asked of the published spot list, not of two per-side zones: §3's spots belong to neither
++        // player, so both sides are answered by the same tiles and both answers must be the whole list.
+         Assert.Equal(
+-            fight.DeploymentZoneA.Count,
++            fight.Spots.Count,
+             Threat.SafeDeploymentTiles(state, Team.PlayerA).Count);
+ 
+         Assert.Equal(
+-            fight.DeploymentZoneB.Count,
++            fight.Spots.Count,
+             Threat.SafeDeploymentTiles(state, Team.PlayerB).Count);
+     }
+ 
+@@ -192,13 +194,17 @@ public class AgencyTests
+         Assert.True(safeA.Count >= fight.RosterA.Count && safeB.Count >= fight.RosterB.Count);
+ 
+         var state = start;
+-        int slotA = 0, slotB = 0;
++
++        // One cursor over one list, because §3's spots are shared: safeA and safeB are now the same
++        // tiles, so two per-side cursors would hand both players the same spot and the second
++        // placement would be refused for a reason this test is not about.
++        int slot = 0;
+ 
+         while (state.Phase == Phase.Deployment)
+         {
+             var legal = Game.LegalCommands(state);
+             var undeployed = state.Units.First(u => u.Team == state.ActiveTeam && !u.IsDeployed);
+-            var tile = state.ActiveTeam == Team.PlayerA ? safeA[slotA++] : safeB[slotB++];
++            var tile = safeA[slot++];
+ 
+             state = state.Then(legal.OfType<DeployCommand>()
+                 .First(d => d.UnitId == undeployed.Id && d.At == tile));
+@@ -239,23 +245,44 @@ public class AgencyTests
+             "roster a: Vanguard, Threadcaster",
+             "roster b: Wardbearer, Archer",
+             "spawn h = Husk",
++            "design: The swarm is parked on the spots deliberately - the thesis is that there is",
++            "design: nowhere clean to stand, so the draft is about who eats the first hit.",
+             "board:",
+-            "  ....hBB",
+-            "  ....h.B",
++            "  ....hSS",
++            "  ....h.S",
+             "  .......",
+             "  .......",
+             "  .......",
+-            "  A......",
+-            "  AA....."));
++            "  Sh.....",
++            "  SS....."));
+ 
+         Assert.Empty(result.Errors);
+ 
+         var lint = result.Lints.FirstOrDefault(i => i.Code == FightIssueCode.UnsafeRound1Deployment);
+ 
+         Assert.NotNull(lint);
+-        Assert.Contains("PlayerB", lint!.Message);
+-        Assert.DoesNotContain(result.Lints, i =>
+-            i.Code == FightIssueCode.UnsafeRound1Deployment && i.Message.Contains("PlayerA"));
++        Assert.Contains("Player", lint!.Message);
++    }
++
++    /// <summary>
++    /// <b>§3 dissolved the per-side half of the agency lint, and this records it rather than
++    /// leaving it to be rediscovered.</b> While zones were owned, one side could be short of safe
++    /// tiles while the other was fine — that was the whole shape of the old message. Spots belong to
++    /// neither player, so both sides are answered by the same list: a board is either short for
++    /// everybody or short for nobody. The law is unchanged; what it can distinguish is not.
++    /// </summary>
++    [Fact]
++    public void UnderSharedSpots_TheSafeTileAnswerIsTheSameForBothSides()
++    {
++        foreach (var node in CampaignLibrary.Faultline.Nodes.OfType<FightNode>())
++        {
++            var fight = FightLibrary.ById(node.FightId);
++            var state = Game.Start(fight, seed: 0).NewState;
++
++            Assert.Equal(
++                Threat.SafeDeploymentTiles(state, Team.PlayerA),
++                Threat.SafeDeploymentTiles(state, Team.PlayerB));
++        }
+     }
+ 
+     [Fact]
+diff --git a/tests/Faultline.Core.Tests/DeploymentTests.cs b/tests/Faultline.Core.Tests/DeploymentTests.cs
+index f066b99..db9e887 100644
+--- a/tests/Faultline.Core.Tests/DeploymentTests.cs
++++ b/tests/Faultline.Core.Tests/DeploymentTests.cs
+@@ -91,8 +91,13 @@ public class DeploymentTests
+         Assert.All(state.Units, u => Assert.True(u.IsDeployed));
+     }
+ 
++    /// <summary>
++    /// <b>Every duck lands on a published spot, and no spot belongs to a side.</b> This used to
++    /// assert that player A's ducks stood in zone A — the question §3's deployment draft deleted
++    /// (locked y). A spot is owned by neither player; either may take any open one.
++    /// </summary>
+     [Fact]
+-    public void Deployment_PlacesUnitsInsideTheOwnersZone()
++    public void Deployment_PlacesEveryDuckOnAPublishedSpot_WhicheverSideOwnsTheDuck()
+     {
+         var fight = FightLibrary.Fight1();
+         var state = Game.Start(fight, seed: 7).NewState;
+@@ -102,15 +107,15 @@ public class DeploymentTests
+             state = state.Then(Game.LegalCommands(state)[0]);
+         }
+ 
+-        foreach (var unit in state.Units.Where(u => u.Team == Team.PlayerA))
++        foreach (var unit in state.Units.Where(u => u.Team != Team.Enemy))
+         {
+-            Assert.Contains(unit.Position, fight.DeploymentZoneA);
++            Assert.Contains(unit.Position, fight.Spots);
+         }
+ 
+-        foreach (var unit in state.Units.Where(u => u.Team == Team.PlayerB))
+-        {
+-            Assert.Contains(unit.Position, fight.DeploymentZoneB);
+-        }
++        // No two ducks on one spot, and the spot list outnumbers the ducks that drafted from it.
++        var taken = state.Units.Where(u => u.Team != Team.Enemy).Select(u => u.Position).ToList();
++        Assert.Equal(taken.Count, taken.Distinct().Count());
++        Assert.True(fight.Spots.Count >= taken.Count);
+     }
+ 
+     private static GameState DeployFirstLegal(GameState state) =>
+diff --git a/tests/Faultline.Core.Tests/FightLibraryTests.cs b/tests/Faultline.Core.Tests/FightLibraryTests.cs
+index 97bfc97..85bc1e5 100644
+--- a/tests/Faultline.Core.Tests/FightLibraryTests.cs
++++ b/tests/Faultline.Core.Tests/FightLibraryTests.cs
+@@ -65,12 +65,15 @@ public class FightLibraryTests
+         {
+             Assert.NotEmpty(fight.RosterA);
+             Assert.NotEmpty(fight.RosterB);
++
++            // §3's floor, asked of the published spot list rather than of two per-side zones: a
++            // board must offer at least a tile per duck, and should offer more — spots that merely
++            // equal the ducks make the draft an assignment. A shorter list is a declared thesis and
++            // the parser lints an undeclared one (SpotFloorUndeclared).
++            int ducks = fight.RosterA.Count + fight.RosterB.Count;
+             Assert.True(
+-                fight.DeploymentZoneA.Count >= fight.RosterA.Count,
+-                fight.Id + ": zone A holds " + fight.DeploymentZoneA.Count + " of " + fight.RosterA.Count);
+-            Assert.True(
+-                fight.DeploymentZoneB.Count >= fight.RosterB.Count,
+-                fight.Id + ": zone B holds " + fight.DeploymentZoneB.Count + " of " + fight.RosterB.Count);
++                fight.Spots.Count >= ducks,
++                fight.Id + ": " + fight.Spots.Count + " spot(s) for " + ducks + " ducks");
+         }
+     }
+ 
