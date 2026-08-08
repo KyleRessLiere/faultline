@@ -116,6 +116,32 @@ public class TestLoadoutTests
         Assert.Equal(duck.MaxHp, duck.Hp);
     }
 
+    /// <summary>
+    /// <b>A duck can open a fight already damaged</b> — hit points below the ceiling, exactly as a
+    /// run hands a chewed-up duck across a node boundary.
+    /// </summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(7)]
+    public void ADuck_CanOpenAlreadyWounded(int hp)
+    {
+        var fight = Fight();
+        var bench = new TestLoadout();
+        bench.For(Team.PlayerA, 0).Hp = hp;
+
+        var session = new GameSession();
+        session.StartFight(fight, GameSession.DefaultSeed, bench.Build(fight));
+
+        var duck = session.State.Units.First(u => u.Team == Team.PlayerA);
+        int max = UnitTemplate.For(fight.RosterA[0]).MaxHp;
+
+        Assert.Equal(hp, duck.Hp);
+        Assert.Equal(max, duck.MaxHp);
+        Assert.True(duck.Hp < duck.MaxHp, "the duck should read as wounded");
+        Assert.True(duck.IsAlive, "a wounded duck is not a dead one");
+    }
+
     /// <summary>The way to make a duck fragile: lower what it starts on, not its ceiling.</summary>
     [Fact]
     public void LoweringStartingHitPoints_IsHowADuckIsMadeFragile()

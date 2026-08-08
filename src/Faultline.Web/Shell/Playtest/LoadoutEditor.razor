@@ -41,7 +41,13 @@
                         <span class="duck-art"><UnitArt Kind="rosterKind" Label="@Naming.Of(rosterKind)" /></span>
                         <span class="duck-ident">
                             <span class="duck-name">@Naming.Of(rosterKind)</span>
-                            <span class="duck-side">Player @(team == Team.PlayerA ? "A" : "B")</span>
+                            @{
+                                int tabMax = Bench.MaxHpOf(rosterKind, team, slot);
+                                int tabHp = Bench.HpOf(rosterKind, team, slot);
+                            }
+                            <span class="duck-side @(tabHp < tabMax ? "hurt" : string.Empty)">
+                                @tabHp/@tabMax · Player @(team == Team.PlayerA ? "A" : "B")
+                            </span>
                         </span>
                         @if (!setup.IsDefault)
                         {
@@ -59,21 +65,48 @@
 
                 <h3 class="view-title">@Naming.Of(kind) <span class="view-side">Player @(_team == Team.PlayerA ? "A" : "B")</span></h3>
 
+                @{
+                    int max = Bench.MaxHpOf(kind, _team, _slot);
+                    int hp = Bench.HpOf(kind, _team, _slot);
+                }
+
                 <div class="row numbers">
+                    @* The number the board will print, said here in the board's own words. "Starts
+                       on" alone reads as a setting; "3 / 14 — wounded" reads as a duck that has
+                       taken damage, which is what a tester is usually reaching for. *@
+                    <div class="reading @(hp < max ? "wounded" : string.Empty)">
+                        <span class="reading-hp">@hp<span class="reading-max">/@max</span></span>
+                        <span class="reading-word">@(hp < max ? $"wounded — {max - hp} taken" : "unhurt")</span>
+                    </div>
+
+                    <label class="field">
+                        Hit points now
+                        <input type="number" min="1" max="200"
+                               value="@hp"
+                               @onchange="e => duck.Hp = Positive(e)" />
+                        <span class="hint">
+                            Lower it to open the fight already damaged, exactly as a run would hand a
+                            chewed-up duck across a node.
+                        </span>
+                    </label>
+
+                    <div class="field quick">
+                        Quick
+                        <span class="quick-row">
+                            <button type="button" class="pill" @onclick="() => duck.Hp = null">Full</button>
+                            <button type="button" class="pill" @onclick="() => duck.Hp = Math.Max(1, max / 2)">Half</button>
+                            <button type="button" class="pill" @onclick="() => duck.Hp = Math.Max(1, max / 4)">Quarter</button>
+                            <button type="button" class="pill" @onclick="() => duck.Hp = 1">1</button>
+                        </span>
+                        <span class="hint">A quarter is what a downed duck comes back on.</span>
+                    </div>
+
                     <label class="field">
                         Total health
                         <input type="number" min="1" max="200"
-                               value="@Bench.MaxHpOf(kind, _team, _slot)"
+                               value="@max"
                                @onchange="e => duck.MaxHp = Positive(e)" />
-                        <span class="hint">Only goes up — Core never lowers a ceiling.</span>
-                    </label>
-
-                    <label class="field">
-                        Starts on
-                        <input type="number" min="1" max="200"
-                               value="@Bench.HpOf(kind, _team, _slot)"
-                               @onchange="e => duck.Hp = Positive(e)" />
-                        <span class="hint">Lower this to make a duck fragile.</span>
+                        <span class="hint">The ceiling. Only goes up — Core never lowers one.</span>
                     </label>
 
                     <label class="field">

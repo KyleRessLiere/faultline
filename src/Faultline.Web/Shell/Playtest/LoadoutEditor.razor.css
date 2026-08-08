@@ -272,3 +272,57 @@
 }
 
 .chip-drop:hover { color: var(--pt-red); }
+
+/* The number the board will print, said in the board's own words. A tester reaching for "this duck
+   has taken a beating" wants to see 3/14, not infer it from two input boxes. */
+.reading {
+    align-items: baseline;
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+    padding: .3rem .6rem;
+}
+
+.reading-hp {
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+.reading-max {
+    font-size: .75rem;
+    font-weight: 400;
+    opacity: .6;
+}
+
+.reading-word {
+    color: var(--pt-text-dim);
+    font-size: .62rem;
+}
+
+.reading.wounded { border-color: var(--pt-amber); }
+.reading.wounded .reading-hp { color: var(--pt-amber); }
+.reading.wounded .reading-word { color: var(--pt-amber); }
+
+/* Amber and not red: a wounded duck is a state to set up, not an error to fix. */
+.duck-side.hurt { color: var(--pt-amber); opacity: 1; }
+
+.quick-row {
+    display: flex;
+    gap: .25rem;
+}
+
+.pill {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+    color: var(--pt-text);
+    cursor: pointer;
+    font-size: .65rem;
+    padding: .15rem .5rem;
+}
+
+.pill:hover { border-color: var(--pt-amber); }
