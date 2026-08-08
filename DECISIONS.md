@@ -253,10 +253,11 @@ in this file when the question comes back.
 | D-250 | [MY CALL, cheaply reversible: the rarity roll is per card, which is what shipped.](#d-250-my-call-cheaply-reversible-the-rarity-roll-is-per-card-which-is-what-shipped) | 2026-08-08 |  |
 | D-251 | [A camp with an unspent table has no completion path, because a pick does nothing until the camp resolves.](#d-251-a-camp-with-an-unspent-table-has-no-completion-path-because-a-pick-does-nothing-until-the-camp-resolves) | 2026-08-08 |  |
 | D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | 2026-08-08 |  |
-| D-253 | [RULED: every technique hosts on the ability that TRIGGERS it, which closes the half of D-158/D-227 the slot model left open.](#d-253-ruled-every-technique-hosts-on-the-ability-that-triggers-it-which-closes-the-half-of-d-158d-227-the-slot-model-left-open) | unreleased |  |
-| D-254 | [FOUND: "the merge order is the designer's call" was false, and the branch queue cost a session's work rebuilding something that had already shipped.](#d-254-found-the-merge-order-is-the-designers-call-was-false-and-the-branch-queue-cost-a-sessions-work-rebuilding-something-that-had-already-shipped) | unreleased |  |
+| D-253 | [RULED: every technique hosts on the ability that TRIGGERS it, which closes the half of D-158/D-227 the slot model left open.](#d-253-ruled-every-technique-hosts-on-the-ability-that-triggers-it-which-closes-the-half-of-d-158d-227-the-slot-model-left-open) | 2026-08-08 |  |
+| D-254 | [FOUND: "the merge order is the designer's call" was false, and the branch queue cost a session's work rebuilding something that had already shipped.](#d-254-found-the-merge-order-is-the-designers-call-was-false-and-the-branch-queue-cost-a-sessions-work-rebuilding-something-that-had-already-shipped) | 2026-08-08 |  |
+| D-255 | [RULED: a design doc states intent and never a live defect report, because text describing today's code cannot correct itself when the code is fixed.](#d-255-ruled-a-design-doc-states-intent-and-never-a-live-defect-report-because-text-describing-todays-code-cannot-correct-itself-when-the-code-is-fixed) | unreleased |  |
 
-**236 rulings.**
+**237 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6709,3 +6710,42 @@ moved past.
 **Also landed in the same pass, and worth naming as the same defect one layer down:** over 4MB of
 design history, prompt packets and 59 playtest reports had been accumulating **untracked**. Work
 nobody else can see fails in exactly the way an unmerged branch does.
+
+---
+
+**D-255 — RULED: a design doc states intent and never a live defect report, because text describing
+today's code cannot correct itself when the code is fixed.**
+
+The v2026-08-07r delta added a §7 paragraph asserting, present tense, that `Objectives.Check` wins
+on `!AnyEnemyLeft` under **every** objective, and that a cleared board therefore wins a Destroy
+fight. **That was already false when it was written.** `Objectives.ClearedBoardWins(kind) => kind !=
+ObjectiveKind.Destroy && kind != ObjectiveKind.Boss` had closed it under D-223, in the D-222–D-224
+batch, with §7 quoted in the comment. The delta was authored against an older code state.
+
+**The failure is the genre of the sentence, not the staleness of the fact.** A defect written into
+the design doc as present-tense fact has no way to stop being true there: the fix lands in code, the
+paragraph does not notice, and the next reader is told the game has a bug it does not have. Nothing
+in the pipeline closes a defect *in a design doc* — but closing one in `DECISIONS.md` is an ordinary
+event with an ordinary mechanism.
+
+**So the rule, now carried by §7 and §16 of v2026-08-08y:** the design doc states the RULE the defect
+violated — *"a cleared board never wins a Destroy fight"* — and the defect itself lives in
+`DECISIONS.md` and the review queue. §7's paragraph was rewritten from a defect report into a rule
+in the (y) stamp, and §16 carries the governing sentence.
+
+**Rejected: recording this as "the doc drifted from the code".** Drift is the ordinary condition the
+whole `MASTER_DESIGN` > `GAMEPLAY` > `DECISIONS` hierarchy exists to hold — intent is *supposed* to
+run ahead of what is built, and a session that treats every gap as drift starts filing design intent
+as bugs. What went wrong here is narrower and worth naming precisely: a sentence in the wrong genre.
+Intent ages gracefully; a defect report does not age at all.
+
+**The same ruling retired the reconstruction lineage**, and for the same reason. A
+`MASTER_DESIGN_RECONSTRUCTION_*` file accumulated content that neither the stamp nor the delta
+carried — §3's deployment draft existed **only** there, which is why Stage L was blocked twice
+against two different documents that both looked authoritative. Rulings live in the stamp, or in a
+delta against it, and never in a third artifact. Four reconstruction exports sat in Downloads
+unread; the watcher's filename pattern (`^MASTER[ _-]DESIGN(?: \(\d+\))?\.md$`) silently declines
+anything with a descriptive suffix, so none of them announced itself.
+
+**Found the same way, and still open:** that watcher fails silently. A file it declines is a file
+nobody learns about. Widening the pattern is cheap; logging the decline is the part that matters.
