@@ -10,6 +10,8 @@ Every report is stored beneath the date it was completed and repeats that date i
 
 - [Items and Progression — Decision-Making Analysis](2026-08-07/items-progression-decision-analysis-2026-08-07.md)
 
+- [Current changes focused playtest](2026-08-07/2026-08-07_10-55-PM/current-changes-playtest-2026-08-07.md)
+
 ## Naming convention
 
 `playtest/reports/YYYY-MM-DD/descriptive-report-name-YYYY-MM-DD.md`
