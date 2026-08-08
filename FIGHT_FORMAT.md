@@ -47,6 +47,22 @@ Coordinates, where you do need them (`protected:`), are `x,y` with `(0,0)` at th
 increases to the right, `y` increases downward. So the first character of the first board row is
 `0,0`.
 
+### Size
+
+**The board is whatever the grid is.** Row count is the height, row length is the width, and the
+engine builds to them — nothing in the rules layer assumes 7 (MASTER_DESIGN §3, locked ac). **7×7 is
+the default, not the rule, and non-square is legal.**
+
+`size: 9x5` **declares** what you meant. It is optional, and it does two things when present: a
+disagreement with the grid is a `BoardSizeMismatch` **error** rather than a silent crop or pad, and
+it tells the off-7×7 lint that the shape is deliberate. A board at another size should carry it, and
+should say on its own `design:` lines what the shape is for — **size is an authoring axis**, like
+spot layout. A cramped 5×5 and a long 9×5 ask different questions of the same kit.
+
+**Ranges, AP costs and movement do not change with size.** A bigger board is more expensive to
+cross, and that is the point rather than a side effect — do not compensate for it anywhere.
+`sz-01-the-long-channel` is the worked example of the axis.
+
 ## Characters
 
 | Char | Means |
@@ -89,6 +105,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `roster a:` | **yes** | Player A's units, comma- or space-separated, in deployment order. |
 | `roster b:` | **yes** | Player B's units, same. |
 | `number:` | no | One-based index into the run. Sorts the library. Defaults to `0` if omitted — set it. |
+| `size:` | no | Board dimensions as `<width>x<height>`, e.g. `9x5`. **Declares** what the grid below should be; it never crops or pads it, and a disagreement is a `BoardSizeMismatch` **error**. Omit it and the grid alone says what size the board is. |
 | `description:` | no | One line, shown when picking a fight. |
 | `design:` | no | **Repeatable.** Why this battle exists and what it asks the player to work out. One paragraph per line, in order; shown on the board while you play it and in the catalogue. |
 | `protected:` | no | Space-separated `x,y` coordinates the M4 collapse clock never cracks. No space inside a pair. |
@@ -368,6 +385,7 @@ silently absent.
 | `StructureMarkMismatch` | An `S` or `D` on a tile the `objective:` line does not name, or whose letter disagrees with the objective's kind. | Make the mark and the objective name the same tile; `S` for protect, `D` for destroy. |
 | `BlockerHpMissing` | An `X` on the board with no `blocker-hp:` key, or one asking for fewer than 1 hit point. | Add `blocker-hp: <n>`, or use `#` for a wall that cannot be broken. |
 | `BlockerHpUnused` | A `blocker-hp:` key on a board with no `X`. | Mark a blocker, or delete the key. A dead declaration is always a mistake. |
+| `BoardSizeMismatch` | The `size:` key and the grid underneath it disagree. | Fix whichever is wrong. The grid is **never** cropped or padded to fit — a board that quietly gained a row is a different board, and every spawn, spot and structure coordinate after the change has moved. |
 | `RetiredReasonMissing` | A `retired:` key with no reason after it. | Say why. Name the battle it duplicates, or what stopped working. |
 | `BadValue` | `number:` is not an integer, or a `protected:` token is not `x,y`. | Use a bare integer; use `3,4` with no spaces. |
 | `SpawnCharUnused` | A `spawn` letter declared but never placed on the board. | Place it, or delete the declaration. This is an **error**, not a lint — a dead declaration is always a mistake. |
@@ -383,7 +401,7 @@ argue. Codes 0–99 are errors; 100 and up are lints.
 
 | Code | Guideline it protects (Brief §2) | Fires when |
 |---|---|---|
-| `BoardNotSevenBySeven` | "7×7 grid." | Board is any other size. |
+| `BoardNotSevenBySeven` | 7×7 is the **default**, not the rule (MASTER_DESIGN §3, locked ac). | Board is another size **and does not say so**. Declaring `size:` silences it: size is an authoring axis, so a board that states its shape has made a decision, and this lint exists to catch the one that drifted off 7×7 by accident. |
 | `CentreNotClear` | "center 3×3 always clear at start." | Any non-Open tile with `x` and `y` both in `2 … size-3`. Spots and spawns never trip this — the tile under them is Open, so a central spot is legal and `first-contact` has two. |
 | `HazardOffOuterRings` | "pits/walls on outer two rings." | A Wall or Pit further in than ring 1. On a 7×7 that is the centre 3×3, so this overlaps `CentreNotClear` there. |
 | `SpikeCountOutOfRange` | "2–3 spikes." | Fewer than 2 or more than 3 spike tiles on the whole board. Only the count is checked, not which ring they sit on (see DECISIONS.md D-005). |

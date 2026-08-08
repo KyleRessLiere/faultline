@@ -24,7 +24,7 @@ conversation it is meant to force — see the batch write-ups in `docs/scenarios
 
 ---
 
-**65 battles — 38 active, 27 retired.**
+**66 battles — 39 active, 27 retired.**
 
 
 ## Campaign
@@ -2686,4 +2686,51 @@ Legend: `c` Colossus, `n` MobileAnchor
 .....^.
 A....H.
 AA.n...
+```
+
+## Board size
+
+*size as an authoring axis - the same kit, a different shape of question* — 1 battles.
+
+
+### 801 · The Long Channel
+
+`sz-01-the-long-channel`
+
+
+Nine tiles of channel with the whole enemy line at the far end. Nothing here is new except the distance, and the distance is the fight.
+
+
+THE SIZE IS THE THESIS (MASTER_DESIGN 3, locked ac - board size is per-board). 9x5, declared on the 'size:' line, and it is the one thing this board changes. Every range, every AP cost and every movement number is exactly what it is on a 7x7; what is different is that there are nine columns to cross instead of seven, and a 5-row board gives you no way around. The same four ducks face a different problem with no rule rewritten, which is what an authoring axis means.
+
+
+WHY LONG AND NOT BIG. A 9x9 would be a 7x7 with more room and the same shape of question. Squeezing the height to 5 is what makes the length bite: there is no flank, so the channel has to be walked, and walking it is what costs. The board is a corridor on purpose.
+
+
+WHAT IT DOES TO THE KITS. The Archer and the Fisher gain: their range is unchanged but the ground they can hold with it is a larger share of the board, and the Archer's minimum range stops being a tax when nothing is close yet. The Vanguard and the Wardbearer pay: Bull Rush's charge is still 3, so closing takes rounds of pure movement with the action forfeited, and every one of those rounds is a round the Lobber is paid for. That asymmetry is not a balance problem to fix - it is the measurement this board exists to take.
+
+
+DEPLOYMENT. Eight spots in the western pocket, all of them outside every enemy's round-1 reach: the nearest enemy is a Husk nine columns away and its walk-plus-swing is four. Agency before injury (D-080) is easy to satisfy at this length, which is itself worth knowing - distance is a defence, and a long board hands it to whoever starts furthest from the trouble.
+
+
+NO TURN LIMIT, deliberately. Section 3 makes turn limits size-sensitive and hands them to section 13's audit; picking one here by eye would be inventing a number the audit has to unpick. A board that takes longer to cross takes longer to win, and this one is allowed to say so until somebody measures it.
+
+
+THE HAZARDS ARE PUNCTUATION, not the question. Two drains at the mouth of the channel and two bramble tiles inside it, so crossing has somewhere to go wrong; the high ground either side of centre is the ranged prize, and it is far enough east that taking it is a commitment rather than an opening.
+
+
+9×5 board · enemies: 2× Husk, 1× Anchor, 1× Lobber
+
+| A | B |
+|---|---|
+| Vanguard, Threadcaster | Wardbearer, Archer |
+
+Legend: `h` Husk, `l` Lobber, `n` Anchor
+
+```
+**..O...h
+**.^..H.l
+.........
+**.^..H.h
+**..O...n
 ```

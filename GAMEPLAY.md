@@ -167,11 +167,16 @@ double.
 
 ## Board and geometry
 
-- 7×7 grid. Everything is **4-way orthogonal** — movement, adjacency, range and displacement lines.
-  Distance is Manhattan (D-002).
+- **Board size is per-board.** 7×7 is the **default, not the rule**; a board's grid is its size, and
+  non-square is legal. A board may declare it with `size: 9x5`, which is checked against the grid —
+  a disagreement is a load error, never a crop or a pad (D-258). Everything is **4-way orthogonal**
+  — movement, adjacency, range and displacement lines. Distance is Manhattan (D-002).
+- **Ranges, AP costs and movement do not change with size.** A bigger board is more expensive to
+  cross, and that is the point rather than a side effect — nothing compensates for it anywhere.
+  `sz-01-the-long-channel` (9×5) is the worked example: the same four ducks, a different question.
 - Terrain: **Open**, **Wall**, **Pit**, **Spikes**, **HighGround**. (`Cracked` exists for the M4
   collapse clock but nothing produces it yet.)
-- The board edge behaves as a wall, not a pit.
+- The board edge behaves as a wall, not a pit — **at the declared bounds**, whatever they are.
 
 | Terrain | Walking onto it | Being shoved onto it |
 |---|---|---|

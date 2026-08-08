@@ -100,6 +100,19 @@ namespace Faultline.Core
         /// </summary>
         public int TurnLimit { get; init; }
 
+        /// <summary>
+        /// Whether the file declared its board size with a <c>size:</c> key rather than leaving it
+        /// to be read off the grid.
+        /// </summary>
+        /// <remarks>
+        /// MASTER_DESIGN §3 (locked ac): 7×7 is the default, not the rule, and size is an authoring
+        /// axis. A board that says what size it is has made a decision — the off-7×7 lint leaves it
+        /// alone, and <see cref="FightWriter"/> writes the key back so a round-trip does not turn a
+        /// deliberate shape into an undeclared one. The dimensions themselves live on
+        /// <see cref="Board"/>; this only records that somebody meant them.
+        /// </remarks>
+        public bool SizeDeclared { get; init; }
+
         /// <summary>Enemies that arrive mid-fight, sorted by round then by the order the file wrote them.</summary>
         public IReadOnlyList<ReinforcementWave> Waves { get; init; } = new ReinforcementWave[0];
 
@@ -267,6 +280,7 @@ namespace Faultline.Core
                 && string.Equals(Description, other.Description, StringComparison.Ordinal)
                 && string.Equals(RetiredReason, other.RetiredReason, StringComparison.Ordinal)
                 && TurnLimit == other.TurnLimit
+                && SizeDeclared == other.SizeDeclared
                 && BlockerHp == other.BlockerHp
                 && Board.Equals(other.Board)
                 && Objective.Equals(other.Objective)
@@ -294,6 +308,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Description ?? string.Empty);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(RetiredReason ?? string.Empty);
                 hash = (hash * 31) + TurnLimit;
+                hash = (hash * 31) + (SizeDeclared ? 1 : 0);
                 hash = (hash * 31) + BlockerHp;
                 hash = (hash * 31) + Board.GetHashCode();
                 hash = (hash * 31) + Objective.GetHashCode();

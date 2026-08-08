@@ -450,6 +450,85 @@ public class FightParserTests
         Assert.NotEmpty(result.Lints);
     }
 
+    /// <summary>
+    /// <b>A declared size that disagrees with the grid is a LOAD ERROR</b> (MASTER_DESIGN §3, locked
+    /// ac) — never a silent crop or pad. A board that quietly gained a row is a different board, and
+    /// every spawn, spot and structure coordinate after the change has moved.
+    /// </summary>
+    [Fact]
+    public void Parse_DeclaredSizeThatDisagreesWithTheGrid_IsAnError()
+    {
+        var text = string.Join(
+            "\n",
+            "id: mismatched",
+            "name: Mismatched",
+            "size: 9x5",
+            "roster a: Vanguard",
+            "roster b: Archer",
+            "spawn h = Husk",
+            "board:",
+            "  **...h",
+            "  **....",
+            "  ......");
+
+        var result = FightParser.Parse(text);
+
+        Assert.Contains(result.Errors, i => i.Code == FightIssueCode.BoardSizeMismatch);
+        Assert.Null(result.Fight);
+    }
+
+    /// <summary>A size that is not a size is a bad value, not a silently ignored key.</summary>
+    [Theory]
+    [InlineData("nine by five")]
+    [InlineData("9")]
+    [InlineData("9x0")]
+    [InlineData("-9x5")]
+    public void Parse_ASizeThatIsNotASize_IsABadValue(string value)
+    {
+        var text = string.Join(
+            "\n",
+            "id: bad-size",
+            "name: Bad Size",
+            "size: " + value,
+            "roster a: Vanguard",
+            "roster b: Archer",
+            "spawn h = Husk",
+            "board:",
+            "  **...h",
+            "  **....",
+            "  ......");
+
+        Assert.Contains(FightParser.Parse(text).Errors, i => i.Code == FightIssueCode.BadValue);
+    }
+
+    /// <summary>A declared size that matches the grid loads clean, at whatever size it declares.</summary>
+    [Fact]
+    public void Parse_DeclaredSizeThatMatches_LoadsAtThatSize()
+    {
+        var text = string.Join(
+            "\n",
+            "id: declared",
+            "name: Declared",
+            "size: 6x3",
+            "roster a: Vanguard",
+            "roster b: Archer",
+            "spawn h = Husk",
+            "board:",
+            "  **...h",
+            "  **....",
+            "  ......");
+
+        var result = FightParser.Parse(text);
+
+        Assert.Empty(result.Errors);
+        Assert.Equal(6, result.Fight!.Board.Width);
+        Assert.Equal(3, result.Fight.Board.Height);
+        Assert.True(result.Fight.SizeDeclared);
+
+        // Declaring it is what makes it deliberate rather than an accident worth flagging.
+        Assert.DoesNotContain(result.Lints, i => i.Code == FightIssueCode.BoardNotSevenBySeven);
+    }
+
     [Fact]
     public void Parse_BoardThatIsNotSevenBySeven_IsALint()
     {

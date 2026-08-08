@@ -54,6 +54,18 @@ namespace Faultline.Core
             AppendKey(text, "name", fight.Name);
             AppendKey(text, "description", fight.Description);
 
+            // Only a board that DECLARED its size writes the key, so every 7x7 file stays
+            // byte-identical and a deliberate shape does not round-trip into an undeclared one
+            // (MASTER_DESIGN §3, locked ac).
+            if (fight.SizeDeclared)
+            {
+                AppendKey(
+                    text,
+                    "size",
+                    fight.Board.Width.ToString(CultureInfo.InvariantCulture)
+                        + "x" + fight.Board.Height.ToString(CultureInfo.InvariantCulture));
+            }
+
             // One line each, in order: the reader treats them as paragraphs and the format has no
             // continuation, so writing them any other way would not parse back.
             foreach (var note in fight.DesignNotes)

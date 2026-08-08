@@ -98,6 +98,17 @@ namespace Faultline.Core
         /// </summary>
         BlockerHpUnused = 25,
 
+        /// <summary>
+        /// The <c>size:</c> the header declares is not the size of the grid underneath it.
+        /// </summary>
+        /// <remarks>
+        /// An <b>error</b>, not a lint, and deliberately so (MASTER_DESIGN §3, locked ac): the
+        /// alternative to refusing the file is cropping or padding the grid to fit, and a board that
+        /// quietly gained or lost a row is a different board — every spawn, spot and structure
+        /// coordinate after the change has moved. Fix whichever of the two is wrong.
+        /// </remarks>
+        BoardSizeMismatch = 26,
+
         // ---- Lints: playable, but it breaks a guideline in AGENT_BRIEF §2 -------------------
 
         /// <summary>Brief §2 specifies a 7x7 grid.</summary>

@@ -288,6 +288,7 @@ public class StateEqualityCoverageTests
                 ["BlockerHp"] = f => f with { BlockerHp = f.BlockerHp + 1 },
                 ["Objective"] = f => f with { Objective = Objective.KillAll },
                 ["TurnLimit"] = f => f with { TurnLimit = f.TurnLimit + 1 },
+                ["SizeDeclared"] = f => f with { SizeDeclared = !f.SizeDeclared },
                 ["Waves"] = f => f with { Waves = Array.Empty<ReinforcementWave>() },
                 ["FootingGrants"] = f => f with
                 {

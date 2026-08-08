@@ -20,13 +20,15 @@ OUT = os.path.join(ROOT, "docs", "BATTLE_CATALOGUE.md")
 TERRAIN = {".": "open", "#": "wall", "O": "pit", "^": "spikes", "H": "high ground"}
 
 BATCHES = [
-    ("Campaign", "the original run, plus the objective proof", lambda i: not re.match(r"^(tp|hz|ec|as|cb|nv)-", i)),
+    ("Campaign", "the original run, plus the objective proof", lambda i: not re.match(r"^(tp|hz|ec|as|cb|nv|sz)-", i)),
     ("Board topology", "the shape of the space is the question", lambda i: i.startswith("tp-")),
     ("Hazard pressure", "positioning relative to pits and spikes is the whole game", lambda i: i.startswith("hz-")),
     ("Enemy composition", "what happens when archetypes combine", lambda i: i.startswith("ec-")),
     ("Asymmetry", "uneven rosters, split starts, missing tools", lambda i: i.startswith("as-")),
     ("Combat manoeuvre", "no hazard crutch — reach, initiative and collision", lambda i: i.startswith("cb-")),
     ("Variant proofs", "one board per new enemy behaviour", lambda i: i.startswith("nv-")),
+    ("Board size", "size as an authoring axis - the same kit, a different shape of question",
+     lambda i: i.startswith("sz-")),
 ]
 
 

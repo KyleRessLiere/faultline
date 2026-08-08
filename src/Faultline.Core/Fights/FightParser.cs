@@ -247,6 +247,25 @@ namespace Faultline.Core
                     }
 
                     break;
+                case "size":
+                    // MASTER_DESIGN §3 (locked ac): board size is per-board and DECLARED. The grid
+                    // still carries the terrain, so this is the author saying what they meant —
+                    // checked against what they drew, never used to crop or pad it.
+                    header.SizeLine = lineNo;
+                    if (TryReadSize(value, out int declaredW, out int declaredH))
+                    {
+                        header.DeclaredWidth = declaredW;
+                        header.DeclaredHeight = declaredH;
+                    }
+                    else
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.BadValue,
+                            "'" + value + "' is not a size. Write it as '<width>x<height>', e.g. '9x5'.",
+                            lineNo));
+                    }
+
+                    break;
                 case "roster a": header.RosterA = ReadRoster(value, lineNo, issues); header.RosterALine = lineNo; break;
                 case "roster b": header.RosterB = ReadRoster(value, lineNo, issues); header.RosterBLine = lineNo; break;
                 case "protected": header.Protected = value; header.ProtectedLine = lineNo; break;
@@ -778,6 +797,20 @@ namespace Faultline.Core
                 issues.Add(new FightIssue(FightIssueCode.RosterEmpty, "Missing or empty 'roster b:'.", header.RosterBLine));
             }
 
+            // §3 (locked ac): what the author DECLARED against what they DREW. A disagreement is a
+            // load error and never a silent crop or a pad — a board that quietly gained a row is a
+            // different board, and every id, spawn and spot coordinate after it has moved.
+            if (header.DeclaredWidth > 0
+                && (header.DeclaredWidth != board.Width || header.DeclaredHeight != board.Height))
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.BoardSizeMismatch,
+                    "Header says " + header.DeclaredWidth + "x" + header.DeclaredHeight
+                        + " but the board is " + board.Width + "x" + board.Height
+                        + ". Fix whichever is wrong; the grid is never cropped or padded to fit.",
+                    header.SizeLine));
+            }
+
             // A migrated board has spots and no zones, and asking it which tiles belong to player A is
             // asking the question §3 deleted. The per-side checks run only while the board still
             // speaks in sides.
@@ -833,6 +866,7 @@ namespace Faultline.Core
                 FootingGrants = footing,
                 Objective = objective,
                 TurnLimit = header.TurnLimit,
+                SizeDeclared = header.DeclaredWidth > 0,
                 Waves = waves,
             };
         }
@@ -1135,11 +1169,17 @@ namespace Faultline.Core
             int boardStartLine,
             List<FightIssue> issues)
         {
-            if (board.Width != 7 || board.Height != 7)
+            // §3 (locked ac): 7x7 is the DEFAULT, not the rule, and size is an authoring axis. So
+            // this asks whether the author MEANT it, exactly as the spot floor does: a board that
+            // declares its size has made a decision and is left alone; one that is off 7x7 without
+            // saying so is the accident this lint was written to catch.
+            if ((board.Width != 7 || board.Height != 7) && header.DeclaredWidth == 0)
             {
                 issues.Add(new FightIssue(
                     FightIssueCode.BoardNotSevenBySeven,
-                    "Board is " + board.Width + "x" + board.Height + "; the brief specifies 7x7.",
+                    "Board is " + board.Width + "x" + board.Height
+                        + " and does not say so. 7x7 is the default; declare another size with"
+                        + " 'size: " + board.Width + "x" + board.Height + "' to state it deliberately.",
                     boardStartLine));
             }
 
@@ -1394,6 +1434,29 @@ namespace Faultline.Core
             return (north && south) || (west && east);
         }
 
+        /// <summary>Reads a <c>&lt;width&gt;x&lt;height&gt;</c> size, in either case of the x.</summary>
+        private static bool TryReadSize(string value, out int width, out int height)
+        {
+            width = 0;
+            height = 0;
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            var parts = value.Trim().Split('x', 'X', '×');
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            return int.TryParse(parts[0].Trim(), out width)
+                && int.TryParse(parts[1].Trim(), out height)
+                && width > 0
+                && height > 0;
+        }
+
         private static bool IsCentre(Board board, Coord c) =>
             c.X >= 2 && c.X <= board.Width - 3 && c.Y >= 2 && c.Y <= board.Height - 3;
 
@@ -1454,6 +1517,15 @@ namespace Faultline.Core
         private sealed class Header
         {
             public string Id { get; set; } = string.Empty;
+
+            /// <summary>Declared board width, or 0 when the file did not say (§3, locked ac).</summary>
+            public int DeclaredWidth { get; set; }
+
+            /// <summary>Declared board height, or 0 when the file did not say.</summary>
+            public int DeclaredHeight { get; set; }
+
+            /// <summary>Line the <c>size:</c> key sat on, for pointing an error at it.</summary>
+            public int SizeLine { get; set; }
 
             public int IdLine { get; set; }
 

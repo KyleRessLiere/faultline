@@ -256,10 +256,12 @@ in this file when the question comes back.
 | D-253 | [RULED: every technique hosts on the ability that TRIGGERS it, which closes the half of D-158/D-227 the slot model left open.](#d-253-ruled-every-technique-hosts-on-the-ability-that-triggers-it-which-closes-the-half-of-d-158d-227-the-slot-model-left-open) | 2026-08-08 |  |
 | D-254 | [FOUND: "the merge order is the designer's call" was false, and the branch queue cost a session's work rebuilding something that had already shipped.](#d-254-found-the-merge-order-is-the-designers-call-was-false-and-the-branch-queue-cost-a-sessions-work-rebuilding-something-that-had-already-shipped) | 2026-08-08 |  |
 | D-255 | [RULED: a design doc states intent and never a live defect report, because text describing today's code cannot correct itself when the code is fixed.](#d-255-ruled-a-design-doc-states-intent-and-never-a-live-defect-report-because-text-describing-todays-code-cannot-correct-itself-when-the-code-is-fixed) | 2026-08-08 |  |
-| D-256 | [RULED: the deployment draft's snake generalises to unequal rosters by PASSING an exhausted player's slot to the other player, never by dropping it.](#d-256-ruled-the-deployment-drafts-snake-generalises-to-unequal-rosters-by-passing-an-exhausted-players-slot-to-the-other-player-never-by-dropping-it) | unreleased |  |
-| D-257 | [FOUND: §3's draft dissolved the per-side half of the agency lint, and the deployment guideline lints with it. The law is unchanged; what it can distinguish is not.](#d-257-found-3s-draft-dissolved-the-per-side-half-of-the-agency-lint-and-the-deployment-guideline-lints-with-it-the-law-is-unchanged-what-it-can-distinguish-is-not) | unreleased |  |
+| D-256 | [RULED: the deployment draft's snake generalises to unequal rosters by PASSING an exhausted player's slot to the other player, never by dropping it.](#d-256-ruled-the-deployment-drafts-snake-generalises-to-unequal-rosters-by-passing-an-exhausted-players-slot-to-the-other-player-never-by-dropping-it) | 2026-08-08 |  |
+| D-257 | [FOUND: §3's draft dissolved the per-side half of the agency lint, and the deployment guideline lints with it. The law is unchanged; what it can distinguish is not.](#d-257-found-3s-draft-dissolved-the-per-side-half-of-the-agency-lint-and-the-deployment-guideline-lints-with-it-the-law-is-unchanged-what-it-can-distinguish-is-not) | 2026-08-08 |  |
+| D-258 | [RULED: board size is DECLARED and cross-checked, and a declared size is what makes an off-7×7 board deliberate rather than drifted.](#d-258-ruled-board-size-is-declared-and-cross-checked-and-a-declared-size-is-what-makes-an-off-77-board-deliberate-rather-than-drifted) | unreleased |  |
+| D-259 | [FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and what is actually missing is narrower.](#d-259-found-the-board-picker-was-never-removed-the-stage-p-packets-p5-premise-is-false-and-what-is-actually-missing-is-narrower) | unreleased |  |
 
-**239 rulings.**
+**241 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6814,3 +6816,77 @@ a migrated board reads row-major. Any driver keyed to "the first legal spot" the
 differently than it used to, which is not a defect but did change several test drivers' fieldings —
 one of them from a win into a round-247 stalemate. Drivers that need a particular quality of fielding
 now ask for it (safest, nearest, farthest) instead of taking list order and hoping.
+
+---
+
+**D-258 — RULED: board size is DECLARED and cross-checked, and a declared size is what makes an
+off-7×7 board deliberate rather than drifted.**
+
+`MASTER_DESIGN` §3 (locked ac) makes board size per-board: 7×7 is the default, not the rule,
+non-square is legal, and any hardcoded 7 in the rules layer is a defect. **The grep came back
+almost empty** — see the finding below — so the work was not removing assumptions but giving an
+author a way to *say* what they meant.
+
+**The rule.** An optional `size: <width>x<height>` header key declares the board's dimensions. The
+grid still carries the terrain and still determines the actual size; the key is checked against it.
+A disagreement is `BoardSizeMismatch`, an **error**, and the file does not load.
+
+**Rejected: cropping or padding the grid to the declared size.** It is the obvious "be helpful"
+behaviour and it is the dangerous one — a board that quietly gained or lost a row is a different
+board, and every spawn, spot, structure and `protected:` coordinate after the change has silently
+moved. The format's whole premise is that a tile is what it looks like in the text (D-042 and the
+single-grid rule); a size key that could overrule the picture would break that premise for the one
+value nobody would think to re-check. Refusing the file is the only answer that cannot be wrong
+quietly.
+
+**Rejected: making `size:` required.** Sixty-five boards would have gained a line saying what their
+grid already says, and the key would then be pure ceremony on the 7×7s. Optional keeps it meaningful:
+a board carries it when it has something to declare.
+
+**The lint changes meaning rather than going away.** `BoardNotSevenBySeven` now fires only on a board
+that is off 7×7 *and does not say so*. That is the same shape as `SpotFloorUndeclared` (§3's spot
+floor) and for the same reason: with size promoted to an authoring axis, the interesting question is
+no longer "is this 7×7" but "did anyone decide this". A declared 9×5 is a thesis; an undeclared one
+is the accident the lint was written to catch. `FightWriter` writes the key back, so a round-trip
+cannot turn a deliberate shape into a drifted one.
+
+**THE FINDING: there were almost no hardcoded 7s to remove.** The rules layer had exactly **one** —
+the `BoardNotSevenBySeven` lint itself. `Board` stores width and height and validates
+`tiles.Count == width * height`; `InBounds`, `Ring`, `IsCentre` and the edge checks all read
+`Width`/`Height`; the parser derives size from the grid; the renderer's track counts are the board's
+own and its stylesheet already said so in a comment. Two 9×7 boards (`hold-the-gate`, `quarry-king`)
+have shipped and played for some time. **Size was already per-board in the engine and only ever
+assumed in prose, in a lint, and in fixtures that picked 7 because they had to pick something.**
+That is worth recording because the ruling reads like it should have been expensive and was not.
+
+**HELD, not done: turn limits are size-sensitive.** §3 hands them to §13's audit and the sample board
+therefore carries none. Unblocked by: that audit running. A number picked by eye here would be a
+number the audit has to unpick.
+
+---
+
+**D-259 — FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and
+what is actually missing is narrower.**
+
+P5 was written as a regression report — "this existed and was lost … something removed a working
+affordance without a DECISIONS entry" — and asked for the removal to be dated. **It was not
+removed.** `Pages/Battles.razor` is routed at `/battles`, the front door links to it as *All
+battles* (`HomeScreen.razor:23`), and `git log --follow` on that file shows a single commit,
+`d8f09e8` "M6: four screens, one job each", which is the commit that **added** the link. Nothing has
+touched it since. Verified by playing it: the picker lists every board by section, shows retired
+boards with their reasons and unreadable files with their parse errors, carries a seed control, and
+its per-board **Play** button loads that board directly outside a run — which is how the 9×5 sample
+was certified in the app for D-258.
+
+**The absence of a DECISIONS entry was correct**, because there was no decision.
+
+**What is genuinely missing**, and is new work rather than restoration: choosing the starting
+**loadout** (which ducks, and which cards, mods, legendaries and consumables they hold); choosing
+**board size** where a board allows it; and **dev-gating** the whole surface. The picker today is
+ungated and shipped-looking, which matters because §7.5 puts dev affordances in internal builds and
+absent from release, and arbitrary loadouts would dissolve the progression system if a player could
+reach them.
+
+**Recorded rather than acted on** because the difference between "restore what was lost" and "build
+three things that never existed" is the difference between a session's work and a packet's, and
+guessing which was wanted is exactly the kind of scope decision that belongs to the designer.
