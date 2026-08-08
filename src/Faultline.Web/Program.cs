@@ -27,6 +27,9 @@ builder.Services.AddSingleton<CustomFightStore>();
 // Saved test loadouts. A singleton so a build survives navigating between the picker and a board,
 // which is the whole point of saving one.
 builder.Services.AddSingleton<LoadoutStore>();
+
+// Acts built in the UI. A singleton for the same reason: a draft outlives navigating away from it.
+builder.Services.AddSingleton<ActStore>();
 builder.Services.AddSingleton<SessionLog>();
 builder.Services.AddSingleton<PlaytestNotes>();
 builder.Services.AddSingleton<RunStore>();

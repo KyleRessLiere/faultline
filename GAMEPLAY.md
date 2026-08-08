@@ -1986,6 +1986,24 @@ playtest verdict.**
 
 Win: every enemy down. Lose: every player unit down or voided.
 
+## Building an act — playing events, and iterating on shape
+
+`/acts` (**Build an act**, linked from the front door) sequences **battles, events and rests** into an
+act and walks it. **Internal builds only**, gated with the dev panel.
+
+An event is a run node, not a board, so before this the only way to reach one was to play a campaign
+until the map offered it — which made the one shipped event effectively untestable and made changing
+what-follows-what a code change. Both are now a list you can reorder, name, save and replay.
+
+It emits a real **`ActMap`** — one node per column, an edge to the next — and starts it with
+`Campaign.Start`, the same call the shipped acts use, with the same node handlers. That is the whole
+reason an event reached this way proves anything about the event. The squad is editable too, because
+an escort shape asks a different question of a Wardbearer than of an Archer.
+
+**The act is saved; a run walking it is not** (D-263). The reload path restores a run by looking its
+campaign up in `CampaignLibrary`, and an act built in the browser is not there — so a reload ends the
+run. A scratch act is scratch.
+
 ## The test bench — playing a board with the ducks you want
 
 The battle picker (`/battles`, linked from the front door as **All battles**) plays any board

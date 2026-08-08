@@ -230,6 +230,47 @@ public sealed class RunSession : IRunBoardDriver
         Changed?.Invoke();
     }
 
+    /// <summary>
+    /// Starts a run on an act built in the UI rather than one from the library.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>The same <see cref="Campaign.Start"/> the shipped acts use.</b> A <c>CampaignDefinition</c>
+    /// is a list of nodes and the handler registry already knows <c>EventNode</c>, so an ad-hoc act
+    /// walks through exactly the code a real run walks through — which is the only reason testing an
+    /// event this way proves anything about the event.
+    /// </para>
+    /// <para>
+    /// <b>It is deliberately not persisted.</b> <see cref="RunSave"/> restores a run by looking its
+    /// campaign up in <see cref="CampaignLibrary"/> by id, and an act built in the browser is not
+    /// there — a written save would reload as a different run or none at all. Storage is cleared and
+    /// the act lives in memory, so a reload ends it. A scratch act is scratch.
+    /// </para>
+    /// </remarks>
+    /// <param name="definition">The act to walk.</param>
+    /// <param name="seed">Run seed.</param>
+    /// <returns>A task that completes when the run is standing on its first node.</returns>
+    public async Task StartCustomAsync(CampaignDefinition definition, int seed)
+    {
+        await _store.ClearAsync();
+
+        var result = Campaign.Start(definition, seed);
+
+        _journal.Clear();
+        _commands.Clear();
+        _logFromStart = true;
+        LastResolution = null;
+        _pushed = null;
+        _restoredNode = null;
+        Problem = null;
+        State = result.NewState;
+        LastEvents = result.Events;
+        Record(result.Events);
+        Loaded = true;
+
+        Changed?.Invoke();
+    }
+
     /// <summary>Forgets the run entirely.</summary>
     /// <returns>A task that completes when storage is clear.</returns>
     public async Task AbandonAsync()

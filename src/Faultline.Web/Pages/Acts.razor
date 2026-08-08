@@ -1,0 +1,313 @@
+@page "/acts"
+@layout MainLayout
+@inject ActStore Store
+@inject RunSession Runs
+@inject NavigationManager Nav
+
+@* Build an act and play it. An event is a RUN NODE, so before this the only way to reach one was to
+   play a campaign until the map offered it — which made the one shipped event effectively untestable
+   and made iterating on act SHAPE a code change.
+
+   The act runs through Campaign.Start, the same call the shipped acts use, and the node handlers are
+   shared. That is the only reason testing an event here proves anything about the event. *@
+
+<PageTitle>PLUCK — acts</PageTitle>
+
+<div class="acts">
+    <header class="acts-head">
+        <div>
+            <h1>PLUCK <span class="sub">build an act</span></h1>
+            <p class="note">
+                Sequence battles, events and rests, then walk it. The run layer plays this exactly as
+                it plays a shipped act — same <code>Campaign.Start</code>, same node handlers — so an
+                event reached here behaves as it would on the map.
+            </p>
+        </div>
+
+        <div class="acts-tools">
+            <label class="seed">
+                Seed
+                <input type="number" value="@_seed" @onchange="e => _seed = Read(e, _seed)" />
+            </label>
+            <a class="action secondary" href="battles">All battles</a>
+            <a class="action secondary" href="/">Home</a>
+        </div>
+    </header>
+
+    @if (!DevBuild.ShowDevTools)
+    {
+        <p class="note empty">
+            The act builder is an internal-build tool and this is a release build.
+        </p>
+    }
+    else
+    {
+        <section class="builder">
+            <div class="builder-head">
+                <input type="text" class="act-name" placeholder="Name this act"
+                       value="@_draft.Name"
+                       @oninput="e => _draft.Name = e.Value?.ToString() ?? string.Empty" />
+                <span class="act-length">@_draft.Length()</span>
+            </div>
+
+            @* The squad. Part of what an act is testing: an escort shape asks a different question of
+               a Wardbearer than of an Archer. *@
+            <div class="squad">
+                <span class="squad-label">Squad</span>
+                @for (int i = 0; i < _draft.Squad.Count; i++)
+                {
+                    var index = i;
+
+                    <select class="squad-pick" @onchange="e => SetSquad(index, e)">
+                        @foreach (var kind in PlayerClasses)
+                        {
+                            <option value="@kind" selected="@(_draft.Squad[index] == kind)">@Naming.Of(kind)</option>
+                        }
+                    </select>
+                }
+            </div>
+
+            @if (_draft.Steps.Count == 0)
+            {
+                <p class="note empty">Nothing in this act yet. Add a node below.</p>
+            }
+            else
+            {
+                <ol class="steps">
+                    @for (int i = 0; i < _draft.Steps.Count; i++)
+                    {
+                        var index = i;
+                        var step = _draft.Steps[index];
+
+                        <li class="step kind-@step.Kind.ToString().ToLowerInvariant()">
+                            <span class="step-no">@(index + 1)</span>
+
+                            <select class="step-kind" @onchange="e => SetKind(index, e)">
+                                @foreach (var kind in Kinds)
+                                {
+                                    <option value="@kind" selected="@(step.Kind == kind)">@Label(kind)</option>
+                                }
+                            </select>
+
+                            @if (step.Kind == ActDraft.NodeKind.Fight)
+                            {
+                                <select class="step-id" @onchange="e => SetId(index, e)">
+                                    <option value="" selected="@(step.Id.Length == 0)">— pick a board —</option>
+                                    @foreach (var board in Boards)
+                                    {
+                                        <option value="@board.Id" selected="@(step.Id == board.Id)">
+                                            @board.Name — @board.Board.Width×@board.Board.Height
+                                        </option>
+                                    }
+                                </select>
+                            }
+                            else if (step.Kind == ActDraft.NodeKind.Event)
+                            {
+                                <select class="step-id" @onchange="e => SetId(index, e)">
+                                    <option value="" selected="@(step.Id.Length == 0)">— pick a scene —</option>
+                                    @foreach (var scene in EventLibrary.All())
+                                    {
+                                        <option value="@scene.Id" selected="@(step.Id == scene.Id)">
+                                            @scene.Name — @scene.HpCost HP for +@scene.MaxHpGain max
+                                        </option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <span class="step-note">Heal or forge. Nothing to choose.</span>
+                            }
+
+                            <span class="step-tools">
+                                <button type="button" class="pill" disabled="@(index == 0)"
+                                        title="Move earlier" @onclick="() => Move(index, -1)">↑</button>
+                                <button type="button" class="pill" disabled="@(index == _draft.Steps.Count - 1)"
+                                        title="Move later" @onclick="() => Move(index, 1)">↓</button>
+                                <button type="button" class="pill drop"
+                                        title="Remove this node" @onclick="() => Remove(index)">×</button>
+                            </span>
+                        </li>
+                    }
+                </ol>
+            }
+
+            <div class="add-row">
+                <span class="add-label">Add</span>
+                @foreach (var kind in Kinds)
+                {
+                    <button type="button" class="action secondary" @onclick="() => Add(kind)">@Label(kind)</button>
+                }
+            </div>
+
+            <div class="builder-foot">
+                @* Named, not greyed silently: a Play that refuses without saying why is the failure
+                   this codebase keeps writing down. *@
+                @if (_draft.Refusal is { Length: > 0 } why)
+                {
+                    <p class="refusal">@why</p>
+                }
+
+                <div class="foot-actions">
+                    <button type="button" class="action primary" disabled="@(!_draft.IsPlayable)"
+                            @onclick="Play">Walk this act</button>
+                    <button type="button" class="action" disabled="@(_draft.Name.Length == 0 || _draft.Steps.Count == 0)"
+                            @onclick="Save">Save</button>
+                    <button type="button" class="action secondary" @onclick="Fresh">New act</button>
+                </div>
+
+                <p class="note scratch">
+                    A run on a built act is <strong>not saved</strong> — the reload path restores a run
+                    by looking its campaign up in the library, and an act built here is not there. The
+                    act itself is saved; the run walking it is scratch.
+                </p>
+            </div>
+        </section>
+
+        <h2>Saved acts</h2>
+        @if (!Store.Loaded)
+        {
+            <p class="note">Reading browser storage…</p>
+        }
+        else if (Store.Items.Count == 0)
+        {
+            <p class="note empty">None yet. Build one above and press Save.</p>
+        }
+        else
+        {
+            <div class="saved-acts">
+                @foreach (var saved in Store.Items)
+                {
+                    <article class="act-card">
+                        <header>
+                            <span class="act-title">@(saved.Draft.Name.Length > 0 ? saved.Draft.Name : saved.Id)</span>
+                            <span class="tag">@saved.Id</span>
+                        </header>
+                        <p class="act-shape">@saved.Draft.Shape()</p>
+                        <p class="note">@saved.Draft.Length()</p>
+                        <footer>
+                            <button type="button" class="action" @onclick="() => Open(saved)">Open</button>
+                            <button type="button" class="action secondary" @onclick="() => Drop(saved)">Delete</button>
+                        </footer>
+                    </article>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private ActDraft _draft = new();
+    private int _seed = GameSession.DefaultSeed;
+    private string _slug = string.Empty;
+
+    private static readonly ActDraft.NodeKind[] Kinds =
+        (ActDraft.NodeKind[])Enum.GetValues(typeof(ActDraft.NodeKind));
+
+    private static readonly UnitKind[] PlayerClasses =
+    {
+        UnitKind.Vanguard,
+        UnitKind.Archer,
+        UnitKind.Threadcaster,
+        UnitKind.Wardbearer,
+    };
+
+    /// <summary>Every playable board, by name.</summary>
+    private static IReadOnlyList<FightDefinition> Boards { get; } =
+        FightLibrary.All().OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Runs.LoadAsync();
+        await Store.LoadAsync();
+    }
+
+    private static string Label(ActDraft.NodeKind kind) => kind switch
+    {
+        ActDraft.NodeKind.Fight => "Battle",
+        ActDraft.NodeKind.Event => "Event",
+        _ => "Rest",
+    };
+
+    private void Add(ActDraft.NodeKind kind)
+    {
+        var step = new ActDraft.Step { Kind = kind };
+
+        // One event ships, so an added event lands on it rather than on "pick one" — the only
+        // choice there is is already made.
+        if (kind == ActDraft.NodeKind.Event && EventLibrary.All().Count == 1)
+        {
+            step.Id = EventLibrary.All()[0].Id;
+        }
+
+        _draft.Steps.Add(step);
+    }
+
+    private void Remove(int index) => _draft.Steps.RemoveAt(index);
+
+    private void Move(int index, int by)
+    {
+        int to = index + by;
+        if (to < 0 || to >= _draft.Steps.Count)
+        {
+            return;
+        }
+
+        var step = _draft.Steps[index];
+        _draft.Steps.RemoveAt(index);
+        _draft.Steps.Insert(to, step);
+    }
+
+    private void SetKind(int index, ChangeEventArgs e)
+    {
+        if (!Enum.TryParse<ActDraft.NodeKind>(e.Value?.ToString(), out var kind))
+        {
+            return;
+        }
+
+        var step = _draft.Steps[index];
+        step.Kind = kind;
+        step.Id = kind == ActDraft.NodeKind.Event && EventLibrary.All().Count == 1
+            ? EventLibrary.All()[0].Id
+            : string.Empty;
+    }
+
+    private void SetId(int index, ChangeEventArgs e) =>
+        _draft.Steps[index].Id = e.Value?.ToString() ?? string.Empty;
+
+    private void SetSquad(int index, ChangeEventArgs e)
+    {
+        if (Enum.TryParse<UnitKind>(e.Value?.ToString(), out var kind))
+        {
+            _draft.Squad[index] = kind;
+        }
+    }
+
+    private static int Read(ChangeEventArgs e, int fallback) =>
+        int.TryParse(e.Value?.ToString(), out int value) ? value : fallback;
+
+    private async Task Save()
+    {
+        _slug = await Store.SaveAsync(_draft);
+    }
+
+    private void Open(SavedAct saved)
+    {
+        _draft = saved.Draft;
+        _slug = saved.Id;
+    }
+
+    private async Task Drop(SavedAct saved) => await Store.DeleteAsync(saved.Id);
+
+    private void Fresh()
+    {
+        _draft = new ActDraft();
+        _slug = string.Empty;
+    }
+
+    private async Task Play()
+    {
+        var id = _slug.Length > 0 ? _slug : "scratch-act";
+        await Runs.StartCustomAsync(_draft.ToCampaign(id), _seed);
+        Nav.NavigateTo(RunScreens.RouteFor(Runs));
+    }
+}

@@ -262,9 +262,10 @@ in this file when the question comes back.
 | D-259 | [FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and what is actually missing is narrower.](#d-259-found-the-board-picker-was-never-removed-the-stage-p-packets-p5-premise-is-false-and-what-is-actually-missing-is-narrower) | 2026-08-08 |  |
 | D-260 | [RULED: the battle picker's test bench sets health, items and cards through the run's own loadout seam, and it is for isolating a board rather than for showing a state is reachable.](#d-260-ruled-the-battle-pickers-test-bench-sets-health-items-and-cards-through-the-runs-own-loadout-seam-and-it-is-for-isolating-a-board-rather-than-for-showing-a-state-is-reachable) | 2026-08-08 |  |
 | D-261 | [RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.](#d-261-ruled-a-saved-test-loadout-is-keyed-by-class-while-the-bench-that-feeds-a-fight-stays-keyed-by-slot-the-two-are-different-questions-and-the-conversion-is-a-per-slot-lookup) | 2026-08-08 |  |
-| D-262 | [RULED: the bench edits ABILITY SLOTS at the class's own count, so putting a card on a duck is always taking something out. A saved build covers the whole party.](#d-262-ruled-the-bench-edits-ability-slots-at-the-classs-own-count-so-putting-a-card-on-a-duck-is-always-taking-something-out-a-saved-build-covers-the-whole-party) | unreleased |  |
+| D-262 | [RULED: the bench edits ABILITY SLOTS at the class's own count, so putting a card on a duck is always taking something out. A saved build covers the whole party.](#d-262-ruled-the-bench-edits-ability-slots-at-the-classs-own-count-so-putting-a-card-on-a-duck-is-always-taking-something-out-a-saved-build-covers-the-whole-party) | 2026-08-08 |  |
+| D-263 | [RULED: an act built in the UI emits a MAPPED act, not a bare node list, and the event routing asks the run's current node rather than the map's.](#d-263-ruled-an-act-built-in-the-ui-emits-a-mapped-act-not-a-bare-node-list-and-the-event-routing-asks-the-runs-current-node-rather-than-the-maps) | unreleased |  |
 
-**244 rulings.**
+**245 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7020,3 +7021,41 @@ produce, and the bench has no rule to lean on for what it costs. Choosing "— e
 **A `<select>`'s `value` attribute does not drive selection in Blazor** — the matching `<option>` has
 to say `selected`. Every slot rendered as "— empty —" until it did. Recorded because it looked like a
 model bug and was a binding one, and the same shape is in every select the shell adds next.
+
+---
+
+**D-263 — RULED: an act built in the UI emits a MAPPED act, not a bare node list, and the event
+routing asks the run's current node rather than the map's.**
+
+An event is a run node, so reaching one meant playing a campaign until the map offered it. That made
+the one shipped event effectively untestable and made iterating on act SHAPE — what follows what — a
+code change. `/acts` sequences battles, events and rests and walks the result through
+`Campaign.Start`, the same call the shipped acts use, with the same node handlers.
+
+**A campaign can be a bare node list or a graph, and Core walks both — but the SHELL only walks the
+graph.** The first cut emitted a linear `CampaignDefinition`. Core entered its `EventNode` correctly
+and held control at `AtChoice`; the map screen then drew it as a **rest**, because a screen that
+renders `CurrentMapNode` has nothing to look up when there is no map. So an ad-hoc act emits an
+`ActMap` — one node per column, an edge to the next — and uses the shipped path end to end rather
+than a second one that only mostly works.
+
+**Rejected: teaching the map screen to draw a mapless campaign.** That is a second rendering path for
+a shape the shell has never shown a player, maintained forever so a dev tool can take a shortcut.
+Emitting the real structure costs one loop.
+
+**The routing was wrong independently of any of this, and is fixed rather than worked around.**
+`RunScreens.AtAnEvent` asked `CurrentMapNode.Type == Event`. The question is *what node is the run
+standing on*, and both act shapes can answer it — so it now also accepts `CurrentNode is EventNode`.
+The linear campaign in `CampaignLibrary` has always been able to hold an event node; nothing had ever
+put one there, so the gap had never fired.
+
+**A built act is saved; a run walking one is not.** `RunSave` restores a run by looking its campaign
+up in `CampaignLibrary` by id, and an act built in a browser is not there — a written save would
+reload as a different run or as none. Storage is cleared and the run lives in memory, so a reload
+ends it. Recorded because "why did my scratch run vanish" is otherwise a bug report.
+
+**FOUND: `FightLibrary.ById` throws on an id it does not know**, including the empty string a
+freshly-added node carries. The draft's own validity check called it and took the whole page down
+with an unhandled render exception. A validity check for half-built input cannot be one that explodes
+on half-built input; it asks the list instead. Worth recording because `ById`'s throwing contract is
+easy to call innocently from any editor surface.

@@ -160,10 +160,19 @@ public static class RunScreens
     /// <summary>Whether the run is standing inside an event node's question.</summary>
     /// <param name="runs">The run session.</param>
     /// <returns>Whether the event screen is the one with something to draw.</returns>
+    /// <remarks>
+    /// <b>Asked of the run's current NODE, not only of the map's.</b> It read
+    /// <c>CurrentMapNode</c> alone, which is null on a campaign that is a list rather than a graph —
+    /// so an <see cref="EventNode"/> in a linear act was entered by Core, held control at
+    /// <see cref="RunPhase.AtChoice"/>, and was never routed to a screen. The map screen drew it as a
+    /// rest. Both act shapes are real and the run layer walks both, so the question is what node the
+    /// run is standing on, whichever shape put it there.
+    /// </remarks>
     public static bool AtAnEvent(RunSession runs) =>
         runs is not null
         && runs.AtChoice
-        && runs.State?.CurrentMapNode is { Type: MapNodeType.Event };
+        && (runs.State?.CurrentMapNode is { Type: MapNodeType.Event }
+            || runs.State?.CurrentNode is EventNode);
 
     /// <summary>Where the run's own controls should send a player from here.</summary>
     /// <param name="runs">The run session.</param>
