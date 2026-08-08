@@ -69,6 +69,47 @@ public static class ClassCards
         return slot >= 0 && slot < spenders.Count ? spenders[slot] : (KitEntry?)null;
     }
 
+    /// <summary>
+    /// What one kit entry is and does — the name, the rule, and what it costs to use.
+    /// </summary>
+    /// <remarks>
+    /// <b>Every word comes from Core's own catalogues</b>, so the slot a tester reads and the rule
+    /// the fight runs cannot drift apart. Three kinds of entry answer differently: an ability has an
+    /// <see cref="AbilityDefinition"/>, a spender is priced in Pluck, and a basic attack is the
+    /// class's plain swing and has neither.
+    /// </remarks>
+    /// <param name="entry">The kit entry.</param>
+    /// <returns>Its name, summary and cost line.</returns>
+    public static Card Describe(KitEntry entry)
+    {
+        if (Kits.AbilityOf(entry) is { } ability)
+        {
+            var def = AbilityDefinition.For(ability);
+            var cost = def.Cost + " AP";
+
+            if (def.Range > 0)
+            {
+                cost += " · range " + def.Range;
+                if (def.MinRange > 0)
+                {
+                    cost += " (min " + def.MinRange + ")";
+                }
+            }
+
+            return new Card(def.Name, def.Summary, cost);
+        }
+
+        if (Kits.SpenderOf(entry) is { } spend)
+        {
+            return new Card(
+                Verve.NameOf(spend),
+                "The class's " + Naming.Meter + " spender.",
+                Verve.CostOf(spend) + " " + Naming.Meter + " · 0 AP");
+        }
+
+        return new Card(Kits.NameOf(entry), "The class's plain swing.", "1 AP");
+    }
+
     /// <summary>The technique modifiers this class can hold.</summary>
     /// <param name="kind">The archetype.</param>
     /// <returns>Each modifier with its card.</returns>

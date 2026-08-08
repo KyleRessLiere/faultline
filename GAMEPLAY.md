@@ -2001,7 +2001,10 @@ only**, gated on the same `DevBuild.ShowDevTools` flag as the dev panel — that
 
 **It opens in its own view**, one duck at a time down a rail, with that duck's whole picture beside
 it. **Ability slots are drawn at the class's own count** — three, the Wardbearer's four, plus one
-Pluck slot counted separately — one row each, showing what is in it and offering what replaces it.
+Pluck slot counted separately — one row each. **A slot says what is in it in full** — the ability's name, its AP and range, and the
+rule it runs — with a dropdown under it to swap. Every option carries the same on hover, and a
+folded "All abilities and what they do" list gives the whole catalogue for when a name is not enough.
+Choosing between twenty half-remembered names is not choosing.
 Putting a card on a duck is always taking something out; there is no affordance for a slot the class
 does not have. A slot the class starts empty reads as empty rather than repeating an ability, and
 filling it is learning rather than replacing. The surgery runs through Core's own

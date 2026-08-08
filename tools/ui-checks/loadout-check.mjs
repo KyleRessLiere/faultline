@@ -45,7 +45,7 @@ for (let i = 0; i < tabs.length; i += 1) {
   const who = await page.locator('.view-title').innerText();
   const kit = await page.locator('.duck-view .slot select').evaluateAll((els) =>
     els.map((e) => e.options[e.selectedIndex]?.text || '—'));
-  const techniques = await page.locator('.group + .cards').first().locator('.card-name').allInnerTexts();
+  const techniques = await page.locator('.duck-view .card:not(.reference-card)').locator('.card-name').allInnerTexts();
 
   note(`${who.replace(/\s+/g, ' ').trim()} — kit: ${kit.join(', ')} | techniques: ${techniques.join(', ') || 'none'}`);
   seen.push({ who, techniques });
@@ -95,15 +95,16 @@ if (slots !== 4 || plucks !== 1) {
 
 // Swap slot 2, which is the "select what it is replacing" the checkboxes could not ask.
 const slot2 = page.locator('.duck-view .slot').nth(1);
-await slot2.locator('select').selectOption({ label: 'Overrun' });
+// By value, not label: option labels carry the cost line now and an exact-label match broke.
+await slot2.locator('select').selectOption('Overrun');
 await page.waitForTimeout(200);
 const was = await slot2.locator('.slot-was').innerText().catch(() => '');
-note(`slot 2 now: Overrun, ${was.trim()}`);
-if (!/was /.test(was)) {
+note(`slot 2 now: Overrun, ${was.replace(/\s+/g,' ').trim()}`);
+if (!/replaced /.test(was)) {
   fail.push('a swapped slot does not say what it replaced');
 }
 
-const firstCard = page.locator('.duck-view .card').first();
+const firstCard = page.locator('.duck-view .card:not(.reference-card)').first();
 await firstCard.locator('input[type=checkbox]').check();
 await page.waitForTimeout(150);
 note(`card ticked: ${(await firstCard.locator('.card-name').innerText()).trim()}`);

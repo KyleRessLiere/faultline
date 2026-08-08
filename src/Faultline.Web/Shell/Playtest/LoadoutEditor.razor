@@ -149,21 +149,51 @@
                         var stock = ClassCards.StockSlot(kind, index);
                         var held = duck.Slots.TryGetValue(index, out var swapped) ? swapped : stock;
 
-                        <label class="slot @(held != stock ? "swapped" : string.Empty) @(held is null ? "empty" : string.Empty)">
+                        <div class="slot @(held != stock ? "swapped" : string.Empty) @(held is null ? "empty" : string.Empty)">
                             <span class="slot-no">@(index + 1)</span>
-                            <select value="@(held?.ToString() ?? string.Empty)"
-                                    @onchange="e => SetSlot(duck, index, stock, e)">
-                                <option value="" selected="@(held is null)">— empty —</option>
-                                @foreach (var option in ClassCards.Abilities)
+
+                            <div class="slot-body">
+                                @* What is in the slot RIGHT NOW, said in full. A bare dropdown makes
+                                   a tester remember what every name does; the rule belongs next to
+                                   the choice. *@
+                                @if (held is { } inSlot)
                                 {
-                                    <option value="@option" selected="@(held == option)">@Kits.NameOf(option)</option>
+                                    var card = ClassCards.Describe(inSlot);
+
+                                    <span class="slot-name">
+                                        @card.Name
+                                        <span class="slot-cost">@card.Host</span>
+                                    </span>
+                                    <span class="slot-summary">@card.Summary</span>
                                 }
-                            </select>
-                            @if (held != stock)
-                            {
-                                <span class="slot-was">was @(stock is { } was ? Kits.NameOf(was) : "empty")</span>
-                            }
-                        </label>
+                                else
+                                {
+                                    <span class="slot-name empty-name">Empty slot</span>
+                                    <span class="slot-summary">Nothing in it. Pick something below.</span>
+                                }
+
+                                <select value="@(held?.ToString() ?? string.Empty)"
+                                        @onchange="e => SetSlot(duck, index, stock, e)">
+                                    <option value="" selected="@(held is null)">— empty —</option>
+                                    @foreach (var option in ClassCards.Abilities)
+                                    {
+                                        var card = ClassCards.Describe(option);
+
+                                        <option value="@option" selected="@(held == option)"
+                                                title="@(card.Summary + " (" + card.Host + ")")">
+                                            @card.Name — @card.Host
+                                        </option>
+                                    }
+                                </select>
+
+                                @if (held != stock)
+                                {
+                                    <span class="slot-was">
+                                        replaced @(stock is { } was ? Kits.NameOf(was) : "an empty slot")
+                                    </span>
+                                }
+                            </div>
+                        </div>
                     }
 
                     @for (int i = 0; i < Kits.PluckSlotsFor(kind); i++)
@@ -172,23 +202,73 @@
                         var stock = ClassCards.StockSpender(kind, index);
                         var held = duck.SpenderSlots.TryGetValue(index, out var swapped) ? swapped : stock;
 
-                        <label class="slot pluck @(held != stock ? "swapped" : string.Empty) @(held is null ? "empty" : string.Empty)">
+                        <div class="slot pluck @(held != stock ? "swapped" : string.Empty) @(held is null ? "empty" : string.Empty)">
                             <span class="slot-no">P</span>
-                            <select value="@(held?.ToString() ?? string.Empty)"
-                                    @onchange="e => SetSpender(duck, index, stock, e)">
-                                <option value="" selected="@(held is null)">— empty —</option>
-                                @foreach (var option in ClassCards.Spenders)
+
+                            <div class="slot-body">
+                                @if (held is { } inSlot)
                                 {
-                                    <option value="@option" selected="@(held == option)">@Kits.NameOf(option)</option>
+                                    var card = ClassCards.Describe(inSlot);
+
+                                    <span class="slot-name">
+                                        @card.Name
+                                        <span class="slot-cost">@card.Host</span>
+                                    </span>
+                                    <span class="slot-summary">
+                                        @card.Summary Earns from @Verve.ConditionFor(kind).
+                                    </span>
                                 }
-                            </select>
-                            @if (held != stock)
-                            {
-                                <span class="slot-was">was @(stock is { } wasSpender ? Kits.NameOf(wasSpender) : "empty")</span>
-                            }
-                        </label>
+                                else
+                                {
+                                    <span class="slot-name empty-name">Empty @Naming.Meter slot</span>
+                                    <span class="slot-summary">This duck holds no spender.</span>
+                                }
+
+                                <select value="@(held?.ToString() ?? string.Empty)"
+                                        @onchange="e => SetSpender(duck, index, stock, e)">
+                                    <option value="" selected="@(held is null)">— empty —</option>
+                                    @foreach (var option in ClassCards.Spenders)
+                                    {
+                                        var card = ClassCards.Describe(option);
+
+                                        <option value="@option" selected="@(held == option)"
+                                                title="@(card.Summary + " (" + card.Host + ")")">
+                                            @card.Name — @card.Host
+                                        </option>
+                                    }
+                                </select>
+
+                                @if (held != stock)
+                                {
+                                    <span class="slot-was">
+                                        replaced @(stock is { } wasSpender ? Kits.NameOf(wasSpender) : "an empty slot")
+                                    </span>
+                                }
+                            </div>
+                        </div>
                     }
                 </div>
+
+                @* Every ability in the game, with what it does. The dropdowns above carry the same
+                   text on each option's hover, but a hover is not somewhere you can read a list —
+                   and choosing between twenty names you half-remember is not choosing. *@
+                <details class="reference">
+                    <summary>All abilities and what they do (@ClassCards.Abilities.Count)</summary>
+                    <div class="cards">
+                        @foreach (var option in ClassCards.Abilities)
+                        {
+                            var card = ClassCards.Describe(option);
+
+                            <div class="card reference-card">
+                                <span class="card-body">
+                                    <span class="card-name">@card.Name</span>
+                                    <span class="card-host">@card.Host</span>
+                                    <span class="card-summary">@card.Summary</span>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </details>
 
                 <h4 class="group">
                     Techniques

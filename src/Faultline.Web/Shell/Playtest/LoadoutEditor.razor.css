@@ -368,3 +368,57 @@
     font-size: .6rem;
     white-space: nowrap;
 }
+
+/* A slot says what is in it, in full. A bare dropdown makes a tester remember what twenty names do;
+   the rule belongs beside the choice. */
+.slot { align-items: flex-start; }
+
+.slot-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: .15rem;
+    min-width: 0;
+}
+
+.slot-name {
+    align-items: baseline;
+    display: flex;
+    font-size: .74rem;
+    font-weight: 600;
+    gap: .4rem;
+}
+
+.slot-name.empty-name { color: var(--pt-text-dim); font-weight: 400; font-style: italic; }
+
+.slot-cost {
+    color: var(--pt-cyan);
+    font-size: .62rem;
+    font-weight: 400;
+}
+
+.slot-summary {
+    color: var(--pt-text-dim);
+    font-size: .66rem;
+    line-height: 1.4;
+}
+
+.slot select { margin-top: .2rem; width: 100%; }
+
+/* The whole catalogue, folded away. Open it when a name is not enough. */
+.reference {
+    border-top: 1px solid var(--pt-border-soft, var(--pt-border));
+    margin-top: .9rem;
+    padding-top: .6rem;
+}
+
+.reference > summary {
+    cursor: pointer;
+    font-size: .74rem;
+    opacity: .8;
+}
+
+.reference .cards { margin-top: .5rem; }
+
+.reference-card { cursor: default; }
+.reference-card:hover { border-color: var(--pt-border); }
