@@ -19,6 +19,7 @@
 import { chromium } from 'playwright';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const REPO = process.env.REPO || join(process.cwd(), '..', '..');
@@ -125,6 +126,8 @@ await page.locator('.here button.action').first().click();
 await page.waitForSelector('.board', { timeout: 30000 });
 
 for (let i = 0; i < 40; i++) {
+  // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+  await settleDraft(page);
   const slot = page.locator('button.cell.deploy').first();
   if (!(await slot.count())) break;
   await slot.click();

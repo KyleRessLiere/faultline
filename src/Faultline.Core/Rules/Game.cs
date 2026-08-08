@@ -955,7 +955,18 @@ namespace Faultline.Core
             Require(Contains(state.Fight.Spots, command.At), "Tile is not a deployment spot.");
             Require(CanDeployOnto(state, command.At), "Tile cannot be deployed onto.");
 
-            var placed = unit with { Position = command.At, IsDeployed = true };
+            // The slot this placement filled, so the strip can publish the draft order without
+            // guessing which duck the player chose for it.
+            int slot = 1;
+            foreach (var other in state.Units)
+            {
+                if (other.IsDeployed && other.Team != Team.Enemy)
+                {
+                    slot++;
+                }
+            }
+
+            var placed = unit with { Position = command.At, IsDeployed = true, DraftSlot = slot };
             state = state.WithUnit(placed);
             events.Add(new UnitDeployed(placed.Id, placed.Team, placed.Kind, placed.Position));
 
@@ -996,15 +1007,7 @@ namespace Faultline.Core
         /// </remarks>
         private static Team? NextPlacer(GameState state)
         {
-            var order = state.DraftOrder;
-            if (order is null)
-            {
-                return null;
-            }
-
-            Team first = order.PlacesFirst;
-            Team second = order.PlacesSecond;
-
+            var sequence = DraftSequence(state);
             int placed = 0;
             foreach (var unit in state.Units)
             {
@@ -1014,25 +1017,85 @@ namespace Faultline.Core
                 }
             }
 
-            bool firstHasMore = HasUndeployed(state, first);
-            bool secondHasMore = HasUndeployed(state, second);
+            return placed < sequence.Count ? sequence[placed] : (Team?)null;
+        }
 
-            if (!firstHasMore && !secondHasMore)
+        /// <summary>
+        /// The whole draft's placement order — one entry per duck, in §3's snake, from the first
+        /// placement to the last.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Published because it is a fact, not an implementation detail.</b> §3 asks the draft
+        /// order to be shown in the situation column the way the turn-order strip shows activation
+        /// order, and a shell cannot draw an order it has to guess. Which SIDE fills each slot is
+        /// settled the moment step 1 is answered; which DUCK fills it is the player's choice at the
+        /// moment it arrives, exactly as a player activation slot is.
+        /// </para>
+        /// <para>
+        /// Empty until step 1 is answered — before that there is no order, and saying so is better
+        /// than assuming Player A.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Board to read.</param>
+        /// <returns>The team placing at each slot, in order. Empty when the draft order is unsettled.</returns>
+        public static IReadOnlyList<Team> DraftSequence(GameState state)
+        {
+            var order = state is null ? null : state.DraftOrder;
+            if (order is null || state is null)
             {
-                return null;
+                return new Team[0];
             }
 
-            // The serpentine: slot i belongs to F when ((i + 1) / 2) is even, else to S. That is
-            // F S S F F S S F …, and at four slots it is precisely §3's A · B · B · A.
-            bool slotIsFirsts = (((placed + 1) / 2) % 2) == 0;
-            Team ideal = slotIsFirsts ? first : second;
+            Team first = order.PlacesFirst;
+            Team second = order.PlacesSecond;
 
-            if (ideal == first)
+            int remainingFirst = 0, remainingSecond = 0;
+            foreach (var unit in state.Units)
             {
-                return firstHasMore ? first : second;
+                if (unit.Voided || unit.Team == Team.Enemy)
+                {
+                    continue;
+                }
+
+                if (unit.Team == first)
+                {
+                    remainingFirst++;
+                }
+                else if (unit.Team == second)
+                {
+                    remainingSecond++;
+                }
             }
 
-            return secondHasMore ? second : first;
+            var sequence = new List<Team>(remainingFirst + remainingSecond);
+
+            for (int slot = 0; remainingFirst > 0 || remainingSecond > 0; slot++)
+            {
+                // The serpentine: slot i belongs to F when ((i + 1) / 2) is even, else to S — that is
+                // F S S F F S S F …, and at four slots it is precisely §3's A · B · B · A.
+                bool slotIsFirsts = (((slot + 1) / 2) % 2) == 0;
+                Team ideal = slotIsFirsts ? first : second;
+
+                // A slot whose owner has run out PASSES to the other player rather than being
+                // dropped, which is the whole of the unequal-roster generalisation (D-256).
+                Team taker = ideal == first
+                    ? (remainingFirst > 0 ? first : second)
+                    : (remainingSecond > 0 ? second : first);
+
+                if (taker == first)
+                {
+                    remainingFirst--;
+                }
+                else
+                {
+                    remainingSecond--;
+                }
+
+                sequence.Add(taker);
+            }
+
+            return sequence;
         }
 
         private static GameState BeginBattle(GameState state, List<GameEvent> events)

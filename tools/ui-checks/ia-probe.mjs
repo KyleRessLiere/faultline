@@ -4,6 +4,7 @@
 
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5200';
 const DIR = process.env.SHOT_DIR || 'shots/ia';
@@ -46,6 +47,8 @@ console.log('deployment', JSON.stringify(await page.evaluate(counts)));
 await page.screenshot({ path: `${DIR}/1-deployment.png` });
 
 for (let i = 0; i < 24; i++) {
+  // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+  await settleDraft(page);
   if (!(await page.$$eval('.cell.deploy', c => c.length))) break;
   await page.$$eval('.cell.deploy', c => c[0].click());
   await page.waitForTimeout(200);

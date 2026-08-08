@@ -1,0 +1,142 @@
+@inherits PlaytestPanel
+
+@* Step 1 of the deployment draft (MASTER_DESIGN §3): each player privately answers "place first or
+   place second", both answers are revealed together, and identical preferences fire a seeded coin.
+
+   BLIND IS THE POINT, and it is the reason this is a component rather than two buttons. Every other
+   shared decision in this game is blind — this phase and the map vote — and that is load-bearing for
+   two-player parity: an open question invites the more experienced player to answer for both. So
+   each answer is held HERE, in the shell, and neither is shown until both are in. Core is handed one
+   command carrying both, which is also why it can never leak one answer to the other player.
+
+   The reveal is a single moment: both answers side by side, the coin and its result if one fired,
+   and "preferences differed, no coin" when none did. *@
+
+@if (Asking)
+{
+    <div class="draft-step-one" role="group" aria-label="Who places first">
+        <p class="draft-question">
+            <strong>Who places first?</strong>
+            Placing first shows your setup; it also activates first, every round.
+        </p>
+
+        @foreach (var side in Sides)
+        {
+            <div class="draft-side team-@PlaytestText.TeamClass(side)">
+                <span class="draft-who">@PlaytestText.Team(side)</span>
+
+                @if (Answer(side) is null)
+                {
+                    <button type="button"
+                            class="draft-answer"
+                            title="@(PlaytestText.Team(side)) asks to place first."
+                            @onclick="() => Choose(side, DeploymentChoice.PlaceFirst)">Place first</button>
+                    <button type="button"
+                            class="draft-answer"
+                            title="@(PlaytestText.Team(side)) asks to place second."
+                            @onclick="() => Choose(side, DeploymentChoice.PlaceSecond)">Place second</button>
+                }
+                else
+                {
+                    @* Answered, not shown. The other player is still deciding. *@
+                    <span class="draft-sealed" title="Answered. It stays sealed until both are in.">sealed</span>
+                    <button type="button"
+                            class="draft-clear"
+                            title="Take this answer back before the other player commits."
+                            @onclick="() => Clear(side)">change</button>
+                }
+            </div>
+        }
+
+        @if (Both)
+        {
+            <button type="button"
+                    class="draft-reveal"
+                    title="Reveal both answers together."
+                    @onclick="Reveal">Reveal</button>
+        }
+    </div>
+}
+else if (Resolved is { } order)
+{
+    <div class="draft-reveal-block" role="status" aria-label="Draft order">
+        <p class="draft-line">
+            <span class="team-@PlaytestText.TeamClass(Team.PlayerA)">@PlaytestText.Team(Team.PlayerA)</span>
+            asked @Asked(order.ChoiceA)
+            ·
+            <span class="team-@PlaytestText.TeamClass(Team.PlayerB)">@PlaytestText.Team(Team.PlayerB)</span>
+            asked @Asked(order.ChoiceB)
+        </p>
+        <p class="draft-line draft-outcome">
+            <strong>@PlaytestText.Team(order.PlacesFirst)</strong> places first — and activates first.
+            <span class="draft-coin">@CoinLine(order)</span>
+        </p>
+    </div>
+}
+
+@code {
+    /// <summary>The two answers, held in the shell so neither reaches Core or the screen alone.</summary>
+    private DeploymentChoice? _a;
+    private DeploymentChoice? _b;
+
+    private static readonly Team[] Sides = { Team.PlayerA, Team.PlayerB };
+
+    /// <summary>True while step 1 is still open.</summary>
+    private bool Asking => State.Phase == Phase.Deployment && State.DraftOrder is null;
+
+    /// <summary>The settled order, once there is one.</summary>
+    private DraftOrder? Resolved => State.Phase == Phase.Deployment ? State.DraftOrder : null;
+
+    private bool Both => _a is not null && _b is not null;
+
+    private DeploymentChoice? Answer(Team side) => side == Team.PlayerA ? _a : _b;
+
+    private void Choose(Team side, DeploymentChoice choice)
+    {
+        if (side == Team.PlayerA)
+        {
+            _a = choice;
+        }
+        else
+        {
+            _b = choice;
+        }
+    }
+
+    private void Clear(Team side)
+    {
+        if (side == Team.PlayerA)
+        {
+            _a = null;
+        }
+        else
+        {
+            _b = null;
+        }
+    }
+
+    /// <summary>Hands both answers to Core as one command, which is the only way they are ever seen.</summary>
+    private void Reveal()
+    {
+        if (_a is not { } a || _b is not { } b)
+        {
+            return;
+        }
+
+        Session.Submit(new DraftOrderCommand(a, b));
+        _a = null;
+        _b = null;
+    }
+
+    private static string Asked(DeploymentChoice choice) =>
+        choice == DeploymentChoice.PlaceFirst ? "to place first" : "to place second";
+
+    /// <summary>
+    /// Says which world the reveal is in. §3 asks for "preferences differed, no coin" out loud when
+    /// none fired — a silent absence would leave a player wondering whether one had.
+    /// </summary>
+    private static string CoinLine(DraftOrder order) =>
+        order.ByCoin
+            ? "Both asked for the same thing, so the coin decided."
+            : "Preferences differed, no coin.";
+}

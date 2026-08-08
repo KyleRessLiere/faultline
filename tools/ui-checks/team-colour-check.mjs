@@ -15,6 +15,7 @@
 // Exits non-zero and names the disagreeing surfaces when a side is drawn two ways.
 
 import { chromium } from 'playwright';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const CHANNEL = process.env.CHANNEL || undefined;   // e.g. CHANNEL=chrome to use system Chrome
@@ -116,6 +117,8 @@ await page.waitForTimeout(2500);
 
 // Deploy both squads so the board, the strip and the inspector all have a side to draw.
 for (let i = 0; i < 16; i++) {
+  // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+  await settleDraft(page);
   if (!(await page.$$eval('.cell.deploy', c => c.length))) break;
   await page.$$eval('.cell.deploy', c => c[0].click());
   await page.waitForTimeout(200);

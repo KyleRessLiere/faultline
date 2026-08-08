@@ -21,6 +21,7 @@
 
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const SHOTS = process.env.SHOTS === '1';
@@ -202,6 +203,8 @@ check(path() === '/play', 'entering the node lands on the board', page.url());
 const deploy = async () => {
   let placed = 0;
   for (let i = 0; i < 40; i++) {
+    // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+    await settleDraft(page);
     const slot = page.locator('button.cell.deploy').first();
     if (!(await slot.count())) break;
     await slot.click();

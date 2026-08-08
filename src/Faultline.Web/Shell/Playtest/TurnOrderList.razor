@@ -167,11 +167,15 @@
     private string RoundLabel => Deploying ? "Deployment" : "Round " + State.Round;
 
     private string ActorLabel => Deploying
-        ? PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " PLACES"
+        ? (State.DraftOrder is null
+            ? "WHO PLACES FIRST?"
+            : PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " PLACES")
         : PlaytestText.Team(State.ActiveTeam).ToUpperInvariant() + " TO ACT";
 
     private string Caption => Deploying
-        ? "Click a highlighted tile in your corner. Hover an enemy to see its round-1 reach."
+        ? (State.DraftOrder is null
+            ? "Both players answer blind; the order follows."
+            : "Click any open spot — no spot belongs to a side. Hover one for its round-1 reach.")
         : "Clicking a row reads it. Select on the board.";
 
     private string EmptyText => Deploying
@@ -226,19 +230,28 @@
     {
         if (card.Unit is not { } unit)
         {
+            if (Deploying)
+            {
+                return $"Pick {card.Sequence} of the draft — {PlaytestText.Team(card.Team)}'s. "
+                    + $"Either of {Candidates(card)} may take it; which duck fills a slot is that "
+                    + "player's choice when the slot arrives, so the order names the side and not the duck.";
+            }
+
             return $"{PlaytestText.Team(card.Team)}'s slot in round {card.Round}. "
                 + $"Either of {Candidates(card)} may take it — that choice is the player's, so the order cannot name one.";
         }
 
-        // Deployment says where a duck is, not what it is about to do: there is no order yet, and a
-        // row that claimed one would be publishing a fact the game does not have.
+        // The draft's order is a published fact from the moment step 1 is answered (§3), so a
+        // deployment row says which pick it is as well as who took it and where.
         if (Deploying)
         {
             return card.State switch
             {
-                StripState.Current => $"{unit.Name} — the next placement puts this one down.",
-                StripState.Done => $"{unit.Name} is placed, at {BoardCoords.Of(unit.Position)}.",
-                _ => $"{unit.Name} is still to be placed.",
+                StripState.Current =>
+                    $"Pick {card.Sequence} of the draft — {unit.Name} goes down on the next spot clicked.",
+                StripState.Done =>
+                    $"Pick {card.Sequence} — {unit.Name} took the spot at {BoardCoords.Of(unit.Position)}.",
+                _ => $"Pick {card.Sequence} — {PlaytestText.Team(card.Team)}'s, still to be made.",
             };
         }
 

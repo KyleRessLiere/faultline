@@ -173,10 +173,23 @@ public static class StripCards
     /// <param name="pending">The unit the next placement click will put down, when there is one.</param>
     /// <returns>The cards, in draw order. Empty outside the deployment phase.</returns>
     /// <remarks>
-    /// Drawn in <see cref="GameState.Units"/> order, which is the order Core offers the placements
-    /// in. The two sides alternate as each one places (Core's own rule), and <b>this must not invent
-    /// an interleaving to draw</b> — it shows who is still owed and which one is being placed now,
-    /// both of which are facts, and claims no sequence beyond them.
+    /// <para>
+    /// <b>Drawn in §3's snake order</b>, one card per placement slot, from
+    /// <see cref="Game.DraftSequence"/>. This used to be drawn in <see cref="GameState.Units"/>
+    /// order with a note that it "must not invent an interleaving" — true while deployment was a
+    /// bare alternation nobody had published, and false since the draft: the order is settled the
+    /// moment step 1 is answered, and §3 asks for it in the situation column.
+    /// </para>
+    /// <para>
+    /// A spent slot resolves to the duck that actually took it (<see cref="Unit.DraftSlot"/>). The
+    /// current and future slots name the SIDE and carry that side's unplaced ducks as candidates —
+    /// exactly the treatment an open player activation slot gets, because it is the same kind of
+    /// open choice: which duck fills a slot is the player's, at the moment it arrives.
+    /// </para>
+    /// <para>
+    /// Before step 1 is answered there is no order at all, so the roster is drawn flat and nothing
+    /// is claimed about sequence.
+    /// </para>
     /// </remarks>
     public static IReadOnlyList<StripCard> Deployment(GameState? state, UnitId? pending)
     {
@@ -186,24 +199,102 @@ public static class StripCards
             return cards;
         }
 
-        int seq = 1;
-
-        foreach (var unit in state.Units)
+        var sequence = Game.DraftSequence(state);
+        if (sequence.Count == 0)
         {
-            if (!unit.Team.IsPlayer() || unit.Voided)
+            // Step 1 is unanswered: the squad, in roster order, and no sequence claimed.
+            int flat = 1;
+            foreach (var unit in state.Units)
             {
+                if (!unit.Team.IsPlayer() || unit.Voided)
+                {
+                    continue;
+                }
+
+                cards.Add(Card(state, flat++, state.Round, false, false, StripState.Upcoming,
+                    ActivationSkip.None, unit.Team, unit.Id, unit, NoUnits));
+            }
+
+            return cards;
+        }
+
+        for (int slot = 0; slot < sequence.Count; slot++)
+        {
+            var team = sequence[slot];
+            var taker = Taker(state, slot + 1);
+
+            if (taker is not null)
+            {
+                cards.Add(Card(state, slot + 1, state.Round, false, false, StripState.Done,
+                    ActivationSkip.None, taker.Team, taker.Id, taker, NoUnits));
                 continue;
             }
 
-            var kind = pending is { } next && unit.Id == next
-                ? StripState.Current
-                : unit.IsDeployed ? StripState.Done : StripState.Upcoming;
+            var candidates = Unplaced(state, team);
+            bool current = pending is not null && IsCurrentSlot(state, slot);
 
-            cards.Add(Card(state, seq++, state.Round, false, false, kind,
-                ActivationSkip.None, unit.Team, unit.Id, unit, NoUnits));
+            // One candidate is not a choice, so the slot resolves to the plain portrait.
+            var only = candidates.Count == 1 ? candidates[0] : null;
+
+            cards.Add(Card(
+                state,
+                slot + 1,
+                state.Round,
+                false,
+                false,
+                current ? StripState.Current : StripState.Slot,
+                ActivationSkip.None,
+                team,
+                only?.Id,
+                only,
+                candidates));
         }
 
         return cards;
+    }
+
+    /// <summary>The duck that took a given draft slot, or <c>null</c> while the slot is unspent.</summary>
+    private static Unit? Taker(GameState state, int slot)
+    {
+        foreach (var unit in state.Units)
+        {
+            if (unit.IsDeployed && unit.Team.IsPlayer() && unit.DraftSlot == slot)
+            {
+                return unit;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>That side's ducks still owed to the board, in roster order.</summary>
+    private static IReadOnlyList<Unit> Unplaced(GameState state, Team team)
+    {
+        var waiting = new List<Unit>();
+        foreach (var unit in state.Units)
+        {
+            if (unit.Team == team && !unit.IsDeployed && !unit.Voided)
+            {
+                waiting.Add(unit);
+            }
+        }
+
+        return waiting;
+    }
+
+    /// <summary>True when this slot is the one the next placement fills.</summary>
+    private static bool IsCurrentSlot(GameState state, int slot)
+    {
+        int placed = 0;
+        foreach (var unit in state.Units)
+        {
+            if (unit.IsDeployed && unit.Team.IsPlayer())
+            {
+                placed++;
+            }
+        }
+
+        return slot == placed;
     }
 
     private static StripCard Card(

@@ -156,6 +156,11 @@
 
             @if (Deploying)
             {
+                @* Step 1 before anything else on the band: no duck may be placed until it is
+                   answered, so the question owns the moment it is asked. It stays as the reveal
+                   afterwards — both answers and the coin, said once and in the open. *@
+                <DraftOrderPrompt />
+
                 @* Loud, and before the tile is clicked. A duck that owes its side an activation is a
                    duck you place differently, and agency before injury (D-080) means that cost
                    belongs on screen at the moment of the choice — against the threat overlay, not
@@ -207,6 +212,9 @@
         || ShowOutcome
         || Paddling.Count > 0
         || Recovering.Count > 0
+        // §3's step 1 gates the whole draft, so the band has to exist to ask it — and it stays for
+        // the reveal, which is the one moment both answers and the coin are shown.
+        || Deploying
         || (Deploying && BedraggledOnDeck.Count > 0);
 
     /// <summary>Who could still get to a hanging ally this activation, in Core's own reckoning.</summary>

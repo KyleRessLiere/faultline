@@ -192,6 +192,34 @@
     border-style: dashed;
 }
 
+/* Deployment spots (MASTER_DESIGN §3). Three states, told apart by SHAPE as well as colour, because
+   "open / yours to take / taken" is a distinction a player has to make at a glance and a single grey
+   would collapse all three into "not available" — the failure §3 calls out by name.
+
+   Every published spot carries the base ring from before the first pick: a published spot list is a
+   published fact, and there is no fog on it. */
+
+.cell.spot {
+    box-shadow: inset 0 0 0 2px rgba(120, 220, 232, .35);
+}
+
+/* Open: published, empty, but not this player's pick to make right now. Quiet, still legible. */
+.cell.spot-open {
+    box-shadow: inset 0 0 0 2px rgba(120, 220, 232, .45);
+}
+
+/* Yours to take: the click in front of this player would land here. Loudest of the three, and it
+   keeps the dashed .deploy ring it has always had. */
+.cell.spot-yours {
+    box-shadow: inset 0 0 0 3px var(--pt-cyan);
+}
+
+/* Taken: a duck already stands here. Solid rather than absent — the tile still reads as a spot, and
+   the hover names who took it and which duck (§3: never greyed with an empty reason). */
+.cell.spot-taken {
+    box-shadow: inset 0 0 0 2px rgba(120, 220, 232, .8);
+}
+
 .cell.targetable {
     border-color: var(--pt-red);
     border-style: solid;

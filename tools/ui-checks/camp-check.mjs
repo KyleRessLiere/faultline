@@ -20,6 +20,7 @@
 // Exits non-zero on any failure, and prints every measurement either way.
 
 import { chromium } from 'playwright';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 
@@ -79,6 +80,8 @@ await page.waitForSelector('.board', { timeout: 30000 });
 // Deployment: every slot is a cell wearing .deploy, and the pending duck is whoever Core names next.
 let placed = 0;
 for (let i = 0; i < 40; i++) {
+  // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+  await settleDraft(page);
   const slot = page.locator('button.cell.deploy').first();
   if (!(await slot.count())) break;
   await slot.click();

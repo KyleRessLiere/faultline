@@ -4,6 +4,7 @@
 //   BASE=http://localhost:5199 node strip-height-check.mjs
 
 import { chromium } from 'playwright';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const BUDGET = Number(process.env.BUDGET || 110);
@@ -45,6 +46,8 @@ for (const vp of [{ width: 1920, height: 1080 }, { width: 2560, height: 1307 }])
   console.log('  ' + JSON.stringify(m));
 
   for (let i = 0; i < 20; i++) {
+    // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+    await settleDraft(page);
     if (!(await page.$$eval('.cell.deploy', c => c.length))) break;
     await page.$$eval('.cell.deploy', c => c[0].click());
     await page.waitForTimeout(180);

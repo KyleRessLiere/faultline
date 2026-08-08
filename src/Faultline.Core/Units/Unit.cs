@@ -26,6 +26,19 @@ namespace Faultline.Core
         /// <summary>True once the unit has been placed on the board during deployment.</summary>
         public bool IsDeployed { get; init; }
 
+        /// <summary>
+        /// Which slot of the deployment draft placed this unit — 1 for the first duck down, 0 for a
+        /// unit that has not been placed by a draft.
+        /// </summary>
+        /// <remarks>
+        /// §3's draft is a snake, and <b>which duck fills a slot is the player's choice at the
+        /// moment it arrives</b> — the same freedom a player activation slot has. So the slot a duck
+        /// took cannot be re-derived from the roster afterwards, and the strip that publishes the
+        /// draft order would have to guess it. Recorded rather than guessed. Enemies are placed by
+        /// the scenario rather than drafted and keep 0.
+        /// </remarks>
+        public int DraftSlot { get; init; }
+
         /// <summary>True once this unit has taken its activation this round.</summary>
         public bool HasActivated { get; init; }
 

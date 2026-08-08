@@ -8,6 +8,7 @@
 import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
 import { join } from 'path';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const OUT = process.env.OUT || './shots';
@@ -44,6 +45,8 @@ await page.waitForSelector('.board', { timeout: 90000 });
 await page.waitForTimeout(1600);
 
 for (let i = 0; i < 20; i++) {
+  // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+  await settleDraft(page);
   if (!(await page.$$eval('.cell.deploy', c => c.length))) break;
   await page.$$eval('.cell.deploy', c => c[0].click());
   await page.waitForTimeout(180);

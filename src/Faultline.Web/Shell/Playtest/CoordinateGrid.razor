@@ -120,8 +120,11 @@
                         </span>
                         <span class="hp">@structure.Hp/@structure.MaxHp</span>
                     }
-                    else if (IsDeployTarget(cell))
+                    else if (Session.SpotAt(cell) is SpotState.Yours or SpotState.Open)
                     {
+                        @* Every published spot carries its mark, not just the one this click would
+                           take: §3 forbids fog on a list the board has already published. The two
+                           states are told apart by the tile's class, not by one of them vanishing. *@
                         <span class="marker">+</span>
                     }
                     else if (Session.Targets.ContainsKey(cell))
@@ -721,13 +724,30 @@
                 classes.Add("flash");
             }
         }
-        else if (IsDeployTarget(coord))
-        {
-            classes.Add("deploy");
-        }
         else if (targetable)
         {
             classes.Add("movable");
+        }
+
+        // §3: spots are BOARD facts, drawn on their tiles from before the first pick and never
+        // fogged. Open / yours-to-take / taken are three distinct states, so they are three distinct
+        // classes rather than one "deploy" highlight that only appeared mid-placement. Added after
+        // the unit branch, because a taken spot still has to read as a spot.
+        switch (Session.SpotAt(coord))
+        {
+            case SpotState.Open:
+                classes.Add("spot");
+                classes.Add("spot-open");
+                break;
+            case SpotState.Yours:
+                classes.Add("spot");
+                classes.Add("spot-yours");
+                classes.Add("deploy");
+                break;
+            case SpotState.Taken:
+                classes.Add("spot");
+                classes.Add("spot-taken");
+                break;
         }
 
         return string.Join(" ", classes);
@@ -739,6 +759,8 @@
         // (MASTER_DESIGN §15), and the tile label a person reads is BoardCoords', not Coord's.
         string terrain = PlaytestText.Terrain(State.Board.At(coord));
         string at = BoardCoords.Of(coord);
+
+        var spot = Session.SpotAt(coord);
 
         if (unit is not null)
         {
@@ -752,12 +774,31 @@
                 ? " · " + Intents.Sentence(State, intent)
                 : string.Empty;
 
-            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {at}{plan}{inspect}";
+            // §3: a taken spot NAMES who took it and which duck stands there. Greying it out with an
+            // empty reason is the failure this codebase has hit before, so the sentence is explicit.
+            string taken = spot == SpotState.Taken && Session.SpotTakenBy(coord) is { } who
+                ? " · spot taken by " + who
+                : string.Empty;
+
+            return $"{unit.Name} [{EventText.Side(unit.Team)}] {unit.Hp}/{unit.MaxHp}{extra} — {terrain} {at}{taken}{plan}{inspect}";
         }
 
         if (State.StructureAt(coord) is { } structure)
         {
             return $"{PlaytestText.Structure(structure)} — {terrain} {at}";
+        }
+
+        if (spot is SpotState.Open or SpotState.Yours)
+        {
+            // The whole basis of a good pick: the ground, and what can reach it before you move.
+            var reaching = Session.EnemiesReaching(coord);
+            string danger = reaching.Count == 0
+                ? "nothing reaches it on round 1"
+                : "round 1: " + string.Join(", ", reaching);
+
+            string offer = spot == SpotState.Yours ? "yours to take" : "open spot";
+
+            return $"Deployment spot — {offer} · {terrain} {at} · {danger}";
         }
 
         return $"{terrain} {at} — {PlaytestText.TerrainWalk(State.Board.At(coord))} Click to read it.";

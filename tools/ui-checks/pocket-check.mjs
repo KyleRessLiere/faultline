@@ -19,6 +19,7 @@
 // Exits non-zero on any failure, and prints every measurement either way.
 
 import { chromium } from 'playwright';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const SEEDS = (process.env.SEEDS || '1,2,3,4,5,6,7,8,9,10,11,12').split(',').map(Number);
@@ -91,6 +92,8 @@ const startRun = async seed => {
 const deploy = async () => {
   let placed = 0;
   for (let i = 0; i < 40; i++) {
+    // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+    await settleDraft(page);
     const slot = page.locator('button.cell.deploy').first();
     if (!(await slot.count())) break;
     await slot.click();

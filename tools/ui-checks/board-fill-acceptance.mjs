@@ -15,6 +15,7 @@
 
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const FILL_MIN = Number(process.env.FILL_MIN || 0.92);
@@ -143,6 +144,8 @@ for (const vp of VIEWPORTS) {
 
   // Put every duck down, which is what takes the screen from deployment into the fight.
   for (let i = 0; i < 24; i++) {
+    // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+    await settleDraft(page);
     if (!(await page.$$eval('.cell.deploy', c => c.length))) break;
     await page.$$eval('.cell.deploy', c => c[0].click());
     await page.waitForTimeout(180);

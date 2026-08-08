@@ -1858,6 +1858,97 @@ public sealed class GameSession
     public UnitId? PendingDeployUnit =>
         Legal.OfType<DeployCommand>().Select(d => (UnitId?)d.UnitId).FirstOrDefault();
 
+    /// <summary>
+    /// Every deployment spot the board publishes, whether or not it is takeable right now.
+    /// </summary>
+    /// <remarks>
+    /// <b>Spots are board facts</b> (MASTER_DESIGN §3): they are drawn on their tiles from before
+    /// the first pick, and there is no fog — a published spot list is a published fact.
+    /// <see cref="DeployTargets"/> is the much smaller "what this click would do" set, and drawing
+    /// only that is what used to leave the board blank until somebody was mid-placement.
+    /// </remarks>
+    public IReadOnlyList<Coord> Spots =>
+        State?.Fight?.Spots ?? (IReadOnlyList<Coord>)Array.Empty<Coord>();
+
+    /// <summary>How a spot reads right now: open, yours to take, or already taken.</summary>
+    /// <param name="at">A tile on the board.</param>
+    /// <returns>The spot's state, or <see cref="SpotState.NotASpot"/> when it is ordinary ground.</returns>
+    public SpotState SpotAt(Coord at)
+    {
+        if (State is null || State.Phase != Phase.Deployment || !Spots.Contains(at))
+        {
+            return SpotState.NotASpot;
+        }
+
+        if (State.UnitAt(at) is not null)
+        {
+            return SpotState.Taken;
+        }
+
+        return DeployTargets.ContainsKey(at) ? SpotState.Yours : SpotState.Open;
+    }
+
+    /// <summary>
+    /// Who took a spot and which duck stands there, or <c>null</c> when nobody has.
+    /// </summary>
+    /// <remarks>
+    /// §3 is explicit that a taken spot <b>names who took it and which duck stands there</b>, rather
+    /// than greying out with an empty reason — the failure mode this codebase has hit before.
+    /// </remarks>
+    /// <param name="at">A tile on the board.</param>
+    /// <returns>A sentence naming the player and the duck, or <c>null</c>.</returns>
+    public string? SpotTakenBy(Coord at)
+    {
+        if (State is null || State.Phase != Phase.Deployment)
+        {
+            return null;
+        }
+
+        var unit = State.UnitAt(at);
+        if (unit is null || !unit.Team.IsPlayer())
+        {
+            return null;
+        }
+
+        return TeamName(unit.Team) + "'s " + UnitTemplate.For(unit.Kind).Name;
+    }
+
+    /// <summary>
+    /// The enemies that could damage a tile on round one, by name.
+    /// </summary>
+    /// <remarks>
+    /// §3 wants a spot's hover to say which enemies can reach it — "the whole basis of a good pick"
+    /// — and to <b>surface</b> the reachability the agency lint already computes rather than
+    /// recompute it. This asks <see cref="Threat.ForUnit"/>, which is the same query
+    /// <see cref="Threat.DamageRound1"/> is built from, once per enemy so the answer can be named
+    /// instead of merely counted.
+    /// </remarks>
+    /// <param name="at">A tile on the board.</param>
+    /// <returns>Enemy display names, in board order. Empty when nothing reaches it.</returns>
+    public IReadOnlyList<string> EnemiesReaching(Coord at)
+    {
+        if (State is null)
+        {
+            return Array.Empty<string>();
+        }
+
+        var names = new List<string>();
+        foreach (var enemy in State.Units)
+        {
+            if (enemy.Team != Team.Enemy || !enemy.IsOnBoard || !enemy.IsAlive)
+            {
+                continue;
+            }
+
+            if (enemy.Template.Damage > 0 && Threat.ForUnit(State, enemy).Contains(at))
+            {
+                names.Add(UnitTemplate.For(enemy.Kind).Name);
+            }
+        }
+
+        return names;
+    }
+
     /// <summary>True when the enemy side owes an activation.</summary>
     public bool AwaitingEnemy => Game.IsEnemyTurn(State) && Legal.Count > 0;
 

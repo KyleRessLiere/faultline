@@ -12,6 +12,7 @@
 
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const SHOTS = process.env.SHOTS === '1';
@@ -154,6 +155,8 @@ if (SHOTS) await page.screenshot({ path: `${SHOT_DIR}/settings-leave.png` });
 // Play one command so the board is a position somebody would mind losing.
 await page.keyboard.press('Escape');
 await page.waitForTimeout(200);
+// Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+await settleDraft(page);
 await page.$$eval('.cell.deploy', c => c[0] && c[0].click());
 await page.waitForTimeout(500);
 

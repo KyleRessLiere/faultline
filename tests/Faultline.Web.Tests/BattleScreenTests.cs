@@ -145,17 +145,17 @@ public sealed class BattleScreenTests
         Assert.Empty(StripCards.Build(session.State));
     }
 
+    /// <summary>
+    /// <b>The strip publishes §3's snake, one card per pick.</b> The band is the same band in both
+    /// phases, so the draft order lives in the turn-order strip's pattern rather than in a second
+    /// order widget.
+    /// </summary>
     [Fact]
-    public void DuringDeployment_TheStripShowsTheRoster_WithTheOneBeingPlacedMarked()
+    public void DuringDeployment_TheStripPublishesTheDraftOrder_ABBA()
     {
-        // The band is the same band in both phases. Before there is an order to publish it publishes
-        // the squad, so the screen does not spend a second panel above the board saying who is next.
         var session = new GameSession();
         session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
-
-        // Step 1 first: until it is answered nobody is being placed, so there is no "one being
-        // placed" for the strip to mark.
-        session.SettleDraftOrder();
+        session.SettleDraftOrder(Team.PlayerA);
 
         Assert.Equal(Phase.Deployment, session.State.Phase);
 
@@ -163,8 +163,11 @@ public sealed class BattleScreenTests
 
         Assert.NotEmpty(cards);
         Assert.All(cards, c => Assert.True(c.Team.IsPlayer()));
-        Assert.Equal(1, cards.Count(c => c.State == StripState.Current));
-        Assert.Equal(session.PendingDeployUnit, cards.Single(c => c.State == StripState.Current).UnitId);
+
+        // A · B · B · A, in the strip, in order.
+        Assert.Equal(
+            new[] { Team.PlayerA, Team.PlayerB, Team.PlayerB, Team.PlayerA },
+            cards.Select(c => c.Team));
 
         for (int i = 0; i < cards.Count; i++)
         {
@@ -172,20 +175,44 @@ public sealed class BattleScreenTests
         }
     }
 
+    /// <summary>
+    /// The open pick is drawn OPEN, exactly as an open player activation slot is: which duck fills
+    /// it is that player's choice when the slot arrives, so the strip names the side and stacks the
+    /// candidates rather than resolving one.
+    /// </summary>
     [Fact]
-    public void APlacedDuck_ReadsAsDone_AndOneStillOwedReadsAsUpcoming()
+    public void TheCurrentPick_IsDrawnAsAnOpenChoiceBetweenThatSidesUnplacedDucks()
+    {
+        var session = new GameSession();
+        session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
+        session.SettleDraftOrder(Team.PlayerA);
+
+        var cards = StripCards.Deployment(session.State, session.PendingDeployUnit);
+        var current = cards.Single(c => c.State == StripState.Current);
+
+        Assert.Null(current.UnitId);
+        Assert.Equal(2, current.Candidates.Count);
+        Assert.All(current.Candidates, u => Assert.Equal(Team.PlayerA, u.Team));
+    }
+
+    [Fact]
+    public void APlacedDuck_ReadsAsDone_AndTheRemainingPicksAreStillOpenSlots()
     {
         var session = new GameSession();
         session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
         session.SettleDraftOrder();
 
-        var placed = session.PendingDeployUnit;
-        session.Submit(session.Legal.OfType<DeployCommand>().First());
+        var deploy = session.Legal.OfType<DeployCommand>().First();
+        session.Submit(deploy);
 
         var cards = StripCards.Deployment(session.State, session.PendingDeployUnit);
 
-        Assert.Equal(StripState.Done, cards.Single(c => c.UnitId == placed).State);
-        Assert.Contains(cards, c => c.State == StripState.Upcoming);
+        // The pick that was spent resolves to the duck that actually took it, at pick 1.
+        var done = cards.Single(c => c.UnitId == deploy.UnitId);
+        Assert.Equal(StripState.Done, done.State);
+        Assert.Equal(1, done.Sequence);
+
+        Assert.Contains(cards, c => c.State == StripState.Slot || c.State == StripState.Current);
     }
 
     [Fact]

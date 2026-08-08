@@ -4,6 +4,7 @@
 //   BASE=http://localhost:5199 node fit-states-probe.mjs
 
 import { chromium } from 'playwright';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const VIEWPORTS = [{ width: 1920, height: 1080 }, { width: 2560, height: 1307 }];
@@ -46,6 +47,8 @@ for (const vp of VIEWPORTS) {
 
   // Deploy everything, which is what brings the status band and the intent badges out.
   for (let i = 0; i < 20; i++) {
+    // Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+    await settleDraft(page);
     if (!(await page.$$eval('.cell.deploy', c => c.length))) break;
     await page.$$eval('.cell.deploy', c => c[0].click());
     await page.waitForTimeout(180);

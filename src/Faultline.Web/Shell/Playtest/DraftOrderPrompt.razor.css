@@ -1,0 +1,80 @@
+/* Step 1 of the deployment draft (MASTER_DESIGN §3): the blind "who places first" question, and the
+   single moment that reveals both answers.
+
+   It sits on the status band over the board, so it takes the band's surface treatment rather than
+   inventing a second panel style. Nothing here is a side panel enumerating spots — the spots are on
+   the grid, where the board owns them. */
+
+.draft-step-one,
+.draft-reveal-block {
+    background: color-mix(in srgb, var(--pt-cyan) 12%, var(--pt-bg-panel));
+    border: 1px solid var(--pt-cyan);
+    border-radius: var(--pt-radius);
+    padding: 7px 10px;
+}
+
+.draft-question {
+    color: var(--pt-text);
+    font-size: 12px;
+    margin: 0 0 6px;
+}
+
+.draft-side {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin: 3px 0;
+}
+
+.draft-who {
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 8ch;
+}
+
+.draft-answer,
+.draft-clear,
+.draft-reveal {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    color: var(--pt-text);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 8px;
+}
+
+.draft-answer:hover,
+.draft-clear:hover,
+.draft-reveal:hover {
+    border-color: var(--pt-cyan);
+}
+
+/* Answered but not shown. The word is deliberately "sealed" rather than a tick: a tick reads as
+   "done", and what matters here is that the answer exists and cannot be seen yet. */
+.draft-sealed {
+    color: var(--pt-cyan);
+    font-size: 11px;
+    font-style: italic;
+}
+
+.draft-reveal {
+    border-color: var(--pt-cyan);
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.draft-line {
+    font-size: 11px;
+    margin: 0;
+}
+
+.draft-outcome {
+    margin-top: 3px;
+}
+
+/* Said out loud either way — "preferences differed, no coin" is a fact, and a silent absence would
+   leave a player wondering whether a coin had fired. */
+.draft-coin {
+    color: var(--pt-text-dim);
+}

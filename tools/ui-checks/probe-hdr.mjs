@@ -8,6 +8,7 @@
 //   BASE=http://localhost:5199 node probe-hdr.mjs
 
 import { chromium } from 'playwright';
+import { settleDraft } from './draft.mjs';
 
 const BASE = process.env.BASE || 'http://localhost:5199';
 const b = await chromium.launch();
@@ -17,6 +18,8 @@ await p.waitForSelector('.board', { timeout: 60000 });
 await p.waitForTimeout(1500);
 
 // Play one command so END TURN and Undo are not both dead.
+// Nothing is placeable until MASTER_DESIGN section 3's step 1 is answered.
+await settleDraft(p);
 await p.$$eval('.cell.deploy', c => c[0] && c[0].click());
 await p.waitForTimeout(600);
 
