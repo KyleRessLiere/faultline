@@ -261,9 +261,10 @@ in this file when the question comes back.
 | D-258 | [RULED: board size is DECLARED and cross-checked, and a declared size is what makes an off-7×7 board deliberate rather than drifted.](#d-258-ruled-board-size-is-declared-and-cross-checked-and-a-declared-size-is-what-makes-an-off-77-board-deliberate-rather-than-drifted) | 2026-08-08 |  |
 | D-259 | [FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and what is actually missing is narrower.](#d-259-found-the-board-picker-was-never-removed-the-stage-p-packets-p5-premise-is-false-and-what-is-actually-missing-is-narrower) | 2026-08-08 |  |
 | D-260 | [RULED: the battle picker's test bench sets health, items and cards through the run's own loadout seam, and it is for isolating a board rather than for showing a state is reachable.](#d-260-ruled-the-battle-pickers-test-bench-sets-health-items-and-cards-through-the-runs-own-loadout-seam-and-it-is-for-isolating-a-board-rather-than-for-showing-a-state-is-reachable) | 2026-08-08 |  |
-| D-261 | [RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.](#d-261-ruled-a-saved-test-loadout-is-keyed-by-class-while-the-bench-that-feeds-a-fight-stays-keyed-by-slot-the-two-are-different-questions-and-the-conversion-is-a-per-slot-lookup) | unreleased |  |
+| D-261 | [RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.](#d-261-ruled-a-saved-test-loadout-is-keyed-by-class-while-the-bench-that-feeds-a-fight-stays-keyed-by-slot-the-two-are-different-questions-and-the-conversion-is-a-per-slot-lookup) | 2026-08-08 |  |
+| D-262 | [RULED: the bench edits ABILITY SLOTS at the class's own count, so putting a card on a duck is always taking something out. A saved build covers the whole party.](#d-262-ruled-the-bench-edits-ability-slots-at-the-classs-own-count-so-putting-a-card-on-a-duck-is-always-taking-something-out-a-saved-build-covers-the-whole-party) | unreleased |  |
 
-**243 rulings.**
+**244 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6976,3 +6977,46 @@ mis-assigns a build is worse than a preset that declines to apply.
 the shell has no serializer to hand, and a preset a person can read in localStorage is one they can
 fix when it goes wrong. **Unknown names are skipped rather than fatal** — a stored build outlives the
 enum it names, and a renamed card should cost a tester one checkbox rather than the whole build.
+
+---
+
+**D-262 — RULED: the bench edits ABILITY SLOTS at the class's own count, so putting a card on a duck
+is always taking something out. A saved build covers the whole party.**
+
+Three things wrong with D-261's editor, found by using it.
+
+**1. Save would not.** The build-name field used `@onchange`, which Blazor raises on **blur**, so the
+Save button beside it stayed disabled the whole time a name was being typed and only woke up if you
+clicked away first. It reads as "it will not let me save". `@oninput`. Worth recording because the
+same trap is one keystroke away in every text field the shell has that gates a button.
+
+**2. A preset saved only the ducks that had been edited**, so reapplying it was a half-measure —
+the untouched ducks kept whatever the *previous* build had put on them, because `ApplyTo` clears the
+bench and then only writes the classes it knows. **A preset now covers the whole party**, including
+the ducks nobody touched: "the Fisher is stock" is part of a squad build, and the class line is
+written even when the setup is default so a saved build reports the number of ducks it really fits.
+
+**3. Cards went on by checkbox, with no limit and nothing coming off.** That is not what the game
+does. §4 gives a duck **three ability slots — the Wardbearer four, an explicit exception — plus one
+Pluck slot counted separately** (D-230), every slot replaceable including the basic attack, and
+replacing forfeits the mods that hung on what left. The editor now draws the slots at that count, one
+row each, with what is in it and a picker for what replaces it. **The limit is the point:** there is
+no affordance for a fifth slot, because there is no fifth slot.
+
+**The surgery goes through Core**, `DuckLoadout.Replacing` / `ReplacingSpender`, which is what makes
+the forfeit real rather than re-implemented — D-253 recorded that these had no caller in `src/`, and
+this is the first.
+
+**A class can have more slots than it starts with**, and that had to be modelled rather than papered
+over: the Vanguard has three ability slots and opens with two filled, so the third is genuinely
+empty. Filling an empty slot is `Kits.Learn`, not a replacement; the editor draws it as "— empty —"
+and Core draws the line between the two operations. The first cut showed the class's first ability
+in that row, which invented a duplicate the rules forbid.
+
+**Rejected: letting a slot be emptied.** Stripping a stock ability to nothing is a state no camp can
+produce, and the bench has no rule to lean on for what it costs. Choosing "— empty —" clears a
+*swap* and never strips the class's own.
+
+**A `<select>`'s `value` attribute does not drive selection in Blazor** — the matching `<option>` has
+to say `selected`. Every slot rendered as "— empty —" until it did. Recorded because it looked like a
+model bug and was a binding one, and the same shape is in every select the shell adds next.

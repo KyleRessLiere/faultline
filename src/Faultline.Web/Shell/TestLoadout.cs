@@ -50,9 +50,30 @@ public sealed class TestLoadout
         /// <summary>Technique modifiers hung on this duck's kit — the cross-flock cards live here.</summary>
         public List<TechniqueModifier> Techniques { get; } = new();
 
+        /// <summary>
+        /// Ability slots this duck has had swapped, by slot index — the kit surgery §4 allows.
+        /// </summary>
+        /// <remarks>
+        /// <b>Sparse, and by index, because the count is the class's.</b> A duck has
+        /// <see cref="Kits.SlotsFor"/> ability slots (the Wardbearer has four, everyone else three)
+        /// and that is the limit a bench has to respect: putting a card on a duck is always taking
+        /// something out, never adding a fifth slot. An absent index means "whatever the class starts
+        /// with there".
+        /// </remarks>
+        public Dictionary<int, KitEntry> Slots { get; } = new();
+
+        /// <summary>Pluck slots this duck has had swapped, by slot index.</summary>
+        /// <remarks>
+        /// Counted separately from the ability slots because the game counts them separately: a
+        /// spender leaving costs a spender and never an action (D-230).
+        /// </remarks>
+        public Dictionary<int, KitEntry> SpenderSlots { get; } = new();
+
         /// <summary>True while this duck is exactly what the board rosters.</summary>
         public bool IsDefault =>
-            MaxHp is null && Hp is null && Item is null && Mods.Count == 0 && Techniques.Count == 0;
+            MaxHp is null && Hp is null && Item is null
+            && Mods.Count == 0 && Techniques.Count == 0
+            && Slots.Count == 0 && SpenderSlots.Count == 0;
 
         /// <summary>Puts this duck back to what the board rosters.</summary>
         public void Reset()
@@ -62,6 +83,8 @@ public sealed class TestLoadout
             Item = null;
             Mods.Clear();
             Techniques.Clear();
+            Slots.Clear();
+            SpenderSlots.Clear();
         }
     }
 
@@ -179,6 +202,31 @@ public sealed class TestLoadout
         {
             var duck = For(team, i);
             var loadout = DuckLoadout.Empty;
+
+            // The surgery FIRST, and through Core's own Replacing, so the forfeit rule applies: a
+            // replaced ability takes its mods with it (§4, D-253). Doing this after hanging mods on
+            // would silently drop the ones whose host had just left, which is the same outcome
+            // reached by an accident rather than by the rule.
+            foreach (var pair in duck.Slots.OrderBy(p => p.Key))
+            {
+                var kit = Kits.SlotsOf(roster[i], loadout);
+
+                // A class can have more slots than it starts with — the Vanguard opens with two of
+                // its three filled — so putting something in the empty one is LEARNING it, and only
+                // an occupied slot is a replacement. Core draws that line; this follows it.
+                loadout = pair.Key < kit.Count
+                    ? loadout.Replacing(pair.Key, pair.Value, kit)
+                    : Kits.Learn(roster[i], loadout, pair.Value);
+            }
+
+            foreach (var pair in duck.SpenderSlots.OrderBy(p => p.Key))
+            {
+                var spenders = Kits.SpenderSlotsOf(roster[i], loadout);
+
+                loadout = pair.Key < spenders.Count
+                    ? loadout.ReplacingSpender(pair.Key, pair.Value, spenders)
+                    : Kits.Learn(roster[i], loadout, pair.Value);
+            }
 
             foreach (var mod in duck.Mods)
             {

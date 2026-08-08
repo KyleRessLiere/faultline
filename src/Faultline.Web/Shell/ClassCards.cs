@@ -27,6 +27,48 @@ public static class ClassCards
     public static IReadOnlyList<KitEntry> Kit(UnitKind kind) =>
         Kits.StartingKit(kind).Concat(Kits.StartingSpenders(kind)).ToList();
 
+    /// <summary>Everything that can go in an ability slot, in enum order.</summary>
+    /// <remarks>
+    /// Every entry, not just this class's: a bench exists to build the combination nobody has earned
+    /// yet, and §4's kit surgery makes every slot replaceable including the basic attack. The slot
+    /// COUNT is the limit that matters and it is the class's own.
+    /// </remarks>
+    public static IReadOnlyList<KitEntry> Abilities { get; } =
+        ((KitEntry[])Enum.GetValues(typeof(KitEntry)))
+            .Where(e => Kits.SpenderOf(e) is null)
+            .ToList();
+
+    /// <summary>Everything that can go in a Pluck slot.</summary>
+    public static IReadOnlyList<KitEntry> Spenders { get; } =
+        ((KitEntry[])Enum.GetValues(typeof(KitEntry)))
+            .Where(e => Kits.SpenderOf(e) is not null)
+            .ToList();
+
+    /// <summary>What this class starts with in one ability slot, or <c>null</c> for an empty one.</summary>
+    /// <remarks>
+    /// <b>A class can have more slots than it starts with.</b> The Vanguard has three ability slots
+    /// and opens with two filled, so the third is genuinely empty — an editor that showed the first
+    /// ability there instead would be inventing a duplicate the rules do not allow.
+    /// </remarks>
+    /// <param name="kind">The archetype.</param>
+    /// <param name="slot">Slot index.</param>
+    /// <returns>The stock entry, or null when the class starts with that slot empty.</returns>
+    public static KitEntry? StockSlot(UnitKind kind, int slot)
+    {
+        var kit = Kits.StartingKit(kind);
+        return slot >= 0 && slot < kit.Count ? kit[slot] : (KitEntry?)null;
+    }
+
+    /// <summary>What this class starts with in one Pluck slot, or <c>null</c> for an empty one.</summary>
+    /// <param name="kind">The archetype.</param>
+    /// <param name="slot">Slot index.</param>
+    /// <returns>The stock spender, or null.</returns>
+    public static KitEntry? StockSpender(UnitKind kind, int slot)
+    {
+        var spenders = Kits.StartingSpenders(kind);
+        return slot >= 0 && slot < spenders.Count ? spenders[slot] : (KitEntry?)null;
+    }
+
     /// <summary>The technique modifiers this class can hold.</summary>
     /// <param name="kind">The archetype.</param>
     /// <returns>Each modifier with its card.</returns>

@@ -45,9 +45,16 @@ public sealed class LoadoutPreset
         /// <summary>Mods this class carries.</summary>
         public List<Mod> Mods { get; } = new();
 
+        /// <summary>Ability slots swapped, by index. Absent means the class's own.</summary>
+        public Dictionary<int, KitEntry> Slots { get; } = new();
+
+        /// <summary>Pluck slots swapped, by index.</summary>
+        public Dictionary<int, KitEntry> SpenderSlots { get; } = new();
+
         /// <summary>True while nothing has been set.</summary>
         public bool IsDefault =>
-            MaxHp is null && Hp is null && Item is null && Techniques.Count == 0 && Mods.Count == 0;
+            MaxHp is null && Hp is null && Item is null && Techniques.Count == 0 && Mods.Count == 0
+            && Slots.Count == 0 && SpenderSlots.Count == 0;
     }
 
     /// <summary>Display name, as typed.</summary>
@@ -88,13 +95,12 @@ public sealed class LoadoutPreset
             return preset;
         }
 
+        // THE WHOLE PARTY, including the ducks nobody touched. A preset is "how this squad is set
+        // up", and a squad with one edited duck is still a squad — saving only the edited ones made
+        // reapplying it a half-measure that left whatever the last build had put on the others.
         foreach (var (team, kind, slot) in Slots(fight))
         {
             var duck = bench.For(team, slot);
-            if (duck.IsDefault)
-            {
-                continue;
-            }
 
             // Last slot of a repeated class wins. A preset is one build per class by construction;
             // a board that rosters two Vanguards differently cannot be a class-keyed preset, and
@@ -107,6 +113,11 @@ public sealed class LoadoutPreset
             entry.Techniques.AddRange(duck.Techniques);
             entry.Mods.Clear();
             entry.Mods.AddRange(duck.Mods);
+            entry.Slots.Clear();
+            foreach (var pair in duck.Slots) { entry.Slots[pair.Key] = pair.Value; }
+
+            entry.SpenderSlots.Clear();
+            foreach (var pair in duck.SpenderSlots) { entry.SpenderSlots[pair.Key] = pair.Value; }
         }
 
         return preset;
@@ -139,6 +150,11 @@ public sealed class LoadoutPreset
             duck.Techniques.AddRange(entry.Techniques);
             duck.Mods.Clear();
             duck.Mods.AddRange(entry.Mods);
+            duck.Slots.Clear();
+            foreach (var pair in entry.Slots) { duck.Slots[pair.Key] = pair.Value; }
+
+            duck.SpenderSlots.Clear();
+            foreach (var pair in entry.SpenderSlots) { duck.SpenderSlots[pair.Key] = pair.Value; }
         }
     }
 
@@ -179,11 +195,10 @@ public sealed class LoadoutPreset
         foreach (var pair in Classes.OrderBy(p => (int)p.Key))
         {
             var setup = pair.Value;
-            if (setup.IsDefault)
-            {
-                continue;
-            }
 
+            // The class line is written even for a duck nobody edited, because the preset covers the
+            // WHOLE party: "the Fisher is stock" is part of the build, and dropping it would make a
+            // saved squad report that it fits fewer of a board's ducks than it does.
             lines.Add("class=" + pair.Key);
 
             if (setup.MaxHp is { } max)
@@ -209,6 +224,16 @@ public sealed class LoadoutPreset
             foreach (var mod in setup.Mods)
             {
                 lines.Add("mod=" + mod);
+            }
+
+            foreach (var swap in setup.Slots.OrderBy(p => p.Key))
+            {
+                lines.Add("slot=" + swap.Key.ToString(CultureInfo.InvariantCulture) + ":" + swap.Value);
+            }
+
+            foreach (var swap in setup.SpenderSlots.OrderBy(p => p.Key))
+            {
+                lines.Add("pluck=" + swap.Key.ToString(CultureInfo.InvariantCulture) + ":" + swap.Value);
             }
         }
 
@@ -281,9 +306,35 @@ public sealed class LoadoutPreset
                     }
 
                     break;
+                case "slot":
+                    if (current is not null && TryReadSlot(value, out int slotIndex, out var slotEntry))
+                    {
+                        current.Slots[slotIndex] = slotEntry;
+                    }
+
+                    break;
+                case "pluck":
+                    if (current is not null && TryReadSlot(value, out int pluckIndex, out var pluckEntry))
+                    {
+                        current.SpenderSlots[pluckIndex] = pluckEntry;
+                    }
+
+                    break;
             }
         }
 
         return preset;
+    }
+
+    /// <summary>Reads an <c>index:Entry</c> pair.</summary>
+    private static bool TryReadSlot(string value, out int index, out KitEntry entry)
+    {
+        index = 0;
+        entry = default;
+
+        int split = value.IndexOf(':');
+        return split > 0
+            && int.TryParse(value.Substring(0, split), out index)
+            && Enum.TryParse(value.Substring(split + 1), out entry);
     }
 }

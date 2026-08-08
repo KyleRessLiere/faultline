@@ -326,3 +326,45 @@
 }
 
 .pill:hover { border-color: var(--pt-amber); }
+
+/* Ability slots at the count the game gives the class. A row per slot, so putting a card on a duck
+   visibly means taking something out — there is no affordance here for a fifth slot, because there
+   is no fifth slot. */
+.slots {
+    display: grid;
+    gap: .3rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.slot {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    display: flex;
+    gap: .45rem;
+    padding: .3rem .45rem;
+}
+
+.slot-no {
+    background: color-mix(in srgb, var(--pt-text-dim) 22%, transparent);
+    border-radius: 3px;
+    font-size: .62rem;
+    font-variant-numeric: tabular-nums;
+    padding: .05rem .3rem;
+}
+
+.slot select { flex: 1 1 auto; min-width: 0; }
+
+/* The Pluck slot is counted separately by the game, so it is drawn separately here (D-230). */
+.slot.pluck { border-color: color-mix(in srgb, var(--pt-cyan) 40%, var(--pt-border)); }
+.slot.pluck .slot-no { background: color-mix(in srgb, var(--pt-cyan) 28%, transparent); }
+
+.slot.swapped { border-color: var(--pt-amber); }
+
+/* What left, named. A swap the tester cannot see the other half of is a swap they cannot undo. */
+.slot-was {
+    color: var(--pt-amber);
+    font-size: .6rem;
+    white-space: nowrap;
+}

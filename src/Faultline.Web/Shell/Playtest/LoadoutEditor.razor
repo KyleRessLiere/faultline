@@ -111,12 +111,12 @@
 
                     <label class="field">
                         Pocket item
-                        <select value="@(duck.Item?.ToString() ?? string.Empty)"
+                        <select class="pocket-pick" value="@(duck.Item?.ToString() ?? string.Empty)"
                                 @onchange="e => SetItem(duck, e)">
-                            <option value="">— none —</option>
+                            <option value="" selected="@(duck.Item is null)">— none —</option>
                             @foreach (var item in AllItems)
                             {
-                                <option value="@item">@CampCatalogue.NameOf(item)</option>
+                                <option value="@item" selected="@(duck.Item == item)">@CampCatalogue.NameOf(item)</option>
                             }
                         </select>
                         @if (duck.Item is { } chosen)
@@ -126,15 +126,69 @@
                     </label>
                 </div>
 
-                @* What it can already do. Read-only: swapping a class's own kit is surgery the camp
-                   owns, and a bench that pretended to do it would be inventing a rule. *@
-                <h4 class="group">Already has</h4>
-                <ul class="kit">
-                    @foreach (var entry in ClassCards.Kit(kind))
+                @* THE SLOTS, at the count the game gives this class. Putting a card on a duck is
+                   always taking something out — the Wardbearer has four ability slots and everyone
+                   else three, plus one Pluck slot, and there is no way here to earn a fifth. Each
+                   row says what is in it and what it would be replaced by, which is the "select what
+                   it is replacing" the free-form checkbox list could not ask.
+
+                   Replacing forfeits the mods that hung on what left (§4, D-253) — Core's own
+                   Replacing does that, so this cannot drift from the rule. *@
+                <h4 class="group">
+                    Ability slots
+                    <span class="group-note">
+                        @Kits.SlotsFor(kind) ability, @Kits.PluckSlotsFor(kind) Pluck — swapping one
+                        forfeits the mods that hung on what leaves
+                    </span>
+                </h4>
+
+                <div class="slots">
+                    @for (int i = 0; i < Kits.SlotsFor(kind); i++)
                     {
-                        <li>@Kits.NameOf(entry)</li>
+                        var index = i;
+                        var stock = ClassCards.StockSlot(kind, index);
+                        var held = duck.Slots.TryGetValue(index, out var swapped) ? swapped : stock;
+
+                        <label class="slot @(held != stock ? "swapped" : string.Empty) @(held is null ? "empty" : string.Empty)">
+                            <span class="slot-no">@(index + 1)</span>
+                            <select value="@(held?.ToString() ?? string.Empty)"
+                                    @onchange="e => SetSlot(duck, index, stock, e)">
+                                <option value="" selected="@(held is null)">— empty —</option>
+                                @foreach (var option in ClassCards.Abilities)
+                                {
+                                    <option value="@option" selected="@(held == option)">@Kits.NameOf(option)</option>
+                                }
+                            </select>
+                            @if (held != stock)
+                            {
+                                <span class="slot-was">was @(stock is { } was ? Kits.NameOf(was) : "empty")</span>
+                            }
+                        </label>
                     }
-                </ul>
+
+                    @for (int i = 0; i < Kits.PluckSlotsFor(kind); i++)
+                    {
+                        var index = i;
+                        var stock = ClassCards.StockSpender(kind, index);
+                        var held = duck.SpenderSlots.TryGetValue(index, out var swapped) ? swapped : stock;
+
+                        <label class="slot pluck @(held != stock ? "swapped" : string.Empty) @(held is null ? "empty" : string.Empty)">
+                            <span class="slot-no">P</span>
+                            <select value="@(held?.ToString() ?? string.Empty)"
+                                    @onchange="e => SetSpender(duck, index, stock, e)">
+                                <option value="" selected="@(held is null)">— empty —</option>
+                                @foreach (var option in ClassCards.Spenders)
+                                {
+                                    <option value="@option" selected="@(held == option)">@Kits.NameOf(option)</option>
+                                }
+                            </select>
+                            @if (held != stock)
+                            {
+                                <span class="slot-was">was @(stock is { } wasSpender ? Kits.NameOf(wasSpender) : "empty")</span>
+                            }
+                        </label>
+                    }
+                </div>
 
                 <h4 class="group">
                     Techniques
@@ -198,8 +252,11 @@
         @* Saved builds. Keyed by class, so one drops onto any board that rosters that class. *@
         <footer class="loadout-foot">
             <div class="save">
+                @* @oninput, not @onchange: Blazor raises change on BLUR, so the Save button beside
+                   this stayed greyed out while a name was being typed and only woke up if you
+                   clicked away first. That reads as "it will not let me save". *@
                 <input type="text" placeholder="Name this build" value="@_name"
-                       @onchange="e => _name = e.Value?.ToString() ?? string.Empty" />
+                       @oninput="e => _name = e.Value?.ToString() ?? string.Empty" />
                 <button type="button" class="action" disabled="@(!Bench.IsCustom || _name.Length == 0)"
                         @onclick="Save">Save</button>
                 <button type="button" class="action secondary" @onclick="ResetAll">Back to the board's own</button>
@@ -288,6 +345,51 @@
         _team = first.Team;
         _slot = first.Slot;
         return first.Kind;
+    }
+
+    /// <summary>
+    /// Puts an ability in a slot, or forgets the swap when it is put back to the class's own.
+    /// </summary>
+    /// <remarks>
+    /// Forgetting rather than storing the stock value keeps "this duck is untouched" honest: a slot
+    /// swapped and swapped back is a slot nobody swapped, and a bench that recorded it would report
+    /// the duck as edited forever.
+    /// </remarks>
+    private static void SetSlot(TestLoadout.DuckSetup duck, int slot, KitEntry? stock, ChangeEventArgs e) =>
+        Choose(duck.Slots, slot, stock, e);
+
+    private static void SetSpender(TestLoadout.DuckSetup duck, int slot, KitEntry? stock, ChangeEventArgs e) =>
+        Choose(duck.SpenderSlots, slot, stock, e);
+
+    /// <summary>
+    /// Puts an entry in a slot, or forgets the swap when it is put back to the class's own.
+    /// </summary>
+    /// <remarks>
+    /// Forgetting rather than storing the stock value keeps "this duck is untouched" honest: a slot
+    /// swapped and swapped back is a slot nobody swapped, and a bench that recorded it would report
+    /// the duck as edited forever. Emptying a slot the class starts empty is the same no-op.
+    /// </remarks>
+    private static void Choose(
+        Dictionary<int, KitEntry> slots, int slot, KitEntry? stock, ChangeEventArgs e)
+    {
+        var text = e.Value?.ToString();
+
+        if (!Enum.TryParse<KitEntry>(text, out var taken))
+        {
+            // "— empty —". Emptying a slot the class fills is a real change the bench cannot yet
+            // express, so it only clears a swap rather than pretending to strip a stock ability.
+            slots.Remove(slot);
+            return;
+        }
+
+        if (stock is { } own && taken == own)
+        {
+            slots.Remove(slot);
+        }
+        else
+        {
+            slots[slot] = taken;
+        }
     }
 
     private static void SetItem(TestLoadout.DuckSetup duck, ChangeEventArgs e) =>

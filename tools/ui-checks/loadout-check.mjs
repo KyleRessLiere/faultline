@@ -43,14 +43,18 @@ for (let i = 0; i < tabs.length; i += 1) {
   await page.waitForTimeout(150);
 
   const who = await page.locator('.view-title').innerText();
-  const kit = await page.locator('.kit li').allInnerTexts();
+  const kit = await page.locator('.duck-view .slot select').evaluateAll((els) =>
+    els.map((e) => e.options[e.selectedIndex]?.text || '—'));
   const techniques = await page.locator('.group + .cards').first().locator('.card-name').allInnerTexts();
 
   note(`${who.replace(/\s+/g, ' ').trim()} — kit: ${kit.join(', ')} | techniques: ${techniques.join(', ') || 'none'}`);
   seen.push({ who, techniques });
 
   if (kit.length === 0) {
-    fail.push(`${who} shows no abilities it already has`);
+    fail.push(`${who} shows no ability slots`);
+  }
+  if (kit.every((k) => /empty/i.test(k))) {
+    fail.push(`${who}'s slots are all empty — the class's own kit is not selected`);
   }
 }
 
@@ -66,21 +70,57 @@ if (holders.length !== 1 || !/Archer/i.test(holders[0].who)) {
 await page.locator('.duck-tab', { hasText: 'Vanguard' }).first().click();
 await page.waitForTimeout(150);
 
-const numbers = page.locator('.field input[type=number]');
-await numbers.nth(0).fill('40');
-await numbers.nth(0).dispatchEvent('change');
+// By label, not by index: the fields have been reordered once already and an index silently
+// pointed at the wrong box.
+const totalHealth = page.locator('.field', { hasText: 'Total health' }).locator('input[type=number]');
+await totalHealth.fill('40');
+await totalHealth.dispatchEvent('change');
 await page.waitForTimeout(150);
 
-await page.locator('.duck-view select').selectOption({ index: 1 });
+const hpNow = page.locator('.field', { hasText: 'Hit points now' }).locator('input[type=number]');
+await hpNow.fill('9');
+await hpNow.dispatchEvent('change');
+await page.waitForTimeout(200);
+note(`reading now: ${(await page.locator('.reading').innerText()).replace(/\s+/g, ' ').trim()}`);
+
+await page.locator('.duck-view select.pocket-pick').selectOption({ index: 1 });
 await page.waitForTimeout(150);
+
+const slots = await page.locator('.duck-view .slot').count();
+const plucks = await page.locator('.duck-view .slot.pluck').count();
+note(`Vanguard slots drawn: ${slots} (${plucks} Pluck)`);
+if (slots !== 4 || plucks !== 1) {
+  fail.push(`expected the Vanguard's 3 ability + 1 Pluck slots, saw ${slots} (${plucks} Pluck)`);
+}
+
+// Swap slot 2, which is the "select what it is replacing" the checkboxes could not ask.
+const slot2 = page.locator('.duck-view .slot').nth(1);
+await slot2.locator('select').selectOption({ label: 'Overrun' });
+await page.waitForTimeout(200);
+const was = await slot2.locator('.slot-was').innerText().catch(() => '');
+note(`slot 2 now: Overrun, ${was.trim()}`);
+if (!/was /.test(was)) {
+  fail.push('a swapped slot does not say what it replaced');
+}
 
 const firstCard = page.locator('.duck-view .card').first();
 await firstCard.locator('input[type=checkbox]').check();
 await page.waitForTimeout(150);
 note(`card ticked: ${(await firstCard.locator('.card-name').innerText()).trim()}`);
 
-await page.locator('.save input[type=text]').fill('Tanky Vanguard');
-await page.locator('.save input[type=text]').dispatchEvent('change');
+// Typed, not filled-and-blurred: the Save button used @onchange and stayed disabled while a name
+// was being typed, which read as "it will not let me save".
+const nameBox = page.locator('.save input[type=text]');
+await nameBox.click();
+await nameBox.type('Party build');
+await page.waitForTimeout(200);
+
+const saveDisabled = await page.locator('.save button.action').first().isDisabled();
+note(`Save enabled while typing: ${!saveDisabled}`);
+if (saveDisabled) {
+  fail.push('Save is still disabled while a name is being typed');
+}
+
 await page.locator('.save button.action').first().click();
 await page.waitForTimeout(500);
 
@@ -122,8 +162,8 @@ await page.waitForTimeout(800);
 
 const strip = await page.locator('.order-list').innerText().catch(() => '');
 note(`long channel strip: ${strip.replace(/\s+/g, ' ').trim().slice(0, 80)}`);
-if (!/40\/40/.test(strip)) {
-  fail.push('the saved build did not reach the second board');
+if (!/9\/40/.test(strip)) {
+  fail.push(`the saved build did not reach the second board — strip says "${strip.replace(/\s+/g,' ').trim().slice(0,60)}"`);
 }
 
 await browser.close();

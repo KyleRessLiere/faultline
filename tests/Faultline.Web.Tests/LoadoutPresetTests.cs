@@ -165,6 +165,78 @@ public class LoadoutPresetTests
         Assert.Equal(2, preset.MatchingSlots(fight));
     }
 
+    /// <summary>
+    /// <b>A saved build covers the WHOLE party</b>, including the ducks nobody edited — so
+    /// reapplying it puts the whole squad back rather than leaving the untouched ones on whatever
+    /// the last build happened to give them.
+    /// </summary>
+    [Fact]
+    public void ASavedBuild_CoversEveryDuckInTheParty()
+    {
+        var fight = Contact();
+
+        var bench = new TestLoadout();
+        bench.For(Team.PlayerA, 0).MaxHp = 40;
+
+        var preset = LoadoutPreset.From(bench, fight, "One duck edited");
+
+        // All four classes are in it, not just the edited one.
+        Assert.Equal(4, preset.MatchingSlots(fight));
+        Assert.True(preset.Classes.ContainsKey(UnitKind.Archer));
+
+        // And it survives storage that way.
+        var back = LoadoutPreset.FromText(preset.ToText());
+        Assert.Equal(4, back.MatchingSlots(fight));
+    }
+
+    /// <summary>Ability-slot surgery is saved and reapplied with the rest of the build.</summary>
+    [Fact]
+    public void SlotSurgery_SurvivesSavingAndReapplying()
+    {
+        var fight = Contact();
+
+        var bench = new TestLoadout();
+        bench.For(Team.PlayerA, 0).Slots[1] = KitEntry.Overrun;
+
+        var back = LoadoutPreset.FromText(LoadoutPreset.From(bench, fight, "Overrun Vanguard").ToText());
+
+        var other = new TestLoadout();
+        back.ApplyTo(other, fight);
+
+        Assert.Equal(KitEntry.Overrun, other.For(Team.PlayerA, 0).Slots[1]);
+    }
+
+    /// <summary>
+    /// <b>The slot count is the class's own</b>, and it is the limit a bench respects: a card goes on
+    /// by replacing something, never by adding a slot.
+    /// </summary>
+    [Fact]
+    public void ADuckHasTheSlotsItsClassHas_AndSurgeryReachesTheBoard()
+    {
+        var fight = Contact();
+
+        // The Wardbearer is the explicit exception at four; everyone else has three.
+        Assert.Equal(4, Kits.SlotsFor(UnitKind.Wardbearer));
+        Assert.Equal(3, Kits.SlotsFor(UnitKind.Vanguard));
+        Assert.Equal(1, Kits.PluckSlotsFor(UnitKind.Vanguard));
+
+        var bench = new TestLoadout();
+        bench.For(Team.PlayerA, 0).Slots[1] = KitEntry.Overrun;
+
+        var session = new GameSession();
+        session.StartFight(fight, GameSession.DefaultSeed, bench.Build(fight));
+
+        var duck = session.State.Units.First(u => u.Team == Team.PlayerA);
+        var kit = Kits.SlotsOf(duck.Kind, duck.Loadout);
+
+        Assert.Equal(KitEntry.Overrun, kit[1]);
+
+        // The ceiling is the limit, and a filled kit never exceeds it. The Vanguard opens with two
+        // of its three filled, so the count is what is IN the slots rather than how many there are.
+        Assert.True(kit.Count <= Kits.SlotsFor(duck.Kind));
+        Assert.Equal(1, Kits.FreeSlots(duck.Kind, duck.Loadout, KitAxis.Ability));
+    }
+
     /// <summary>Only the cards a class can actually hold are offered for it.</summary>
     [Fact]
     public void OnlyTheCardsAClassCanHold_AreOffered()

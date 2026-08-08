@@ -2000,12 +2000,21 @@ only**, gated on the same `DevBuild.ShowDevTools` flag as the dev panel — that
   equip a technique at all — nothing in a played run can (D-253).
 
 **It opens in its own view**, one duck at a time down a rail, with that duck's whole picture beside
-it: what its class already does, and every card it could be given. **The cards are filtered by
-class** — a technique names the archetype it belongs to and the ability it hosts on (D-253), so the
-Archer is offered Spotter and the Vanguard is not. Each card shows its host and its summary.
+it. **Ability slots are drawn at the class's own count** — three, the Wardbearer's four, plus one
+Pluck slot counted separately — one row each, showing what is in it and offering what replaces it.
+Putting a card on a duck is always taking something out; there is no affordance for a slot the class
+does not have. A slot the class starts empty reads as empty rather than repeating an ability, and
+filling it is learning rather than replacing. The surgery runs through Core's own
+`DuckLoadout.Replacing`, so a swap forfeits the mods that hung on what left (§4, D-253).
 
-**Builds can be saved and reused across boards.** A saved build is keyed by **class**, not by roster
-slot, so "my tanky Vanguard" drops onto any board that fields a Vanguard — and each saved chip shows
+**Mods and techniques are filtered by class** — a technique names the archetype it belongs to and the
+ability it hosts on, so the Archer is offered Spotter and the Vanguard is not. Each card shows its
+host and its summary.
+
+**Builds can be saved and reused across boards, and a saved build covers the whole party** — the
+ducks nobody edited included, so reapplying it puts the whole squad back rather than leaving the
+untouched ones on whatever the last build gave them. A saved build is keyed by **class**, not by
+roster slot, so "my tanky Vanguard" drops onto any board that fields a Vanguard — and each saved chip shows
 how many of the current board's ducks it fits, so one that fits nothing says so instead of quietly
 doing nothing. Stored in browser localStorage beside the custom scenarios.
 
