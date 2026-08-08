@@ -64,6 +64,101 @@
         }
     }
 
+    @* EVENTS. Every one the game ships, with its prices, and the whole pool of boards tagged for
+       event use. Both listed in full rather than sampled, because the point is to see all of them.
+
+       Read the note on the pool before wondering why nothing draws from it. *@
+    <h2>Events — every one, and what each costs</h2>
+    <p class="section-note">
+        @EventLibrary.All().Count event(s) ship today. An event is a run node, not a board: it is
+        entered from the map and its price is paid by a duck you name.
+    </p>
+
+    <div class="fight-grid">
+        @foreach (var scene in EventLibrary.All())
+        {
+            <article class="fight-card event-card">
+                <header>
+                    <span class="fight-name">@scene.Name</span>
+                    <span class="tag">@scene.Id</span>
+                    <span class="tag">@(scene.Shape == EventShape.Offer ? "offer — walkable" : "strait — every exit priced")</span>
+                </header>
+
+                <div class="card-body">
+                    <div class="meta">
+                        <p class="desc">@scene.Prompt</p>
+                        <p class="facts">
+                            <span>Costs @scene.HpCost HP</span>
+                            <span>Gains +@scene.MaxHpGain max</span>
+                        </p>
+                        @if (scene.WalkAwayLine.Length > 0)
+                        {
+                            <p class="facts"><span>Walking away: @scene.WalkAwayLine</span></p>
+                        }
+
+                        @* The loadout meets the event here. An Offer is paid by ONE duck out of its
+                           own hit points, so which ducks could afford it is the thing a build
+                           changes — and a duck that cannot pay is the case worth setting up. *@
+                        @if (DevBuild.ShowDevTools)
+                        {
+                            <p class="facts event-afford">
+                                <span>
+                                    With the stock squad: @Affordable(scene) of 4 ducks could pay,
+                                    and the rest are blocked at lethal.
+                                </span>
+                            </p>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+
+    <h2>The event fight pool — @EventFightPool.All().Count board(s) tagged</h2>
+    <p class="section-note">
+        Which boards an event may field, and why each was judged fit. <strong>Nothing draws from this
+        yet</strong> — Core says so in as many words: the two events that will (§8.6's Nesting Thief
+        and Duckling Lost) need systems v1 does not have. The pairings are tagged now so the content
+        question is already answered when they land.
+    </p>
+
+    <div class="fight-grid">
+        @foreach (var entry in EventFightPool.All())
+        {
+            var board = FightLibrary.ById(entry.FightId);
+
+            <article class="fight-card pool-card">
+                <header>
+                    <span class="fight-name">@(board?.Name ?? entry.FightId)</span>
+                    <span class="tag">@entry.FightId</span>
+                    <span class="tag slot">@entry.Fitness</span>
+                </header>
+
+                <div class="card-body">
+                    @if (board is not null)
+                    {
+                        <BoardThumb Fight="board" Cell="16" />
+                    }
+
+                    <div class="meta">
+                        <p class="desc">@entry.Note</p>
+                        @if (board is not null)
+                        {
+                            <p class="facts">
+                                <span>@board.Board.Width×@board.Board.Height</span>
+                                <span>Enemies: @Composition(board)</span>
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="desc">This board is tagged for the pool but is not in the library.</p>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+
     @if (Retired.Count > 0)
     {
         <details class="retired-note">
@@ -512,6 +607,31 @@
 
         _chosen[fight.Id] = id!;
         saved.Preset.ApplyTo(bench, fight);
+    }
+
+    /// <summary>
+    /// How many of the four base-kit ducks could pay an Offer's hit-point cost.
+    /// </summary>
+    /// <remarks>
+    /// An Offer is paid by ONE duck out of its own hit points and is blocked at lethal, so the
+    /// interesting question a loadout asks of an event is which ducks can afford it. Counted off the
+    /// stock class ceilings rather than a bench, because an event is a run node and has no board of
+    /// its own for a bench to hang on — see the handoff for why testing one directly is not wired up.
+    /// </remarks>
+    private static int Affordable(EventDefinition scene)
+    {
+        var squad = new[] { UnitKind.Vanguard, UnitKind.Threadcaster, UnitKind.Wardbearer, UnitKind.Archer };
+        int able = 0;
+
+        foreach (var kind in squad)
+        {
+            if (UnitTemplate.For(kind).MaxHp > scene.HpCost)
+            {
+                able++;
+            }
+        }
+
+        return able;
     }
 
     /// <summary>That board's bench, created on first ask.</summary>

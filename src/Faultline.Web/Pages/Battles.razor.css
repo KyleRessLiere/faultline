@@ -331,3 +331,11 @@ code {
     gap: .25rem;
     white-space: nowrap;
 }
+
+/* Events and the pool they may field. Visually kin to a battle card but not one: an event is a run
+   node, not a board, and a card that looked identical would invite clicking Play on it. */
+.event-card { border-left: 3px solid var(--pt-cyan); }
+
+.event-afford span { color: var(--pt-text-dim); }
+
+.pool-card { border-left: 3px solid var(--pt-amber); }
