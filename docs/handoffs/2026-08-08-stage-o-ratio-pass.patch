@@ -1,0 +1,371 @@
+diff --git a/docs/MASTER_DESIGN.md b/docs/MASTER_DESIGN.md
+index f2cbfd0..9d403c1 100644
+--- a/docs/MASTER_DESIGN.md
++++ b/docs/MASTER_DESIGN.md
+@@ -1,5 +1,5 @@
+ # PLUCK — MASTER DESIGN DOCUMENT
+-**Version: v2026-08-08z** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
++**Version: v2026-08-08ab** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+ 
+ *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
+ pass — candidate: "PLUCK: a duck rebellion")*
+@@ -16,6 +16,27 @@ Last design session: 2026-08-08.
+ ---
+ ## Design Log (one line per session; reasoning lives in DECISIONS.md)
+ 
++2026-08-08 (ab) — LOCKED: **THE RATIO PASS** (§3) — the first change since the Great Doubling that
++  moves ratios rather than magnitudes, and deliberately. **Player HP ×3** (Archer/Fisher 8→24,
++  Vanguard/Wardbearer 14→42; ×2 was drafted and rejected as too conservative — at 16 an Archer
++  still died to three collisions. A FLAT pool across all four was also considered and rejected:
++  the 24-vs-42 spread is what makes positioning cost differently per class) · **enemy HP ×1.5** (Husk 4→6, Lobber/Perch→8, Stalker/Harrier→12,
++  Grappler/Bulwark→14, Anchor/Warden→18, Colossus→30, Raider→6; **Runt stays 2**) · **unit
++  collision 4→6** · **attack damage unchanged at 2** · **Rest heals 25%**, down from ~half.
++  Reasoning: at 8 HP an Archer died to two collisions, so gradients were arithmetically impossible
++  and a wound could not be carried across nodes; another uniform multiplier would have changed
++  nothing, since the Doubling kept every ratio. Player HP is a RUN resource and enemy HP is a
++  FIGHT resource — they scale for different reasons and by different amounts. **Collision had to
++  move with enemy HP** or §6's double-kill teach dies at Husk 6; 6 is not a new number (brambles,
++  spikes and structure collisions already deal it, and §2 states the thesis as "collision 6 vs
++  attack 2"). Attack damage staying at 2 widens the board-over-sword gap from 2× to **3×** — the
++  thesis stated louder. **Both bosses are PENDING RE-TUNE**, and **§13's owed turn-limit audit
++  (+1–2) rides in the same session** — a timing-out board is otherwise indistinguishable from a
++  badly-tuned one. Act length measured before and after; a large jump is a finding, not a success.
++  Sequenced deliberately BEFORE the content pool grows (8 boards now vs 20+ after editions) and
++  AFTER `--seed` is real, since the whole payload is a re-certification and n=1 wearing n=4 cannot
++  distinguish a real change from a single sample.
++
+ 2026-08-08 (z) — LOCKED (Rare tier intake). **The eight Rare cards are written into §8.6 in
+   full.** Two corrections behind that: (1) §8.6 pointed at an external `RARE_TIER_draft.md` that
+   was never delivered to the repo — **the doc now carries the text**, since a pointer to a file
+@@ -324,6 +345,42 @@ generation, and the town grows.
+ doubled: the Pluck economy, Footing, distances/ranges/radii, movement and MP costs, turn limits,
+ wave schedules, slot and mod counts.)*
+ 
++**THE RATIO PASS (locked aa) — this one is NOT a rescale, and that is the point.** The Doubling
++kept every ratio; this changes them deliberately, because the thinness was never a magnitude
++problem. At 8 HP an Archer died to two collisions, so there was no such thing as "a little
++damage" — **gradients were arithmetically impossible**, and a wound could not be carried across
++four nodes.
++
++*Considered and rejected: a flat pool (50) across all four ducks.* The 24-vs-42 spread is not
++incidental — it is what makes the Archer's minimum range a real tax, the Fisher's reach a real
++trade, and the Wardbearer's stance worth having. Flattening it would move class differentiation
++out of positioning and into nothing, and §2's "durability lives inside decisions" cuts the other
++way here: the stat line is what makes the *decision* different per class. If uniform pools are ever
++wanted, differentiation has to move somewhere already load-bearing (resist values, the halving) —
++a bigger redesign, and its own session.
++
++| Change | From → To | Why |
++|---|---|---|
++| **Player HP ×3** | Archer/Fisher 8→**24**, Vanguard/Wardbearer 14→**42** | Player HP is a RUN resource. A collision goes from **half** an Archer to a **quarter**, so chip damage means something and a wound can be carried across four nodes rather than two. ×2 was tried on paper and rejected as too conservative: at 16 an Archer still died to three collisions, which is better arithmetic but still not an attrition medium. **The fragility gradient is preserved on purpose** — the ratio between fragile and tank is unchanged, because 24-vs-42 is what makes the Archer's minimum range a real tax and the Wardbearer a rock in the stream. A flat pool across all four would delete that axis |
++| **Enemy HP ×1.5** | Husk 4→**6**, Lobber/Perch 6→**8**, Stalker/Harrier 8→**12**, Grappler/Bulwark 10→**14**, Anchor/Warden 12→**18**, Colossus 20→**30**, Raider 4→**6**. **Runt stays 2** | Enemy HP is a FIGHT resource. Enemies now persist across rounds, so board state evolves instead of resetting after every action |
++| **Unit collision 4 → 6** | | **Not a new number** — brambles, spikes and structure collisions already deal 6, and §2 states the thesis as "collision 6 vs attack 2". Unit collision at 4 was the outlier |
++| **Attack damage** | **unchanged at 2** | A Husk takes 3 swings or 1 shove; the mid-tier takes 5–6 swings or 2 shoves. **The board-over-sword gap goes from 2× to 3×** — the thesis stated louder, not compromised |
++| **Rest healing** | ~half → **25%** | A quarter cannot undo a bad fight, so damage accumulates and an early mistake is still felt at the boss |
++
++**Why collision had to move with enemy HP.** §6's teach is that *a bare collision still kills a
++Husk outright* — shove A into B and both die, the moment that sells pillar 1 to a new player. At
++Husk 6 with collision 4 that teach dies. At collision 6 it survives.
++
++**Re-derive, do not re-scale, everything downstream:** Preen still heals 4 (now **under 10%** of a
++Wardbearer, which *strengthens* its negative-sum design further — he erodes, he never fountains); Bedraggled's quarter-max (Archer **6**,
++Vanguard **11**); Guard Stance's halving unchanged; every mod and legendary naming a damage number.
++**Both bosses need re-tuning** — they now face ducks who survive their melee **three times** as often, which is the largest single consequence of this pass.
++
++**Rider, non-negotiable: §13's owed turn-limit audit (+1–2) lands in the SAME session.** Enemies at
++1.5× HP will start hitting limits written for the old pace, and a timing-out board is otherwise
++indistinguishable from a badly-tuned one. **Measure act length before and after; a large jump is a
++finding, not a success.**
++
+ ## Board & terrain
+ 7×7 default (format supports larger). Terrain: **Open, Wall, Pit→Drain, Spikes→Brambles,
+ HighGround**, plus **Cracked** (collapse tech, unbuilt). Board edge = wall. Fiction: drains are
+@@ -331,7 +388,7 @@ water moving somewhere else — ducks don't drown, they get swept.
+ 
+ | Terrain | Walk on | Shoved onto |
+ |---|---|---|
+-| Wall | impossible | collision: 4, Stagger |
++| Wall | impossible | collision: **6**, Stagger |
+ | Drain | impossible | Clinging → swept |
+ | Spikes | costs 1 extra movement, 2 damage, no Stagger | 6 damage, stops, Stagger |
+ | HighGround | ordinary movement (no climb surcharge — locked u); ranged from it +2 dmg | up: collides like a wall; down: 2 dmg, displacement continues |
+@@ -370,7 +427,7 @@ outcome there (damage to both parties, Stagger, Paddling), and zero-distance res
+ Push/Pull resolve tile-by-tile. Distance arithmetic (in order): +1 if target Staggered (consumed)
+ → −N push resistance (Anchor 1, Wardbearer 2, Colossus 2) → cap 1 if enemy-Bulwark aura adjacent
+ → floor 0. (Footing is not arithmetic — it refuses whole instances; see Statuses. Resistance
+-SHORTENS, Footing REFUSES: two sentences, no shared math.) Collision: both parties 4, both Staggered. Impact damage
++SHORTENS, Footing REFUSES: two sentences, no shared math.) Collision: both parties **6**, both Staggered. Impact damage
+ (collision/spike/fall) ignores all mitigation, always.
+ 
+ **Statuses:** Staggered (from collision/spike damage; next displacement +1; clears at round end).
+@@ -523,10 +580,10 @@ eligibility flagged for review — move-1-then-Bull-Rush extends his threat rang
+ 
+ | Class | HP | Move | Basic | Kit |
+ |---|---|---|---|---|
+-| **Vanguard** | 14 | 3 | melee 2 + Push 1 | **Bull Rush** (2 AP): move ≤1, then charge ≤3 in a line; stops at and pushes 2 the first **unit** of ANY allegiance, then stops adjacent. Base contact damage 0; **Wrecking Weight's contact damage applies to allies too** — the cannon costs its passenger. Resist applies (the Wardbearer moves 0) |
+-| **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away |
+-| **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
+-| **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
++| **Vanguard** | 42 | 3 | melee 2 + Push 1 | **Bull Rush** (2 AP): move ≤1, then charge ≤3 in a line; stops at and pushes 2 the first **unit** of ANY allegiance, then stops adjacent. Base contact damage 0; **Wrecking Weight's contact damage applies to allies too** — the cannon costs its passenger. Resist applies (the Wardbearer moves 0) |
++| **Archer** | 24 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away |
++| **Fisher** | 24 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
++| **Wardbearer** | 42 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
+ 
+ **Law: kit is no longer class (locked y).** Under kit surgery a duck's abilities live on the
+ duck, not on its archetype. Anything that asks the archetype what a duck holds is wrong by
+@@ -581,23 +638,23 @@ non-displacement source (e.g. objective progress). Queued economy pass: Cast 3
+ 
+ # 6 · Enemies (doubled scale)
+ 
+-Shipped roster (bestiary is canonical for numbers): **Husk 4 HP / Move 3 / melee 2 + SHOULDER** —
++Shipped roster (bestiary is canonical for numbers; **HP on the Ratio Pass scale, §3**): **Husk 6 HP / Move 3 / melee 2 + SHOULDER** —
+ a unit blocking its path is pushed 1 perpendicular, but ONLY when trampling is STRICTLY cheaper
+ than every non-trample route (equal cost routes around — no coin-flip cruelty). Vs players: +2
+ contact damage plus full displacement consequences. **Vs its own allies: the jostle — full
+ displacement, ZERO contact damage; board consequences still apply whole** (a shouldered ally
+-still collides with walls for 4, still drops into drains — the tile never checks jerseys).
++still collides with walls for 6, still drops into drains — the tile never checks jerseys).
+ Costs the Husk +1 MP; resist applies — the Wardbearer is a rock in the stream; side chosen
+ open-tile-first, fixed-order ties; both blocked = it stops. **Precedent (council n, dissent
+ recorded): abilities may carry allegiance-shaped riders; board resolution never does.** The
+ bloody shoulder (contact damage vs allies too) is reserved as a named Warrens elite / Heavy
+-Husk trait. A bare collision (4) still kills a Husk outright — the double-kill teach stands. ·
+-Lobber 6/2 r3 arcing 2, retreats · Anchor 12/1 melee 4, resist 1 · Grappler 10/3 pull 2 r3,
+-prefers HighGround/Archer, inert in melee · Stalker 8/4 push-1 toward hazards (drain > spikes >
+-edge) · Warden 12/0 melee 4, resist 1 — the door · Perch 6/2 r3 dmg 2 (+2 from high ground),
+-seeks and holds HighGround · Bulwark 10/2 aura: adjacent allies displaced max 1 · Harrier 8/4
+-pushes players away from allies · Runt 2 HP swarm · Colossus 20/1 melee 6, resist 2 · **Raider**
+-4/3 claw 2: targets the Protect structure, never players · balance variants (Lesser Grappler,
++Husk trait. **A bare collision (6) still kills a Husk (6) outright — the double-kill teach stands**, which is exactly why collision moved to 6 when enemy HP moved to 1.5×. ·
++Lobber 8/2 r3 arcing 2, retreats · Anchor 18/1 melee 4, resist 1 · Grappler 14/3 pull 2 r3,
++prefers HighGround/Archer, inert in melee · Stalker 12/4 push-1 toward hazards (drain > spikes >
++edge) · Warden 18/0 melee 4, resist 1 — the door · Perch 8/2 r3 dmg 2 (+2 from high ground),
++seeks and holds HighGround · Bulwark 14/2 aura: adjacent allies displaced max 1 · Harrier 12/4
++pushes players away from allies · **Runt 2 HP swarm (unscaled — chaff stays chaff)** · Colossus
++30/1 melee 6, resist 2 · **Raider** 6/3 claw 2: targets the Protect structure, never players · balance variants (Lesser Grappler,
+ blunted Stalker, Heavy Husk, mobile Anchor) scaled likewise.
+ 
+ **Defense assignments (locked u):** chaff tier Footing 1 — Husk, Lobber, Grappler, Stalker,
+@@ -612,7 +669,9 @@ Behavior rules: published deterministic priority lists; intents locked and shown
+ lowest-id tiebreaks; enemies rescue clinging allies (below lethal-kill in every list); enemy
+ Footing auto-spends only vs drains.
+ 
+-**Boss — Quarry King** (snapping-turtle warden of the Locks, species provisional): HP 28,
++**Boss — Quarry King** (snapping-turtle warden of the Locks, species provisional) — **HP 28
++PENDING RE-TUNE (aa): he now faces ducks who survive his melee twice as often, and the Rushmaster
++(§8.9, HP 26) is in the same position. Neither number is locked until re-measured.** HP 28,
+ Move 1, melee 6 + push 1. **3 shell tokens: while any remain, every displacement against him
+ reduces to 0** (throws included). Token stripped on suffering a collision or ending a round
+ adjacent to a drain. At ≤14 HP: shell off — Move 3, gains Bull Rush. Drain-void legal and smart.
+@@ -1155,7 +1214,7 @@ STRUCTURE/WAVES/AMMUNITION — gate 24 → 18 HP, and an ANTI-DRAG rule: three c
+ collisions end the fight** (attacks deal 2, so nine direct actions is the costly baseline; do not
+ raise HP until human wins routinely finish before round 5 with threats unresolved) · the-trench
+ DRAINS/RESISTANCE/MIRROR (the Fisher's thesis, with a costly route for every other class) ·
+-Still Ponds: mid-act = heal ~half **and clear Bedraggled** OR Forge; **pre-boss floor = full heal
++Still Ponds: mid-act = heal **25% (locked aa, down from ~half — a quarter cannot undo a bad fight, so damage accumulates across nodes and an early mistake is still felt at the boss)** **and clear Bedraggled** OR Forge; **pre-boss floor = full heal
+ (Bedraggled cleared) OR Deep Forge (heal half + one of three Rares; downed ducks return at
+ quarter and stay Bedraggled for boss round 1)** — never both full health and a free Rare.
+ 
+diff --git a/src/Faultline.Core/Campaign/Map/MapRestNodeHandler.cs b/src/Faultline.Core/Campaign/Map/MapRestNodeHandler.cs
+index d52b94a..ff92670 100644
+--- a/src/Faultline.Core/Campaign/Map/MapRestNodeHandler.cs
++++ b/src/Faultline.Core/Campaign/Map/MapRestNodeHandler.cs
+@@ -25,12 +25,12 @@ namespace Faultline.Core
+         /// </summary>
+         /// <remarks>
+         /// Kept as the handler's name for the half-formula because GAMEPLAY.md and the tests both
+-        /// point at it; the arithmetic itself belongs to <see cref="StillPond.HalfOf"/>, which the
++        /// point at it; the arithmetic itself belongs to <see cref="StillPond.QuarterOf"/>, which the
+         /// pre-boss floor and the screen also read.
+         /// </remarks>
+         /// <param name="maxHp">The duck's ceiling, raises included.</param>
+         /// <returns>Hit points restored.</returns>
+-        public static int HealFor(int maxHp) => StillPond.HalfOf(maxHp);
++        public static int HealFor(int maxHp) => StillPond.QuarterOf(maxHp);
+ 
+         /// <inheritdoc/>
+         public override RunState Enter(RunState state, CampaignNode node, RunContext context) =>
+diff --git a/src/Faultline.Core/Campaign/Map/StillPond.cs b/src/Faultline.Core/Campaign/Map/StillPond.cs
+index 16638f1..cb4902c 100644
+--- a/src/Faultline.Core/Campaign/Map/StillPond.cs
++++ b/src/Faultline.Core/Campaign/Map/StillPond.cs
+@@ -32,16 +32,20 @@ namespace Faultline.Core
+     public static class StillPond
+     {
+         /// <summary>
+-        /// Half a duck's ceiling, rounded up — what a mid-act pond gives back per duck, off that
+-        /// duck's own maximum, so a raised ceiling heals more (MASTER_DESIGN §8.5, "heal ~half").
++        /// A quarter of a duck's ceiling, rounded up — what a mid-act pond gives back per duck, off
++        /// that duck's own maximum, so a raised ceiling heals more (MASTER_DESIGN §8.5).
+         /// </summary>
+         /// <remarks>
+-        /// Integer arithmetic, rounded up, so odd ceilings do not quietly heal less than half. A
+-        /// 7-max duck gets 4, not 3.
++        /// <b>Half until the Ratio Pass (§3, locked ab).</b> It moved because the pool it heals from
++        /// tripled: half of 42 is a whole Wardbearer back at every pond, which makes a wound
++        /// something you walk off rather than something you carry across four nodes — the exact
++        /// attrition the Ratio Pass exists to create. The rule is a fraction of the duck's own
++        /// ceiling, not a flat number, so it still moves on its own the next time HP does.
++        /// Integer arithmetic, rounded up, so odd ceilings do not quietly heal less than the share.
+         /// </remarks>
+         /// <param name="maxHp">The duck's ceiling, raises included.</param>
+         /// <returns>Hit points restored.</returns>
+-        public static int HalfOf(int maxHp) => maxHp <= 0 ? 0 : (maxHp + 1) / 2;
++        public static int QuarterOf(int maxHp) => maxHp <= 0 ? 0 : (maxHp + 3) / 4;
+ 
+         /// <summary>
+         /// What a duck stands up on after resting at a pond of this depth — an absolute, not a
+@@ -69,7 +73,7 @@ namespace Faultline.Core
+                 return unit.Hp;
+             }
+ 
+-            int to = depth == PondDepth.PreBoss ? unit.MaxHp : unit.Hp + HalfOf(unit.MaxHp);
++            int to = depth == PondDepth.PreBoss ? unit.MaxHp : unit.Hp + QuarterOf(unit.MaxHp);
+             return to > unit.MaxHp ? unit.MaxHp : to;
+         }
+ 
+diff --git a/src/Faultline.Core/Displacement/Displacement.cs b/src/Faultline.Core/Displacement/Displacement.cs
+index a445c21..5ab0ee7 100644
+--- a/src/Faultline.Core/Displacement/Displacement.cs
++++ b/src/Faultline.Core/Displacement/Displacement.cs
+@@ -11,7 +11,16 @@ namespace Faultline.Core
+     public static class Displacement
+     {
+         /// <summary>Damage each party takes from a collision between two bodies.</summary>
+-        public const int CollisionDamage = 4;
++        /// <remarks>
++        /// <b>4 until the Ratio Pass (§3, locked ab), and it moved because enemy HP did.</b> §6's
++        /// double-kill teach — a bare collision ends a Husk outright — is the reason the board reads
++        /// as an answer rather than a slower sword, and at Husk 6 a 4 would have quietly killed it.
++        /// 6 is not a new number here: brambles, spikes and
++        /// <see cref="StructureCollisionDamage"/> already deal it, and §2 states the thesis as
++        /// "collision 6 vs attack 2". Attack damage deliberately stayed at 2, which widens the
++        /// board-over-sword gap from 2× to 3× — the thesis stated louder rather than restated.
++        /// </remarks>
++        public const int CollisionDamage = 6;
+ 
+         /// <summary>
+         /// Damage a <see cref="Structure"/> takes from a collision — more than a body takes, because
+diff --git a/src/Faultline.Core/Units/UnitTemplate.cs b/src/Faultline.Core/Units/UnitTemplate.cs
+index 51a551d..e2ce7be 100644
+--- a/src/Faultline.Core/Units/UnitTemplate.cs
++++ b/src/Faultline.Core/Units/UnitTemplate.cs
+@@ -171,42 +171,42 @@ namespace Faultline.Core
+                 // push" the default, which blunts the board. Scenarios grant it instead, through the
+                 // 'footing:' key in the .fight file.
+                 // The Vanguard's basic shoves; the Threadcaster's may pull instead of hurting.
+-                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 14, 3, AttackKind.Melee, 1, 2, 0, AttackPush: 1),
+-                new UnitTemplate(UnitKind.Archer, "Archer", 8, 3, AttackKind.Ranged, 3, 4, 0, MinRange: 2),
+-                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 8, 3, AttackKind.Ranged, 3, 2, 0, BasicPull: 1),
++                new UnitTemplate(UnitKind.Vanguard, "Vanguard", 42, 3, AttackKind.Melee, 1, 2, 0, AttackPush: 1),
++                new UnitTemplate(UnitKind.Archer, "Archer", 24, 3, AttackKind.Ranged, 3, 4, 0, MinRange: 2),
++                new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 24, 3, AttackKind.Ranged, 3, 2, 0, BasicPull: 1),
+                 // D-058: the Wardbearer's hold aura is gone and it is heavier instead — 7 HP behind
+                 // push resistance 2, the Colossus's number on a player class. The aura mechanic
+                 // itself survives on the enemy Bulwark below.
+-                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 14, 3, AttackKind.Melee, 1, 2, 0, PushResistance: 2),
++                new UnitTemplate(UnitKind.Wardbearer, "Wardbearer", 42, 3, AttackKind.Melee, 1, 2, 0, PushResistance: 2),
+ 
+                 // Brief §2: Enemies. Grappler and Stalker deal no damage at all — their whole action
+                 // is the displacement their priority list calls for (Pull 2 at range 3; Push 1 in melee).
+-                new UnitTemplate(UnitKind.Husk, "Husk", 4, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee, Tramples: true),
+-                new UnitTemplate(UnitKind.Lobber, "Lobber", 6, 2, AttackKind.Ranged, 3, 2, 0, Plan: EnemyPlan.Lobber),
+-                new UnitTemplate(UnitKind.Anchor, "Anchor", 12, 1, AttackKind.Melee, 1, 4, 0, Plan: EnemyPlan.Melee, PushResistance: 1),
+-                new UnitTemplate(UnitKind.Grappler, "Grappler", 10, 3, AttackKind.None, 3, 0, 0, BasicPull: 2, Plan: EnemyPlan.Grappler),
+-                new UnitTemplate(UnitKind.Stalker, "Stalker", 8, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 3),
++                new UnitTemplate(UnitKind.Husk, "Husk", 6, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee, Tramples: true),
++                new UnitTemplate(UnitKind.Lobber, "Lobber", 8, 2, AttackKind.Ranged, 3, 2, 0, Plan: EnemyPlan.Lobber),
++                new UnitTemplate(UnitKind.Anchor, "Anchor", 18, 1, AttackKind.Melee, 1, 4, 0, Plan: EnemyPlan.Melee, PushResistance: 1),
++                new UnitTemplate(UnitKind.Grappler, "Grappler", 14, 3, AttackKind.None, 3, 0, 0, BasicPull: 2, Plan: EnemyPlan.Grappler),
++                new UnitTemplate(UnitKind.Stalker, "Stalker", 12, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 3),
+ 
+                 // docs/ENEMY_ROSTER.md: behaviour variants. Each one names a plan the shipped five do
+                 // not have; everything else about it is a number on this row.
+-                new UnitTemplate(UnitKind.Warden, "Warden", 12, 0, AttackKind.Melee, 1, 4, 2, Plan: EnemyPlan.Warden),
+-                new UnitTemplate(UnitKind.Perch, "Perch", 6, 2, AttackKind.Ranged, 3, 2, 0, Plan: EnemyPlan.Perch),
+-                new UnitTemplate(UnitKind.Bulwark, "Bulwark", 10, 2, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee, HoldAura: true),
+-                new UnitTemplate(UnitKind.Harrier, "Harrier", 8, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Harrier),
++                new UnitTemplate(UnitKind.Warden, "Warden", 18, 0, AttackKind.Melee, 1, 4, 2, Plan: EnemyPlan.Warden),
++                new UnitTemplate(UnitKind.Perch, "Perch", 8, 2, AttackKind.Ranged, 3, 2, 0, Plan: EnemyPlan.Perch),
++                new UnitTemplate(UnitKind.Bulwark, "Bulwark", 14, 2, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee, HoldAura: true),
++                new UnitTemplate(UnitKind.Harrier, "Harrier", 12, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Harrier),
+                 new UnitTemplate(UnitKind.Runt, "Runt", 2, 4, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee),
+-                new UnitTemplate(UnitKind.Colossus, "Colossus", 20, 1, AttackKind.Melee, 1, 6, 0, Plan: EnemyPlan.Melee, PushResistance: 2),
++                new UnitTemplate(UnitKind.Colossus, "Colossus", 30, 1, AttackKind.Melee, 1, 6, 0, Plan: EnemyPlan.Melee, PushResistance: 2),
+ 
+                 // docs/ENEMY_ROSTER.md: balance variants. Same plan as the archetype they vary, so the
+                 // priority list is shared rather than copied — only the numbers differ.
+-                new UnitTemplate(UnitKind.LesserGrappler, "Lesser Grappler", 10, 3, AttackKind.None, 2, 0, 0, BasicPull: 2, Plan: EnemyPlan.Grappler),
+-                new UnitTemplate(UnitKind.BluntedStalker, "Blunted Stalker", 8, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 2),
+-                new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 6, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee),
++                new UnitTemplate(UnitKind.LesserGrappler, "Lesser Grappler", 14, 3, AttackKind.None, 2, 0, 0, BasicPull: 2, Plan: EnemyPlan.Grappler),
++                new UnitTemplate(UnitKind.BluntedStalker, "Blunted Stalker", 12, 4, AttackKind.None, 1, 0, 0, BasicPush: 1, Plan: EnemyPlan.Stalker, HazardRanks: 2),
++                new UnitTemplate(UnitKind.HeavyHusk, "Heavy Husk", 8, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Melee),
+ 
+                 // The reserved Footing-2 fixture. A Husk in every other number, fielded by nothing:
+                 // it exists so the stacked-Footing rules have something to be asserted against
+                 // without a shipped board being re-tiered behind a rules change (the D-092 trap).
+-                new UnitTemplate(UnitKind.BracedHusk, "Braced Husk", 4, 3, AttackKind.Melee, 1, 2, 2, Plan: EnemyPlan.Melee),
+-                new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 12, 2, AttackKind.Melee, 1, 4, 0, Plan: EnemyPlan.Melee, PushResistance: 1),
++                new UnitTemplate(UnitKind.BracedHusk, "Braced Husk", 6, 3, AttackKind.Melee, 1, 2, 2, Plan: EnemyPlan.Melee),
++                new UnitTemplate(UnitKind.MobileAnchor, "Mobile Anchor", 18, 2, AttackKind.Melee, 1, 4, 0, Plan: EnemyPlan.Melee, PushResistance: 1),
+ 
+                 // The neutral. A stat block with nothing on it — no attack, no shove, no resistance —
+                 // whose whole identity is the plan it names. Fielded by nothing: it is the proof that
+@@ -219,7 +219,7 @@ namespace Faultline.Core
+                 // number and differs only in the list it runs. The Quarry King's three carry the
+                 // boss's whole anti-displacement budget: three refusals, spent one per instance like
+                 // everybody else's since D-143 retired the negating token.
+-                new UnitTemplate(UnitKind.Raider, "Raider", 4, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Raider),
++                new UnitTemplate(UnitKind.Raider, "Raider", 6, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Raider),
+                 new UnitTemplate(
+                     UnitKind.QuarryKing, "Quarry King", 28, 1, AttackKind.Melee, 1, 6, 3,
+                     AttackPush: 1, Plan: EnemyPlan.QuarryKing,
+diff --git a/tests/Faultline.Core.Tests/DisplacementTests.cs b/tests/Faultline.Core.Tests/DisplacementTests.cs
+index 1a3dae5..a1710c6 100644
+--- a/tests/Faultline.Core.Tests/DisplacementTests.cs
++++ b/tests/Faultline.Core.Tests/DisplacementTests.cs
+@@ -742,4 +742,43 @@ public class DisplacementTests
+         Assert.Equal(2, shove.Distance);
+     }
+ 
++    /// <summary>
++    /// <b>§6's double-kill teach: a bare collision ends a Husk outright.</b> This is the reason unit
++    /// collision moved from 4 to 6 in the Ratio Pass — enemy HP went to 1.5x and a Husk reached 6,
++    /// so a 4 would have quietly killed the teach that makes the board read as an answer rather than
++    /// a slower sword. Pinned from the two rules, never from the literals, so the next time either
++    /// number moves this fails instead of going stale.
++    /// </summary>
++    [Fact]
++    public void ABareCollision_StillEndsAHuskOutright_WhichIsWhyCollisionMovedWithEnemyHp()
++    {
++        int husk = UnitTemplate.For(UnitKind.Husk).MaxHp;
++
++        Assert.True(
++            Displacement.CollisionDamage >= husk,
++            $"collision {Displacement.CollisionDamage} no longer ends a Husk at {husk} - "
++            + "the double-kill teach is dead");
++
++        // And the gap the Ratio Pass widened on purpose: the board is worth 3x the sword, not 2x.
++        Assert.Equal(2, UnitTemplate.For(UnitKind.Vanguard).Damage);
++        Assert.Equal(3, Displacement.CollisionDamage / UnitTemplate.For(UnitKind.Vanguard).Damage);
++    }
++
++    /// <summary>
++    /// <b>The 24-vs-42 spread is deliberate and must not be flattened.</b> A flat pool was considered
++    /// and rejected: the spread is what makes the Archer's minimum range a real tax and the
++    /// Wardbearer a rock in the stream (§3, locked ab).
++    /// </summary>
++    [Fact]
++    public void ThePlayerHpSpread_IsThreeToOneAgainstTheSquishies_NotAFlatPool()
++    {
++        Assert.Equal(24, UnitTemplate.For(UnitKind.Archer).MaxHp);
++        Assert.Equal(24, UnitTemplate.For(UnitKind.Threadcaster).MaxHp);
++        Assert.Equal(42, UnitTemplate.For(UnitKind.Vanguard).MaxHp);
++        Assert.Equal(42, UnitTemplate.For(UnitKind.Wardbearer).MaxHp);
++
++        // An Archer survives three collisions and dies to the fourth; at 8 she died to two.
++        Assert.True(24 > Displacement.CollisionDamage * 3);
++        Assert.True(24 <= Displacement.CollisionDamage * 4);
++    }
+ }
