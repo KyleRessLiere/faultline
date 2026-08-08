@@ -57,6 +57,19 @@ public static class RunEventText
         CampTaken t => $"Player {EventText.Side(t.Player)} takes {t.Name} for the "
             + $"{Naming.Of(t.Kind)} — {t.Summary}",
 
+        // The destination, in the log, for the reason the camp is: the offer HAS been paying and
+        // nothing ever said so, which from outside reads exactly like a destination that never
+        // paid. An unread event is an event that did not happen, as far as anybody looking can tell.
+        LegendaryOffered o2 => o2.Table.IsEmpty
+            ? $"{o2.NodeId} — the destination drew nothing, so its {o2.Mark.Id} pays nobody."
+            : $"{o2.NodeId} pays {o2.Mark.Id} — {o2.Table}.",
+        // Player is nullable here and not on CampTaken, so the unattributed case is printed rather
+        // than forced onto a side: a line that guessed an owner would be worse than one that says
+        // it does not know.
+        LegendaryTaken lt => lt.Player is { } side
+            ? $"Player {EventText.Side(side)}'s {Naming.Of(lt.Kind)} takes {lt.Name} — {lt.Summary}"
+            : $"The {Naming.Of(lt.Kind)} takes {lt.Name} — {lt.Summary}",
+
         EventDeclined d => d.WalkAwayLine,
         MaxHpRaised r => $"{Naming.Of(r.Kind)} paid {Num(r.HpFrom - r.HpTo)} and came away bigger: "
             + $"{Num(r.HpFrom)}/{Num(r.MaxFrom)} → {Num(r.HpTo)}/{Num(r.MaxTo)}.",

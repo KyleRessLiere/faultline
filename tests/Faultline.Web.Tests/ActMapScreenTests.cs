@@ -267,6 +267,45 @@ public sealed class ActMapScreenTests
         Assert.Contains("cannot pay", line);
     }
 
+    /// <summary>
+    /// <b>The destination says out loud that it paid.</b> `LegendaryOffered` was emitted and read by
+    /// nothing — not this renderer, not the panel, which works off phase and state. The offer has
+    /// been paying the whole time and the log never mentioned it, which from outside is
+    /// indistinguishable from a destination that never paid at all.
+    /// </summary>
+    [Fact]
+    public void TheRunLog_NamesTheDestinationsPair_AndWhoTookWhich()
+    {
+        var duck = new RunUnitId(0);
+        var table = new LegendaryTable
+        {
+            Offers = new[] { new LegendaryOffer(duck, LegendaryCatalogue.All()[0].Card) },
+        };
+
+        var offered = RunEventText.Describe(
+            new LegendaryOffered("c4-high-road", RewardMark.LegendaryPickOneOfTwo, table));
+
+        // The type name is what an unhandled event falls through to, so it is the tell that nothing
+        // read it.
+        Assert.DoesNotContain("LegendaryOffered", offered);
+        Assert.Contains("c4-high-road", offered);
+    }
+
+    /// <summary>
+    /// <b>An empty table is a named refusal, not silence.</b> `Destination.Open` returns straight to
+    /// the node when the draw comes back empty — so without a line, a destination that drew nothing
+    /// and a destination that was never there read identically.
+    /// </summary>
+    [Fact]
+    public void TheRunLog_NamesADestinationThatDrewNothing_RatherThanSayingNothing()
+    {
+        var line = RunEventText.Describe(new LegendaryOffered(
+            "c4-high-road", RewardMark.LegendaryPickOneOfTwo, new LegendaryTable()));
+
+        Assert.Contains("c4-high-road", line);
+        Assert.Contains("nothing", line, StringComparison.OrdinalIgnoreCase);
+    }
+
     // ---- The vote ------------------------------------------------------------------------------
 
     [Fact]
