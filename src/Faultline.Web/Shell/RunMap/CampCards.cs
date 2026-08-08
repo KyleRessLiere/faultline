@@ -125,14 +125,15 @@ public static class CampCards
     public static string BoundTo(CampOffer offer, string duckName) => offer.Category switch
     {
         // The host, not the spender: a mod may now hang on an action, and Kits.NameOf names either
-        // kind of ability from one place (D-243).
+        // kind of ability from one place (D-243). A technique reads the same line for the same
+        // reason — since Stage K it has a host of the same kind, so "'s kit" has nothing left to
+        // describe.
         OfferCategory.Mod =>
             duckName + "'s " + Kits.NameOf(Kits.HostOf(offer.AsMod)),
         OfferCategory.SecondWind => duckName + " earns it",
         OfferCategory.Unlock => duckName + " only",
-        OfferCategory.Technique => TechniqueDefinition.For(offer.AsTechnique).Host is { } host
-            ? duckName + "'s " + AbilityDefinition.For(host).Name
-            : duckName + "'s kit",
+        OfferCategory.Technique =>
+            duckName + "'s " + Kits.NameOf(Kits.HostOf(offer.AsTechnique)),
         _ => duckName + "'s pocket",
     };
 

@@ -434,20 +434,22 @@ namespace Faultline.Core
             ?? throw new ArgumentOutOfRangeException(nameof(mod), mod, "No host slot for that mod.");
 
         /// <summary>
-        /// Which slot a technique modifier hangs on, or <c>null</c> when §8.6 names no host for it.
+        /// Which slot a technique modifier hangs on. <b>Every technique has one</b>, so this is the
+        /// same question as <see cref="HostOf(Mod)"/> and gets the same kind of answer.
         /// </summary>
         /// <remarks>
-        /// <b>Five of the eight built techniques have no host</b> and therefore hang on no slot: they
-        /// are never forfeited by a replacement, never filtered by the owned-ability rule, and do not
-        /// count against <see cref="ModsPerSlot"/>. That is the §8.6 contradiction D-158 recorded —
-        /// the heading says all twenty-four are "hosted on a named ability" and the entries name a
-        /// host for three — surfacing again under the slot model rather than being resolved here
-        /// (D-227).
+        /// <b>This used to be nullable, and that was D-158's gap carried in a type.</b> Five of the
+        /// eight built techniques hung on no slot: never forfeited by a replacement, never filtered
+        /// by the owned-ability rule, and not counted against <see cref="ModsPerSlot"/> — five
+        /// permanently unloseable upgrades inside an economy whose §4 law is that every slot is
+        /// replaceable, the basic attack included. Stage K assigns the five on the rule that <b>a
+        /// technique hosts on the ability that triggers it, on the duck that owns it</b>; the
+        /// beneficiary of a cross-flock card is the effect and hosts nothing.
         /// </remarks>
         /// <param name="technique">Technique to place.</param>
-        /// <returns>The slot it needs the duck to own, or <c>null</c>.</returns>
-        public static KitEntry? HostOf(TechniqueModifier technique) =>
-            TechniqueDefinition.For(technique).Host is { } host ? EntryOf(host) : (KitEntry?)null;
+        /// <returns>The slot it needs the duck to own.</returns>
+        public static KitEntry HostOf(TechniqueModifier technique) =>
+            TechniqueDefinition.For(technique).Host;
 
         /// <summary>How many mods a duck currently has hanging on one slot.</summary>
         /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
@@ -488,31 +490,6 @@ namespace Faultline.Core
             ModsOn(loadout, slot) >= ModsPerSlot;
 
         /// <summary>
-        /// How many hostless techniques a duck carries — the ones §8.6 hangs on no ability, counted
-        /// against <see cref="DuckLoadout.TechniqueSlots"/> because they hang on no slot either.
-        /// </summary>
-        /// <param name="loadout">The duck's loadout, or <c>null</c>.</param>
-        /// <returns>The count.</returns>
-        public static int HostlessTechniquesOn(DuckLoadout? loadout)
-        {
-            if (loadout is null)
-            {
-                return 0;
-            }
-
-            int count = 0;
-            foreach (var technique in loadout.Techniques)
-            {
-                if (HostOf(technique) is null)
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
         /// Why this mod cannot go on this duck, or <c>null</c> when it can. <b>A refusal always names
         /// its reason</b> — a silent no-op is a bug.
         /// </summary>
@@ -536,17 +513,10 @@ namespace Faultline.Core
         /// <returns>The reason, or <c>null</c>.</returns>
         public static string? RefusalFor(DuckLoadout? loadout, TechniqueModifier technique)
         {
-            if (HostOf(technique) is { } host)
-            {
-                return SlotIsFull(loadout, host)
-                    ? NameOf(host) + " already carries " + ModsPerSlot
-                        + " mods, which is the ceiling for one slot."
-                    : null;
-            }
-
-            return HostlessTechniquesOn(loadout) >= DuckLoadout.TechniqueSlots
-                ? "That kit already carries " + DuckLoadout.TechniqueSlots
-                    + " techniques that hang on no one ability, which is the ceiling for those."
+            var host = HostOf(technique);
+            return SlotIsFull(loadout, host)
+                ? NameOf(host) + " already carries " + ModsPerSlot
+                    + " mods, which is the ceiling for one slot."
                 : null;
         }
 

@@ -14,12 +14,18 @@ namespace Faultline.Core
     /// targeting — and nothing dispatches on this record. <see cref="Host"/> is a pointer, not a hook.
     /// </para>
     /// <para>
-    /// <b><see cref="Host"/> is null for five of the eight, and that is the design's own gap.</b>
-    /// §8.6 names a host ability in parentheses for Follow-In (Basic), Short Line (Reel) and Shelter
-    /// Step (Guard Stance) and names none for Rattling Impact, Hand-Off, Spotter, Crossing Shot or
-    /// Stored Force — while the section heading says all twenty-four are "hosted on a named ability,
-    /// 2 sockets each". The two cannot both be true, so socket accounting is per duck here and the
-    /// contradiction is recorded rather than resolved (D-158).
+    /// <b><see cref="Host"/> is never null, and closing that is what Stage K did.</b> §8.6's heading
+    /// says all twenty-four are "hosted on a named ability, 2 sockets each" while its entries named
+    /// one for only three of the eight built — the contradiction D-158 recorded and D-227 carried.
+    /// The five it left unnamed now host on the ability that <i>triggers</i> them, the beneficiary
+    /// being the effect and never the host: Rattling Impact on Bull Rush, Hand-Off on Reel, Spotter
+    /// and Crossing Shot on the Archer's basic attack, Stored Force on Spear Thrust.
+    /// </para>
+    /// <para>
+    /// <b>The host is a <see cref="KitEntry"/> rather than an <see cref="Ability"/></b>, for the same
+    /// reason a mod's is (D-243): a basic attack is a slot a duck owns and can trade away, but it is
+    /// not an <c>Ability</c> member, and two of the five hang on one. Techniques were still carrying
+    /// the narrower pre-slot type, which is the mechanical half of why they could not be hosted.
     /// </para>
     /// </remarks>
     /// <param name="Modifier">Which technique.</param>
@@ -28,7 +34,7 @@ namespace Faultline.Core
     /// <param name="Kind">The archetype that may hold it. Every technique is class-bound.</param>
     /// <param name="Rarity">How often it comes up; see <see cref="CardRarity"/>.</param>
     /// <param name="Tags">The §8.6 tags it wears, for the director's connector test.</param>
-    /// <param name="Host">The named ability it modifies, or <c>null</c> when §8.6 names none.</param>
+    /// <param name="Host">The slot it modifies, and which forfeits it when its contents leave.</param>
     public sealed record TechniqueDefinition(
         TechniqueModifier Modifier,
         string Name,
@@ -36,7 +42,7 @@ namespace Faultline.Core
         UnitKind Kind,
         CardRarity Rarity,
         TechniqueTag Tags,
-        Ability? Host)
+        KitEntry Host)
     {
         private static readonly TechniqueDefinition[] Registry = Build();
 
@@ -75,7 +81,11 @@ namespace Faultline.Core
                 UnitKind.Vanguard,
                 CardRarity.Common,
                 TechniqueTag.Traffic,
-                Ability.BullRush),
+                // NOT the host §8.6 prints: the doc says "(C·TRAFFIC, Basic)" and this has read Bull
+                // Rush since it was built. Left as built rather than flipped, because moving it is a
+                // ruling about which push the card follows and not a Stage K assignment — reported,
+                // not resolved.
+                KitEntry.BullRush),
 
             new TechniqueDefinition(
                 TechniqueModifier.RattlingImpact,
@@ -85,7 +95,11 @@ namespace Faultline.Core
                 UnitKind.Vanguard,
                 CardRarity.Uncommon,
                 TechniqueTag.Impact | TechniqueTag.Relay,
-                null),
+                // "the first enemy HE COLLIDES each round" — the trigger is his collision, and Bull
+                // Rush is the ability written to make them (§4: "stops at and pushes 2 the first
+                // unit of ANY allegiance"). The other flock's +1 distance is the effect, not the
+                // host.
+                KitEntry.BullRush),
 
             new TechniqueDefinition(
                 TechniqueModifier.ShortLine,
@@ -94,7 +108,7 @@ namespace Faultline.Core
                 UnitKind.Threadcaster,
                 CardRarity.Common,
                 TechniqueTag.Control,
-                Ability.Reel),
+                KitEntry.Reel),
 
             new TechniqueDefinition(
                 TechniqueModifier.HandOff,
@@ -104,7 +118,10 @@ namespace Faultline.Core
                 UnitKind.Threadcaster,
                 CardRarity.Uncommon,
                 TechniqueTag.Relay,
-                null),
+                // "A DISPLACEMENT ending adjacent to the other flock's duck" — the displacement is
+                // hers, and Reel is her displacement action. The duck that collects Push 1 hosts
+                // nothing: the beneficiary is the effect.
+                KitEntry.Reel),
 
             new TechniqueDefinition(
                 TechniqueModifier.Spotter,
@@ -113,7 +130,11 @@ namespace Faultline.Core
                 UnitKind.Archer,
                 CardRarity.Common,
                 TechniqueTag.Relay,
-                null),
+                // "she ignores MINIMUM RANGE" — §4 prints minimum range 2 on her basic attack and
+                // defines Stagger Shot's by reference to it ("range 3, same min range"), so the
+                // ability that owns the rule this card suspends is the basic attack. "Adjacent to
+                // the other flock's duck" is the condition, not a beneficiary — she is her own.
+                KitEntry.ArcherBasic),
 
             new TechniqueDefinition(
                 TechniqueModifier.CrossingShot,
@@ -125,7 +146,14 @@ namespace Faultline.Core
                 UnitKind.Archer,
                 CardRarity.Uncommon,
                 TechniqueTag.Relay,
-                null),
+                // The one K2 flagged as a possible printed exception, and it is not one. Its trigger
+                // is the other flock's displacement, but its geometry is "her valid RANGE-2–3 FIRING
+                // LINE" — her basic attack's band. Replace that attack and there is no line for
+                // anything to cross, so forfeiting it with the attack is the rule working.
+                // §8.6 prints "(U·RELAY, reaction)" where the others print a host: that is a TIMING
+                // word standing in the host position, which is where the "hostless" reading of this
+                // card came from.
+                KitEntry.ArcherBasic),
 
             new TechniqueDefinition(
                 TechniqueModifier.StoredForce,
@@ -135,7 +163,14 @@ namespace Faultline.Core
                 UnitKind.Wardbearer,
                 CardRarity.Common,
                 TechniqueTag.Guard | TechniqueTag.Impact,
-                null),
+                // The one K1's rule does not settle on its own, so the reasoning is here. Its
+                // ACCRUAL trigger is "each tile of hostile displacement HIS RESISTANCE cancels" —
+                // and §4 prints Push Resistance 2 as INNATE, not an ability. An innate is not a
+                // slot, so hosting there would rebuild the hangs-on-nothing problem this closes.
+                // Its PAYOUT is "his next TIP-TILE SPEAR HIT may spend it as a push": without Spear
+                // Thrust the card banks Force it can never spend, so the spear is the ability
+                // without which it does nothing.
+                KitEntry.SpearThrust),
 
             new TechniqueDefinition(
                 TechniqueModifier.ShelterStep,
@@ -144,7 +179,7 @@ namespace Faultline.Core
                 UnitKind.Wardbearer,
                 CardRarity.Uncommon,
                 TechniqueTag.Guard | TechniqueTag.Relay,
-                Ability.GuardStance),
+                KitEntry.GuardStance),
         };
     }
 }

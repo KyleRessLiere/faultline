@@ -116,19 +116,11 @@ namespace Faultline.Core
         public IReadOnlyList<TechniqueModifier> Techniques { get; init; } = NoTechniques;
 
         /// <summary>
-        /// Sockets for the techniques §8.6 gives <b>no host ability</b>. Hosted cards are counted
-        /// against their slot (<see cref="Kits.ModsPerSlot"/>); the five hostless ones hang on the
-        /// duck rather than on any slot, and this is the only ceiling they have — see
-        /// <see cref="Kits.HostOf(TechniqueModifier)"/>, D-158 and D-227.
-        /// </summary>
-        public const int TechniqueSlots = 2;
-
-        /// <summary>
         /// Pockets a duck has. <b>One, and it is an invariant rather than a starting number</b>
         /// (MASTER_DESIGN §8.5, locked q): the pocket is deliberate scarcity and not a progression
         /// axis, and §8.6's <i>Deep Pockets</i> was struck for contradicting it — struck, not
-        /// deferred (D-195). Unlike <see cref="Kits.ModsPerSlot"/> and <see cref="TechniqueSlots"/>,
-        /// which name ceilings the Molt is designed to raise, nothing in the game may raise this one.
+        /// deferred (D-195). Unlike <see cref="Kits.ModsPerSlot"/>, which names a ceiling the Molt is
+        /// designed to raise, nothing in the game may raise this one.
         /// </summary>
         /// <remarks>
         /// It is a constant rather than a count because <see cref="Pocket"/> is a single optional

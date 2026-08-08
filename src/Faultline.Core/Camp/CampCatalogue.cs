@@ -325,10 +325,10 @@ namespace Faultline.Core
                     continue;
                 }
 
-                // A hosted card needs the duck to still own what it modifies; a hostless one hangs on
-                // the duck, so there is no ability to own (D-227).
-                if (Kits.HostOf(technique) is { } host
-                    && !Kits.Holds(duck.Kind, loadout, host))
+                // The same line that refuses a mod, asking the same question and taking the same kind
+                // of answer: a card needs the duck to still own what it modifies. Every technique has
+                // a host now, so there is no second branch for the ones that used not to.
+                if (!Kits.Holds(duck.Kind, loadout, Kits.HostOf(technique)))
                 {
                     continue;
                 }

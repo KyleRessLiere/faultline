@@ -1,5 +1,15 @@
 # Changelog
 
+## Every technique hangs on an ability now, and none of them can hide from a trade
+
+- **The five techniques §8.6 left hostless were assigned hosts**, on the rule that a technique hangs
+  on the ability that *triggers* it and a cross-flock card's beneficiary is the effect: Rattling
+  Impact on Bull Rush, Hand-Off on Reel, Spotter and Crossing Shot on the Archer's basic attack,
+  Stored Force on Spear Thrust. They are now forfeited, filtered and counted exactly as mods are —
+  five permanently unloseable upgrades are gone from an economy whose §4 law is that every slot is
+  replaceable. `TechniqueDefinition.Host` stopped being nullable and `DuckLoadout.TechniqueSlots`,
+  which only ever capped the cards that hung on nothing, is deleted.
+
 ## A mod learns to hang on an action, and six more places stopped asking the archetype
 
 - **Eight new mods on the alternate actions** — Overrun's *Downhill* (2 AP from the ledge),
