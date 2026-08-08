@@ -1,0 +1,19 @@
+run,camp,node,lane,card_a,card_b,taken,passed,recipient,owner,bound,triggers,cross_flock_triggers,changed_chosen_action,decisions_watched,threats_solved,objectives_touched
+"shover-seed2-pick0",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Hand-Off","Spotter","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,67,0,0
+"shover-seed2-pick0",2,"c2-bait-and-break","Safe","Greased Feather","Crossing Shot","Greased Feather","Crossing Shot","Wardbearer","PlayerB","no paired consumables; connector to an owned tag",0,0,0,31,0,0
+"shover-seed2-pick1",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Spotter","Hand-Off","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,67,0,0
+"shover-seed2-pick1",2,"c2-bait-and-break","Safe","Crate of Debris","Hand-Off","Hand-Off","Crate of Debris","Fisher","PlayerA","no paired consumables; connector to an owned tag",0,0,0,31,0,0
+"board-first-seed2-pick0",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Hand-Off","Spotter","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"board-first-seed2-pick0",2,"c2-bait-and-break","Safe","Greased Feather","Crossing Shot","Greased Feather","Crossing Shot","Wardbearer","PlayerB","no paired consumables; connector to an owned tag",0,0,0,18,0,0
+"board-first-seed2-pick1",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Spotter","Hand-Off","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"board-first-seed2-pick1",2,"c2-bait-and-break","Safe","Crate of Debris","Hand-Off","Hand-Off","Crate of Debris","Fisher","PlayerA","no paired consumables; connector to an owned tag",0,0,0,18,0,0
+"blade-first-seed2-pick0",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Hand-Off","Spotter","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"blade-first-seed2-pick0",2,"c2-bait-and-break","Safe","Greased Feather","Crossing Shot","Greased Feather","Crossing Shot","Wardbearer","PlayerB","no paired consumables; connector to an owned tag",0,0,0,18,0,0
+"blade-first-seed2-pick1",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Spotter","Hand-Off","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"blade-first-seed2-pick1",2,"c2-bait-and-break","Safe","Crate of Debris","Hand-Off","Hand-Off","Crate of Debris","Fisher","PlayerA","no paired consumables; connector to an owned tag",0,0,0,18,0,0
+"objective-first-seed2-pick0",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Hand-Off","Spotter","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,331,0,0
+"objective-first-seed2-pick0",2,"c2-bait-and-break","Safe","Greased Feather","Crossing Shot","Greased Feather","Crossing Shot","Wardbearer","PlayerB","no paired consumables; connector to an owned tag",0,0,0,312,0,0
+"objective-first-seed2-pick0",3,"c3-the-shrine","Safe","Rattling Impact","Roost","Rattling Impact","Roost","Vanguard","PlayerA","",0,0,0,281,0,0
+"objective-first-seed2-pick1",1,"c1-first-contact","Neutral","Hand-Off","Spotter","Spotter","Hand-Off","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,331,0,0
+"objective-first-seed2-pick1",2,"c2-bait-and-break","Safe","Crate of Debris","Hand-Off","Hand-Off","Crate of Debris","Fisher","PlayerA","no paired consumables; connector to an owned tag",0,0,0,312,0,0
+"objective-first-seed2-pick1",3,"c3-the-shrine","Safe","Rattling Impact","Split Reed","Split Reed","Rattling Impact","Archer","PlayerB","",0,0,0,281,0,0

@@ -1,0 +1,19 @@
+run,camp,node,lane,card_a,card_b,taken,passed,recipient,owner,bound,triggers,cross_flock_triggers,changed_chosen_action,decisions_watched,threats_solved,objectives_touched
+"shover-seed99-pick0",1,"c1-first-contact","Neutral","Spotter","Follow-In","Spotter","Follow-In","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,67,0,0
+"shover-seed99-pick0",2,"c2-bait-and-break","Safe","Fletcher's Rhythm","Hand-Off","Fletcher's Rhythm","Hand-Off","Archer","PlayerB","connector to an owned tag",0,0,0,31,0,0
+"shover-seed99-pick1",1,"c1-first-contact","Neutral","Spotter","Follow-In","Follow-In","Spotter","Vanguard","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,67,0,0
+"shover-seed99-pick1",2,"c2-bait-and-break","Safe","Long Draw","Echo","Echo","Long Draw","Vanguard","PlayerA","",0,0,0,31,0,0
+"board-first-seed99-pick0",1,"c1-first-contact","Neutral","Spotter","Follow-In","Spotter","Follow-In","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"board-first-seed99-pick0",2,"c2-bait-and-break","Safe","Fletcher's Rhythm","Hand-Off","Fletcher's Rhythm","Hand-Off","Archer","PlayerB","connector to an owned tag",0,0,0,18,0,0
+"board-first-seed99-pick1",1,"c1-first-contact","Neutral","Spotter","Follow-In","Follow-In","Spotter","Vanguard","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"board-first-seed99-pick1",2,"c2-bait-and-break","Safe","Long Draw","Echo","Echo","Long Draw","Vanguard","PlayerA","",0,0,0,18,0,0
+"blade-first-seed99-pick0",1,"c1-first-contact","Neutral","Spotter","Follow-In","Spotter","Follow-In","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"blade-first-seed99-pick0",2,"c2-bait-and-break","Safe","Fletcher's Rhythm","Hand-Off","Fletcher's Rhythm","Hand-Off","Archer","PlayerB","connector to an owned tag",0,0,0,18,0,0
+"blade-first-seed99-pick1",1,"c1-first-contact","Neutral","Spotter","Follow-In","Follow-In","Spotter","Vanguard","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"blade-first-seed99-pick1",2,"c2-bait-and-break","Safe","Long Draw","Echo","Echo","Long Draw","Vanguard","PlayerA","",0,0,0,18,0,0
+"objective-first-seed99-pick0",1,"c1-first-contact","Neutral","Spotter","Follow-In","Spotter","Follow-In","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,331,0,0
+"objective-first-seed99-pick0",2,"c2-bait-and-break","Safe","Fletcher's Rhythm","Hand-Off","Fletcher's Rhythm","Hand-Off","Archer","PlayerB","connector to an owned tag",0,0,0,312,0,0
+"objective-first-seed99-pick0",3,"c3-the-shrine","Safe","Chum the Water","Shelter Step","Chum the Water","Shelter Step","Fisher","PlayerA","ownership fairness; connector to an owned tag",0,0,0,281,0,0
+"objective-first-seed99-pick1",1,"c1-first-contact","Neutral","Spotter","Follow-In","Follow-In","Spotter","Vanguard","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,331,0,0
+"objective-first-seed99-pick1",2,"c2-bait-and-break","Safe","Long Draw","Echo","Echo","Long Draw","Vanguard","PlayerA","",0,0,0,312,0,0
+"objective-first-seed99-pick1",3,"c3-the-shrine","Safe","Patience","Shelter Step","Shelter Step","Patience","Wardbearer","PlayerB","ownership fairness",0,0,0,281,0,0

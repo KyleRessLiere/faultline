@@ -1,0 +1,5 @@
+run,camp,node,lane,card_a,card_b,taken,passed,recipient,owner,bound,triggers,cross_flock_triggers,changed_chosen_action,decisions_watched,threats_solved,objectives_touched
+"shover-seed47-pick0",1,"c1-first-contact","Neutral","Spotter","Short Line","Spotter","Short Line","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,67,0,0
+"shover-seed47-pick0",2,"c2-bait-and-break","Safe","Echo","Shelter Step","Echo","Shelter Step","Vanguard","PlayerA","connector to an owned tag",0,0,0,31,0,0
+"shover-seed47-pick1",1,"c1-first-contact","Neutral","Spotter","Short Line","Short Line","Spotter","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",3,0,0,67,2,0
+"shover-seed47-pick1",2,"c2-bait-and-break","Safe","Echo","Freight","Freight","Echo","Vanguard","PlayerA","",0,0,0,31,0,0

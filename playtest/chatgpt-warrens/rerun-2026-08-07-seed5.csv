@@ -1,0 +1,19 @@
+run,camp,node,lane,card_a,card_b,taken,passed,recipient,owner,bound,triggers,cross_flock_triggers,changed_chosen_action,decisions_watched,threats_solved,objectives_touched
+"shover-seed5-pick0",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Crossing Shot","Short Line","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",1,1,0,66,1,0
+"shover-seed5-pick0",2,"c2-bait-and-break","Safe","Old Rope","Spotter","Old Rope","Spotter","Vanguard","PlayerA","no paired consumables; connector to an owned tag",0,0,0,30,0,0
+"shover-seed5-pick1",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Short Line","Crossing Shot","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",3,0,0,67,2,0
+"shover-seed5-pick1",2,"c2-bait-and-break","Safe","Chalk Mark","Sure-Footed","Sure-Footed","Chalk Mark","Archer","PlayerB","no paired consumables",0,0,0,31,0,0
+"board-first-seed5-pick0",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Crossing Shot","Short Line","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"board-first-seed5-pick0",2,"c2-bait-and-break","Safe","Old Rope","Spotter","Old Rope","Spotter","Vanguard","PlayerA","no paired consumables; connector to an owned tag",0,0,0,18,0,0
+"board-first-seed5-pick1",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Short Line","Crossing Shot","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",2,0,0,37,3,1
+"board-first-seed5-pick1",2,"c2-bait-and-break","Safe","Chalk Mark","Sure-Footed","Sure-Footed","Chalk Mark","Archer","PlayerB","no paired consumables",0,0,0,18,0,0
+"blade-first-seed5-pick0",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Crossing Shot","Short Line","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,37,0,0
+"blade-first-seed5-pick0",2,"c2-bait-and-break","Safe","Old Rope","Spotter","Old Rope","Spotter","Vanguard","PlayerA","no paired consumables; connector to an owned tag",0,0,0,18,0,0
+"blade-first-seed5-pick1",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Short Line","Crossing Shot","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",2,0,0,37,3,1
+"blade-first-seed5-pick1",2,"c2-bait-and-break","Safe","Chalk Mark","Sure-Footed","Sure-Footed","Chalk Mark","Archer","PlayerB","no paired consumables",0,0,0,18,0,0
+"objective-first-seed5-pick0",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Crossing Shot","Short Line","Archer","PlayerB","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",0,0,0,331,0,0
+"objective-first-seed5-pick0",2,"c2-bait-and-break","Safe","Old Rope","Spotter","Old Rope","Spotter","Vanguard","PlayerA","no paired consumables; connector to an owned tag",0,0,0,312,0,0
+"objective-first-seed5-pick0",3,"c3-the-shrine","Safe","Spotter","Duck Feather Charm","Spotter","Duck Feather Charm","Archer","PlayerB","",0,0,0,281,0,0
+"objective-first-seed5-pick1",1,"c1-first-contact","Neutral","Crossing Shot","Short Line","Short Line","Crossing Shot","Fisher","PlayerA","camp-1 engine starter; camp-1 engine starter; camp-1 different classes; camp-1 different players",3,0,0,331,4,1
+"objective-first-seed5-pick1",2,"c2-bait-and-break","Safe","Chalk Mark","Sure-Footed","Sure-Footed","Chalk Mark","Archer","PlayerB","no paired consumables",0,0,0,312,0,0
+"objective-first-seed5-pick1",3,"c3-the-shrine","Safe","Signal Whistle","Hunter's Refund","Hunter's Refund","Signal Whistle","Archer","PlayerB","no paired consumables",0,0,0,281,0,0
