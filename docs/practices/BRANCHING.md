@@ -4,21 +4,27 @@ Read this when a session branches, releases, or touches CI.
 
 ## Branching
 
-One branch per feature or milestone. Never commit to `main`.
+**`main` is the trunk and the single source of truth. Commit to it.** The stacking model this file
+used to describe — never commit to `main`, always cut from the tip of the last work branch — is
+retired (D-254). It gave a branch no obligation to come back: three sat unmerged, all three merged
+with **zero code conflicts** and exactly additive test counts, and a full packet was written
+specifying work one of them had already shipped.
 
-- **Cut new branches from the tip of the current work branch**, not from `main`. Work stacks: while
-  `main` is still behind, the latest branch is the real trunk, and branching off `main` would drop
-  everything already built.
+**A branch you will not merge is a branch you do not make.**
+
+- Branch only for work that **cannot land green in one session** — and merge it back that session.
+  A green branch is never handed to somebody else to merge.
+- The **only** reason to leave one unmerged is a decision the designer has not ruled. Name it by
+  number on the handoff's `MERGE DEBT` line. *"Not reviewed yet"* is not a reason.
+- **Cut from `main`.** There is no stack to cut from any more.
 - **Name it** `m<N>-<slug>` for milestone work (`m3-enemy-ai`), or
   `feat|fix|chore|docs|spike/<slug>` for anything else (`feat/battle-files`). Lower-case, hyphenated.
 - **Push on the first commit** (`git push -u origin <branch>`), then keep pushing. Work that exists
-  only on one machine is invisible to review and one disk failure from gone.
-- **Open a PR targeting the branch it was cut from**, so the PR diff is that feature and nothing else.
-  CI runs on `pull_request`.
-- Rebranch rather than pile unrelated work onto a branch that has already outgrown its name.
+  only on one machine is invisible and one disk failure from gone — and so is work left untracked.
 
-Two hooks enforce the parts that can be enforced: `guard-branch.sh` refuses a commit on `main` or on
-a branch outside the convention, and `check-unpushed.sh` warns when commits are sitting unpushed.
+Two hooks enforce what can be enforced: `guard-branch.sh` allows `main`, refuses a branch outside the
+convention, and **warns when more than one branch is unmerged**; `check-unpushed.sh` warns when
+commits are sitting unpushed.
 
 ## Commits
 

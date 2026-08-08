@@ -93,10 +93,18 @@ If a packet is missing a field, stop. A guess costs more than a question.
 
 ## 6. Verify at the level of the change
 
-- Default: targeted suite + determinism test.
-- Full suite: behaviour changes, and before merge.
-- Refactors, layout, docs: report **zero-delta** instead — no full suite.
-- Harness: the standing three — `shover`, `<FILL: board-first evaluator>`, `<FILL: blade-first control>`. Seeds 1–3 unless told otherwise. Other policies only when named or before a milestone.
+**Run the smallest thing that proves the change.** The default is the *test class* you touched, plus the determinism test — not a suite, and never the whole solution:
+
+```
+dotnet test tests/Faultline.Core.Tests --filter "FullyQualifiedName~<ClassName>"
+dotnet test tests/Faultline.Core.Tests --filter "FullyQualifiedName~DeterminismTests"
+```
+
+- **The full suite is opt-in and you must ask for it**, with a reason, and wait. "To be safe" is not a reason. Reasons that are: a Core rule the whole game reads, a type change that touches every caller, a merge.
+- Refactors, layout, docs: report **zero-delta**. No suite at all.
+- A green targeted run plus a green determinism run **is** a verified change. Say what you ran; do not imply more.
+
+**Playtesting is not this codebase's job.** These tests answer *"does the functionality work"* — they do not judge balance, attrition, policy behaviour or board tuning. Playtesting happens separately and its numbers arrive as reports, not as assertions. Do not add a test that measures how a fight *feels*, and do not run harness sweeps as part of verifying a change.
 
 ## 7. Stop, don't spin
 
