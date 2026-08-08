@@ -827,6 +827,9 @@ public sealed class GameSession
     public static string DescribeUndo(GameState? state, Command? command) => command switch
     {
         MoveCommand move => "undo move segment to " + BoardCoords.Of(move.To),
+        // A coin-free draft order is takeable back like any other decision; one the coin settled is
+        // a seeded draw, and the undo contract closes the door on those before this ever runs.
+        DraftOrderCommand => "undo who places first",
         DeployCommand deploy => "undo placing " + NameOf(state, deploy.UnitId) + " on " + BoardCoords.Of(deploy.At),
         AttackCommand { Mode: AttackMode.Pull } pull => "undo pull on " + NameOf(state, pull.TargetId),
         AttackCommand attack => "undo attack on " + NameOf(state, attack.TargetId),

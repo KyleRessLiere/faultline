@@ -91,6 +91,7 @@ namespace Faultline.Core
         public static string EventName(GameEvent evt) => evt switch
         {
             FightStarted => nameof(FightStarted),
+            DraftOrderResolved => nameof(DraftOrderResolved),
             UnitDeployed => nameof(UnitDeployed),
             DeploymentCompleted => nameof(DeploymentCompleted),
             RoundStarted => nameof(RoundStarted),
@@ -169,6 +170,12 @@ namespace Faultline.Core
         public static string Detail(GameEvent evt, GameState state) => evt switch
         {
             FightStarted e => "fight " + Number(e.FightNumber) + " " + Clean(e.Name),
+
+            // Both answers and the coin on one line — §3 makes the reveal a single moment, and a log
+            // that recorded only the winner would leave "did the coin fire" unanswerable on replay.
+            DraftOrderResolved e => "draft: A asked " + Asked(e.ChoiceA) + ", B asked " + Asked(e.ChoiceB)
+                + " - " + e.PlacesFirst + " places first"
+                + (e.ByCoin ? " (coin " + Number(e.Coin) + ")" : " (preferences differed, no coin)"),
 
             UnitDeployed e => e.Team + " " + UnitTemplate.For(e.Kind).Name + " placed at " + e.At,
 
@@ -613,6 +620,10 @@ namespace Faultline.Core
 
         // Culture-invariant so the log is identical whichever machine renders it.
         private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+        // The step-1 answer in the words the question was asked in, not the enum's.
+        private static string Asked(DeploymentChoice choice) =>
+            choice == DeploymentChoice.PlaceFirst ? "to place first" : "to place second";
 
         // The canonical player-facing words for terrain (CLAUDE.md "Naming": Drain never Pit,
         // Brambles never Spikes). Printing the enum would put "Spikes" and "Pit" in a log a human

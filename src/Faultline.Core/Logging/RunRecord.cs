@@ -168,6 +168,10 @@ namespace Faultline.Core
         /// <returns>The command's fields.</returns>
         public static string Format(Command command) => command switch
         {
+            // Both answers are columns, because both are inputs: the coin is a pure function of the
+            // rng cursor, so a log that kept only the winner could not replay a draft whose coin
+            // fired (§3 step 1).
+            DraftOrderCommand c => Join("DraftOrder", c.ChoiceA.ToString(), c.ChoiceB.ToString()),
             DeployCommand c => Join("Deploy", c.UnitId.ToString(), c.At.ToString()),
             MoveCommand c => Join("Move", c.UnitId.ToString(), c.To.ToString(), PathText(c.Path)),
             // The elected technique is a column of its own. A logged Follow-In that replayed as a
@@ -216,6 +220,11 @@ namespace Faultline.Core
 
             switch (fields[offset])
             {
+                case "DraftOrder":
+                    return new DraftOrderCommand(
+                        ParseChoice(Field(fields, offset + 1)),
+                        ParseChoice(Field(fields, offset + 2)));
+
                 case "Deploy":
                     return new DeployCommand(ParseUnit(Field(fields, offset + 1)), ParseTile(Field(fields, offset + 2)));
 
@@ -515,6 +524,14 @@ namespace Faultline.Core
 
             return command.Direction.HasValue ? "dir=" + command.Direction.Value : CombatLog.NoActor;
         }
+
+        // "Place second" is the only other answer there is, so anything that is not the first-place
+        // word reads as second rather than throwing: a draft line is never the reason a log refuses
+        // to replay.
+        private static DeploymentChoice ParseChoice(string text) =>
+            string.Equals(text.Trim(), nameof(DeploymentChoice.PlaceFirst), StringComparison.OrdinalIgnoreCase)
+                ? DeploymentChoice.PlaceFirst
+                : DeploymentChoice.PlaceSecond;
 
         private static UnitId ParseUnit(string text)
         {

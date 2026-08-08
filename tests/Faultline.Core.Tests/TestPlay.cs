@@ -26,6 +26,28 @@ public static class TestPlay
     public static bool Has<T>(this StepResult result)
         where T : GameEvent => result.Events.OfType<T>().Any();
 
+    /// <summary>
+    /// Settles §3 step 1 so a test can get on with placing ducks, handing the first placement to
+    /// <paramref name="placesFirst"/> without spending a coin.
+    /// </summary>
+    /// <remarks>
+    /// The two answers are opposites, so the preferences differ and no coin is drawn — a fixture
+    /// that wanted a particular opener should not have to also predict a coin to get one. Tests
+    /// about the coin itself submit their own <see cref="DraftOrderCommand"/>.
+    /// </remarks>
+    /// <param name="state">A state in deployment with step 1 unanswered.</param>
+    /// <param name="placesFirst">Who should place first, and so also activate first.</param>
+    /// <returns>The state with the draft order settled.</returns>
+    public static GameState DraftOrder(this GameState state, Team placesFirst) =>
+        state.Then(placesFirst == Team.PlayerA
+            ? new DraftOrderCommand(DeploymentChoice.PlaceFirst, DeploymentChoice.PlaceSecond)
+            : new DraftOrderCommand(DeploymentChoice.PlaceSecond, DeploymentChoice.PlaceFirst));
+
+    /// <summary>Settles step 1 with Player A placing first — the old fixed order, made explicit.</summary>
+    /// <param name="state">A state in deployment with step 1 unanswered.</param>
+    /// <returns>The state with the draft order settled.</returns>
+    public static GameState DraftOrder(this GameState state) => state.DraftOrder(Team.PlayerA);
+
     /// <summary>The unit with the given id.</summary>
     public static Unit Get(this GameState state, UnitId id) => state.UnitById(id);
 

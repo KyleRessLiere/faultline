@@ -275,6 +275,7 @@ public sealed class RunAdvanceSeamTests
                 }
 
                 command = legal.FirstOrDefault(c => c is PlayCommand { Command: AttackCommand or AbilityCommand })
+                    ?? Drafting(run, legal)
                     ?? legal[0];
             }
 
@@ -283,5 +284,51 @@ public sealed class RunAdvanceSeamTests
         }
 
         return (run, log);
+    }
+
+    /// <summary>
+    /// Plays §3's choice phase the way a player would: answer step 1 without gambling, then take a
+    /// spot round one cannot reach.
+    /// </summary>
+    /// <remarks>
+    /// <b>These tests are about the map seam, not about combat competence</b> — they need the board
+    /// won, and taking whatever Core offers first stopped winning it once the draft landed. Board
+    /// order is not a fielding; it just happened to be one while the two zones were separate
+    /// corners. Asking the agency query for a safe tile is what the screen puts in front of a player
+    /// anyway, and it is stable against the snake reordering which duck picks when.
+    /// </remarks>
+    private static RunCommand? Drafting(RunState run, IReadOnlyList<RunCommand> legal)
+    {
+        var fight = run.Fight;
+        if (fight is null)
+        {
+            return null;
+        }
+
+        // Opposite answers, so the preferences differ and no coin is drawn: a seam test should not
+        // have its board decided by a flip it never asked for.
+        var order = legal.FirstOrDefault(c =>
+            c is PlayCommand
+            {
+                Command: DraftOrderCommand
+                {
+                    ChoiceA: DeploymentChoice.PlaceFirst,
+                    ChoiceB: DeploymentChoice.PlaceSecond,
+                },
+            });
+
+        if (order is not null)
+        {
+            return order;
+        }
+
+        var safe = Threat.SafeDeploymentTiles(fight, fight.ActiveTeam);
+        if (safe.Count == 0)
+        {
+            return null;
+        }
+
+        return legal.FirstOrDefault(c =>
+            c is PlayCommand { Command: DeployCommand deploy } && safe.Contains(deploy.At));
     }
 }

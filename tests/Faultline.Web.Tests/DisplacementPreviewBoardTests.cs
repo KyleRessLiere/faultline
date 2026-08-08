@@ -348,6 +348,8 @@ public sealed class DisplacementPreviewBoardTests
         var session = Session();
         session.StartFight(fight, Seed);
 
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);

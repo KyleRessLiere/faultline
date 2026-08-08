@@ -269,7 +269,7 @@ public class WarrensEditionATests
     private static IEnumerable<GameState> SafeFieldings(string id)
     {
         var fight = FightLibrary.ById(id)!;
-        var start = Game.Start(fight, seed: 1).NewState;
+        var start = Game.Start(fight, seed: 1).NewState.DraftOrder(Team.PlayerA);
 
         // §3's spots belong to neither player, so both sides are answered by the same tiles. Two
         // per-side cursors would deal one spot twice and the second placement would be refused for

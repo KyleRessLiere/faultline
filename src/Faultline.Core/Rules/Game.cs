@@ -327,6 +327,8 @@ namespace Faultline.Core
             {
                 case FootingRefuseCommand:
                     throw new InvalidOperationException("No Footing refusal is outstanding.");
+                case DraftOrderCommand draftOrder:
+                    return ApplyDraftOrder(state, draftOrder, events);
                 case DeployCommand deploy:
                     return ApplyDeploy(state, deploy, events);
                 case MoveCommand move:
@@ -506,6 +508,22 @@ namespace Faultline.Core
 
             if (state.Phase == Phase.Deployment)
             {
+                // §3 step 1, and it gates everything: no duck may be placed before the board knows
+                // who is placing. Every ordered pair of answers is on the list because both are
+                // inputs — agreement is a legal answer, it just costs the coin.
+                if (state.DraftOrder is null)
+                {
+                    foreach (var a in DeploymentChoices)
+                    {
+                        foreach (var b in DeploymentChoices)
+                        {
+                            commands.Add(new DraftOrderCommand(a, b));
+                        }
+                    }
+
+                    return commands;
+                }
+
                 foreach (var unit in state.Units)
                 {
                     if (unit.Team != state.ActiveTeam || unit.IsDeployed)
@@ -856,9 +874,77 @@ namespace Faultline.Core
             && Movement.IsWalkable(state.Board.At(tile))
             && !state.IsOccupied(tile);
 
+        /// <summary>Both answers to step 1, so the legal list can offer every ordered pair.</summary>
+        private static readonly DeploymentChoice[] DeploymentChoices =
+        {
+            DeploymentChoice.PlaceFirst,
+            DeploymentChoice.PlaceSecond,
+        };
+
+        /// <summary>
+        /// Resolves §3 step 1 — the blind <em>place first or place second</em> pick — and hands the
+        /// first placement to whoever won it.
+        /// </summary>
+        /// <remarks>
+        /// <b>Differing preferences resolve without a coin; identical preferences fire it.</b> That
+        /// is the inversion against the map vote, where agreement is free and a split costs the
+        /// draw: here the players are asking for opposite ends of one stick, so wanting different
+        /// things is precisely what makes the answer free. The coin is the draft's only draw, which
+        /// is what makes seed plus command log replay the whole choice phase.
+        /// </remarks>
+        private static GameState ApplyDraftOrder(
+            GameState state, DraftOrderCommand command, List<GameEvent> events)
+        {
+            Require(state.Phase == Phase.Deployment, "Deployment is closed.");
+            Require(state.DraftOrder is null, "The draft order is already settled.");
+
+            Team placesFirst;
+            bool byCoin;
+            int coin;
+
+            if (command.ChoiceA != command.ChoiceB)
+            {
+                // They asked for opposite things, so both get what they asked for.
+                placesFirst = command.ChoiceA == DeploymentChoice.PlaceFirst ? Team.PlayerA : Team.PlayerB;
+                byCoin = false;
+                coin = -1;
+            }
+            else
+            {
+                var rng = new SeededRng(state.RngState);
+                coin = rng.Next(2);
+                byCoin = true;
+                state = state with { RngState = rng.State };
+
+                // The coin names who PLACES FIRST, never who "wins" — when both asked to place
+                // second, the player it lands on is the one who does not get what they wanted.
+                var winner = coin == 0 ? Team.PlayerA : Team.PlayerB;
+                placesFirst = command.ChoiceA == DeploymentChoice.PlaceFirst
+                    ? winner
+                    : winner.OtherPlayer();
+            }
+
+            var order = new DraftOrder(command.ChoiceA, command.ChoiceB, placesFirst, byCoin, coin);
+
+            // The initiative bundle: placing first and activating first are one prize, so both the
+            // draft cursor and the round's opener are set from the same fact here.
+            state = state with
+            {
+                DraftOrder = order,
+                ActiveTeam = placesFirst,
+                NextPlayerTeam = placesFirst,
+            };
+
+            events.Add(new DraftOrderResolved(
+                command.ChoiceA, command.ChoiceB, placesFirst, byCoin, coin));
+
+            return state;
+        }
+
         private static GameState ApplyDeploy(GameState state, DeployCommand command, List<GameEvent> events)
         {
             Require(state.Phase == Phase.Deployment, "Deployment is closed.");
+            Require(state.DraftOrder is not null, "The draft order has not been settled yet.");
 
             var unit = state.UnitById(command.UnitId);
             Require(unit.Team == state.ActiveTeam, "It is not that player's turn to deploy.");
@@ -873,19 +959,80 @@ namespace Faultline.Core
             state = state.WithUnit(placed);
             events.Add(new UnitDeployed(placed.Id, placed.Team, placed.Kind, placed.Position));
 
-            // Brief §2: players alternate placing units, so hand the next placement to the other
-            // player whenever they still have someone to put down.
-            var other = state.ActiveTeam.OtherPlayer();
-            if (HasUndeployed(state, other))
+            var next = NextPlacer(state);
+            if (next is { } placer)
             {
-                state = state with { ActiveTeam = other };
+                state = state with { ActiveTeam = placer };
             }
-            else if (!HasUndeployed(state, state.ActiveTeam))
+            else
             {
                 state = BeginBattle(state, events);
             }
 
             return state;
+        }
+
+        /// <summary>
+        /// Whose turn it is to place next under §3's snake, or <c>null</c> when every duck is down.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// §3 fixes the shape at <b>A · B · B · A</b> and says the order "generalises to unequal
+        /// rosters" without saying how, so this is the ruling (DECISIONS D-256). The snake is the
+        /// serpentine <c>F S S F F S S F …</c> over placement slots, where F is the player who won
+        /// step 1. <b>A slot whose owner has no ducks left passes to the other player rather than
+        /// being dropped</b>, which is the whole of the generalisation.
+        /// </para>
+        /// <para>
+        /// At 2/2 that is exactly A·B·B·A. At 3/1 it is F·S·F·F, at 1/3 it is F·S·S·S, and at 2/1 it
+        /// is F·S·F. Passing rather than dropping is what keeps the compensation intact: the second
+        /// picker's back-to-back pair is the payment for picking second, and a rule that dropped
+        /// exhausted slots would silently hand it back.
+        /// </para>
+        /// <para>
+        /// Bedraggled ducks are placed by this like any other — §3 says they "deploy normally", and
+        /// their penalty is the omitted round-1 activation, not a different draft.
+        /// </para>
+        /// </remarks>
+        private static Team? NextPlacer(GameState state)
+        {
+            var order = state.DraftOrder;
+            if (order is null)
+            {
+                return null;
+            }
+
+            Team first = order.PlacesFirst;
+            Team second = order.PlacesSecond;
+
+            int placed = 0;
+            foreach (var unit in state.Units)
+            {
+                if (unit.IsDeployed && unit.Team != Team.Enemy)
+                {
+                    placed++;
+                }
+            }
+
+            bool firstHasMore = HasUndeployed(state, first);
+            bool secondHasMore = HasUndeployed(state, second);
+
+            if (!firstHasMore && !secondHasMore)
+            {
+                return null;
+            }
+
+            // The serpentine: slot i belongs to F when ((i + 1) / 2) is even, else to S. That is
+            // F S S F F S S F …, and at four slots it is precisely §3's A · B · B · A.
+            bool slotIsFirsts = (((placed + 1) / 2) % 2) == 0;
+            Team ideal = slotIsFirsts ? first : second;
+
+            if (ideal == first)
+            {
+                return firstHasMore ? first : second;
+            }
+
+            return secondHasMore ? second : first;
         }
 
         private static GameState BeginBattle(GameState state, List<GameEvent> events)
@@ -948,12 +1095,16 @@ namespace Faultline.Core
                 };
             }
 
+            // §3's initiative bundle: whoever won the placement question opens every round. The
+            // fallback is Player A for a state built without a draft (fixtures that start mid-fight).
+            Team opener = state.DraftOrder?.PlacesFirst ?? Team.PlayerA;
+
             state = state with
             {
                 Units = units,
                 Round = state.Round + 1,
-                ActiveTeam = Team.PlayerA,
-                NextPlayerTeam = Team.PlayerA,
+                ActiveTeam = opener,
+                NextPlayerTeam = opener,
                 ActiveUnitId = null,
             };
 

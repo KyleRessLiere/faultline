@@ -26,6 +26,11 @@ public sealed class RunUndoTests
         var (session, runs, _) = Fresh();
         await runs.StartAsync(Seed);
         runs.Enter();
+
+        // Nothing is placeable until §3's step 1 is answered, and these tests are about undo rather
+        // than about the draft. Coin-free, so the board does not turn on a flip they never asked for.
+        session.SettleDraftOrder();
+
         return (session, runs);
     }
 
@@ -42,7 +47,11 @@ public sealed class RunUndoTests
     [Fact]
     public async Task EnteringTheFirstNode_IsItselfUndoable()
     {
-        var (session, runs) = await InFirstFight();
+        // Entering is the only command on the stack here: settling the draft would put a decision
+        // on top of it, and one press would take that back instead.
+        var (_, runs, _) = Fresh();
+        await runs.StartAsync(Seed);
+        runs.Enter();
 
         Assert.True(runs.InFight);
         Assert.True(runs.CanUndo);
@@ -145,6 +154,8 @@ public sealed class RunUndoTests
     public async Task ARunsEnemyActivation_IsAsHardABoundaryAsTheBoards()
     {
         var (session, runs) = await InFirstFight();
+
+        session.SettleDraftOrder();
 
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {

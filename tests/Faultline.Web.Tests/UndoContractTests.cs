@@ -39,6 +39,8 @@ public sealed class UndoContractTests
     private static GameSession Deployed()
     {
         var session = Fresh();
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);
@@ -94,6 +96,11 @@ public sealed class UndoContractTests
     {
         // The reason-sibling invariant: exactly one of the two is speaking at any moment.
         var session = Fresh();
+        AssertInvariant(session);
+
+        // Step 1 is a decision the button has to be able to name too, so it is walked through here
+        // rather than skipped past.
+        session.SettleDraftOrder();
         AssertInvariant(session);
 
         session.Submit(session.Legal.OfType<DeployCommand>().First());
@@ -337,6 +344,8 @@ public sealed class UndoContractTests
             session.SetRecording(true);
             session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
 
+            session.SettleDraftOrder();
+
             while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
             {
                 session.Submit(deploy);
@@ -352,6 +361,8 @@ public sealed class UndoContractTests
         var session = new GameSession();
         session.SetRecording(true);
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
+
+        session.SettleDraftOrder();
 
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {

@@ -21,6 +21,8 @@ public sealed class DesignNotesPanelTests
     /// <summary>Places every unit, so the session is in the battle phase rather than deployment.</summary>
     private static void DeployEverything(GameSession session)
     {
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);

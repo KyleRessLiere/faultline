@@ -53,6 +53,8 @@ public sealed class ObjectivePanelRenderTests
     /// <summary>Places every unit, so the status is read off a battle rather than a deployment.</summary>
     private static void DeployEverything(GameSession session)
     {
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);

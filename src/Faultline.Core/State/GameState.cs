@@ -60,6 +60,17 @@ namespace Faultline.Core
         public Team NextPlayerTeam { get; init; }
 
         /// <summary>
+        /// How step 1 of the deployment draft came out, or <c>null</c> while it is still unanswered.
+        /// </summary>
+        /// <remarks>
+        /// MASTER_DESIGN §3 (locked y). While this is <c>null</c> the only legal command is the
+        /// <see cref="DraftOrderCommand"/> that answers it — no duck may be placed before the board
+        /// knows who is placing. Once set it is never rewritten: there are no re-votes, and the
+        /// initiative bundle it carries decides who opens every round of the fight.
+        /// </remarks>
+        public DraftOrder? DraftOrder { get; init; }
+
+        /// <summary>
         /// Unit currently mid-activation, or <c>null</c> when the active team has not yet committed
         /// to one. Committing happens implicitly on that unit's first command.
         /// </summary>
@@ -250,6 +261,7 @@ namespace Faultline.Core
                 || Phase != other.Phase
                 || ActiveTeam != other.ActiveTeam
                 || NextPlayerTeam != other.NextPlayerTeam
+                || !Equals(DraftOrder, other.DraftOrder)
                 || ActiveUnitId != other.ActiveUnitId
                 || Outcome != other.Outcome
                 || !Equals(FootingPrompt, other.FootingPrompt)
@@ -327,6 +339,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + (int)Phase;
                 hash = (hash * 31) + (int)ActiveTeam;
                 hash = (hash * 31) + (int)NextPlayerTeam;
+                hash = (hash * 31) + (DraftOrder?.GetHashCode() ?? 0);
                 hash = (hash * 31) + (ActiveUnitId?.Value ?? -1);
                 hash = (hash * 31) + (int)Outcome;
                 hash = (hash * 31) + Board.GetHashCode();

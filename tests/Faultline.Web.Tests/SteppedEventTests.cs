@@ -14,15 +14,19 @@ namespace Faultline.Web.Tests;
 /// </summary>
 public sealed class SteppedEventTests
 {
+    /// <summary>A session with §3's step 1 already answered, so placements are legal.</summary>
     private static GameSession SessionOn(string fightId)
     {
         var session = new GameSession();
         session.StartFight(FightLibrary.ById(fightId), GameSession.DefaultSeed);
+        session.SettleDraftOrder();
         return session;
     }
 
     private static void DeployEverything(GameSession session)
     {
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);

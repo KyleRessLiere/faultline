@@ -354,6 +354,8 @@ public sealed class BattleSurfacesTests
         var session = new GameSession();
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
 
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);

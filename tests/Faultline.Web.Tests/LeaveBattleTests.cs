@@ -107,7 +107,10 @@ public sealed class LeaveBattleTests
     public void OneCommandOnALooseBoard_TurnsTheConfirmBackOn()
     {
         var (session, runs) = Fresh();
-        session.Submit(session.Legal.OfType<DeployCommand>().First());
+
+        // Answering who places first is the first command a board can take, and one command is all
+        // this is about — the confirm comes back the moment anything has been decided.
+        session.SettleDraftOrder();
 
         Assert.False(session.Untouched);
         Assert.True(BattleExit.NeedsConfirm(session, runs));

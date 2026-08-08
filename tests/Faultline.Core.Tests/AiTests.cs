@@ -500,7 +500,10 @@ public class AiTests
     [Fact]
     public void Planner_ConsultsNoRandomness()
     {
-        var (played, _, _) = TestPlay.PlayWithAi(Game.Start(FightLibrary.Fight1(), seed: 5).NewState, 4000);
+        // Step 1 is settled with differing preferences, so the draft's coin never fires: the one
+        // draw a fight can make is §3's, and this test is about the planner rather than about it.
+        var start = Game.Start(FightLibrary.Fight1(), seed: 5).NewState.DraftOrder(Team.PlayerA);
+        var (played, _, _) = TestPlay.PlayWithAi(start, 4000);
 
         // Nothing in M3 draws from the generator, so a fight full of AI decisions leaves it untouched.
         Assert.Equal(played.Seed, played.RngState);

@@ -153,6 +153,10 @@ public sealed class BattleScreenTests
         var session = new GameSession();
         session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
 
+        // Step 1 first: until it is answered nobody is being placed, so there is no "one being
+        // placed" for the strip to mark.
+        session.SettleDraftOrder();
+
         Assert.Equal(Phase.Deployment, session.State.Phase);
 
         var cards = StripCards.Deployment(session.State, session.PendingDeployUnit);
@@ -173,6 +177,7 @@ public sealed class BattleScreenTests
     {
         var session = new GameSession();
         session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
+        session.SettleDraftOrder();
 
         var placed = session.PendingDeployUnit;
         session.Submit(session.Legal.OfType<DeployCommand>().First());
@@ -433,6 +438,8 @@ public sealed class BattleScreenTests
     {
         var session = new GameSession();
         session.StartFight(FightLibrary.ById(fightId), GameSession.DefaultSeed);
+
+        session.SettleDraftOrder();
 
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {

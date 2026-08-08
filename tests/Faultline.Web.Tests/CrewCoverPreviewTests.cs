@@ -141,6 +141,8 @@ public sealed class CrewCoverPreviewTests
         var session = new GameSession();
         session.StartFight(fight, Seed);
 
+        session.SettleDraftOrder();
+
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
             session.Submit(deploy);

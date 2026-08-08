@@ -11,25 +11,35 @@ namespace Faultline.Web.Tests;
 /// </summary>
 public sealed class UndoTests
 {
-    private static GameSession SessionOn(string fightId)
+    /// <summary>
+    /// A session on a board, with §3's step 1 already answered unless the test is about the state
+    /// before any command at all.
+    /// </summary>
+    /// <remarks>
+    /// Nothing is placeable until the draft order is settled, so a test that wants to undo a
+    /// placement has to get past step 1 first. These tests are about undo rather than about the
+    /// draft, so the answer is the coin-free one.
+    /// </remarks>
+    private static GameSession SessionOn(string fightId, bool settleDraft = true)
     {
         var session = new GameSession();
         session.StartFight(FightLibrary.ById(fightId), GameSession.DefaultSeed);
+
+        if (settleDraft)
+        {
+            session.SettleDraftOrder();
+        }
+
         return session;
     }
 
-    private static void DeployEverything(GameSession session)
-    {
-        while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
-        {
-            session.Submit(deploy);
-        }
-    }
+    private static void DeployEverything(GameSession session) => session.DeployEveryone();
 
     [Fact]
     public void AFreshFight_HasNothingToUndo()
     {
-        var session = SessionOn("hz-10-bone-yard");
+        // Genuinely fresh: not even step 1 has been answered.
+        var session = SessionOn("hz-10-bone-yard", settleDraft: false);
 
         Assert.False(session.CanUndo);
         Assert.False(session.Undo());
@@ -144,6 +154,7 @@ public sealed class UndoTests
         var session = new GameSession();
         session.SetRecording(true);
         session.StartFight(FightLibrary.ById("hz-10-bone-yard"), GameSession.DefaultSeed);
+        session.SettleDraftOrder();
         int lines = session.RecordedLineCount;
 
         session.Submit(session.Legal.OfType<DeployCommand>().First());
@@ -160,9 +171,12 @@ public sealed class UndoTests
         // Deployment is one open segment. Core hands the placement slot back and forth after every
         // single placement, so the activation-shaped boundaries have nothing to bite on here and a
         // player can walk the whole setup back — which is what setup is for.
-        var session = SessionOn("hz-10-bone-yard");
+        // The opening is the board before ANY command, step 1 included: answering who places first
+        // is a decision like the placements after it, so walking the whole setup back walks past it.
+        var session = SessionOn("hz-10-bone-yard", settleDraft: false);
         var opening = session.State;
 
+        session.SettleDraftOrder();
         session.Submit(session.Legal.OfType<DeployCommand>().First());
         session.Submit(session.Legal.OfType<DeployCommand>().First());
         session.Submit(session.Legal.OfType<DeployCommand>().First());

@@ -193,7 +193,7 @@ public class AgencyTests
         var safeB = Threat.SafeDeploymentTiles(start, Team.PlayerB);
         Assert.True(safeA.Count >= fight.RosterA.Count && safeB.Count >= fight.RosterB.Count);
 
-        var state = start;
+        var state = start.DraftOrder(Team.PlayerA);
 
         // One cursor over one list, because §3's spots are shared: safeA and safeB are now the same
         // tiles, so two per-side cursors would hand both players the same spot and the second

@@ -194,6 +194,15 @@ public class StateEqualityCoverageTests
                 ["Phase"] = s => s with { Phase = Phase.Complete },
                 ["ActiveTeam"] = s => s with { ActiveTeam = Team.Enemy },
                 ["NextPlayerTeam"] = s => s with { NextPlayerTeam = Team.PlayerB },
+                ["DraftOrder"] = s => s with
+                {
+                    DraftOrder = new DraftOrder(
+                        DeploymentChoice.PlaceSecond,
+                        DeploymentChoice.PlaceSecond,
+                        Team.PlayerB,
+                        true,
+                        1),
+                },
                 ["ActiveUnitId"] = s => s with { ActiveUnitId = new UnitId(3) },
                 ["Intents"] = s => s with { Intents = Array.Empty<EnemyIntent>() },
                 ["Outcome"] = s => s with { Outcome = FightOutcome.Won },

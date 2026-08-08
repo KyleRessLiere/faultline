@@ -147,6 +147,7 @@ public sealed class HeaderBarTests
     {
         var (session, runs) = Fresh();
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
+        session.SettleDraftOrder();
         session.Submit(session.Legal.OfType<DeployCommand>().First());
 
         Assert.True(HeaderBar.CanUndo(session, runs));
@@ -274,6 +275,8 @@ public sealed class HeaderBarTests
     {
         var session = new GameSession();
         session.StartFight(FightLibrary.ById(Board), GameSession.DefaultSeed);
+
+        session.SettleDraftOrder();
 
         while (session.Legal.OfType<DeployCommand>().FirstOrDefault() is { } deploy)
         {
