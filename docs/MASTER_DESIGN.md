@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-05x** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-07r** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -11,11 +11,33 @@ POND_AND_DYNASTY, ENCOUNTERS — now source material, not authorities). Relation
 is meant to be**; `DECISIONS.md` records why they differ wherever they do. When this file and
 GAMEPLAY disagree, that is either unbuilt design or a missing DECISIONS entry.
 
-Last design session: 2026-08-05.
+Last design session: 2026-08-07.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
+2026-08-07 (r) — LOCKED. **Stamp hygiene:** v2026-08-06q is VOID — cut from a (p)-era working copy,
+  missing (r)–(x), silently reverting the Footing rework (t), climb removal (u), preview
+  legibility (v), Warrens act v2 with §8.7-8.9 (w) and the Pond clearing Bedraggled (x); the
+  tell was "Bull Rush 3" where x prints 2 and the build has shipped 2 since D-126 (D-214).
+  Standing practice: CHECK AN INBOUND STAMP'S DESIGN LOG FOR GAPS BEFORE READING ANYTHING ELSE.
+  CAMP: Camp 1 is authored (two Techniques from the Engine Starter subset, different classes,
+  where possible different players; pocket items from Camp 2; no Second Wind, Rare or one-shot
+  may displace the run's first build-defining decision). Full-pocket SUPPRESSION upheld while
+  no replace/drop surface exists. DEEP POCKETS STRUCK. RARITY is metadata (Common/Uncommon/
+  Rare) orthogonal to KIND (Technique/Second Wind/Pocket Item/Legendary); no tier admits a
+  Legendary to a camp pool. RARE TIER DEFINED as the CONNECTOR tier — a Rare pays off what you
+  already own, may make a rule fire more often or harder, and may NEVER suspend one (that is
+  the legendary tier's identity); 10 cards drafted. KIT SURGERY: 3 ability slots per duck plus
+  Pluck, EXCEPT the Wardbearer who carries 4 (explicit exception, reason attached); 3 mods per
+  ability; every slot replaceable INCLUDING the basic attack; replacement FORFEITS that
+  ability's mods; a duck is never shown mods for abilities it does not own (mods only —
+  Learn/Replace/Swap offers exempt). EIGHT ALTERNATE ABILITIES drafted (2/class, 3 mods each),
+  seven names cashed from §5's parked list. THE LONG EYE added to the Archer's legendary
+  catalog. BOSS ROUT: the boss's death cancels every mouth's remaining schedule, removes
+  standing workers and resolves victory immediately - Clinging ducks SURVIVE, fleeing workers
+  are NOT kills. THORN POUCH's stored-underlying-tile promoted to terrain-mutation TECH.
+  D-186's RULING STANDS, its EVIDENCE IS WITHDRAWN. Two laws added to §2 (evidence; 0-AP).
 2026-08-05 (x) — LOCKED: **the Pond heals the wound.** A Still Pond's Rest CLEARS Bedraggled —
   a duck that rests returns at half max HP with its round-1 activation slot intact. An unhealed
   down stays Bedraggled (quarter HP, no first slot) into the next fight. This closes the §3/§8.8
@@ -233,6 +255,22 @@ generation, and the town grows.
 - **Meta widens, never strengthens** — for players AND bosses.
 - **Healing is geography** — you route to it, you never menu to it. Preen is the sole in-fight
   exception, and it is negative-sum.
+- **A number several mechanisms produce identically is a question, not evidence.** Three times
+  in the Warrens v2 build: `18/18` read as "the collision price is wrong" when it equally meant
+  "nobody is aiming at the gate"; `zero structures destroyed` meant a defect on break-the-gate
+  and *success* on the-shrine; `Technique, Technique across seeds 1-40` read as the director's
+  weighting when it equally meant "no seed reached the director". Each time the discriminating
+  read was cheaper than either theory. Where a measurement admits two explanations, name both
+  and buy the cheap discriminator before ruling. *(locked r)*
+- **Write the acceptance as the assertion, not as the sentence.** An acceptance test guards the
+  properties it names; unnamed ones are unguarded. Stage A's gate read green for three stages
+  because "previews match resolution everywhere" was the intent and "the destination matches
+  and the line renders" was the test. *(locked r)*
+- **No 0-AP actions below the legendary tier.** Under the AP turn a 1 AP action means she moves
+  2 and fires; a 0 AP action means she moves 3 and fires. §3's *"acting costs legs — an
+  attacking unit covers ≤2 tiles while a Husk covers 3"* is the law that makes kiting a
+  countdown rather than a stall. Dropping an action to 0 AP breaks it, which makes 0-AP
+  **legendary crime material, never a mod**. *(locked r)*
 
 # 3 · Core rules
 *(All HP, damage, and healing values are on the DOUBLED scale — the Great Doubling, locked
@@ -386,6 +424,21 @@ eligibility flagged for review — move-1-then-Bull-Rush extends his threat rang
 Hold aura: deleted. The formerly-held Archer damage change is retired in favor of minimum
 range 2 (see §13).
 
+**Ability slots (locked r).** Each duck carries **3 ability slots plus the Pluck meter**, and
+each ability carries up to **3 mods**. **Exception: the Wardbearer carries 4** — his stance and
+his spear are two halves of one job. This is a deliberate exception to §3's *"pools are
+grammar… differentiation lives in action costs and earned upgrades, never in base pools"*, it
+is the first one, and it is not licence for per-class slot counts generally.
+
+**Every slot is replaceable, including the basic attack**, and **replacement forfeits that
+ability's mods** — that trade is the point of the system. A duck may end a run with no attack:
+legal under §3 (*"the game never decides what is useful… mistakes and unorthodox plays belong to
+the player"*), informed loudly, never gated.
+
+Consequence of the Wardbearer's 4: Spear Thrust and Guard Stance occupy separate slots, so he
+may drop the stance and keep the spear. The tank can trade away the tanking. Intended, and it
+joins Preen's loss and last-attack loss as a **category-of-play** warning on the confirm screen.
+
 # 5 · Pluck (in-run class meters; supersedes Momentum)
 *(was Verve, briefly Moxie; the title and the meter now share the word Pluck deliberately)*
 
@@ -471,6 +524,17 @@ inclusion in push previews and intent arrows, bestiary entry. One Inspectable su
 **Objective panel:** persistent, top of the situation column — first thing read — showing the
 goal in plain words, live progress (pips + numbers), the loss condition with equal billing
 (never in a tooltip), and reacting visibly at the moment progress changes.
+
+**The Destroy win (locked r).** `Objectives.Check` wins on `!AnyEnemyLeft` under **every**
+objective, so a cleared board wins a Destroy fight, which this section says it cannot. This is a
+win-condition bug; the policies are exonerated. **The boss board depends on the same fix** — with
+the rout ruled (§8.9), the boss objective is not Kill All, and today it would resolve correctly
+by accident. Fix together or the second hides behind the first.
+
+**D-186: the ruling stands, the evidence is withdrawn (locked r).** Structure collisions at 6
+conform to this section in three places and that is sufficient grounds. The 18/18 measurement
+never supported it — no policy attacks the gate at any price, so the number was reporting the
+win-condition bug above.
 
 # 7.5 · Battle-screen information architecture (locked l)
 
@@ -630,6 +694,24 @@ variant); votes are self-agreeing so coins never fire in baseline runs; per-lane
 telemetry is the gradient's pricing instrument. **Implementation sequences behind the Playtest
 Gate:** stall diagnosis → cb-06 tune → multi-seed three-way → then the map build.
 
+**Camp 1 is authored (locked r).** Two Techniques from the Engine Starter subset; different
+classes, where possible different players; pocket items ineligible until Camp 2; Second Wind,
+Legendary and tier Rare ineligible at Camp 1; the director emits a proof log naming which
+constraint bound where. Identical reward *kinds* across a seed range is the rule working;
+identical *cards* is the defect.
+
+**Full-pocket suppression (locked r).** While no replace/drop surface exists, pocket items leave
+the eligible pool and the camp still produces two valid permanent choices. **"Pick 1 of 2" is
+never reduced.** Narrow the free-drop sentence: free drop is for **permanents**; pocket one-shots
+have no drop surface yet, and suppression retires the day one is built.
+
+**One pocket per duck** — reaffirmed as deliberate scarcity, explicitly not a progression axis.
+
+**The mod filter (locked r).** A duck is never shown mods for abilities it does not own. **This
+applies to MODS ONLY** — Learn/Replace/Swap offers are exempt, or a kit can never change.
+Full-slot suppression follows the full-pocket rule: remove from the eligible pool, still produce
+two valid choices.
+
 # 8.6 · Reward pools v2 (content, not law — numbers expect tuning; locked w)
 
 **Design test every card must pass: does it change what the players ATTEMPT on the next board?**
@@ -642,6 +724,58 @@ that solution becomes the other duck's opportunity.*
 lanes) · IMPACT (collisions continue, spread, or set up another) · RELAY (hands value to the
 other flock) · CONTROL (changes where an action ENDS without adding range) · GUARD (converts
 hostile pressure into position) · FINISH (turns a developed setup into tempo).
+
+## Reward taxonomy, the Rare tier, and alternate abilities (locked r)
+
+**Two axes, never one:** **Kind** (Technique · Second Wind · Pocket Item · Legendary) × **Tier**
+(Common · Uncommon · Rare). Guard: no tier admits a Legendary to a camp pool. Fold existing
+references onto the ladder (Tempo's +1 AP promotion reads Uncommon).
+
+**Correction to the q-era text:** the Technique↔category mapping and the Engine Starter roster
+were recorded as owed from the designer. They are not — **Stage B shipped them** from x's own
+§8.6 rows: Follow-In · Rattling Impact (Vanguard) · Short Line · Hand-Off (Fisher) · Spotter ·
+Crossing Shot (Archer) · Stored Force · Shelter Step (Wardbearer), one Common and one Uncommon
+per class. Reconcile the taxonomy **onto** those rows; do not add an axis over them.
+
+### The Rare tier — the connector tier
+
+| Tier | Job | Scope |
+|---|---|---|
+| Common | one duck, one small change | isolated |
+| Uncommon | one duck, transformed | isolated |
+| **Rare** | **pays off what you already own** | **connector** |
+| Legendary | breaks one named law | destinations only |
+
+**Boundary rule:** a Rare may make an existing rule fire more often, harder, or in one more
+place. **It may never suspend a rule** — that is the legendary tier's identity and its scarcity
+depends on nothing else doing it. Every Rare carries a tag hook, which is why D3's "at least one
+a connector for the current build" needs no special filter.
+
+Cards (10): **Sympathetic Fracture · Second Shoulder** (Vanguard) · **Deadweight · Chum Line**
+(Fisher) · **Ranging Shot · Called Shot** *(probation)* (Archer) · **Shield Wall · Set Spear**
+(Wardbearer) · **Tandem · Wake** (FLOCK). Full text in `RARE_TIER_draft.md`.
+
+### Alternate abilities (2 per class, 3 mods each)
+
+Seven names cashed from §5's parked spender list, which the doc reserves for "the legendary
+catalog, **starting-kit variants**, and Generations hybrid verbs". **Charge conditions do not
+travel** (§5): an alternate spender changes the spend, never the income.
+
+| Class | Alternate action | Alternate spender |
+|---|---|---|
+| Vanguard | **Overrun** (3 AP, replaces Bull Rush) | **Retort** (2, replaces Wrecking Weight) |
+| Archer | **Grounding Shot** (2 AP, replaces Stagger Shot) | **Skyfall** (3, replaces Double Nock) |
+| Fisher | **Punt** (2 AP, replaces Reel) | **Whirl** (3, replaces Cast) |
+| Wardbearer | **Interpose** (1 AP, replaces Spear Thrust) | **Breakwater** (3, replaces Preen) |
+
+Full text and all 24 mods in `ALTERNATE_ABILITIES_draft.md`.
+
+**Grounding Shot's 2 AP price is load-bearing and may not be discounted.** A slowed Husk (3→2)
+covers exactly what an acting Archer covers, which is the stall §3 forbids. At 2 AP she moves 1
+tile and fires, so she cannot kite behind it. No cheaper mod exists for it and none may be added.
+
+**Owed content:** alternate BASIC attacks. If basics are replaceable there must be things to
+replace them with — four more abilities, twelve more mods, none drafted.
 
 ## Technique modifiers (24; hosted on a named ability, 2 sockets each, 3rd via Molt)
 
@@ -694,11 +828,14 @@ already-displaced enemy) · *Exact Range* (+1 on a kill at exactly range 3) ··
 *Stonewall* (+1 first time each round Guard reduces hostile displacement to 0) · *Tip Work* (+1
 on a tip-tile Spear hit).
 
-## Tactical unlocks (3 — **Steady Hands deleted**, locked w)
+## Tactical unlocks (2 — **Steady Hands deleted** (w), **Deep Pockets struck** (r))
 
-*Sure-Footed* (brambles cost this duck 1 AP) · *Long Boot* (Kick-in at range 2) · *Deep Pockets*
-(a second pocket; rare). **Rescue is a universal 3 AP emergency action and gets no discounts and
-no build family** — the Clinging countdown is the drama; a 3→2 AP card is bookkeeping.
+*Sure-Footed* (brambles cost this duck 1 AP) · *Long Boot* (Kick-in at range 2). **Rescue is a
+universal 3 AP emergency action and gets no discounts and no build family** — the Clinging
+countdown is the drama; a 3→2 AP card is bookkeeping.
+
+***Deep Pockets* is struck (locked r)** — one pocket is scarcity, and a second turns
+`UseConsumableCommand` into a replay-format change.
 
 ## Pocket items — tactical (1 pocket, 0 AP, one-shot)
 
@@ -709,6 +846,11 @@ intents unchanged) · *Greased Feather* (this duck's next displacement +1 distan
 (swap with an adjacent allied duck — placement, both owners consent) · *Thorn Pouch* (temporary
 brambles on one adjacent tile until round end) · *Chalk Mark* (mark an enemy; the other flock's
 next displacement of it gains +1 distance).
+
+***Thorn Pouch*'s stored-underlying-tile approach is promoted to terrain-mutation TECH (locked
+r)** — the primitive Cracked (§3) and the collapse clock (§13) will call it. Coverage owed:
+save/load · undo · expiry with a unit standing on the tile · AI pathing · action preview ·
+temporary-over-temporary. Inspection parity (§7) applies.
 
 ## Pocket items — legendary (destinations only; the crime printed)
 
@@ -725,7 +867,8 @@ Vanguard **Follow Through** (move 2 after causing a collision) · **Aftershock**
 deal 2 to every enemy adjacent to the impact) ·· Fisher **Friendly Cast** (may target allies;
 owner consents) · **Twin Lines** (Reel pulls two enemies on one line, nearer first) · **Sure
 Cast** (cannot be refused by Footing — locked t) ·· Archer **Kestrel Step** (move 2 after
-shooting) · **Point Blank** (no minimum range) ·· Wardbearer **Deep Roots** (Guard persists
+shooting) · **Point Blank** (no minimum range) · **The Long Eye** (attacks at maximum range deal
++4 — the crime: *only elevation pays for position*; locked r) ·· Wardbearer **Deep Roots** (Guard persists
 through his next activation; he may act while it holds) · **Turnabout** (once per round, when
 Guard cancels hostile displacement, push the source by the cancelled distance, max 2 — replaces
 Bulwark Oath, which is retired for renewable-Footing probation) ·· **FLOCK legendaries** (the
@@ -871,6 +1014,32 @@ phase change · direct damage 25–55% of his HP and impact/hazard 45–75% (the
 the sword here too) · Crew Cover 1–3 triggers · drain finishes 5–15% of wins · comfort-route win
 rate 65–75% after learning, hungry 70–80% (fewer arrivals, more explosive builds).
 
+## The rout — boss down ends the fight (locked r)
+
+**Boss down ends the fight.** His death cancels every mouth's remaining schedule, removes standing
+workers, and resolves victory immediately rather than at round end. §8 already routes boss-down →
+Rest → Molt; a mop-up phase between them measures nothing, and a turn limit pricing two different
+fights is not a target.
+
+- **Clinging ducks survive.** Cling resolves at round end and no round end arrives. Swept is
+  permanent and out of the gene pool — a duck is not lost to Generations on a technicality.
+  §3's doomed-cling symmetry does not reach this case: it asks whether a rescuer was possible,
+  and here nobody needed rescuing.
+- **Fleeing workers are not kills.** Death-triggered income (Chum the Water most visibly) stops
+  paying in the final round. Correct — the fight ended, nothing was earned — flagged as a tuning
+  note if it reads badly in play.
+
+Rushing him to skip the crowd is already priced by Crew Cover: the crowd is his armour. No extra
+rule.
+
+**Crew Cover's collision is design, not a bug.** Cover puts a worker in front, the swing pushes
+that worker into the boss now standing behind it, and the board collects. Every point lost in that
+command is `DamageSource.Collision`. **The initiating preview must show it** — a player told
+"covered" who is not shown the 4 has been told the wrong thing (A1's contract). Scope of "direct
+attack" stays as shipped (basic attacks only) pending a ruling; the principle when it comes is
+*the sword* — targeted damage aimed at him, likely including damaging abilities, pointedly
+excluding anything routed through the board.
+
 # 9 · World & tone
 
 Ducks (Duckov-inspired style, original characters), slapstick physics, canal-country world; home
@@ -957,6 +1126,28 @@ Behemoth/multi-tile enemies (flagship later); drain-plugging.
     it ships.
 15. Mid-fight reload restores Bedraggled's quarter HP but returns the skipped slot — known gap,
     closes when saves become seed+command-log (D-050's own stated fix; recorded, not papered).
+16. **Do forfeited mods return to the offer pool for the run, or are they gone?** Gone makes
+    replacement one-way; returning makes it a pivot. Different games. Blocks kit surgery's final
+    shape. *(r)*
+17. **The tag vocabulary.** Stage B shipped tag data; the Rare connector tier and §8.5's "swap
+    needs kit-hook tags" both read it. Two systems on one unpublished list. *(r)*
+18. **Do Chum Line and Tandem violate §5's no-cross-charging law?** They grant a generic Pluck
+    point rather than triggering a class charge condition. If that is the same thing, both cut. *(r)*
+19. **Called Shot's probation** — +2 vs Staggered plus Rattling Impact may be the pool's strongest
+    line. Ship and measure, or tax it positionally (+2 from high ground only). *(r)*
+20. **D-154 halved Act 1's cards from 8 to 4** as a side effect of the one-table camp. Unruled
+    balance change; interacts with the Camp 1 floor. *(r)*
+21. **D-155 — Chum the Water fires off Reel**, matching card text; check against x's §8.6 row. *(r)*
+22. **Who makes the camp pick?** Movement is a blind vote with a seeded coin; camps are silent.
+    Camp 1's "different players where possible" presumes ownership routing never locked. *(r)*
+23. **Temporary terrain and standing units** — creation beneath one, and expiry beneath one.
+    Crate of Debris ("adjacent open tile") is the precedent for creation; expiry has none. *(r)*
+24. **Crew Cover scope** — basic attacks only, as shipped. *(r)*
+25. **`--seed` is inert**: nothing in `Faultline.Core` constructs or consumes an `IRng` inside a
+    fight. Blocks F4, makes card-distribution sweeps unfalsifiable, and is why the Camp 1
+    *finding* was never established (the ruling survives as authored intent). *(r)*
+26. **Deep Forge** is referenced by the tier ruling; confirm it is furniture in x's §8.5. *(r)*
+27. **Interpose's consent prompt** may be more friction than a 1 AP action is worth. Measure. *(r)*
 
 # 15 · Naming
 
