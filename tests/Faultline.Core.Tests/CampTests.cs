@@ -246,6 +246,73 @@ public class CampTests
         Assert.Equal(RunPhase.Complete, step.NewState.Phase);
     }
 
+    [Fact]
+    public void AnActWonEndToEnd_HandsOutTwoCardsPerCamp_AndTheCountIsPinned()
+    {
+        // THE NUMBER. Act 1's shortest route plays four combat nodes, so it holds four camps. Under
+        // D-154 that was four cards for the whole flock and a player could be dealt none of them;
+        // under D-247 it is EIGHT — two per camp, one per player, every camp.
+        int camps = 0;
+        int cards = 0;
+        var perPlayer = new Dictionary<Team, int> { [Team.PlayerA] = 0, [Team.PlayerB] = 0 };
+
+        var run = MapFixture.Start(4242);
+        int guard = 0;
+
+        while (run.Phase != RunPhase.Complete && guard++ < 400)
+        {
+            if (run.Phase == RunPhase.AtCamp)
+            {
+                var table = Camp.Draw(run);
+                camps++;
+
+                foreach (var seat in table.Seats)
+                {
+                    var step = Campaign.ApplyRun(run, new CampPickCommand(table, seat.Player, 0));
+                    foreach (var line in step.All<CampTaken>())
+                    {
+                        cards++;
+                        perPlayer[line.Player]++;
+                    }
+
+                    run = step.NewState;
+                }
+
+                continue;
+            }
+
+            if (run.Phase == RunPhase.AtVote)
+            {
+                run = Campaign.ApplyRun(run, VoteCommand.Agreed(run.Doors()[0])).NewState;
+                continue;
+            }
+
+            if (run.Phase == RunPhase.AtNode)
+            {
+                run = MapFixture.Enter(run);
+                continue;
+            }
+
+            if (run.Phase == RunPhase.InFight)
+            {
+                run = RunFixture.EndFightInAWin(run).NewState;
+                continue;
+            }
+
+            run = Campaign.ApplyRun(run, Campaign.LegalRunCommands(run)[0]).NewState;
+        }
+
+        Assert.Equal(RunOutcome.Won, run.Outcome);
+        Assert.Equal(4, camps);
+        Assert.Equal(8, cards);
+        Assert.Equal(camps * 2, cards);
+
+        // And the halves are even, which is the whole ruling: neither player watches the other's
+        // ducks improve.
+        Assert.Equal(camps, perPlayer[Team.PlayerA]);
+        Assert.Equal(camps, perPlayer[Team.PlayerB]);
+    }
+
     // ---- the draw -----------------------------------------------------------------------------------
 
     [Fact]

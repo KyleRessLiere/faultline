@@ -237,13 +237,14 @@ in this file when the question comes back.
 | D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | 2026-08-07 |  |
 | D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | 2026-08-07 |  |
 | D-246 | [One folder per sitting, and the filename check stays as strict as it was.](#d-246-one-folder-per-sitting-and-the-filename-check-stays-as-strict-as-it-was) | 2026-08-07 |  |
-| D-247 | [Every player picks at every camp, and §8.6's director rows are restated about two tables.](#d-247-every-player-picks-at-every-camp-and-86s-director-rows-are-restated-about-two-tables) | unreleased |  |
-| D-248 | [MY CALL, cheaply reversible: "never two consumables paired" is per table, not per camp.](#d-248-my-call-cheaply-reversible-never-two-consumables-paired-is-per-table-not-per-camp) | unreleased |  |
-| D-249 | [MY CALL, cheaply reversible: the ownership-fairness row dissolves, its guarantee is promoted to an invariant, and LastPickOwner / PreviousPickOwner are deleted.](#d-249-my-call-cheaply-reversible-the-ownership-fairness-row-dissolves-its-guarantee-is-promoted-to-an-invariant-and-lastpickowner--previouspickowner-are-deleted) | unreleased |  |
-| D-250 | [MY CALL, cheaply reversible: the rarity roll is per card, which is what shipped.](#d-250-my-call-cheaply-reversible-the-rarity-roll-is-per-card-which-is-what-shipped) | unreleased |  |
-| D-251 | [A camp with an unspent table has no completion path, because a pick does nothing until the camp resolves.](#d-251-a-camp-with-an-unspent-table-has-no-completion-path-because-a-pick-does-nothing-until-the-camp-resolves) | unreleased |  |
+| D-247 | [Every player picks at every camp, and §8.6's director rows are restated about two tables.](#d-247-every-player-picks-at-every-camp-and-86s-director-rows-are-restated-about-two-tables) | 2026-08-08 |  |
+| D-248 | [MY CALL, cheaply reversible: "never two consumables paired" is per table, not per camp.](#d-248-my-call-cheaply-reversible-never-two-consumables-paired-is-per-table-not-per-camp) | 2026-08-08 |  |
+| D-249 | [MY CALL, cheaply reversible: the ownership-fairness row dissolves, its guarantee is promoted to an invariant, and LastPickOwner / PreviousPickOwner are deleted.](#d-249-my-call-cheaply-reversible-the-ownership-fairness-row-dissolves-its-guarantee-is-promoted-to-an-invariant-and-lastpickowner--previouspickowner-are-deleted) | 2026-08-08 |  |
+| D-250 | [MY CALL, cheaply reversible: the rarity roll is per card, which is what shipped.](#d-250-my-call-cheaply-reversible-the-rarity-roll-is-per-card-which-is-what-shipped) | 2026-08-08 |  |
+| D-251 | [A camp with an unspent table has no completion path, because a pick does nothing until the camp resolves.](#d-251-a-camp-with-an-unspent-table-has-no-completion-path-because-a-pick-does-nothing-until-the-camp-resolves) | 2026-08-08 |  |
+| D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | unreleased |  |
 
-**223 rulings.**
+**224 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6203,3 +6204,39 @@ field - there is no reflective coverage of run commands at all. What catches it 
 `CampTests.ARunWithCampsInItsLog_ReplaysToAnIdenticalStateAndHash`, which replays a whole run's run
 command log and compares state and hash, and `StateEqualityCoverageTests`, which fails when a
 `RunState` field is not read by `Equals`.
+
+---
+
+**D-252 - FOUND while building D-247: camp 1's floor now lets a player decline their engine starter,
+and the count is written down before it moves again.**
+
+The last time the camp's contract moved it silently took Act 1's card count with it, so this records
+what D-247 changed about the numbers rather than leaving it to be rediscovered.
+
+**Act 1's card count: 4 → 8.** Act 1's shortest route plays four combat nodes and therefore holds four
+camps. Under D-154 that was **four cards for the whole flock**, and a player could be dealt none of
+them. Under D-247 it is **eight - four each**, pinned by
+`CampTests.AnActWonEndToEnd_HandsOutTwoCardsPerCamp_AndTheCountIsPinned`, which plays the act out and
+counts the `CampTaken` lines rather than reasoning about the director.
+
+**Camp 1's floor is weaker than D-154's, and deliberately so.** §8.6's row is "two engine starters",
+which over one table meant **both** cards were technique modifiers and a flock could not fail to start
+an engine. D-247 restates it as "one engine starter per player", which is one card of two per table -
+so a player may now take the other card and start no engine at all. On seed 1 that is exactly what
+happens: Player B is dealt *Spotter | Greased Feather* and the pick-1 half of the acceptance takes
+Greased Feather.
+
+**This is the reading the ruling asked for** ("the Camp 1 floor gets simpler, not harder"), and the
+harder reading is one line away: narrowing the **second** card of each camp-1 table to an engine
+starter as well would restore "you cannot leave camp 1 without one" at the cost of four technique
+cards per camp instead of two. **Held, not refused - the trigger is the designer saying which they
+want**, because "can a player refuse the engine" is a game-feel question and not an implementation
+one.
+
+**Also found, and pre-existing:** `RunHarness.Play` still crashes on the first won fight
+(`ArgumentNullException` in `Game.NextEnemyCommand`, a null board at `RunPhase.AtCamp`). Confirmed
+identical at `3eb2e6a`, the commit before this stage, so it is **not** two-table fallout - it is the
+defect `CampInstrumentation`'s own remarks already name, and the reason that runner exists. The
+standing-three harness sweep cannot be run until `RunHarness` answers camps and votes the way
+`CampInstrumentation` does. Not fixed here: it is a tool, it is outside the stage, and folding it in
+would grow the diff to escape a blocker.

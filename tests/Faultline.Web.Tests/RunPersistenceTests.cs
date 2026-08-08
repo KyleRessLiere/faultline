@@ -395,6 +395,73 @@ public sealed class RunPersistenceTests
 
         Assert.Contains("at-camp: yes\n", text);
         Assert.Equal(RunPhase.AtCamp, RunSave.Parse(text)!.Restore().Phase);
+
+        // No picks yet, so no line: a camp nobody has picked at writes nothing rather than an empty
+        // key that a parser would have to decide what to do with.
+        Assert.DoesNotContain("camp-picks:", text);
+    }
+
+    /// <summary>
+    /// <b>A camp with one table spent is a state, and the save carries it.</b> Every player picks at
+    /// every camp (D-247), so the run really does sit between the two picks — and D-125, D-127,
+    /// D-222, D-231 and D-234 are five shipped bugs where Core grew a state and this record dropped
+    /// it. The round trip is played into, not constructed: the fight is won and the first pick is
+    /// actually taken.
+    /// </summary>
+    [Fact]
+    public async Task AHalfPickedCampIsWrittenDown_SoAReloadStillOwesTheOtherPlayerAPick()
+    {
+        var storage = new FakeJsRuntime();
+        var session = new RunSession(new RunStore(new FightFiles(storage)), new GameSession());
+        await session.StartAsync(Seed, CampaignLibrary.Act1Id);
+
+        Assert.Equal(FightOutcome.Won, CampPlayer.PlayCurrentFight(session));
+        Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
+
+        var table = session.Camp!;
+        session.PickCamp(Team.PlayerA, 1);
+        Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
+
+        var text = RunSave.Of("0000000000000000005", session.State).Render();
+        Assert.Contains("camp-picks: PlayerA:1\n", text);
+
+        var reloaded = RunSave.Parse(text)!.Restore();
+
+        Assert.Equal(RunPhase.AtCamp, reloaded.Phase);
+        Assert.Equal(table, Camp.Draw(reloaded));
+        Assert.True(Camp.HasPicked(reloaded, Team.PlayerA));
+        Assert.False(Camp.HasPicked(reloaded, Team.PlayerB));
+
+        // Only Player B is still owed a pick, and finishing from the reload hands out BOTH cards —
+        // a save that dropped the line would have given Player A's away for nothing.
+        var legal = Campaign.LegalRunCommands(reloaded);
+        Assert.NotEmpty(legal);
+        Assert.All(legal, c => Assert.Equal(Team.PlayerB, Assert.IsType<CampPickCommand>(c).Player));
+
+        var done = Campaign.ApplyRun(reloaded, legal[0]).NewState;
+
+        Assert.NotEqual(RunPhase.AtCamp, done.Phase);
+        Assert.False(done.FindUnit(table.For(Team.PlayerA)[1].Duck)!.Loadout.IsEmpty);
+        Assert.False(done.FindUnit(table.For(Team.PlayerB)[0].Duck)!.Loadout.IsEmpty);
+    }
+
+    /// <summary>
+    /// A save written before camps took a pick each still loads. Its <c>last-pick:</c> and
+    /// <c>previous-pick:</c> keys fed §8.6's ownership-fairness row, which dissolved (D-249); the
+    /// parser reads by key, so their presence costs nothing and their absence is not an error.
+    /// </summary>
+    [Fact]
+    public void AnOlderSaveCarryingTheRetiredFairnessKeys_StillLoads()
+    {
+        var run = Campaign.Start(CampaignLibrary.Act1, Seed).NewState;
+        var text = RunSave.Of("0000000000000000006", run).Render()
+            + "last-pick: PlayerA\nprevious-pick: PlayerA\n";
+
+        var parsed = RunSave.Parse(text);
+
+        Assert.NotNull(parsed);
+        Assert.Empty(parsed!.CampPicks);
+        Assert.Equal(run, parsed.Restore());
     }
 
     /// <summary>A map run's position is its route, and the route makes the trip whole and in order.</summary>
