@@ -2011,6 +2011,11 @@ filling it is learning rather than replacing. The surgery runs through Core's ow
 ability it hosts on, so the Archer is offered Spotter and the Vanguard is not. Each card shows its
 host and its summary.
 
+**Every board's card carries a Loadout dropdown**, so a saved build is chosen and played without the
+editor being opened at all — the editor is for *building* one, the dropdown for *using* one. Each
+option says how many of that board's ducks the build fits, and a build that fits none is offered
+disabled rather than silently doing nothing. "The board's own" puts it back.
+
 **Builds can be saved and reused across boards, and a saved build covers the whole party** — the
 ducks nobody edited included, so reapplying it puts the whole squad back rather than leaving the
 untouched ones on whatever the last build gave them. A saved build is keyed by **class**, not by

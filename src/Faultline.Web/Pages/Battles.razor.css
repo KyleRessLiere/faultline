@@ -240,6 +240,28 @@ code {
     margin-bottom: .25rem;
 }
 
+/* Pick-and-play, on the card. The editor builds a loadout; this uses one, and reaching a build you
+   already made should not cost four clicks and a modal. */
+.bench-bar {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: .5rem 0 0;
+}
+
+.bench-pick {
+    display: flex;
+    flex: 1 1 12rem;
+    flex-direction: column;
+    font-size: .68rem;
+    gap: .15rem;
+    min-width: 0;
+    opacity: .85;
+}
+
+.bench-pick select { min-width: 0; width: 100%; }
+
 /* The test bench: internal builds only. Deliberately plain and slightly set apart from the card it
    hangs under — it is a workshop control, not part of the game's furniture, and it should not read
    as something a player is meant to find. */

@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject GameSession Session
 @inject CustomFightStore Store
+@inject LoadoutStore Loadouts
 @inject RunSession Runs
 @inject NavigationManager Nav
 
@@ -166,6 +167,9 @@
         await Runs.LoadAsync();
         Group();
         await Store.LoadAsync();
+
+        // The picker offers saved builds on every card, so it needs them read before it draws.
+        await Loadouts.LoadAsync();
     }
 
     /// <summary>
@@ -335,14 +339,39 @@
                with the game (§7.5). *@
             @if (DevBuild.ShowDevTools && fight is not null)
             {
-                <button type="button" class="action secondary bench-open"
-                        @onclick="() => OpenBench(fight.Id)">
-                    Test loadout
-                    @if (bench.IsCustom)
-                    {
-                        <span class="tag custom">edited</span>
-                    }
-                </button>
+                <div class="bench-bar">
+                    @* Pick a saved build and play it, without opening the editor at all. The editor
+                       is for BUILDING one; this is for USING one, and needing four clicks and a
+                       modal to reach a build you already made was the friction worth removing. *@
+                    <label class="bench-pick">
+                        Loadout
+                        <select @onchange="e => PickLoadout(fight, e)">
+                            <option value="" selected="@(Chosen(fight.Id) is null)">
+                                @(bench.IsCustom ? "— edited on this board —" : "— the board's own —")
+                            </option>
+                            @foreach (var saved in Loadouts.Items)
+                            {
+                                var fits = saved.Preset.MatchingSlots(fight);
+
+                                <option value="@saved.Id"
+                                        selected="@(Chosen(fight.Id) == saved.Id)"
+                                        disabled="@(fits == 0)">
+                                    @(saved.Preset.Name.Length > 0 ? saved.Preset.Name : saved.Id)
+                                    @(fits == 0 ? " — fits nothing here" : $" — {fits} duck(s)")
+                                </option>
+                            }
+                        </select>
+                    </label>
+
+                    <button type="button" class="action secondary bench-open"
+                            @onclick="() => OpenBench(fight.Id)">
+                        Edit loadout
+                        @if (bench.IsCustom)
+                        {
+                            <span class="tag custom">edited</span>
+                        }
+                    </button>
+                </div>
             }
 
             <footer>
@@ -448,6 +477,42 @@
     /// kept every card's "edited" tag lit as soon as any one of them was touched.
     /// </remarks>
     private readonly Dictionary<string, TestLoadout> _benches = new();
+
+    /// <summary>Which saved build each board is set to, by fight id.</summary>
+    /// <remarks>
+    /// Tracked so the dropdown can show what is selected. It is not the source of truth — the BENCH
+    /// is, because the editor may have been opened and tweaked afterwards. Picking a build applies
+    /// it to the bench and Play reads the bench, so there is one path into a fight whichever way a
+    /// build got there.
+    /// </remarks>
+    private readonly Dictionary<string, string> _chosen = new();
+
+    private string? Chosen(string id) => _chosen.TryGetValue(id, out var pick) ? pick : null;
+
+    /// <summary>
+    /// Applies a saved build to a board, or puts the board back to its own when none is picked.
+    /// </summary>
+    private void PickLoadout(FightDefinition fight, ChangeEventArgs e)
+    {
+        var id = e.Value?.ToString();
+        var bench = Bench(fight.Id);
+
+        if (string.IsNullOrEmpty(id))
+        {
+            _chosen.Remove(fight.Id);
+            bench.Reset();
+            return;
+        }
+
+        var saved = Loadouts.Items.FirstOrDefault(i => i.Id == id);
+        if (saved is null)
+        {
+            return;
+        }
+
+        _chosen[fight.Id] = id!;
+        saved.Preset.ApplyTo(bench, fight);
+    }
 
     /// <summary>That board's bench, created on first ask.</summary>
     private TestLoadout Bench(string id)
