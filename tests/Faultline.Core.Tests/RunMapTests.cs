@@ -228,8 +228,7 @@ public class RunMapTests
             atVote: false,
             atCamp: false,
             campsHeld: run.CampsHeld,
-            lastPickOwner: run.LastPickOwner,
-            previousPickOwner: run.PreviousPickOwner);
+            campPicks: run.CampPicks);
 
         Assert.Equal(run.MapState, restored.MapState);
         Assert.Equal("c4-high-road", MapFixture.Where(restored));

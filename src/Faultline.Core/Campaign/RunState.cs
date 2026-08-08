@@ -77,29 +77,35 @@ namespace Faultline.Core
         public int RngState { get; init; }
 
         /// <summary>
-        /// How many camps this run has already resolved. The camp director's row selector
+        /// How many camps this run has already <em>resolved</em>. The camp director's row selector
         /// (MASTER_DESIGN §8.6): camp 1 deals engine starters, camp 2 a connector, and so on.
         /// </summary>
+        /// <remarks>
+        /// Incremented once when a camp closes, not once per pick: a camp with one table spent has not
+        /// been held yet, and the count is what selects the row the <em>other</em> table is dealt on.
+        /// </remarks>
         public int CampsHeld { get; init; }
 
-        /// <summary>Which player's duck took the most recent camp card, or <c>null</c> before the first.</summary>
-        /// <remarks>
-        /// Two scalars rather than a list of owners, for the reason <see cref="Unit.DisplacedBy"/> is
-        /// two scalars: a list on a state with hand-written equality is a replay bug waiting to be
-        /// written. Two is all §8.6's fairness row asks about — "if the last two picks went to one
-        /// player's ducks".
-        /// </remarks>
-        public Team? LastPickOwner { get; init; }
-
-        /// <summary>Which player's duck took the camp card before that, or <c>null</c>.</summary>
-        public Team? PreviousPickOwner { get; init; }
-
         /// <summary>
-        /// True when both of the last two camp cards went to the same player, which is the condition
-        /// §8.6's ownership-fairness row fires on.
+        /// The picks taken so far at the camp the run is standing at, in the order they were taken.
+        /// Empty everywhere else.
         /// </summary>
-        public bool OwnershipIsLopsided =>
-            LastPickOwner is { } last && PreviousPickOwner is { } previous && last == previous;
+        /// <remarks>
+        /// <para>
+        /// <b>This is what makes "both tables spent" construction rather than a guard.</b> A pick is
+        /// recorded here and applied nowhere; the cards land on ducks only when the camp closes, and
+        /// the camp closes only when <see cref="Camp.LegalPicks"/> — generated from the seats absent
+        /// from this list — is empty. A half-picked camp is therefore a real state, so
+        /// <c>RunSave</c> carries it and <see cref="Campaign.Restore"/> takes it (D-251).
+        /// </para>
+        /// <para>
+        /// It supersedes <c>LastPickOwner</c> / <c>PreviousPickOwner</c>, which existed only for
+        /// §8.6's ownership-fairness row. That row's trigger is unreachable once both players pick at
+        /// every camp, and its guarantee is free, so the row dissolved and the fields came off rather
+        /// than staying on a hand-written equality as state nobody reads (D-249).
+        /// </para>
+        /// </remarks>
+        public IReadOnlyList<CampPick> CampPicks { get; init; } = Array.Empty<CampPick>();
 
         /// <summary>The act map being walked, or <c>null</c> when the campaign is a linear list.</summary>
         public ActMap? Map => Campaign.Map;
@@ -200,8 +206,7 @@ namespace Faultline.Core
                 || FightsWon != other.FightsWon
                 || RngState != other.RngState
                 || CampsHeld != other.CampsHeld
-                || LastPickOwner != other.LastPickOwner
-                || PreviousPickOwner != other.PreviousPickOwner
+                || CampPicks.Count != other.CampPicks.Count
                 || !Equals(MapState, other.MapState)
                 || !string.Equals(Campaign.Id, other.Campaign.Id, StringComparison.Ordinal)
                 || Campaign.Length != other.Campaign.Length
@@ -227,6 +232,14 @@ namespace Faultline.Core
                 }
             }
 
+            for (int i = 0; i < CampPicks.Count; i++)
+            {
+                if (!CampPicks[i].Equals(other.CampPicks[i]))
+                {
+                    return false;
+                }
+            }
+
             if (Fight is null)
             {
                 return other.Fight is null;
@@ -247,8 +260,11 @@ namespace Faultline.Core
                 hash = (hash * 31) + FightsWon;
                 hash = (hash * 31) + RngState;
                 hash = (hash * 31) + CampsHeld;
-                hash = (hash * 31) + (LastPickOwner.HasValue ? (int)LastPickOwner.Value + 1 : 0);
-                hash = (hash * 31) + (PreviousPickOwner.HasValue ? (int)PreviousPickOwner.Value + 1 : 0);
+                foreach (var pick in CampPicks)
+                {
+                    hash = (hash * 31) + pick.GetHashCode();
+                }
+
                 hash = (hash * 31) + (MapState?.GetHashCode() ?? 0);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Campaign.Id);
                 hash = (hash * 31) + Campaign.Length;

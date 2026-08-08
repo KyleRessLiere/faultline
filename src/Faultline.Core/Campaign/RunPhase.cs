@@ -28,10 +28,12 @@ namespace Faultline.Core
         AtChoice = 4,
 
         /// <summary>
-        /// At a Camp: a fight was won, both players have been dealt 1 of 2, and the only legal
-        /// commands are <see cref="CampPickCommand"/>s — both picks at once, simultaneous and
-        /// independent (MASTER_DESIGN §8.5). There is no skip on the list, because declining a reward
-        /// is not a decision. The camp sits on the run seam, ahead of the next vote.
+        /// At a Camp: a fight was won, both players have been dealt a table of two, and the only legal
+        /// commands are <see cref="CampPickCommand"/>s — one per player, in either order, neither
+        /// waiting on the other (MASTER_DESIGN §8.5, D-247). There is no skip on the list, because
+        /// declining a reward is not a decision. The run stays in this phase until no table is left to
+        /// pick from, which is what makes a camp resolving on one selection impossible rather than
+        /// merely checked (D-251). The camp sits on the run seam, ahead of the next vote.
         /// </summary>
         AtCamp = 5,
 

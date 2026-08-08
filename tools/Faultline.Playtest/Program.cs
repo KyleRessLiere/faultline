@@ -86,8 +86,11 @@ if (args.Length > 0 && args[0] == "--camp-offers")
             string label = chosenPolicy.Name + "-seed" + campSeed.ToString(CultureInfo.InvariantCulture)
                 + "-pick" + pick.ToString(CultureInfo.InvariantCulture);
 
+            // Rows, not camps: a camp deals a table per player and writes one row each (D-247).
             Console.WriteLine(
-                label + ": " + records.Count + " camps, ended " + final.Outcome + " — " + reason);
+                label + ": " + records.Count + " tables over "
+                + records.Select(r => r.Camp).Distinct().Count() + " camps, ended "
+                + final.Outcome + " — " + reason);
 
             foreach (var record in records)
             {

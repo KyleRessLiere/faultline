@@ -230,16 +230,16 @@ public class StateEqualityCoverageTests
                 ["RngState"] = s => s with { RngState = s.RngState + 1 },
                 ["MapState"] = s => s with { MapState = MapState.At("c1-first-contact") },
 
-                // §8.6's offer director reads all three: which camp this is, and whose ducks the
-                // last two cards went to. A run that replayed without them would be dealt a
-                // different table (D-154).
+                // §8.6's offer director reads which camp this is, and a run that replayed without it
+                // would be dealt a different table.
                 ["CampsHeld"] = s => s with { CampsHeld = s.CampsHeld + 1 },
-                ["LastPickOwner"] = s => s with { LastPickOwner = Team.PlayerB },
-                ["PreviousPickOwner"] = s => s with { PreviousPickOwner = Team.PlayerB },
-                ["OwnershipIsLopsided"] = s => s with
+
+                // And which tables have already been picked from at the camp the run is standing at.
+                // Two runs differing only in that are at two different camps — one player still owes
+                // a pick in one of them and nobody does in the other (D-251).
+                ["CampPicks"] = s => s with
                 {
-                    LastPickOwner = Team.PlayerA,
-                    PreviousPickOwner = Team.PlayerA,
+                    CampPicks = new[] { new CampPick(Team.PlayerA, 1) },
                 },
             };
 

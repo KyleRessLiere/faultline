@@ -5,79 +5,156 @@ using Faultline.Core;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The camp offer director (MASTER_DESIGN §8.6): the six rows this stage builds, each asserted on
-/// the table the seed actually deals rather than on the code that deals it.
+/// The camp offer director (MASTER_DESIGN §8.6), as D-247 restates its rows about <b>two tables of
+/// two, one pick each</b> — each asserted on the tables the seed actually deals rather than on the
+/// code that deals them.
 /// </summary>
 /// <remarks>
-/// Swept across seeds wherever the row is a statement about the pool: "camp 1 deals two engine
-/// starters on different classes" is a claim about every camp 1 there is, and a single deal proves
-/// nothing about it.
+/// Swept across seeds wherever the row is a statement about the pool: "camp 1 deals one engine
+/// starter per player on different classes" is a claim about every camp 1 there is, and a single
+/// deal proves nothing about it.
 /// </remarks>
 public class CampDirectorTests
 {
     private const int Seeds = 40;
 
-    // ---- camp 1: two engine starters, different classes, preferably different players ------------
+    private static readonly Team[] Sides = { Team.PlayerA, Team.PlayerB };
+
+    // ---- every player gets a table ----------------------------------------------------------------
 
     [Fact]
-    public void CampOne_DealsTwoEngineStarters_OnDifferentClasses()
+    public void EveryCamp_DealsATableOfTwoToEveryPlayerWithAnAvailableDuck()
     {
+        // §8.6's ownership-fairness row dissolved into this (D-249): the row's guarantee is now
+        // structural, and it is asserted on every camp of every seed rather than fired after the
+        // damage. It is also I2's "suppression never reduces a table to one", swept.
         for (int seed = 1; seed <= Seeds; seed++)
         {
-            var run = Fresh(seed);
-            var table = Camp.Draw(run);
-
-            Assert.Equal(CampDirector.CardsPerCamp, table.Offers.Count);
-            Assert.All(table.Offers, o => Assert.True(
-                CampDirector.IsEngineStarter(o),
-                "Camp 1 at seed " + seed + " dealt " + o + ", which is not an engine starter."));
-
-            var kinds = table.Offers.Select(o => run.FindUnit(o.Duck)!.Kind).Distinct().ToList();
-            Assert.True(kinds.Count == 2, "Camp 1 at seed " + seed + " dealt two cards on one class.");
-        }
-    }
-
-    [Fact]
-    public void CampOne_PrefersTwoDifferentPlayers_AndSaysSoWhenItBound()
-    {
-        // "Preferably", so this is a tendency and not a law — but a preference that never binds is
-        // not implemented. The proof log is what makes the difference visible.
-        int bothPlayers = 0;
-
-        for (int seed = 1; seed <= Seeds; seed++)
-        {
-            var run = Fresh(seed);
-            var table = Camp.Draw(run);
-
-            var owners = table.Offers.Select(o => CampDirector.OwnerOf(run, o)).Distinct().Count();
-            if (owners == 2)
+            for (int camp = 0; camp < 6; camp++)
             {
-                bothPlayers++;
+                var run = Fresh(seed) with { CampsHeld = camp };
+                var table = Camp.Draw(run);
+
+                foreach (var player in Sides)
+                {
+                    Assert.True(
+                        Camp.DucksFor(run, player).Count > 0,
+                        "Seed " + seed + " has no available duck for " + player + ".");
+
+                    Assert.Equal(CampDirector.CardsPerTable, table.For(player).Count);
+
+                    // And every card on a table is for one of that player's own ducks.
+                    Assert.All(
+                        table.For(player),
+                        o => Assert.Equal(player, CampDirector.OwnerOf(run, o)));
+                }
             }
         }
-
-        Assert.True(
-            bothPlayers > Seeds / 2,
-            "Camp 1 spanned both players only " + bothPlayers + " times in " + Seeds + " seeds.");
     }
 
-    // ---- later camps: at least one connector to an owned tag -------------------------------------
+    [Fact]
+    public void SuppressionNeverReducesATableToOne_EvenWithADucksSlotsAndPocketFull()
+    {
+        // I2's full-pocket / full-slot rule, per table. A duck whose spender is full contributes no
+        // mods and one whose pocket is full contributes no one-shots (D-194), and under two tables
+        // that suppression falls on ONE player's pool rather than on a shared one — so this is where
+        // a table could quietly shrink to a single card if the pool were not deep enough.
+        for (int seed = 1; seed <= Seeds; seed++)
+        {
+            var run = Fresh(seed) with { CampsHeld = 2 };
+            var vanguard = run.Squad.Single(u => u.Kind == UnitKind.Vanguard);
+
+            run = run.WithUnit(vanguard with
+            {
+                Loadout = DuckLoadout.Empty
+                    .With(Mod.Heavier).With(Mod.Freight).With(Mod.Echo)
+                    .WithPocket(Consumable.DriedMinnow),
+            });
+
+            var loaded = run.FindUnit(vanguard.Id)!;
+            Assert.True(Kits.SlotIsFull(loaded.Loadout, KitEntry.WreckingWeight));
+            Assert.DoesNotContain(
+                CampCatalogue.EligibleFor(loaded), o => o.Category == OfferCategory.Mod);
+            Assert.DoesNotContain(
+                CampCatalogue.EligibleFor(loaded), o => o.Category == OfferCategory.Consumable);
+
+            var table = Camp.Draw(run);
+            var owner = DefaultTeams.SideFor(UnitKind.Vanguard)!.Value;
+
+            Assert.Equal(CampDirector.CardsPerTable, table.For(owner).Count);
+            Assert.Equal(CampDirector.CardsPerTable, table.For(owner.OtherPlayer()).Count);
+        }
+    }
+
+    // ---- camp 1: one engine starter per player, different classes --------------------------------
 
     [Fact]
-    public void ALaterCamp_OffersACardConnectingToATagTheSquadOwns()
+    public void CampOne_DealsOneEngineStarterPerPlayer_OnDifferentClasses()
     {
-        // Owning Rattling Impact is owning IMPACT and RELAY. A camp after that has to put at least
-        // one card wearing one of them on the table, whenever the pool still holds one.
+        for (int seed = 1; seed <= Seeds; seed++)
+        {
+            var run = Fresh(seed);
+            var table = Camp.Draw(run);
+
+            var starters = new List<CampOffer>();
+
+            foreach (var player in Sides)
+            {
+                var mine = table.For(player);
+                Assert.Equal(CampDirector.CardsPerTable, mine.Count);
+
+                var engine = mine.Where(CampDirector.IsEngineStarter).ToList();
+                Assert.True(
+                    engine.Count > 0,
+                    "Camp 1 at seed " + seed + " dealt " + player + " no engine starter: " + table + ".");
+
+                starters.Add(engine[0]);
+            }
+
+            var kinds = starters.Select(o => run.FindUnit(o.Duck)!.Kind).Distinct().ToList();
+            Assert.True(
+                kinds.Count == starters.Count,
+                "Camp 1 at seed " + seed + " guaranteed two engine starters on one class.");
+        }
+    }
+
+    [Fact]
+    public void CampOne_SpansBothPlayersByConstruction_SoThePreferenceIsGone()
+    {
+        // §8.6's "preferably different players" is deleted as a constraint and kept as a structure
+        // (D-247): a table belongs to a player, so this holds at every seed rather than most of them.
+        for (int seed = 1; seed <= Seeds; seed++)
+        {
+            var table = Camp.Draw(Fresh(seed));
+
+            Assert.Equal(2, table.Seats.Count);
+            Assert.Equal(Sides, table.Seats.Select(s => s.Player).ToArray());
+        }
+    }
+
+    // ---- later camps: at least one connector to a tag THIS player owns ---------------------------
+
+    [Fact]
+    public void ALaterCamp_OffersEachPlayerACardConnectingToATagTheyOwn()
+    {
+        // Owning Rattling Impact is owning IMPACT and RELAY. The row is keyed to the player's OWN
+        // ducks' tags since the camp deals a table each (D-247), so the Vanguard's tags oblige Player
+        // A's table and say nothing about Player B's.
         for (int seed = 1; seed <= Seeds; seed++)
         {
             var run = WithTechnique(Fresh(seed), UnitKind.Vanguard, TechniqueModifier.RattlingImpact);
             run = run with { CampsHeld = 1 };
 
-            var owned = CampDirector.OwnedTags(run);
+            var owner = DefaultTeams.SideFor(UnitKind.Vanguard)!.Value;
+            var owned = CampDirector.OwnedTagsFor(run, owner);
             Assert.NotEqual(TechniqueTag.None, owned);
 
+            // And it is that player's tags, not the squad's: the other flock owns nothing yet.
+            Assert.Equal(TechniqueTag.None, CampDirector.OwnedTagsFor(run, owner.OtherPlayer()));
+
             var table = Camp.Draw(run);
-            bool anyConnectorInPool = CampDirector.Pool(run).Any(o => CampDirector.Connects(o, owned));
+            bool anyConnectorInPool =
+                CampDirector.PoolFor(run, owner).Any(o => CampDirector.Connects(o, owned));
 
             if (!anyConnectorInPool)
             {
@@ -85,22 +162,28 @@ public class CampDirectorTests
             }
 
             Assert.True(
-                table.Offers.Any(o => CampDirector.Connects(o, owned)),
-                "Camp 2 at seed " + seed + " offered no connector: " + table + ".");
+                table.For(owner).Any(o => CampDirector.Connects(o, owned)),
+                "Camp 2 at seed " + seed + " offered " + owner + " no connector: " + table + ".");
         }
     }
 
     [Fact]
-    public void ASquadThatOwnsNoTags_HasNothingToConnectTo_AndTheRowDoesNotFire()
+    public void APlayerWhoOwnsNoTags_HasNothingToConnectTo_AndTheRowDoesNotFire()
     {
         var run = Fresh(1) with { CampsHeld = 1 };
+        var table = Camp.Draw(run);
 
-        Assert.Equal(TechniqueTag.None, CampDirector.OwnedTags(run));
-        Assert.All(CampDirector.Pool(run), o => Assert.False(CampDirector.Connects(o, TechniqueTag.None)));
+        foreach (var player in Sides)
+        {
+            Assert.Equal(TechniqueTag.None, CampDirector.OwnedTagsFor(run, player));
+            Assert.All(
+                CampDirector.PoolFor(run, player),
+                o => Assert.False(CampDirector.Connects(o, TechniqueTag.None)));
 
-        // And it still deals two cards. A constraint nothing can satisfy steps aside rather than
-        // emptying the table.
-        Assert.Equal(CampDirector.CardsPerCamp, Camp.Draw(run).Offers.Count);
+            // And it still deals two cards. A constraint nothing can satisfy steps aside rather than
+            // emptying the table.
+            Assert.Equal(CampDirector.CardsPerTable, table.For(player).Count);
+        }
     }
 
     // ---- no named permanent twice in a run -------------------------------------------------------
@@ -122,85 +205,56 @@ public class CampDirectorTests
     }
 
     [Fact]
-    public void ATablesTwoCards_AreNeverTheSameNamedPermanent()
+    public void NoNamedPermanentAppearsTwice_ACROSS_BothTablesOfOneCamp()
     {
+        // D-247's first restated row. Under one table this was a claim about two cards; under two it
+        // is a claim about four, and the cross-table half is the part D-154 could not state.
         for (int seed = 1; seed <= Seeds; seed++)
         {
-            for (int camp = 0; camp < 4; camp++)
+            for (int camp = 0; camp < 6; camp++)
             {
                 var table = Camp.Draw(Fresh(seed) with { CampsHeld = camp });
-                if (table.Offers.Count < 2)
+                var all = table.Offers;
+
+                Assert.Equal(all.Count, all.Distinct().Count());
+
+                for (int i = 0; i < all.Count; i++)
                 {
-                    continue;
+                    for (int j = i + 1; j < all.Count; j++)
+                    {
+                        Assert.False(
+                            all[i].IsPermanent && all[j].IsPermanent
+                            && all[i].Category == all[j].Category && all[i].Value == all[j].Value,
+                            "Camp " + (camp + 1) + " at seed " + seed
+                            + " dealt the same permanent twice: " + table + ".");
+                    }
                 }
-
-                var a = table.Offers[0];
-                var b = table.Offers[1];
-
-                Assert.NotEqual(a, b);
-                Assert.False(
-                    a.IsPermanent && b.IsPermanent && a.Category == b.Category && a.Value == b.Value,
-                    "Camp " + (camp + 1) + " at seed " + seed + " dealt the same permanent twice.");
             }
         }
     }
 
-    // ---- never two consumables paired ------------------------------------------------------------
+    // ---- never two consumables paired — per table (D-248) ----------------------------------------
 
     [Fact]
-    public void ACampNeverPairsTwoConsumables()
+    public void NoTablePairsTwoConsumables_AndTheRowIsStatedPerTableNotPerCamp()
     {
+        // D-248 is my call: the row is about the decision in front of one player, which is now their
+        // own two cards. So "at most one per table" is asserted, and "at most one per camp" is not.
         for (int seed = 1; seed <= Seeds; seed++)
         {
             for (int camp = 0; camp < 6; camp++)
             {
                 var table = Camp.Draw(Fresh(seed) with { CampsHeld = camp });
 
-                Assert.True(
-                    table.Offers.Count(o => o.Category == OfferCategory.Consumable) < 2,
-                    "Camp " + (camp + 1) + " at seed " + seed + " paired two consumables.");
-            }
-        }
-    }
-
-    // ---- ownership fairness across any three offers ----------------------------------------------
-
-    [Fact]
-    public void WhenTheLastTwoPicksWentToOnePlayer_TheNextTableHoldsACardForTheOther()
-    {
-        for (int seed = 1; seed <= Seeds; seed++)
-        {
-            foreach (var hogging in new[] { Team.PlayerA, Team.PlayerB })
-            {
-                var run = Fresh(seed) with
+                foreach (var seat in table.Seats)
                 {
-                    CampsHeld = 2,
-                    LastPickOwner = hogging,
-                    PreviousPickOwner = hogging,
-                };
-
-                Assert.True(run.OwnershipIsLopsided);
-
-                var owed = hogging.OtherPlayer();
-                var table = Camp.Draw(run);
-
-                Assert.Contains(table.Offers, o => CampDirector.OwnerOf(run, o) == owed);
+                    Assert.True(
+                        seat.Offers.Count(o => o.Category == OfferCategory.Consumable) < 2,
+                        "Camp " + (camp + 1) + " at seed " + seed + " paired two consumables on "
+                        + seat.Player + "'s table.");
+                }
             }
         }
-    }
-
-    [Fact]
-    public void TwoPicksToDifferentPlayers_IsNotLopsided_AndTheRowDoesNotFire()
-    {
-        var even = Fresh(1) with
-        {
-            CampsHeld = 2,
-            LastPickOwner = Team.PlayerA,
-            PreviousPickOwner = Team.PlayerB,
-        };
-
-        Assert.False(even.OwnershipIsLopsided);
-        Assert.DoesNotContain("ownership fairness", Camp.Draw(even).Bound);
     }
 
     // ---- rarity by node --------------------------------------------------------------------------
@@ -253,25 +307,73 @@ public class CampDirectorTests
     }
 
     [Fact]
-    public void TheProofLog_NamesTheConstraintsThatActuallyBound()
+    public void TheProofLog_NamesTheConstraintsThatActuallyBound_PerTableAndAcrossThem()
     {
         // The map generator is required to emit one (§8.5); the director emits the same thing. A
         // constraint that never appears here is a constraint that never narrowed anything.
-        var seen = new HashSet<string>();
+        var perTable = new HashSet<string>();
+        var acrossTables = new HashSet<string>();
 
         for (int seed = 1; seed <= Seeds; seed++)
         {
             for (int camp = 0; camp < 4; camp++)
             {
-                foreach (string name in Camp.Draw(Fresh(seed) with { CampsHeld = camp }).Bound)
+                var table = Camp.Draw(Fresh(seed) with { CampsHeld = camp });
+
+                foreach (string name in table.Bound)
                 {
-                    seen.Add(name);
+                    acrossTables.Add(name);
+                }
+
+                foreach (var seat in table.Seats)
+                {
+                    foreach (string name in seat.Bound)
+                    {
+                        perTable.Add(name);
+                    }
                 }
             }
         }
 
-        Assert.Contains("camp-1 engine starter", seen);
-        Assert.Contains("camp-1 different classes", seen);
+        // Per table, because these are sentences about one player's two cards (D-247).
+        Assert.Contains("camp-1 engine starter", perTable);
+        Assert.DoesNotContain("camp-1 engine starter", acrossTables);
+
+        // And across them, because "no named permanent twice" now spans the camp.
+        Assert.Contains("no duplicate named permanent in this camp", acrossTables);
+    }
+
+    [Fact]
+    public void CampOnesDifferentClassesRow_IsLiveButCannotBind_BecauseTheTwoFlocksShareNoClass()
+    {
+        // D-160 says a constraint that never narrows anything is decorative, and that the proof log
+        // is what makes the difference visible. This is one: DefaultTeams.SideFor is a total function
+        // from class to side, so Player A's ducks and Player B's are disjoint classes and the engine
+        // starter guaranteed to each can never be for the same one. The row stays in the director as
+        // a live guard on that mapping — it is asserted to be SILENT, not absent.
+        var kinds = new Dictionary<Team, HashSet<UnitKind>>
+        {
+            [Team.PlayerA] = new HashSet<UnitKind>(),
+            [Team.PlayerB] = new HashSet<UnitKind>(),
+        };
+
+        var start = Fresh(1);
+        foreach (var duck in start.Squad)
+        {
+            if (DefaultTeams.SideFor(duck.Kind) is { } side && kinds.ContainsKey(side))
+            {
+                kinds[side].Add(duck.Kind);
+            }
+        }
+
+        Assert.NotEmpty(kinds[Team.PlayerA]);
+        Assert.NotEmpty(kinds[Team.PlayerB]);
+        Assert.Empty(kinds[Team.PlayerA].Intersect(kinds[Team.PlayerB]));
+
+        for (int seed = 1; seed <= Seeds; seed++)
+        {
+            Assert.DoesNotContain("camp-1 different classes", Camp.Draw(Fresh(seed)).Bound);
+        }
     }
 
     // ---- fixtures --------------------------------------------------------------------------------

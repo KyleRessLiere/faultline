@@ -5,17 +5,23 @@ using Faultline.Core;
 namespace Faultline.Playtest;
 
 /// <summary>
-/// One camp offer, and everything the card taken off it went on to do.
+/// One camp <b>table</b>, and everything the card taken off it went on to do.
 /// </summary>
+/// <remarks>
+/// <b>One row per table, never one per camp.</b> A camp deals two tables of two and takes a pick from
+/// each (D-247), so collapsing them into a row would hide exactly the thing this stage exists to make
+/// visible — what each player was offered and what each player took. The <c>owner</c> column is the
+/// row's identity, not a decoration.
+/// </remarks>
 /// <param name="Camp">Which camp of the run this was, counting from 1.</param>
 /// <param name="NodeId">The map node the camp followed.</param>
 /// <param name="Lane">Safe or hungry, which is what priced the rarity roll.</param>
-/// <param name="CardA">The first card on the table.</param>
-/// <param name="CardB">The second card on the table.</param>
-/// <param name="Taken">The card taken.</param>
-/// <param name="Passed">The card left on the table.</param>
+/// <param name="CardA">The first card on this player's table.</param>
+/// <param name="CardB">The second card on this player's table.</param>
+/// <param name="Taken">The card taken off it.</param>
+/// <param name="Passed">The card left on it.</param>
 /// <param name="Recipient">The duck it went on.</param>
-/// <param name="Owner">The player who fields that duck.</param>
+/// <param name="Owner">The player whose table this row is.</param>
 /// <param name="Bound">Which of §8.6's rows narrowed the pool while this table was dealt.</param>
 public sealed record CampOfferRecord(
     int Camp,
@@ -149,25 +155,39 @@ public static class CampInstrumentation
             else if (run.Phase == RunPhase.AtCamp)
             {
                 var table = Camp.Draw(run);
-                int index = table.Offers.Count == 0
-                    ? CampPickCommand.NoPick
-                    : (pick < table.Offers.Count ? pick : table.Offers.Count - 1);
 
-                if (index >= 0)
+                if (table.Seats.Count == 0)
                 {
-                    var record = Record(run, table, index);
-                    records.Add(record);
-                    live.Add(new Live(record, table.Offers[index]));
+                    command = new CampPickCommand(table, Team.PlayerA, CampPickCommand.NoPick);
                 }
-
-                command = new CampPickCommand(table, index);
-
-                if (stopAfterCamps > 0 && records.Count >= stopAfterCamps)
+                else
                 {
-                    Campaign.ApplyRun(run, command);
-                    reason = "stopped after " + records.Count + " camps";
-                    run = Campaign.ApplyRun(run, command).NewState;
-                    break;
+                    // A camp does not resolve until BOTH tables are spent (D-247), so the camp is
+                    // taken here in one go rather than one command per loop iteration — and it writes
+                    // ONE ROW PER TABLE. The two are never collapsed: which player was offered what
+                    // is the whole question this instrument was built to answer.
+                    int camp = run.CampsHeld + 1;
+
+                    foreach (var seat in table.Seats)
+                    {
+                        int index = pick < seat.Offers.Count ? pick : seat.Offers.Count - 1;
+
+                        var record = Record(run, table, seat, index, camp);
+                        records.Add(record);
+                        live.Add(new Live(record, seat.Offers[index]));
+
+                        run = Campaign.ApplyRun(
+                            run, new CampPickCommand(table, seat.Player, index)).NewState;
+                        commands++;
+                    }
+
+                    if (stopAfterCamps > 0 && CampsIn(records) >= stopAfterCamps)
+                    {
+                        reason = "stopped after " + CampsIn(records) + " camps";
+                        break;
+                    }
+
+                    continue;
                 }
             }
             else if (run.Phase == RunPhase.AtVote)
@@ -262,23 +282,45 @@ public static class CampInstrumentation
         File.WriteAllText(path, text.ToString());
     }
 
-    private static CampOfferRecord Record(RunState run, CampTable table, int pick)
+    /// <summary>How many camps a run of records covers — two tables share one camp number.</summary>
+    private static int CampsIn(List<CampOfferRecord> records)
     {
-        var taken = table.Offers[pick];
-        var passed = table.Offers[pick == 0 ? table.Offers.Count - 1 : 0];
+        var seen = new HashSet<int>();
+        foreach (var record in records)
+        {
+            seen.Add(record.Camp);
+        }
+
+        return seen.Count;
+    }
+
+    /// <summary>
+    /// One row for one player's table. The cross-table rows travel on <see cref="CampTable.Bound"/>
+    /// and the per-table rows on <see cref="CampSeat.Bound"/>; both go in the row's <c>bound</c>
+    /// column, per-table first, because a reader of one row wants that table's reasons first.
+    /// </summary>
+    private static CampOfferRecord Record(
+        RunState run, CampTable table, CampSeat seat, int pick, int camp)
+    {
+        var offers = seat.Offers;
+        var taken = offers[pick];
+        var passed = offers[pick == 0 ? offers.Count - 1 : 0];
         var duck = run.FindUnit(taken.Duck);
 
+        var bound = new List<string>(seat.Bound);
+        bound.AddRange(table.Bound);
+
         return new CampOfferRecord(
-            run.CampsHeld + 1,
+            camp,
             run.CurrentMapNode?.Id ?? run.NodeIndex.ToString(CultureInfo.InvariantCulture),
             (run.CurrentMapNode?.Lane ?? MapLane.Neutral).ToString(),
-            table.Offers[0].Name,
-            table.Offers.Count > 1 ? table.Offers[1].Name : string.Empty,
+            offers[0].Name,
+            offers.Count > 1 ? offers[1].Name : string.Empty,
             taken.Name,
-            table.Offers.Count > 1 ? passed.Name : string.Empty,
+            offers.Count > 1 ? passed.Name : string.Empty,
             duck is null ? "?" : Naming.Of(duck.Kind),
-            CampDirector.OwnerOf(run, taken).ToString(),
-            string.Join("; ", table.Bound));
+            seat.Player.ToString(),
+            string.Join("; ", bound));
     }
 
     /// <summary>

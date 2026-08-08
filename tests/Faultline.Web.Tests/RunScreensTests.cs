@@ -142,10 +142,13 @@ public sealed class RunScreensTests
 
         var atCamp = Render<Faultline.Web.Pages.CampScreen>(session);
         Assert.Contains("class=\"panel camp\"", atCamp);
-        Assert.Equal(Camp.OffersPerCamp, Occurrences(atCamp, "class=\"offer "));
+        // Two tables of two, so four cards reach the screen (D-247).
+        Assert.Equal(Camp.OffersPerTable * 2, Occurrences(atCamp, "class=\"offer "));
 
-        // --- the pick, and the camp hands the run to the map ---
-        session.PickCamp(0);
+        // --- the picks, and the camp hands the run to the map ---
+        session.PickCamp(Team.PlayerA, 0);
+        Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
+        session.PickCamp(Team.PlayerB, 0);
 
         Assert.Null(session.Problem);
         Assert.Equal(RunPhase.AtVote, session.State!.Phase);
@@ -180,7 +183,8 @@ public sealed class RunScreensTests
         Assert.Contains("href=\"" + RunScreens.Camp + "\"", band);
         Assert.DoesNotContain("href=\"campaign\"", band);
 
-        session.PickCamp(0);
+        session.PickCamp(Team.PlayerA, 0);
+        session.PickCamp(Team.PlayerB, 0);
 
         band = RenderBand(session);
         Assert.Contains("href=\"" + RunScreens.Map + "\"", band);
@@ -467,7 +471,11 @@ public sealed class RunScreensTests
                     break;
 
                 case RunPhase.AtCamp:
-                    session.PickCamp(0);
+                    foreach (var seat in session.Camp!.Seats)
+                    {
+                        session.PickCamp(seat.Player, 0);
+                    }
+
                     break;
 
                 case RunPhase.AtChoice:

@@ -119,11 +119,23 @@ public sealed record RunSave
     /// </summary>
     public int CampsHeld { get; init; }
 
-    /// <summary>Which player took the last camp card, for §8.6's ownership-fairness row.</summary>
-    public Team? LastPickOwner { get; init; }
-
-    /// <summary>Which player took the one before that.</summary>
-    public Team? PreviousPickOwner { get; init; }
+    /// <summary>
+    /// The picks already taken at the camp the run was standing at, in order — empty everywhere else.
+    /// </summary>
+    /// <remarks>
+    /// <b>The sixth instance of one defect, caught before it shipped.</b> Every player picks at every
+    /// camp, so <em>a camp with one table spent is a state</em> — and D-125, D-127, D-222, D-231 and
+    /// D-234 are all the same bug: Core grew a field or a phase and this record dropped it. A reload
+    /// without this would either hand the first player a second pick or close the camp having given
+    /// one player nothing, which is exactly the defect the two-table camp exists to remove (D-251).
+    /// <para>
+    /// It replaces <c>LastPickOwner</c> / <c>PreviousPickOwner</c>, which fed §8.6's
+    /// ownership-fairness row. That row dissolved (D-249). <see cref="Parse"/> reads by key, so a save
+    /// still carrying <c>last-pick:</c> and <c>previous-pick:</c> loads — the keys are simply no
+    /// longer read or written.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<CampPick> CampPicks { get; init; } = Array.Empty<CampPick>();
 
     /// <summary>Takes a snapshot of a live run.</summary>
     /// <param name="id">Storage id.</param>
@@ -153,8 +165,7 @@ public sealed record RunSave
             AtDestination = state.Phase == RunPhase.AtDestination,
             RngState = state.RngState,
             CampsHeld = state.CampsHeld,
-            LastPickOwner = state.LastPickOwner,
-            PreviousPickOwner = state.PreviousPickOwner,
+            CampPicks = state.CampPicks,
         };
     }
 
@@ -188,9 +199,8 @@ public sealed record RunSave
             AtVote,
             AtCamp,
             CampsHeld,
-            LastPickOwner,
-            PreviousPickOwner,
-            AtDestination);
+            AtDestination,
+            CampPicks);
 
     /// <summary>Renders the record as one <c>key: value</c> line per field.</summary>
     /// <returns>The stored text.</returns>
@@ -227,14 +237,18 @@ public sealed record RunSave
         text.Append("at-destination: ").Append(AtDestination ? "yes" : "no").Append('\n');
         text.Append("camps: ").Append(Number(CampsHeld)).Append('\n');
 
-        if (LastPickOwner is Team last)
+        // One line, the picks in order, because the order is the fact — the same shape "route" uses.
+        // A half-picked camp reads "camp-picks: PlayerB:1"; a camp nobody has picked at writes no
+        // line at all.
+        if (CampPicks.Count > 0)
         {
-            text.Append("last-pick: ").Append(last.ToString()).Append('\n');
-        }
+            var picks = new string[CampPicks.Count];
+            for (int i = 0; i < CampPicks.Count; i++)
+            {
+                picks[i] = CampPicks[i].Player + ":" + Number(CampPicks[i].Index);
+            }
 
-        if (PreviousPickOwner is Team previous)
-        {
-            text.Append("previous-pick: ").Append(previous.ToString()).Append('\n');
+            text.Append("camp-picks: ").Append(string.Join(">", picks)).Append('\n');
         }
 
         foreach (var unit in Squad)
@@ -343,21 +357,44 @@ public sealed record RunSave
                     ? held
                     : 0,
 
-            // Absent in an older save, which is a run that had no camp history to write down.
-            LastPickOwner = fields.TryGetValue("last-pick", out var lastPick)
-                && Enum.TryParse(lastPick, out Team lastOwner)
-                    ? lastOwner
-                    : (Team?)null,
-            PreviousPickOwner = fields.TryGetValue("previous-pick", out var previousPick)
-                && Enum.TryParse(previousPick, out Team previousOwner)
-                    ? previousOwner
-                    : (Team?)null,
+            // Absent in an older save, which is a run written before camps took a pick each and so a
+            // run that cannot have been standing at a half-picked one. Older saves may still carry
+            // "last-pick" and "previous-pick"; nothing reads them now (D-249), and reading by key
+            // means their presence costs nothing.
+            CampPicks = ParsePicks(fields),
 
             RngState = fields.TryGetValue("rng", out var rng)
                 && int.TryParse(rng, NumberStyles.Integer, CultureInfo.InvariantCulture, out int cursor)
                     ? cursor
                     : (int?)null,
         };
+    }
+
+    /// <summary>
+    /// The half-picked camp, read back. A malformed entry is dropped rather than guessed at: Core
+    /// refuses a camp whose recorded picks do not name cards on its tables, and a guessed index would
+    /// hand a duck a card the seed never dealt.
+    /// </summary>
+    private static IReadOnlyList<CampPick> ParsePicks(Dictionary<string, string> fields)
+    {
+        if (!fields.TryGetValue("camp-picks", out var raw) || raw.Length == 0)
+        {
+            return Array.Empty<CampPick>();
+        }
+
+        var picks = new List<CampPick>();
+        foreach (string entry in raw.Split(new[] { '>' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = entry.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2
+                && Enum.TryParse(parts[0], out Team player)
+                && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int index))
+            {
+                picks.Add(new CampPick(player, index));
+            }
+        }
+
+        return picks;
     }
 
     private static RunUnit? ParseUnit(string value)

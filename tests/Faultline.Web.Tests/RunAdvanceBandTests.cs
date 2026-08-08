@@ -219,7 +219,19 @@ public sealed class RunAdvanceBandTests
         }
 
         var table = runs.Camp!;
-        runs.PickCamp(table.Offers.Count == 0 ? CampPickCommand.NoPick : 0);
+
+        if (table.Seats.Count == 0)
+        {
+            runs.PickCamp(Team.PlayerA, CampPickCommand.NoPick);
+        }
+        else
+        {
+            // One pick per table, because a camp does not resolve until both are spent (D-247).
+            foreach (var seat in table.Seats)
+            {
+                runs.PickCamp(seat.Player, 0);
+            }
+        }
 
         Assert.Null(runs.Problem);
         Assert.False(runs.AtCamp);

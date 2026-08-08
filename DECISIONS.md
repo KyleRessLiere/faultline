@@ -236,9 +236,15 @@ in this file when the question comes back.
 | D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 |  |
 | D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | 2026-08-07 |  |
 | D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | 2026-08-07 |  |
-| D-246 | [One folder per sitting, and the filename check stays as strict as it was.](#d-246-one-folder-per-sitting-and-the-filename-check-stays-as-strict-as-it-was) | unreleased |  |
+| D-246 | [One folder per sitting, and the filename check stays as strict as it was.](#d-246-one-folder-per-sitting-and-the-filename-check-stays-as-strict-as-it-was) | 2026-08-07 |  |
+| D-247 | [Every player picks at every camp, and §8.6's director rows are restated about two tables.](#d-247-every-player-picks-at-every-camp-and-86s-director-rows-are-restated-about-two-tables) | 2026-08-08 |  |
+| D-248 | [MY CALL, cheaply reversible: "never two consumables paired" is per table, not per camp.](#d-248-my-call-cheaply-reversible-never-two-consumables-paired-is-per-table-not-per-camp) | 2026-08-08 |  |
+| D-249 | [MY CALL, cheaply reversible: the ownership-fairness row dissolves, its guarantee is promoted to an invariant, and LastPickOwner / PreviousPickOwner are deleted.](#d-249-my-call-cheaply-reversible-the-ownership-fairness-row-dissolves-its-guarantee-is-promoted-to-an-invariant-and-lastpickowner--previouspickowner-are-deleted) | 2026-08-08 |  |
+| D-250 | [MY CALL, cheaply reversible: the rarity roll is per card, which is what shipped.](#d-250-my-call-cheaply-reversible-the-rarity-roll-is-per-card-which-is-what-shipped) | 2026-08-08 |  |
+| D-251 | [A camp with an unspent table has no completion path, because a pick does nothing until the camp resolves.](#d-251-a-camp-with-an-unspent-table-has-no-completion-path-because-a-pick-does-nothing-until-the-camp-resolves) | 2026-08-08 |  |
+| D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | unreleased |  |
 
-**218 rulings.**
+**224 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6024,3 +6030,213 @@ classes, two shapes, one of them checked and the other assumed.
 
 Also fixed here: `Where()` printed the flat path it no longer writes, so the sentence a surface shows
 now names the file a person will actually find.
+
+---
+
+**D-247 - Every player picks at every camp, and §8.6's director rows are restated about two tables.**
+
+**What forced it.** A camp offered Crossing Shot (Player B, Archer) and Hand-Off (Player A, Fisher).
+Player B picked; the run advanced. **Player A received nothing and the run log recorded a single
+line.** That is D-154 working exactly as built. Camps land after every combat node and a run walks
+~7, so a one-table camp means one player can watch the other's ducks improve for most of a run.
+
+**The ruling.** Every player picks at every camp. **Two tables of two, one pick each, each table's
+cards addressed to that player's ducks.** The shared-scarcity tension of one table - "choosing
+between them WAS the decision" - is **deliberately traded away**: being excluded from six of seven
+camps costs more than the tension earns. The map vote remains the symmetric negotiation; the camp is
+no longer one.
+
+**This reverses D-154**, whose stated reason was that "§8.6's director rows cannot be stated about
+two tables". That reason is now the work, so the rows are **restated** rather than re-enabled. What
+survives of D-154 is its correction to D-127's bookkeeping, not its shape: the camp is still a phase
+on the run seam, and a table is still never smuggled past the seed.
+
+**The restated rows, in full.**
+
+1. **No duplicate named permanent in a run - now spans both tables.** A named permanent anybody in
+   the squad already carries is out of every pool (unchanged; §8.6 states it over the run). Added:
+   no named permanent appears twice **among the four cards of one camp**. The four cards are dealt
+   in one sequence and each card removes its named permanent from what the remaining three may be.
+   D-154 applied this within one table of two; two tables only widen "within a table" to "within a
+   camp". **Restatement, not a call.**
+
+2. **Never two consumables paired - per table.** See D-248; this one is a call.
+
+3. **Ownership fairness across any three offers - dissolved, and its guarantee promoted.** See
+   D-249; this one is a call.
+
+4. **Rarity by node (safe 60/35/5, hungry 35/50/15) - rolled per card.** See D-250; this one is a
+   call.
+
+5. **A card connecting to an owned tag (camps 2+) - per table, keyed to that player's owned tags.**
+   Each table must contain at least one card whose §8.6 tags intersect the tags **that player's own
+   ducks** already carry. "Owned" narrows from the squad to the flock, because the build a player is
+   choosing to deepen is the one they can field; a connector to the other player's build is not a
+   connector for the player holding the table. Preference, not law (D-160): it steps aside when the
+   narrowing would leave nothing.
+
+6. **The Camp 1 floor - one Engine Starter per player, different classes.** Each table's first card
+   is an engine starter (a technique modifier, D-160). The two guaranteed engine starters are for
+   **different classes**. §8.6's "where possible, different players" clause is **deleted as a
+   constraint and kept as a structure**: a table belongs to a player, so different players is what a
+   camp now is, not something a director has to prefer. The floor got simpler, exactly as the design
+   predicted - one row where there were three.
+
+**Two §8.6 rows remain unbuilt, and this changes neither.** Camp 3's "at least one payoff or rare
+connector; no two cards on the same ability" and camp 4+'s "at least one must strengthen an owned
+RELATIONSHIP" have never been implemented and are not implemented here. They are stated per table
+when they arrive.
+
+**"Both tables spent" is construction, not a guard.** See D-251.
+
+---
+
+**D-248 - MY CALL, cheaply reversible: "never two consumables paired" is per table, not per camp.**
+
+§8.6 says "two consumables are never paired" about a table of two. Under two tables the sentence has
+two readings and the design does not choose between them.
+
+**Ruled: per table.** Each table holds at most one consumable; the tables do not constrain each
+other. The row exists so that the decision in front of a *player* is never "two throwaways", and
+under D-247 the decision in front of a player is their own two cards. A per-camp reading would let
+one player's pair be starved of a one-shot by a draw the other player made - which is precisely the
+cross-player coupling D-247 removes.
+
+**Rejected: per camp (at most one consumable among all four).** It is the more literal reading of
+the four cards as one deal, and it would hold the camp's total one-shot rate where D-154 had it. It
+loses because it re-couples the tables, and because the pocket is a per-duck resource - two
+consumables at one camp are not two of the same thing when they go into different pockets.
+
+**This is my call, not the designer's**, and it is one predicate's scope: the "no paired consumables"
+narrowing is applied to a seat's remaining pool rather than the camp's. Reversing it is moving that
+one call.
+
+---
+
+**D-249 - MY CALL, cheaply reversible: the ownership-fairness row dissolves, its guarantee is promoted
+to an invariant, and LastPickOwner / PreviousPickOwner are deleted.**
+
+§8.6: "if the last two picks went to one player's ducks, the next offer contains a card for the other
+player and a shared-use card."
+
+**Its trigger is now unreachable and its guarantee is now free.** Both players pick at every camp, so
+the last two picks are always one each and `OwnershipIsLopsided` can never be true. And every camp
+already contains two cards for each player, which is strictly stronger than "contains a card for the
+other player". The row is **satisfied by construction and retired as a director constraint**.
+
+**What survives is the guarantee, not the mechanism.** Stated as an invariant and tested as one:
+*every camp puts two cards in front of every player who has an available duck.* That is asserted on
+the dealt tables at every camp of a played run, which is a stronger check than the row ever was - the
+row only fired after the damage.
+
+**The fields are deleted, not left to rot.** `RunState.LastPickOwner`, `RunState.PreviousPickOwner`
+and `RunState.OwnershipIsLopsided` had exactly one reader, the row above, and D-154 recorded them as
+what that ruling cost. Unread fields on a state with hand-written equality are how a replay bug gets
+written, so they come off `RunState`, off `Campaign.Restore`'s parameter list, and off `RunSave`.
+`RunSave.Parse` reads by key and ignores unknown ones, so a save written with `last-pick:` /
+`previous-pick:` still loads; the keys are simply no longer read or written.
+
+**`CampsHeld` survives unchanged.** The camp-number rows (camp 1, camp 2+) read it, and it is still
+incremented once per camp - at the camp's exit rather than at a pick, because a camp with one table
+spent has not been held yet.
+
+**Rejected: keeping the fields as recorded history.** They would be written and never read, and they
+participate in `RunState.Equals` and `GetHashCode`. Dead state that changes a state hash is worse
+than no state.
+
+---
+
+**D-250 - MY CALL, cheaply reversible: the rarity roll is per card, which is what shipped.**
+
+§8.6 prints "rarity by node: safe 60/35/5, hungry 35/50/15" and does not say what the unit of the
+roll is.
+
+**Ruled: per card.** Each of the four cards rolls its own tier against the node's odds. This is what
+`CampDirector.Weighted` already did for two cards, unchanged for four.
+
+**Rejected: per table** (one roll, both of a player's cards at that tier) **and per camp** (one roll,
+all four). Both correlate the cards a player is choosing between, so "two Commons" and "two Rares"
+become common tables and the decision flattens from "which card" toward "which duck". Per card also
+keeps the two tables statistically independent, which is the separation D-247 is for.
+
+**It is a call rather than a restatement** because §8.6's sentence is silent, and the two-table shape
+is what makes the silence answerable in three ways instead of one. It reverses at
+`CampDirector.Weighted`'s call sites.
+
+---
+
+**D-251 - A camp with an unspent table has no completion path, because a pick does nothing until the
+camp resolves.**
+
+The stage asked for "impossible by construction, not by convention". A guard that *checks* both
+tables are spent is a convention - somebody can write a second exit that forgets it.
+
+**What is built instead.** A pick is **recorded, not applied**. `RunState.CampPicks` holds the picks
+taken at the camp the run is standing at; the cards land on ducks in exactly one place, the camp's
+exit. The exit is reached when `Camp.LegalPicks` is empty, and `LegalPicks` is generated from the
+seats that are not in `CampPicks`. So "a table still holding cards" and "a command that still has to
+be sent" are **the same list, produced by the same function** - the run leaves a camp exactly when
+the camp has nothing left to offer, which is the general law that a phase with no legal command is
+over, not a bespoke check about tables.
+
+A camp advancing on one selection would need a card to land on a duck outside the exit path. There is
+no such path.
+
+**Consequence: the table has to stay a pure function of the state while the camp is open**, which is
+why the picks are deferred rather than applied as they arrive. `CampCatalogue.EligibleFor` reads a
+duck's loadout, so applying player A's card would change what player B is redealt, and B's own
+recorded table would then be refused as "not the camp Core would have dealt". Deferring keeps
+D-127's derived-table contract intact under two picks.
+
+**Consequence: a half-picked camp is a state, and the save carries it.** D-125, D-127, D-222, D-231
+and D-234 are five shipped bugs where Core grew a field or a phase and `RunSave` dropped it.
+`camp-picks:` is on the record, `Campaign.Restore` takes it, and a round-trip test plays to a camp,
+takes one pick, saves, reloads and takes the second.
+
+**The log is the regression instrument.** One `CampTaken` line per player per camp, naming the
+player, the card and the recipient duck - emitted at the moment that player picks, not at the exit,
+so neither player waits on the other to see their own pick recorded. **A camp that produced one line
+is a bug report**, and `EveryCamp_EmitsOneLinePerPlayer` fails when it happens.
+
+**What does not catch a change here.** `CombatLogTests.EveryCommandType_IsKnownToTheCommandLog`
+reflects over `Command`, not `RunCommand`, so it would not have noticed `CampPickCommand` growing a
+field - there is no reflective coverage of run commands at all. What catches it is
+`CampTests.ARunWithCampsInItsLog_ReplaysToAnIdenticalStateAndHash`, which replays a whole run's run
+command log and compares state and hash, and `StateEqualityCoverageTests`, which fails when a
+`RunState` field is not read by `Equals`.
+
+---
+
+**D-252 - FOUND while building D-247: camp 1's floor now lets a player decline their engine starter,
+and the count is written down before it moves again.**
+
+The last time the camp's contract moved it silently took Act 1's card count with it, so this records
+what D-247 changed about the numbers rather than leaving it to be rediscovered.
+
+**Act 1's card count: 4 → 8.** Act 1's shortest route plays four combat nodes and therefore holds four
+camps. Under D-154 that was **four cards for the whole flock**, and a player could be dealt none of
+them. Under D-247 it is **eight - four each**, pinned by
+`CampTests.AnActWonEndToEnd_HandsOutTwoCardsPerCamp_AndTheCountIsPinned`, which plays the act out and
+counts the `CampTaken` lines rather than reasoning about the director.
+
+**Camp 1's floor is weaker than D-154's, and deliberately so.** §8.6's row is "two engine starters",
+which over one table meant **both** cards were technique modifiers and a flock could not fail to start
+an engine. D-247 restates it as "one engine starter per player", which is one card of two per table -
+so a player may now take the other card and start no engine at all. On seed 1 that is exactly what
+happens: Player B is dealt *Spotter | Greased Feather* and the pick-1 half of the acceptance takes
+Greased Feather.
+
+**This is the reading the ruling asked for** ("the Camp 1 floor gets simpler, not harder"), and the
+harder reading is one line away: narrowing the **second** card of each camp-1 table to an engine
+starter as well would restore "you cannot leave camp 1 without one" at the cost of four technique
+cards per camp instead of two. **Held, not refused - the trigger is the designer saying which they
+want**, because "can a player refuse the engine" is a game-feel question and not an implementation
+one.
+
+**Also found, and pre-existing:** `RunHarness.Play` still crashes on the first won fight
+(`ArgumentNullException` in `Game.NextEnemyCommand`, a null board at `RunPhase.AtCamp`). Confirmed
+identical at `3eb2e6a`, the commit before this stage, so it is **not** two-table fallout - it is the
+defect `CampInstrumentation`'s own remarks already name, and the reason that runner exists. The
+standing-three harness sweep cannot be run until `RunHarness` answers camps and votes the way
+`CampInstrumentation` does. Not fixed here: it is a tool, it is outside the stage, and folding it in
+would grow the diff to escape a blocker.
