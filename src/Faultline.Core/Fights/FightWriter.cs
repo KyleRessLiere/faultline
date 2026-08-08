@@ -214,6 +214,13 @@ namespace Faultline.Core
                 grid[Index(board, coord, "deployment zone A")] = FightParser.DeployA;
             }
 
+            // Painted last, so a migrated board round-trips as spots rather than as the zones it no
+            // longer has. A board carries one or the other, never both.
+            foreach (var coord in fight.DeploymentSpots)
+            {
+                grid[Index(board, coord, "deployment spot")] = FightParser.DeploySpot;
+            }
+
             return grid;
         }
 

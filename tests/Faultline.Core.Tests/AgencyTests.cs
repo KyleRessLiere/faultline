@@ -103,12 +103,14 @@ public class AgencyTests
         var fight = FightLibrary.Fight1();
         var state = Game.Start(fight, seed: 0).NewState;
 
+        // Asked of the published spot list, not of two per-side zones: §3's spots belong to neither
+        // player, so both sides are answered by the same tiles and both answers must be the whole list.
         Assert.Equal(
-            fight.DeploymentZoneA.Count,
+            fight.Spots.Count,
             Threat.SafeDeploymentTiles(state, Team.PlayerA).Count);
 
         Assert.Equal(
-            fight.DeploymentZoneB.Count,
+            fight.Spots.Count,
             Threat.SafeDeploymentTiles(state, Team.PlayerB).Count);
     }
 
@@ -192,13 +194,17 @@ public class AgencyTests
         Assert.True(safeA.Count >= fight.RosterA.Count && safeB.Count >= fight.RosterB.Count);
 
         var state = start;
-        int slotA = 0, slotB = 0;
+
+        // One cursor over one list, because §3's spots are shared: safeA and safeB are now the same
+        // tiles, so two per-side cursors would hand both players the same spot and the second
+        // placement would be refused for a reason this test is not about.
+        int slot = 0;
 
         while (state.Phase == Phase.Deployment)
         {
             var legal = Game.LegalCommands(state);
             var undeployed = state.Units.First(u => u.Team == state.ActiveTeam && !u.IsDeployed);
-            var tile = state.ActiveTeam == Team.PlayerA ? safeA[slotA++] : safeB[slotB++];
+            var tile = safeA[slot++];
 
             state = state.Then(legal.OfType<DeployCommand>()
                 .First(d => d.UnitId == undeployed.Id && d.At == tile));
@@ -239,23 +245,44 @@ public class AgencyTests
             "roster a: Vanguard, Threadcaster",
             "roster b: Wardbearer, Archer",
             "spawn h = Husk",
+            "design: The swarm is parked on the spots deliberately - the thesis is that there is",
+            "design: nowhere clean to stand, so the draft is about who eats the first hit.",
             "board:",
-            "  ....hBB",
-            "  ....h.B",
+            "  ....h**",
+            "  ....h.*",
             "  .......",
             "  .......",
             "  .......",
-            "  A......",
-            "  AA....."));
+            "  *h.....",
+            "  **....."));
 
         Assert.Empty(result.Errors);
 
         var lint = result.Lints.FirstOrDefault(i => i.Code == FightIssueCode.UnsafeRound1Deployment);
 
         Assert.NotNull(lint);
-        Assert.Contains("PlayerB", lint!.Message);
-        Assert.DoesNotContain(result.Lints, i =>
-            i.Code == FightIssueCode.UnsafeRound1Deployment && i.Message.Contains("PlayerA"));
+        Assert.Contains("Player", lint!.Message);
+    }
+
+    /// <summary>
+    /// <b>§3 dissolved the per-side half of the agency lint, and this records it rather than
+    /// leaving it to be rediscovered.</b> While zones were owned, one side could be short of safe
+    /// tiles while the other was fine — that was the whole shape of the old message. Spots belong to
+    /// neither player, so both sides are answered by the same list: a board is either short for
+    /// everybody or short for nobody. The law is unchanged; what it can distinguish is not.
+    /// </summary>
+    [Fact]
+    public void UnderSharedSpots_TheSafeTileAnswerIsTheSameForBothSides()
+    {
+        foreach (var node in CampaignLibrary.Faultline.Nodes.OfType<FightNode>())
+        {
+            var fight = FightLibrary.ById(node.FightId);
+            var state = Game.Start(fight, seed: 0).NewState;
+
+            Assert.Equal(
+                Threat.SafeDeploymentTiles(state, Team.PlayerA),
+                Threat.SafeDeploymentTiles(state, Team.PlayerB));
+        }
     }
 
     [Fact]

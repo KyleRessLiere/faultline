@@ -20,6 +20,22 @@ namespace Faultline.Core
         public const char DeployB = 'B';
 
         /// <summary>
+        /// A deployment <b>spot</b>: a tile either player may draft into. The tile underneath is Open.
+        /// </summary>
+        /// <remarks>
+        /// §3's deployment draft (locked y) publishes spots that are <b>not owned by either player</b>,
+        /// which is the whole of what replaced zone-claiming — so there is one mark, not one per side.
+        /// A board still carrying <see cref="DeployA"/>/<see cref="DeployB"/> is read as unmigrated and
+        /// its two zones are unioned into the spot list, so an old board drafts rather than breaking.
+        /// <para>
+        /// The mark is <c>*</c> and deliberately not <c>S</c>: <see cref="StructureProtect"/> has been
+        /// <c>S</c> since structures landed, and the spot branch resolves first, so sharing the letter
+        /// silently stopped protect marks being structures.
+        /// </para>
+        /// </remarks>
+        public const char DeploySpot = '*';
+
+        /// <summary>
         /// The tile an <c>objective: protect</c> structure stands on. The terrain underneath is Open,
         /// exactly as it is under a deploy slot or a spawn letter.
         /// </summary>
@@ -668,6 +684,13 @@ namespace Faultline.Core
                         continue;
                     }
 
+                    if (c == DeploySpot)
+                    {
+                        built.Spots.Add(at);
+                        tiles.Add(TileType.Open);
+                        continue;
+                    }
+
                     // A structure is the one thing an objective used to place by coordinate alone.
                     // Marking it on the grid keeps the board WYSIWYG; the mark is checked against
                     // the objective:' line rather than trusted, so the two can never disagree.
@@ -755,8 +778,17 @@ namespace Faultline.Core
                 issues.Add(new FightIssue(FightIssueCode.RosterEmpty, "Missing or empty 'roster b:'.", header.RosterBLine));
             }
 
-            CheckZone(grid.ZoneA, header.RosterA.Count, "A", boardStartLine, issues);
-            CheckZone(grid.ZoneB, header.RosterB.Count, "B", boardStartLine, issues);
+            // A migrated board has spots and no zones, and asking it which tiles belong to player A is
+            // asking the question §3 deleted. The per-side checks run only while the board still
+            // speaks in sides.
+            if (grid.Spots.Count == 0)
+            {
+                CheckZone(grid.ZoneA, header.RosterA.Count, "A", boardStartLine, issues);
+                CheckZone(grid.ZoneB, header.RosterB.Count, "B", boardStartLine, issues);
+            }
+
+            CheckSpotFloor(
+                grid.Spots, header.RosterA.Count + header.RosterB.Count, header.Design, boardStartLine, issues);
 
             // Waves resolve before the unused-spawn check, because a letter used only by a wave is
             // used: the enemy is real, it just walks on later.
@@ -793,6 +825,7 @@ namespace Faultline.Core
                 RosterB = header.RosterB,
                 DeploymentZoneA = grid.ZoneA,
                 DeploymentZoneB = grid.ZoneB,
+                DeploymentSpots = grid.Spots,
                 Enemies = grid.Spawns,
                 ProtectedZone = protectedZone,
                 Blockers = grid.Blockers,
@@ -980,6 +1013,52 @@ namespace Faultline.Core
             }
 
             return grants;
+        }
+
+        // §3's floor: "spots must outnumber ducks or the draft is assignment rather than drafting",
+        // default 6-8 for 4. A board under the floor is either a declared THESIS or a bug, and the
+        // only thing that tells them apart is whether the author said so — so a design: line that
+        // talks about the deployment silences this, and silence is what gets flagged. Deliberately
+        // not fatal: §3 blesses the short list, it just will not let it happen by accident.
+        private static void CheckSpotFloor(
+            List<Coord> spots,
+            int ducks,
+            List<string> design,
+            int boardStartLine,
+            List<FightIssue> issues)
+        {
+            if (spots.Count == 0 || ducks == 0 || spots.Count > ducks)
+            {
+                return;
+            }
+
+            foreach (var note in design)
+            {
+                if (MentionsDeployment(note))
+                {
+                    return;
+                }
+            }
+
+            issues.Add(new FightIssue(
+                FightIssueCode.SpotFloorUndeclared,
+                "Board publishes " + spots.Count + " deployment spot(s) for " + ducks
+                    + " ducks. §3 wants spots to outnumber ducks (6-8 for 4); fewer is a board thesis, "
+                    + "and a thesis is stated on a 'design:' line. Say why, or add spots.",
+                boardStartLine));
+        }
+
+        private static bool MentionsDeployment(string note)
+        {
+            foreach (var word in new[] { "deploy", "spot", "draft", "placement", "pocket" })
+            {
+                if (note.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void CheckZone(
@@ -1340,7 +1419,8 @@ namespace Faultline.Core
         }
 
         private static bool IsReserved(char c) =>
-            c == DeployA || c == DeployB || c == StructureProtect || c == StructureDestroy
+            c == DeployA || c == DeployB || c == DeploySpot
+            || c == StructureProtect || c == StructureDestroy
             || c == Blocker || TryParseTile(c, out _);
 
         private static bool TryParseTile(char c, out TileType tile)
@@ -1454,6 +1534,8 @@ namespace Faultline.Core
             public List<Coord> ZoneA { get; } = new List<Coord>();
 
             public List<Coord> ZoneB { get; } = new List<Coord>();
+
+            public List<Coord> Spots { get; } = new List<Coord>();
 
             public List<EnemySpawn> Spawns { get; } = new List<EnemySpawn>();
 

@@ -91,8 +91,13 @@ public class DeploymentTests
         Assert.All(state.Units, u => Assert.True(u.IsDeployed));
     }
 
+    /// <summary>
+    /// <b>Every duck lands on a published spot, and no spot belongs to a side.</b> This used to
+    /// assert that player A's ducks stood in zone A — the question §3's deployment draft deleted
+    /// (locked y). A spot is owned by neither player; either may take any open one.
+    /// </summary>
     [Fact]
-    public void Deployment_PlacesUnitsInsideTheOwnersZone()
+    public void Deployment_PlacesEveryDuckOnAPublishedSpot_WhicheverSideOwnsTheDuck()
     {
         var fight = FightLibrary.Fight1();
         var state = Game.Start(fight, seed: 7).NewState;
@@ -102,15 +107,15 @@ public class DeploymentTests
             state = state.Then(Game.LegalCommands(state)[0]);
         }
 
-        foreach (var unit in state.Units.Where(u => u.Team == Team.PlayerA))
+        foreach (var unit in state.Units.Where(u => u.Team != Team.Enemy))
         {
-            Assert.Contains(unit.Position, fight.DeploymentZoneA);
+            Assert.Contains(unit.Position, fight.Spots);
         }
 
-        foreach (var unit in state.Units.Where(u => u.Team == Team.PlayerB))
-        {
-            Assert.Contains(unit.Position, fight.DeploymentZoneB);
-        }
+        // No two ducks on one spot, and the spot list outnumbers the ducks that drafted from it.
+        var taken = state.Units.Where(u => u.Team != Team.Enemy).Select(u => u.Position).ToList();
+        Assert.Equal(taken.Count, taken.Distinct().Count());
+        Assert.True(fight.Spots.Count >= taken.Count);
     }
 
     private static GameState DeployFirstLegal(GameState state) =>

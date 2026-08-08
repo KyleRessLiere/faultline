@@ -65,12 +65,15 @@ public class FightLibraryTests
         {
             Assert.NotEmpty(fight.RosterA);
             Assert.NotEmpty(fight.RosterB);
+
+            // §3's floor, asked of the published spot list rather than of two per-side zones: a
+            // board must offer at least a tile per duck, and should offer more — spots that merely
+            // equal the ducks make the draft an assignment. A shorter list is a declared thesis and
+            // the parser lints an undeclared one (SpotFloorUndeclared).
+            int ducks = fight.RosterA.Count + fight.RosterB.Count;
             Assert.True(
-                fight.DeploymentZoneA.Count >= fight.RosterA.Count,
-                fight.Id + ": zone A holds " + fight.DeploymentZoneA.Count + " of " + fight.RosterA.Count);
-            Assert.True(
-                fight.DeploymentZoneB.Count >= fight.RosterB.Count,
-                fight.Id + ": zone B holds " + fight.DeploymentZoneB.Count + " of " + fight.RosterB.Count);
+                fight.Spots.Count >= ducks,
+                fight.Id + ": " + fight.Spots.Count + " spot(s) for " + ducks + " ducks");
         }
     }
 

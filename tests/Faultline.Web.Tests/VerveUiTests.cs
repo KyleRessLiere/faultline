@@ -404,21 +404,27 @@ public sealed class DeploymentThreatTests
 
         // Since Stage C1 no shipped campaign board reports an unsafe side, so the second half is
         // asked of a board authored to break the law rather than of one that used to.
+        //
+        // The swarm is parked on the WHOLE spot list, not on one player's doorstep. §3's spots
+        // belong to neither player, so a board can be short of safe tiles for everybody or for
+        // nobody — "unsafe for B while A is fine" is a state the shared pool cannot produce.
         var parked = FightParser.Parse(string.Join(
             "\n",
             "id: the-teeth",
-            "name: Teeth, with the swarm parked on Player B's doorstep",
+            "name: Teeth, with the swarm parked on the spots",
             "roster a: Vanguard, Threadcaster",
             "roster b: Wardbearer, Archer",
             "spawn h = Husk",
+            "design: The swarm is parked on the spots deliberately - the thesis is that there is",
+            "design: nowhere clean to stand, so the draft is about who eats the first hit.",
             "board:",
-            "  ....hBB",
-            "  ....h.B",
+            "  ....h**",
+            "  ....h.*",
             "  .......",
             "  .......",
             "  .......",
-            "  A......",
-            "  AA.....")).Fight!;
+            "  *h.....",
+            "  **.....")).Fight!;
 
         Assert.Empty(Threat.UnsafeSides(FightLibrary.ById("the-teeth")));
         Assert.NotEmpty(Threat.UnsafeSides(parked));

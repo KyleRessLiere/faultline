@@ -109,7 +109,65 @@ namespace Faultline.Core
         /// </summary>
         public IReadOnlyList<FootingGrant> FootingGrants { get; init; } = new FootingGrant[0];
 
+        /// <summary>
+        /// The board's deployment <b>spots</b>: tiles either player may draft into, owned by neither.
+        /// </summary>
+        /// <remarks>
+        /// §3's deployment draft (locked y). Empty on a board still written with the old per-side
+        /// <c>A</c>/<c>B</c> zones — read <see cref="Spots"/> rather than this, which unions the zones
+        /// for an unmigrated board so it drafts instead of breaking.
+        /// </remarks>
+        public IReadOnlyList<Coord> DeploymentSpots { get; init; } = new Coord[0];
+
+        /// <summary>
+        /// Every tile this board may be drafted into, in board order. <b>Not owned by either player</b>
+        /// — that is the whole of what §3 replaced zone-claiming with.
+        /// </summary>
+        /// <remarks>
+        /// An unmigrated board (one written with <c>A</c>/<c>B</c> marks and no <c>S</c>) answers the
+        /// union of its two zones. The bridge exists so that the format change and the eight-board
+        /// migration are separable; it is dead the day no board carries a zone.
+        /// </remarks>
+        public IReadOnlyList<Coord> Spots
+        {
+            get
+            {
+                if (DeploymentSpots.Count > 0)
+                {
+                    return DeploymentSpots;
+                }
+
+                if (DeploymentZoneA.Count == 0)
+                {
+                    return DeploymentZoneB;
+                }
+
+                if (DeploymentZoneB.Count == 0)
+                {
+                    return DeploymentZoneA;
+                }
+
+                var joined = new List<Coord>(DeploymentZoneA.Count + DeploymentZoneB.Count);
+                joined.AddRange(DeploymentZoneA);
+                foreach (var coord in DeploymentZoneB)
+                {
+                    if (!joined.Contains(coord))
+                    {
+                        joined.Add(coord);
+                    }
+                }
+
+                return joined;
+            }
+        }
+
         /// <summary>The deployment zone belonging to a player team.</summary>
+        /// <remarks>
+        /// <b>Retiring.</b> §3's draft made spots unowned, so a rule that asks which tiles belong to
+        /// one side is asking a question the design no longer has — read <see cref="Spots"/>. This
+        /// survives for the boards not yet migrated and for the authoring checks that still speak in
+        /// sides.
+        /// </remarks>
         /// <param name="team">Player team.</param>
         /// <returns>That team's legal deployment tiles, or an empty list for the enemy team.</returns>
         public IReadOnlyList<Coord> ZoneFor(Team team)
@@ -215,6 +273,7 @@ namespace Faultline.Core
                 && Same(DesignNotes, other.DesignNotes)
                 && Same(DeploymentZoneA, other.DeploymentZoneA)
                 && Same(DeploymentZoneB, other.DeploymentZoneB)
+                && Same(DeploymentSpots, other.DeploymentSpots)
                 && Same(RosterA, other.RosterA)
                 && Same(RosterB, other.RosterB)
                 && Same(Enemies, other.Enemies)
@@ -241,6 +300,7 @@ namespace Faultline.Core
                 hash = Fold(hash, DesignNotes);
                 hash = Fold(hash, DeploymentZoneA);
                 hash = Fold(hash, DeploymentZoneB);
+                hash = Fold(hash, DeploymentSpots);
                 hash = Fold(hash, RosterA);
                 hash = Fold(hash, RosterB);
                 hash = Fold(hash, Enemies);

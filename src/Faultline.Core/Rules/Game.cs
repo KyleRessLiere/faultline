@@ -513,7 +513,7 @@ namespace Faultline.Core
                         continue;
                     }
 
-                    foreach (var tile in state.Fight.ZoneFor(state.ActiveTeam))
+                    foreach (var tile in state.Fight.Spots)
                     {
                         if (CanDeployOnto(state, tile))
                         {
@@ -863,7 +863,10 @@ namespace Faultline.Core
             var unit = state.UnitById(command.UnitId);
             Require(unit.Team == state.ActiveTeam, "It is not that player's turn to deploy.");
             Require(!unit.IsDeployed, "Unit is already deployed.");
-            Require(Contains(state.Fight.ZoneFor(unit.Team), command.At), "Tile is outside the deployment zone.");
+            // §3: a spot is owned by NEITHER player, so the question is whether the tile is a spot at
+            // all, never whose spot it is. An unmigrated board answers the union of its two zones, so
+            // this reads the same either way (Fight.Spots).
+            Require(Contains(state.Fight.Spots, command.At), "Tile is not a deployment spot.");
             Require(CanDeployOnto(state, command.At), "Tile cannot be deployed onto.");
 
             var placed = unit with { Position = command.At, IsDeployed = true };

@@ -307,7 +307,9 @@ public class FightParserTests
     [Fact]
     public void Parse_UnknownBoardCharacter_IsAnError()
     {
-        AssertOnlyError(FightIssueCode.BoardUnknownChar, Fight(WithCentreTile('*')));
+        // '%' and not '*': '*' is the deployment-spot mark since §3's draft, so it is no longer a
+        // character with no meaning, which is the only thing this test needs of it.
+        AssertOnlyError(FightIssueCode.BoardUnknownChar, Fight(WithCentreTile('%')));
     }
 
     [Fact]

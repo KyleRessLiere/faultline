@@ -106,7 +106,7 @@ internal static class CampPlayer
             // swing. Standing still does not lose this board — the Husks run out of reachable ducks
             // and the fight stalls at round 284 with everyone alive, which is a stalemate rather
             // than a defeat. Walking in is a legal way to play, and a bad one.
-            var deploy = commands.OfType<DeployCommand>().FirstOrDefault();
+            var deploy = Fielding(state, commands.OfType<DeployCommand>().ToList());
             if (deploy is not null)
             {
                 session.Play(deploy);
@@ -157,9 +157,9 @@ internal static class CampPlayer
 
     private static Command Choose(GameState state, IReadOnlyList<Command> commands)
     {
-        // Deployment first, and in the order Core offers it: where a duck starts is not what this
-        // driver is for.
-        var deploy = commands.OfType<DeployCommand>().FirstOrDefault();
+        // Deployment first, fielded toward the enemy — see Fielding. Where a duck starts is still
+        // not what this driver asserts, only that the fielding is one a fight can resolve from.
+        var deploy = Fielding(state, commands.OfType<DeployCommand>().ToList());
         if (deploy is not null)
         {
             return deploy;
@@ -205,6 +205,52 @@ internal static class CampPlayer
     private static bool HitsAnEnemy(GameState state, AbilityCommand ability) =>
         ability.TargetId is { } target
         && state.FindUnit(target) is { IsAlive: true, Team: Team.Enemy };
+
+    /// <summary>
+    /// The placement nearest a living enemy, or nothing when the draft offers none.
+    /// </summary>
+    /// <remarks>
+    /// <b>Taking whatever Core offered first stopped losing when §3's spots became shared.</b> The
+    /// old per-side zones put each flock in its own corner and walking in from there died; the
+    /// unowned pool is dealt in board order, which fielded three ducks in one corner and left a
+    /// Vanguard cornered where the last Husks could not path to it — the fight sat at round 247
+    /// with one duck alive, which is a stalemate and not a defeat.
+    /// <para>
+    /// So the driver now fields toward the enemy on purpose. That is the same intent the walk-in
+    /// already had ("walk towards them and never swing"), moved one step earlier into the draft:
+    /// deploying into shown danger is a legal way to play and a bad one, which is exactly what this
+    /// driver is for. Where a duck starts is still not what the driver *asserts* — only that the
+    /// fielding it picks is one a defeat can be reached from.
+    /// </para>
+    /// </remarks>
+    private static DeployCommand? Fielding(GameState state, IReadOnlyList<DeployCommand> deploys)
+    {
+        if (deploys.Count == 0)
+        {
+            return null;
+        }
+
+        var enemies = state.Units.Where(u => u.IsOnBoard && u.IsAlive && u.Team == Team.Enemy).ToList();
+        if (enemies.Count == 0)
+        {
+            return deploys[0];
+        }
+
+        DeployCommand? best = null;
+        int bestDistance = int.MaxValue;
+
+        foreach (var deploy in deploys)
+        {
+            int distance = enemies.Min(e => Chebyshev(deploy.At, e.Position));
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = deploy;
+            }
+        }
+
+        return best;
+    }
 
     /// <summary>The move that ends up nearest a living enemy, or nothing when none exists.</summary>
     private static Command? Closing(GameState state, IReadOnlyList<MoveCommand> moves)

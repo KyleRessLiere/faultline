@@ -268,45 +268,51 @@ public class WarrensEditionATests
     /// </summary>
     private static IEnumerable<GameState> SafeFieldings(string id)
     {
-        var start = Game.Start(FightLibrary.ById(id)!, seed: 1).NewState;
-        var safeA = Threat.SafeDeploymentTiles(start, Team.PlayerA);
-        var safeB = Threat.SafeDeploymentTiles(start, Team.PlayerB);
+        var fight = FightLibrary.ById(id)!;
+        var start = Game.Start(fight, seed: 1).NewState;
 
-        foreach (var orderA in Orderings(safeA))
+        // §3's spots belong to neither player, so both sides are answered by the same tiles. Two
+        // per-side cursors would deal one spot twice and the second placement would be refused for
+        // a reason none of these tests is about: one pool, one cursor, and the permutation runs
+        // over the draft's whole sequence of picks rather than over two independent zones.
+        var safe = Threat.SafeDeploymentTiles(start, Team.PlayerA);
+        int picks = fight.RosterA.Count + fight.RosterB.Count;
+
+        foreach (var order in Selections(safe, picks))
         {
-            foreach (var orderB in Orderings(safeB))
+            var state = start;
+            int slot = 0;
+
+            while (state.Phase == Phase.Deployment)
             {
-                var state = start;
-                int slotA = 0, slotB = 0;
+                var legal = Game.LegalCommands(state);
+                var undeployed = state.Units.First(u => u.Team == state.ActiveTeam && !u.IsDeployed);
+                var tile = order[slot++];
 
-                while (state.Phase == Phase.Deployment)
-                {
-                    var legal = Game.LegalCommands(state);
-                    var undeployed = state.Units.First(u => u.Team == state.ActiveTeam && !u.IsDeployed);
-                    var tile = state.ActiveTeam == Team.PlayerA ? orderA[slotA++] : orderB[slotB++];
-
-                    state = state.Then(legal.OfType<DeployCommand>()
-                        .First(d => d.UnitId == undeployed.Id && d.At == tile));
-                }
-
-                yield return state;
+                state = state.Then(legal.OfType<DeployCommand>()
+                    .First(d => d.UnitId == undeployed.Id && d.At == tile));
             }
+
+            yield return state;
         }
     }
 
-    /// <summary>Every permutation of a short tile list, in a fixed order.</summary>
-    private static IEnumerable<IReadOnlyList<Coord>> Orderings(IReadOnlyList<Coord> tiles)
+    /// <summary>
+    /// Every ordered selection of <paramref name="count"/> distinct tiles, in a fixed order — one
+    /// per way the whole draft could deal the pool out across its slots.
+    /// </summary>
+    private static IEnumerable<IReadOnlyList<Coord>> Selections(IReadOnlyList<Coord> tiles, int count)
     {
-        if (tiles.Count <= 1)
+        if (count <= 0)
         {
-            yield return tiles;
+            yield return new Coord[0];
             yield break;
         }
 
         for (int i = 0; i < tiles.Count; i++)
         {
             var rest = tiles.Where((_, index) => index != i).ToList();
-            foreach (var tail in Orderings(rest))
+            foreach (var tail in Selections(rest, count - 1))
             {
                 yield return new[] { tiles[i] }.Concat(tail).ToList();
             }

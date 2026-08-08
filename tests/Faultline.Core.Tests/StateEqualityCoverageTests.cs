@@ -267,6 +267,7 @@ public class StateEqualityCoverageTests
                 ["Board"] = f => f with { Board = Board.Filled(3, 3) },
                 ["DeploymentZoneA"] = f => f with { DeploymentZoneA = new[] { new Coord(5, 5) } },
                 ["DeploymentZoneB"] = f => f with { DeploymentZoneB = new[] { new Coord(4, 4) } },
+                ["DeploymentSpots"] = f => f with { DeploymentSpots = new[] { new Coord(3, 3) } },
                 ["RosterA"] = f => f with { RosterA = new[] { UnitKind.Archer } },
                 ["RosterB"] = f => f with { RosterB = new[] { UnitKind.Vanguard } },
                 ["Enemies"] = f => f with

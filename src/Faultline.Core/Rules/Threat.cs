@@ -146,7 +146,10 @@ namespace Faultline.Core
             }
 
             var threatened = new HashSet<Coord>(DamageRound1(state));
-            foreach (var tile in state.Fight.ZoneFor(team))
+            // §3's spots belong to neither side, so "which tiles could this team stand on safely" is
+            // asked of the whole published list. On an unmigrated board Spots is the union of the two
+            // zones, which widens this from one side's corner to the board's real answer.
+            foreach (var tile in state.Fight.Spots)
             {
                 if (!threatened.Contains(tile))
                 {
@@ -199,7 +202,7 @@ namespace Faultline.Core
                 int safe = SafeDeploymentTiles(state, team).Count;
                 if (safe < needed)
                 {
-                    failures.Add(new UnsafeSide(team, needed, safe, state.Fight.ZoneFor(team).Count));
+                    failures.Add(new UnsafeSide(team, needed, safe, state.Fight.Spots.Count));
                 }
             }
 

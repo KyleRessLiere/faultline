@@ -152,5 +152,18 @@ namespace Faultline.Core
         /// still failing is pinned by a test so the number cannot quietly grow.
         /// </remarks>
         UnsafeRound1Deployment = 112,
+
+        /// <summary>
+        /// A board publishes fewer deployment spots than the two flocks have ducks, and says nothing
+        /// about it — §3's floor ("spots must outnumber ducks or the draft is assignment rather than
+        /// drafting", default 6–8 for 4).
+        /// </summary>
+        /// <remarks>
+        /// A lint, not an error, because §3 makes a short spot list a legitimate <b>board thesis</b>
+        /// (two distant pockets, a scattered flock) — but only when the author said so. The
+        /// difference between a thesis and a bug is whether a <c>design:</c> line mentions the
+        /// deployment, so this fires only on the boards that are silent about it.
+        /// </remarks>
+        SpotFloorUndeclared = 113,
     }
 }
