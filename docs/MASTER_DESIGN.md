@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-08y** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-08z** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -15,6 +15,19 @@ Last design session: 2026-08-08.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
+
+2026-08-08 (z) — LOCKED (Rare tier intake). **The eight Rare cards are written into §8.6 in
+  full.** Two corrections behind that: (1) §8.6 pointed at an external `RARE_TIER_draft.md` that
+  was never delivered to the repo — **the doc now carries the text**, since a pointer to a file
+  outside the authority is the same one-fact-two-homes failure §16 just ruled against; (2) the
+  drafted eight-tag axis was **wrong** — Stage B's shipped six (`Traffic · Impact · Relay ·
+  Control · Guard · Finish`) are **offer-validity categories**, what a card does FOR a build, and
+  that is what the Forge's connector requirement reads; the drafted tags were trigger conditions
+  and no such taxonomy exists or is needed. **CHUM LINE AND TANDEM CUT:** both funded another
+  duck's meter, which §5 forbids in the words *"no ability funds another class's meter"* — the
+  Fisher earning it does not change whose meter fills, so Chum Line fails with Tandem rather than
+  surviving it. Two `Relay` slots stay open for non-Pluck payers. Called Shot's **probation is a
+  flag on the card, not a comment** — a probation living only in prose quietly becomes permanent.
 
 2026-08-08 (y) — LOCKED. **Stamp hygiene:** v2026-08-06q is VOID — cut from a (p)-era working copy,
   missing (r)–(x), silently reverting the Footing rework (t), climb removal (u), preview
@@ -893,9 +906,31 @@ place. **It may never suspend a rule** — that is the legendary tier's identity
 depends on nothing else doing it. Every Rare carries a tag hook, which is why D3's "at least one
 a connector for the current build" needs no special filter.
 
-Cards (10): **Sympathetic Fracture · Second Shoulder** (Vanguard) · **Deadweight · Chum Line**
-(Fisher) · **Ranging Shot · Called Shot** *(probation)* (Archer) · **Shield Wall · Set Spear**
-(Wardbearer) · **Tandem · Wake** (FLOCK). Full text in `RARE_TIER_draft.md`.
+**Tags are Stage B's shipped six** — `Traffic · Impact · Relay · Control · Guard · Finish` — which
+are **offer-validity categories** (what a card does *for* a build, which is what the Forge's
+connector requirement reads), NOT trigger conditions. An earlier draft invented an eight-tag
+trigger axis; no such taxonomy exists and none is needed.
+
+| Card | Class | Tag | Rule |
+|---|---|---|---|
+| **Sympathetic Fracture** | Vanguard | `Impact` | The first collision he causes each round also **Staggers** the enemy adjacent to the impact tile on the far side. **No damage** — damage to a second body is Aftershock's legendary crime. |
+| **Second Shoulder** | Vanguard | `Traffic` | If Bull Rush's target is **already Staggered**, the push is **3** instead of 2. (Check against the pipeline's own +1 for Staggered targets before tuning.) |
+| **Deadweight** | Fisher | `Control` | An enemy she drags **3 or more tiles** ends **Staggered**. |
+| **Ranging Shot** | Archer | `Control` | While she is on **high ground**, her basic attack range is **4**. **Minimum range unchanged** — the dead zone is Point Blank's crime. |
+| **Called Shot** | Archer | `Finish` | Her attacks deal **+2 against Staggered enemies**. **PROBATION** — with Rattling Impact this may be the pool's strongest line, and it rewards a duck who was already the damage class. The probation is carried as a **flag on the card, not a comment**; the alternative form (+2 from high ground only, taxing it positionally) is one data change away. |
+| **Shield Wall** | Wardbearer | `Guard` | Guard Stance covers allied structures at **range 2** instead of adjacent. |
+| **Set Spear** | Wardbearer | `Guard` | If Guard Stance expires **having absorbed at least one hit**, his next Spear Thrust's **tip tile deals 6** instead of 4. |
+| **Wake** | FLOCK | `Relay` | When a duck's displacement of an enemy ends **adjacent to the other player's duck**, that duck's **next attack this round deals +2**. No consent needed — it grants, it does not move or spend another player's duck. **No new timing:** a flag read at attack time, the same shape as `RattlingImpactRound`. |
+
+**Chum Line and Tandem are CUT (locked z).** Both granted a generic Pluck point to another duck —
+Chum Line to the nearest ally within 2 off the Fisher's kill, Tandem to the other player's duck off
+an adjacency. §5 states plainly: *no cross-charging; **no ability funds another class's meter***.
+The Fisher having earned it does not change whose meter fills, so Chum Line fails on the same
+words as Tandem; the flock crossing only makes Tandem worse. **Two `Relay` slots stay open** for
+cards that pay in a currency other than Pluck — Wake's +2 is the model.
+
+**Every Rare routes through existing systems.** No new status, no new timing window, no new
+grammar. A card that needs one has drifted out of the tier.
 
 ### Alternate abilities (2 per class, 3 mods each)
 
