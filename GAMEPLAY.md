@@ -2031,6 +2031,12 @@ so. **Short probe** is four columns for looking at one scene.
 Every generated act prints a **proof log** saying which constraint bound where, and it is stored with
 the act.
 
+**The sizings are also on the front door's "Start a run"**, under a **Generated** group, so Warrens v2
+can be started without visiting the builder at all — the shape plus that screen's own seed is the
+whole input, so the same pick and the same seed always start the same act. Anything saved in the
+builder appears under **Saved acts** in the same picker. Both are internal-build only, and both start
+a **scratch** run (D-263): a reload ends it, and the picker says so before the button is pressed.
+
 **Boards repeat, and that is accepted for now.** The Warrens' pool is six ordinary boards and a
 twelve-column act four nodes wide needs eight distinct ones across two adjacent columns, so it cannot
 have them. Repeating is a carried debt, not an error — **the exit is filling the pool out**, not a

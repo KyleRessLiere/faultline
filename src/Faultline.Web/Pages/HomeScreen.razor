@@ -4,6 +4,7 @@
 @layout MainLayout
 @implements IDisposable
 @inject RunSession Runs
+@inject ActStore Acts
 
 @* HOME — the front door, and nothing else.
 
@@ -98,15 +99,65 @@
         <section class="panel run-admin">
             <h2>@(Run is { Outcome: RunOutcome.InProgress } ? "New run" : "Start a run")</h2>
 
+            @* The shipped campaigns, and — on an internal build — whatever has been saved in the act
+               builder. A saved act is started through exactly the call /acts starts it with, so this
+               is a second door onto one thing rather than a second way of starting a run.
+
+               `selected` on the option rather than `value` on the select: a select's value attribute
+               does not drive selection in Blazor, which is how a picker ends up showing the first
+               entry while holding a different one. *@
             <label class="seed">
                 Shape
-                <select class="campaign-pick" value="@_campaignId" @onchange="OnCampaignChanged">
+                <select class="campaign-pick" @onchange="OnCampaignChanged">
                     @foreach (var campaign in CampaignLibrary.All())
                     {
-                        <option value="@campaign.Id">@campaign.Name</option>
+                        <option value="@campaign.Id" selected="@(_campaignId == campaign.Id)">@campaign.Name</option>
+                    }
+
+                    @if (DevBuild.ShowDevTools)
+                    {
+                        <optgroup label="Generated">
+                            @for (int i = 0; i < Shapes.Count; i++)
+                            {
+                                var id = ShapePrefix + i;
+                                <option value="@id" selected="@(_campaignId == id)">
+                                    @Shapes[i].Name — @Shapes[i].Columns columns, generated from the seed
+                                </option>
+                            }
+                        </optgroup>
+
+                        @if (Acts.Items.Count > 0)
+                        {
+                            <optgroup label="Saved acts">
+                                @foreach (var act in Acts.Items)
+                                {
+                                    var id = ActPrefix + act.Id;
+                                    <option value="@id" selected="@(_campaignId == id)">
+                                        @(act.Draft.Name.Length > 0 ? act.Draft.Name : act.Id) — @act.Draft.Shape()
+                                    </option>
+                                }
+                            </optgroup>
+                        }
                     }
                 </select>
             </label>
+
+            @if (StartsAShape)
+            {
+                @* The dial's own words, on the screen where it is picked — a sizing the design doc does
+                   not carry must not read as a shipped act. *@
+                <p class="note">@Shapes[ShapeIndex].Note</p>
+            }
+
+            @if (StartsAShape || StartsASavedAct)
+            {
+                @* Said before the button is pressed, not after the run vanishes. *@
+                <p class="note">
+                    A run on a built act is <strong>scratch</strong> — the reload path restores a run by
+                    looking its campaign up in the library, and an act built in this browser is not
+                    there. It does not survive a reload.
+                </p>
+            }
 
             <label class="seed">
                 Seed
@@ -177,6 +228,39 @@
     private bool _confirming;
     private bool _abandoning;
     private string _campaignId = CampaignLibrary.FaultlineId;
+
+    /// <summary>
+    /// Marks a picked id as a saved act rather than a shipped campaign, so the two id spaces cannot
+    /// collide — an act's slug is whatever someone typed into the name field.
+    /// </summary>
+    private const string ActPrefix = "act:";
+
+    /// <summary>Marks a picked id as a generator sizing to build fresh from the seed.</summary>
+    private const string ShapePrefix = "shape:";
+
+    private bool StartsASavedAct => _campaignId.StartsWith(ActPrefix, StringComparison.Ordinal);
+
+    private bool StartsAShape =>
+        _campaignId.StartsWith(ShapePrefix, StringComparison.Ordinal) && ShapeIndex >= 0;
+
+    /// <summary>Which sizing is picked, or -1 when the pick is not one.</summary>
+    private int ShapeIndex
+    {
+        get
+        {
+            if (!_campaignId.StartsWith(ShapePrefix, StringComparison.Ordinal)
+                || !int.TryParse(_campaignId.Substring(ShapePrefix.Length), out int index)
+                || index < 0
+                || index >= Shapes.Count)
+            {
+                return -1;
+            }
+
+            return index;
+        }
+    }
+
+    private static IReadOnlyList<ActShape> Shapes { get; } = ActShape.Presets();
 
     private const string StorageExplainer =
         "The run lives in this browser's localStorage — the seed, which node you are on and what "
@@ -276,6 +360,8 @@
             await Runs.LoadAsync();
         }
 
+        await Acts.LoadAsync();
+
         if (Run is not null)
         {
             _seed = Run.Seed;
@@ -321,6 +407,35 @@
     {
         _confirming = false;
         _abandoning = false;
+
+        if (StartsAShape)
+        {
+            // Generated here rather than fetched: the sizing plus this screen's own seed is the whole
+            // input, so the same pick and the same seed always start the same act.
+            var shape = Shapes[ShapeIndex];
+            var draft = ActGenerator.Generate(shape, _seed, shape.Name);
+            await Runs.StartCustomAsync(draft.ToCampaign(CustomFightStore.Slug(shape.Name)), _seed);
+            return;
+        }
+
+        if (StartsASavedAct)
+        {
+            var slug = _campaignId.Substring(ActPrefix.Length);
+            foreach (var act in Acts.Items)
+            {
+                if (string.Equals(act.Id, slug, StringComparison.Ordinal))
+                {
+                    await Runs.StartCustomAsync(act.Draft.ToCampaign(act.Id), _seed);
+                    return;
+                }
+            }
+
+            // Deleted from the builder between the pick and the press. Falling back to the shipped
+            // campaign would start something nobody asked for, so the pick is dropped instead.
+            _campaignId = CampaignLibrary.FaultlineId;
+            return;
+        }
+
         await Runs.StartAsync(_seed, _campaignId);
     }
 

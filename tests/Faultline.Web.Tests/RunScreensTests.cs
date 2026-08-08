@@ -633,6 +633,10 @@ public sealed class RunScreensTests
         services.AddSingleton(new PlaytestView());
         services.AddSingleton(runs.State?.Fight is null ? new GameSession() : new GameSession());
         services.AddSingleton(runs);
+
+        // The front door lists whatever the act builder saved, so it needs the store. Unloaded over a
+        // fake storage it holds nothing, which is the state these tests are about anyway.
+        services.AddSingleton(new ActStore(files));
         services.AddSingleton<NavigationManager>(new StubNavigation());
 
         using var provider = services.BuildServiceProvider();

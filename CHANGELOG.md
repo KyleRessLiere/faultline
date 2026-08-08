@@ -7,6 +7,9 @@
 - **Templates generate a branching act from constraints and a seed** (D-264). The seed selects from
   authored things and never places anything; every floor §8.5 names is enforced whatever the sizing
   dials say, and each generated act prints a proof log saying which constraint bound where.
+- **The generated sizings and the saved acts are on the front door's "Start a run"** (D-266), so
+  Warrens v2 can be started without visiting the builder. Both start a scratch run, and the picker
+  says so before the button is pressed.
 - `FightLibrary` parsed all sixty-six `.fight` files on **every call** and now parses them once
   (D-265). One click in the act builder went from fifteen seconds to about fifty milliseconds.
 

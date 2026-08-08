@@ -264,10 +264,11 @@ in this file when the question comes back.
 | D-261 | [RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.](#d-261-ruled-a-saved-test-loadout-is-keyed-by-class-while-the-bench-that-feeds-a-fight-stays-keyed-by-slot-the-two-are-different-questions-and-the-conversion-is-a-per-slot-lookup) | 2026-08-08 |  |
 | D-262 | [RULED: the bench edits ABILITY SLOTS at the class's own count, so putting a card on a duck is always taking something out. A saved build covers the whole party.](#d-262-ruled-the-bench-edits-ability-slots-at-the-classs-own-count-so-putting-a-card-on-a-duck-is-always-taking-something-out-a-saved-build-covers-the-whole-party) | 2026-08-08 |  |
 | D-263 | [RULED: an act built in the UI emits a MAPPED act, not a bare node list, and the event routing asks the run's current node rather than the map's.](#d-263-ruled-an-act-built-in-the-ui-emits-a-mapped-act-not-a-bare-node-list-and-the-event-routing-asks-the-runs-current-node-rather-than-the-maps) | 2026-08-08 |  |
-| D-264 | [RULED: the act builder generates a branching act from CONSTRAINTS and a seed, and the sizing is a dial rather than a ruling.](#d-264-ruled-the-act-builder-generates-a-branching-act-from-constraints-and-a-seed-and-the-sizing-is-a-dial-rather-than-a-ruling) | unreleased |  |
-| D-265 | [FIXED: `FightLibrary` parsed all sixty-six `.fight` files on every call.](#d-265-fixed-fightlibrary-parsed-all-sixty-six-fight-files-on-every-call) | unreleased |  |
+| D-264 | [RULED: the act builder generates a branching act from CONSTRAINTS and a seed, and the sizing is a dial rather than a ruling.](#d-264-ruled-the-act-builder-generates-a-branching-act-from-constraints-and-a-seed-and-the-sizing-is-a-dial-rather-than-a-ruling) | 2026-08-08 |  |
+| D-265 | [FIXED: `FightLibrary` parsed all sixty-six `.fight` files on every call.](#d-265-fixed-fightlibrary-parsed-all-sixty-six-fight-files-on-every-call) | 2026-08-08 |  |
+| D-266 | [RULED: the front door's run picker offers the generated sizings and the saved acts, and starting one is the same call the builder makes.](#d-266-ruled-the-front-doors-run-picker-offers-the-generated-sizings-and-the-saved-acts-and-starting-one-is-the-same-call-the-builder-makes) | unreleased |  |
 
-**247 rulings.**
+**248 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7141,3 +7142,36 @@ now about fifty milliseconds; the Web suite went from ninety seconds to under on
 
 Recorded because the defect was in a shared Core loader and had been paid by every caller for a long
 time — it took a screen that asks a question per node to make the bill legible.
+
+---
+
+**D-266 — RULED: the front door's run picker offers the generated sizings and the saved acts, and
+starting one is the same call the builder makes.**
+
+"Warrens v2" existed only inside `/acts`, so the answer to *"where do I start Warrens v2"* was "go to
+a different screen, generate it, name it, save it, then press Walk." Someone looking for an act looks
+at **Start a run**. The picker now carries three groups: the shipped campaigns, a **Generated** group
+listing the generator's sizings, and a **Saved acts** group listing whatever is in browser storage.
+Both new groups are behind `DevBuild.ShowDevTools`.
+
+**A generated pick is generated at the press, not fetched.** The sizing plus that screen's own seed is
+the entire input, so the same pick and the same seed always start the same act and nothing has to be
+saved first. That is also why the sizings are offered rather than a snapshot of one: a snapshot would
+be a fourth place an act could live and drift.
+
+**Ids are prefixed (`shape:` and `act:`) rather than shared with campaign ids.** An act's slug is
+whatever someone typed into a name field; a campaign's id is authored. Letting them collide would mean
+naming an act "faultline" silently starts the shipped campaign.
+
+**A pick that vanished between the pick and the press starts nothing.** If a saved act is deleted in
+another tab, the picker drops back to the shipped campaign and does *not* start it — falling back
+would start something nobody asked for.
+
+**This does not migrate the Warrens** and does not touch `CampaignLibrary` or `ActMapLibrary`. "The
+Warrens" is still the authored act under its own name, still what the shipped campaign walks. What
+changed is that a *draft* is reachable from the screen where runs begin.
+
+**The scratch warning is printed before the button, not after the run.** A run on a built act is not
+restored by reload (D-263), and the browser check proves it the hard way: navigating to `/map` with
+`page.goto` ends the run, so the check has to click through in-app. That is the documented behaviour
+working, not a defect — but a player meeting it without warning would file it as one.
