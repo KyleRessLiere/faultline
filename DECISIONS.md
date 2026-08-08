@@ -3884,7 +3884,7 @@ MASTER_DESIGN §3 (locked v, stamp **v2026-08-05x**) makes the displacement prev
 displacement must render its route, the tile where it ACTUALLY STOPS, the outcome there, and
 zero-distance results out loud. All numbers come from Core. A silent no-op is a bug." D-150 and the
 ranged-preview work before it built that for the browser shell. The Warrens playtest
-(`playtest/chatgpt-warrens/PLAYTEST_REPORT.md`, P0) then reported three previews contradicting
+(`playtest/reports/2026-08-05/warrens-core-playtest-2026-08-05.md`, P0) then reported three previews contradicting
 resolution, and all three had the same shape: a renderer answering a rules question itself.
 
 - **`Spear Thrust … nothing that way` and then it hit** the gate, a Grappler, a Raider and a Husk.

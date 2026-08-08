@@ -128,8 +128,9 @@ def render(fights, verdicts):
     w("Every authored battle, generated from the `.fight` files themselves so it cannot drift from")
     w("the boards it describes. Regenerate with `python tools/build_catalogue.py`.\n")
     w("Grids are the board exactly as authored: `.` open, `#` wall, `O` pit, `^` spikes, `H` high")
-    w("ground, `A`/`B` the two deployment zones, and any other letter an enemy from that battle's")
-    w("legend. A unit never starts on a hazard — the tile under a deploy slot or a spawn is Open.\n")
+    w("ground, `X` a breakable blocker, `A`/`B` the two deployment zones, and any other letter an")
+    w("enemy from that battle's legend. A unit never starts on a hazard — the tile under a deploy")
+    w("slot or a spawn is Open.\n")
     w("Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were")
     w("proposals; `docs/archive/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a")
     w("`retired:` key giving its reason — it is out of the picker's active list but still embedded,")
@@ -181,6 +182,8 @@ def render(fights, verdicts):
                 facts.append("objective: `%s`" % f["objective"])
             if f.get("turn-limit"):
                 facts.append("turn limit: %s" % f["turn-limit"])
+            if f.get("blocker-hp"):
+                facts.append("breakable blockers: %s HP each" % f["blocker-hp"])
             if f.get("footing"):
                 facts.append("footing: `%s`" % f["footing"])
             w("\n%s\n" % " · ".join(facts))

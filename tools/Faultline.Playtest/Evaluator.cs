@@ -65,6 +65,16 @@ public abstract class EvaluatorPolicy : Policy
 
         /// <summary>Spending Pluck at all, before what the spend achieves.</summary>
         public int Spend { get; init; } = 30;
+
+        /// <summary>
+        /// Each point of damage dealt to a structure, on top of <see cref="Damage"/>.
+        /// </summary>
+        /// <remarks>
+        /// Zero by default, so every policy that existed before <c>objective-first</c> prices a
+        /// structure hit exactly as it did — the weight exists so one variant can care about the
+        /// objective the way <c>board-first</c> cares about the board, not so the default moved.
+        /// </remarks>
+        public int ObjectiveDamage { get; init; }
     }
 
     /// <summary>What this player values.</summary>
@@ -168,7 +178,7 @@ public abstract class EvaluatorPolicy : Policy
             }
         }
 
-        score += preview.DamageToStructure * w.Damage;
+        score += preview.DamageToStructure * (w.Damage + w.ObjectiveDamage);
 
         return score;
     }

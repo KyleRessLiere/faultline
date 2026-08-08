@@ -112,6 +112,30 @@ if (args.Length > 0 && args[0] == "--camp-offers")
     return;
 }
 
+// The Warrens edition-A certification gate (MASTER_DESIGN §8.8): every combat board, every one of
+// the four evaluator policies, played rather than asserted.
+//
+//   dotnet run --project tools/Faultline.Playtest -- --certify --out docs/playtest
+if (args.Length > 0 && args[0] == "--certify")
+{
+    int certifySeed = 1;
+    string certifyOut = Path.Combine("docs", "playtest");
+    for (int i = 1; i < args.Length; i++)
+    {
+        if (args[i] == "--seed" && i + 1 < args.Length && int.TryParse(args[i + 1], out int cs))
+        {
+            certifySeed = cs;
+        }
+        else if (args[i] == "--out" && i + 1 < args.Length)
+        {
+            certifyOut = args[i + 1];
+        }
+    }
+
+    Certification.Report(certifySeed, certifyOut);
+    return;
+}
+
 if (args.Length > 0 && args[0] == "--levels")
 {
     int levelSeed = 1;

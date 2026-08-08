@@ -17,6 +17,7 @@ public static class Policies
         new CarefulPolicy(),
         new BoardFirstPolicy(),
         new BladeFirstPolicy(),
+        new ObjectiveFirstPolicy(),
         new PreserverPolicy(),
         new RelayPolicy(),
         new RandomPolicy("a"),
