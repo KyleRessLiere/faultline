@@ -255,9 +255,11 @@ in this file when the question comes back.
 | D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | 2026-08-08 |  |
 | D-253 | [RULED: every technique hosts on the ability that TRIGGERS it, which closes the half of D-158/D-227 the slot model left open.](#d-253-ruled-every-technique-hosts-on-the-ability-that-triggers-it-which-closes-the-half-of-d-158d-227-the-slot-model-left-open) | 2026-08-08 |  |
 | D-254 | [FOUND: "the merge order is the designer's call" was false, and the branch queue cost a session's work rebuilding something that had already shipped.](#d-254-found-the-merge-order-is-the-designers-call-was-false-and-the-branch-queue-cost-a-sessions-work-rebuilding-something-that-had-already-shipped) | 2026-08-08 |  |
-| D-255 | [RULED: a design doc states intent and never a live defect report, because text describing today's code cannot correct itself when the code is fixed.](#d-255-ruled-a-design-doc-states-intent-and-never-a-live-defect-report-because-text-describing-todays-code-cannot-correct-itself-when-the-code-is-fixed) | unreleased |  |
+| D-255 | [RULED: a design doc states intent and never a live defect report, because text describing today's code cannot correct itself when the code is fixed.](#d-255-ruled-a-design-doc-states-intent-and-never-a-live-defect-report-because-text-describing-todays-code-cannot-correct-itself-when-the-code-is-fixed) | 2026-08-08 |  |
+| D-256 | [RULED: the deployment draft's snake generalises to unequal rosters by PASSING an exhausted player's slot to the other player, never by dropping it.](#d-256-ruled-the-deployment-drafts-snake-generalises-to-unequal-rosters-by-passing-an-exhausted-players-slot-to-the-other-player-never-by-dropping-it) | unreleased |  |
+| D-257 | [FOUND: §3's draft dissolved the per-side half of the agency lint, and the deployment guideline lints with it. The law is unchanged; what it can distinguish is not.](#d-257-found-3s-draft-dissolved-the-per-side-half-of-the-agency-lint-and-the-deployment-guideline-lints-with-it-the-law-is-unchanged-what-it-can-distinguish-is-not) | unreleased |  |
 
-**237 rulings.**
+**239 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6749,3 +6751,66 @@ anything with a descriptive suffix, so none of them announced itself.
 
 **Found the same way, and still open:** that watcher fails silently. A file it declines is a file
 nobody learns about. Widening the pattern is cheap; logging the decline is the part that matters.
+
+---
+
+**D-256 — RULED: the deployment draft's snake generalises to unequal rosters by PASSING an exhausted
+player's slot to the other player, never by dropping it.**
+
+`MASTER_DESIGN` §3 (locked y) fixes the shape at **A · B · B · A** and says the order "generalises to
+unequal rosters (a swept duck, a recruit, Bedraggled ducks all deploy normally) rather than assuming
+2/2" — without saying how. §14 #32 records it as unspecified. Rosters will be 2/1 after a sweep and
+possibly 3/1 after a recruit, so the gap is reachable by playing and had to be closed to build L1.
+
+**The rule.** Placement slots run the serpentine `F S S F F S S F …`, where F is whoever won step 1.
+Slot *i* belongs to F when `((i + 1) / 2)` is even. **A slot whose owner has no ducks left is taken by
+the other player rather than skipped.** At 2/2 that is exactly §3's A·B·B·A; at 3/1 it is F·S·F·F, at
+1/3 F·S·S·S, at 2/1 F·S·F. `Game.DraftSequence` is the single home of this and `NextPlacer` reads it.
+
+**Rejected: dropping the exhausted slot** (so 3/1 would run F·S·F·F only by coincidence and 1/3 would
+run F·S·S then stop). Dropping quietly refunds the thing the snake exists to charge for. §3 is
+explicit that straight alternation "at two ducks each would hand the first picker both best tiles in
+expectation" — the second picker's back-to-back pair is the *payment* for picking second. If the
+first picker's later slots evaporate when they run out of ducks, the player who chose to place first
+keeps the early advantage and stops paying for it, which inverts the trade §3 built.
+
+**Rejected: re-deriving a fresh snake over the remaining ducks each time somebody places.** It gives
+the same answer at 2/2 and different answers everywhere else, and it makes the order un-publishable —
+the strip could not draw the whole draft up front, which §3's Draft UI paragraph requires.
+
+**Bedraggled ducks are placed by this like any other.** §3 says they "deploy normally"; their penalty
+is the omitted round-1 activation, not a different draft.
+
+---
+
+**D-257 — FOUND: §3's draft dissolved the per-side half of the agency lint, and the deployment
+guideline lints with it. The law is unchanged; what it can distinguish is not.**
+
+While zones were owned, `Threat.UnsafeSides` could report that Player B was short of safe tiles while
+Player A was fine — that asymmetry was the whole shape of its message, and D-080's agency-before-
+injury law was enforced per side. §3 made spots **unowned**, so both sides are answered by the same
+list: a board is now short of safe tiles **for everybody or for nobody**. "Unsafe for B while A is
+fine" is a state the design can no longer produce.
+
+Nothing weakened. `Threat.SafeDeploymentTiles` reads the published list, `HasSafeDeployment` still
+fails any board that cannot field a roster safely, and `AgencyTests.KnownUnsafe` is still empty. What
+changed is that a per-side *diagnosis* is no longer meaningful, and two fixtures that asserted one had
+to be re-authored to park the threat on the whole spot list rather than on one doorstep — otherwise
+they were asserting a shape the rules cannot make.
+
+**`ZonesNotOppositeCorners` is retired for migrated boards** by the same argument. "Players deploy in
+opposite corners" is a question about two owned zones; a board written with `*` has one shared list
+and cannot trip it. It still runs for boards not yet migrated. `hold-the-gate` deviates on three
+lints now, not four.
+
+**Rejected: keeping a per-side lint by asking whether each side *could* be fielded safely given the
+other's picks.** That is a question about a draft in progress, not about a board, and it would have
+turned an authoring-time check into a simulation of every placement order. The authoring question the
+lint exists to answer — "can this board be opened without somebody being hit before they move?" — is
+answered correctly by the shared list.
+
+**Consequence worth naming: spot ORDER is now board order.** The old union read zone A then zone B;
+a migrated board reads row-major. Any driver keyed to "the first legal spot" therefore fields
+differently than it used to, which is not a defect but did change several test drivers' fieldings —
+one of them from a win into a round-247 stalemate. Drivers that need a particular quality of fielding
+now ask for it (safest, nearest, farthest) instead of taking list order and hoping.

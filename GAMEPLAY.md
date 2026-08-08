@@ -210,11 +210,14 @@ the moment it applies.
 
 ## Round structure
 
-1. **Deployment.** Players alternate placing units into opposite corners — A bottom-left, B top-right.
+1. **Deployment — the draft.** See "The deployment draft" below. Boards publish unowned **spots**;
+   both players answer a blind *place first or place second*; placement then snakes A·B·B·A.
 2. **Round start:** every enemy that can act **declares its intent** — see "Enemies" below. The
    declarations land before anyone activates, so the players see the whole enemy round first.
-3. **Activations alternate** Player A → enemy → Player B → enemy. When one side runs out, the other
-   activates consecutively. Player A opens every round (D-006).
+3. **Activations alternate** initiative-holder → enemy → other player → enemy. When one side runs
+   out, the other activates consecutively. **Whoever won the draft's step 1 opens every round** —
+   placing first and activating first are one prize (D-006 superseded on who opens: it is no longer
+   always Player A).
 4. A player activation is **three Action Points**: movement spends out of them a tile at a time, then
    at most one action spends the rest and ends the activation. **The move comes first or not at all**
    (D-097). Ending early forfeits the rest. See "The Action Point turn" below.
@@ -482,6 +485,40 @@ way a unit went and not merely where it stopped. Core re-derives the route regar
 command whose path is not the one it would have taken — the path travels as a record, never as an
 instruction.
 
+### The deployment draft
+
+Placing your ducks is a conversation between two players, not two people filling in their own corner
+(`MASTER_DESIGN` §3, locked y).
+
+**Boards publish SPOTS, and a spot belongs to nobody.** The `.fight` format marks them `*`; either
+flock may take any open one. Boards not yet migrated still carry `A`/`B`, and their two zones are
+read as one shared list, so an old board drafts rather than breaking. The default is **6–8 spots for
+4 ducks**; fewer is a legitimate board thesis but must be declared on a `design:` line, or the
+`SpotFloorUndeclared` lint fires.
+
+**Step 1 — who places first, blind.** Each player privately answers *place first* or *place second*.
+Differing preferences resolve for free — both get what they asked for. **Identical preferences fire
+the seeded coin**, which is the inversion against the map vote, where agreement is free and a split
+costs the draw. Both answers, the winner and the coin are revealed in a single moment; when no coin
+fired the screen says "preferences differed, no coin" rather than leaving a silence. The coin is the
+draft's only draw, so seed plus command log replays the whole choice phase.
+
+**The initiative bundle is undivided.** Winning step 1 wins placing first *and* activating first,
+every round.
+
+**Step 2 — the snake, A·B·B·A.** Never straight alternation, which at two ducks each would hand the
+first picker both best tiles in expectation. Each player places only their own ducks; the draft
+itself is **open**, and each placement is its own logged, replay-stable command. With unequal rosters
+the serpentine runs on and **an exhausted player's slot passes to the other player** rather than
+being dropped (D-256): 3/1 is F·S·F·F, 1/3 is F·S·S·S, 2/1 is F·S·F. Bedraggled ducks deploy
+normally — their penalty is the omitted round-1 activation, not a different draft.
+
+**On screen**, spots are board facts drawn on their tiles from before the first pick, never fogged
+and never enumerated in a side panel. Open, yours-to-take and taken are three distinct states, and a
+taken spot names who took it and which duck stands there. The draft order is published in the
+turn-order strip — one card per pick, spent picks resolved to the duck that took them, open picks
+drawn as that side's unplaced ducks stacked, exactly as an open activation slot is.
+
 ### Agency before injury — the deployment overlay
 
 **A player should never lose hit points to a decision they were not allowed to make** (D-080).
@@ -501,13 +538,22 @@ Deployment is the one moment they commit blind, so it is the one moment the game
   a diamond of radius 5, which on a 7×7 is most of the board. The only way to shrink one is to box in
   where it can stand.
 
+- **Hovering a spot says which enemies reach it on round 1, by name**, alongside the ground it
+  stands on — the same reachability the lint computes, surfaced rather than recomputed.
+
 **Campaign boards are held to the law**; trial and gauntlet boards are not, because those are chosen
 from a menu that shows what is on them. A campaign board where some side cannot field its whole
 roster on unthreatened tiles raises the `UnsafeRound1Deployment` lint.
 
+**The per-side half of that lint is gone since the draft** (D-257). Spots belong to neither player,
+so both sides are answered by the same list and a board is short of safe tiles **for everybody or for
+nobody**. The law is unchanged and `AgencyTests.KnownUnsafe` is still empty; what it can no longer
+say is "unsafe for B while A is fine", because that is not a state the rules can produce.
+
 **`first-contact` is held to the strict form** — not "a safe deployment exists" but *every* one of its
-six deployment tiles is out of round-1 reach. Fight 1 is where a player learns what the game does to
-them. The lobber is emplaced at (1,0) behind a wall at (2,0) to make that possible.
+**eight** spots is out of round-1 reach, including the two central ones the draft added. Fight 1 is
+where a player learns what the game does to them. The lobber is emplaced at (1,0) behind a wall at
+(2,0) to make that possible.
 
 **No campaign board breaks the law.** The six that did — `cb-06-bait-and-break`, `the-teeth`,
 `broken-bridge`, `the-shrine`, `high-road`, `hz-09-the-trench` — were re-authored as Warrens edition
@@ -1126,9 +1172,10 @@ Fights are **authored as data, not code**. Each one is a `.fight` text file in
 battle is adding a file — there is nothing to register and no C# to change.
 
 Terrain and placement share one grid, so a fight file is the board as it looks: `.` open, `#` wall,
-`O` pit, `^` spikes, `H` high ground, `A` and `B` the two deployment zones, and any other letter an
-enemy declared by a `spawn` line. The tile under a deploy slot or an enemy is always Open, so no unit
-can start a fight standing on a hazard.
+`O` pit, `^` spikes, `H` high ground, `*` a deployment spot either player may draft into, and any
+other letter an enemy declared by a `spawn` line. The tile under a spot or an enemy is always Open,
+so no unit can start a fight standing on a hazard. `A` and `B` still parse, as the two owned zones of
+a board not yet migrated to spots; they are read as one shared list.
 
 `FightLibrary` reads every embedded `.fight`, parses it, and returns the playable ones ordered by
 their `number:`. Parsing splits its complaints in two: **errors** mean the file cannot become a
@@ -1154,8 +1201,8 @@ ordering drift the day someone reorders the spine.
 
 Only `first-contact` matches the brief's layout guidelines cleanly. Every other board carries lints
 on purpose, and the objective boards carry the most: a fight built around a structure in the middle
-cannot keep the centre clear, and a siege with one front cannot put its deployment zones in opposite
-corners.
+cannot keep the centre clear. The opposite-corners lint no longer applies to a migrated board at all
+(D-257): one shared spot list has no two zones to sit in opposite corners.
 
 **Retired battles.** A `.fight` file with a `retired:` key is out of the playable set:
 `FightLibrary.All()` skips it and `FightLibrary.Retired()` returns it with the reason its key gave.
@@ -1172,7 +1219,7 @@ with no key, or a key with no `X`, is an error (D-114).
 
 ### Building a fight without writing one
 
-`/create` paints a board, places enemies and deploy zones, and picks each side's roster from a class
+`/create` paints a board, places enemies and deployment spots, and picks each side's roster from a class
 reference showing every ability. It validates through the same parser the shipped files go through —
 `FightWriter` turns the draft into `.fight` text and `FightParser` reads it straight back — so the
 creator cannot produce a scenario the game would refuse. Errors block play; lints never do.

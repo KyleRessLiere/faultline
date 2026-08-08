@@ -1,5 +1,25 @@
 # Changelog
 
+## Deployment is a draft, and the two flocks can finally stand next to each other
+
+- **Boards publish deployment SPOTS that belong to neither player** (`*` in the `.fight` format).
+  Either flock may take any open one, which is the whole of what replaced zone-claiming. Boards not
+  yet migrated keep `A`/`B` and read as one shared list, so nothing breaks while they wait.
+- **Who places first is a blind pick with a seeded coin on agreement.** Both answers are submitted
+  together and revealed together, the winner places first *and* activates first, and placement then
+  snakes **A·B·B·A** — with an exhausted player's slot passing to the other player rather than being
+  dropped (D-256). Each placement is its own logged, replay-stable command.
+- **The ten boards the act fields are migrated.** `first-contact` and `break-the-gate` gain central
+  spots so the draft has somewhere to go that is neither corner; `broken-bridge`, `high-road` and
+  `hz-09-the-trench` are flagged and preserved tile-for-tile, because their deployment shape *is*
+  their thesis.
+- **The draft is on screen**: spots drawn on the board from before the first pick, three distinct
+  states, a taken spot naming who took it and which duck, and the order published in the turn-order
+  strip rather than in a second widget.
+- **Instrumented, as §3 asked.** Every board in the act can now field the two flocks adjacent, and
+  even an unthinking draft does. No cross-flock card fires yet — because none can be equipped by
+  playing (D-253), not because the flocks are still apart.
+
 ## Every technique hangs on an ability now, and none of them can hide from a trade
 
 - **The five techniques §8.6 left hostless were assigned hosts**, on the rule that a technique hangs
