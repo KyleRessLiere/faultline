@@ -1,5 +1,5 @@
 # PLUCK — MASTER DESIGN DOCUMENT
-**Version: v2026-08-07r** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
+**Version: v2026-08-08y** *(stamp matches the newest Design Log line; single filename, versions live here and in git history)*
 
 *(named 2026-08-02; formerly working title "Faultline". Storefront subtitle TBD at the tone
 pass — candidate: "PLUCK: a duck rebellion")*
@@ -11,12 +11,12 @@ POND_AND_DYNASTY, ENCOUNTERS — now source material, not authorities). Relation
 is meant to be**; `DECISIONS.md` records why they differ wherever they do. When this file and
 GAMEPLAY disagree, that is either unbuilt design or a missing DECISIONS entry.
 
-Last design session: 2026-08-07.
+Last design session: 2026-08-08.
 
 ---
 ## Design Log (one line per session; reasoning lives in DECISIONS.md)
 
-2026-08-07 (r) — LOCKED. **Stamp hygiene:** v2026-08-06q is VOID — cut from a (p)-era working copy,
+2026-08-08 (y) — LOCKED. **Stamp hygiene:** v2026-08-06q is VOID — cut from a (p)-era working copy,
   missing (r)–(x), silently reverting the Footing rework (t), climb removal (u), preview
   legibility (v), Warrens act v2 with §8.7-8.9 (w) and the Pond clearing Bedraggled (x); the
   tell was "Bull Rush 3" where x prints 2 and the build has shipped 2 since D-126 (D-214).
@@ -38,6 +38,39 @@ Last design session: 2026-08-07.
   standing workers and resolves victory immediately - Clinging ducks SURVIVE, fleeing workers
   are NOT kills. THORN POUCH's stored-underlying-tile promoted to terrain-mutation TECH.
   D-186's RULING STANDS, its EVIDENCE IS WITHDRAWN. Two laws added to §2 (evidence; 0-AP).
+  **Letter correction:** this session was drafted as (r), which was already spent on the Ponds
+  tone lock (2026-08-03); (s)–(x) follow it, so the free letter is (y). The delta was written
+  against a (p)-era copy and assumed r was next — the same staleness that voided q, one layer
+  up, and caught only when the real stamp arrived. **DEPLOYMENT IS A DRAFT** (§3, supersedes
+  zone-claiming): boards publish 6–8 unowned SPOTS for 4 ducks; who places first is a BLIND pick
+  with a seeded coin on conflict; the initiative bundle survives unchanged; placement is an OPEN
+  snake draft A·B·B·A, each player placing only their own ducks, each placement its own
+  replay-stable command; spot layout becomes an authoring axis (clustered vs scattered = two
+  fights on one terrain); fewer than 6 spots is a board thesis, marked as such. Rationale: zones
+  were already claimable by either player but nothing rewarded mixing, and every cross-flock card
+  is a proximity card — half the progression system may never have fired. **CAMP IS ONE PICK PER
+  PLAYER** (two tables of two), reversing D-154 and its unruled halving of Act 1's cards 8→4; the
+  director rows D-154 cited must be RESTATED for two tables, not merely re-enabled; the camp
+  cannot resolve until BOTH tables are spent, and the log emits one line per player per camp — a
+  camp that produced one line is a bug report. **THE SIXTH STATUS: Slowed** (Move halved, round
+  up, min 1), stacking legal and self-limiting, shipping with the Bogs (§10 "arcing + slowing
+  ground") so it lands with more than one consumer; Grounding Shot holds at 2 AP with no cheaper
+  mod ever. **DEEP MIRE STRUCK** (it forbade the climb D-165 removed, and was dead weight on
+  boards without high ground) and replaced. **`Mod` GROWS AN ABILITY HOST** — action-hosted mods
+  are NOT TechniqueModifiers; D-158/D-227 stays open and is not absorbed. Law added to §4: kit is
+  no longer class. The 0-AP law held unprompted across 21 independently drafted mods.
+  **Two corrections from repo intake, both authored against a stale code state.** §7's Destroy-win
+  paragraph asserted a defect D-223 had already closed (`ClearedBoardWins(kind) => kind != Destroy
+  && kind != Boss`); it is rewritten as a RULE, and the governing lesson is recorded: **a design
+  doc states intent and must not carry live defect reports** — text describing today's code will
+  always eventually be wrong and cannot self-correct, while a defect in DECISIONS closes as a
+  normal event. D-186's evidence withdrawal is restated so it no longer leans on that companion
+  fact: the 18/18 measurement never supported the collision price either way. §8.6's tier ladder
+  printed Legendary as a fourth TIER while the taxonomy above it makes Legendary a KIND; the
+  ladder is three values, as `CardRarity` already implements.
+  **§2 addendum (from the same intake):** the reconstruction lineage is retired. A reconstruction
+  is never a patch source; rulings live in the stamp or in a delta against it, never in a third
+  artifact that accumulates content neither carries.
 2026-08-05 (x) — LOCKED: **the Pond heals the wound.** A Still Pond's Rest CLEARS Bedraggled —
   a duck that rests returns at half max HP with its round-1 activation slot intact. An unhealed
   down stays Bedraggled (quarter HP, no first slot) into the next fight. This closes the §3/§8.8
@@ -328,6 +361,17 @@ SHORTENS, Footing REFUSES: two sentences, no shared math.) Collision: both parti
 (collision/spike/fall) ignores all mitigation, always.
 
 **Statuses:** Staggered (from collision/spike damage; next displacement +1; clears at round end).
+**Slowed** (locked y — the sixth status): the target's **Move is halved, round up, min 1**, until
+end of round. Rounding matches Guard Stance's halving and Bedraggled's quarter; min 1 keeps it a
+**gradient** — an Anchor at Move 1 is slowed, never frozen, so it can never become the "only X
+works" soft-lock §2 forbids. **Stacking is legal and self-limiting:** under round-up-min-1 a Husk
+goes 3→2→1 and a Stalker 4→2→1, so two applications floor almost everything and a third does
+nothing — no cap is needed, and nobody should tune it as though stacks scale. It exists because
+§10 already owes the **Bogs** "arcing + slowing ground" as a territory thesis, so it ships with at
+least two consumers (the terrain and Grounding Shot) rather than as one card's rider. **OPEN and
+the real design question: symmetry.** Pillar 2 and the (n) precedent say the tile never checks
+jerseys, so a slowed *duck* must be legal — but does halved Move mean halved AP, or 2 AP per tile?
+Unruled (§14).
 **Footing (REWORKED, locked t): counts instances, not tiles** — spending Footing REFUSES one
 whole displacement, impact and all; it is outside the distance arithmetic entirely. Regulars
 carry 1; **Footing stacks (2+) are the elite/boss anti-displacement stat** — a bestiary design
@@ -367,10 +411,60 @@ at hazard ENTRY (Clinging onset), never at sweep — the Fisher is paid before a
 auto-resolution; auto-sweeps emit the full normal event chain identical to a natural sweep.
 
 ## Turn structure
-Pre-fight **choice phase**: each player secretly picks preferred deployment zone + initiative;
-blind reveal; contested items each resolved by seeded coin flip. **Initiative bundles: place
-first (cost — you reveal setup) and activate first (advantage).** Zones are claimable by either
-player; authors encouraged to make zones asymmetric.
+Pre-fight **choice phase — the deployment draft (locked y; supersedes zone-claiming).** Boards
+publish **deployment SPOTS**: discrete, visible, individually clickable tiles, **not owned by
+either player**. Default **6–8 spots for 4 ducks** — spots must outnumber ducks or the draft is
+assignment rather than drafting. **Fewer spots is a board thesis, not a norm**, and is marked as
+such on the board's own design lines (a board that forces a 2/2 split into two distant pockets,
+or one that scatters the flock so that converging is the question, is a deliberate design).
+
+**Step 1 — who places first: BLIND pick, seeded coin on conflict.** Each player privately answers
+*place first or place second*; differing preferences resolve without a coin, identical preferences
+fire the seeded coin; both answers and the coin result are revealed together in the open. **Blind
+deliberately** — every other shared decision in this game is blind (this phase, the map vote), and
+that is load-bearing for two-player parity: an open question invites the more experienced player
+to answer for both.
+
+**Initiative still bundles: place first (cost — you reveal your setup) and activate first
+(advantage).** Winning the placement question wins both; the trade is unchanged.
+
+**Step 2 — the snake draft: A · B · B · A.** Snake, never straight alternation, which at two ducks
+each would hand the first picker both best tiles in expectation. Each player places **only their
+own ducks** — nobody is placed for. The draft itself is **open**: both players see every spot and
+every placement as it happens. The blindness is in step 1; the draft is the conversation this
+phase exists to create. Each placement is its own command — seeded, logged, replay-stable. The
+order **generalises to unequal rosters** (a swept duck, a recruit, Bedraggled ducks all deploy
+normally) rather than assuming 2/2.
+
+**Why this replaced zone-claiming.** Zones were already claimable by either player, but nothing
+rewarded the flocks mixing, so they deployed to where their own kits worked and drifted apart —
+and **every cross-flock card is a proximity card** (Hand-Off, Spotter, Crossing Shot, and the
+drafted Wake and Tandem). Proximity rewards had been built; a proximity incentive never had.
+Authors are still encouraged to make spot layouts asymmetric, and the spot list is now a real
+authoring axis: the same terrain drafted from clustered spots and from scattered spots is two
+different fights.
+
+**Draft UI (§7.5's laws bind here — the board is the preferred home).** Deployment spots are BOARD
+facts, drawn **on the grid**, never enumerated in a side panel; a panel listing spots duplicates a
+fact the board already owns.
+- Every spot rendered on its tile before the first pick, visibly distinct from ordinary terrain.
+  **No fog** — a published spot list is a published fact.
+- **Open / taken / yours-to-take** are three distinct states. A taken spot **names who took it and
+  which duck stands there** — never greyed with an empty reason.
+- Hovering a spot uses the existing preview contract: terrain, adjacent hazards, and **which
+  enemies can reach it in round 1** — the whole basis of a good pick. `AgencyTests.KnownUnsafe`
+  already computes that reachability; it is surfaced, not recomputed.
+- Spots inspect in the **one inspector** where terrain and structures already inspect (§7).
+- **Draft order reuses the turn-order strip's pattern** in the situation column — same kind of
+  fact, same home, same visual language. No second order widget.
+- The step-1 reveal is a single moment: both answers side by side, the coin and its result if one
+  fired, and *"preferences differed, no coin"* when none did.
+
+**Watch: quarterbacking.** An open draft invites the stronger player to advise. Placing only your
+own ducks limits it, but advice is free. If playtest shows one person running both flocks, the
+fallback is a blind first round with an open remainder. **Instrument it:** record flock separation
+distance at end of deployment and whether cross-flock cards fire by name — if Hand-Off and Spotter
+still never trigger, the proximity problem is not deployment (§14).
 
 Round: intents declared (locked; re-plan only on invalidation, visibly) **and enemy activation
 ORDER published with them** — which enemy fills each enemy slot is contract, not implementation
@@ -420,6 +514,11 @@ eligibility flagged for review — move-1-then-Bull-Rush extends his threat rang
 | **Archer** | 8 | 3 | range 3, 4 dmg, **minimum range 2** (cannot target adjacent tiles — the dead zone; exception: from high ground she may target adjacent LOWER tiles) | **Stagger Shot**: range 3 (same min range), 2 dmg + push 1 away |
 | **Fisher** | 8 | 3 | range 3: 2 dmg OR pull 1 (the flick, 1 AP) | **Reel** (2 AP): pull one enemy in **range 4** all the way to adjacent, every tile resolved — the line flies over everything; mid-drag slams and drain-drags are the point. The heavy earns the reach; the flick stays range 3 |
 | **Wardbearer** | 14 | 3 | melee 2 | Innate **Push Resistance 2**. Per activation choose: **Spear Thrust** (Line 2, damage only, tip sweet spot: 2 to the adjacent tile, **4 to the tile beyond** — position for the tip, no push) or **Guard Stance** (until next activation: adjacent allies' — **and adjacent allied structures'** — incoming damage and displacement redirect to him, same vector, resist applies, multi-hit stacks, full physics; attack damage he takes halved ROUND UP min 1 [4→2, 6→3, 2→1]; impact never mitigated; qualifying absorbs charge Pluck, structure-aimed included) |
+
+**Law: kit is no longer class (locked y).** Under kit surgery a duck's abilities live on the
+duck, not on its archetype. Anything that asks the archetype what a duck holds is wrong by
+construction — three shipped bugs shared exactly that cause. Class still names a job and a
+chassis; it no longer answers what is in the slots.
 
 Hold aura: deleted. The formerly-held Archer damage change is retired in favor of minimum
 range 2 (see §13).
@@ -525,16 +624,27 @@ inclusion in push previews and intent arrows, bestiary entry. One Inspectable su
 goal in plain words, live progress (pips + numbers), the loss condition with equal billing
 (never in a tooltip), and reacting visibly at the moment progress changes.
 
-**The Destroy win (locked r).** `Objectives.Check` wins on `!AnyEnemyLeft` under **every**
-objective, so a cleared board wins a Destroy fight, which this section says it cannot. This is a
-win-condition bug; the policies are exonerated. **The boss board depends on the same fix** — with
-the rout ruled (§8.9), the boss objective is not Kill All, and today it would resolve correctly
-by accident. Fix together or the second hides behind the first.
+**The Destroy win (locked y — stated as a RULE, not as a defect report).** **A cleared board never
+wins a Destroy fight, and never wins a Boss fight.** Kill-all is a win condition for Kill All; for
+every other objective the objective is the win condition and turn-limit expiry is a loss. With the
+rout ruled (§8.9), the boss objective is likewise not Kill All.
+
+*Correction, and the lesson it carries:* this paragraph previously asserted that
+`Objectives.Check` wins on `!AnyEnemyLeft` under every objective. That was already false when it
+was written — **D-223 had closed it** (`ClearedBoardWins(kind) => kind != Destroy && kind !=
+Boss`) — because the text was authored against an older code state. **A design doc states intent;
+it must not carry live defect reports.** Text describing today's code will always eventually be
+wrong and cannot self-correct, while a defect in DECISIONS and the queue closes as a normal event.
+Defect reports do not enter this file again.
 
 **D-186: the ruling stands, the evidence is withdrawn (locked r).** Structure collisions at 6
-conform to this section in three places and that is sufficient grounds. The 18/18 measurement
-never supported it — no policy attacks the gate at any price, so the number was reporting the
-win-condition bug above.
+conform to this section in three places and that is sufficient grounds. **The 18/18 measurement
+never supported it either way** — no policy attacked the gate at any price, so the number was
+reporting something other than the collision price. The withdrawal does not depend on which
+something: a measurement that admits two explanations settles neither (§2). Candidate causes worth
+distinguishing when the gate is re-measured: whether attacks could target a structure at all
+(§7's "any attack deals 2"), and whether the structures were reachable (Lobbers at (1,0) and
+(5,0) were flagged structures-unreachable).
 
 # 7.5 · Battle-screen information architecture (locked l)
 
@@ -641,13 +751,40 @@ split flips the seeded coin; **no re-votes** (the Peddler's Coin consumable is t
 exception). The vote governs where we go; **bodily consent governs what we pay** — a duck's
 event costs require its owner's yes, whatever the vote said.
 
-**The Camp (after every combat node): pick 1 of 2 — GAMEPLAY ONLY, never stat lines** (the
-stats tier is purged; "durability and power live inside decisions" enforced at last). The pool:
+**The Camp (after every combat node): ONE PICK PER PLAYER (locked y) — GAMEPLAY ONLY, never stat
+lines** (the stats tier is purged; "durability and power live inside decisions" enforced at last). The pool:
 - **Modify** — mods on owned spenders (cheaper / stronger / economy axes).
 - **Learn / Replace / Swap** — kit surgery (slot 2 fillable from act 1; swap needs kit-hook tags).
 - **Second Wind conditions** (promoted from Molt-exclusive) — new ways a duck earns Pluck.
 - **Tactical unlocks** — one-sentence rule additions per duck ("brambles cost this duck 1 AP").
 - **Consumables** — see below.
+**ONE PICK PER PLAYER (locked y) — this replaces "pick 1 of 2".** Two tables of two, one pick
+each, each table's cards addressed to that player's ducks.
+
+*What this trades away, deliberately:* the shared-scarcity tension one table was built for —
+choosing between them WAS the decision, and that was the pillar-4 argument. The ruling is that
+being excluded from six of a run's seven camps costs more than the tension earns. Camps land after
+every combat node, so an uneven split meant one player could watch the other's ducks improve for
+most of a run. **The map vote remains the symmetric negotiation; the camp is no longer one.**
+
+*This reverses D-154, and its stated reason is now the work.* D-154 collapsed the camp to one
+table because "§8.6's director rows cannot be stated about two tables." Those rows must be
+**restated**, not merely re-enabled — no-duplicate-named-permanent now spans both tables; "never
+two consumables paired" needs a stated scope; ownership fairness across three offers largely
+dissolves and what survives must be written; rarity-by-node needs a stated granularity. The Camp 1
+floor gets *cleaner*: one Engine Starter per player, different classes, which is what the
+constraint was reaching for. Side effect corrected: **Act 1's cards go 4 → 8**, reversing D-154's
+unruled halving.
+
+*Resolution and record.* **The camp does not resolve until BOTH tables are spent** — impossible by
+construction, not by convention; the node cannot complete with an unspent table. Either player may
+pick first. Suppression still yields two valid choices **per table**. Each pick is its own
+command. **The log emits one line per player per camp**, naming player, card and recipient duck —
+under this ruling **a camp that produced one log line is a bug report**, because the missing second
+line means a table went unspent or a pick went unrecorded, and neither is legal. Each table is
+labelled with its owner before either player chooses, and a spent table reads as **resolved**, not
+absent (§7.5: a skipped slot renders as a visible gap, never as silence).
+
 **No legendaries in camps.** Legendaries are DESTINATIONS: the Molt, gilt-marked map nodes
 (Sunken Cache prizes, hungry-lane terminals, elite spoils where the map says so), and Strait
 bargains. Drop is always free; curses are the licensed exception.
@@ -744,7 +881,12 @@ per class. Reconcile the taxonomy **onto** those rows; do not add an axis over t
 | Common | one duck, one small change | isolated |
 | Uncommon | one duck, transformed | isolated |
 | **Rare** | **pays off what you already own** | **connector** |
-| Legendary | breaks one named law | destinations only |
+
+**Legendary is a KIND, not a fourth tier** — the ladder is three values, orthogonal to Kind, as
+the taxonomy above states and as `CardRarity` implements (the legendary catalogue's cards are
+tagged `Rare`). An earlier draft printed Legendary as a fourth row here, contradicting the
+paragraph directly above it. For contrast, in Kind terms: a **Legendary breaks one named law** and
+lives at destinations only, which is the boundary a Rare may never cross.
 
 **Boundary rule:** a Rare may make an existing rule fire more often, harder, or in one more
 place. **It may never suspend a rule** — that is the legendary tier's identity and its scarcity
@@ -769,6 +911,24 @@ travel** (§5): an alternate spender changes the spend, never the income.
 | Wardbearer | **Interpose** (1 AP, replaces Spear Thrust) | **Breakwater** (3, replaces Preen) |
 
 Full text and all 24 mods in `ALTERNATE_ABILITIES_draft.md`.
+
+**`Mod` hosts on an ABILITY, not only on a spender (locked y).** `HostOf(Mod) =
+EntryOf(SpenderOf(mod))` was an artifact of the pre-slot world where spenders were the only thing
+a mod could hang on. Under kit surgery, spenders and actions are both abilities occupying slots,
+so the type follows: **a Mod hosts on an ability, and a spender is one kind of ability** — a
+widening, not a new concept. *Rejected:* routing action-hosted mods into `TechniqueModifier` would
+silently change what §8.6's pool of 24 counts, and D-158/D-227's host contradiction is already
+open; a second quiet redefinition on top of an unresolved one is how a vocabulary rots.
+**D-158/D-227 stays visibly open and is not absorbed by this ruling.** The mod filter must stay
+ONE implementation across both host kinds — if it has to be written twice, the host model is wrong.
+
+**Deep Mire struck and replaced (locked y).** As drafted it forbade climbing — but **D-165 removed
+the climb surcharge**, so it forbade something that no longer exists (an artifact of drafting
+against a stale copy). It was also dead weight on every board without high ground, which turns a
+camp pick into a lottery on the next board. Replacement, board-agnostic: **Deep Mire — the slow
+also applies to the first enemy that ends a move adjacent to the target.** It changes how the shot
+is aimed rather than how long it lasts, and gives the Archer a reason to want enemies bunched,
+which is the opposite of her usual instinct.
 
 **Grounding Shot's 2 AP price is load-bearing and may not be discounted.** A slowed Husk (3→2)
 covers exactly what an acting Archer covers, which is the stall §3 forbids. At 2 AP she moves 1
@@ -1148,6 +1308,25 @@ Behemoth/multi-tile enemies (flagship later); drain-plugging.
     *finding* was never established (the ruling survives as authored intent). *(r)*
 26. **Deep Forge** is referenced by the tier ruling; confirm it is furniture in x's §8.5. *(r)*
 27. **Interpose's consent prompt** may be more friction than a 1 AP action is worth. Measure. *(r)*
+28. **Is a slowed DUCK legal, and what does halved Move mean under the AP turn?** Pillar 2 and the
+    (n) precedent say the tile never checks jerseys, so it must be. Halved AP, or 2 AP per tile?
+    The real design question in the Slowed status's packet. *(y)*
+29. **The restated director rows for two tables** — no-duplicate scope, consumable-pairing scope,
+    what survives of ownership fairness, rarity granularity. D-154's stated reason, now owed as
+    work. *(y)*
+30. **Does the deployment draft invite quarterbacking?** An open draft lets the stronger player
+    advise; placing only your own ducks limits it but advice is free. Fallback if it bites: blind
+    first round, open remainder. Measure before changing. *(y)*
+31. **Do cross-flock cards ever fire in a human run?** Hand-Off, Spotter and Crossing Shot are all
+    proximity cards, and Stage B's acceptance was met by `relay` — a policy written for the
+    purpose, which does not deploy the way people do. If they still never trigger after the draft,
+    the proximity problem is not deployment, and that is a bigger finding than the draft. *(y)*
+32. **The snake order for unequal rosters** — 2/1 after a sweep, 3/1 after a recruit. A rule is
+    owed rather than a hardcoded four. *(y)*
+33. **The archetype assumption.** Three shipped bugs asked the archetype what a duck holds (a spend
+    wiping the flag it had just set; an ability bar offering an unlearned ability; four previews
+    resolving "the ability being aimed" as the first one held). Grep for the rest before more
+    content lands — §4's "kit is no longer class". *(y)*
 
 # 15 · Naming
 
@@ -1188,3 +1367,10 @@ next stamped version (this paragraph is itself the product of that loop). On arr
 commits it alone and runs the drift audit. Agents implement from session prompts derived from
 this file; GAMEPLAY.md tracks what actually shipped; divergence goes to DECISIONS.md.
 Superseded design docs are archived, not edited.
+
+**This file states intent, never live defect reports (locked y).** A defect described here as
+present-tense fact goes stale the moment it is fixed and cannot self-correct — §7's Destroy-win
+paragraph carried a defect D-223 had already closed. Defects belong in `DECISIONS.md` and the
+queue, where closing them is a normal event; this file states the RULE the defect violated.
+**And a reconstruction is never a patch source:** rulings live in the stamp, or in a delta against
+it, never in a third artifact that accumulates content neither of the others carries.
