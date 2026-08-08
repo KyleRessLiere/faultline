@@ -65,20 +65,37 @@ public class FightMigrationTests
         Assert.Equal(new[] { UnitKind.Wardbearer, UnitKind.Archer }, fight.RosterB);
     }
 
+    /// <summary>
+    /// The two zones this used to pin are gone: §3's draft replaced them with one unowned list, so
+    /// what is pinned now is the spot list in board order — row-major, and the central pair with it.
+    /// </summary>
     [Fact]
-    public void Fight1_DeploymentZoneA_IsUnchangedInOrder()
+    public void Fight1_DeploymentSpots_ArePinnedInBoardOrder()
     {
         Assert.Equal(
-            new[] { new Coord(0, 5), new Coord(0, 6), new Coord(1, 6) },
-            FightLibrary.Fight1().DeploymentZoneA);
+            new[]
+            {
+                new Coord(6, 0),
+                new Coord(6, 1),
+                new Coord(6, 2),
+                new Coord(4, 3),
+                new Coord(3, 4),
+                new Coord(0, 5),
+                new Coord(0, 6),
+                new Coord(1, 6),
+            },
+            FightLibrary.Fight1().DeploymentSpots);
     }
 
+    /// <summary>Nothing on a migrated board still speaks in sides.</summary>
     [Fact]
-    public void Fight1_DeploymentZoneB_IsUnchangedInOrder()
+    public void Fight1_CarriesNoPerSideZones()
     {
-        Assert.Equal(
-            new[] { new Coord(6, 0), new Coord(6, 1), new Coord(6, 2) },
-            FightLibrary.Fight1().DeploymentZoneB);
+        var fight = FightLibrary.Fight1();
+
+        Assert.Empty(fight.DeploymentZoneA);
+        Assert.Empty(fight.DeploymentZoneB);
+        Assert.Equal(fight.DeploymentSpots, fight.Spots);
     }
 
     [Fact]

@@ -27,15 +27,21 @@ Terrain and placement share one grid. There is no separate "spawns" list of coor
 separate "deployment zone" rectangle — a tile is what it looks like in the text.
 
 ```
-  #.hOlBB
+  #.hOl**
 ```
 
-reads as: wall, open, a Husk, a pit, a Lobber, a Player B deploy slot, a Player B deploy slot. The
-board is WYSIWYG, and nobody counts coordinates.
+reads as: wall, open, a Husk, a pit, a Lobber, a deployment spot, a deployment spot. The board is
+WYSIWYG, and nobody counts coordinates.
 
-The tile *underneath* a deploy slot or an enemy is always **Open**. The format cannot express "a
-Husk standing on spikes" or "deploy onto high ground", which is deliberate — no unit can start a
-fight already on a hazard.
+**A spot belongs to neither player.** MASTER_DESIGN §3's deployment draft replaced the old
+per-side zones with one published list that either flock may draft into, so there is one mark and
+not one per side. `A` and `B` are still parsed, for boards not yet migrated: a board carrying them
+is read as unmigrated and its two zones are unioned into the spot list, so it drafts rather than
+breaking. New boards should be written with `*`.
+
+The tile *underneath* a spot or an enemy is always **Open**. The format cannot express "a Husk
+standing on spikes" or "deploy onto high ground", which is deliberate — no unit can start a fight
+already on a hazard.
 
 Coordinates, where you do need them (`protected:`), are `x,y` with `(0,0)` at the **top-left**; `x`
 increases to the right, `y` increases downward. So the first character of the first board row is
@@ -50,17 +56,23 @@ increases to the right, `y` increases downward. So the first character of the fi
 | `O` | Pit (capital letter O, not zero) |
 | `^` | Spikes |
 | `H` | HighGround |
-| `A` | Player A deploy slot (tile underneath is Open) |
-| `B` | Player B deploy slot (tile underneath is Open) |
+| `*` | A deployment spot — either player may draft into it (tile underneath is Open) |
+| `A` | **Legacy.** Player A deploy slot, on boards not yet migrated to `*` |
+| `B` | **Legacy.** Player B deploy slot, on boards not yet migrated to `*` |
 | `S` | The tile a `protect` structure stands on (tile underneath is Open) |
 | `D` | The tile a `destroy` structure stands on (tile underneath is Open) |
 | `X` | A breakable blocker, with the hit points `blocker-hp:` gives it (tile underneath is Open) |
 | any other letter | an enemy, declared by a `spawn` line above the board |
 
-Each character in the board is checked in this order: `A`, then `B`, then declared spawn letters,
-then terrain. Because a spawn letter would otherwise win that race, **the ten characters that
-already mean something — `.` `#` `O` `^` `H` `A` `B` `S` `D` `X` — cannot be used as spawn symbols.** Declaring
-`spawn H = Husk` is a `MalformedLine` error rather than a board that silently loses its high ground.
+Each character in the board is checked in this order: `A`, then `B`, then `*`, then declared spawn
+letters, then terrain. Because a spawn letter would otherwise win that race, **the eleven characters
+that already mean something — `.` `#` `O` `^` `H` `A` `B` `*` `S` `D` `X` — cannot be used as spawn
+symbols.** Declaring `spawn H = Husk` is a `MalformedLine` error rather than a board that silently
+loses its high ground.
+
+The spot mark is `*` and deliberately not `S`: `S` has been the `protect` structure since structures
+landed, and the spot branch resolves before the structure branch, so sharing the letter would
+silently stop protect marks being structures.
 
 Spawn letters are case-sensitive, so `spawn h` declares `h`, not `H`. Lower-case reads best and
 keeps enemies visually distinct from terrain: `h` Husk, `l` Lobber, `g` Grappler, `s` Stalker,
@@ -170,7 +182,7 @@ board:
 ```
 
 `S` is the protect structure, `D` is the destroy structure. The terrain underneath is Open, as under
-a deploy slot or a spawn letter.
+a spot or a spawn letter.
 
 The mark and the `objective:` line are **checked against each other** rather than one trusted over
 the other: a mark on a tile the objective does not name, a mark whose letter disagrees with the
@@ -263,7 +275,7 @@ is never quietly short an enemy.
 - **Board rows must all be the same width.** The first row sets the width; the first row that
   disagrees is a fatal `BoardRagged` and parsing stops there, so you only see one at a time.
 - **No spaces inside a row.** A row is trimmed and then every remaining character is a tile.
-- **Order is row-major.** Deploy slots and enemy spawns are collected top row first, left to right
+- **Order is row-major.** Spots and enemy spawns are collected top row first, left to right
   within a row. That order is the order units get their ids. Ids feed the command log, and the
   command log plus a seed has to replay to an identical state hash — so **moving a spawn letter
   within the grid can change unit ids and invalidate an existing replay.** Editing a shipped fight is
@@ -278,7 +290,7 @@ is never quietly short an enemy.
 ```
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: first-contact
@@ -286,8 +298,9 @@ number: 1
 name: First Contact
 description: Husks walk at you while an emplaced lobber drops rocks from the north-west. Learn that a shove beats a swing.
 design: Fight 1 — the control group.
-design: Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
+design: Nothing here can hurt you before you have had a turn. Every deployment spot is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a spot.
 design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 4 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks, and they are three clusters rather than two corners: the south-west pocket, the north-east column, and a CENTRAL PAIR at 4,3 and 3,4. The central pair is the reason this board drafts rather than assigns - two corners would have let both flocks keep doing what the old zones made them do, which is deploy apart. Every spot including the central pair is outside every enemy's round-1 reach, so the strict form of the agency law (D-080) survives the migration intact: this is still the board where nothing can hurt you before you have had a turn.
 
 spawn h = Husk
 spawn l = Lobber
@@ -296,13 +309,13 @@ roster a: Vanguard, Threadcaster
 roster b: Wardbearer, Archer
 
 board:
-  #l#...B
-  .^.H..B
-  h.....B
-  hO...O.
-  #.....#
-  A...^..
-  AA....h
+  #l#...*
+  .^.H..*
+  h.....*
+  hO..*O.
+  #..*..#
+  *...^..
+  **....h
 ```
 
 That is a 7×7 board with 4 walls, 4 pits, 3 spikes, 2 high ground, a clear centre 3×3, four Player A
@@ -336,7 +349,7 @@ silently absent.
 
 | Code | Triggered by | Fix |
 |---|---|---|
-| `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B` `S` `D` `X`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain or a deploy slot. |
+| `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B` `*` `S` `D` `X`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain, a spot or a structure. |
 | `UnknownKey` | A key not in the header-key table above. | Fix the typo. The known keys are `id`, `name`, `description`, `design`, `number`, `roster a`, `roster b`, `objective`, `turn-limit`, `blocker-hp`, `protected`, `footing`, `retired`, plus `spawn`, `wave` and `board:`. |
 | `MissingRequiredField` | `id:` or `name:` absent or blank. | Add it. Reported against line 0 — it is about the file, not a line. |
 | `BoardMissing` | The file is empty, there is no `board:` line, or `board:` is followed by no indented rows. | Add `board:` and indent the rows beneath it. |
@@ -346,8 +359,8 @@ silently absent.
 | `DuplicateSpawnChar` | The same spawn letter declared twice. | Delete one, or use a different letter for the second kind. |
 | `UnknownUnitKind` | A name in a roster or a `spawn` line that is not a `UnitKind`. | Check the spelling against `UnitKind` — the four player classes and every enemy archetype, `/bestiary` lists them all. |
 | `RosterEmpty` | `roster a:` or `roster b:` missing, blank, or containing nothing that parsed. | Give each player at least one unit. |
-| `DeployZoneMissing` | No `A` characters on the board, or no `B` characters. | Mark deploy slots for both players. |
-| `DeployZoneTooSmall` | Fewer deploy slots than units in that player's roster — the fight could never start. | Add slots, or shorten the roster. |
+| `DeployZoneMissing` | **Legacy boards only.** No `A` characters on the board, or no `B` characters. Not raised for a board written with `*`, which has no sides to be missing. | Mark deploy slots for both players, or migrate the board to `*` spots. |
+| `DeployZoneTooSmall` | **Legacy boards only.** Fewer deploy slots than units in that player's roster — the fight could never start. | Add slots, or shorten the roster. |
 | `CoordOutOfBounds` | A `protected:` coordinate outside the board. | Remember `0,0` is top-left and the maximum is `width-1,height-1`. |
 | `UnknownFootingTarget` | A `footing:` grant naming something that is neither a side (`a`, `b`, `enemy`) nor a unit kind. | Check the spelling. Sides are `a`, `b`, `enemy`; kinds are the nine unit names. |
 | `FootingCountNegative` | A `footing:` grant asking for a negative number of tokens. | Use zero or more. To give a target none, leave it out entirely. |
@@ -371,10 +384,11 @@ argue. Codes 0–99 are errors; 100 and up are lints.
 | Code | Guideline it protects (Brief §2) | Fires when |
 |---|---|---|
 | `BoardNotSevenBySeven` | "7×7 grid." | Board is any other size. |
-| `CentreNotClear` | "center 3×3 always clear at start." | Any non-Open tile with `x` and `y` both in `2 … size-3`. Deploy slots and spawns never trip this — the tile under them is Open. |
+| `CentreNotClear` | "center 3×3 always clear at start." | Any non-Open tile with `x` and `y` both in `2 … size-3`. Spots and spawns never trip this — the tile under them is Open, so a central spot is legal and `first-contact` has two. |
 | `HazardOffOuterRings` | "pits/walls on outer two rings." | A Wall or Pit further in than ring 1. On a 7×7 that is the centre 3×3, so this overlaps `CentreNotClear` there. |
 | `SpikeCountOutOfRange` | "2–3 spikes." | Fewer than 2 or more than 3 spike tiles on the whole board. Only the count is checked, not which ring they sit on (see DECISIONS.md D-005). |
-| `ZonesNotOppositeCorners` | "Players deploy in opposite corners." | The two zones' average positions are not on opposite sides of *both* the horizontal and the vertical midline. |
+| `ZonesNotOppositeCorners` | "Players deploy in opposite corners." | **Legacy boards only.** The two zones' average positions are not on opposite sides of *both* the horizontal and the vertical midline. A board written with `*` cannot trip this: MASTER_DESIGN §3 replaced the two owned zones with one shared list, so the guideline it protects no longer describes a shape the format can express. |
+| `SpotFloorUndeclared` | MASTER_DESIGN §3: "spots must outnumber ducks or the draft is assignment rather than drafting." | A board publishes no more spots than the two rosters have ducks *and* no `design:` line mentions the deployment. §3 blesses a short list as a **board thesis** — two distant pockets, a scattered flock — so this fires only on boards that are silent about it. Say why, or add spots. |
 | `SpawnsNotOnOppositeEdges` | "Enemies spawn on two opposite edges." | No spawn sits on the north edge with another on the south, nor west with east. Spawns off the edges entirely count for neither. |
 | `NoHighGround` | — | No HighGround anywhere, so the elevation rules never come up in this fight. |
 | `FootingGrantUnused` | — | A `footing:` grant that covers nobody in this fight, such as `Stalker=1` when there is no Stalker. It parses and plays; the grant simply does nothing. |
@@ -383,9 +397,15 @@ argue. Codes 0–99 are errors; 100 and up are lints.
 Every lint is reported against the `board:` line, not the offending row — they are judgements about
 the layout as a whole.
 
-There is deliberately no "unit starts on a hazard" lint. Deploy slots and spawn letters always write
-Open terrain underneath, so the format cannot express it, and a check that can never fire is worse
-than no check.
+There is deliberately no "unit starts on a hazard" lint. Spots and spawn letters always write Open
+terrain underneath, so the format cannot express it, and a check that can never fire is worse than
+no check.
+
+**Spot layout is an authoring axis.** MASTER_DESIGN §3 is explicit that the same terrain drafted
+from clustered spots and from scattered spots is two different fights, so the spot list is a design
+decision to be made and stated on a `design:` line, not a rectangle to be filled in. Where a board's
+thesis depends on its deployment shape, say so there — the difference between a thesis and a bug is
+whether the author wrote it down.
 
 ## How to add a battle
 

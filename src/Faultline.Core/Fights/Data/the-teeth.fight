@@ -1,6 +1,6 @@
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: the-teeth
@@ -11,6 +11,7 @@ design: Warrens node 2, edition A - BRAMBLES/RANGED/PUSH (MASTER_DESIGN 8.8). Th
 design: The board opens with a previewable BENEFICIAL bramble play, which is the constraint the old Teeth failed. The Husk at (3,3) sits directly north of the middle tooth at (3,4). The Fisher deploys at (0,5), spends two AP walking to (2,5) and flicks her line: range 3, pull 1, and the tile the Husk lands on is brambles for 6 - it has 4 hit points. Player B's Archer has the same opener from the other corner: two AP to (4,1), Stagger Shot at range 3, pushed away onto the same tooth. Both are drawn on the board before the click, so entering the teeth reads as something you DO to the enemy and never as self-harm.
 design: Three teeth, not eight. The old ring made the middle a no-go area, which is the opposite of a hazard you want to steer traffic into: a bar you can be pushed onto from either side is a tool, a ring you must cross is a tax. The centre-3x3 lint fires on all three and is refused on purpose - a bramble board whose brambles are on the outer rings has no middle to own.
 design: Brambles cost 2 AP to enter on foot and deal 6 with a hard stop when you are shoved onto them, so the bar is a wall for walking and a floor for shoving. That asymmetry is the whole battle: the Lobber in the far corner would rather you came the long way round.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets; 6,1 and 1,6 are inside round-1 reach and the other four are not, which is the shape this board wants - the bramble opener is bought from a corner, and the two hot spots are the price of standing nearer the teeth. No central spot: the middle band is inside a Husk's round-1 reach on both approaches. Both flocks may now take the SAME pocket, which is what makes the mirrored opener a choice rather than a symmetry.
 
 spawn h = Husk
 spawn l = Lobber
@@ -19,10 +20,10 @@ roster a: Vanguard, Threadcaster
 roster b: Wardbearer, Archer
 
 board:
-  .....BB
-  .h....B
+  .....**
+  .h....*
   .......
   ...h...
   ..^^^..
-  A....h.
-  AA....l
+  *....h.
+  **....l

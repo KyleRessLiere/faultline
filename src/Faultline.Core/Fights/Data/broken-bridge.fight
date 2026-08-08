@@ -1,6 +1,6 @@
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   X  breakable blocker          A  Player A deploy slot      B  Player B deploy slot
+#   X  breakable blocker          *  deployment spot (either player; no spot belongs to a side)
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: broken-bridge
@@ -13,6 +13,7 @@ design: ONE SLAM OPENS A CROSSING. A structure collision deals 6 and these block
 design: This board used to be two boards. The trench row leaves exactly two open tiles and both were sealed on one side by a wall, so neither was a crossing: with Kill All and no turn limit, a squad whose other half was down could neither win nor lose. The blockers replace those walls rather than a turn limit being added, because a turn limit turns a fight with no agency into a loss with no agency (D-114).
 design: Keep the drains where they are. A crossing is one tile wide with a hole on each side, so whoever holds it is one sideways shove from the bottom of the trench - and so is whatever walks up to contest it. That is the drains half of the thesis, and it is a positional threat rather than a kill button.
 design: Two Husks start on each bank, so neither flock can spend the fight waiting for the other to open the way. The diagonal placement is what keeps both corner deployments out of every Husk's round-1 reach on a 7x7.
+design: SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The six spots are exactly the tiles the two old zones held, three on each bank, and that is deliberate restraint rather than a mechanical rename. THIS BOARD'S THESIS DEPENDED ON THE ZONES BEING OWNED: "two Husks on each bank so neither flock can wait for the other" only holds while one flock is committed to each bank, and unowned spots let BOTH flocks draft onto the same bank and leave the far Husks to walk. That is a real change to what the board asks, and it is a design ruling rather than a migration detail, so the tiles are preserved and the change is reported instead of being absorbed. If the two-banks thesis is to survive the draft it needs either spots the far bank cannot be abandoned from, or a stated blessing that abandoning it is now a legal read of the board.
 
 spawn h = Husk
 
@@ -22,10 +23,10 @@ roster b: Wardbearer, Archer
 blocker-hp: 6
 
 board:
-  h....BB
-  .h....B
+  h....**
+  .h....*
   ..X....
   OO.O.OO
   ....X..
-  A....h.
-  AA....h
+  *....h.
+  **....h

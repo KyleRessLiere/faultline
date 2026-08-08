@@ -1,7 +1,7 @@
 # Coordinates are x,y with 0,0 top-left (DECISIONS.md D-042).
 #
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot       S  the protect structure
+#   *  deployment spot (either player)                          S  the protect structure
 
 id: the-shrine
 number: 5
@@ -16,6 +16,7 @@ design: The escort Husk DOES hunt you, so standing on the shrine and swinging is
 design: Every enemy opens outside every deployment tile's round-1 reach - the old cut put the second Raider at (6,5) and an escort at (4,6), and between them they covered two thirds of Player A's zone before Player A had moved.
 design: The win is clearing the lanes inside eight rounds; losing the shrine is the loss. The format refuses a deadline on `protect` outright - "'protect' has no deadline of its own; use 'turn-limit:'" - so a protect board cannot currently be won by the bell, and this one is not. That is recorded rather than worked around (D-167).
 design: 7x7 (D-165).
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets, one per lane mouth, and no central spot - the shrine's own approaches are inside round-1 reach and a spot there would hand the objective away before anybody had moved. The draft's addition is that neither pocket is owned: the lane question ('which lane can you afford to leave open') is now asked at deployment as well as during the fight, because both flocks may pile into one lane's mouth and concede the other.
 
 spawn r = Raider
 spawn h = Husk
@@ -29,10 +30,10 @@ turn-limit: 8
 wave 3 = r@3,0 h@3,6
 
 board:
-  r....BB
-  ..#...B
+  r....**
+  ..#...*
   .^...^.
   ...S...
   .O..hO.
-  A..#...
-  AA....r
+  *..#...
+  **....r

@@ -4,9 +4,14 @@ Every authored battle, generated from the `.fight` files themselves so it cannot
 the boards it describes. Regenerate with `python tools/build_catalogue.py`.
 
 Grids are the board exactly as authored: `.` open, `#` wall, `O` pit, `^` spikes, `H` high
-ground, `X` a breakable blocker, `A`/`B` the two deployment zones, and any other letter an
-enemy from that battle's legend. A unit never starts on a hazard — the tile under a deploy
-slot or a spawn is Open.
+ground, `X` a breakable blocker, `*` a deployment spot, and any other letter an enemy from
+that battle's legend. A unit never starts on a hazard — the tile under a spot or a spawn is
+Open.
+
+A spot belongs to **neither player** (MASTER_DESIGN §3's deployment draft): either flock may
+draft into any open one, and spot layout is an authoring axis in its own right — the same
+terrain drafted from clustered spots and from scattered spots is two different fights. Boards
+still showing `A`/`B` have not been migrated yet; their two zones are read as one shared list.
 
 Verdicts come from `docs/scenarios/REVIEW.md`, a cold-eye pass over the set. They were
 proposals; `docs/archive/CURATED_SET.md` acted on them. A battle marked **RETIRED** below carries a
@@ -38,10 +43,13 @@ Husks walk at you while an emplaced lobber drops rocks from the north-west. Lear
 Fight 1 — the control group.
 
 
-Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
+Nothing here can hurt you before you have had a turn. Every deployment spot is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a spot.
 
 
 The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 4 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
+
+
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks, and they are three clusters rather than two corners: the south-west pocket, the north-east column, and a CENTRAL PAIR at 4,3 and 3,4. The central pair is the reason this board drafts rather than assigns - two corners would have let both flocks keep doing what the old zones made them do, which is deploy apart. Every spot including the central pair is outside every enemy's round-1 reach, so the strict form of the agency law (D-080) survives the migration intact: this is still the board where nothing can hurt you before you have had a turn.
 
 
 **Asks:** Does a shove beat a swing?
@@ -58,13 +66,13 @@ The two Husks on the west edge stand in a line, so one Push from the Vanguard's 
 Legend: `h` Husk, `l` Lobber
 
 ```
-#l#...B
-.^.H..B
-h.....B
-hO...O.
-#.....#
-A...^..
-AA....h
+#l#...*
+.^.H..*
+h.....*
+hO..*O.
+#..*..#
+*...^..
+**....h
 ```
 
 ### 2 · The Teeth
@@ -87,6 +95,9 @@ Three teeth, not eight. The old ring made the middle a no-go area, which is the 
 Brambles cost 2 AP to enter on foot and deal 6 with a hard stop when you are shoved onto them, so the bar is a wall for walking and a floor for shoving. That asymmetry is the whole battle: the Lobber in the far corner would rather you came the long way round.
 
 
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets; 6,1 and 1,6 are inside round-1 reach and the other four are not, which is the shape this board wants - the bramble opener is bought from a corner, and the two hot spots are the price of standing nearer the teeth. No central spot: the middle band is inside a Husk's round-1 reach on both approaches. Both flocks may now take the SAME pocket, which is what makes the mirrored opener a choice rather than a symmetry.
+
+
 **Asks:** Can you make them cross the spikes?
   
 **Verdict:** KEEP — Spikes as a survivable hard stop everything must walk through.
@@ -101,13 +112,13 @@ Brambles cost 2 AP to enter on foot and deal 6 with a hard stop when you are sho
 Legend: `h` Husk, `l` Lobber
 
 ```
-.....BB
-.h....B
+.....**
+.h....*
 .......
 ...h...
 ..^^^..
-A....h.
-AA....l
+*....h.
+**....l
 ```
 
 ### 3 · Broken Bridge
@@ -136,6 +147,9 @@ Keep the drains where they are. A crossing is one tile wide with a hole on each 
 Two Husks start on each bank, so neither flock can spend the fight waiting for the other to open the way. The diagonal placement is what keeps both corner deployments out of every Husk's round-1 reach on a 7x7.
 
 
+SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The six spots are exactly the tiles the two old zones held, three on each bank, and that is deliberate restraint rather than a mechanical rename. THIS BOARD'S THESIS DEPENDED ON THE ZONES BEING OWNED: "two Husks on each bank so neither flock can wait for the other" only holds while one flock is committed to each bank, and unowned spots let BOTH flocks draft onto the same bank and leave the far Husks to walk. That is a real change to what the board asks, and it is a design ruling rather than a migration detail, so the tiles are preserved and the change is reported instead of being absorbed. If the two-banks thesis is to survive the draft it needs either spots the far bank cannot be abandoned from, or a stated blessing that abandoning it is now a legal read of the board.
+
+
 **Asks:** What does a pull line do when it crosses a pit?
   
 **Verdict:** KEEP — The simplest statement of the trench-and-fisherman shape; the campaign version.
@@ -150,13 +164,13 @@ Two Husks start on each bank, so neither flock can spend the fight waiting for t
 Legend: `h` Husk
 
 ```
-h....BB
-.h....B
+h....**
+.h....*
 ..X....
 OO.O.OO
 ....X..
-A....h.
-AA....h
+*....h.
+**....h
 ```
 
 ### 4 · High Road
@@ -188,7 +202,13 @@ The Anchor at the ridge's south foot shrugs one tile off every push, so it canno
 BOTH FLOCKS DEPLOY SOUTH, on either flank of the causeway's mouth, and the opposite-corners guideline is refused here exactly as the Trench refuses it (D-187). Edition A put Player B in the north-east corner, three tiles from the Grappler: its round-one pull slammed the Archer into the Wardbearer for 4 apiece and killed her on round two, and the flock the Anchor walked at fought it two-against-one. No tile on the east half was out of a Grappler's round-one reach, so the deployment was the defect and not the tuning. The ridge is now the thing between the squad and the enemy line rather than the wall between two armies, which is the thesis stated more plainly, not less.
 
 
-7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch away from both flanks poses the same ranged question without taking a hit point off anybody before they have had a turn. All six deployment tiles are now outside every enemy's round-one damage AND outside the Grappler's round-one pull, which the shipped cut was not.
+7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch away from both flanks poses the same ranged question without taking a hit point off anybody before they have had a turn. Five of the six deployment tiles are outside every enemy's round-one damage AND outside the Grappler's round-one pull, which the shipped cut was not; the sixth is 1,6, and it is the Anchor's, not the Grappler's - see the spot-layout line.
+
+
+SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The six spots are the tiles the two old zones held, both flanks of the causeway's mouth and all of them south. THIS BOARD'S DEPLOYMENT SHAPE IS ITS THESIS - Stage C re-cut it after 0/4 base-kit wins because the deployment was the defect - so nothing is widened, moved or added here, and the migration is the unowning alone.
+
+
+THE STAGE C FIX STILL HOLDS UNDER SPOTS. The defect was that the Grappler opened by pulling the Archer into the Wardbearer, which Threat.DamageRound1 could not see because a Grappler's Damage is 0. Its pull reaches no spot on this board from 3,0 on round one, and that is unchanged by the spots being shared: the tiles are the same tiles. What DID change is that both flocks may now draft into the SAME flank, which puts two ducks adjacent inside one Grappler pull line - the fix holds because the pull cannot reach the spots at all, not because the flocks were kept apart. 1,6 is inside the Anchor's round-1 walk-and-swing at 3,6 and always was; it is a forward spot with a price, not a repeat of the Grappler defect.
 
 
 **Asks:** Is a raised causeway worth contesting?
@@ -209,9 +229,9 @@ Legend: `g` Grappler, `h` Husk, `n` Anchor, `p` Perch
 .h.H...
 .O.H.O.
 ...H...
-.O.H.OB
-A..H..B
-AA.n..B
+.O.H.O*
+*..H..*
+**.n..*
 ```
 
 ### 5 · The Shrine
@@ -249,6 +269,9 @@ The win is clearing the lanes inside eight rounds; losing the shrine is the loss
 7x7 (D-165).
 
 
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets, one per lane mouth, and no central spot - the shrine's own approaches are inside round-1 reach and a spot there would hand the objective away before anybody had moved. The draft's addition is that neither pocket is owned: the lane question ('which lane can you afford to leave open') is now asked at deployment as well as during the fight, because both flocks may pile into one lane's mouth and concede the other.
+
+
 7×7 board · enemies: 3× Raider, 2× Husk · objective: `protect 3,3 hp 12` · turn limit: 8
 
 | A | B |
@@ -258,13 +281,13 @@ The win is clearing the lanes inside eight rounds; losing the shrine is the loss
 Legend: `h` Husk, `r` Raider
 
 ```
-r....BB
-..#...B
+r....**
+..#...*
 .^...^.
 ...S...
 .O..hO.
-A..#...
-AA....r
+*..#...
+**....r
 ```
 
 Reinforcements, published at fight start:
@@ -293,6 +316,9 @@ THE ARITHMETIC CLOSES ON BOTH HALVES. Nine direct actions at 2 a swing, or three
 BOTH FLOCKS DEPLOY SOUTH of the gate, which is why the opposite-corners guideline is refused here. The gate is the far wall of the room, not a line between two armies, and the fight is the two flocks working the same door from the same side.
 
 
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots, all south of the band, and the two added over the old corners are CENTRAL - 3,4 on the approach row and 3,6 on the back row. Both flocks working the same door is already this board's thesis, so a central column is the layout that states it: the forward spot buys a round on the gate and pays for it in Lobber fire, the back spot is the patient start, and the corners are still there for a flock that wants the flanks. Every spot is outside round-1 reach; the Lobbers are sealed north of the band and cannot answer any of them.
+
+
 The Warden under the gate is the complication: Move 0, so unlike an Anchor he will still be standing in the gap on round 4. He is push-resistant, but a STAGGERED Warden moves - so collide a Husk from the round-2 wave into him and he becomes the battering ram. Bodies are ammunition, and the enemy supplies them.
 
 
@@ -312,9 +338,9 @@ Legend: `h` Husk, `l` Lobber, `w` Warden
 ###D###
 ..^w^..
 ...H...
-.......
-A.....B
-AA...BB
+...*...
+*.....*
+**.*.**
 ```
 
 Reinforcements, published at fight start:
@@ -371,6 +397,9 @@ The campaign finale. Everything at once, against one body.
 He is Move 1 for the first half of the fight: that is a gift, and the fight is about spending it. Three tokens no shove can spend, stripped two ways — slam his own escort into him (4 apiece, one token), and make him end a round on the rim. The pits at 4,2 and 4,4 pinch the only straight lane east, so a King crawling at you the short way pays a token a round for it. At 14 HP he becomes Move 3 with the players' own Bull Rush and starts aiming for those same two holes.
 
 
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots in the two eastern pockets, at the 6-8 band's ceiling, and deliberately unchanged in shape: this is the act's boss and its opening geometry is tuned against a boss who is Move 1 for the first half. Unowning them is the whole migration - both flocks may now open from the same pocket, which is a real choice against a boss that punishes a spread line.
+
+
 9×7 board · enemies: 6× Husk, 2× Lobber, 1× QuarryKing · objective: `kill-all`
 
 | A | B |
@@ -380,13 +409,13 @@ He is Move 1 for the first half of the fight: that is a gift, and the fight is a
 Legend: `h` Husk, `l` Lobber, `q` QuarryKing
 
 ```
-l.....^BB
-..h....BB
+l.....^**
+..h....**
 ....O....
 ..q......
 ....O....
-..h....AA
-l.....^AA
+..h....**
+l.....^**
 ```
 
 Reinforcements, published at fight start:
@@ -407,6 +436,9 @@ One doorway, four defenders, nine attackers on a published timetable. Keep the g
 A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight is decided by who is standing in it when round 7 ends. The timetable is published at fight start, so every wave is planning information rather than an ambush — same contract as enemy intents.
 
 
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks - the 6-8 band's ceiling - in the two eastern pockets either side of the gate's approach. They are not widened toward the centre because eight is already the cap and the corridor tiles are the fight rather than the setup. Unowned, both pockets are available to both flocks, so the two squads may stack one side of the gate and leave the other to be walked.
+
+
 9×7 board · enemies: 6× Husk, 1× Grappler, 1× Lobber, 1× Stalker · objective: `hold 4,3 4,4 for 7` · turn limit: 7
 
 | A | B |
@@ -416,13 +448,13 @@ A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight
 Legend: `g` Grappler, `h` Husk, `l` Lobber, `s` Stalker
 
 ```
-h...#..BB
-...^#H.BB
+h...#..**
+...^#H.**
 ....#....
 .O.......
 .O.......
-...^#H.AA
-h...#..AA
+...^#H.**
+h...#..**
 ```
 
 Reinforcements, published at fight start:
@@ -1177,6 +1209,9 @@ The single high-ground tile at (3,5) is the crossing's southern landing. Nothing
 7x7 (D-165). The 9x7 cut was a broad combined exam with two bridges; edition A is the same thesis asked once, which is what a per-node board is for. Both flocks deploy on the south bank, so the trench is the fight rather than a line between two armies - the opposite-corners guideline is refused here on purpose.
 
 
+SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The six spots are the tiles the two old zones held, all on the south bank. BOTH FLOCKS DEPLOYING SOUTH IS THIS BOARD'S DECLARED THESIS (D-187), so the south bank is preserved exactly and no central or northern spot is added: widening the layout here would be re-cutting a board whose deployment shape IS the question. Unowning the spots is the whole of the change, and it is enough - the two flocks may now share a flank instead of taking one each.
+
+
 **Asks:** What do you do about something no push can move?
   
 **Verdict:** KEEP — "Pull, not push," proved: `Anchor=1` makes basic push and Bull Rush both literally Immovable.
@@ -1196,8 +1231,8 @@ h..g..h
 ..n.n..
 OOO.OOO
 .......
-A..H..B
-AA...BB
+*..H..*
+**...**
 ```
 
 ### 210 · Bone Yard
@@ -2221,6 +2256,9 @@ The column walks the diagonal, so the first Husk to arrive is one shove from the
 7x7 (D-165). The 9x7 cut of this board put every deployment tile inside a Husk's round-1 reach on both sides; the diagonal column is the placement that keeps both corners out of it.
 
 
+SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots for four ducks, in the two pockets the diagonal leaves clear, and there is deliberately no central spot: every other tile on this board is inside a Husk's round-1 reach, so a middle spot could only be a forward one. Offering it would be a design ruling about what agency-before-injury permits, not a migration detail, so the layout stays and the constraint is stated. What the draft adds here is that the pockets are UNOWNED - both flocks may take the same pocket and answer the mouth together, or split it and answer both ends.
+
+
 **Asks:** Can you turn a swarm into a queue?
   
 **Verdict:** KEEP — The player creates the geometry with their own body — nothing else asks that.
@@ -2235,13 +2273,13 @@ The column walks the diagonal, so the first Husk to arrive is one shove from the
 Legend: `h` Husk
 
 ```
-h....BB
-.h....B
+h....**
+.h....*
 ..h....
 ...h...
 ....h..
-A..#.#.
-AA.#.#.
+*..#.#.
+**.#.#.
 ```
 
 ### 507 · Two Gates

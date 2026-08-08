@@ -5,7 +5,7 @@
 # you are told to use as ammunition on the wrong side of the door (D-046).
 #
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot       D  the destroy structure
+#   *  deployment spot (either player)                          D  the destroy structure
 
 id: break-the-gate
 number: 6
@@ -15,6 +15,7 @@ design: Warrens node 6, edition A - STRUCTURE/WAVES/AMMUNITION (MASTER_DESIGN 8.
 design: GATE 18 HP, down from 24, and it is the anti-drag rule rather than a difficulty knob. Any attack chips masonry for 2 whatever the weapon (D-060), so nine direct actions is the costly baseline that always exists and always works; the intended fast route is three clean structure collisions. Do not raise the hit points until human wins routinely finish before round 5 with threats unresolved.
 design: THE ARITHMETIC CLOSES ON BOTH HALVES. Nine direct actions at 2 a swing, or three clean structure collisions at 6 apiece - Displacement.StructureCollisionDamage, which is its own constant precisely so this board and the rule cannot drift apart again (D-186, closing D-166). It read five collisions while structures and bodies shared one number, and every evaluator policy left the gate at 18/18 rather than pay it.
 design: BOTH FLOCKS DEPLOY SOUTH of the gate, which is why the opposite-corners guideline is refused here. The gate is the far wall of the room, not a line between two armies, and the fight is the two flocks working the same door from the same side.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots, all south of the band, and the two added over the old corners are CENTRAL - 3,4 on the approach row and 3,6 on the back row. Both flocks working the same door is already this board's thesis, so a central column is the layout that states it: the forward spot buys a round on the gate and pays for it in Lobber fire, the back spot is the patient start, and the corners are still there for a flock that wants the flanks. Every spot is outside round-1 reach; the Lobbers are sealed north of the band and cannot answer any of them.
 design: The Warden under the gate is the complication: Move 0, so unlike an Anchor he will still be standing in the gap on round 4. He is push-resistant, but a STAGGERED Warden moves - so collide a Husk from the round-2 wave into him and he becomes the battering ram. Bodies are ammunition, and the enemy supplies them.
 design: The two Lobbers are sealed north of the band and can never be reached until the gate falls, so there is no kill-all shortcut to be found by clearing the board: they lob 2 a round over a wall that has no line of sight to stop them. That is the ammunition clock - every round you spend swinging at masonry is a round they are paid for.
 
@@ -34,6 +35,6 @@ board:
   ###D###
   ..^w^..
   ...H...
-  .......
-  A.....B
-  AA...BB
+  ...*...
+  *.....*
+  **.*.**

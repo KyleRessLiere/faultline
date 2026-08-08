@@ -1,6 +1,6 @@
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: cb-06-bait-and-break
@@ -12,6 +12,7 @@ design: Four wall tiles cut two slots out of the south rank, each two deep with 
 design: No drains and no brambles. The pressure is entirely traffic - five bodies, three move each, and a board with two doorways on it. A map with no hazards is not a lesser map, and if this one would be improved by a hole in the floor then the enemy placement is wrong.
 design: The column walks the diagonal, so the first Husk to arrive is one shove from the second and the second is one shove from the third. A collision is 4 to both and a Husk has 4, which is the double kill first-contact taught, offered again against a queue that keeps re-forming.
 design: 7x7 (D-165). The 9x7 cut of this board put every deployment tile inside a Husk's round-1 reach on both sides; the diagonal column is the placement that keeps both corners out of it.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots for four ducks, in the two pockets the diagonal leaves clear, and there is deliberately no central spot: every other tile on this board is inside a Husk's round-1 reach, so a middle spot could only be a forward one. Offering it would be a design ruling about what agency-before-injury permits, not a migration detail, so the layout stays and the constraint is stated. What the draft adds here is that the pockets are UNOWNED - both flocks may take the same pocket and answer the mouth together, or split it and answer both ends.
 
 spawn h = Husk
 
@@ -19,10 +20,10 @@ roster a: Vanguard, Threadcaster
 roster b: Wardbearer, Archer
 
 board:
-  h....BB
-  .h....B
+  h....**
+  .h....*
   ..h....
   ...h...
   ....h..
-  A..#.#.
-  AA.#.#.
+  *..#.#.
+  **.#.#.

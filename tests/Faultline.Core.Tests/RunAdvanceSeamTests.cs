@@ -328,7 +328,38 @@ public sealed class RunAdvanceSeamTests
             return null;
         }
 
-        return legal.FirstOrDefault(c =>
-            c is PlayCommand { Command: DeployCommand deploy } && safe.Contains(deploy.At));
+        // The safe spot FARTHEST from any enemy, not the first one in the list. Spot order is board
+        // order now, so "first safe" is a different tile than it was under the two zones and a
+        // driver keyed to it wins or loses on the migration's row-major ordering rather than on the
+        // board. Farthest-from-trouble is a heuristic a cautious player would recognise and it does
+        // not move when the list is re-ordered.
+        var enemies = fight.Units
+            .Where(u => u.IsOnBoard && u.IsAlive && u.Team == Team.Enemy)
+            .ToList();
+
+        PlayCommand? best = null;
+        int bestDistance = int.MinValue;
+
+        foreach (var command in legal)
+        {
+            if (command is not PlayCommand { Command: DeployCommand deploy } play
+                || !safe.Contains(deploy.At))
+            {
+                continue;
+            }
+
+            int distance = enemies.Count == 0
+                ? 0
+                : enemies.Min(e =>
+                    Math.Abs(deploy.At.X - e.Position.X) + Math.Abs(deploy.At.Y - e.Position.Y));
+
+            if (distance > bestDistance)
+            {
+                bestDistance = distance;
+                best = play;
+            }
+        }
+
+        return best;
     }
 }

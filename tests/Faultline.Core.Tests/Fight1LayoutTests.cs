@@ -54,32 +54,53 @@ public class Fight1LayoutTests
     }
 
     [Fact]
-    public void DeploymentZones_AreWalkableAndDoNotOverlap()
+    public void DeploymentSpots_AreWalkableAndDistinct()
     {
-        Assert.NotEmpty(Fight.DeploymentZoneA);
-        Assert.NotEmpty(Fight.DeploymentZoneB);
-        Assert.Empty(Fight.DeploymentZoneA.Intersect(Fight.DeploymentZoneB));
+        // One shared list since §3's draft: there is no second zone for it to fail to overlap.
+        Assert.NotEmpty(Fight.DeploymentSpots);
+        Assert.Empty(Fight.DeploymentZoneA);
+        Assert.Empty(Fight.DeploymentZoneB);
+        Assert.Equal(Fight.DeploymentSpots.Count, Fight.DeploymentSpots.Distinct().Count());
 
-        foreach (var tile in Fight.DeploymentZoneA.Concat(Fight.DeploymentZoneB))
+        foreach (var tile in Fight.DeploymentSpots)
         {
             Assert.True(Movement.IsWalkable(Fight.Board.At(tile)), tile + " is not walkable.");
         }
     }
 
+    /// <summary>
+    /// §3's floor: spots must OUTNUMBER the ducks, or the draft is assignment rather than drafting.
+    /// Asked of the two rosters together, because one pool answers both.
+    /// </summary>
     [Fact]
-    public void DeploymentZones_AreLargeEnoughForTheirRosters()
+    public void DeploymentSpots_OutnumberTheDucks()
     {
-        Assert.True(Fight.DeploymentZoneA.Count >= Fight.RosterA.Count);
-        Assert.True(Fight.DeploymentZoneB.Count >= Fight.RosterB.Count);
+        int ducks = Fight.RosterA.Count + Fight.RosterB.Count;
+
+        Assert.True(
+            Fight.Spots.Count > ducks,
+            "This board publishes " + Fight.Spots.Count + " spots for " + ducks + " ducks.");
+
+        // §3's default band for a four-duck board.
+        Assert.InRange(Fight.Spots.Count, 6, 8);
     }
 
+    /// <summary>
+    /// <b>Three clusters, not two corners.</b> The old zones were opposite corners because each side
+    /// owned one; §3 unowned them, and this board answers that with a central pair as well, so the
+    /// draft has somewhere to go that is neither corner.
+    /// </summary>
     [Fact]
-    public void DeploymentZones_SitInOppositeCorners()
+    public void DeploymentSpots_OfferACentreAsWellAsTheTwoCorners()
     {
-        // A holds the bottom-left corner, B the top-right one. B's column runs one tile deeper
-        // than A's block since the CURATED_SET §6 re-cut freed the north-east row for the Lobber.
-        Assert.All(Fight.DeploymentZoneA, c => Assert.True(c.X <= 1 && c.Y >= 5));
-        Assert.All(Fight.DeploymentZoneB, c => Assert.True(c.X >= 5 && c.Y <= 2));
+        var southWest = Fight.Spots.Where(c => c.X <= 1 && c.Y >= 5).ToList();
+        var northEast = Fight.Spots.Where(c => c.X >= 5 && c.Y <= 2).ToList();
+        var centre = Fight.Spots.Where(c => c.X >= 2 && c.X <= 4 && c.Y >= 3 && c.Y <= 4).ToList();
+
+        Assert.Equal(3, southWest.Count);
+        Assert.Equal(3, northEast.Count);
+        Assert.Equal(2, centre.Count);
+        Assert.Equal(Fight.Spots.Count, southWest.Count + northEast.Count + centre.Count);
     }
 
     [Fact]

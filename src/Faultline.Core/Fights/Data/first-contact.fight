@@ -1,6 +1,6 @@
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: first-contact
@@ -8,8 +8,9 @@ number: 1
 name: First Contact
 description: Husks walk at you while an emplaced lobber drops rocks from the north-west. Learn that a shove beats a swing.
 design: Fight 1 — the control group.
-design: Nothing here can hurt you before you have had a turn. Every deployment slot on both sides is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a deploy slot.
+design: Nothing here can hurt you before you have had a turn. Every deployment spot is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a spot.
 design: The two Husks on the west edge stand in a line, so one Push from the Vanguard's basic puts the front one into the back one: 4 damage to both, both Staggered, both dead. That is the opener's second discovery, and it is the interaction the rest of the set is built on — unit into unit, not unit into hole.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks, and they are three clusters rather than two corners: the south-west pocket, the north-east column, and a CENTRAL PAIR at 4,3 and 3,4. The central pair is the reason this board drafts rather than assigns - two corners would have let both flocks keep doing what the old zones made them do, which is deploy apart. Every spot including the central pair is outside every enemy's round-1 reach, so the strict form of the agency law (D-080) survives the migration intact: this is still the board where nothing can hurt you before you have had a turn.
 
 spawn h = Husk
 spawn l = Lobber
@@ -18,10 +19,10 @@ roster a: Vanguard, Threadcaster
 roster b: Wardbearer, Archer
 
 board:
-  #l#...B
-  .^.H..B
-  h.....B
-  hO...O.
-  #.....#
-  A...^..
-  AA....h
+  #l#...*
+  .^.H..*
+  h.....*
+  hO..*O.
+  #..*..#
+  *...^..
+  **....h

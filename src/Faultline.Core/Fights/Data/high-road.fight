@@ -1,6 +1,6 @@
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: high-road
@@ -14,7 +14,9 @@ design: GRAPPLER PRIORITY ON THE ARCHER, and it is already in the rules rather t
 design: The Perch is the ranged half of the thesis and the reason the ridge is not free real estate: it walks to the nearest reachable HighGround, hits for 4 from up there, and does not come down. It starts on the north edge at (2,0), two steps from the ridge's north end - so the causeway is split on round one, the enemy holding the head and the flock able to hold the foot, and the fight is over the three tiles in between.
 design: The Anchor at the ridge's south foot shrugs one tile off every push, so it cannot simply be shoved out of the causeway's mouth. Pull is the answer, which is the same lesson the Trench asks for later on the hungry lane.
 design: BOTH FLOCKS DEPLOY SOUTH, on either flank of the causeway's mouth, and the opposite-corners guideline is refused here exactly as the Trench refuses it (D-187). Edition A put Player B in the north-east corner, three tiles from the Grappler: its round-one pull slammed the Archer into the Wardbearer for 4 apiece and killed her on round two, and the flock the Anchor walked at fought it two-against-one. No tile on the east half was out of a Grappler's round-one reach, so the deployment was the defect and not the tuning. The ridge is now the thing between the squad and the enemy line rather than the wall between two armies, which is the thesis stated more plainly, not less.
-design: 7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch away from both flanks poses the same ranged question without taking a hit point off anybody before they have had a turn. All six deployment tiles are now outside every enemy's round-one damage AND outside the Grappler's round-one pull, which the shipped cut was not.
+design: 7x7 (D-165). The old cut put a Lobber at (1,0) whose walk-plus-range diamond covered both deployment corners; a Perch away from both flanks poses the same ranged question without taking a hit point off anybody before they have had a turn. Five of the six deployment tiles are outside every enemy's round-one damage AND outside the Grappler's round-one pull, which the shipped cut was not; the sixth is 1,6, and it is the Anchor's, not the Grappler's - see the spot-layout line.
+design: SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The six spots are the tiles the two old zones held, both flanks of the causeway's mouth and all of them south. THIS BOARD'S DEPLOYMENT SHAPE IS ITS THESIS - Stage C re-cut it after 0/4 base-kit wins because the deployment was the defect - so nothing is widened, moved or added here, and the migration is the unowning alone.
+design: THE STAGE C FIX STILL HOLDS UNDER SPOTS. The defect was that the Grappler opened by pulling the Archer into the Wardbearer, which Threat.DamageRound1 could not see because a Grappler's Damage is 0. Its pull reaches no spot on this board from 3,0 on round one, and that is unchanged by the spots being shared: the tiles are the same tiles. What DID change is that both flocks may now draft into the SAME flank, which puts two ducks adjacent inside one Grappler pull line - the fix holds because the pull cannot reach the spots at all, not because the flocks were kept apart. 1,6 is inside the Anchor's round-1 walk-and-swing at 3,6 and always was; it is a forward spot with a price, not a repeat of the Grappler defect.
 
 spawn h = Husk
 spawn g = Grappler
@@ -29,6 +31,6 @@ board:
   .h.H...
   .O.H.O.
   ...H...
-  .O.H.OB
-  A..H..B
-  AA.n..B
+  .O.H.O*
+  *..H..*
+  **.n..*

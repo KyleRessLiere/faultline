@@ -47,18 +47,35 @@ public class BrokenBridgeTests
         }
     }
 
+    /// <summary>
+    /// <b>The spot list straddles both islands — and no longer commits a flock to either.</b>
+    /// </summary>
+    /// <remarks>
+    /// This used to read "the ZONES are on different islands", which was the whole of the board's
+    /// thesis: two Husks on each bank so neither flock could wait for the other. §3's draft unowned
+    /// the spots, so the tiles still span both banks but <b>both flocks may draft onto the same
+    /// one</b> and leave the far Husks to walk. The tiles were deliberately not re-cut (see the
+    /// board's own design lines); what is asserted here is what the board still guarantees — that
+    /// the published list reaches both islands — rather than a per-side split it can no longer make.
+    /// </remarks>
     [Fact]
-    public void WhileBothBlockersStand_TheBoardIsTwoIslandsAndTheZonesAreOnDifferentOnes()
+    public void WhileBothBlockersStand_TheBoardIsTwoIslands_AndTheSpotListReachesBoth()
     {
         var state = Start();
         var islands = Islands(state);
 
         Assert.Equal(2, islands.Values.Distinct().Count());
 
-        var fight = state.Fight;
-        Assert.NotEqual(
-            islands[fight.DeploymentZoneA[0]],
-            islands[fight.DeploymentZoneB[0]]);
+        var reached = state.Fight.Spots.Select(t => islands[t]).Distinct().ToList();
+        Assert.Equal(2, reached.Count);
+
+        // And the draft may put everybody on one of them, which is the change worth recording.
+        foreach (var island in reached)
+        {
+            Assert.True(
+                state.Fight.Spots.Count(t => islands[t] == island) >= 3,
+                "Island " + island + " cannot hold a flock on its own.");
+        }
     }
 
     [Theory]
@@ -73,13 +90,12 @@ public class BrokenBridgeTests
     }
 
     [Fact]
-    public void OnceACrossingIsOpen_EveryEnemySpawnIsReachableFromADeployZone()
+    public void OnceACrossingIsOpen_EveryEnemySpawnIsReachableFromASpot()
     {
         var state = Break(Start(), South);
         var islands = Islands(state);
 
-        var reachable = new HashSet<int>(
-            state.Fight.DeploymentZoneA.Concat(state.Fight.DeploymentZoneB).Select(t => islands[t]));
+        var reachable = new HashSet<int>(state.Fight.Spots.Select(t => islands[t]));
 
         foreach (var spawn in state.Fight.Enemies)
         {
@@ -87,16 +103,26 @@ public class BrokenBridgeTests
         }
     }
 
+    /// <summary>
+    /// A flock that drafted entirely onto one bank cannot reach the enemies on the other while the
+    /// blockers stand — the position the harness sat in at round 61 with nothing legal left but
+    /// Guard Stance and End activation.
+    /// </summary>
+    /// <remarks>
+    /// Asked of a bank rather than of Player B, because §3's spots have no owner: the stranding is a
+    /// property of where the draft put a flock, and under the draft that is now a choice a flock can
+    /// make for itself rather than one the board makes for it.
+    /// </remarks>
     [Fact]
-    public void WhileTheBlockersStand_HalfTheEnemiesAreUnreachable_WhichIsTheBugTheRulingFixes()
+    public void WhileTheBlockersStand_AFlockOnOneBank_CannotReachTheOtherBanksEnemies()
     {
         var state = Start();
         var islands = Islands(state);
-        int zoneB = islands[state.Fight.DeploymentZoneB[0]];
 
-        // Player B's half cannot get to the two enemies on the south side. That is the position the
-        // harness sat in at round 61 with nothing legal left but Guard Stance and End activation.
-        Assert.Equal(2, state.Fight.Enemies.Count(e => islands[e.At] != zoneB));
+        foreach (var bank in state.Fight.Spots.Select(t => islands[t]).Distinct())
+        {
+            Assert.Equal(2, state.Fight.Enemies.Count(e => islands[e.At] != bank));
+        }
     }
 
     /// <summary>

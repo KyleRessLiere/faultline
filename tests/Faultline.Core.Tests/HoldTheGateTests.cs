@@ -21,20 +21,25 @@ public class HoldTheGateTests
     }
 
     [Fact]
-    public void ItsLintsAreTheFourItDeviatesOnDeliberately()
+    public void ItsLintsAreTheThreeItDeviatesOnDeliberately()
     {
         var result = FightLibrary.LoadAll().Single(r => r.Fight?.Id == "hold-the-gate");
 
-        // A 9x7 board with a wall down the middle cannot satisfy the 7x7 layout guidelines, and both
-        // players have to deploy on the same side of the gate they are defending. Documented rather
-        // than designed around: DESIGN_PRINCIPLES.md already treats these as advisory off 7x7.
+        // A 9x7 board with a wall down the middle cannot satisfy the 7x7 layout guidelines.
+        // Documented rather than designed around: DESIGN_PRINCIPLES.md treats these as advisory
+        // off 7x7.
+        //
+        // ZonesNotOppositeCorners used to be the fourth, and it is gone rather than fixed: §3's
+        // draft publishes ONE unowned spot list, so "the two zones sit in opposite corners" is a
+        // question about a board shape that no longer exists. The lint still runs for boards not yet
+        // migrated; a migrated board cannot trip it, and that is the deployment guideline retiring
+        // rather than being satisfied.
         Assert.Equal(
             new[]
             {
                 FightIssueCode.BoardNotSevenBySeven,
                 FightIssueCode.HazardOffOuterRings,
                 FightIssueCode.CentreNotClear,
-                FightIssueCode.ZonesNotOppositeCorners,
             }.OrderBy(c => (int)c),
             result.Lints.Select(l => l.Code).OrderBy(c => (int)c));
     }

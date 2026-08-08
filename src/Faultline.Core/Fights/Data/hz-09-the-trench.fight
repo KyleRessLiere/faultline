@@ -1,6 +1,6 @@
 # Terrain and placement share one grid, so the board is what it looks like.
 #   .  open        #  wall        O  pit        ^  spikes      H  high ground
-#   A  Player A deploy slot       B  Player B deploy slot
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
 #   any other letter = an enemy declared by a 'spawn' line below
 
 id: hz-09-the-trench
@@ -13,6 +13,7 @@ design: A COSTLY ROUTE FOR EVERY OTHER CLASS, which is the gradient the design a
 design: THE MIRROR. The Grappler at the north end of the crossing has range 3 and pull 2 and does to you precisely what the Fisher does to the Anchors, across the same water. Its list names the Archer, so the flock that parks a bowman on the ledge is offering it the pull it wants.
 design: The single high-ground tile at (3,5) is the crossing's southern landing. Nothing can be shoved up onto it, so it is the one tile on the south bank a Grappler cannot drag you off backwards, and ranged fire from it into the crossing is +2. It is a chokepoint modifier, not decoration.
 design: 7x7 (D-165). The 9x7 cut was a broad combined exam with two bridges; edition A is the same thesis asked once, which is what a per-node board is for. Both flocks deploy on the south bank, so the trench is the fight rather than a line between two armies - the opposite-corners guideline is refused here on purpose.
+design: SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The six spots are the tiles the two old zones held, all on the south bank. BOTH FLOCKS DEPLOYING SOUTH IS THIS BOARD'S DECLARED THESIS (D-187), so the south bank is preserved exactly and no central or northern spot is added: widening the layout here would be re-cutting a board whose deployment shape IS the question. Unowning the spots is the whole of the change, and it is enough - the two flocks may now share a flank instead of taking one each.
 
 spawn g = Grappler
 spawn n = Anchor
@@ -29,5 +30,5 @@ board:
   ..n.n..
   OOO.OOO
   .......
-  A..H..B
-  AA...BB
+  *..H..*
+  **...**
