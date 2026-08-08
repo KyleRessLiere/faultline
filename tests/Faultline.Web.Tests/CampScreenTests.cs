@@ -35,6 +35,8 @@ public sealed class CampScreenTests
 {
     private const int Seed = 4242;
 
+    private static readonly Team[] Sides = { Team.PlayerA, Team.PlayerB };
+
     // ---- The surface ----------------------------------------------------------------------------
 
     /// <summary>
@@ -47,14 +49,21 @@ public sealed class CampScreenTests
         var session = await AtACamp();
         var table = session.Camp!;
         var html = Render(session);
-
-        Assert.Equal(Camp.OffersPerCamp, table.Offers.Count);
-
-        // Both cards on one table, and each says whose duck it is for (D-154).
-        Assert.Equal(table.Offers.Count, Occurrences(html, "class=\"offer "));
-
-        // And every card on it says what the catalogue says, verbatim.
         var visible = VisibleText(html);
+
+        // TWO tables of two, one per player, each labelled with its owner BEFORE either chooses
+        // (D-247). Four cards reach the screen, and every one of them is drawn.
+        Assert.Equal(2, table.Seats.Count);
+        foreach (var player in Sides)
+        {
+            Assert.Equal(Camp.OffersPerTable, table.For(player).Count);
+            Assert.Contains(player == Team.PlayerA ? "Player A" : "Player B", visible);
+        }
+
+        Assert.Equal(table.Offers.Count, Occurrences(html, "class=\"offer "));
+        Assert.Equal(2, Occurrences(html, "class=\"table-owner\""));
+
+        // And every card says what the catalogue says, verbatim.
         foreach (var offer in table.Offers)
         {
             Assert.Contains(offer.Name, visible);
@@ -75,7 +84,18 @@ public sealed class CampScreenTests
         var html = Render(session);
         var visible = VisibleText(html);
 
-        var cards = CampCards.For(session.State, table);
+        var cards = new List<CampCard>();
+        foreach (var player in Sides)
+        {
+            var mine = CampCards.For(session.State, table, player);
+            Assert.Equal(Camp.OffersPerTable, mine.Count);
+
+            // A table's cards are its owner's ducks', which is what "addressed to that player's
+            // ducks" means and what makes the label above them true.
+            Assert.All(mine, c => Assert.Equal(player, c.Player));
+            cards.AddRange(mine);
+        }
+
         Assert.Equal(table.Offers.Count, cards.Count);
 
         foreach (var card in cards)
@@ -107,17 +127,17 @@ public sealed class CampScreenTests
     {
         var session = await AtACamp();
         var flow = new CampFlow();
-        flow.Begin(session.Camp!);
+        flow.Begin(session.Camp!.SeatFor(Team.PlayerA)!);
 
         Assert.True(flow.Select(0));
-        Assert.False(flow.Select(Camp.OffersPerCamp));
+        Assert.False(flow.Select(Camp.OffersPerTable));
         Assert.False(flow.Select(-1));
         Assert.Equal(0, flow.Selected);
 
-        // And a flock that has picked nothing cannot confirm past it: there is no skip, so confirming
+        // And a player who has picked nothing cannot confirm past it: there is no skip, so confirming
         // past an unmade pick would be one.
         var fresh = new CampFlow();
-        fresh.Begin(session.Camp!);
+        fresh.Begin(session.Camp!.SeatFor(Team.PlayerB)!);
         Assert.False(fresh.Confirm());
         Assert.False(fresh.Confirmed);
         Assert.False(fresh.Ready);
@@ -132,7 +152,7 @@ public sealed class CampScreenTests
     {
         var session = await AtACamp();
 
-        session.PickCamp(99);
+        session.PickCamp(Team.PlayerA, 99);
 
         Assert.NotNull(session.Problem);
         Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
@@ -252,37 +272,58 @@ public sealed class CampScreenTests
     // ---- Sending it ------------------------------------------------------------------------------
 
     /// <summary>
-    /// The pick travels in one command, and the run moves on. There is no half-picked state in Core
-    /// for it to arrive into.
+    /// Each pick travels in its own command, and the run leaves only when BOTH have gone. The
+    /// half-picked state in between is real, and the screen shows the spent table as resolved rather
+    /// than removing it (I2, I4, D-251).
     /// </summary>
     [Fact]
-    public async Task ThePick_TravelsAsOneCommand_AndTheRunLeavesTheCamp()
+    public async Task EachPick_TravelsAsItsOwnCommand_AndTheRunLeavesOnlyWhenBothHaveGone()
     {
         var session = await AtACamp();
         var table = session.Camp!;
-        var flow = new CampFlow();
-        flow.Begin(table);
 
-        Assert.False(flow.Ready);
+        var a = new CampFlow();
+        a.Begin(table.SeatFor(Team.PlayerA)!);
 
-        flow.Select(1);
-        flow.Confirm();
-        Assert.True(flow.Ready);
+        Assert.False(a.Ready);
+        a.Select(1);
+        a.Confirm();
+        Assert.True(a.Ready);
 
-        session.PickCamp(flow.Pick);
+        session.PickCamp(Team.PlayerA, a.Pick);
+
+        Assert.Null(session.Problem);
+        Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
+
+        var lineA = Assert.Single(session.LastEvents.OfType<CampTaken>());
+        Assert.Equal(table.For(Team.PlayerA)[1], lineA.Offer);
+
+        // A table already picked reads as RESOLVED, not absent — the same honesty §7.5 requires of
+        // the turn-order strip's recovering gap. The panel is still up, both tables are still drawn,
+        // and Player A's says what came off it.
+        var half = Render(session);
+        Assert.Contains("class=\"panel camp\"", half);
+        Assert.Equal(table.Offers.Count, Occurrences(half, "class=\"offer "));
+        Assert.Equal(2, Occurrences(half, "class=\"table-owner\""));
+        Assert.Contains("Picked", VisibleText(half));
+        Assert.Contains(lineA.Name, VisibleText(half));
+
+        var b = new CampFlow();
+        b.Begin(table.SeatFor(Team.PlayerB)!);
+        b.Select(0);
+        b.Confirm();
+
+        session.PickCamp(Team.PlayerB, b.Pick);
 
         Assert.Null(session.Problem);
         Assert.NotEqual(RunPhase.AtCamp, session.State!.Phase);
 
-        // One command, one taking, landed on the duck the card named.
-        var taken = session.LastEvents.OfType<CampTaken>().ToList();
-        Assert.Single(taken);
-        Assert.Equal(table.Offers[1], taken[0].Offer);
+        var lineB = Assert.Single(session.LastEvents.OfType<CampTaken>());
+        Assert.Equal(table.For(Team.PlayerB)[0], lineB.Offer);
 
-        foreach (var t in taken)
-        {
-            Assert.False(session.State.FindUnit(t.Duck)!.Loadout.IsEmpty);
-        }
+        // Both cards landed. Under D-154 one of these two ducks came away with nothing.
+        Assert.False(session.State.FindUnit(lineA.Duck)!.Loadout.IsEmpty);
+        Assert.False(session.State.FindUnit(lineB.Duck)!.Loadout.IsEmpty);
 
         // And the surface is gone the moment the phase is — not greyed, not disabled: absent.
         var html = Render(session);
@@ -310,14 +351,19 @@ public sealed class CampScreenTests
         Assert.Contains("class=\"panel camp\"", Render(session));
 
         var table = session.Camp!;
-        session.PickCamp(0);
+        session.PickCamp(Team.PlayerA, 0);
+
+        // One pick does not end a camp. The screen is still up and the other table is still open.
+        Assert.Null(session.Problem);
+        Assert.Equal(RunPhase.AtCamp, session.State!.Phase);
+
+        session.PickCamp(Team.PlayerB, 0);
 
         Assert.Null(session.Problem);
         Assert.Equal(RunPhase.AtVote, session.State!.Phase);
 
-        // The pick landed and the card came off the table that was dealt.
-        var taken = session.LastEvents.OfType<CampTaken>().ToList();
-        Assert.Equal(table.Offers[0], taken[0].Offer);
+        // Both picks landed, each off its own player's table.
+        Assert.Equal(table.For(Team.PlayerB)[0], session.LastEvents.OfType<CampTaken>().First().Offer);
 
         // The fork the camp let the run reach, voted, and a fight standing behind the door.
         var doors = session.State.Doors();
@@ -364,7 +410,8 @@ public sealed class CampScreenTests
 
         // And the camp before this one is still on the squad: a loadout that vanished across a
         // reload would be a run quietly rolled back.
-        session.PickCamp(0);
+        session.PickCamp(Team.PlayerA, 0);
+        session.PickCamp(Team.PlayerB, 0);
         var carried = session.State!;
         Assert.Contains(carried.Squad, u => !u.Loadout.IsEmpty);
 
@@ -387,13 +434,33 @@ public sealed class CampScreenTests
 
         Assert.Contains(session.Journal, line => line.Contains(table.Offers[0].Name, StringComparison.Ordinal));
 
-        session.PickCamp(0);
+        // ONE LINE PER PLAYER PER CAMP (I3). A camp that produced one line is a bug report, so the
+        // journal is counted rather than sampled: two lines arrive, one naming each player.
+        int before = session.Journal.Count(l => l.StartsWith("Player ", StringComparison.Ordinal));
 
-        var line = RunEventText.Describe(session.LastEvents.OfType<CampTaken>().First());
-        Assert.Contains(table.Offers[0].Name, line);
-        Assert.Contains(table.Offers[0].Summary, line);
-        Assert.DoesNotContain("Threadcaster", line);
-        Assert.DoesNotContain("Verve", line);
+        session.PickCamp(Team.PlayerA, 0);
+        var lineA = RunEventText.Describe(session.LastEvents.OfType<CampTaken>().First());
+
+        session.PickCamp(Team.PlayerB, 1);
+        var lineB = RunEventText.Describe(session.LastEvents.OfType<CampTaken>().First());
+
+        Assert.Equal(
+            before + 2,
+            session.Journal.Count(l => l.StartsWith("Player ", StringComparison.Ordinal)));
+
+        Assert.Contains("Player A", lineA);
+        Assert.Contains(table.For(Team.PlayerA)[0].Name, lineA);
+        Assert.Contains(table.For(Team.PlayerA)[0].Summary, lineA);
+
+        Assert.Contains("Player B", lineB);
+        Assert.Contains(table.For(Team.PlayerB)[1].Name, lineB);
+        Assert.Contains(table.For(Team.PlayerB)[1].Summary, lineB);
+
+        foreach (string line in new[] { lineA, lineB })
+        {
+            Assert.DoesNotContain("Threadcaster", line);
+            Assert.DoesNotContain("Verve", line);
+        }
     }
 
     /// <summary>
@@ -492,21 +559,26 @@ public sealed class CampScreenTests
             }
 
             var table = session.Camp!;
-            int pick = 0;
-            if (preferPockets)
+
+            // Both tables, because a camp does not resolve until both are spent (D-247).
+            foreach (var seat in table.Seats)
             {
-                for (int i = 0; i < table.Offers.Count; i++)
+                int pick = 0;
+                if (preferPockets)
                 {
-                    if (table.Offers[i].Category == OfferCategory.Consumable)
+                    for (int i = 0; i < seat.Offers.Count; i++)
                     {
-                        pick = i;
-                        break;
+                        if (seat.Offers[i].Category == OfferCategory.Consumable)
+                        {
+                            pick = i;
+                            break;
+                        }
                     }
                 }
-            }
 
-            session.PickCamp(pick);
-            Assert.Null(session.Problem);
+                session.PickCamp(seat.Player, pick);
+                Assert.Null(session.Problem);
+            }
         }
     }
 

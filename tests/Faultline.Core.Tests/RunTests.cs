@@ -601,8 +601,7 @@ public class RunTests
             run.Campaign, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome,
             rngState: run.RngState,
             campsHeld: run.CampsHeld,
-            lastPickOwner: run.LastPickOwner,
-            previousPickOwner: run.PreviousPickOwner);
+            campPicks: run.CampPicks);
 
         Assert.Equal(run.GetHashCode(), restored.GetHashCode());
         Assert.Equal(run, restored);

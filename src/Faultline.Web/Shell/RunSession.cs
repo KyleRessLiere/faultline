@@ -117,14 +117,20 @@ public sealed class RunSession : IRunBoardDriver
     /// <summary>True when the node the run is on is asking it a question — a campfire, an event.</summary>
     public bool AtChoice => State is { Phase: RunPhase.AtChoice };
 
-    /// <summary>True when the run is at a Camp with both players' cards on the table.</summary>
+    /// <summary>True when the run is at a Camp with a table still to pick from.</summary>
     public bool AtCamp => State is { Phase: RunPhase.AtCamp };
 
     /// <summary>
-    /// The camp's two-per-player draw, or <c>null</c> when the run is not at one. Dealt by Core from
-    /// the run RNG, never by this session.
+    /// The camp's two tables of two, or <c>null</c> when the run is not at one. Dealt by Core from the
+    /// run RNG, never by this session.
     /// </summary>
     public CampTable? Camp => AtCamp ? Faultline.Core.Camp.Draw(State!) : null;
+
+    /// <summary>Whether this player has already taken their pick at the camp the run is standing at.</summary>
+    /// <param name="player">Which player.</param>
+    /// <returns>Whether their table is spent. Core's answer, not this session's.</returns>
+    public bool CampPickTaken(Team player) =>
+        State is not null && Faultline.Core.Camp.HasPicked(State, player);
 
     /// <summary>Whether the run is standing at a gilt destination with its legendaries on the table.</summary>
     public bool AtDestination => State is { Phase: RunPhase.AtDestination };
@@ -265,19 +271,21 @@ public sealed class RunSession : IRunBoardDriver
     /// Sends the camp pick to Core, which applies it and moves the run on.
     /// </summary>
     /// <remarks>
-    /// The table is Core's, redealt from the run RNG, so this session cannot hand the squad a card the
-    /// seed did not deal. One pick, not two: §8.6's director deals one table across the whole squad
-    /// and the flock takes one card off it (D-154).
+    /// The tables are Core's, redealt from the run RNG, so this session cannot hand the squad a card
+    /// the seed did not deal. <b>One pick each, and the camp does not resolve until both have
+    /// arrived</b> — Core decides that, not this session: it sends one command and reads the phase
+    /// back (D-247, D-251).
     /// </remarks>
-    /// <param name="pick">Index of the card taken, or -1 when the camp dealt none.</param>
-    public void PickCamp(int pick)
+    /// <param name="player">Whose table the pick came off.</param>
+    /// <param name="pick">Index of the card taken on that table, or -1 when the camp dealt none.</param>
+    public void PickCamp(Team player, int pick)
     {
         if (Camp is not { } table)
         {
             return;
         }
 
-        Apply(new CampPickCommand(table, pick));
+        Apply(new CampPickCommand(table, player, pick));
     }
 
     /// <summary>

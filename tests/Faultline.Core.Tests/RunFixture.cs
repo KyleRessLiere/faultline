@@ -158,21 +158,36 @@ internal static class RunFixture
         return SettleCamp(step.NewState);
     }
 
-    /// <summary>Takes the first legal camp pick, if the run is standing at one.</summary>
+    /// <summary>
+    /// Takes the first legal camp pick until the camp is spent, if the run is standing at one.
+    /// </summary>
+    /// <remarks>
+    /// A camp takes one pick per player and does not resolve until both tables are spent (D-247), so
+    /// this loops. A driver that took one pick and walked on would leave the run parked at its camp
+    /// forever — which is exactly what the loop's guard reports rather than hiding.
+    /// </remarks>
     internal static RunState SettleCamp(RunState run)
     {
-        if (run.Phase != RunPhase.AtCamp)
+        int guard = 0;
+
+        while (run.Phase == RunPhase.AtCamp)
         {
-            return run;
+            var legal = Campaign.LegalRunCommands(run);
+            if (legal.Count == 0)
+            {
+                throw new InvalidOperationException("The run is at a camp that offers no pick.");
+            }
+
+            run = Campaign.ApplyRun(run, legal[0]).NewState;
+
+            if (guard++ > 8)
+            {
+                throw new InvalidOperationException(
+                    "The camp took nine picks without closing; a table is being dealt back.");
+            }
         }
 
-        var legal = Campaign.LegalRunCommands(run);
-        if (legal.Count == 0)
-        {
-            throw new InvalidOperationException("The run is at a camp that offers no pick.");
-        }
-
-        return Campaign.ApplyRun(run, legal[0]).NewState;
+        return run;
     }
 
     /// <summary>Plays forward, winning every fight, until the run is standing on a rest.</summary>

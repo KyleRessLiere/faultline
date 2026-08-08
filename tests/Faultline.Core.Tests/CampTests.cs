@@ -7,17 +7,20 @@ using Xunit;
 namespace Faultline.Core.Tests;
 
 /// <summary>
-/// The Camp: after every won Fight or Elite, two cards on one table and one pick
-/// (MASTER_DESIGN §8.6's offer director; the two-tables shape it replaced is D-127, and why is D-154).
+/// The Camp: after every won Fight or Elite, <b>two tables of two and one pick each</b>
+/// (MASTER_DESIGN §8.6's offer director, as D-247 restates it; the one-table shape it reverses is
+/// D-154, and D-127 is the two-table camp before either).
 /// </summary>
 /// <remarks>
-/// These are about the <em>offer</em> — that it is dealt from the run seed, that it is the same two
-/// cards on a replay, that the two differ in category where they can, and that nothing outside the
-/// built pools can ever be on the table. What each card <em>does</em> is pinned in ModTests,
-/// SecondWindTests, UnlockTests and ConsumableTests.
+/// These are about the <em>offer</em> — that it is dealt from the run seed, that it is the same four
+/// cards on a replay, that every player gets a table, and that nothing outside the built pools can
+/// ever be on one. What each card <em>does</em> is pinned in ModTests, SecondWindTests, UnlockTests
+/// and ConsumableTests.
 /// </remarks>
 public class CampTests
 {
+    private static readonly Team[] Sides = { Team.PlayerA, Team.PlayerB };
+
     // ---- the seam -----------------------------------------------------------------------------------
 
     [Fact]
@@ -34,17 +37,167 @@ public class CampTests
     }
 
     [Fact]
-    public void ACamp_OffersTwoCards_AndNothingElseIsLegal()
+    public void ACamp_OffersEveryPlayerTwoCards_AndNothingElseIsLegal()
     {
         var run = AtACamp(out var table);
 
-        Assert.Equal(Camp.OffersPerCamp, table.Offers.Count);
+        foreach (var player in Sides)
+        {
+            Assert.Equal(Camp.OffersPerTable, table.For(player).Count);
+        }
 
-        // One command per card, and nothing else. There is deliberately no decline on the list:
-        // camps are the reward, and turning one down is not a decision (MASTER_DESIGN §8.5).
+        // One command per card of every unspent table, and nothing else. There is deliberately no
+        // decline on the list: camps are the reward, and turning one down is not a decision
+        // (MASTER_DESIGN §8.5).
         var legal = Campaign.LegalRunCommands(run);
-        Assert.Equal(Camp.OffersPerCamp, legal.Count);
+        Assert.Equal(Camp.OffersPerTable * Sides.Length, legal.Count);
         Assert.All(legal, c => Assert.IsType<CampPickCommand>(c));
+
+        // And every player is on the list, which is the whole of "each player picks" (D-247).
+        Assert.Equal(
+            Sides,
+            legal.Cast<CampPickCommand>().Select(c => c.Player).Distinct().OrderBy(t => t).ToArray());
+    }
+
+    // ---- the camp does not resolve until both tables are spent (I2 / D-251) -----------------------
+
+    [Fact]
+    public void OnePick_LeavesTheRunAtTheCamp_WithOnlyTheOtherTableStillOnOffer()
+    {
+        var run = AtACamp(out var table);
+
+        var step = Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 0));
+        var after = step.NewState;
+
+        Assert.Equal(RunPhase.AtCamp, after.Phase);
+        Assert.True(Camp.HasPicked(after, Team.PlayerA));
+        Assert.False(Camp.HasPicked(after, Team.PlayerB));
+
+        // Everything still legal is Player B's, so the camp has no completion path that does not run
+        // through them. That is the construction, not a guard: the exit condition IS this list.
+        var legal = Campaign.LegalRunCommands(after);
+        Assert.Equal(Camp.OffersPerTable, legal.Count);
+        Assert.All(legal, c => Assert.Equal(Team.PlayerB, Assert.IsType<CampPickCommand>(c).Player));
+
+        // And Player A cannot take a second card off a spent table — refused by name, not ignored.
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => Campaign.ApplyRun(after, new CampPickCommand(table, Team.PlayerA, 1)));
+        Assert.Contains("already picked", refusal.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ACampCannotResolveWithAnUnspentTable_AtEverySeed()
+    {
+        // Asserted on the node's completion path, not on any UI state: after one pick the run's phase
+        // is still AtCamp and its node index has not moved, whichever player picked first.
+        for (int seed = 1; seed <= 12; seed++)
+        {
+            foreach (var first in Sides)
+            {
+                var run = AtACamp(out var table, seed);
+                int node = run.NodeIndex;
+
+                var half = Campaign.ApplyRun(run, new CampPickCommand(table, first, 0)).NewState;
+
+                Assert.Equal(RunPhase.AtCamp, half.Phase);
+                Assert.Equal(node, half.NodeIndex);
+                Assert.NotEmpty(Camp.Unspent(half, table));
+
+                var done = Campaign.ApplyRun(
+                    half, new CampPickCommand(table, first.OtherPlayer(), 0)).NewState;
+
+                Assert.NotEqual(RunPhase.AtCamp, done.Phase);
+                Assert.Empty(done.CampPicks);
+            }
+        }
+    }
+
+    [Fact]
+    public void EitherPlayerMayPickFirst_AndTheCampEndsInTheSamePlaceEitherWay()
+    {
+        var runA = AtACamp(out var table, 4242);
+        var runB = AtACamp(out _, 4242);
+
+        var aFirst = Campaign.ApplyRun(runA, new CampPickCommand(table, Team.PlayerA, 0)).NewState;
+        aFirst = Campaign.ApplyRun(aFirst, new CampPickCommand(table, Team.PlayerB, 1)).NewState;
+
+        var bFirst = Campaign.ApplyRun(runB, new CampPickCommand(table, Team.PlayerB, 1)).NewState;
+        bFirst = Campaign.ApplyRun(bFirst, new CampPickCommand(table, Team.PlayerA, 0)).NewState;
+
+        // Order does not matter (I2). The recorded order differs — it is the log — so the squads and
+        // the cursor are compared rather than the whole state.
+        Assert.Equal(aFirst.Phase, bFirst.Phase);
+        Assert.Equal(aFirst.RngState, bFirst.RngState);
+        Assert.Equal(aFirst.CampsHeld, bFirst.CampsHeld);
+        Assert.Equal(aFirst.Squad, bFirst.Squad);
+    }
+
+    [Fact]
+    public void ACampWithAPickOutstanding_TakesNothingElse_AndSaysThereIsNoSkip()
+    {
+        var run = AtACamp(out var table);
+        var half = Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 0)).NewState;
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => Campaign.ApplyRun(half, new EnterNodeCommand()));
+
+        Assert.Contains("camp", refusal.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("no skip", refusal.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ---- the log, which is the regression instrument (I3) -----------------------------------------
+
+    [Fact]
+    public void EveryCamp_EmitsOneLinePerPlayer_NamingThePlayerTheCardAndTheDuck()
+    {
+        // THE INSTRUMENT. Under D-247 a camp that produced one line is a bug report: the missing line
+        // means either a table went unspent or a pick went unrecorded, and neither is legal. This
+        // fails the moment that happens, without anybody watching a screen.
+        var run = RunFixture.Start(4242);
+        int camps = 0;
+
+        for (int leg = 0; leg < 40 && run.Phase != RunPhase.Complete; leg++)
+        {
+            run = RunFixture.PlayForward(run, until: r => r.Phase == RunPhase.AtCamp).State;
+            if (run.Phase != RunPhase.AtCamp)
+            {
+                break;
+            }
+
+            {
+                var table = Camp.Draw(run);
+                var lines = new List<CampTaken>();
+
+                // Who is OWED a line, worked out from the squad rather than from the table — so a
+                // table that quietly went missing cannot also lower the bar it is measured against.
+                var owed = Sides.Where(p => Camp.DucksFor(run, p).Count > 0).ToArray();
+
+                foreach (var seat in table.Seats)
+                {
+                    var step = Campaign.ApplyRun(run, new CampPickCommand(table, seat.Player, 0));
+                    lines.AddRange(step.All<CampTaken>());
+                    run = step.NewState;
+                }
+
+                camps++;
+
+                Assert.Equal(owed.Length, lines.Count);
+                Assert.Equal(owed, lines.Select(l => l.Player).OrderBy(t => t).ToArray());
+
+                foreach (var line in lines)
+                {
+                    Assert.NotNull(run.FindUnit(line.Duck));
+                    Assert.NotEmpty(line.Name);
+                    Assert.NotEmpty(line.Summary);
+
+                    // The recipient duck is the one named on the card, and it is that player's.
+                    Assert.Equal(line.Offer.Duck, line.Duck);
+                    Assert.Equal(line.Player, DefaultTeams.SideFor(line.Kind));
+                }
+            }
+        }
+
+        Assert.True(camps > 0, "The run walked no camps, so the instrument measured nothing.");
     }
 
     [Fact]
@@ -60,18 +213,24 @@ public class CampTests
     }
 
     [Fact]
-    public void EveryCardNamesTheDuckItIsFor_AndThatDucksOwner()
+    public void EveryCardIsForADuckOfTheTableItSitsOn()
     {
         var run = AtACamp(out var table);
 
         // D-092's loadout is ownership: Player A holds the Vanguard and the Fisher, Player B the
-        // Wardbearer and the Archer. Since D-154 the table spans both, so what has to hold is that
-        // every card can say whose duck it is for — that is the decision the pick is made on.
-        foreach (var offer in table.Offers)
+        // Wardbearer and the Archer. Since D-247 a table is addressed to its owner's ducks, so what
+        // has to hold is stronger than "the card can say whose duck it is" — the card is on the right
+        // table, and there is no way to be handed one that is not.
+        foreach (var seat in table.Seats)
         {
-            var duck = run.FindUnit(offer.Duck)!;
-            Assert.True(CampDirector.OwnerOf(run, offer).IsPlayer());
-            Assert.Equal(DefaultTeams.SideFor(duck.Kind), CampDirector.OwnerOf(run, offer));
+            Assert.True(seat.Player.IsPlayer());
+
+            foreach (var offer in seat.Offers)
+            {
+                var duck = run.FindUnit(offer.Duck)!;
+                Assert.Equal(seat.Player, DefaultTeams.SideFor(duck.Kind));
+                Assert.Equal(seat.Player, CampDirector.OwnerOf(run, offer));
+            }
         }
     }
 
@@ -128,15 +287,25 @@ public class CampTests
     }
 
     [Fact]
-    public void ThePick_MovesTheCursor_SoTheNextCampDealsFreshCards()
+    public void TheCursorMovesWhenTheCampCLOSES_NotWhenTheFirstPlayerPicks()
     {
+        // The tables have to stay a pure function of the state while the camp is open, or the second
+        // player's own recorded table would be refused as one the seed never dealt (D-251). So the
+        // cursor and the camp count both move at the exit, and neither moves at the first pick.
         var run = AtACamp(out var table, seed: 4242);
 
         Assert.NotEqual(run.RngState, table.RngState);
 
-        var after = Campaign.ApplyRun(run, new CampPickCommand(table, 0)).NewState;
+        var half = Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 0)).NewState;
+
+        Assert.Equal(run.RngState, half.RngState);
+        Assert.Equal(run.CampsHeld, half.CampsHeld);
+        Assert.Equal(table, Camp.Draw(half));
+
+        var after = Campaign.ApplyRun(half, new CampPickCommand(table, Team.PlayerB, 0)).NewState;
 
         Assert.Equal(table.RngState, after.RngState);
+        Assert.Equal(run.CampsHeld + 1, after.CampsHeld);
     }
 
     [Fact]
@@ -146,13 +315,21 @@ public class CampTests
 
         // The same rule a move's route obeys (D-097), one level up: the log records what was dealt,
         // and Core will not take a log that hands the squad cards it never drew.
+        var seat = table.Seats[0];
         var forged = table with
         {
-            Offers = new[] { CampOffer.Of(new RunUnitId(0), Mod.Heavier), table.Offers[1] },
+            Seats = new[]
+            {
+                seat with
+                {
+                    Offers = new[] { CampOffer.Of(new RunUnitId(0), Mod.Heavier), seat.Offers[1] },
+                },
+                table.Seats[1],
+            },
         };
 
         var refusal = Assert.Throws<InvalidOperationException>(
-            () => Campaign.ApplyRun(run, new CampPickCommand(forged, 0)));
+            () => Campaign.ApplyRun(run, new CampPickCommand(forged, seat.Player, 0)));
 
         Assert.Contains("not the camp Core would have dealt", refusal.Message, StringComparison.Ordinal);
     }
@@ -279,50 +456,61 @@ public class CampTests
     // ---- picking ------------------------------------------------------------------------------------
 
     [Fact]
-    public void ThePick_HangsTheCardOnTheDuckItWasDrawnFor_AndReportsIt()
+    public void EachPick_HangsItsCardOnTheDuckItWasDrawnFor_AndReportsIt()
     {
         var run = AtACamp(out var table);
 
-        var step = Campaign.ApplyRun(run, new CampPickCommand(table, 1));
+        var a = table.For(Team.PlayerA)[1];
+        var b = table.For(Team.PlayerB)[0];
 
-        var taken = step.All<CampTaken>();
-        Assert.Single(taken);
-        Assert.Equal(CampDirector.OwnerOf(run, table.Offers[1]), taken[0].Player);
-        Assert.Equal(table.Offers[1], taken[0].Offer);
+        var first = Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 1));
+        var lineA = Assert.Single(first.All<CampTaken>());
+
+        Assert.Equal(Team.PlayerA, lineA.Player);
+        Assert.Equal(a, lineA.Offer);
 
         // Full payloads: a renderer draws the card from the event and asks the run nothing (CLAUDE.md).
-        Assert.Equal(table.Offers[1].Name, taken[0].Name);
-        Assert.Equal(table.Offers[1].Summary, taken[0].Summary);
+        Assert.Equal(a.Name, lineA.Name);
+        Assert.Equal(a.Summary, lineA.Summary);
 
-        AssertCarries(step.NewState.FindUnit(table.Offers[1].Duck)!, table.Offers[1]);
+        var second = Campaign.ApplyRun(first.NewState, new CampPickCommand(table, Team.PlayerB, 0));
+        var lineB = Assert.Single(second.All<CampTaken>());
 
-        // One pick, so the other card is the one the flock gave up. They are never the same card.
-        Assert.NotEqual(table.Offers[0], table.Offers[1]);
+        Assert.Equal(Team.PlayerB, lineB.Player);
+        Assert.Equal(b, lineB.Offer);
+
+        // Both cards land, and each on its own duck. Under D-154 one of these two ducks got nothing.
+        AssertCarries(second.NewState.FindUnit(a.Duck)!, a);
+        AssertCarries(second.NewState.FindUnit(b.Duck)!, b);
     }
 
     [Fact]
-    public void PickingACardThatIsNotOnTheTable_IsRefused()
+    public void PickingACardThatIsNotOnYourTable_IsRefused()
     {
         var run = AtACamp(out var table);
 
         Assert.Throws<InvalidOperationException>(
-            () => Campaign.ApplyRun(run, new CampPickCommand(table, 2)));
+            () => Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 2)));
 
         // And so is declining, which is what an out-of-range index would have to mean.
         Assert.Throws<InvalidOperationException>(
-            () => Campaign.ApplyRun(run, new CampPickCommand(table, CampPickCommand.NoPick)));
+            () => Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, CampPickCommand.NoPick)));
     }
 
     [Fact]
-    public void SettlingTheCamp_MovesTheRunOnToTheNextNode()
+    public void SettlingBothTables_MovesTheRunOnToTheNextNode()
     {
         var run = AtACamp(out var table);
         int before = run.NodeIndex;
 
-        var after = Campaign.ApplyRun(run, new CampPickCommand(table, 0)).NewState;
+        var after = Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 0)).NewState;
+        Assert.Equal(before, after.NodeIndex);
+
+        after = Campaign.ApplyRun(after, new CampPickCommand(table, Team.PlayerB, 0)).NewState;
 
         Assert.NotEqual(RunPhase.AtCamp, after.Phase);
         Assert.Equal(before + 1, after.NodeIndex);
+        Assert.Empty(after.CampPicks);
     }
 
     // ---- determinism --------------------------------------------------------------------------------
@@ -341,17 +529,58 @@ public class CampTests
     }
 
     [Fact]
-    public void TheLogRecordsBothTheDrawAndThePick()
+    public void TheLogRecordsBothTheDrawAndThePick_AndCarriesTwoPicksPerCamp()
     {
         var (_, log) = RunFixture.PlayWholeRun(seed: 4242);
-        var pick = log.OfType<CampPickCommand>().First();
+        var picks = log.OfType<CampPickCommand>().ToList();
+
+        Assert.NotEmpty(picks);
+
+        // Each pick is its own command in the replay log (I2), so the picks come in owner-labelled
+        // pairs — never a lone command that closed a camp on one player.
+        Assert.Equal(0, picks.Count % 2);
+        for (int i = 0; i < picks.Count; i += 2)
+        {
+            Assert.Equal(picks[i].Drawn, picks[i + 1].Drawn);
+            Assert.NotEqual(picks[i].Player, picks[i + 1].Player);
+        }
+
+        var pick = picks[0];
 
         // The draw is on the command, not only the pick: a log entry that said "index 1" without
         // saying what was on offer would be a record nobody could read back.
         Assert.NotNull(pick.Drawn);
         Assert.NotEmpty(pick.Drawn.Offers);
         Assert.NotNull(pick.Chosen);
-        Assert.Contains(pick.Chosen!.Value, pick.Drawn.Offers);
+        Assert.Contains(pick.Chosen!.Value, pick.Drawn.For(pick.Player));
+    }
+
+    [Fact]
+    public void AHalfPickedCamp_SurvivesARestore_SoTheOtherTableIsStillThereToPick()
+    {
+        // A camp with one table spent IS a state. Five shipped bugs are Core growing one and the save
+        // dropping it (D-125, D-127, D-222, D-231, D-234) — this is the Core half of not making six.
+        var run = AtACamp(out var table, seed: 99);
+        var half = Campaign.ApplyRun(run, new CampPickCommand(table, Team.PlayerA, 1)).NewState;
+
+        var restored = Campaign.Restore(
+            half.Campaign, half.Seed, half.NodeIndex, half.Squad, half.FightsWon, half.Outcome,
+            half.MapState, half.RngState, atVote: false, atCamp: true, campsHeld: half.CampsHeld,
+            atDestination: false, campPicks: half.CampPicks);
+
+        Assert.Equal(RunPhase.AtCamp, restored.Phase);
+        Assert.Equal(table, Camp.Draw(restored));
+        Assert.True(Camp.HasPicked(restored, Team.PlayerA));
+        Assert.False(Camp.HasPicked(restored, Team.PlayerB));
+
+        var legal = Campaign.LegalRunCommands(restored);
+        Assert.All(legal, c => Assert.Equal(Team.PlayerB, Assert.IsType<CampPickCommand>(c).Player));
+
+        // And finishing it from the restore hands out BOTH cards, not only the one taken after it.
+        var done = Campaign.ApplyRun(restored, new CampPickCommand(table, Team.PlayerB, 0)).NewState;
+
+        AssertCarries(done.FindUnit(table.For(Team.PlayerA)[1].Duck)!, table.For(Team.PlayerA)[1]);
+        AssertCarries(done.FindUnit(table.For(Team.PlayerB)[0].Duck)!, table.For(Team.PlayerB)[0]);
     }
 
     [Fact]

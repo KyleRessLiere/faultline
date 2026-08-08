@@ -423,7 +423,7 @@ namespace Faultline.Core
             RunPhase.AtNode => "standing on a node it has not entered",
             RunPhase.InFight => "in a fight",
             RunPhase.AtChoice => "being asked a question by the node it is on",
-            RunPhase.AtCamp => "at a camp with both players' cards on the table",
+            RunPhase.AtCamp => "at a camp with a table still to pick from",
             RunPhase.AtDestination => "at a gilt destination with its legendaries on the table",
             RunPhase.Complete => "over",
             _ => phase.ToString(),
@@ -482,17 +482,15 @@ namespace Faultline.Core
         /// won to fight again, and the fork would never arrive (DECISIONS.md D-125).
         /// </param>
         /// <param name="atCamp">
-        /// True when the run was standing at a camp with its picks still to make. The camp's table is
-        /// not stored, because it is a pure function of <paramref name="rngState"/> and the squad — so
-        /// restoring the phase restores the same two cards. Without it the run would be handed the
+        /// True when the run was standing at a camp with picks still to make. The camp's tables are
+        /// not stored, because they are a pure function of <paramref name="rngState"/> and the squad —
+        /// so restoring the phase restores the same four cards. Without it the run would be handed the
         /// node it has already cleared, exactly as with <paramref name="atVote"/> (D-127).
         /// </param>
         /// <param name="campsHeld">
         /// How many camps the run had already resolved. §8.6's director reads it to choose the row it
-        /// deals, so a run restored without it is dealt camp 1's table at every camp.
+        /// deals, so a run restored without it is dealt camp 1's tables at every camp.
         /// </param>
-        /// <param name="lastPickOwner">Which player took the last camp card, or <c>null</c>.</param>
-        /// <param name="previousPickOwner">Which player took the one before that, or <c>null</c>.</param>
         /// <param name="atDestination">
         /// True when the run was standing at a gilt destination with its legendary still to take.
         /// Carried for exactly the reason <paramref name="atCamp"/> is, and one reason more: the
@@ -500,6 +498,13 @@ namespace Faultline.Core
         /// walk the run onto the Trench having silently kept the risk and lost the reward (§8.8). The
         /// pair is not stored — it is a pure function of <paramref name="rngState"/> and the squad,
         /// so restoring the phase deals the same two cards.
+        /// </param>
+        /// <param name="campPicks">
+        /// The picks already taken at the camp the run was standing at, in order. A camp with one
+        /// table spent is a real state — a pick is recorded, not applied, and the camp closes only
+        /// once no table is left (D-251) — so a restore that dropped this would either hand the first
+        /// player a second pick or close the camp having given one player nothing. Ignored unless
+        /// <paramref name="atCamp"/>.
         /// </param>
         /// <returns>The run, standing on its node — or at its fork, its camp, or its destination.</returns>
         /// <exception cref="ArgumentException">
@@ -518,9 +523,8 @@ namespace Faultline.Core
             bool atVote = false,
             bool atCamp = false,
             int campsHeld = 0,
-            Team? lastPickOwner = null,
-            Team? previousPickOwner = null,
-            bool atDestination = false)
+            bool atDestination = false,
+            IReadOnlyList<CampPick>? campPicks = null)
         {
             if (campaign is null)
             {
@@ -625,11 +629,16 @@ namespace Faultline.Core
                 RngState = rngState ?? seed,
 
                 // The camp history is part of the save for the reason the cursor is: §8.6's director
-                // reads the camp number and the last two picks' owners, so a run restored without
-                // them would be dealt camp 1's engine starters again at its fifth camp.
+                // reads the camp number, so a run restored without it would be dealt camp 1's engine
+                // starters again at its fifth camp.
                 CampsHeld = campsHeld < 0 ? 0 : campsHeld,
-                LastPickOwner = lastPickOwner,
-                PreviousPickOwner = previousPickOwner,
+
+                // And a half-picked camp is a state: one player has taken their card off their table
+                // and the other has not. A restore that dropped it would either hand the first player
+                // a second pick or close the camp on one (D-251).
+                CampPicks = atCamp && campPicks is not null
+                    ? campPicks
+                    : Array.Empty<CampPick>(),
             };
         }
 

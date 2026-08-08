@@ -13,8 +13,8 @@ namespace Faultline.Web.Shell.RunMap;
 /// the catalogue wrote, and the markup prints them — a camp card that spelled out "cost 2" in the
 /// razor would be a second, unversioned copy of the pool the moment somebody tuned it.
 /// </remarks>
-/// <param name="Index">Index into <see cref="CampTable.Offers"/> — what the pick sends.</param>
-/// <param name="Player">Which player fields the duck the card is bound to.</param>
+/// <param name="Index">Index into that player's <see cref="CampSeat.Offers"/> — what the pick sends.</param>
+/// <param name="Player">Which player fields the duck the card is bound to, and whose table it is on.</param>
 /// <param name="Offer">The offer itself, for the command.</param>
 /// <param name="Name">Its display name, from the catalogue.</param>
 /// <param name="Summary">Its one-line rule text, verbatim from the catalogue (§8.6).</param>
@@ -134,33 +134,36 @@ public static class CampCards
         _ => duckName + "'s pocket",
     };
 
-    /// <summary>The table's cards, in the order the director dealt them.</summary>
+    /// <summary>One player's table, in the order the director dealt it.</summary>
     /// <remarks>
-    /// <see cref="CampCard.Index"/> is the index into <see cref="CampTable.Offers"/> — the number the
-    /// pick sends — and <see cref="CampCard.Player"/> is whose duck the card is for, which since
-    /// D-154 is a fact printed on a shared card rather than which column it sits in.
+    /// <see cref="CampCard.Index"/> is the index into that player's <see cref="CampSeat.Offers"/> —
+    /// the number the pick sends. Since D-247 a camp deals a table per player, so the cards are asked
+    /// for per player and never flattened: a screen that drew four cards in one list would be the
+    /// one-table camp again with labels on it.
     /// </remarks>
     /// <param name="state">The run standing at the camp, for the duck names and owners.</param>
-    /// <param name="table">The table, from <see cref="Camp.Draw"/>.</param>
-    /// <returns>The cards, empty when the camp dealt nothing.</returns>
-    public static IReadOnlyList<CampCard> For(RunState? state, CampTable? table)
+    /// <param name="table">The camp, from <see cref="Camp.Draw"/>.</param>
+    /// <param name="player">Whose table to draw.</param>
+    /// <returns>The cards, empty when that player was dealt nothing.</returns>
+    public static IReadOnlyList<CampCard> For(RunState? state, CampTable? table, Team player)
     {
         var cards = new List<CampCard>();
-        if (state is null || table is null)
+        if (state is null || table is null || !player.IsPlayer())
         {
             return cards;
         }
 
-        for (int i = 0; i < table.Offers.Count; i++)
+        var offers = table.For(player);
+        for (int i = 0; i < offers.Count; i++)
         {
-            var offer = table.Offers[i];
+            var offer = offers[i];
             var duck = state.FindUnit(offer.Duck);
             var kind = duck?.Kind ?? UnitKind.Vanguard;
             string duckName = Naming.Of(kind);
 
             cards.Add(new CampCard(
                 i,
-                CampDirector.OwnerOf(state, offer),
+                player,
                 offer,
                 offer.Name,
                 offer.Summary,

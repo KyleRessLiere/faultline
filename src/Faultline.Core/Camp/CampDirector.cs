@@ -3,17 +3,17 @@ using System.Collections.Generic;
 namespace Faultline.Core
 {
     /// <summary>
-    /// The camp offer director (MASTER_DESIGN §8.6): which two cards a camp puts on the table, and
-    /// why those two.
+    /// The camp offer director (MASTER_DESIGN §8.6): which four cards a camp puts out, which two of
+    /// them are each player's, and why those.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>Two cards, one pick.</b> §8.6's rows are written about one table spanning both players —
-    /// "two engine starters, different classes, preferably different players", and a fairness row
-    /// about which player's ducks the last two picks went to. Neither sentence can be said about the
-    /// two-tables camp that shipped, where each player is dealt their own pair and both pick. The
-    /// table is therefore shared and the pick is single, and the contradiction with D-127 is recorded
-    /// rather than quietly split (D-154).
+    /// <b>Two tables of two, one pick each.</b> Every player picks at every camp, and each table's
+    /// cards are addressed to that player's own ducks (D-247). §8.6's rows are written about a single
+    /// table, so they are restated rather than re-enabled: the named-permanent row now spans the whole
+    /// camp, the connector and paired-consumable rows are stated per table, the ownership-fairness row
+    /// dissolves into an invariant (D-249), and camp 1's floor becomes one engine starter per player
+    /// at different classes.
     /// </para>
     /// <para>
     /// <b>Every constraint is a filter, and every filter can fail.</b> A camp late in a run can want a
@@ -21,18 +21,19 @@ namespace Faultline.Core
     /// the pool when the narrowing leaves something, and steps aside when it does not. A director
     /// that could deal nothing would be worse than one that occasionally deals a card off-row, and
     /// <see cref="CampDirection"/> reports which constraints actually bound so a table can be audited
-    /// rather than trusted.
+    /// rather than trusted (D-160).
     /// </para>
     /// <para>
     /// <b>Seeded and replay-stable.</b> Everything random goes through the run RNG at
-    /// <see cref="RunState.RngState"/>, in a fixed order, the same way <c>Campaign.ResolveVote</c>
-    /// consumes it. Two runs on one seed that made the same picks see the same cards.
+    /// <see cref="RunState.RngState"/>, in a fixed order — Player A's table, then Player B's — the
+    /// same way <c>Campaign.ResolveVote</c> consumes it. The two tables share no pool of their own, so
+    /// the order fixes the replay without deciding anything about what either player can be dealt.
     /// </para>
     /// </remarks>
     public static class CampDirector
     {
-        /// <summary>Cards on a camp's table. One pick out of two, and there is no skip.</summary>
-        public const int CardsPerCamp = 2;
+        /// <summary>Cards on one player's table. One pick out of two, and there is no skip.</summary>
+        public const int CardsPerTable = 2;
 
         // The tier ladder, bottom rung first. Written out rather than reflected off the enum so the
         // draw order a seed sees can never change with an enum edit, and so no rule casts a tier to
@@ -41,6 +42,10 @@ namespace Faultline.Core
         {
             CardRarity.Common, CardRarity.Uncommon, CardRarity.Rare,
         };
+
+        // Player order, written out for the same reason the ladder is: the deal order is part of what
+        // a seed means, so it can never change with an enum edit.
+        private static readonly Team[] Players = { Team.PlayerA, Team.PlayerB };
 
         /// <summary>
         /// The tier odds this run's current node draws on, read off <see cref="RarityOdds"/> rather
@@ -53,97 +58,135 @@ namespace Faultline.Core
             RarityOdds.For(RarityOdds.SourceAt(state));
 
         /// <summary>
-        /// Deals one camp: two cards from the whole squad's eligible pool, chosen against §8.6's rows.
+        /// Deals one camp: a table of two per player, each off that player's own ducks, chosen against
+        /// §8.6's rows as D-247 restates them.
         /// </summary>
         /// <param name="state">Run standing at a camp, with its RNG cursor untouched.</param>
         /// <param name="rng">The run RNG, advanced by every draw made here.</param>
-        /// <returns>The table, and which constraints bound while dealing it.</returns>
+        /// <returns>The tables, and which cross-table constraints bound while dealing them.</returns>
         public static CampDirection Deal(RunState state, SeededRng rng)
         {
-            var pool = Pool(state);
-            var bound = new List<string>();
-            var dealt = new List<CampOffer>();
+            var seats = new List<CampSeat>();
+            var acrossTables = new List<string>();
 
-            if (pool.Count == 0)
+            if (state is null)
             {
-                return new CampDirection { Offers = dealt, Bound = bound };
+                return new CampDirection { Seats = seats, Bound = acrossTables };
             }
 
             int camp = state.CampsHeld + 1;
             var weights = WeightsFor(state);
-            var ownedTags = OwnedTags(state);
 
-            // ---- the first card -----------------------------------------------------------------
-            var first = Narrow(pool, camp == 1 ? IsEngineStarter : null, bound, "camp-1 engine starter");
+            // "No named permanent appears twice in a run" now spans both tables: every card dealt at
+            // this camp removes its named permanent from what the remaining cards may be. D-154
+            // applied this within one table of two; two tables only widen it to the camp (D-247).
+            var dealtHere = new List<CampOffer>();
 
-            // §8.6's fairness row, read as the binding half of it: "if the last two picks went to one
-            // player's ducks, the next offer contains a card for the other player". Applied to the
-            // first card, so the owed player is on the table however the second card falls.
-            if (state.OwnershipIsLopsided && state.LastPickOwner is { } lopsided)
+            foreach (var player in Players)
             {
-                var owed = lopsided.OtherPlayer();
-                first = Narrow(first, offer => OwnerOf(state, offer) == owed, bound, "ownership fairness");
+                var seat = DealSeat(state, player, camp, weights, dealtHere, acrossTables, rng);
+                if (seat is not null)
+                {
+                    seats.Add(seat);
+                }
+            }
+
+            return new CampDirection { Seats = seats, Bound = acrossTables };
+        }
+
+        /// <summary>
+        /// One player's table, or <c>null</c> when nothing at all can be dealt to their ducks.
+        /// </summary>
+        private static CampSeat? DealSeat(
+            RunState state,
+            Team player,
+            int camp,
+            RarityOdds weights,
+            List<CampOffer> dealtHere,
+            List<string> acrossTables,
+            SeededRng rng)
+        {
+            var pool = PoolFor(state, player);
+            if (pool.Count == 0)
+            {
+                return null;
+            }
+
+            var bound = new List<string>();
+            var dealt = new List<CampOffer>();
+            var ownedTags = OwnedTagsFor(state, player);
+
+            // ---- the first card -------------------------------------------------------------------
+            var first = Available(pool, dealtHere, acrossTables);
+            if (first.Count == 0)
+            {
+                return null;
+            }
+
+            if (camp == 1)
+            {
+                // "One engine starter per player." §8.6's camp-1 row asked for two engine starters at
+                // different classes on one table; under two tables it is one per table, which is the
+                // simpler shape the design predicted (D-247).
+                first = Narrow(first, IsEngineStarter, bound, "camp-1 engine starter");
+
+                // "Different classes", read across the two tables: this player's engine starter is not
+                // for the same class as the one already guaranteed to the other. A preference like any
+                // other, and it records on the camp rather than on either seat because it is a
+                // sentence about both.
+                var already = EngineStarterKinds(state, dealtHere);
+                if (already.Count > 0)
+                {
+                    first = Narrow(
+                        first,
+                        offer => !(IsEngineStarter(offer) && Contains(already, KindOf(state, offer))),
+                        acrossTables,
+                        "camp-1 different classes");
+                }
+            }
+            else
+            {
+                // "At least one connector matching an owned tag", keyed to THIS player's own ducks'
+                // tags: the build a player is choosing to deepen is the one they can field (D-247).
+                first = Narrow(first, offer => Connects(offer, ownedTags), bound, "connector to an owned tag");
             }
 
             var cardOne = Weighted(first, weights, rng);
             dealt.Add(cardOne);
+            dealtHere.Add(cardOne);
 
-            // ---- the second card ----------------------------------------------------------------
-            var rest = new List<CampOffer>();
-            foreach (var candidate in pool)
-            {
-                // "No named permanent appears twice in a run" applies within a table too: two cards
-                // that are the same card are one card and a wasted slot.
-                if (!candidate.Equals(cardOne)
-                    && !(candidate.IsPermanent && SameNamedThing(candidate, cardOne)))
-                {
-                    rest.Add(candidate);
-                }
-            }
-
+            // ---- the second card ------------------------------------------------------------------
+            var rest = Available(pool, dealtHere, acrossTables);
             if (rest.Count == 0)
             {
-                return new CampDirection { Offers = dealt, Bound = bound };
+                return new CampSeat { Player = player, Offers = dealt, Bound = bound };
             }
 
-            // "Two consumables are never paired."
+            // "Two consumables are never paired" — per table, not per camp (D-248). The row is about
+            // the decision in front of one player, and that decision is now their own two cards.
             if (cardOne.Category == OfferCategory.Consumable)
             {
                 rest = Narrow(
                     rest, offer => offer.Category != OfferCategory.Consumable, bound, "no paired consumables");
             }
 
-            if (camp == 1)
+            if (camp != 1 && !Connects(cardOne, ownedTags))
             {
-                // "Two engine starters, different classes, preferably different players." Class first,
-                // because §8.6 states it flatly and only qualifies the player half with "preferably".
-                rest = Narrow(rest, IsEngineStarter, bound, "camp-1 engine starter");
-                rest = Narrow(
-                    rest, offer => KindOf(state, offer) != KindOf(state, cardOne), bound, "camp-1 different classes");
-                rest = Narrow(
-                    rest,
-                    offer => OwnerOf(state, offer) != OwnerOf(state, cardOne),
-                    bound,
-                    "camp-1 different players");
-            }
-            else
-            {
-                // "≥1 connector matching an owned tag." Satisfied by either card, so it only binds the
-                // second when the first did not already do it.
-                if (!Connects(cardOne, ownedTags))
-                {
-                    rest = Narrow(rest, offer => Connects(offer, ownedTags), bound, "connector to an owned tag");
-                }
+                // The connector row is satisfied by either card, so it only binds the second when the
+                // first did not already do it.
+                rest = Narrow(rest, offer => Connects(offer, ownedTags), bound, "connector to an owned tag");
             }
 
-            dealt.Add(Weighted(rest, weights, rng));
+            var cardTwo = Weighted(rest, weights, rng);
+            dealt.Add(cardTwo);
+            dealtHere.Add(cardTwo);
 
-            return new CampDirection { Offers = dealt, Bound = bound };
+            return new CampSeat { Player = player, Offers = dealt, Bound = bound };
         }
 
         /// <summary>
-        /// Every card the squad could be dealt right now: each available duck's eligible offers, minus
-        /// every named permanent anybody in the run already carries.
+        /// Every card the squad could be dealt right now, across both players' ducks. The camp-wide
+        /// pool; <see cref="PoolFor"/> is the half of it a table is dealt from.
         /// </summary>
         /// <param name="state">Run to draw for.</param>
         /// <returns>The candidates, in a reproducible order.</returns>
@@ -158,6 +201,45 @@ namespace Faultline.Core
             foreach (var duck in state.Squad)
             {
                 if (!duck.IsAvailable)
+                {
+                    continue;
+                }
+
+                foreach (var offer in CampCatalogue.EligibleFor(duck))
+                {
+                    if (!offer.IsPermanent || !AnybodyHolds(state, offer))
+                    {
+                        pool.Add(offer);
+                    }
+                }
+            }
+
+            return pool;
+        }
+
+        /// <summary>
+        /// Every card one player's ducks could be dealt: their available ducks' eligible offers, minus
+        /// every named permanent anybody in the run already carries.
+        /// </summary>
+        /// <remarks>
+        /// The named-permanent exclusion stays stated over the whole squad, not the flock: §8.6 says
+        /// "no named permanent appears twice in a run", and that is what stops both players holding a
+        /// Sure-Footed each. Only the <em>drawing</em> is per player.
+        /// </remarks>
+        /// <param name="state">Run to draw for.</param>
+        /// <param name="player">Whose table.</param>
+        /// <returns>The candidates, in a reproducible order.</returns>
+        public static IReadOnlyList<CampOffer> PoolFor(RunState state, Team player)
+        {
+            var pool = new List<CampOffer>();
+            if (state is null || !player.IsPlayer())
+            {
+                return pool;
+            }
+
+            foreach (var duck in state.Squad)
+            {
+                if (!duck.IsAvailable || DefaultTeams.SideFor(duck.Kind) != player)
                 {
                     continue;
                 }
@@ -220,7 +302,39 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// Whether a card connects to a tag the squad already owns — §8.6's "connector". A squad that
+        /// The §8.6 tags one player's own ducks wear. What the connector row is keyed to since the
+        /// camp deals a table per player: a card connecting to the other flock's build is not a
+        /// connector for the player holding this table (D-247).
+        /// </summary>
+        /// <param name="state">Run to read.</param>
+        /// <param name="player">Whose flock.</param>
+        /// <returns>The union of that player's owned tags.</returns>
+        public static TechniqueTag OwnedTagsFor(RunState state, Team player)
+        {
+            var tags = TechniqueTag.None;
+            if (state is null || !player.IsPlayer())
+            {
+                return tags;
+            }
+
+            foreach (var duck in state.Squad)
+            {
+                if (DefaultTeams.SideFor(duck.Kind) != player)
+                {
+                    continue;
+                }
+
+                foreach (var technique in duck.Loadout.Techniques)
+                {
+                    tags |= TechniqueDefinition.For(technique).Tags;
+                }
+            }
+
+            return tags;
+        }
+
+        /// <summary>
+        /// Whether a card connects to a tag the flock already owns — §8.6's "connector". A flock that
         /// owns no tags yet has nothing to connect to, and every card is trivially not a connector.
         /// </summary>
         /// <param name="offer">Card to test.</param>
@@ -251,6 +365,90 @@ namespace Faultline.Core
         }
 
         private static UnitKind? KindOf(RunState state, CampOffer offer) => state.FindUnit(offer.Duck)?.Kind;
+
+        /// <summary>The classes the engine starters dealt so far at this camp are for.</summary>
+        private static List<UnitKind> EngineStarterKinds(RunState state, List<CampOffer> dealtHere)
+        {
+            var kinds = new List<UnitKind>();
+            foreach (var offer in dealtHere)
+            {
+                if (IsEngineStarter(offer) && KindOf(state, offer) is { } kind)
+                {
+                    kinds.Add(kind);
+                }
+            }
+
+            return kinds;
+        }
+
+        private static bool Contains(List<UnitKind> kinds, UnitKind? kind)
+        {
+            if (kind is not { } wanted)
+            {
+                return false;
+            }
+
+            foreach (var known in kinds)
+            {
+                if (known == wanted)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// What is left of a pool once the cards already dealt at this camp are taken out of it: the
+        /// card itself, and any other card that would put the same named permanent on the table twice
+        /// (D-247's first row, which now spans both tables).
+        /// </summary>
+        private static List<CampOffer> Available(
+            IReadOnlyList<CampOffer> pool, List<CampOffer> dealtHere, List<string> acrossTables)
+        {
+            var kept = new List<CampOffer>();
+            foreach (var candidate in pool)
+            {
+                bool clashes = false;
+                foreach (var already in dealtHere)
+                {
+                    if (candidate.Equals(already)
+                        || (candidate.IsPermanent && SameNamedThing(candidate, already)))
+                    {
+                        clashes = true;
+                        break;
+                    }
+                }
+
+                if (!clashes)
+                {
+                    kept.Add(candidate);
+                }
+            }
+
+            if (kept.Count < pool.Count && kept.Count > 0 && !Said(acrossTables, DuplicateRow))
+            {
+                acrossTables.Add(DuplicateRow);
+            }
+
+            return kept;
+        }
+
+        private const string DuplicateRow = "no duplicate named permanent in this camp";
+
+        private static bool Said(List<string> names, string name)
+        {
+            foreach (string said in names)
+            {
+                if (string.Equals(said, name, System.StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private static bool Holds(DuckLoadout loadout, CampOffer offer) => offer.Category switch
         {
@@ -299,10 +497,15 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// One card, drawn against the source's tier odds. Tiers with nothing left in the pool
-        /// contribute no weight, so a table is never short a card because the dice asked for a tier
-        /// that is empty — which is also what keeps an empty Rare rung from costing anything.
+        /// One card, drawn against the source's tier odds — <b>per card</b>, which is the unit §8.6
+        /// leaves unstated and D-250 rules: a per-table or per-camp roll would correlate the cards a
+        /// player is choosing between and flatten the decision.
         /// </summary>
+        /// <remarks>
+        /// Tiers with nothing left in the pool contribute no weight, so a table is never short a card
+        /// because the dice asked for a tier that is empty — which is also what keeps an empty Rare
+        /// rung from costing anything.
+        /// </remarks>
         private static CampOffer Weighted(IReadOnlyList<CampOffer> pool, RarityOdds odds, SeededRng rng)
         {
             var ladder = Ladder;

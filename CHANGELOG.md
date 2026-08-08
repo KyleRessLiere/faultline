@@ -1,5 +1,25 @@
 # Changelog
 
+## Every player picks at every camp
+
+- **Two tables of two, one pick each**, each table's cards addressed to that player's own ducks
+  (D-247) — reversing D-154's single shared table, under which a player could be dealt nothing at
+  six of a run's seven camps. Act 1 now hands out **eight** cards where it handed out four.
+- **§8.6's director rows are restated, not re-enabled**: the no-duplicate-permanent row spans both
+  tables, the connector row is keyed to the player's own ducks' tags, camp 1's floor is one engine
+  starter per player at different classes, and the ownership-fairness row dissolves into an
+  invariant. Three genuinely open questions are marked as the implementer's calls, cheaply
+  reversible: consumables pair **per table** (D-248), fairness **dissolves and its fields are
+  deleted** (D-249), rarity rolls **per card** (D-250).
+- **A camp with an unspent table has no completion path** (D-251): a pick is recorded, not applied,
+  and the cards land only at the camp's exit — reached exactly when no table is left to pick from.
+- **The log is the regression instrument**: one line per player per camp, naming the player, the
+  card and the recipient duck. A camp that produced one line now fails a test.
+- **The save carries a half-picked camp** (`camp-picks:`), which is the sixth instance of the defect
+  D-125, D-127, D-222, D-231 and D-234 all are — caught before shipping this time.
+- **The camp screen labels each table with its owner** and shows a spent table as *resolved* rather
+  than removing it; the body copy now agrees with the subtitle it had been contradicting.
+
 ## Pluck gets its own slot, and an ability you trade away is still yours
 
 - **The spender moves off the ability slots onto a Pluck slot of its own** (D-230), counted

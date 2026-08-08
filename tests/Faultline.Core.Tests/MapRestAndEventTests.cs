@@ -556,8 +556,7 @@ public class MapRestAndEventTests
             CampaignLibrary.Act1, run.Seed, run.NodeIndex, run.Squad, run.FightsWon, run.Outcome,
             run.MapState, run.RngState, atVote: false, atCamp: false,
             campsHeld: run.CampsHeld,
-            lastPickOwner: run.LastPickOwner,
-            previousPickOwner: run.PreviousPickOwner);
+            campPicks: run.CampPicks);
 
         Assert.Equal(16, restored.Squad.Single(u => u.Kind == UnitKind.Vanguard).MaxHp);
         Assert.Equal(run, restored);

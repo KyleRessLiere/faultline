@@ -1524,48 +1524,72 @@ redirect, and the last damage source — and they are tested; nothing renders th
 `Kits.RefusalForLearning` are the seam a Learn offer fills a free slot through; no offer draws on them
 yet.
 
-## The Camp — two cards, one pick, after every won fight
+## The Camp — two tables of two, one pick each, after every won fight
 
-After every **Fight or Elite node that ends in a win**, the run stops at a **Camp**. **Two cards go on
-one table and the flock takes one.** Gameplay only: there are no stat lines in the pool and nowhere to
-put one (MASTER_DESIGN §8.5). **There is no skip** — camps are the reward, and the legal list holds
-nothing but picks.
+After every **Fight or Elite node that ends in a win**, the run stops at a **Camp**. **Every player
+picks: two tables of two, one pick each, each table's cards addressed to that player's own ducks.**
+Gameplay only: there are no stat lines in the pool and nowhere to put one (MASTER_DESIGN §8.5).
+**There is no skip** — camps are the reward, and the legal list holds nothing but picks.
 
 **Not after the boss.** A boss node runs no camp: its reward is the Molt, which is not built, and a
 camp there would price the act's last fight the same as a corridor fight (D-127).
 
-**One table, spanning the squad.** The two cards may be for two different ducks on two different
-sides, and choosing between them is the decision: taking the Archer's card is choosing not to take the
-Vanguard's. It used to be two independent per-player tables and two picks; §8.6's director rows cannot
-be stated about that shape, so it changed (D-154). The default split still says whose duck is whose —
-**A holds the Vanguard and the Fisher, B the Wardbearer and the Archer** (D-092) — and every card
-prints its owner.
+**A table per player.** The one shared table D-154 built is reversed: camps land after every combat
+node and a run walks ~7, so an uneven split meant one player could watch the other's ducks improve for
+most of a run (D-247). The shared-scarcity tension of one table is deliberately traded away; the map
+vote remains the symmetric negotiation. The default split says whose duck is whose — **A holds the
+Vanguard and the Fisher, B the Wardbearer and the Archer** (D-092) — and a table is labelled with its
+owner before either player chooses.
+
+**The camp does not resolve until both tables are spent, and that is construction rather than a
+guard.** A pick is *recorded* on `RunState.CampPicks`, not applied; the cards land on ducks in exactly
+one place, the camp's exit, and the exit is reached when `Camp.LegalPicks` is empty — a list generated
+from the seats nobody has picked from yet. A table still holding cards and a command still outstanding
+are the same list from the same function, so a camp advancing on one selection would need a card to
+land outside the one place that hands them out (D-251). Order does not matter: either player may pick
+first and neither waits on the other to *see* their options.
 
 | | |
 |---|---|
 | Phase | `RunPhase.AtCamp`, between the won fight and the next vote |
-| Cards on the table | **2**, and the pick is **1** |
-| Duplicate cards | never — no card twice on a table, and **no named permanent twice in a run**, across every duck |
+| Tables | **one per player** with an available duck; **2** cards each, and each pick is **1** |
+| Picks | **one per player**, each its own `CampPickCommand` in the log, in either order |
+| Duplicate cards | never — and **no named permanent twice in a run**, across every duck, nor twice **across the four cards of one camp** |
 | Seeded from | the **run RNG** (`RunState.RngState`), the same cursor a split vote's coin flips |
-| Stored | **nothing** — the table is a pure function of the cursor, the squad and the camp history, so a save, a restore and a replay all deal the same two cards |
-| Recorded | the command carries **the whole table and the pick**; Core refuses a command whose recorded table is not the one the seed would have dealt |
-| Empty pool | when the squad has nothing left to be offered, no camp opens and the run walks on |
-| Events | `CampOffered` (the table) then one `CampTaken` |
+| Stored | **not the cards** — they are a pure function of the cursor, the squad and the camp history. **The picks taken so far are stored** (`camp-picks:`), because a camp with one table spent is a state |
+| Cursor and count | `RngState` and `CampsHeld` both move at the camp's **exit**, never at a pick — the tables have to stay a pure function of the state while the camp is open |
+| Recorded | the command carries **the whole camp and the pick**; Core refuses a command whose recorded draw is not the one the seed would have dealt, and refuses a second pick from a spent table **by name** |
+| Empty pool | when nobody has anything left to be offered, no camp opens and the run walks on |
+| Events | `CampOffered` (both tables) then **one `CampTaken` per player**, emitted as that player picks |
+
+**A camp that produced one log line is a bug report.** The missing line means either a table went
+unspent or a pick went unrecorded, and neither is legal;
+`CampTests.EveryCamp_EmitsOneLinePerPlayer_NamingThePlayerTheCardAndTheDuck` fails when it happens.
 
 ### The offer director (§8.6)
 
-Six rows decide what goes on the table. Each is a **preference**: it narrows the pool when the
-narrowing leaves something and steps aside when it does not, and `CampTable.Bound` records which ones
-actually bound — the proof log the map generator owes, applied to the camp (D-160).
+The rows decide what goes on each table. Each is a **preference**: it narrows the pool when the
+narrowing leaves something and steps aside when it does not. `CampSeat.Bound` records the rows stated
+about one table and `CampTable.Bound` the rows stated across both — the proof log the map generator
+owes, applied to the camp (D-160).
 
-| Row | What it does |
-|---|---|
-| **Camp 1** | two **engine starters** — technique modifiers — on **different classes**, and different players where the pool allows |
-| **Camp 2+** | at least one **connector**: a card wearing a tag the squad already owns |
-| **No duplicate permanent** | a named mod, Second Wind, unlock or technique already on **any** duck is never offered again |
-| **Never two consumables** | a table pairs at most one one-shot |
-| **Ownership fairness** | when the **last two picks** went to one player's ducks, the next table holds a card for the other |
-| **Tier odds by source** | `RarityOdds.For(RewardSource.SafeCamp)` = **60/35/5**, `HungryCamp` = **35/50/15** (Common/Uncommon/Rare). A run with no lane is priced as safe. |
+| Row | Scope | What it does |
+|---|---|---|
+| **Camp 1** | per table + across | **one engine starter per player** — a technique modifier — and the two guaranteed starters are on **different classes**. §8.6's "preferably different players" is structural now, not a preference. |
+| **Camp 2+** | per table | at least one **connector**: a card wearing a tag **that player's own ducks** already own |
+| **No duplicate permanent** | run + camp | a named mod, Second Wind, unlock or technique already on **any** duck is never offered again, and never appears twice among a camp's four cards |
+| **Never two consumables** | per table | a table pairs at most one one-shot. Per table rather than per camp is **my call** (D-248) |
+| **Ownership fairness** | *dissolved* | its trigger is unreachable and its guarantee is free once both players pick at every camp. Retired as a constraint, kept as an invariant: **every camp puts two cards in front of every player with an available duck** (D-249) |
+| **Tier odds by source** | per card | `RarityOdds.For(RewardSource.SafeCamp)` = **60/35/5**, `HungryCamp` = **35/50/15** (Common/Uncommon/Rare). A run with no lane is priced as safe. **Rolled per card** rather than per table or per camp — **my call** (D-250) |
+
+**The camp-1 different-classes row is live but cannot bind** under the shipped roster:
+`DefaultTeams.SideFor` maps each class to exactly one side, so the two flocks share no class and the
+narrowing never removes anything. It stays in the director as a guard on that mapping, and
+`CampOnesDifferentClassesRow_IsLiveButCannotBind_BecauseTheTwoFlocksShareNoClass` asserts it is
+**silent, not absent**.
+
+**Two §8.6 rows are still unbuilt**: camp 3's "≥1 payoff or rare connector; no two cards on the same
+ability" and camp 4+'s "≥1 must strengthen an owned RELATIONSHIP".
 
 Everything outside the technique pool is **Common** and carries **no tag** — §8.6 labels neither for
 the v1 cards, and inventing labels would make the director connect builds nobody authored (D-159,

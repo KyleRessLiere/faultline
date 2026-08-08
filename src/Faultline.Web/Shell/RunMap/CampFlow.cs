@@ -9,12 +9,11 @@ namespace Faultline.Web.Shell.RunMap;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>One table, one pick.</b> The camp used to deal each player their own pair and ask both — the
-/// shape D-127 argued for. MASTER_DESIGN §8.6's director rows are written about a single table
-/// spanning the squad ("different classes, preferably different players") and count which player's
-/// ducks the last two picks went to, so the table became one and the ceremony with it (D-154). Which
-/// player's duck a card belongs to is printed on the card, and it is the interesting part: taking
-/// the Archer's card is choosing not to take the Vanguard's.
+/// <b>One of these per table, so a camp runs two.</b> Every player picks at every camp, and each
+/// table's cards are addressed to that player's ducks (D-247), so the ceremony is per player and the
+/// two are independent — neither waits on the other, and either may confirm first. Which table has
+/// resolved is Core's answer (<c>Camp.HasPicked</c>), not this object's: a ceremony that remembered
+/// it would be a second copy of the camp's state.
 /// </para>
 /// <para>
 /// <b>There is no skip.</b> A flock with cards on the table has to take one — camps are the reward
@@ -55,16 +54,16 @@ public sealed class CampFlow
     /// Opens the ceremony on a table. Re-opening on the same table leaves it alone, so a re-render
     /// between the pick and the confirmation does not throw away the pick.
     /// </summary>
-    /// <param name="table">The table, from <see cref="Camp.Draw"/>.</param>
+    /// <param name="seat">One player's table, off <see cref="Camp.Draw"/>.</param>
     /// <exception cref="ArgumentNullException">There is no table.</exception>
-    public void Begin(CampTable table)
+    public void Begin(CampSeat seat)
     {
-        if (table is null)
+        if (seat is null)
         {
-            throw new ArgumentNullException(nameof(table));
+            throw new ArgumentNullException(nameof(seat));
         }
 
-        Begin(table.Offers.Count);
+        Begin(seat.Offers.Count);
     }
 
     /// <summary>
@@ -103,7 +102,7 @@ public sealed class CampFlow
     /// Highlights one of the cards. An index that is not on the table is refused, and so is any pick
     /// after the confirmation.
     /// </summary>
-    /// <param name="index">Index into <see cref="CampTable.Offers"/>.</param>
+    /// <param name="index">Index into this table's <see cref="CampSeat.Offers"/>.</param>
     /// <returns>Whether the pick was taken.</returns>
     public bool Select(int index)
     {
