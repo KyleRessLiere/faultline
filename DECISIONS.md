@@ -260,9 +260,10 @@ in this file when the question comes back.
 | D-257 | [FOUND: §3's draft dissolved the per-side half of the agency lint, and the deployment guideline lints with it. The law is unchanged; what it can distinguish is not.](#d-257-found-3s-draft-dissolved-the-per-side-half-of-the-agency-lint-and-the-deployment-guideline-lints-with-it-the-law-is-unchanged-what-it-can-distinguish-is-not) | 2026-08-08 |  |
 | D-258 | [RULED: board size is DECLARED and cross-checked, and a declared size is what makes an off-7×7 board deliberate rather than drifted.](#d-258-ruled-board-size-is-declared-and-cross-checked-and-a-declared-size-is-what-makes-an-off-77-board-deliberate-rather-than-drifted) | 2026-08-08 |  |
 | D-259 | [FOUND: the board picker was never removed. The Stage P packet's P5 premise is false, and what is actually missing is narrower.](#d-259-found-the-board-picker-was-never-removed-the-stage-p-packets-p5-premise-is-false-and-what-is-actually-missing-is-narrower) | 2026-08-08 |  |
-| D-260 | [RULED: the battle picker's test bench sets health, items and cards through the run's own loadout seam, and it is for isolating a board rather than for showing a state is reachable.](#d-260-ruled-the-battle-pickers-test-bench-sets-health-items-and-cards-through-the-runs-own-loadout-seam-and-it-is-for-isolating-a-board-rather-than-for-showing-a-state-is-reachable) | unreleased |  |
+| D-260 | [RULED: the battle picker's test bench sets health, items and cards through the run's own loadout seam, and it is for isolating a board rather than for showing a state is reachable.](#d-260-ruled-the-battle-pickers-test-bench-sets-health-items-and-cards-through-the-runs-own-loadout-seam-and-it-is-for-isolating-a-board-rather-than-for-showing-a-state-is-reachable) | 2026-08-08 |  |
+| D-261 | [RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.](#d-261-ruled-a-saved-test-loadout-is-keyed-by-class-while-the-bench-that-feeds-a-fight-stays-keyed-by-slot-the-two-are-different-questions-and-the-conversion-is-a-per-slot-lookup) | unreleased |  |
 
-**242 rulings.**
+**243 rulings.**
 
 <!-- toc:end -->
 ---
@@ -6935,3 +6936,43 @@ the same hazard wearing a friendlier face. Anything set here is asserted, not ea
 **Side effect worth having:** this is the first surface that can equip a technique at all. Nothing in
 a played run can (D-253), which is why Stage L's proximity instrumentation measured zero cross-flock
 firings. A tester can now put Spotter or Hand-Off on a duck and watch it fire.
+
+---
+
+**D-261 — RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays
+keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.**
+
+D-260's bench was four cramped rows on a picker card, and it had two problems worth separating.
+
+**The cards were wrong.** It listed every `TechniqueModifier` against every duck, including the ones
+that duck's class can never hold — a Vanguard was offered Spotter. A technique names the archetype it
+belongs to and the ability it hosts on (`TechniqueDefinition.Kind` / `Host`, D-253), and an upgrade
+does the same, so **the offer list is a per-class fact and the editor now asks for it**
+(`ClassCards`). Each card is shown with its host and its summary, next to a read-only list of what
+the class already does — a tester choosing cards in a vacuum is guessing.
+
+**Saving needed the opposite key from playing.** `SquadLoadout` is positional because a board may
+roster the same class twice and two Vanguards on different hit points would be indistinguishable
+under a class-keyed map; `TestLoadout` follows it. But a *saved* build has the opposite problem: slot
+0 is a Vanguard on one board and a Fisher on the next, so a positional preset reapplied elsewhere
+hands a Vanguard's hit points to whatever happens to be rostered first.
+
+**So `LoadoutPreset` is keyed by `UnitKind`, and applying it is a per-slot lookup** — every slot whose
+class the preset knows takes that class's entry. A board rostering two Vanguards gives both the same
+build, which is the right answer for a bench, where "my tanky Vanguard" is the thing being reused.
+Reading a preset *out* of a bench collapses a repeated class to one entry, and that is stated rather
+than hidden: a board with two differently-built Vanguards is not something a class-keyed preset can
+express, and saying so by collapsing beats saving something that cannot be reapplied.
+
+**Each saved chip shows how many of the current board's ducks it fits.** A build that fits nothing is
+drawn with a zero and disabled, rather than being a control that mysteriously does nothing — the same
+argument as §3's "a taken spot names who took it, never greyed with an empty reason".
+
+**Rejected: making the preset positional and remapping on load.** There is no honest remap. Two
+boards' slot orders have no relationship, so any mapping is a guess, and a guess that silently
+mis-assigns a build is worse than a preset that declines to apply.
+
+**Storage is a flat line-oriented text format**, not JSON: the values are enums and small integers,
+the shell has no serializer to hand, and a preset a person can read in localStorage is one they can
+fix when it goes wrong. **Unknown names are skipped rather than fatal** — a stored build outlives the
+enum it names, and a renamed card should cost a tester one checkbox rather than the whole build.

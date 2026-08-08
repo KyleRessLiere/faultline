@@ -1,0 +1,274 @@
+/* The test bench, given room. Same scrim-and-panel language as the dock's dialogs and the draft's
+   step 1 — restated here because Blazor scopes component CSS — but wide and tall, because this is a
+   workbench rather than a question. */
+
+.scrim {
+    background: rgba(0, 0, 0, .6);
+    inset: 0;
+    position: fixed;
+    z-index: 90;
+}
+
+.loadout {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .7);
+    display: flex;
+    flex-direction: column;
+    left: 50%;
+    max-height: 88vh;
+    position: fixed;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(980px, 94vw);
+    z-index: 95;
+}
+
+.loadout-head {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--pt-border);
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: .8rem 1rem;
+}
+
+.loadout-head h2 {
+    font-size: 1rem;
+    margin: 0 0 .3rem;
+}
+
+.loadout-sub {
+    color: var(--pt-text-dim);
+    font-size: .72rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 70ch;
+}
+
+/* The rail and the view. One duck at a time is the point: the cramped version showed four ducks at
+   once and had room for none of them. */
+.loadout-body {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.duck-rail {
+    border-right: 1px solid var(--pt-border);
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    overflow-y: auto;
+    padding: .6rem;
+}
+
+.duck-tab {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-left: 3px solid var(--pt-border);
+    border-radius: 5px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    display: flex;
+    gap: .5rem;
+    padding: .35rem .5rem;
+    text-align: left;
+}
+
+.duck-tab:hover { background: color-mix(in srgb, var(--pt-blue) 10%, var(--pt-bg-raised)); }
+
+.duck-tab.on {
+    background: color-mix(in srgb, var(--pt-blue) 16%, var(--pt-bg-raised));
+    border-color: var(--pt-blue);
+    color: var(--pt-text);
+}
+
+.duck-tab.team-a { border-left-color: var(--player-a); }
+.duck-tab.team-b { border-left-color: var(--player-b); }
+
+.duck-art { flex: 0 0 auto; height: 24px; width: 24px; }
+
+.duck-ident { display: flex; flex-direction: column; min-width: 0; }
+.duck-name { font-size: .78rem; font-weight: 600; }
+.duck-side { font-size: .65rem; opacity: .7; }
+
+.duck-view {
+    min-width: 0;
+    overflow-y: auto;
+    padding: .8rem 1rem;
+}
+
+.view-title { font-size: .95rem; margin: 0 0 .7rem; }
+.view-side { font-size: .7rem; font-weight: 400; opacity: .65; }
+
+.row.numbers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: .9rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    font-size: .7rem;
+    gap: .2rem;
+    opacity: .9;
+}
+
+.field input { width: 6rem; }
+.field select { max-width: 14rem; }
+
+.hint {
+    color: var(--pt-text-dim);
+    font-size: .65rem;
+    max-width: 26ch;
+}
+
+.group {
+    border-top: 1px solid var(--pt-border-soft, var(--pt-border));
+    font-size: .78rem;
+    margin: .9rem 0 .5rem;
+    padding-top: .6rem;
+}
+
+.group-note {
+    color: var(--pt-text-dim);
+    font-size: .65rem;
+    font-weight: 400;
+    margin-left: .4rem;
+}
+
+/* What the class already does, so a tester is choosing against something rather than in a vacuum. */
+.kit {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem .8rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.kit li {
+    background: var(--pt-bg-raised);
+    border-radius: 4px;
+    font-size: .7rem;
+    opacity: .8;
+    padding: .15rem .45rem;
+}
+
+.cards {
+    display: grid;
+    gap: .35rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.card {
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    gap: .45rem;
+    padding: .4rem .5rem;
+}
+
+.card:hover { border-color: var(--pt-blue); }
+
+.card.on {
+    background: color-mix(in srgb, var(--pt-blue) 14%, var(--pt-bg-raised));
+    border-color: var(--pt-blue);
+}
+
+.card-body { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.card-name { font-size: .74rem; font-weight: 600; }
+
+.card-host {
+    color: var(--pt-cyan);
+    font-size: .63rem;
+}
+
+.card-summary {
+    color: var(--pt-text-dim);
+    font-size: .66rem;
+    line-height: 1.4;
+}
+
+.none {
+    color: var(--pt-text-dim);
+    font-size: .7rem;
+    margin: 0;
+}
+
+/* Saved builds. Class-keyed, so the count on each chip is how many of THIS board's ducks it fits. */
+.loadout-foot {
+    border-top: 1px solid var(--pt-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1rem;
+    justify-content: space-between;
+    padding: .7rem 1rem;
+}
+
+.save { align-items: center; display: flex; gap: .4rem; }
+.save input { width: 14rem; }
+
+.saved {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+
+.saved-label {
+    color: var(--pt-text-dim);
+    font-size: .68rem;
+}
+
+.chip {
+    align-items: stretch;
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    display: inline-flex;
+    overflow: hidden;
+}
+
+.chip-load {
+    background: var(--pt-bg-raised);
+    border: 0;
+    color: var(--pt-text);
+    cursor: pointer;
+    font-size: .7rem;
+    padding: .25rem .5rem;
+}
+
+.chip-load:hover:not(:disabled) { background: color-mix(in srgb, var(--pt-blue) 14%, var(--pt-bg-raised)); }
+.chip-load:disabled { cursor: default; opacity: .45; }
+
+/* How many of this board's ducks the build fits. Zero is drawn, not hidden — a saved build that
+   matches nothing here is a fact worth seeing rather than a chip that mysteriously does nothing. */
+.chip-fit {
+    background: color-mix(in srgb, var(--pt-blue) 25%, transparent);
+    border-radius: 3px;
+    font-size: .62rem;
+    margin-left: .3rem;
+    padding: 0 .25rem;
+}
+
+.chip.misfit .chip-fit { background: color-mix(in srgb, var(--pt-text-dim) 25%, transparent); }
+
+.chip-drop {
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--pt-border);
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    font-size: .75rem;
+    padding: 0 .35rem;
+}
+
+.chip-drop:hover { color: var(--pt-red); }

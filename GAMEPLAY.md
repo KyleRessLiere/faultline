@@ -1999,9 +1999,19 @@ only**, gated on the same `DevBuild.ShowDevTools` flag as the dev panel — that
 - **One pocket item**, and **ability cards** (technique modifiers). This is the only surface that can
   equip a technique at all — nothing in a played run can (D-253).
 
+**It opens in its own view**, one duck at a time down a rail, with that duck's whole picture beside
+it: what its class already does, and every card it could be given. **The cards are filtered by
+class** — a technique names the archetype it belongs to and the ability it hosts on (D-253), so the
+Archer is offered Spotter and the Vanguard is not. Each card shows its host and its summary.
+
+**Builds can be saved and reused across boards.** A saved build is keyed by **class**, not by roster
+slot, so "my tanky Vanguard" drops onto any board that fields a Vanguard — and each saved chip shows
+how many of the current board's ducks it fits, so one that fits nothing says so instead of quietly
+doing nothing. Stored in browser localStorage beside the custom scenarios.
+
 It builds a `SquadLoadout` and hands it to the same `Game.Start(fight, seed, loadout)` a run uses, so
 a benched board is started by the shipped path. Untouched, it passes `null` and the board plays
-exactly as it ships. Benches are per board, because a loadout is positional.
+exactly as it ships. The bench itself is per board and positional, because `SquadLoadout` is.
 
 **It is for isolating a board, not for showing a state is reachable** (D-260). Reaching states by
 playing is what catches the bugs — it caught the authored Camp 1 and the empty destination table.

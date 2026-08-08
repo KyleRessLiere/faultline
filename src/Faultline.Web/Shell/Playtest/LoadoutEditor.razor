@@ -1,0 +1,293 @@
+@inject LoadoutStore Store
+
+@* The test bench, given room. One duck at a time down a rail, and that duck's WHOLE view beside it:
+   what its class can already do, every card it could be given, its health and its pocket.
+
+   It was four cramped rows on a picker card, which meant every class's cards were listed against
+   every duck — including the ones that class can never hold. A technique names the archetype it
+   belongs to and the ability it hosts on (D-253), so the offer list is a per-class fact and this
+   asks for it rather than printing the enum.
+
+   Saved builds are keyed by CLASS, not by slot, so one setup drops onto any board. See LoadoutPreset. *@
+
+@if (Open && Fight is not null && Bench is not null)
+{
+    <div class="scrim" @onclick="Close"></div>
+
+    <div class="loadout" role="dialog" aria-modal="true" aria-labelledby="loadout-title">
+        <header class="loadout-head">
+            <div>
+                <h2 id="loadout-title">Test loadout — @Fight.Name</h2>
+                <p class="loadout-sub">
+                    <strong>For isolating a board, not for proving a state is reachable.</strong>
+                    Reaching a state by playing is what catches the bugs; anything set here is
+                    asserted, not earned. Internal builds only.
+                </p>
+            </div>
+            <button type="button" class="action secondary" @onclick="Close">Done</button>
+        </header>
+
+        <div class="loadout-body">
+            @* One entry per roster slot, because the bench is positional even though a saved build
+               is not — a board may field the same class twice and they are two ducks. *@
+            <nav class="duck-rail" aria-label="Ducks">
+                @foreach (var (team, rosterKind, slot) in LoadoutPreset.Slots(Fight))
+                {
+                    var setup = Bench.For(team, slot);
+
+                    <button type="button"
+                            class="duck-tab team-@(team == Team.PlayerA ? "a" : "b") @(IsCurrent(team, slot) ? "on" : string.Empty)"
+                            @onclick="() => Pick(team, slot)">
+                        <span class="duck-art"><UnitArt Kind="rosterKind" Label="@Naming.Of(rosterKind)" /></span>
+                        <span class="duck-ident">
+                            <span class="duck-name">@Naming.Of(rosterKind)</span>
+                            <span class="duck-side">Player @(team == Team.PlayerA ? "A" : "B")</span>
+                        </span>
+                        @if (!setup.IsDefault)
+                        {
+                            <span class="tag custom">edited</span>
+                        }
+                    </button>
+                }
+            </nav>
+
+            <section class="duck-view">
+                @{
+                    var kind = CurrentKind();
+                    var duck = Bench.For(_team, _slot);
+                }
+
+                <h3 class="view-title">@Naming.Of(kind) <span class="view-side">Player @(_team == Team.PlayerA ? "A" : "B")</span></h3>
+
+                <div class="row numbers">
+                    <label class="field">
+                        Total health
+                        <input type="number" min="1" max="200"
+                               value="@Bench.MaxHpOf(kind, _team, _slot)"
+                               @onchange="e => duck.MaxHp = Positive(e)" />
+                        <span class="hint">Only goes up — Core never lowers a ceiling.</span>
+                    </label>
+
+                    <label class="field">
+                        Starts on
+                        <input type="number" min="1" max="200"
+                               value="@Bench.HpOf(kind, _team, _slot)"
+                               @onchange="e => duck.Hp = Positive(e)" />
+                        <span class="hint">Lower this to make a duck fragile.</span>
+                    </label>
+
+                    <label class="field">
+                        Pocket item
+                        <select value="@(duck.Item?.ToString() ?? string.Empty)"
+                                @onchange="e => SetItem(duck, e)">
+                            <option value="">— none —</option>
+                            @foreach (var item in AllItems)
+                            {
+                                <option value="@item">@CampCatalogue.NameOf(item)</option>
+                            }
+                        </select>
+                        @if (duck.Item is { } chosen)
+                        {
+                            <span class="hint">@CampCatalogue.SummaryOf(chosen)</span>
+                        }
+                    </label>
+                </div>
+
+                @* What it can already do. Read-only: swapping a class's own kit is surgery the camp
+                   owns, and a bench that pretended to do it would be inventing a rule. *@
+                <h4 class="group">Already has</h4>
+                <ul class="kit">
+                    @foreach (var entry in ClassCards.Kit(kind))
+                    {
+                        <li>@Kits.NameOf(entry)</li>
+                    }
+                </ul>
+
+                <h4 class="group">
+                    Techniques
+                    <span class="group-note">cards this class can hold, and what each hangs on</span>
+                </h4>
+                @if (ClassCards.Techniques(kind) is { Count: > 0 } techniques)
+                {
+                    <div class="cards">
+                        @foreach (var (modifier, card) in techniques)
+                        {
+                            <label class="card @(duck.Techniques.Contains(modifier) ? "on" : string.Empty)">
+                                <input type="checkbox"
+                                       checked="@duck.Techniques.Contains(modifier)"
+                                       @onchange="e => Toggle(duck.Techniques, modifier, e)" />
+                                <span class="card-body">
+                                    <span class="card-name">@card.Name</span>
+                                    <span class="card-host">on @card.Host</span>
+                                    <span class="card-summary">@card.Summary</span>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="none">No techniques name this class.</p>
+                }
+
+                <h4 class="group">
+                    Mods
+                    <span class="group-note">this class's, plus any that name no class</span>
+                </h4>
+                @if (ClassCards.Mods(kind) is { Count: > 0 } mods)
+                {
+                    <div class="cards">
+                        @foreach (var (mod, card) in mods)
+                        {
+                            <label class="card @(duck.Mods.Contains(mod) ? "on" : string.Empty)">
+                                <input type="checkbox"
+                                       checked="@duck.Mods.Contains(mod)"
+                                       @onchange="e => Toggle(duck.Mods, mod, e)" />
+                                <span class="card-body">
+                                    <span class="card-name">@card.Name</span>
+                                    @if (card.Host.Length > 0)
+                                    {
+                                        <span class="card-host">on @card.Host</span>
+                                    }
+                                    <span class="card-summary">@card.Summary</span>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="none">No mods name this class.</p>
+                }
+            </section>
+        </div>
+
+        @* Saved builds. Keyed by class, so one drops onto any board that rosters that class. *@
+        <footer class="loadout-foot">
+            <div class="save">
+                <input type="text" placeholder="Name this build" value="@_name"
+                       @onchange="e => _name = e.Value?.ToString() ?? string.Empty" />
+                <button type="button" class="action" disabled="@(!Bench.IsCustom || _name.Length == 0)"
+                        @onclick="Save">Save</button>
+                <button type="button" class="action secondary" @onclick="ResetAll">Back to the board's own</button>
+            </div>
+
+            @if (Store.Items.Count > 0)
+            {
+                <div class="saved">
+                    <span class="saved-label">Saved</span>
+                    @foreach (var saved in Store.Items)
+                    {
+                        var fits = saved.Preset.MatchingSlots(Fight);
+
+                        <span class="chip @(fits == 0 ? "misfit" : string.Empty)">
+                            <button type="button"
+                                    class="chip-load"
+                                    disabled="@(fits == 0)"
+                                    title="@(fits == 0
+                                        ? "Nothing on this board is a class this build knows."
+                                        : $"Apply to {fits} of this board's ducks.")"
+                                    @onclick="() => Apply(saved)">
+                                @(saved.Preset.Name.Length > 0 ? saved.Preset.Name : saved.Id)
+                                <span class="chip-fit">@fits</span>
+                            </button>
+                            <button type="button" class="chip-drop" title="Forget this build"
+                                    @onclick="() => Drop(saved)">×</button>
+                        </span>
+                    }
+                </div>
+            }
+        </footer>
+    </div>
+}
+
+@code {
+    /// <summary>The board being benched.</summary>
+    [Parameter]
+    public FightDefinition? Fight { get; set; }
+
+    /// <summary>That board's positional bench.</summary>
+    [Parameter]
+    public TestLoadout? Bench { get; set; }
+
+    /// <summary>Whether the editor is up.</summary>
+    [Parameter]
+    public bool Open { get; set; }
+
+    /// <summary>Raised when the editor closes, so the picker can redraw its card.</summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private Team _team = Team.PlayerA;
+    private int _slot;
+    private string _name = string.Empty;
+
+    private static readonly Consumable[] AllItems = (Consumable[])Enum.GetValues(typeof(Consumable));
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Store.Loaded)
+        {
+            await Store.LoadAsync();
+        }
+    }
+
+    private bool IsCurrent(Team team, int slot) => _team == team && _slot == slot;
+
+    private void Pick(Team team, int slot)
+    {
+        _team = team;
+        _slot = slot;
+    }
+
+    /// <summary>The archetype in the selected slot, falling back to the first the board rosters.</summary>
+    private UnitKind CurrentKind()
+    {
+        foreach (var (team, kind, slot) in LoadoutPreset.Slots(Fight!))
+        {
+            if (team == _team && slot == _slot)
+            {
+                return kind;
+            }
+        }
+
+        var first = LoadoutPreset.Slots(Fight!).First();
+        _team = first.Team;
+        _slot = first.Slot;
+        return first.Kind;
+    }
+
+    private static void SetItem(TestLoadout.DuckSetup duck, ChangeEventArgs e) =>
+        duck.Item = Enum.TryParse<Consumable>(e.Value?.ToString(), out var item) ? item : (Consumable?)null;
+
+    private static void Toggle<T>(List<T> held, T value, ChangeEventArgs e)
+    {
+        bool on = e.Value is bool flag && flag;
+
+        if (on && !held.Contains(value))
+        {
+            held.Add(value);
+        }
+        else if (!on)
+        {
+            held.Remove(value);
+        }
+    }
+
+    private static int? Positive(ChangeEventArgs e) =>
+        int.TryParse(e.Value?.ToString(), out int value) && value > 0 ? value : (int?)null;
+
+    private void ResetAll() => Bench!.Reset();
+
+    private async Task Save()
+    {
+        await Store.SaveAsync(LoadoutPreset.From(Bench!, Fight!, _name));
+        _name = string.Empty;
+    }
+
+    private void Apply(SavedLoadout saved) => saved.Preset.ApplyTo(Bench!, Fight!);
+
+    private async Task Drop(SavedLoadout saved) => await Store.DeleteAsync(saved.Id);
+
+    private async Task Close() => await OnClose.InvokeAsync();
+}
