@@ -104,7 +104,7 @@ in this file when the question comes back.
 | D-084 | [The Preen invariant is measured per run, and absorption is counted before the guard's halving. Preen stays a flat 2.](#d-084-the-preen-invariant-is-measured-per-run-and-absorption-is-counted-before-the-guards-halving-preen-stays-a-flat-2) | 2026-08-02 |  |
 | D-085 | [The meter is `Verve` in the code and **Pluck** on screen, and one layer decides which.](#d-085-the-meter-is-verve-in-the-code-and-pluck-on-screen-and-one-layer-decides-which) | 2026-08-02 |  |
 | D-086 | [Spear Thrust is 1 to the adjacent tile and 2 to the tile beyond: the tip is the sweet spot.](#d-086-spear-thrust-is-1-to-the-adjacent-tile-and-2-to-the-tile-beyond-the-tip-is-the-sweet-spot) | 2026-08-02 |  |
-| D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | 2026-08-02 |  |
+| D-087 | [The Wardbearer's spender is Preen (3): heal himself 2, capped at his maximum. Retort is parked.](#d-087-the-wardbearers-spender-is-preen-3-heal-himself-2-capped-at-his-maximum-retort-is-parked) | 2026-08-02 | *partly superseded* |
 | D-088 | [A Guard Stance absorb charges only when something actually landed: damage taken, or at least one tile of movement.](#d-088-a-guard-stance-absorb-charges-only-when-something-actually-landed-damage-taken-or-at-least-one-tile-of-movement) | 2026-08-02 |  |
 | D-089 | [The deployment threat overlay is per-enemy on hover, never the union painted over the board.](#d-089-the-deployment-threat-overlay-is-per-enemy-on-hover-never-the-union-painted-over-the-board) | 2026-08-02 |  |
 | D-090 | [The Threadcaster is the Fisher on screen, and stays `Threadcaster` in the code.](#d-090-the-threadcaster-is-the-fisher-on-screen-and-stays-threadcaster-in-the-code) | 2026-08-02 |  |
@@ -227,24 +227,24 @@ in this file when the question comes back.
 | D-222 | [A Core phase with no screen is a bricked run, and this is the third time.](#d-222-a-core-phase-with-no-screen-is-a-bricked-run-and-this-is-the-third-time) | 2026-08-07 |  |
 | D-225 | [RULED: a duck's kit is slots holding data, and the Wardbearer's fourth slot is the first deliberate exception to "pools are grammar".](#d-225-ruled-a-ducks-kit-is-slots-holding-data-and-the-wardbearers-fourth-slot-is-the-first-deliberate-exception-to-pools-are-grammar) | 2026-08-07 | *partly superseded* |
 | D-226 | [RULED: mods are counted per slot, three per ability, not two per duck; and Deep Mastery now has nothing left to raise.](#d-226-ruled-mods-are-counted-per-slot-three-per-ability-not-two-per-duck-and-deep-mastery-now-has-nothing-left-to-raise) | 2026-08-07 |  |
-| D-227 | [OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of the eight built techniques hang on neither.](#d-227-open-reported-not-resolved-spender-slot-and-ability-slot-are-two-axes-and-five-of-the-eight-built-techniques-hang-on-neither) | 2026-08-07 |  |
-| D-228 | [OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.](#d-228-open-implemented-one-way-behind-a-named-seam-forfeited-mods-return-to-the-runs-offers) | 2026-08-07 |  |
+| D-227 | [OPEN, reported not resolved: "spender slot" and "ability slot" are two axes, and five of the eight built techniques hang on neither.](#d-227-open-reported-not-resolved-spender-slot-and-ability-slot-are-two-axes-and-five-of-the-eight-built-techniques-hang-on-neither) | 2026-08-07 | **designer** |
+| D-228 | [OPEN, implemented one way behind a named seam: forfeited mods return to the run's offers.](#d-228-open-implemented-one-way-behind-a-named-seam-forfeited-mods-return-to-the-runs-offers) | 2026-08-07 | **designer** |
 | D-229 | [FOUND, not fixed: a duck's legendary epithet does not survive a save.](#d-229-found-not-fixed-a-ducks-legendary-epithet-does-not-survive-a-save) | 2026-08-07 |  |
 | D-230 | [RULED: the Pluck spender is its own slot with its own count, which supersedes D-225's "exception" framing and resolves the spender-slot half of D-227.](#d-230-ruled-the-pluck-spender-is-its-own-slot-with-its-own-count-which-supersedes-d-225s-exception-framing-and-resolves-the-spender-slot-half-of-d-227) | 2026-08-07 |  |
 | D-231 | [RULED: slot counts are class-initialisation data and are adjustable per duck; a runtime-mutable class-wide count is refused, because it cannot survive a replay.](#d-231-ruled-slot-counts-are-class-initialisation-data-and-are-adjustable-per-duck-a-runtime-mutable-class-wide-count-is-refused-because-it-cannot-survive-a-replay) | 2026-08-07 |  |
 | D-232 | [RULED: a stripped ability is owned-but-disabled and stored; "holds" keeps meaning "holds and can use", and `AnybodyHolds` is therefore still right.](#d-232-ruled-a-stripped-ability-is-owned-but-disabled-and-stored-holds-keeps-meaning-holds-and-can-use-and-anybodyholds-is-therefore-still-right) | 2026-08-07 |  |
-| D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 |  |
+| D-233 | [REPORTED, not resolved: the owned-but-disabled ruling creates a third candidate answer for D-228, and it is still the designer's.](#d-233-reported-not-resolved-the-owned-but-disabled-ruling-creates-a-third-candidate-answer-for-d-228-and-it-is-still-the-designers) | 2026-08-07 | **designer** |
 | D-234 | [The epithet rides in the save, and the fifth instance of one defect gets a name.](#d-234-the-epithet-rides-in-the-save-and-the-fifth-instance-of-one-defect-gets-a-name) | 2026-08-07 |  |
-| D-235 | [RULED: the name Retort comes back for a different rule on a different class, and D-087's test was guarding the name rather than the ruling.](#d-235--ruled-the-name-retort-comes-back-for-a-different-rule-on-a-different-class-and-d-087s-test-was-guarding-the-name-rather-than-the-ruling) | unreleased | *supersedes part of D-087* |
-| D-236 | [STOPPED, not built: Grounding Shot wants a status this game does not have, and a status is not something an executor adds.](#d-236--stopped-not-built-grounding-shot-wants-a-status-this-game-does-not-have-and-a-status-is-not-something-an-executor-adds) | unreleased | **designer** |
-| D-237 | [The alternate spenders are flags read off the finished event stream, not reaction windows - and the spend path had to commit its activation first.](#d-237--the-alternate-spenders-are-flags-read-off-the-finished-event-stream-not-reaction-windows--and-the-spend-path-had-to-commit-its-activation-first) | unreleased |  |
-| D-238 | [Three shell reads of "what does this duck have" were asking the archetype, and G4 is what made them wrong.](#d-238--three-shell-reads-of-what-does-this-duck-have-were-asking-the-archetype-and-g4-is-what-made-them-wrong) | unreleased |  |
-| D-239 | [Overrun calls the Husk's Shoulder rather than reproducing it, and Interpose calls Split Reed's offer rather than growing a second one.](#d-239--overrun-calls-the-husks-shoulder-rather-than-reproducing-it-and-interpose-calls-split-reeds-offer-rather-than-growing-a-second-one) | unreleased |  |
-| D-240 | ["The unit's first held ability" stopped being the same question as "the ability being aimed", and four previews were asking the wrong one.](#d-240--the-units-first-held-ability-stopped-being-the-same-question-as-the-ability-being-aimed-and-four-previews-were-asking-the-wrong-one) | unreleased |  |
-| D-241 | [What §4 and §5 need carried into the next stamp.](#d-241--what-4-and-5-need-carried-into-the-next-stamp) | unreleased | **designer** |
-| D-242 | [The archetype-assumption audit: six more places asked the class what the duck holds, and two rendered strings named features that had been removed.](#d-242--the-archetype-assumption-audit-six-more-places-asked-the-class-what-the-duck-holds-and-two-rendered-strings-named-features-that-had-been-removed) | unreleased |  |
-| D-243 | [RULED: `Mod` grows an ability host, and a spender is one kind of ability. Action-hosted mods are not `TechniqueModifier`s.](#d-243--ruled-mod-grows-an-ability-host-and-a-spender-is-one-kind-of-ability-action-hosted-mods-are-not-techniquemodifiers) | unreleased |  |
-| D-244 | [What §8.6 needs carried into the next stamp.](#d-244--what-86-needs-carried-into-the-next-stamp) | unreleased | **designer** |
+| D-235 | [RULED: the name Retort comes back for a different rule on a different class, and D-087's test was guarding the name rather than the ruling.](#d-235-ruled-the-name-retort-comes-back-for-a-different-rule-on-a-different-class-and-d-087s-test-was-guarding-the-name-rather-than-the-ruling) | 2026-08-07 |  |
+| D-236 | [STOPPED, not built: Grounding Shot wants a status this game does not have, and a status is not something an executor adds.](#d-236-stopped-not-built-grounding-shot-wants-a-status-this-game-does-not-have-and-a-status-is-not-something-an-executor-adds) | 2026-08-07 | **designer** |
+| D-237 | [The alternate spenders are flags read off the finished event stream, not reaction windows — and the spend path had to commit its activation first.](#d-237-the-alternate-spenders-are-flags-read-off-the-finished-event-stream-not-reaction-windows--and-the-spend-path-had-to-commit-its-activation-first) | 2026-08-07 |  |
+| D-238 | [Three shell reads of "what does this duck have" were asking the archetype, and G4 is what made them wrong.](#d-238-three-shell-reads-of-what-does-this-duck-have-were-asking-the-archetype-and-g4-is-what-made-them-wrong) | 2026-08-07 |  |
+| D-239 | [Overrun calls the Husk's Shoulder rather than reproducing it, and Interpose calls Split Reed's offer rather than growing a second one.](#d-239-overrun-calls-the-husks-shoulder-rather-than-reproducing-it-and-interpose-calls-split-reeds-offer-rather-than-growing-a-second-one) | 2026-08-07 |  |
+| D-240 | ["The unit's first held ability" stopped being the same question as "the ability being aimed", and four previews were asking the wrong one.](#d-240-the-units-first-held-ability-stopped-being-the-same-question-as-the-ability-being-aimed-and-four-previews-were-asking-the-wrong-one) | 2026-08-07 |  |
+| D-241 | [What §4 and §5 need carried into the next stamp.](#d-241-what-4-and-5-need-carried-into-the-next-stamp) | 2026-08-07 | **designer** |
+| D-242 | [The archetype-assumption audit: six more places asked the class what the duck holds, and two rendered strings named features that had been removed.](#d-242-the-archetype-assumption-audit-six-more-places-asked-the-class-what-the-duck-holds-and-two-rendered-strings-named-features-that-had-been-removed) | 2026-08-07 |  |
+| D-243 | [RULED: `Mod` grows an ability host, and a spender is one kind of ability. Action-hosted mods are not `TechniqueModifier`s.](#d-243-ruled-mod-grows-an-ability-host-and-a-spender-is-one-kind-of-ability-action-hosted-mods-are-not-techniquemodifiers) | 2026-08-07 |  |
+| D-244 | [What §8.6 needs carried into the next stamp.](#d-244-what-86-needs-carried-into-the-next-stamp) | 2026-08-07 | **designer** |
 | D-245 | [Logging is on, buffers until a launcher answers, and says so when it is not reaching disk.](#d-245-logging-is-on-buffers-until-a-launcher-answers-and-says-so-when-it-is-not-reaching-disk) | 2026-08-07 |  |
 | D-246 | [One folder per sitting, and the filename check stays as strict as it was.](#d-246-one-folder-per-sitting-and-the-filename-check-stays-as-strict-as-it-was) | 2026-08-07 |  |
 | D-247 | [Every player picks at every camp, and §8.6's director rows are restated about two tables.](#d-247-every-player-picks-at-every-camp-and-86s-director-rows-are-restated-about-two-tables) | 2026-08-08 |  |
@@ -252,9 +252,11 @@ in this file when the question comes back.
 | D-249 | [MY CALL, cheaply reversible: the ownership-fairness row dissolves, its guarantee is promoted to an invariant, and LastPickOwner / PreviousPickOwner are deleted.](#d-249-my-call-cheaply-reversible-the-ownership-fairness-row-dissolves-its-guarantee-is-promoted-to-an-invariant-and-lastpickowner--previouspickowner-are-deleted) | 2026-08-08 |  |
 | D-250 | [MY CALL, cheaply reversible: the rarity roll is per card, which is what shipped.](#d-250-my-call-cheaply-reversible-the-rarity-roll-is-per-card-which-is-what-shipped) | 2026-08-08 |  |
 | D-251 | [A camp with an unspent table has no completion path, because a pick does nothing until the camp resolves.](#d-251-a-camp-with-an-unspent-table-has-no-completion-path-because-a-pick-does-nothing-until-the-camp-resolves) | 2026-08-08 |  |
-| D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | unreleased |  |
+| D-252 | [FOUND while building D-247: camp 1's floor now lets a player decline their engine starter, and the count is written down before it moves again.](#d-252-found-while-building-d-247-camp-1s-floor-now-lets-a-player-decline-their-engine-starter-and-the-count-is-written-down-before-it-moves-again) | 2026-08-08 |  |
+| D-253 | [RULED: every technique hosts on the ability that TRIGGERS it, which closes the half of D-158/D-227 the slot model left open.](#d-253-ruled-every-technique-hosts-on-the-ability-that-triggers-it-which-closes-the-half-of-d-158d-227-the-slot-model-left-open) | unreleased |  |
+| D-254 | [FOUND: "the merge order is the designer's call" was false, and the branch queue cost a session's work rebuilding something that had already shipped.](#d-254-found-the-merge-order-is-the-designers-call-was-false-and-the-branch-queue-cost-a-sessions-work-rebuilding-something-that-had-already-shipped) | unreleased |  |
 
-**234 rulings.**
+**236 rulings.**
 
 <!-- toc:end -->
 ---
@@ -1375,6 +1377,12 @@ three points for nothing is a trap rather than a decision.
 **Preen does not read Guard Stance**, which is what made Retort legal only as the opening move of an
 activation (D-077). Preen is spendable on any activation the Wardbearer has hit points missing, so
 that timing rule no longer applies to anything.
+
+**Partly superseded by D-235**: the name *Retort* came back for a different rule on a different
+class, and this ruling's test was guarding the name rather than the ruling. Preen as the
+Wardbearer's spender stands; "Retort is parked" no longer describes the word. Recorded here rather
+than only in the contents table, because a note typed into a generated table is deleted by the next
+regeneration — which is how this cross-reference was lost once already.
 
 **D-088 — A Guard Stance absorb charges only when something actually landed: damage taken, or at
 least one tile of movement.**
@@ -6590,3 +6598,114 @@ defect `CampInstrumentation`'s own remarks already name, and the reason that run
 standing-three harness sweep cannot be run until `RunHarness` answers camps and votes the way
 `CampInstrumentation` does. Not fixed here: it is a tool, it is outside the stage, and folding it in
 would grow the diff to escape a blocker.
+
+---
+
+**D-253 — RULED: every technique hosts on the ability that TRIGGERS it, which closes the half of
+D-158/D-227 the slot model left open.**
+
+D-158 recorded that §8.6's heading says all twenty-four technique modifiers are *"hosted on a named
+ability, 2 sockets each"* while its entries name a host for only three of the eight built. D-227
+carried the contradiction into the slot model, where it stopped being cosmetic; D-230 ruled the
+spender-slot half and left this half explicitly to the designer; D-243 refused to absorb it while
+widening `Mod`'s host, on the grounds that stacking a second quiet redefinition on an open one is how
+a vocabulary rots. It is now ruled.
+
+**The rule: a technique hosts on the ability that triggers it, on the duck that owns it. The
+beneficiary is the effect, never the host.** That resolves the two cards reported as genuinely
+ambiguous, both of which act on the other flock's duck:
+
+| Card | Host | The trigger, quoted |
+|---|---|---|
+| Rattling Impact | Bull Rush | "the first enemy **he collides** each round" — §4 writes Bull Rush as the ability that makes collisions |
+| Hand-Off | Reel | "a **displacement** ending adjacent to the other flock's duck" — hers; the duck collecting Push 1 hosts nothing |
+| Spotter | Archer's basic attack | "she ignores **minimum range**" — §4 prints minimum range 2 on her Basic and defines Stagger Shot by reference to it |
+| Crossing Shot | Archer's basic attack | "her valid **range-2–3 firing line**" — that band is her Basic's |
+| Stored Force | Spear Thrust | "his next **tip-tile Spear hit** may spend it" |
+
+**Rejected: ruling all eight hostless instead.** It was cheaper and it was what shipped, but it
+ratifies the problem rather than closing it. §4's kit-surgery law is that every slot is replaceable,
+the basic attack included, written with no carve-out — and five permanently unloseable upgrades are
+not an inconsistency in the economy, they are an exception to a law that has none. The carve-out also
+landed **unevenly by class**: the Archer's Spotter and Crossing Shot were both hostless, so she
+carried two untouchable cards while the Vanguard's Follow-In was strippable by a trade. And a
+technique that can never be forfeited, filtered or counted is not a modifier in the slot economy's
+sense; shipping eight of those beside a `Mod` that means "a thing living in a slot" would leave two
+things called modifiers obeying opposite rules.
+
+**Crossing Shot is not the printed exception it was allowed to be.** Its trigger is the other flock's
+displacement, which is not an ability she activates — but its geometry is her Basic's range band, and
+replacing that attack leaves no firing line for anything to cross. Forfeiting it with the attack is
+the rule working. **§8.6 prints "(U·RELAY, reaction)" where every other entry prints a host name: a
+timing word standing in the host position, and the origin of the whole "hostless" reading.** That is
+a stamp defect rather than a design gap, and it belongs in the correction D-244 already owes.
+
+**Stored Force is the one the rule does not settle on its own**, and it is recorded here rather than
+left to a reader. Its accrual trigger is "each tile of hostile displacement **his resistance**
+cancels", and §4 prints Push Resistance 2 as **innate**. An innate is not a slot, so hosting there
+would rebuild the hangs-on-nothing problem this entry closes. Its payout is the tip-tile Spear hit,
+without which it banks Force it can never spend — so the host is the ability the card pays out
+through, not the one it accrues from.
+
+**Two mechanical consequences.** `TechniqueDefinition.Host` widened from `Ability?` to `KitEntry`,
+for the reason `UpgradeDefinition.Host` did (D-243): a basic attack is a slot a duck owns and can
+trade, but it is **not an `Ability` enum member**, and two of the five hang on one. That narrower
+type was the mechanical half of why these cards were never hosted, and it means the nullable is gone
+rather than merely unused — `Kits.HostOf(TechniqueModifier)` is non-nullable and
+`DuckLoadout.TechniqueSlots`, which only ever capped cards hanging on nothing, is deleted.
+
+**The filter lost a branch rather than gaining one**, which is the evidence the shape was right:
+`CampCatalogue.EligibleFor`'s technique arm now reads the same `Kits.Holds(kind, loadout,
+Kits.HostOf(...))` as its mod arm. `CampCards.BoundTo` had been keeping a second copy of the question
+in the shell and now reads `Kits.NameOf` like the mod branch.
+
+**Counting: hosted techniques share the host's three sockets with its mods** — `Kits.ModsOn` already
+counted them that way, so `ModsPerSlot` is untouched. No slot is pressed today: mods live on the
+eight spenders plus Overrun/Punt/Interpose, techniques on Bull Rush, Reel, ArcherBasic, Spear Thrust
+and Guard Stance, with **no overlap and a maximum of 2 of 3 anywhere**. That is contingent, not
+structural — the first basic-attack mod written will start competing with Spotter and Crossing Shot.
+
+**Two things this does not close.** **Follow-In's host disagrees with §8.6**: the doc prints "Basic"
+and the code has read Bull Rush since it was built. Not flipped here, because which push the card
+follows is a ruling and not an assignment — it is the designer's. And **the replay-across-a-
+replacement test could not be written**: `DuckLoadout.Replacing` and `ReplacingSpender` have **no
+caller anywhere in `src/`**, so §8.5's Learn/Replace/Swap is a Core API that only tests can call and
+a replacement cannot be reached by playing at all. The forfeit is covered directly; what is uncovered
+is the replay of a surgery no player can yet perform.
+
+---
+
+**D-254 — FOUND: "the merge order is the designer's call" was false, and the branch queue cost a
+session's work rebuilding something that had already shipped.**
+
+The 2026-08-07 handoff named the merge order of `g4-alternate-kits` and `stage-i-camp-two-tables` as
+the exact next step and the blocker for several others, on the stated grounds that both touch
+`CampCatalogue`/`CampDirector` and that "a second merge onto an unrebased first will conflict in the
+camp". **Measured rather than assumed, in a throwaway worktree: both orders merge with zero code
+conflicts.** The only collisions are `CHANGELOG.md` and `DECISIONS.md`, both append-at-the-end. The
+fully merged tree was green at **2197 Core / 767 Web**, and the counts were exactly additive
+(2115 + 74 + 8) — the arithmetic signature of two branches that never overlapped.
+
+**The cost was not hypothetical.** Because `stage-i` sat unmerged, the two-table camp was invisible
+to a later planning session, which wrote a full packet specifying it as an unbuilt defect — restated
+director rows, resolution model, log assertions and all — against four commits that had already
+implemented exactly that and were pushed. The same packet's "related but not this session" note named
+a defect D-223 had already fixed. **An unmerged branch is not neutral storage; it is a lie the next
+planner reads.**
+
+**What was rejected: keeping the review gate and merging faster.** The gate was never the problem —
+`g4` had a real reason to be held (D-158/D-227 unruled, now closed by D-253) and holding it was
+correct. What was missing was any obligation on a *green* branch to come back, so "nobody has looked
+at it yet" and "there is an open ruling in it" produced the same outcome while being completely
+different situations.
+
+**So the contract changed rather than the habit.** `main` is the trunk and the single source of
+truth; a branch is for work that cannot land green in one session and merges back the session it was
+made; the only reason to hold one is an unruled decision, named by number on the handoff's required
+`MERGE DEBT` line. All twenty-one branches were merged to `main` in one pass at the ruling, green at
+**2207 Core / 767 Web**, and `main` fast-forwarded 222 commits from an initial commit it had never
+moved past.
+
+**Also landed in the same pass, and worth naming as the same defect one layer down:** over 4MB of
+design history, prompt packets and 59 playtest reports had been accumulating **untracked**. Work
+nobody else can see fails in exactly the way an unmerged branch does.

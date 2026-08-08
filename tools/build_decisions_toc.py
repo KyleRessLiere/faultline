@@ -82,7 +82,8 @@ def status_of(title, body):
     its heading.
     """
     lowered = body.lower()
-    if title.lower().startswith("held:"):
+    heading = title.lower()
+    if heading.startswith("held:"):
         return "held"
 
     # Checked first: a ruling whose *clause* was overtaken is still standing, and marking the whole
@@ -91,6 +92,16 @@ def status_of(title, body):
         return "partial"
     if "superseded by" in lowered or "supersedes this" in lowered:
         return "superseded"
+
+    # Waiting on the designer, read from the heading for the reason HELD is: the file already says so
+    # there and has done for dozens of rulings. These marks used to be typed into the contents table
+    # by hand, which meant the next regeneration silently deleted them — and what they track is the
+    # queue of things the designer still owes an answer on, which is the worst thing in the file to
+    # lose quietly (D-254 is the same failure one layer up).
+    if heading.startswith(("open,", "open:", "stopped,", "stopped:", "reported,", "reported:")):
+        return "designer"
+    if "carried into the next stamp" in heading:
+        return "designer"
     return "active"
 
 
@@ -131,6 +142,7 @@ def main():
             "superseded": "**superseded**",
             "partial": "*partly superseded*",
             "held": "*held*",
+            "designer": "**designer**",
         }[status]
         toc.append("| {0} | [{1}](#{2}) | {3} | {4} |".format(ruling, title, anchor, date, mark))
 
