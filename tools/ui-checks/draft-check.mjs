@@ -129,11 +129,52 @@ if (yoursNow === 0) {
   fail.push('no spot was takeable after step 1 resolved');
 }
 
+// ---- The duck picker: which duck goes down is the player's ------------------------------------
+
+const picks = page.locator('.order-list .pick');
+const pickCount = await picks.count();
+const pickNames = await picks.evaluateAll((els) =>
+  els.map((e) => (e.innerText || '').trim().replace(/\s+/g, ' ')));
+note(`ducks offered on the pick in hand: ${pickCount} — ${pickNames.join(' / ')}`);
+
+if (pickCount !== 2) {
+  fail.push(`expected a choice between two ducks on the first pick, saw ${pickCount}`);
+}
+
+const chosenFirst = await page.locator('.order-list .pick.on').count();
+if (chosenFirst !== 1) {
+  fail.push(`expected exactly one duck marked as chosen, saw ${chosenFirst}`);
+}
+
+// Choose the SECOND duck, and check the mark moves to it.
+if (pickCount > 1) {
+  await picks.nth(1).click();
+  await page.waitForTimeout(180);
+
+  const movedTo = await page.locator('.order-list .pick').evaluateAll((els) =>
+    els.findIndex((e) => e.className.includes('on')));
+  note(`after choosing the second duck, the mark is on index ${movedTo}`);
+
+  if (movedTo !== 1) {
+    fail.push('choosing a duck did not move the chosen mark to it');
+  }
+}
+
+const wanted = pickNames[1] || '';
+
 // The first pick, measured while the draft is still running: once the fight starts there is no
 // deployment phase left and spots stop being a thing the board draws, which is correct and is why
 // this is checked here rather than at the end.
 await page.locator('.cell.spot-yours').first().click();
 await page.waitForTimeout(250);
+
+// The duck that went down is the one that was chosen, not the first offer.
+const placedTitle = (await page.locator('.cell.spot-taken').first().getAttribute('title')) || '';
+note(`the duck that went down: ${placedTitle.replace(/\s+/g, ' ').trim()}`);
+
+if (wanted && !placedTitle.includes(wanted.split(' ')[0])) {
+  fail.push(`chose "${wanted}" but the spot was taken by "${placedTitle}"`);
+}
 
 const takenCount = await page.locator('.cell.spot-taken').count();
 note(`spots taken after the first pick: ${takenCount}`);

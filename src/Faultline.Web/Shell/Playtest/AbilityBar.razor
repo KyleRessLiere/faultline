@@ -194,7 +194,19 @@
 
 @code {
     /// <summary>Every card for the active duck, Move leftmost.</summary>
-    private IReadOnlyList<AbilityCard> Cards => AbilityCards.For(Session);
+    /// <summary>
+    /// The selected duck's action cards — and none at all during deployment.
+    /// </summary>
+    /// <remarks>
+    /// Selecting a duck during the draft means "place this one next" (§3: which duck fills a slot is
+    /// the player's choice), not "open its activation". The bar's own idle line says a duck's actions
+    /// arrive with its activation, so drawing four greyed cards for a duck that is not even on the
+    /// board yet would contradict the sentence sitting under them.
+    /// </remarks>
+    private IReadOnlyList<AbilityCard> Cards =>
+        State.Phase == Phase.Deployment
+            ? System.Array.Empty<AbilityCard>()
+            : AbilityCards.For(Session);
 
     private Ability? Expanded =>
         Surfaces.IsOpen(ContextualSurface.Ability) ? Surfaces.ExpandedAbility : null;

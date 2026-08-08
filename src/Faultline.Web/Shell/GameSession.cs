@@ -1855,8 +1855,61 @@ public sealed class GameSession
             .ToDictionary(g => g.Key, g => g.First());
 
     /// <summary>The unit that will be placed by the next deployment click.</summary>
-    public UnitId? PendingDeployUnit =>
-        Legal.OfType<DeployCommand>().Select(d => (UnitId?)d.UnitId).FirstOrDefault();
+    /// <remarks>
+    /// <b>The player's choice when they have made one, the first duck Core offers when they have
+    /// not.</b> Core offers a <see cref="DeployCommand"/> for every undeployed duck of the placing
+    /// side, so which one goes down is genuinely the player's — the same freedom a player activation
+    /// slot has, and MASTER_DESIGN §3 draws the parallel deliberately. This used to take the first
+    /// offer unconditionally, which quietly spent the choice on the player's behalf.
+    /// <para>
+    /// Routed through <see cref="Selected"/> rather than a second field: every undeployed duck is
+    /// already in <see cref="Selectable"/>, so selection is the mechanism that exists. A selection
+    /// that is not a placeable duck — an enemy being read, a duck already down — falls back rather
+    /// than blocking, so inspecting something never strands the draft.
+    /// </para>
+    /// </remarks>
+    public UnitId? PendingDeployUnit
+    {
+        get
+        {
+            var deploys = Legal.OfType<DeployCommand>();
+
+            if (Selected is { } chosen && deploys.Any(d => d.UnitId == chosen))
+            {
+                return chosen;
+            }
+
+            return deploys.Select(d => (UnitId?)d.UnitId).FirstOrDefault();
+        }
+    }
+
+    /// <summary>The ducks the placing side may put down on this pick, in roster order.</summary>
+    /// <remarks>
+    /// Empty outside deployment. One entry is not a choice — the caller draws a plain portrait.
+    /// </remarks>
+    public IReadOnlyList<Unit> DeployCandidates
+    {
+        get
+        {
+            if (State is null || State.Phase != Phase.Deployment)
+            {
+                return Array.Empty<Unit>();
+            }
+
+            var ids = Legal.OfType<DeployCommand>().Select(d => d.UnitId).Distinct().ToList();
+            var ducks = new List<Unit>(ids.Count);
+
+            foreach (var unit in State.Units)
+            {
+                if (ids.Contains(unit.Id))
+                {
+                    ducks.Add(unit);
+                }
+            }
+
+            return ducks;
+        }
+    }
 
     /// <summary>
     /// Every deployment spot the board publishes, whether or not it is takeable right now.

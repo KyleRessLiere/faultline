@@ -266,6 +266,59 @@
 .badge.intent.objective { background: color-mix(in srgb, var(--pt-yellow) 20%, transparent); color: var(--pt-yellow); }
 .badge.intent.shove { background: color-mix(in srgb, var(--pt-amber) 20%, transparent); color: var(--pt-amber); }
 
+/* The pick in hand, drawn as a real choice rather than a stack of minis you cannot touch. One
+   button per duck, side by side, sharing the row a single portrait would have had — so the strip
+   does not change height when the choice appears and the board never reflows. */
+.choose {
+    align-items: stretch;
+    display: flex;
+    gap: 4px;
+}
+
+.choose .seq {
+    align-self: center;
+}
+
+.pick {
+    align-items: center;
+    background: var(--pt-bg-raised);
+    border: 1px solid var(--pt-border);
+    border-radius: 5px;
+    color: var(--pt-text-dim);
+    cursor: pointer;
+    display: flex;
+    flex: 1 1 0;
+    gap: 5px;
+    min-width: 0;
+    padding: 3px 6px;
+    text-align: left;
+    transition: border-color .12s ease, background .12s ease, color .12s ease;
+}
+
+.pick:hover { background: color-mix(in srgb, var(--pt-blue) 10%, var(--pt-bg-raised)); }
+
+/* The chosen one, and the only one the next spot click will put down. Colour AND weight, because
+   which duck is about to be committed is not a detail to be inferred from a tint. */
+.pick.on {
+    background: color-mix(in srgb, var(--pt-blue) 16%, var(--pt-bg-raised));
+    border-color: var(--pt-blue);
+    color: var(--pt-text);
+    font-weight: 600;
+}
+
+.pick .mini { opacity: .55; }
+.pick.on .mini { opacity: 1; }
+
+.pick-name {
+    font-size: 10.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.slot.team-a .pick.on { border-left: 3px solid var(--player-a); }
+.slot.team-b .pick.on { border-left: 3px solid var(--player-b); }
+
 .caption {
     border-top: 1px solid var(--pt-border-soft);
     color: var(--pt-text-dim);

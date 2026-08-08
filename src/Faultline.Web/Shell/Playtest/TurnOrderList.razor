@@ -55,6 +55,32 @@
                 }
 
                 <li class="slot @StripCards.Class(card.State) team-@PlaytestText.TeamClass(card.Team)">
+                    @* THE PICK IN HAND, and the one row where the strip takes an order rather than
+                       only reading. §7.5 keeps commands off the strip because the board is where a
+                       unit is commanded — but an UNDEPLOYED duck is not on the board, so the board
+                       cannot offer this choice and the strip is the only place these ducks exist.
+                       Which duck fills a slot is the player's (§3), so the candidates are buttons:
+                       one per duck, the chosen one marked, and the spot click that follows puts
+                       that duck down. *@
+                    @if (Choosing(card) is { Count: > 1 } picks)
+                    {
+                        <div class="choose" role="group" aria-label="Which duck to place">
+                            <span class="seq">@card.Sequence</span>
+
+                            @foreach (var duck in picks)
+                            {
+                                <button type="button"
+                                        class="pick @(Session.PendingDeployUnit == duck.Id ? "on" : string.Empty)"
+                                        title="@PickTitle(duck)"
+                                        @onclick="() => Session.Select(duck.Id)">
+                                    <span class="mini"><UnitArt Kind="duck.Kind" Label="@duck.Name" /></span>
+                                    <span class="pick-name">@duck.Name</span>
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
                     <button type="button"
                             class="face"
                             disabled="@(!card.IsNamed)"
@@ -145,6 +171,7 @@
                             }
                         </span>
                     </button>
+                    }
                 </li>
             }
         </ol>
@@ -175,8 +202,27 @@
     private string Caption => Deploying
         ? (State.DraftOrder is null
             ? "Both players answer blind; the order follows."
-            : "Click any open spot — no spot belongs to a side. Hover one for its round-1 reach.")
+            : Session.DeployCandidates.Count > 1
+                ? "Pick which duck, then click any open spot — no spot belongs to a side."
+                : "Click any open spot — no spot belongs to a side. Hover one for its round-1 reach.")
         : "Clicking a row reads it. Select on the board.";
+
+    /// <summary>
+    /// The ducks this row is an open choice between, or an empty list when it is not one.
+    /// </summary>
+    /// <remarks>
+    /// Only the pick in hand: a future pick's candidates are shown as a stack but cannot be chosen
+    /// from, because choosing is a thing you do when the slot arrives and not before.
+    /// </remarks>
+    private IReadOnlyList<Unit> Choosing(StripCard card) =>
+        Deploying && card.State == StripState.Current
+            ? Session.DeployCandidates
+            : System.Array.Empty<Unit>();
+
+    private string PickTitle(Unit duck) =>
+        Session.PendingDeployUnit == duck.Id
+            ? $"{duck.Name} goes down on the next spot you click."
+            : $"Place {duck.Name} on this pick instead.";
 
     private string EmptyText => Deploying
         ? "Nobody left to place."

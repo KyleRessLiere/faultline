@@ -525,6 +525,14 @@ taken spot names who took it and which duck stands there. The draft order is pub
 turn-order strip — one card per pick, spent picks resolved to the duck that took them, open picks
 drawn as that side's unplaced ducks stacked, exactly as an open activation slot is.
 
+**A pick is two choices: which duck, then which spot.** Core offers a placement for every undeployed
+duck of the placing side, so the pick in hand draws its candidates as buttons in the strip — one per
+duck, the chosen one marked — and the spot clicked next puts *that* duck down. The default is the
+first duck offered, and it is only a default. This is the one row where the strip takes an order
+rather than only reading: an undeployed duck is not on the board, so the board cannot offer the
+choice. Choosing does **not** open an activation — the ability bar keeps saying a duck's actions
+arrive with its activation, because they do.
+
 ### Agency before injury — the deployment overlay
 
 **A player should never lose hit points to a decision they were not allowed to make** (D-080).
