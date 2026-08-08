@@ -52,6 +52,40 @@ public class CampDirectorTests
         }
     }
 
+    [Fact]
+    public void SuppressionNeverReducesATableToOne_EvenWithADucksSlotsAndPocketFull()
+    {
+        // I2's full-pocket / full-slot rule, per table. A duck whose spender is full contributes no
+        // mods and one whose pocket is full contributes no one-shots (D-194), and under two tables
+        // that suppression falls on ONE player's pool rather than on a shared one — so this is where
+        // a table could quietly shrink to a single card if the pool were not deep enough.
+        for (int seed = 1; seed <= Seeds; seed++)
+        {
+            var run = Fresh(seed) with { CampsHeld = 2 };
+            var vanguard = run.Squad.Single(u => u.Kind == UnitKind.Vanguard);
+
+            run = run.WithUnit(vanguard with
+            {
+                Loadout = DuckLoadout.Empty
+                    .With(Mod.Heavier).With(Mod.Freight).With(Mod.Echo)
+                    .WithPocket(Consumable.DriedMinnow),
+            });
+
+            var loaded = run.FindUnit(vanguard.Id)!;
+            Assert.True(Kits.SlotIsFull(loaded.Loadout, KitEntry.WreckingWeight));
+            Assert.DoesNotContain(
+                CampCatalogue.EligibleFor(loaded), o => o.Category == OfferCategory.Mod);
+            Assert.DoesNotContain(
+                CampCatalogue.EligibleFor(loaded), o => o.Category == OfferCategory.Consumable);
+
+            var table = Camp.Draw(run);
+            var owner = DefaultTeams.SideFor(UnitKind.Vanguard)!.Value;
+
+            Assert.Equal(CampDirector.CardsPerTable, table.For(owner).Count);
+            Assert.Equal(CampDirector.CardsPerTable, table.For(owner.OtherPlayer()).Count);
+        }
+    }
+
     // ---- camp 1: one engine starter per player, different classes --------------------------------
 
     [Fact]
