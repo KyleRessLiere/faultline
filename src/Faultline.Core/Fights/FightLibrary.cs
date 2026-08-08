@@ -18,12 +18,25 @@ namespace Faultline.Core
         private const string ResourcePrefix = "Faultline.Core.Fights.Data.";
         private const string ResourceSuffix = ".fight";
 
+        // Parsed once. The files are embedded resources and cannot change while the process runs, so
+        // "read them again" could only ever produce the same answer at the price of re-parsing sixty-six
+        // files. That price was real: a screen that asked the library a question per node — which every
+        // map screen does — spent seconds per frame re-reading a constant. Static initialisers are
+        // thread-safe, so the eager form needs no lock.
+        private static readonly IReadOnlyList<FightParseResult> Parsed = ParseAll();
+
+        private static readonly IReadOnlyList<FightDefinition> ActiveFights = Sort(retired: false);
+
+        private static readonly IReadOnlyList<FightDefinition> RetiredFights = Sort(retired: true);
+
         /// <summary>
         /// Every embedded fight file, parsed, in filename order — including ones that failed, so a
         /// broken file is visible rather than silently absent.
         /// </summary>
         /// <returns>One parse result per file.</returns>
-        public static IReadOnlyList<FightParseResult> LoadAll()
+        public static IReadOnlyList<FightParseResult> LoadAll() => Parsed;
+
+        private static IReadOnlyList<FightParseResult> ParseAll()
         {
             var results = new List<FightParseResult>();
             var assembly = typeof(FightLibrary).GetTypeInfo().Assembly;
@@ -48,14 +61,14 @@ namespace Faultline.Core
         /// is what retiring one does (docs/RETIRING_BATTLES.md).
         /// </summary>
         /// <returns>The playable fights.</returns>
-        public static IReadOnlyList<FightDefinition> All() => Sorted(retired: false);
+        public static IReadOnlyList<FightDefinition> All() => ActiveFights;
 
         /// <summary>
         /// Every retired battle, in run order, each carrying the reason its <c>retired:</c> key gave.
         /// Nothing is deleted, so "should we bring that back?" stays a question the library can answer.
         /// </summary>
         /// <returns>The retired fights.</returns>
-        public static IReadOnlyList<FightDefinition> Retired() => Sorted(retired: true);
+        public static IReadOnlyList<FightDefinition> Retired() => RetiredFights;
 
         /// <summary>Looks up one fight by its id, retired or not.</summary>
         /// <remarks>
@@ -81,7 +94,7 @@ namespace Faultline.Core
         /// <returns>Fight 1.</returns>
         public static FightDefinition Fight1() => ById("first-contact");
 
-        private static IReadOnlyList<FightDefinition> Sorted(bool retired)
+        private static IReadOnlyList<FightDefinition> Sort(bool retired)
         {
             var fights = new List<FightDefinition>();
             foreach (var result in LoadAll())

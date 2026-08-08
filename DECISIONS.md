@@ -263,9 +263,11 @@ in this file when the question comes back.
 | D-260 | [RULED: the battle picker's test bench sets health, items and cards through the run's own loadout seam, and it is for isolating a board rather than for showing a state is reachable.](#d-260-ruled-the-battle-pickers-test-bench-sets-health-items-and-cards-through-the-runs-own-loadout-seam-and-it-is-for-isolating-a-board-rather-than-for-showing-a-state-is-reachable) | 2026-08-08 |  |
 | D-261 | [RULED: a saved test loadout is keyed by CLASS, while the bench that feeds a fight stays keyed by SLOT. The two are different questions and the conversion is a per-slot lookup.](#d-261-ruled-a-saved-test-loadout-is-keyed-by-class-while-the-bench-that-feeds-a-fight-stays-keyed-by-slot-the-two-are-different-questions-and-the-conversion-is-a-per-slot-lookup) | 2026-08-08 |  |
 | D-262 | [RULED: the bench edits ABILITY SLOTS at the class's own count, so putting a card on a duck is always taking something out. A saved build covers the whole party.](#d-262-ruled-the-bench-edits-ability-slots-at-the-classs-own-count-so-putting-a-card-on-a-duck-is-always-taking-something-out-a-saved-build-covers-the-whole-party) | 2026-08-08 |  |
-| D-263 | [RULED: an act built in the UI emits a MAPPED act, not a bare node list, and the event routing asks the run's current node rather than the map's.](#d-263-ruled-an-act-built-in-the-ui-emits-a-mapped-act-not-a-bare-node-list-and-the-event-routing-asks-the-runs-current-node-rather-than-the-maps) | unreleased |  |
+| D-263 | [RULED: an act built in the UI emits a MAPPED act, not a bare node list, and the event routing asks the run's current node rather than the map's.](#d-263-ruled-an-act-built-in-the-ui-emits-a-mapped-act-not-a-bare-node-list-and-the-event-routing-asks-the-runs-current-node-rather-than-the-maps) | 2026-08-08 |  |
+| D-264 | [RULED: the act builder generates a branching act from CONSTRAINTS and a seed, and the sizing is a dial rather than a ruling.](#d-264-ruled-the-act-builder-generates-a-branching-act-from-constraints-and-a-seed-and-the-sizing-is-a-dial-rather-than-a-ruling) | unreleased |  |
+| D-265 | [FIXED: `FightLibrary` parsed all sixty-six `.fight` files on every call.](#d-265-fixed-fightlibrary-parsed-all-sixty-six-fight-files-on-every-call) | unreleased |  |
 
-**245 rulings.**
+**247 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7059,3 +7061,76 @@ freshly-added node carries. The draft's own validity check called it and took th
 with an unhandled render exception. A validity check for half-built input cannot be one that explodes
 on half-built input; it asks the list instead. Worth recording because `ById`'s throwing contract is
 easy to call innocently from any editor surface.
+
+---
+
+**D-264 — RULED: the act builder generates a branching act from CONSTRAINTS and a seed, and the
+sizing is a dial rather than a ruling.**
+
+The builder could only ever build a corridor: an ordered list of steps, one node after another. A
+corridor cannot exercise the one thing an act map is for, which is the vote at a fork. The draft now
+carries the same three facts `ActMap` carries — which column a node stands in, what it is, and which
+nodes in the next column it opens onto — and a hand-built line is the special case where every column
+holds one node. Saved v1 acts still read back as exactly that.
+
+**The seed selects from authored things and never places anything** (MASTER_DESIGN §8.5, F3). Nothing
+in `ActGenerator` scatters terrain, rolls a stat or hides a die: it chooses which authored board or
+scene fills a node and which doors exist. A generated act is made of the same content a hand-authored
+one is.
+
+**The floors are the generator's, the numbers are the dial's.** `ActShape` carries only how big the
+thing is — columns, width, doors, how many nodes are not fights. Every floor §8.5 names is enforced in
+`ActGenerator` and holds whatever the dial says: the pre-boss Rest is a column of its own so every
+route reaches it; column 1 is the fixed opener, never drawn; no node is unreachable and none is a dead
+end; an HP-priced event stands only where a Pond is one door away *and* a fight is behind it; one
+mid-act node carries the guaranteed reward. That separation is the point — turning the dial cannot
+change what the game ships, because a generated act is a draft in a browser until someone authors it.
+
+**Two presets are doc-backed and one is explicitly not.** "The Warrens" is §8.5 as locked at
+v2026-08-08ac. "Mesh (unruled)" carries the Stage Q packet's numbers and says in the picker that the
+design doc does not yet hold them. Offering the numbers as a dial is not the same as ruling them, and
+the honest thing was to let the shape be looked at before it is decided rather than after.
+
+**Rejected: putting the generator in Core.** §8.5's generator is run-level design and belongs to Core
+when an act ships generated. Today it fills a draft in a browser and the shipped Warrens is still
+`ActMapLibrary`'s hand-authored graph, untouched. `ActMap.Validate` is Core's and is the acceptance
+test the generator is written against — every generated act at every preset passes it.
+
+**The proof log is not optional and it survives storage.** §8.5 requires a generated act to say which
+constraint bound where; a solver that refuses silently costs a week. Each floor writes a line when it
+binds, the summary carries nodes, doors, lane crossings and repetition, and the log is stored with the
+act — a claim nobody can re-read is not a proof.
+
+**FOUND: "never repeat a board in adjacent columns" cannot be satisfied at the mesh sizing.** The
+Warrens' pool is six ordinary boards; a twelve-column act four nodes wide asks for eight distinct
+boards across two adjacent columns. The rule that survives is **never silently**: the constraint binds,
+the log names the column, and the debt stays measured. At the sizing the doc actually locks, the pool
+is big enough and the rule holds outright — pinned by its own test.
+
+**Core's map linter is surfaced in the builder and NOT enforced.** `ActMap.Validate` holds what a
+*shippable* act must be — one terminal, and that terminal a boss. A three-node probe that ends on a
+Still Pond breaks both while being exactly the thing this tool exists to let someone play. So the
+linter is shown as notes and the refusal stays about whether a node names something that exists.
+
+**The editor is drawn as the map.** Columns left to right, the same glyphs through `MapCards`, the
+hungry lane dashed, the elite bigger than a fight and the boss bigger than everything. An act being
+edited and an act being walked are the same object, and reading one should teach you the other. Doors
+are numbered pills rather than drawn lines, because the run map does not draw its edges either and a
+pill is a thing you can click.
+
+---
+
+**D-265 — FIXED: `FightLibrary` parsed all sixty-six `.fight` files on every call.**
+
+`LoadAll` read and parsed every embedded resource each time it was asked, and `All()` re-sorted the
+result. Nothing cached. That was invisible while callers asked once per screen; the act builder asks
+per node — for a label, for an objective glyph, for whether an id resolves — and a thirty-node graph
+turned one click into **fifteen seconds**.
+
+The files are embedded resources and cannot change while the process runs, so re-reading them could
+only ever produce the same answer at the price of parsing sixty-six files. They are now parsed once
+into static readonly fields, which are thread-safe by construction and need no lock. The same click is
+now about fifty milliseconds; the Web suite went from ninety seconds to under one.
+
+Recorded because the defect was in a shared Core loader and had been paid by every caller for a long
+time — it took a screen that asks a question per node to make the bill legible.

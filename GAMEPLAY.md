@@ -1988,17 +1988,56 @@ Win: every enemy down. Lose: every player unit down or voided.
 
 ## Building an act — playing events, and iterating on shape
 
-`/acts` (**Build an act**, linked from the front door) sequences **battles, events and rests** into an
-act and walks it. **Internal builds only**, gated with the dev panel.
+`/acts` (**Build an act**, linked from the front door) lays out **columns of battles, events, rests,
+elites and a boss**, and the doors between them, then walks the result. **Internal builds only**,
+gated with the dev panel.
 
 An event is a run node, not a board, so before this the only way to reach one was to play a campaign
 until the map offered it — which made the one shipped event effectively untestable and made changing
-what-follows-what a code change. Both are now a list you can reorder, name, save and replay.
+what-follows-what a code change. Both are now a graph you can edit, name, save and replay.
 
-It emits a real **`ActMap`** — one node per column, an edge to the next — and starts it with
-`Campaign.Start`, the same call the shipped acts use, with the same node handlers. That is the whole
-reason an event reached this way proves anything about the event. The squad is editable too, because
-an escort shape asks a different question of a Wardbearer than of an Archer.
+It emits a real **`ActMap`** and starts it with `Campaign.Start`, the same call the shipped acts use,
+with the same node handlers. That is the whole reason an event reached this way proves anything about
+the event. The squad is editable too, because an escort shape asks a different question of a
+Wardbearer than of an Archer.
+
+**The editor is drawn as the map** (D-264) — columns left to right, the same glyphs the run map uses,
+the hungry lane dashed, the elite bigger than a fight and the boss bigger than everything. A node's
+controls hang under its face; **doors are numbered pills**, one per node in the next column, and
+clicking one opens or closes it.
+
+### Generating an act
+
+A **template** row carries a preset, a seed and the sizing dials — columns, nodes per column, doors
+per node, how many events and rests. **Generate** builds a branching act from constraints.
+
+The **seed selects from authored things and never places anything**: it chooses which authored board
+or scene fills a node and which doors exist. Every floor holds whatever the dials say:
+
+- **Column 1 is the fixed opener** (`first-contact`), never drawn.
+- **The pre-boss Rest is a column of its own**, so every route reaches it.
+- **No unreachable nodes and no dead ends** — the graph is checked against Core's own
+  `ActMap.Validate`, and every generated act at every preset passes it.
+- **An HP-priced event stands only where a Pond is one door away** and a fight is behind it, which
+  also stops any route spending three columns without something to fight.
+- **One mid-act node carries the guaranteed reward**, on the hungry lane.
+- **Boards are drawn without repeating in adjacent columns** — see the caveat below.
+
+Presets: **The Warrens** is §8.5 as locked (7 columns, 2–3 wide, 1–2 doors). **Mesh (unruled)** is
+Stage Q's numbers (12 columns, 2–4 wide, 1–3 doors) and **is not in the design doc** — it is a dial,
+not a ruling, and the picker says so. **Short probe** is four columns for looking at one scene.
+
+Every generated act prints a **proof log** saying which constraint bound where, and it is stored with
+the act.
+
+**Known: at the mesh sizing, adjacent columns repeat boards.** The Warrens' pool is six ordinary
+boards and a twelve-column act four nodes wide needs eight distinct ones across two columns. The rule
+that holds is *never silently* — the log names the column it bound at. At the Warrens sizing the pool
+is big enough and no adjacent column ever repeats. Tick **Whole library** to draw from all 66 active
+boards instead.
+
+**Core's map linter is shown, not enforced.** It holds what a *shippable* act must be — one terminal,
+and that terminal a boss — so a three-node probe ending on a Still Pond raises notes and still plays.
 
 **The act is saved; a run walking it is not** (D-263). The reload path restores a run by looking its
 campaign up in `CampaignLibrary`, and an act built in the browser is not there — so a reload ends the

@@ -1,5 +1,15 @@
 # Changelog
 
+## The act builder generates a branching map, and is drawn as one
+
+- **Acts are graphs now, not corridors** — columns of nodes and the doors between them, edited on a
+  screen that uses the run map's own geometry and glyphs. Saved acts from before still load.
+- **Templates generate a branching act from constraints and a seed** (D-264). The seed selects from
+  authored things and never places anything; every floor §8.5 names is enforced whatever the sizing
+  dials say, and each generated act prints a proof log saying which constraint bound where.
+- `FightLibrary` parsed all sixty-six `.fight` files on **every call** and now parses them once
+  (D-265). One click in the act builder went from fifteen seconds to about fifty milliseconds.
+
 ## Deployment is a draft, and the two flocks can finally stand next to each other
 
 - **Boards publish deployment SPOTS that belong to neither player** (`*` in the `.fight` format).

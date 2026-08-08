@@ -1,5 +1,6 @@
 @page "/acts"
 @layout MainLayout
+@using Faultline.Web.Shell.RunMap
 @inject ActStore Store
 @inject RunSession Runs
 @inject NavigationManager Nav
@@ -7,6 +8,11 @@
 @* Build an act and play it. An event is a RUN NODE, so before this the only way to reach one was to
    play a campaign until the map offered it — which made the one shipped event effectively untestable
    and made iterating on act SHAPE a code change.
+
+   THE EDITOR IS THE MAP. Columns left to right, every node wearing its glyph and its type, the boss
+   drawn largest and last — the same vocabulary ActMapPanel draws a run with, because an act being
+   edited and an act being walked are the same object and reading one should teach you the other. The
+   editing affordances hang under each node rather than replacing it.
 
    The act runs through Campaign.Start, the same call the shipped acts use, and the node handlers are
    shared. That is the only reason testing an event here proves anything about the event. *@
@@ -18,9 +24,9 @@
         <div>
             <h1>PLUCK <span class="sub">build an act</span></h1>
             <p class="note">
-                Sequence battles, events and rests, then walk it. The run layer plays this exactly as
-                it plays a shipped act — same <code>Campaign.Start</code>, same node handlers — so an
-                event reached here behaves as it would on the map.
+                Lay out columns of nodes and the doors between them, then walk it. The run layer plays
+                this exactly as it plays a shipped act — same <code>Campaign.Start</code>, same node
+                handlers — so an event reached here behaves as it would on the map.
             </p>
         </div>
 
@@ -50,10 +56,53 @@
                 <span class="act-length">@_draft.Length()</span>
             </div>
 
+            @* ---- The template row ------------------------------------------------------------
+               A sizing, a seed, and Generate. The constraints are not on this row: they are
+               ActGenerator's and hold whatever the numbers say. What is on this row is only how big
+               the thing it satisfies them on should be. *@
+            <div class="template">
+                <span class="row-label">Template</span>
+
+                <select class="preset" @onchange="UsePreset">
+                    @for (int i = 0; i < Presets.Count; i++)
+                    {
+                        var index = i;
+                        <option value="@index" selected="@(_presetIndex == index)">@Presets[index].Name</option>
+                    }
+                </select>
+
+                <label class="dial">Columns <input type="number" min="3" max="24"
+                    value="@_shape.Columns" @onchange="e => _shape.Columns = Read(e, _shape.Columns)" /></label>
+                <label class="dial">Wide <input type="number" min="1" max="6"
+                    value="@_shape.MinWidth" @onchange="e => _shape.MinWidth = Read(e, _shape.MinWidth)" /></label>
+                <span class="dash">–</span>
+                <label class="dial"><input type="number" min="1" max="6"
+                    value="@_shape.MaxWidth" @onchange="e => _shape.MaxWidth = Read(e, _shape.MaxWidth)" /></label>
+                <label class="dial">Doors <input type="number" min="1" max="4"
+                    value="@_shape.MinDoors" @onchange="e => _shape.MinDoors = Read(e, _shape.MinDoors)" /></label>
+                <span class="dash">–</span>
+                <label class="dial"><input type="number" min="1" max="4"
+                    value="@_shape.MaxDoors" @onchange="e => _shape.MaxDoors = Read(e, _shape.MaxDoors)" /></label>
+                <label class="dial">Events <input type="number" min="0" max="6"
+                    value="@_shape.Events" @onchange="e => _shape.Events = Read(e, _shape.Events)" /></label>
+                <label class="dial">Rests <input type="number" min="0" max="6"
+                    value="@_shape.Rests" @onchange="e => _shape.Rests = Read(e, _shape.Rests)" /></label>
+
+                <label class="dial check">
+                    <input type="checkbox" checked="@_shape.WholeLibrary"
+                           @onchange="e => _shape.WholeLibrary = e.Value is true" />
+                    Whole library
+                </label>
+
+                <button type="button" class="action primary" @onclick="GenerateAct">Generate</button>
+            </div>
+
+            <p class="note preset-note">@_shape.Note</p>
+
             @* The squad. Part of what an act is testing: an escort shape asks a different question of
                a Wardbearer than of an Archer. *@
             <div class="squad">
-                <span class="squad-label">Squad</span>
+                <span class="row-label">Squad</span>
                 @for (int i = 0; i < _draft.Squad.Count; i++)
                 {
                     var index = i;
@@ -69,73 +118,109 @@
 
             @if (_draft.Steps.Count == 0)
             {
-                <p class="note empty">Nothing in this act yet. Add a node below.</p>
+                <p class="note empty">
+                    Nothing in this act yet. Generate one from a template above, or add a column below.
+                </p>
             }
             else
             {
-                <ol class="steps">
-                    @for (int i = 0; i < _draft.Steps.Count; i++)
-                    {
-                        var index = i;
-                        var step = _draft.Steps[index];
+                @* ---- The graph ---------------------------------------------------------------- *@
+                <div class="graph">
+                    <ol class="columns" style="--cols: @_draft.ColumnCount; --rows: @_draft.WidestColumn;">
+                        @for (int c = 0; c < _draft.ColumnCount; c++)
+                        {
+                            var column = c;
 
-                        <li class="step kind-@step.Kind.ToString().ToLowerInvariant()">
-                            <span class="step-no">@(index + 1)</span>
+                            <li class="column" data-column="@column">
+                                <div class="column-head">
+                                    <span class="column-num">@(column + 1)</span>
+                                    <button type="button" class="pill" title="Drop this whole column"
+                                            @onclick="() => DropColumn(column)">×</button>
+                                </div>
 
-                            <select class="step-kind" @onchange="e => SetKind(index, e)">
-                                @foreach (var kind in Kinds)
-                                {
-                                    <option value="@kind" selected="@(step.Kind == kind)">@Label(kind)</option>
-                                }
-                            </select>
-
-                            @if (step.Kind == ActDraft.NodeKind.Fight)
-                            {
-                                <select class="step-id" @onchange="e => SetId(index, e)">
-                                    <option value="" selected="@(step.Id.Length == 0)">— pick a board —</option>
-                                    @foreach (var board in Boards)
+                                <ol class="nodes">
+                                    @foreach (var node in _draft.ColumnAt(column))
                                     {
-                                        <option value="@board.Id" selected="@(step.Id == board.Id)">
-                                            @board.Name — @board.Board.Width×@board.Board.Height
-                                        </option>
-                                    }
-                                </select>
-                            }
-                            else if (step.Kind == ActDraft.NodeKind.Event)
-                            {
-                                <select class="step-id" @onchange="e => SetId(index, e)">
-                                    <option value="" selected="@(step.Id.Length == 0)">— pick a scene —</option>
-                                    @foreach (var scene in EventLibrary.All())
-                                    {
-                                        <option value="@scene.Id" selected="@(step.Id == scene.Id)">
-                                            @scene.Name — @scene.HpCost HP for +@scene.MaxHpGain max
-                                        </option>
-                                    }
-                                </select>
-                            }
-                            else
-                            {
-                                <span class="step-note">Heal or forge. Nothing to choose.</span>
-                            }
+                                        var step = node;
+                                        var open = _draft.DoorsOf(step);
+                                        var ahead = _draft.ColumnAt(column + 1);
 
-                            <span class="step-tools">
-                                <button type="button" class="pill" disabled="@(index == 0)"
-                                        title="Move earlier" @onclick="() => Move(index, -1)">↑</button>
-                                <button type="button" class="pill" disabled="@(index == _draft.Steps.Count - 1)"
-                                        title="Move later" @onclick="() => Move(index, 1)">↓</button>
-                                <button type="button" class="pill drop"
-                                        title="Remove this node" @onclick="() => Remove(index)">×</button>
-                            </span>
-                        </li>
-                    }
-                </ol>
+                                        <li class="step node @NodeClass(step)" data-node="@step.Key">
+                                            <span class="face" title="@ActDraft.LabelFor(step)">
+                                                <span class="icon @IconClassOf(step)" aria-hidden="true">@GlyphOf(step)</span>
+                                                <span class="node-label">@ActDraft.LabelFor(step)</span>
+                                                <span class="node-type">@Label(step.Kind)</span>
+                                            </span>
+
+                                            <div class="edit">
+                                                <select class="step-kind" @onchange="e => SetKind(step, e)">
+                                                    @foreach (var kind in Kinds)
+                                                    {
+                                                        <option value="@kind" selected="@(step.Kind == kind)">@Label(kind)</option>
+                                                    }
+                                                </select>
+
+                                                @if (step.Kind == ActDraft.NodeKind.Event)
+                                                {
+                                                    <select class="step-id" @onchange="e => SetId(step, e)">
+                                                        <option value="" selected="@(step.Id.Length == 0)">— scene —</option>
+                                                        @foreach (var scene in EventLibrary.All())
+                                                        {
+                                                            <option value="@scene.Id" selected="@(step.Id == scene.Id)">@scene.Name</option>
+                                                        }
+                                                    </select>
+                                                }
+                                                else if (step.IsCombat)
+                                                {
+                                                    <select class="step-id" @onchange="e => SetId(step, e)">
+                                                        <option value="" selected="@(step.Id.Length == 0)">— board —</option>
+                                                        @foreach (var board in Boards)
+                                                        {
+                                                            <option value="@board.Id" selected="@(step.Id == board.Id)">@board.Name</option>
+                                                        }
+                                                    </select>
+                                                }
+
+                                                @* The doors out, as the next column's nodes. Closed by
+                                                   number rather than by drawn line: the map screen does
+                                                   not draw its edges either, and a numbered pill is a
+                                                   thing you can click. *@
+                                                @if (column < _draft.ColumnCount - 1)
+                                                {
+                                                    <div class="doors" title="Doors into the next column">
+                                                        @for (int t = 0; t < ahead.Count; t++)
+                                                        {
+                                                            var target = ahead[t];
+                                                            var shut = !open.Contains(target);
+
+                                                            <button type="button"
+                                                                    class="door-pill @(shut ? "shut" : "open")"
+                                                                    title="@(shut ? "Closed" : "Open") — @ActDraft.LabelFor(target)"
+                                                                    @onclick="() => Toggle(step, target.Key)">@(t + 1)</button>
+                                                        }
+                                                    </div>
+                                                }
+
+                                                <button type="button" class="pill drop" title="Remove this node"
+                                                        @onclick="() => DropNode(step)">×</button>
+                                            </div>
+                                        </li>
+                                    }
+                                </ol>
+
+                                <button type="button" class="pill add" title="Add a node to this column"
+                                        @onclick="() => AddNode(column)">+ node</button>
+                            </li>
+                        }
+                    </ol>
+                </div>
             }
 
             <div class="add-row">
-                <span class="add-label">Add</span>
+                <span class="row-label">Add a column</span>
                 @foreach (var kind in Kinds)
                 {
-                    <button type="button" class="action secondary" @onclick="() => Add(kind)">@Label(kind)</button>
+                    <button type="button" class="action secondary" @onclick="() => AddColumn(kind)">@Label(kind)</button>
                 }
             </div>
 
@@ -145,6 +230,22 @@
                 @if (_draft.Refusal is { Length: > 0 } why)
                 {
                     <p class="refusal">@why</p>
+                }
+
+                @* Core's own map linter, surfaced and NOT enforced. Validate holds what a shippable act
+                   must be — one terminal, and that terminal a boss — and a three-node probe that ends
+                   on a Pond breaks both while being exactly what this tool exists for. *@
+                @if (_draft.Warnings is { Count: > 0 } warnings)
+                {
+                    <details class="lint">
+                        <summary>@warnings.Count note(s) — this is not a shippable act shape</summary>
+                        <ul>
+                            @foreach (var line in warnings)
+                            {
+                                <li>@line</li>
+                            }
+                        </ul>
+                    </details>
                 }
 
                 <div class="foot-actions">
@@ -162,6 +263,20 @@
                 </p>
             </div>
         </section>
+
+        @* ---- The proof log --------------------------------------------------------------------
+           §8.5 requires a generated act to say which constraint bound where, and the reason is
+           practical: a solver that refuses silently costs a week. *@
+        @if (_draft.Proof.Count > 0)
+        {
+            <h2>Proof log</h2>
+            <ol class="proof">
+                @foreach (var line in _draft.Proof)
+                {
+                    <li>@line</li>
+                }
+            </ol>
+        }
 
         <h2>Saved acts</h2>
         @if (!Store.Loaded)
@@ -197,6 +312,8 @@
 
 @code {
     private ActDraft _draft = new();
+    private ActShape _shape = ActShape.Presets()[0].Copy();
+    private int _presetIndex;
     private int _seed = GameSession.DefaultSeed;
     private string _slug = string.Empty;
 
@@ -211,6 +328,8 @@
         UnitKind.Wardbearer,
     };
 
+    private static IReadOnlyList<ActShape> Presets { get; } = ActShape.Presets();
+
     /// <summary>Every playable board, by name.</summary>
     private static IReadOnlyList<FightDefinition> Boards { get; } =
         FightLibrary.All().OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -223,56 +342,125 @@
 
     private static string Label(ActDraft.NodeKind kind) => kind switch
     {
-        ActDraft.NodeKind.Fight => "Battle",
         ActDraft.NodeKind.Event => "Event",
-        _ => "Rest",
+        ActDraft.NodeKind.Rest => "Rest",
+        ActDraft.NodeKind.Elite => "Elite",
+        ActDraft.NodeKind.Boss => "Boss",
+        _ => "Battle",
     };
 
-    private void Add(ActDraft.NodeKind kind)
-    {
-        var step = new ActDraft.Step { Kind = kind };
+    // ---- The map's own vocabulary, borrowed ----------------------------------------------------
+    //
+    // Through MapCards rather than a second glyph table, so a node in the editor and the same node on
+    // the run map cannot end up wearing different faces.
 
-        // One event ships, so an added event lands on it rather than on "pick one" — the only
-        // choice there is is already made.
-        if (kind == ActDraft.NodeKind.Event && EventLibrary.All().Count == 1)
+    private static MapIcon IconFor(ActDraft.Step step) => step.Kind switch
+    {
+        ActDraft.NodeKind.Boss => MapIcon.Boss,
+        ActDraft.NodeKind.Elite => MapIcon.Skull,
+        ActDraft.NodeKind.Rest => MapIcon.Pond,
+        ActDraft.NodeKind.Event => MapIcon.Question,
+        _ => MapCards.IconForObjective(ObjectiveOf(step)),
+    };
+
+    private static ObjectiveKind ObjectiveOf(ActDraft.Step step)
+    {
+        foreach (var board in FightLibrary.All())
+        {
+            if (board.Id == step.Id)
+            {
+                return board.Objective.Kind;
+            }
+        }
+
+        return ObjectiveKind.KillAll;
+    }
+
+    private static string GlyphOf(ActDraft.Step step) => MapCards.Glyph(IconFor(step));
+
+    private static string IconClassOf(ActDraft.Step step) => MapCards.IconClass(IconFor(step));
+
+    private static string NodeClass(ActDraft.Step step)
+    {
+        var css = "type-" + step.Kind.ToString().ToLowerInvariant()
+            + " lane-" + step.Lane.ToString().ToLowerInvariant();
+
+        if (step.Kind == ActDraft.NodeKind.Boss)
+        {
+            css += " boss";
+        }
+
+        if (step.Gilt)
+        {
+            css += " gilt";
+        }
+
+        return css;
+    }
+
+    // ---- Editing -------------------------------------------------------------------------------
+
+    private void GenerateAct()
+    {
+        var name = _draft.Name.Length > 0 ? _draft.Name : _shape.Name;
+        _draft = ActGenerator.Generate(_shape, _seed, name);
+        _slug = string.Empty;
+    }
+
+    private void UsePreset(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int index) && index >= 0 && index < Presets.Count)
+        {
+            _presetIndex = index;
+            _shape = Presets[index].Copy();
+        }
+    }
+
+    /// <summary>Adds a column at the end holding one node.</summary>
+    private void AddColumn(ActDraft.NodeKind kind)
+    {
+        var step = _draft.Add(_draft.ColumnCount, kind);
+        Prefill(step);
+    }
+
+    private void AddNode(int column)
+    {
+        var step = _draft.Add(column, ActDraft.NodeKind.Fight);
+        Prefill(step);
+    }
+
+    private void DropNode(ActDraft.Step step) => _draft.Remove(step.Key);
+
+    private void DropColumn(int column) => _draft.RemoveColumn(column);
+
+    private void Toggle(ActDraft.Step from, string toKey) => _draft.ToggleDoor(from, toKey);
+
+    /// <summary>
+    /// One event ships, so an added event lands on it rather than on "pick one" — the only choice
+    /// there is is already made.
+    /// </summary>
+    private static void Prefill(ActDraft.Step step)
+    {
+        if (step.Kind == ActDraft.NodeKind.Event && EventLibrary.All().Count == 1)
         {
             step.Id = EventLibrary.All()[0].Id;
         }
-
-        _draft.Steps.Add(step);
     }
 
-    private void Remove(int index) => _draft.Steps.RemoveAt(index);
-
-    private void Move(int index, int by)
-    {
-        int to = index + by;
-        if (to < 0 || to >= _draft.Steps.Count)
-        {
-            return;
-        }
-
-        var step = _draft.Steps[index];
-        _draft.Steps.RemoveAt(index);
-        _draft.Steps.Insert(to, step);
-    }
-
-    private void SetKind(int index, ChangeEventArgs e)
+    private void SetKind(ActDraft.Step step, ChangeEventArgs e)
     {
         if (!Enum.TryParse<ActDraft.NodeKind>(e.Value?.ToString(), out var kind))
         {
             return;
         }
 
-        var step = _draft.Steps[index];
         step.Kind = kind;
-        step.Id = kind == ActDraft.NodeKind.Event && EventLibrary.All().Count == 1
-            ? EventLibrary.All()[0].Id
-            : string.Empty;
+        step.Id = string.Empty;
+        Prefill(step);
     }
 
-    private void SetId(int index, ChangeEventArgs e) =>
-        _draft.Steps[index].Id = e.Value?.ToString() ?? string.Empty;
+    private static void SetId(ActDraft.Step step, ChangeEventArgs e) =>
+        step.Id = e.Value?.ToString() ?? string.Empty;
 
     private void SetSquad(int index, ChangeEventArgs e)
     {

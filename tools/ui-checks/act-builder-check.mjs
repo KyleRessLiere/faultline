@@ -1,5 +1,6 @@
-// Builds an act in the UI — a battle, then an EVENT, then a rest — and walks it, so the one shipped
-// event is reached without playing a campaign to find it.
+// Builds an act in the UI — by hand and from a template — and walks it, so the one shipped event is
+// reached without playing a campaign to find it, and so a generated branching map is proved to be
+// something the run screens can actually walk.
 //
 //   dotnet run --project ../../src/Faultline.Web --urls http://localhost:5300
 //   BASE=http://localhost:5300 node act-builder-check.mjs
@@ -37,7 +38,7 @@ if (!/at least one node/i.test(emptyRefusal)) {
   fail.push('an empty act does not say why it cannot be played');
 }
 
-// ---- Build: battle, event, rest -----------------------------------------------------------------
+// ---- Build by hand: battle, event, rest ---------------------------------------------------------
 
 await page.locator('.add-row button', { hasText: 'Battle' }).click();
 await page.waitForTimeout(120);
@@ -74,6 +75,14 @@ if (nowRefusing !== 0) {
   fail.push('a complete act still refuses to play');
 }
 
+// Core's linter is surfaced, and does NOT block: an act that ends on a pond is not act-shaped and is
+// exactly what this tool is for.
+const lint = await page.locator('.lint summary').innerText().catch(() => '');
+note(`linter says: ${lint.trim()}`);
+if (!/not a shippable act shape/i.test(lint)) {
+  fail.push('the linter did not surface on an act that ends on a rest');
+}
+
 await page.locator('.act-name').fill('Event probe');
 await page.waitForTimeout(150);
 await page.locator('.foot-actions button', { hasText: 'Save' }).click();
@@ -87,19 +96,88 @@ if (saved === 0) {
 
 await page.screenshot({ path: 'shots/act-builder.png' });
 
-// ---- Walk it, and reach the event ---------------------------------------------------------------
+// ---- Generate from a template -------------------------------------------------------------------
 
+await page.goto(`${BASE}/acts`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await page.waitForSelector('.builder', { timeout: 60000 });
+
+await page.locator('.preset').selectOption({ label: 'Mesh (unruled)' });
+await page.waitForTimeout(200);
+await page.locator('.template button', { hasText: 'Generate' }).click();
+await page.waitForTimeout(800);
+
+const columns = await page.locator('.column').count();
+const nodes = await page.locator('.node').count();
+note(`generated: ${columns} columns, ${nodes} nodes`);
+if (columns !== 12) {
+  fail.push(`the mesh template did not build 12 columns, it built ${columns}`);
+}
+if (nodes < 20) {
+  fail.push(`a 12-column mesh produced only ${nodes} nodes`);
+}
+
+// The boss is the last node and is drawn largest, as it is on the run map.
+const bossBox = await page.locator('.node.boss .face').boundingBox();
+const plainBox = await page.locator('.node.type-fight .face').first().boundingBox();
+note(`boss face ${bossBox?.width}px vs plain ${plainBox?.width}px`);
+if (!bossBox || !plainBox || bossBox.width <= plainBox.width) {
+  fail.push('the boss is not drawn larger than a plain fight');
+}
+
+// The proof log says which constraint bound where.
+const proof = await page.locator('.proof li').count();
+const proofText = await page.locator('.proof').innerText();
+note(`proof log: ${proof} lines`);
+if (proof === 0) {
+  fail.push('a generated act emitted no proof log');
+}
+if (!/pre-boss Rest is a column of its own/.test(proofText)) {
+  fail.push('the proof log does not name the pre-boss floor');
+}
+if (!/linter — clean/.test(proofText)) {
+  fail.push('the generated act does not pass Core\'s map linter');
+}
+
+// Doors are editable, and closing one does not open the rest.
+const firstDoors = page.locator('.node').first().locator('.door-pill');
+const doorCount = await firstDoors.count();
+note(`doors out of the opener: ${doorCount}`);
+if (doorCount === 0) {
+  fail.push('the opener shows no doors into the next column');
+}
+
+const openBefore = await page.locator('.door-pill.open').count();
+await firstDoors.first().click();
+await page.waitForTimeout(250);
+const openAfter = await page.locator('.door-pill.open').count();
+note(`open doors ${openBefore} → ${openAfter} after one click`);
+if (openAfter !== openBefore - 1) {
+  fail.push('toggling one door changed more than one door');
+}
+
+await firstDoors.first().click();
+await page.waitForTimeout(250);
+
+await page.screenshot({ path: 'shots/act-builder-mesh.png', fullPage: true });
+
+// ---- Walk the generated mesh --------------------------------------------------------------------
+
+await page.locator('.act-name').fill('Mesh probe');
+await page.waitForTimeout(150);
 await page.locator('.foot-actions button', { hasText: 'Walk this act' }).click();
-await page.waitForTimeout(1500);
+await page.waitForTimeout(1800);
 
 note(`after walking: ${page.url().replace(BASE, '')}`);
-
 const mapBody = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
-note(`map says: ${mapBody.slice(0, 120).trim()}`);
 
-if (!/EVENT PROBE/i.test(mapBody)) {
-  fail.push('walking the act did not land on its own map');
+if (!/MESH PROBE/i.test(mapBody)) {
+  fail.push('walking the generated act did not land on its own map');
 }
+if (!/12 columns/i.test(mapBody) && !/nodes over 12 columns/i.test(mapBody)) {
+  note(`map head says: ${mapBody.slice(0, 160).trim()}`);
+}
+
+await page.screenshot({ path: 'shots/act-builder-walk.png' });
 
 // ---- An act that is ONLY the event, so the scene is the first node ------------------------------
 
@@ -152,4 +230,4 @@ if (fail.length) {
   process.exit(1);
 }
 
-console.log('\nOK — an act is built in the UI and walked.');
+console.log('\nOK — an act is built by hand and from a template, and both are walked.');
