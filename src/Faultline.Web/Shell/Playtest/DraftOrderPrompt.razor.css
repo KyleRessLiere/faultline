@@ -1,80 +1,106 @@
-/* Step 1 of the deployment draft (MASTER_DESIGN §3): the blind "who places first" question, and the
-   single moment that reveals both answers.
+/* Step 1 of the deployment draft (MASTER_DESIGN §3), as a modal.
 
-   It sits on the status band over the board, so it takes the band's surface treatment rather than
-   inventing a second panel style. Nothing here is a side panel enumerating spots — the spots are on
-   the grid, where the board owns them. */
+   The scrim, the centred panel, .ask, .consequence, .confirm-row and .act are the COMMAND DOCK'S
+   dialog language, restated here rather than shared, because Blazor scopes component CSS and there
+   is no cross-component stylesheet to hang them on. The tokens are the same, so the two dialogs
+   cannot drift in colour or weight — only in what they ask. If a shared dialog stylesheet is ever
+   added, both should move onto it together. */
 
-.draft-step-one,
-.draft-reveal-block {
-    background: color-mix(in srgb, var(--pt-cyan) 12%, var(--pt-bg-panel));
-    border: 1px solid var(--pt-cyan);
-    border-radius: var(--pt-radius);
-    padding: 7px 10px;
+.scrim {
+    background: rgba(0, 0, 0, .55);
+    inset: 0;
+    position: fixed;
+    z-index: 90;
 }
 
-.draft-question {
-    color: var(--pt-text);
-    font-size: 12px;
-    margin: 0 0 6px;
+/* Centred both ways: this one stops the phase rather than confirming an action inside it, so it sits
+   in the middle of the screen instead of the dock's 24% perch. */
+.draft-dialog {
+    background: var(--pt-bg-panel);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .65);
+    left: 50%;
+    padding: 16px 18px;
+    position: fixed;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(440px, 90vw);
+    z-index: 95;
+}
+
+.ask {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 7px;
+}
+
+.consequence {
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
+    line-height: 1.4;
+    margin: 0 0 14px;
 }
 
 .draft-side {
     align-items: center;
     display: flex;
-    gap: 6px;
-    margin: 3px 0;
+    gap: 8px;
+    margin: 0 0 8px;
 }
 
 .draft-who {
-    font-size: 11px;
+    flex: 0 0 8ch;
+    font-size: 11.5px;
     font-weight: 600;
-    min-width: 8ch;
 }
 
-.draft-answer,
-.draft-clear,
-.draft-reveal {
-    background: var(--pt-bg-panel);
+.act {
+    background: var(--pt-bg-raised);
     border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius);
+    border-radius: 5px;
     color: var(--pt-text);
     cursor: pointer;
-    font-size: 11px;
-    padding: 2px 8px;
+    font-size: 11.5px;
+    padding: 5px 11px;
+    white-space: nowrap;
 }
 
-.draft-answer:hover,
-.draft-clear:hover,
-.draft-reveal:hover {
-    border-color: var(--pt-cyan);
+.act:hover:not(:disabled) { border-color: var(--pt-blue); }
+.act:disabled { cursor: default; opacity: .45; }
+
+.act.primary {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .06em;
 }
 
-/* Answered but not shown. The word is deliberately "sealed" rather than a tick: a tick reads as
-   "done", and what matters here is that the answer exists and cannot be seen yet. */
+.act.primary:disabled {
+    background: var(--pt-bg-raised);
+    border-color: var(--pt-border);
+    color: var(--pt-text-dim);
+}
+
+/* Answered but not shown. Deliberately quiet — it is a state, not an achievement. */
 .draft-sealed {
-    color: var(--pt-cyan);
-    font-size: 11px;
+    color: var(--pt-text-dim);
+    font-size: 11.5px;
     font-style: italic;
+    flex: 1 1 auto;
 }
 
-.draft-reveal {
-    border-color: var(--pt-cyan);
-    font-weight: 600;
-    margin-top: 6px;
-}
+.draft-clear { font-size: 11px; padding: 3px 8px; }
 
 .draft-line {
-    font-size: 11px;
-    margin: 0;
+    font-size: 11.5px;
+    margin: 0 0 8px;
 }
 
-.draft-outcome {
-    margin-top: 3px;
-}
-
-/* Said out loud either way — "preferences differed, no coin" is a fact, and a silent absence would
-   leave a player wondering whether a coin had fired. */
-.draft-coin {
-    color: var(--pt-text-dim);
+.confirm-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 14px;
 }

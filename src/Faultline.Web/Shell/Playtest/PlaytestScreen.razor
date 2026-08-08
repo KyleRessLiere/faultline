@@ -75,6 +75,11 @@
             <AbilityBar />
         </section>
     </div>
+
+    @* Step 1 of the deployment draft, at the screen's root because it is a modal over everything —
+       the same place the dock's own dialogs live in the stacking order. Nothing can be placed until
+       it is answered, so it is not a panel competing for a region. *@
+    <DraftOrderPrompt />
 </div>
 
 @code {

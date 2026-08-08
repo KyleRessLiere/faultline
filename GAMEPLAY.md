@@ -499,9 +499,15 @@ read as one shared list, so an old board drafts rather than breaking. The defaul
 **Step 1 — who places first, blind.** Each player privately answers *place first* or *place second*.
 Differing preferences resolve for free — both get what they asked for. **Identical preferences fire
 the seeded coin**, which is the inversion against the map vote, where agreement is free and a split
-costs the draw. Both answers, the winner and the coin are revealed in a single moment; when no coin
-fired the screen says "preferences differed, no coin" rather than leaving a silence. The coin is the
-draft's only draw, so seed plus command log replays the whole choice phase.
+costs the draw. The coin is the draft's only draw, so seed plus command log replays the whole choice
+phase.
+
+**It is asked as a modal**, in the same dialog language the command dock's confirms use — scrim,
+centred panel, one question. Nothing can be placed until it is answered, so it stops the screen
+rather than sharing it. Each answer shows as *sealed* until both are in; neither is ever drawn.
+**The reveal is a moment and it ends:** both answers side by side, the winner, and the coin line —
+"preferences differed, no coin" said out loud when none fired — then the player dismisses it and the
+board is clear. The combat log keeps the permanent copy.
 
 **The initiative bundle is undivided.** Winning step 1 wins placing first *and* activating first,
 every round.

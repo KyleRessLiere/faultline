@@ -3,21 +3,35 @@
 @* Step 1 of the deployment draft (MASTER_DESIGN §3): each player privately answers "place first or
    place second", both answers are revealed together, and identical preferences fire a seeded coin.
 
+   A MODAL, in the dock's own dialog language — scrim, centred panel, ask/consequence/row — because
+   this is the same kind of thing those are: a decision the game stops for, taken between the phases
+   rather than during one. It was a banner over the board first, and a banner is what you use for
+   something a player reads while doing something else. Nothing can be placed until this is answered,
+   so there is nothing else to be doing.
+
    BLIND IS THE POINT, and it is the reason this is a component rather than two buttons. Every other
    shared decision in this game is blind — this phase and the map vote — and that is load-bearing for
    two-player parity: an open question invites the more experienced player to answer for both. So
    each answer is held HERE, in the shell, and neither is shown until both are in. Core is handed one
    command carrying both, which is also why it can never leak one answer to the other player.
 
-   The reveal is a single moment: both answers side by side, the coin and its result if one fired,
-   and "preferences differed, no coin" when none did. *@
+   THE REVEAL IS A MOMENT, AND MOMENTS END. Both answers side by side, the coin and its result if one
+   fired, "preferences differed, no coin" when none did — and then the player dismisses it and the
+   board is clear. It used to sit over the board for the whole of deployment, which turned the one
+   moment §3 asks for into wallpaper. The log keeps the permanent copy. *@
 
 @if (Asking)
 {
-    <div class="draft-step-one" role="group" aria-label="Who places first">
-        <p class="draft-question">
-            <strong>Who places first?</strong>
-            Placing first shows your setup; it also activates first, every round.
+    @* No click-to-dismiss on the scrim: there is nothing to cancel, and the draft cannot start
+       until this is answered. It is here to darken the board and swallow stray clicks. *@
+    <div class="scrim"></div>
+
+    <div class="draft-dialog" role="dialog" aria-modal="true" aria-labelledby="draft-ask">
+        <p class="ask" id="draft-ask">Who places first?</p>
+        <p class="consequence">
+            Placing first shows your setup — and activates first, every round. Answer separately;
+            neither answer is shown until both are in. If you both ask for the same thing, a seeded
+            coin decides.
         </p>
 
         @foreach (var side in Sides)
@@ -28,38 +42,43 @@
                 @if (Answer(side) is null)
                 {
                     <button type="button"
-                            class="draft-answer"
+                            class="act"
                             title="@(PlaytestText.Team(side)) asks to place first."
                             @onclick="() => Choose(side, DeploymentChoice.PlaceFirst)">Place first</button>
                     <button type="button"
-                            class="draft-answer"
+                            class="act"
                             title="@(PlaytestText.Team(side)) asks to place second."
                             @onclick="() => Choose(side, DeploymentChoice.PlaceSecond)">Place second</button>
                 }
                 else
                 {
-                    @* Answered, not shown. The other player is still deciding. *@
+                    @* Answered, not shown. "Sealed" rather than a tick: a tick reads as "done", and
+                       what matters is that the answer exists and cannot be seen yet. *@
                     <span class="draft-sealed" title="Answered. It stays sealed until both are in.">sealed</span>
                     <button type="button"
-                            class="draft-clear"
+                            class="act draft-clear"
                             title="Take this answer back before the other player commits."
                             @onclick="() => Clear(side)">change</button>
                 }
             </div>
         }
 
-        @if (Both)
-        {
+        <div class="confirm-row">
             <button type="button"
-                    class="draft-reveal"
-                    title="Reveal both answers together."
+                    class="act primary"
+                    disabled="@(!Both)"
+                    title="@(Both ? "Reveal both answers together." : "Both players answer first.")"
                     @onclick="Reveal">Reveal</button>
-        }
+        </div>
     </div>
 }
-else if (Resolved is { } order)
+else if (Showing is { } order)
 {
-    <div class="draft-reveal-block" role="status" aria-label="Draft order">
+    <div class="scrim"></div>
+
+    <div class="draft-dialog" role="dialog" aria-modal="true" aria-labelledby="draft-result">
+        <p class="ask" id="draft-result">@PlaytestText.Team(order.PlacesFirst) places first</p>
+
         <p class="draft-line">
             <span class="team-@PlaytestText.TeamClass(Team.PlayerA)">@PlaytestText.Team(Team.PlayerA)</span>
             asked @Asked(order.ChoiceA)
@@ -67,10 +86,14 @@ else if (Resolved is { } order)
             <span class="team-@PlaytestText.TeamClass(Team.PlayerB)">@PlaytestText.Team(Team.PlayerB)</span>
             asked @Asked(order.ChoiceB)
         </p>
-        <p class="draft-line draft-outcome">
-            <strong>@PlaytestText.Team(order.PlacesFirst)</strong> places first — and activates first.
-            <span class="draft-coin">@CoinLine(order)</span>
+
+        <p class="consequence">
+            @CoinLine(order) @PlaytestText.Team(order.PlacesFirst) also activates first, every round.
         </p>
+
+        <div class="confirm-row">
+            <button type="button" class="act primary" @onclick="Dismiss">Start the draft</button>
+        </div>
     </div>
 }
 
@@ -79,13 +102,21 @@ else if (Resolved is { } order)
     private DeploymentChoice? _a;
     private DeploymentChoice? _b;
 
+    /// <summary>
+    /// Whether the reveal is on screen and not yet dismissed. Shell-side on purpose: the draft order
+    /// is a permanent fact, but <em>being shown it</em> is a moment, and a moment is exactly the kind
+    /// of thing that does not belong in game state.
+    /// </summary>
+    private bool _revealed;
+
     private static readonly Team[] Sides = { Team.PlayerA, Team.PlayerB };
 
     /// <summary>True while step 1 is still open.</summary>
     private bool Asking => State.Phase == Phase.Deployment && State.DraftOrder is null;
 
-    /// <summary>The settled order, once there is one.</summary>
-    private DraftOrder? Resolved => State.Phase == Phase.Deployment ? State.DraftOrder : null;
+    /// <summary>The settled order while its reveal is still on screen, else <c>null</c>.</summary>
+    private DraftOrder? Showing =>
+        _revealed && State.Phase == Phase.Deployment ? State.DraftOrder : null;
 
     private bool Both => _a is not null && _b is not null;
 
@@ -126,7 +157,11 @@ else if (Resolved is { } order)
         Session.Submit(new DraftOrderCommand(a, b));
         _a = null;
         _b = null;
+        _revealed = true;
     }
+
+    /// <summary>Closes the moment. The board is clear from here; the log keeps the record.</summary>
+    private void Dismiss() => _revealed = false;
 
     private static string Asked(DeploymentChoice choice) =>
         choice == DeploymentChoice.PlaceFirst ? "to place first" : "to place second";

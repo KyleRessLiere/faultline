@@ -7,20 +7,19 @@
 // Safe to call when the question is not on screen (already answered, or not in deployment).
 
 export async function settleDraft(page) {
-  const prompt = page.locator('.draft-step-one');
-  if (!(await prompt.count())) {
+  if (!(await page.locator('.draft-dialog').count())) {
     return false;
   }
 
   // Player A asks to place first; Player B asks to place second.
-  await page.locator('.draft-side').nth(0).locator('.draft-answer').nth(0).click();
-  await page.locator('.draft-side').nth(1).locator('.draft-answer').nth(1).click();
+  await page.locator('.draft-side').nth(0).locator('.act').nth(0).click();
+  await page.locator('.draft-side').nth(1).locator('.act').nth(1).click();
 
-  const reveal = page.locator('.draft-reveal');
-  if (await reveal.count()) {
-    await reveal.click();
-  }
-
+  // Reveal, then dismiss the moment — the modal covers the board until it is closed.
+  await page.locator('.confirm-row .act.primary').click();
+  await page.waitForTimeout(150);
+  await page.locator('.confirm-row .act.primary').click();
   await page.waitForTimeout(200);
+
   return true;
 }

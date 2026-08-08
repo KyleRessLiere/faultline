@@ -43,45 +43,50 @@ if (takeableBefore !== 0) {
 
 // ---- 2. Step 1 is blind, and the reveal is one moment -----------------------------------------
 
-const prompt = page.locator('.draft-step-one');
-if (!(await prompt.count())) {
-  fail.push('no step-1 question on screen at the start of deployment');
-} else {
-  const answers = page.locator('.draft-answer');
-  const before = await answers.count();
-  if (before !== 4) {
-    fail.push(`expected two answers per player, saw ${before} buttons`);
-  }
-
-  // Player A asks to place first.
-  await answers.nth(0).click();
-  await page.waitForTimeout(120);
-
-  const sealed = await page.locator('.draft-sealed').count();
-  const revealYet = await page.locator('.draft-reveal-block').count();
-  note(`after one answer: sealed=${sealed}, revealed=${revealYet}`);
-
-  if (sealed !== 1) {
-    fail.push('the first answer did not seal');
-  }
-  if (revealYet !== 0) {
-    fail.push('an answer was revealed before both were in — the blind pick leaked');
-  }
-
-  // Player B asks to place second, so preferences differ and no coin is drawn.
-  await page.locator('.draft-side').nth(1).locator('.draft-answer').nth(1).click();
-  await page.waitForTimeout(120);
-
-  const reveal = page.locator('.draft-reveal');
-  if (!(await reveal.count())) {
-    fail.push('both answers were in but no reveal was offered');
-  } else {
-    await reveal.click();
-    await page.waitForTimeout(250);
-  }
+const dialog = page.locator('.draft-dialog');
+if (!(await dialog.count())) {
+  fail.push('no step-1 dialog on screen at the start of deployment');
 }
 
-const revealText = (await page.locator('.draft-reveal-block').innerText().catch(() => '')) || '';
+// It is a modal: a scrim over the board, and the panel centred rather than perched over it.
+const scrim = await page.locator('.scrim').count();
+const box = await dialog.first().boundingBox();
+const vp = page.viewportSize();
+const centred = box
+  && Math.abs((box.x + box.width / 2) - vp.width / 2) < 40
+  && Math.abs((box.y + box.height / 2) - vp.height / 2) < 60;
+
+note(`modal: scrim=${scrim}, centred=${centred}`);
+if (scrim === 0) {
+  fail.push('the step-1 dialog has no scrim, so it is not a modal');
+}
+if (!centred) {
+  fail.push('the step-1 dialog is not centred on screen');
+}
+
+// Player A asks to place first.
+await page.locator('.draft-side').nth(0).locator('.act').nth(0).click();
+await page.waitForTimeout(120);
+
+const sealed = await page.locator('.draft-sealed').count();
+const leaked = await page.locator('.draft-line').count();
+note(`after one answer: sealed=${sealed}, result shown=${leaked}`);
+
+if (sealed !== 1) {
+  fail.push('the first answer did not seal');
+}
+if (leaked !== 0) {
+  fail.push('an answer was revealed before both were in — the blind pick leaked');
+}
+
+// Player B asks to place second, so preferences differ and no coin is drawn.
+await page.locator('.draft-side').nth(1).locator('.act').nth(1).click();
+await page.waitForTimeout(120);
+
+await page.locator('.confirm-row .act.primary').click();
+await page.waitForTimeout(250);
+
+const revealText = (await page.locator('.draft-dialog').innerText().catch(() => '')) || '';
 note('reveal: ' + revealText.replace(/\s+/g, ' ').trim());
 
 if (!/asked/.test(revealText)) {
@@ -92,6 +97,18 @@ if (!/no coin|coin decided/.test(revealText)) {
 }
 if (!/places first/.test(revealText)) {
   fail.push('the reveal does not name who places first');
+}
+
+// The moment ends: dismissing clears the board of it entirely.
+await page.locator('.confirm-row .act.primary').click();
+await page.waitForTimeout(250);
+
+const leftOver = await page.locator('.draft-dialog').count();
+const scrimLeft = await page.locator('.scrim').count();
+note(`after dismissing: dialog=${leftOver}, scrim=${scrimLeft}`);
+
+if (leftOver !== 0 || scrimLeft !== 0) {
+  fail.push('the reveal did not clear after the decision was made');
 }
 
 // ---- 3 & 4. The draft itself ------------------------------------------------------------------
@@ -160,13 +177,9 @@ if (ducksDown < 4) {
 // ---- 5. The fight actually starts --------------------------------------------------------------
 
 await page.waitForTimeout(400);
-const stillDeploying = await page.locator('.draft-step-one').count();
 const roundLabel = (await page.locator('.order-head .round').innerText().catch(() => '')) || '';
 note('after the draft the strip says: ' + roundLabel.trim());
 
-if (stillDeploying !== 0) {
-  fail.push('the step-1 question is still on screen after the draft finished');
-}
 if (!/Round/i.test(roundLabel)) {
   fail.push(`the fight did not start; the strip still says "${roundLabel.trim()}"`);
 }
