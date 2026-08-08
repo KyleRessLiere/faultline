@@ -7087,9 +7087,12 @@ mid-act node carries the guaranteed reward. That separation is the point — tur
 change what the game ships, because a generated act is a draft in a browser until someone authors it.
 
 **Two presets are doc-backed and one is explicitly not.** "The Warrens" is §8.5 as locked at
-v2026-08-08ac. "Mesh (unruled)" carries the Stage Q packet's numbers and says in the picker that the
-design doc does not yet hold them. Offering the numbers as a dial is not the same as ruling them, and
-the honest thing was to let the shape be looked at before it is decided rather than after.
+v2026-08-08ac, and **keeps the authored act's name** — the original is not renamed by the existence of
+a draft. "Warrens v2" is the same zone redrawn longer and wider; it carries the Stage Q packet's
+numbers and says in the picker that the design doc does not yet hold them. Offering the numbers as a
+dial is not the same as ruling them, and the honest thing was to let the shape be looked at before it
+is decided rather than after. **The v2 naming is deliberate**: it says "this zone, another cut" rather
+than "a different kind of act", which is what "mesh" said and what the doc has not ruled.
 
 **Rejected: putting the generator in Core.** §8.5's generator is run-level design and belongs to Core
 when an act ships generated. Today it fills a draft in a browser and the shipped Warrens is still
@@ -7101,11 +7104,15 @@ constraint bound where; a solver that refuses silently costs a week. Each floor 
 binds, the summary carries nodes, doors, lane crossings and repetition, and the log is stored with the
 act — a claim nobody can re-read is not a proof.
 
-**FOUND: "never repeat a board in adjacent columns" cannot be satisfied at the mesh sizing.** The
-Warrens' pool is six ordinary boards; a twelve-column act four nodes wide asks for eight distinct
-boards across two adjacent columns. The rule that survives is **never silently**: the constraint binds,
-the log names the column, and the debt stays measured. At the sizing the doc actually locks, the pool
-is big enough and the rule holds outright — pinned by its own test.
+**FOUND, then RULED: "never repeat a board in adjacent columns" cannot be satisfied at the v2 sizing,
+and repetition is accepted rather than solved.** The Warrens' pool is six ordinary boards; a
+twelve-column act four nodes wide asks for eight distinct boards across two adjacent columns and
+cannot have them. **The designer's call is that this is fine for now and the exit is filling the pool
+out** — so a repeat is not reported as a constraint failure, and no cleverer draw is attempted. What
+stays enforced is **never silently**: the pool is exhausted before anything repeats, an adjacent-column
+repeat is avoided while any board would avoid it, and the log names every column where one lands, so
+the debt is measured rather than assumed. At the sizing the doc actually locks, the pool is big enough
+and no adjacent column repeats at all — pinned by its own test.
 
 **Core's map linter is surfaced in the builder and NOT enforced.** `ActMap.Validate` holds what a
 *shippable* act must be — one terminal, and that terminal a boss. A three-node probe that ends on a

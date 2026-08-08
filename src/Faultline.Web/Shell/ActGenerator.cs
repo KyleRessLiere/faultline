@@ -314,12 +314,13 @@ public static class ActGenerator
 
     /// <summary>Fills every combat node with an authored board.</summary>
     /// <remarks>
-    /// <b>The repetition debt, made visible.</b> An act of this length against a pool of eight boards
-    /// will field the same board twice, and that is knowingly accepted rather than an oversight — the
-    /// exit condition is board editions plus objective and roster swaps on fixed terrain. Until then
-    /// the rule is: exhaust the pool before repeating, and never repeat in adjacent columns. Every time
-    /// the pool has to be recycled the proof log says so, so the debt stays measured rather than
-    /// assumed.
+    /// <b>Repetition is accepted, and the exit is a bigger pool.</b> An act of this length against a
+    /// handful of boards will field the same board twice. That is a knowingly carried debt rather than
+    /// an oversight, and the way out is filling the pool out — plus, eventually, board editions and
+    /// objective and roster swaps on fixed terrain. So repeating is not an error here and is not
+    /// reported as one. What the generator still does is prefer: exhaust the pool before repeating, and
+    /// avoid an adjacent-column repeat while there is any board left that would avoid it. Every repeat
+    /// is written to the proof log, so the debt stays <em>measured</em> rather than assumed.
     /// </remarks>
     private static void DealBoards(
         ActDraft draft, SeededRng rng, List<string> proof, bool wholeLibrary, int last)
@@ -363,8 +364,9 @@ public static class ActGenerator
                 {
                     open = pool.Where(id => !here.Contains(id)).ToList();
                     proof.Add(
-                        "column " + Col(c)
-                        + " — bound: the pool is too small to avoid an adjacent-column repeat.");
+                        "column " + Col(c) + " — repeats a board from column " + Col(c - 1)
+                        + ": " + pool.Count + " boards cannot fill two adjacent columns. Accepted;"
+                        + " the exit is a bigger pool.");
                 }
 
                 if (open.Count == 0)
@@ -390,7 +392,8 @@ public static class ActGenerator
         {
             proof.Add(
                 "boards — the pool was exhausted " + recycles.ToString(CultureInfo.InvariantCulture)
-                + " time(s); from there on the act repeats boards at distance. Accepted debt, not an oversight.");
+                + " time(s); from there on the act repeats boards at distance. Accepted for now — the"
+                + " exit is filling the pool out, not a cleverer draw.");
         }
     }
 

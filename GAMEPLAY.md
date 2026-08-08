@@ -2023,18 +2023,21 @@ or scene fills a node and which doors exist. Every floor holds whatever the dial
 - **One mid-act node carries the guaranteed reward**, on the hungry lane.
 - **Boards are drawn without repeating in adjacent columns** — see the caveat below.
 
-Presets: **The Warrens** is §8.5 as locked (7 columns, 2–3 wide, 1–2 doors). **Mesh (unruled)** is
-Stage Q's numbers (12 columns, 2–4 wide, 1–3 doors) and **is not in the design doc** — it is a dial,
-not a ruling, and the picker says so. **Short probe** is four columns for looking at one scene.
+Presets: **The Warrens** is §8.5 as locked (7 columns, 2–3 wide, 1–2 doors) and keeps the authored
+act's name. **Warrens v2** is the same zone redrawn longer and wider (12 columns, 2–4 wide, 1–3
+doors); those numbers **are not in the design doc** — it is a dial, not a ruling, and the picker says
+so. **Short probe** is four columns for looking at one scene.
 
 Every generated act prints a **proof log** saying which constraint bound where, and it is stored with
 the act.
 
-**Known: at the mesh sizing, adjacent columns repeat boards.** The Warrens' pool is six ordinary
-boards and a twelve-column act four nodes wide needs eight distinct ones across two columns. The rule
-that holds is *never silently* — the log names the column it bound at. At the Warrens sizing the pool
-is big enough and no adjacent column ever repeats. Tick **Whole library** to draw from all 66 active
-boards instead.
+**Boards repeat, and that is accepted for now.** The Warrens' pool is six ordinary boards and a
+twelve-column act four nodes wide needs eight distinct ones across two adjacent columns, so it cannot
+have them. Repeating is a carried debt, not an error — **the exit is filling the pool out**, not a
+cleverer draw. What stays enforced is *never silently*: the generator exhausts the pool before
+repeating, avoids an adjacent-column repeat while any board would avoid it, and the log names every
+column where one happens. At the Warrens sizing the pool is big enough and no adjacent column repeats
+at all. Tick **Whole library** to draw from all 66 active boards instead.
 
 **Core's map linter is shown, not enforced.** It holds what a *shippable* act must be — one terminal,
 and that terminal a boss — so a three-node probe ending on a Still Pond raises notes and still plays.

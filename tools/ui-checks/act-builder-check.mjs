@@ -101,7 +101,7 @@ await page.screenshot({ path: 'shots/act-builder.png' });
 await page.goto(`${BASE}/acts`, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForSelector('.builder', { timeout: 60000 });
 
-await page.locator('.preset').selectOption({ label: 'Mesh (unruled)' });
+await page.locator('.preset').selectOption({ label: 'Warrens v2' });
 await page.waitForTimeout(200);
 await page.locator('.template button', { hasText: 'Generate' }).click();
 await page.waitForTimeout(800);
@@ -110,10 +110,10 @@ const columns = await page.locator('.column').count();
 const nodes = await page.locator('.node').count();
 note(`generated: ${columns} columns, ${nodes} nodes`);
 if (columns !== 12) {
-  fail.push(`the mesh template did not build 12 columns, it built ${columns}`);
+  fail.push(`the Warrens v2 template did not build 12 columns, it built ${columns}`);
 }
 if (nodes < 20) {
-  fail.push(`a 12-column mesh produced only ${nodes} nodes`);
+  fail.push(`a 12-column act produced only ${nodes} nodes`);
 }
 
 // The boss is the last node and is drawn largest, as it is on the run map.
@@ -158,11 +158,11 @@ if (openAfter !== openBefore - 1) {
 await firstDoors.first().click();
 await page.waitForTimeout(250);
 
-await page.screenshot({ path: 'shots/act-builder-mesh.png', fullPage: true });
+await page.screenshot({ path: 'shots/act-builder-generated.png', fullPage: true });
 
-// ---- Walk the generated mesh --------------------------------------------------------------------
+// ---- Walk the generated act --------------------------------------------------------------------
 
-await page.locator('.act-name').fill('Mesh probe');
+await page.locator('.act-name').fill('Warrens v2 probe');
 await page.waitForTimeout(150);
 await page.locator('.foot-actions button', { hasText: 'Walk this act' }).click();
 await page.waitForTimeout(1800);
@@ -170,7 +170,7 @@ await page.waitForTimeout(1800);
 note(`after walking: ${page.url().replace(BASE, '')}`);
 const mapBody = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
 
-if (!/MESH PROBE/i.test(mapBody)) {
+if (!/WARRENS V2 PROBE/i.test(mapBody)) {
   fail.push('walking the generated act did not land on its own map');
 }
 if (!/12 columns/i.test(mapBody) && !/nodes over 12 columns/i.test(mapBody)) {

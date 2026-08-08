@@ -20,7 +20,7 @@ public class ActGeneratorTests
 
     private static ActShape Warrens() => ActShape.Presets()[0].Copy();
 
-    private static ActShape Mesh() => ActShape.Presets()[1].Copy();
+    private static ActShape WarrensTwo() => ActShape.Presets()[1].Copy();
 
     private static ActMap MapOf(ActDraft draft) => draft.ToCampaign("test").Map!;
 
@@ -39,7 +39,7 @@ public class ActGeneratorTests
     [Fact]
     public void DifferentSeeds_BuildDifferentActs()
     {
-        var shapes = Seeds.Take(12).Select(s => ActGenerator.Generate(Mesh(), s, "A").ToText()).ToList();
+        var shapes = Seeds.Take(12).Select(s => ActGenerator.Generate(WarrensTwo(), s, "A").ToText()).ToList();
 
         Assert.True(shapes.Distinct().Count() > 1, "every seed produced the same act");
     }
@@ -61,7 +61,7 @@ public class ActGeneratorTests
     }
 
     /// <summary>
-    /// The floor the mesh must never break: the pre-boss column holds a Rest, and every route reaches
+    /// The floor no act may break: the pre-boss column holds a Rest, and every route reaches
     /// it.
     /// </summary>
     [Fact]
@@ -69,7 +69,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds)
         {
-            var map = MapOf(ActGenerator.Generate(Mesh(), seed, "A"));
+            var map = MapOf(ActGenerator.Generate(WarrensTwo(), seed, "A"));
             var boss = map.Nodes.Single(n => n.Type == MapNodeType.Boss);
             var floor = map.Nodes.Single(n => map.IsPreBossRest(n.Id));
 
@@ -92,7 +92,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds)
         {
-            var map = MapOf(ActGenerator.Generate(Mesh(), seed, "A"));
+            var map = MapOf(ActGenerator.Generate(WarrensTwo(), seed, "A"));
             var start = map.StartNodeId;
             var boss = map.Nodes.Single(n => n.Type == MapNodeType.Boss);
 
@@ -117,7 +117,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds)
         {
-            var map = MapOf(ActGenerator.Generate(Mesh(), seed, "A"));
+            var map = MapOf(ActGenerator.Generate(WarrensTwo(), seed, "A"));
             var first = map.ColumnAt(0);
 
             Assert.Single(first);
@@ -132,7 +132,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds)
         {
-            var map = MapOf(ActGenerator.Generate(Mesh(), seed, "A"));
+            var map = MapOf(ActGenerator.Generate(WarrensTwo(), seed, "A"));
 
             foreach (var node in map.Nodes.Where(n => n.Type == MapNodeType.Event))
             {
@@ -151,7 +151,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds)
         {
-            var map = MapOf(ActGenerator.Generate(Mesh(), seed, "A"));
+            var map = MapOf(ActGenerator.Generate(WarrensTwo(), seed, "A"));
 
             foreach (var a in map.Nodes.Where(n => !n.IsCombat))
             {
@@ -174,7 +174,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds)
         {
-            var map = MapOf(ActGenerator.Generate(Mesh(), seed, "A"));
+            var map = MapOf(ActGenerator.Generate(WarrensTwo(), seed, "A"));
             var marked = map.Nodes.Where(n => n.Reward is not null).ToList();
 
             Assert.Single(marked);
@@ -184,21 +184,21 @@ public class ActGeneratorTests
     }
 
     /// <summary>
-    /// Repetition is accepted and must be <b>visible</b>: a board is never fielded twice in adjacent
-    /// columns unless the pool is too small to avoid it, and when that happens the proof log says so.
+    /// Repetition is accepted and must be <b>visible</b>: a board repeats in adjacent columns only when
+    /// the pool cannot fill them both, and the proof log names the column when it does.
     /// </summary>
     /// <remarks>
-    /// The escape clause is not a softened assertion, it is the finding. The Warrens' pool is six
-    /// ordinary boards; a twelve-column act four nodes wide asks for eight distinct boards across two
-    /// adjacent columns and cannot have them. The rule that survives is therefore "never silently" —
-    /// the constraint binds, the log records which column it bound at, and the debt stays measured.
+    /// The escape clause is the ruling, not a softened assertion. The Warrens' pool is six ordinary
+    /// boards; a twelve-column act four nodes wide asks for eight distinct boards across two adjacent
+    /// columns and cannot have them. Repeating is therefore accepted and the exit is a bigger pool —
+    /// what stays enforced is <em>never silently</em>, so the debt is measured rather than assumed.
     /// </remarks>
     [Fact]
-    public void ABoardRepeatsInAdjacentColumns_OnlyWhenTheLogSaysThePoolRanOut()
+    public void ABoardRepeatsInAdjacentColumns_OnlyWhenTheLogSaysSo()
     {
         foreach (int seed in Seeds)
         {
-            var draft = ActGenerator.Generate(Mesh(), seed, "A");
+            var draft = ActGenerator.Generate(WarrensTwo(), seed, "A");
             var map = MapOf(draft);
 
             for (int c = 1; c < map.ColumnCount; c++)
@@ -213,8 +213,7 @@ public class ActGeneratorTests
                 {
                     Assert.Contains(
                         draft.Proof,
-                        l => l.Contains("column " + (c + 1) + " —")
-                            && l.Contains("too small to avoid an adjacent-column repeat"));
+                        l => l.Contains("column " + (c + 1) + " — repeats a board from column " + c));
                 }
             }
         }
@@ -246,7 +245,7 @@ public class ActGeneratorTests
     [Fact]
     public void TheProofLog_NamesTheConstraintsThatBound()
     {
-        var draft = ActGenerator.Generate(Mesh(), 31337, "A");
+        var draft = ActGenerator.Generate(WarrensTwo(), 31337, "A");
 
         Assert.NotEmpty(draft.Proof);
         Assert.Contains(draft.Proof, l => l.Contains("the opener is fixed"));
@@ -273,7 +272,7 @@ public class ActGeneratorTests
     {
         foreach (int seed in Seeds.Take(10))
         {
-            var draft = ActGenerator.Generate(Mesh(), seed, "A");
+            var draft = ActGenerator.Generate(WarrensTwo(), seed, "A");
 
             foreach (var step in draft.Steps)
             {

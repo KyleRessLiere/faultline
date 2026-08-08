@@ -79,10 +79,11 @@ public sealed class ActShape
 
     /// <summary>The sizings the builder offers.</summary>
     /// <remarks>
-    /// Exactly one of these is the game's, and it says so: the Warrens preset is §8.5 as locked at
-    /// v2026-08-08ac. The mesh preset is <b>not a ruling</b> — it is the Stage Q packet's numbers,
-    /// which the design doc does not yet carry, offered as a dial so the shape can be looked at before
-    /// it is decided rather than after.
+    /// <b>"The Warrens" is the authored act's name and its sizing is §8.5 as locked at
+    /// v2026-08-08ac.</b> "Warrens v2" is the longer, wider draft of the same act — <b>not a ruling</b>,
+    /// since the design doc does not yet carry those numbers — offered as a dial so the shape can be
+    /// looked at before it is decided rather than after. The v2 name is deliberate: it is the same
+    /// zone, redrawn, and the original keeps its name until something replaces it.
     /// </remarks>
     /// <returns>The presets, in order.</returns>
     public static IReadOnlyList<ActShape> Presets() => new[]
@@ -101,8 +102,9 @@ public sealed class ActShape
         },
         new ActShape
         {
-            Name = "Mesh (unruled)",
-            Note = "Stage Q's numbers — 12 columns, 2–4 wide, 1–3 doors. NOT in the design doc yet.",
+            Name = "Warrens v2",
+            Note = "12 columns, 2–4 wide, 1–3 doors. Sizing not in the design doc yet; boards repeat "
+                + "until the pool fills out.",
             Columns = 12,
             MinWidth = 2,
             MaxWidth = 4,
