@@ -26,10 +26,11 @@ harness and tools live. This section exists so that nobody ever greps to orient.
 Commands — use exactly these, don't invent variants:
 
 ```
-build         <FILL>
-targeted test <FILL: how to run one suite>
-determinism   <FILL>
-full suite    <FILL>
+build         dotnet build Faultline.slnx
+targeted test dotnet test tests/Faultline.Core.Tests   (or tests/Faultline.Web.Tests)
+              add --filter "FullyQualifiedName~<ClassName>" for one class
+determinism   dotnet test tests/Faultline.Core.Tests --filter "FullyQualifiedName~DeterminismTests"
+full suite    dotnet test Faultline.slnx
 harness       <FILL: incl. how seeds are passed>
 catalogue     python tools/build_catalogue.py <FILL args>
 ```
@@ -60,7 +61,9 @@ Pipe long output: `<cmd> 2>&1 | tail -30`. Never paste a full build or test log 
 - **`git commit -- <paths>` every time.** A bare `git commit` takes another writer's staged work.
 - `git commit -- <paths>` already commits deletions. `-A` is never required.
 - Read `git show --stat --name-only HEAD` after committing. A path you didn't name → say so. Never rewrite pushed history.
-- Never commit to `main`. Branch from the current work tip: `<FILL: naming convention + how to find the tip>` — `guard-branch.sh` enforces it. Push on first commit.
+- **`main` is the trunk and the single source of truth.** Commit to it. Push when green.
+- **A branch you will not merge is a branch you do not make.** Branch only for work that cannot land green in one session, and **merge it back the session it was made**. A green branch is never handed to someone else to merge.
+- The **only** reason to leave a branch unmerged is a decision the designer has not ruled. Then say which, in the handoff's `MERGE DEBT` line, by number. *"Not reviewed yet"* is not a reason: three branches sat unmerged on that excuse, all three merged with zero code conflicts, and a full packet was written specifying work one of them had already shipped.
 - Hooks are never bypassed. `check-gameplay-doc.sh` judges **staged** changes; another writer's dirty tree is expected state, not a violation. If your change genuinely alters no observable rule: `<FILL: the actual mechanism to proceed — marker, env var, or "stop and ask">`.
 
 ## 5. Model tiering
@@ -125,3 +128,9 @@ Before repeating a failed action: **could this attempt produce a different resul
 ≤ 40 lines (`docs/handoffs/TEMPLATE.md`): what's half-done · what's uncommitted · traps · **the exact next step**.
 Rulings and findings go to `DECISIONS.md` — a ruling written only in a handoff is a ruling that will be lost.
 Assume the next session starts with zero memory beyond the repo.
+
+**`MERGE DEBT` is a required line and cannot be left blank.** It reads either
+`none — merged to main at <sha>`, or it names the unruled decision holding the branch:
+`g4-alternate-kits held — D-158/D-227 unruled`. A branch with no entry is a branch that will be
+forgotten, and a handoff that lists unmerged branches without saying why each is held is how a
+session gets spent rebuilding something that already shipped.
