@@ -270,10 +270,11 @@ in this file when the question comes back.
 | D-267 | [RULED: the Archer's basic attack is a BAND with a sweet spot — range 2–4, 4 damage at exactly 3, 2 at 2 and 4.](#d-267-ruled-the-archers-basic-attack-is-a-band-with-a-sweet-spot--range-24-4-damage-at-exactly-3-2-at-2-and-4) | 2026-08-09 |  |
 | D-268 | [RULED: her charge condition is +1 on a sweet-spot hit, banked per COMMAND.](#d-268-ruled-her-charge-condition-is-1-on-a-sweet-spot-hit-banked-per-command) | 2026-08-09 |  |
 | D-269 | [FOUND: the band collides with four cards, and every one of them is a designer call this session did not make.](#d-269-found-the-band-collides-with-four-cards-and-every-one-of-them-is-a-designer-call-this-session-did-not-make) | 2026-08-09 |  |
-| D-270 | [RULED: every board declares its band, and the band is authored rather than derived.](#d-270-ruled-every-board-declares-its-band-and-the-band-is-authored-rather-than-derived) | unreleased |  |
-| D-271 | [RULED: the generator draws from banded pools across the whole library. Presets weight; they never scope. The observed repetition was an artifact of scoping, and it is now zero.](#d-271-ruled-the-generator-draws-from-banded-pools-across-the-whole-library-presets-weight-they-never-scope-the-observed-repetition-was-an-artifact-of-scoping-and-it-is-now-zero) | unreleased |  |
+| D-270 | [RULED: every board declares its band, and the band is authored rather than derived.](#d-270-ruled-every-board-declares-its-band-and-the-band-is-authored-rather-than-derived) | 2026-08-09 |  |
+| D-271 | [RULED: the generator draws from banded pools across the whole library. Presets weight; they never scope. The observed repetition was an artifact of scoping, and it is now zero.](#d-271-ruled-the-generator-draws-from-banded-pools-across-the-whole-library-presets-weight-they-never-scope-the-observed-repetition-was-an-artifact-of-scoping-and-it-is-now-zero) | 2026-08-09 |  |
+| D-272 | [RULED: the board mask is a view, and the picker gains a second cut of the library by band.](#d-272-ruled-the-board-mask-is-a-view-and-the-picker-gains-a-second-cut-of-the-library-by-band) | unreleased |  |
 
-**253 rulings.**
+**254 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7356,3 +7357,30 @@ reading it, and the proof log has to be able to name it.
 
 **D-264's sizing dial is now the doc's number** (12 columns, 2–4 wide, 1–3 doors, 3 events, 2 mid-act
 Rests) and is pinned by a test, so drift is a failure rather than a discovery.
+
+---
+
+**D-272 — RULED: the board mask is a view, and the picker gains a second cut of the library by band.**
+
+**The mask.** A rectangle of interest on the battle board: everything outside it is dimmed almost out,
+so one section of a board can be read on its own. Four numbers set it and the four corners set a
+quarter of *this* board in one click, rounded up so an odd board keeps its middle row and column in
+both halves.
+
+**It changes what is DRAWN and never what is legal.** A masked tile is still targetable, still
+walkable, still counted by every rule; the cells keep their pointer events and their `disabled`
+state is untouched. It lives in `PlaytestView`, whose whole contract is that nothing it remembers can
+change a rule, a legal command or a replay — and the browser check asserts the count of legal tiles is
+identical with the mask on and off, because "it is only a view" is a claim worth measuring rather than
+asserting in a comment.
+
+**Rejected: hiding masked tiles rather than dimming them.** A hidden tile is a tile you cannot click,
+and the moment the mask stops something being reachable it has stopped being a view. Dimming keeps the
+board playable through the mask, which is what makes it usable *while* testing rather than only
+between tests.
+
+**The picker's band sections.** `/battles` now lists the library twice: the curated groups
+(CURATED_SET's campaign, trials, gauntlet) and then one section per `pool:` band. The second cut is
+what the generator sees — the boards a Warrens v2 act can field — and a board appears in both because
+it is in both. Read off `FightDefinition.Pool` rather than a list, so a board authored tomorrow with a
+mark lands in its band the same day.

@@ -135,6 +135,73 @@ public sealed class PlaytestView
     /// <summary>Whether the board has the whole window, with both dashboard columns hidden.</summary>
     public bool BoardOnly { get; private set; }
 
+    // ---- The mask ------------------------------------------------------------------------------
+    //
+    // A rectangle of interest. Tiles outside it are dimmed so one corner of a board can be read on
+    // its own — which is what you want when a board is being authored a section at a time.
+    //
+    // VIEW ONLY, and that is load-bearing: the mask changes what is DRAWN and never what is legal.
+    // A masked tile is still targetable, still walkable, still counted by every rule. Anything else
+    // would make a look at the board a change to the fight, which is the one thing a view may not be.
+
+    /// <summary>Whether only one region of the board is drawn at full strength.</summary>
+    public bool Masked { get; private set; }
+
+    /// <summary>Left edge of the region, in tiles.</summary>
+    public int MaskX { get; private set; }
+
+    /// <summary>Top edge of the region, in tiles.</summary>
+    public int MaskY { get; private set; }
+
+    /// <summary>Width of the region, in tiles. Never below one.</summary>
+    public int MaskWidth { get; private set; } = 3;
+
+    /// <summary>Height of the region, in tiles. Never below one.</summary>
+    public int MaskHeight { get; private set; } = 3;
+
+    /// <summary>Whether a tile falls inside the region. Always true while the mask is off.</summary>
+    /// <param name="x">Tile column.</param>
+    /// <param name="y">Tile row.</param>
+    /// <returns>Whether the tile is drawn at full strength.</returns>
+    public bool InMask(int x, int y) =>
+        !Masked
+        || (x >= MaskX && x < MaskX + MaskWidth && y >= MaskY && y < MaskY + MaskHeight);
+
+    /// <summary>The region as a sentence, for the control that sets it.</summary>
+    public string MaskLabel =>
+        Masked
+            ? MaskWidth + "×" + MaskHeight + " from " + MaskX + "," + MaskY
+            : "whole board";
+
+    /// <summary>Turns the region on or off, keeping whatever rectangle was last set.</summary>
+    public void ToggleMask()
+    {
+        Masked = !Masked;
+        Persist();
+    }
+
+    /// <summary>Sets the region and turns it on.</summary>
+    /// <param name="x">Left edge.</param>
+    /// <param name="y">Top edge.</param>
+    /// <param name="width">Width in tiles; clamped to at least one.</param>
+    /// <param name="height">Height in tiles; clamped to at least one.</param>
+    public void SetMask(int x, int y, int width, int height)
+    {
+        MaskX = x < 0 ? 0 : x;
+        MaskY = y < 0 ? 0 : y;
+        MaskWidth = width < 1 ? 1 : width;
+        MaskHeight = height < 1 ? 1 : height;
+        Masked = true;
+        Persist();
+    }
+
+    /// <summary>Drops the region and draws the whole board again.</summary>
+    public void ClearMask()
+    {
+        Masked = false;
+        Persist();
+    }
+
     /// <summary>Board zoom as a percentage of the size that fits the panel.</summary>
     public int Zoom { get; private set; } = 100;
 
@@ -257,7 +324,37 @@ public sealed class PlaytestView
             "ids=" + Flag(ShowTileIds),
             "costs=" + Flag(ShowPathCosts),
             "union=" + Flag(ShowThreatUnion),
-            "apaudit=" + Flag(ShowApAudit));
+            "apaudit=" + Flag(ShowApAudit),
+            "mask=" + Flag(Masked),
+            "maskrect=" + MaskX + "," + MaskY + "," + MaskWidth + "," + MaskHeight);
+
+    /// <summary>Reads <c>x,y,w,h</c>. A malformed rectangle leaves the last one standing.</summary>
+    private void ReadMaskRect(string value)
+    {
+        var parts = value.Split(',');
+        if (parts.Length != 4)
+        {
+            return;
+        }
+
+        var numbers = new int[4];
+        for (int i = 0; i < 4; i++)
+        {
+            if (!int.TryParse(
+                parts[i],
+                System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out numbers[i]))
+            {
+                return;
+            }
+        }
+
+        MaskX = numbers[0] < 0 ? 0 : numbers[0];
+        MaskY = numbers[1] < 0 ? 0 : numbers[1];
+        MaskWidth = numbers[2] < 1 ? 1 : numbers[2];
+        MaskHeight = numbers[3] < 1 ? 1 : numbers[3];
+    }
 
     /// <summary>Applies an encoded line. Unknown or malformed fields are left at their defaults.</summary>
     /// <param name="stored">A line produced by <see cref="Encode"/>.</param>
@@ -296,6 +393,12 @@ public sealed class PlaytestView
                     break;
                 case "threat":
                     ThreatView = value == "1";
+                    break;
+                case "mask":
+                    Masked = value == "1";
+                    break;
+                case "maskrect":
+                    ReadMaskRect(value);
                     break;
                 case "ids":
                     ShowTileIds = value == "1";

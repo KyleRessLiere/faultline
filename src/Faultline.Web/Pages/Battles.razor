@@ -335,6 +335,50 @@
             "Other battles",
             "Authored and active, but outside the curated groups — variant proofs, annexes and boards waiting on a re-judge.",
             other));
+
+        AddBandSections();
+    }
+
+    /// <summary>
+    /// The same library cut a second way: by the <c>pool:</c> band each board declares.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>These are the boards a Warrens v2 act can field</b>, which is the thing you want in front of
+    /// you when you are testing one. The curated sections above are the authored groups (CURATED_SET);
+    /// this is what the generator sees, and a board appears in both because it IS in both — the cut is
+    /// different, not the library.
+    /// </para>
+    /// <para>
+    /// Read off <see cref="FightDefinition.Pool"/> rather than off a list here, so a board authored
+    /// tomorrow with a mark lands in its band the same day.
+    /// </para>
+    /// </remarks>
+    private void AddBandSections()
+    {
+        var bands = new (FightPool Pool, string Heading, string Blurb)[]
+        {
+            (FightPool.Opener, "Opener", "Column 1, and the gentlest of an act's early third. A control group: nothing here can hurt you before you have had a turn."),
+            (FightPool.Ordinary, "Ordinary", "The bulk of an act — its early and middle columns. The band Warrens v2 draws most heavily from."),
+            (FightPool.Hard, "Hard", "The late third: the fights a squad arrives at already spent."),
+            (FightPool.Elite, "Elite", "A gilt node's fight. Costs more, and the map says so before you take it."),
+            (FightPool.Endurance, "Endurance", "Objective-shaped rather than harder — survive, hold. One per generated act, in the late third."),
+            (FightPool.Boss, "Boss", "Terminals."),
+        };
+
+        foreach (var (pool, heading, blurb) in bands)
+        {
+            var inBand = GameSession.Library
+                .Where(r => r.Fight is { } f && f.Pool == pool && !f.IsRetired)
+                .ToList();
+
+            ByNumber(inBand);
+
+            _sections.Add(new Section(
+                "Warrens v2 · " + heading + " — " + inBand.Count + " board(s)",
+                blurb,
+                inBand));
+        }
     }
 
     private static void ByNumber(List<FightParseResult> results) =>

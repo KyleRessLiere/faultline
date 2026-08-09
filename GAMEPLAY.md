@@ -2046,6 +2046,25 @@ whole input, so the same pick and the same seed always start the same act. Anyth
 builder appears under **Saved acts** in the same picker. Both are internal-build only, and both start
 a **scratch** run (D-263): a reload ends it, and the picker says so before the button is pressed.
 
+### Reading one section of a board
+
+The board's view controls carry a **Mask**: a rectangle of interest that dims everything outside it,
+so one corner of a board can be read on its own while it is being authored. Four numbers set it, and
+**NW / NE / SW / SE** set a quarter of *this* board in one click (rounded up, so an odd board keeps
+its middle row and column in both halves).
+
+**It is paint and nothing else.** A dimmed tile is exactly as legal, targetable and walkable as a
+bright one — the mask changes what is drawn and never what the fight allows, and a browser check
+asserts the count of legal tiles is identical with it on and off. It survives a reload like every
+other view preference.
+
+### The battle picker, cut by band
+
+Below the curated sections, `/battles` lists the library a second way: **one section per `pool:`
+band** — these are the boards a Warrens v2 act can field, which is what you want in front of you when
+testing one. A board appears in both cuts because it is in both; the cut is different, not the
+library.
+
 **Every board declares its band** (D-270). A `.fight` carries `pool:` — `Opener` · `Ordinary` ·
 `Hard` · `Elite` · `Endurance` · `Boss` — and a board without one **does not load**. The band is
 authored, not derived from the roster: `high-road` is the act's elite at the same enemy total as two

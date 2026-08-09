@@ -102,10 +102,83 @@
                 @onclick="View.FitBoard">
             Fit board
         </button>
+        @* The mask: a rectangle of interest for reading one section of a board on its own. Paint and
+           only paint — a dimmed tile is every bit as legal, targetable and walkable as a bright one,
+           which is what keeps looking at the board from being a change to the fight. *@
+        <button type="button"
+                class="tool @(View.Masked ? "on" : string.Empty)"
+                aria-pressed="@View.Masked"
+                title="Dim everything outside a rectangle, so one section of the board can be read on its own. A view only — nothing about legality changes."
+                @onclick="View.ToggleMask">
+            Mask
+        </button>
+
+        @if (View.Masked)
+        {
+            <span class="mask-rect">
+                <input type="number" min="0" max="31" title="Left edge"
+                       value="@View.MaskX" @onchange="e => Move(e, 0)" />
+                <input type="number" min="0" max="31" title="Top edge"
+                       value="@View.MaskY" @onchange="e => Move(e, 1)" />
+                <span class="by">×</span>
+                <input type="number" min="1" max="31" title="Width in tiles"
+                       value="@View.MaskWidth" @onchange="e => Move(e, 2)" />
+                <input type="number" min="1" max="31" title="Height in tiles"
+                       value="@View.MaskHeight" @onchange="e => Move(e, 3)" />
+            </span>
+
+            @foreach (var quarter in Quarters)
+            {
+                <button type="button" class="tool quiet"
+                        title="@("Mask the " + quarter.Name.ToLowerInvariant() + " of this board")"
+                        @onclick="() => Quarter(quarter.Dx, quarter.Dy)">@quarter.Name</button>
+            }
+        }
     </div>
 </div>
 
 @code {
+    private sealed record Corner(string Name, int Dx, int Dy);
+
+    /// <summary>
+    /// One-click quarters, because "the north-west corner of this board" is what a person actually
+    /// wants to look at and typing four numbers to say it is friction.
+    /// </summary>
+    private static readonly Corner[] Quarters =
+    {
+        new Corner("NW", 0, 0),
+        new Corner("NE", 1, 0),
+        new Corner("SW", 0, 1),
+        new Corner("SE", 1, 1),
+    };
+
+    /// <summary>Reads one edited edge and leaves the other three where they were.</summary>
+    private void Move(ChangeEventArgs e, int field)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int value))
+        {
+            return;
+        }
+
+        View.SetMask(
+            field == 0 ? value : View.MaskX,
+            field == 1 ? value : View.MaskY,
+            field == 2 ? value : View.MaskWidth,
+            field == 3 ? value : View.MaskHeight);
+    }
+
+    /// <summary>
+    /// Masks one quarter of THIS board, rounded up so an odd board keeps its middle row and column
+    /// in both halves rather than dropping them.
+    /// </summary>
+    private void Quarter(int dx, int dy)
+    {
+        int w = (State.Board.Width + 1) / 2;
+        int h = (State.Board.Height + 1) / 2;
+
+        View.SetMask(dx * (State.Board.Width - w), dy * (State.Board.Height - h), w, h);
+    }
+
     /// <summary>
     /// The terrain kinds a legend has to explain. Cracked is deliberately absent: it is produced
     /// only at runtime by the collapse clock and no authored board fields it, so a swatch for it

@@ -112,6 +112,19 @@
    has to look at stands out from what they are walking over. The tiles are still flat colour —
    illustrated terrain is a separate pass — but the contrast order is the one it will keep. */
 
+/* The mask. A rectangle of interest for reading one section of a board while it is being authored:
+   everything outside it is dimmed almost out, and NOTHING about it is a rule. A masked tile is still
+   targetable and still walkable — the dim is paint, so a look at the board is never a change to the
+   fight. Pointer events stay on for the same reason. */
+.cell.outside-mask {
+    filter: grayscale(1) brightness(.42);
+    opacity: .32;
+}
+
+.cell.outside-mask:hover {
+    opacity: .6;
+}
+
 .cell.open {
     background-color: #1d2430;
 }

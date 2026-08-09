@@ -581,6 +581,14 @@
     {
         var classes = new List<string> { "cell", EventText.TileClass(State.Board.At(coord)) };
 
+        // The mask is paint and nothing else: a tile outside the region is dimmed and stays every bit
+        // as legal, targetable and walkable as it was. A view that changed what the fight allows would
+        // stop being a view.
+        if (!View.InMask(coord.X, coord.Y))
+        {
+            classes.Add("outside-mask");
+        }
+
         // The hover preview is a view, so the toggle that hides it hides only the paint.
         if (View.RangePreview)
         {

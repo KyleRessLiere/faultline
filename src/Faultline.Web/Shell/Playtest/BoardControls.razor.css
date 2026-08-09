@@ -182,3 +182,30 @@
 .zoom.off .zoom-value {
     opacity: .6;
 }
+
+/* The mask's rectangle. Four small numbers and four corners — enough to say "the north-west of this
+   board" in one click, and enough to say any other region in four. */
+.mask-rect {
+    align-items: center;
+    display: inline-flex;
+    gap: .15rem;
+}
+
+.mask-rect input {
+    font-size: .62rem;
+    padding: .05rem .1rem;
+    width: 2.6rem;
+}
+
+.mask-rect .by {
+    color: var(--pt-text-dim);
+    font-size: .62rem;
+}
+
+.tool.quiet {
+    font-size: .6rem;
+    opacity: .78;
+    padding: .1rem .3rem;
+}
+
+.tool.quiet:hover { opacity: 1; }
