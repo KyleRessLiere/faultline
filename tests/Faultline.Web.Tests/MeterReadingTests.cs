@@ -90,6 +90,34 @@ public sealed class MeterReadingTests
             Verve.ConditionFor(UnitKind.Vanguard), PlaytestText.MeterOf(traded)!.EarnsFrom);
     }
 
+    /// <summary>
+    /// The card and the inspector print the short form (MASTER_DESIGN §5, locked af). The <c>+1</c> is
+    /// the part "earns from a sweet-spot hit" left implicit — it says what pays, not that it pays one.
+    /// </summary>
+    [Fact]
+    public void TheArchersMeter_PrintsPlusOneOnASweetSpotHit()
+    {
+        var meter = PlaytestText.MeterOf(Fresh(UnitKind.Archer))!;
+
+        Assert.Equal("+1 on a sweet-spot hit", meter.ChargeLine);
+        Assert.Contains("+1 on a sweet-spot hit", meter.Title);
+        Assert.DoesNotContain("high ground", meter.Title);
+    }
+
+    /// <summary>Every class's line is the plus-form of its own condition, derived and not retyped.</summary>
+    [Theory]
+    [InlineData(UnitKind.Vanguard)]
+    [InlineData(UnitKind.Archer)]
+    [InlineData(UnitKind.Threadcaster)]
+    [InlineData(UnitKind.Wardbearer)]
+    public void EveryMetersChargeLine_IsThePlusFormOfItsCondition(UnitKind kind)
+    {
+        var meter = PlaytestText.MeterOf(Fresh(kind))!;
+
+        Assert.Equal("+1 on " + Verve.ConditionFor(kind), meter.ChargeLine);
+        Assert.Equal(Verve.ConditionFor(kind), meter.EarnsFrom);
+    }
+
     private static Unit Fresh(UnitKind kind) =>
         Unit.FromTemplate(new UnitId(0), kind, Team.PlayerA) with
         {

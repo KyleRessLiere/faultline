@@ -58,17 +58,6 @@ namespace Faultline.Core
         /// </summary>
         public const int QuickPreenCost = 2;
 
-        /// <summary>
-        /// The band <see cref="SecondWind.LongKill"/> pays out at: a kill at exactly this range.
-        /// </summary>
-        /// <remarks>
-        /// <b>Read off the Archer's sweet spot, not typed.</b> Locked af makes Long Shot "+1 on a
-        /// sweet-spot kill" — additive on top of the base hit charge, so a sweet-spot kill pays 2. The
-        /// two numbers were already the same by coincidence; deriving it means moving the spot moves
-        /// the Second Wind with it, which is the only way the card can keep meaning what it says.
-        /// </remarks>
-        public static int LongKillRange => UnitTemplate.For(UnitKind.Archer).SweetSpot;
-
         /// <summary>Hit points Preen puts back, never past the unit's maximum.</summary>
         public const int PreenHeal = 4;
 
@@ -443,10 +432,30 @@ namespace Faultline.Core
             UnitKind.Threadcaster =>
                 "your pulls ending in a collision or a hazard, and any drag of "
                 + LongPullTiles + " tiles or more",
+            // Locked af. Deliberately short: this is the phrase a card and an inspector print, and
+            // "a sweet-spot hit" is the whole of her income now that it is also the whole of her aim.
             UnitKind.Archer => "a sweet-spot hit",
             UnitKind.Wardbearer => "taking a hit in Guard Stance, aimed at you or an ally",
             _ => string.Empty,
         };
+
+        /// <summary>
+        /// A class's charge condition as the short line a unit card and the inspector print —
+        /// <c>"+1 on a sweet-spot hit"</c>.
+        /// </summary>
+        /// <remarks>
+        /// Derived from <see cref="ConditionFor"/> rather than written out a second time, so a
+        /// condition cannot say one thing on a card and another in a tooltip. The <c>+1</c> is the
+        /// part the old wording left implicit: "earns from a sweet-spot hit" tells a player what
+        /// pays, and not that it pays <em>one</em>.
+        /// </remarks>
+        /// <param name="kind">Archetype to describe.</param>
+        /// <returns>The line, or an empty string for a class that earns nothing.</returns>
+        public static string ChargeLineFor(UnitKind kind)
+        {
+            var condition = ConditionFor(kind);
+            return condition.Length == 0 ? string.Empty : "+1 on " + condition;
+        }
 
         // ---- spending ------------------------------------------------------------------------------
 

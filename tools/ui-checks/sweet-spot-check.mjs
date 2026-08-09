@@ -178,6 +178,19 @@ for (const chip of seen) {
   }
 }
 
+// ---- The inspector prints the condition in short form -------------------------------------------
+
+const earns = await page.locator('.earns').allInnerTexts();
+note(`the meter line reads: ${earns.join(' | ') || '(no meter line on screen)'}`);
+
+if (earns.length && !earns.some((e) => /\+1 on a sweet-spot hit/.test(e))) {
+  fail.push(`the inspector does not print the short condition: "${earns.join(' | ')}"`);
+}
+
+if (/Earns from .*high ground/i.test(await page.locator('body').innerText())) {
+  fail.push('a screen still says she earns from high ground');
+}
+
 await page.screenshot({ path: 'shots/sweet-spot.png', fullPage: true });
 
 // ---- The whole screen must not describe her gun as a single number ------------------------------

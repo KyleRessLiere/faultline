@@ -168,10 +168,14 @@ public class ProgressionDocTests
 
             // The class's plain swing first. It is a kit entry with no AbilityDefinition behind it, so
             // a table built only from AllForKind silently loses it — and then a class reads as holding
-            // more abilities than it knows.
+            // more abilities than it knows. Its reach and damage come from the profile rather than
+            // being typed, because the Archer's is a band and a hardcoded "1 | 1" would lie about it.
             if (Kits.BasicFor(kind) is { } basic)
             {
-                W("| " + Kits.NameOf(basic) + " | 1 | 1 | The class's plain swing. | yes |");
+                W("| " + Kits.NameOf(basic)
+                    + " | 1 | " + Reach(template)
+                    + " | " + EnemyBehaviour.Describe(template)
+                    + " | yes |");
             }
 
             foreach (var def in AbilityDefinition.AllForKind(kind))
@@ -248,6 +252,12 @@ public class ProgressionDocTests
 
         W("");
     }
+
+    /// <summary>A basic attack's reach, as a band when it has one.</summary>
+    private static string Reach(UnitTemplate template) =>
+        template.Attack == AttackKind.Melee ? "melee"
+            : template.HasSweetSpot ? template.MinRange + "–" + template.Range
+            : template.Range.ToString();
 
     private static string RangeOf(AbilityDefinition def) =>
         def.Range == 0 ? "self"

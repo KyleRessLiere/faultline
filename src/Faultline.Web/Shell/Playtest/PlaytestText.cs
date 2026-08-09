@@ -168,7 +168,8 @@ public static class PlaytestText
             unit.Verve,
             unit.Verve >= cost,
             Verve.ConditionFor(unit.Kind),
-            $"{Naming.Meter} {unit.Verve}/{Verve.Cap} — {state}. Earns from {Verve.ConditionFor(unit.Kind)}.");
+            Verve.ChargeLineFor(unit.Kind),
+            $"{Naming.Meter} {unit.Verve}/{Verve.Cap} — {state}. {Verve.ChargeLineFor(unit.Kind)}.");
     }
 
     /// <summary>

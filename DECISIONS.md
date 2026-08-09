@@ -267,9 +267,9 @@ in this file when the question comes back.
 | D-264 | [RULED: the act builder generates a branching act from CONSTRAINTS and a seed, and the sizing is a dial rather than a ruling.](#d-264-ruled-the-act-builder-generates-a-branching-act-from-constraints-and-a-seed-and-the-sizing-is-a-dial-rather-than-a-ruling) | 2026-08-08 |  |
 | D-265 | [FIXED: `FightLibrary` parsed all sixty-six `.fight` files on every call.](#d-265-fixed-fightlibrary-parsed-all-sixty-six-fight-files-on-every-call) | 2026-08-08 |  |
 | D-266 | [RULED: the front door's run picker offers the generated sizings and the saved acts, and starting one is the same call the builder makes.](#d-266-ruled-the-front-doors-run-picker-offers-the-generated-sizings-and-the-saved-acts-and-starting-one-is-the-same-call-the-builder-makes) | 2026-08-08 |  |
-| D-267 | [RULED: the Archer's basic attack is a BAND with a sweet spot — range 2–4, 4 damage at exactly 3, 2 at 2 and 4.](#d-267-ruled-the-archers-basic-attack-is-a-band-with-a-sweet-spot--range-24-4-damage-at-exactly-3-2-at-2-and-4) | unreleased |  |
-| D-268 | [RULED: her charge condition is +1 on a sweet-spot hit, banked per COMMAND.](#d-268-ruled-her-charge-condition-is-1-on-a-sweet-spot-hit-banked-per-command) | unreleased |  |
-| D-269 | [FOUND: the band collides with four cards, and every one of them is a designer call this session did not make.](#d-269-found-the-band-collides-with-four-cards-and-every-one-of-them-is-a-designer-call-this-session-did-not-make) | unreleased |  |
+| D-267 | [RULED: the Archer's basic attack is a BAND with a sweet spot — range 2–4, 4 damage at exactly 3, 2 at 2 and 4.](#d-267-ruled-the-archers-basic-attack-is-a-band-with-a-sweet-spot--range-24-4-damage-at-exactly-3-2-at-2-and-4) | 2026-08-09 |  |
+| D-268 | [RULED: her charge condition is +1 on a sweet-spot hit, banked per COMMAND.](#d-268-ruled-her-charge-condition-is-1-on-a-sweet-spot-hit-banked-per-command) | 2026-08-09 |  |
+| D-269 | [FOUND: the band collides with four cards, and every one of them is a designer call this session did not make.](#d-269-found-the-band-collides-with-four-cards-and-every-one-of-them-is-a-designer-call-this-session-did-not-make) | 2026-08-09 |  |
 
 **251 rulings.**
 
@@ -7266,6 +7266,16 @@ ruling.**
 Long Eye* ("+4 at maximum range") pays at range 4 — which the band makes her WEAK tile — so it would
 deal 6 there against the sweet spot's 4, rewarding the position §4 just priced down. Neither ships, so
 neither is a defect today; both would be if written as printed.
+
+**The card and the inspector print the short form**, `"+1 on a sweet-spot hit"`, derived from the
+condition rather than written out a second time — so every class gets the same shape and none can say
+one thing on a card and another in a tooltip. The `+1` is the part the old "earns from X" wording left
+implicit: it named what pays without saying that it pays *one*.
+
+**Long Shot reads the shot's own recorded flag rather than re-measuring `From`/`To`.** Those agree for
+an ordinary shot and disagree for an intercepted one, where `To` is the guard's tile — so the bet
+would have been lost on exactly the shots where the board moved under it. `Verve.LongKillRange` is
+deleted with it: it had no production caller left, and one number should have one name.
 
 **Spotter and Crossing Shot are flagged, not rewritten.** Spotter suspends minimum range, which the
 band did not touch, so it is mechanically unaffected. Crossing Shot's geometry is `CrossingShotMinRange

@@ -171,6 +171,62 @@ public class SweetSpotTests
         Assert.Equal(played.GetHashCode(), replayed.GetHashCode());
     }
 
+    /// <summary>
+    /// The unit card and the inspector print the condition in short form (locked af), and the "+1" is
+    /// the part the old wording left implicit.
+    /// </summary>
+    [Fact]
+    public void TheChargeLine_ReadsPlusOneOnASweetSpotHit()
+    {
+        Assert.Equal("a sweet-spot hit", Verve.ConditionFor(UnitKind.Archer));
+        Assert.Equal("+1 on a sweet-spot hit", Verve.ChargeLineFor(UnitKind.Archer));
+    }
+
+    /// <summary>Every class that earns gets the same short form, derived rather than written twice.</summary>
+    [Theory]
+    [InlineData(UnitKind.Vanguard)]
+    [InlineData(UnitKind.Archer)]
+    [InlineData(UnitKind.Threadcaster)]
+    [InlineData(UnitKind.Wardbearer)]
+    public void EveryChargeLine_IsThePlusFormOfItsCondition(UnitKind kind)
+    {
+        Assert.Equal("+1 on " + Verve.ConditionFor(kind), Verve.ChargeLineFor(kind));
+    }
+
+    /// <summary>A class that earns from nothing says nothing, rather than "+1 on ".</summary>
+    [Fact]
+    public void AClassThatEarnsNothing_HasNoChargeLine()
+    {
+        Assert.Equal(string.Empty, Verve.ChargeLineFor(UnitKind.Husk));
+    }
+
+    /// <summary>
+    /// Long Shot reads the shot's own flag, so an intercepted sweet-spot kill still pays. Guard's tile
+    /// is what the event's To names, and re-measuring it would have lost the bet on exactly the shots
+    /// where the board moved under it.
+    /// </summary>
+    [Fact]
+    public void LongShot_PaysOnAnInterceptedSweetSpotKill()
+    {
+        var state = BoardBuilder.Open(6, 2)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .PlayerB(UnitKind.Wardbearer, 2, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 2)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer).Id;
+        var husk = state.Find(UnitKind.Husk).Id;
+
+        state = state.WithWind(archer, SecondWind.LongKill);
+
+        var result = state.Step(new AttackCommand(archer, husk));
+        var shot = result.All<UnitAttacked>().Single(a => a.AttackerId == archer);
+
+        Assert.True(shot.SweetSpot);
+        Assert.Contains(result.All<VerveCharged>(), c => c.Source == VerveSource.LongKill);
+        Assert.Equal(2, result.NewState.Get(archer).Verve);
+    }
+
     private static GameState Board(int enemyAt) =>
         BoardBuilder.Open(7, 2)
             .PlayerA(UnitKind.Archer, 0, 0)

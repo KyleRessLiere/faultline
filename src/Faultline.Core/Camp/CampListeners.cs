@@ -180,8 +180,11 @@ namespace Faultline.Core
                 return state;
             }
 
-            if (Earns(archer, SecondWind.LongKill)
-                && attack.From.DistanceTo(attack.To) == Verve.LongKillRange)
+            // Read off the shot's own recorded flag rather than re-measured from From/To. Those two
+            // agree for an ordinary shot and disagree for an intercepted one — To is the guard's tile
+            // — and "was it a sweet-spot shot" is a fact about the deed, settled when it happened
+            // (locked af; same reasoning as UnitAttacked.SweetSpot itself).
+            if (Earns(archer, SecondWind.LongKill) && attack.SweetSpot)
             {
                 state = Verve.Gain(state, archer.Id, 1, VerveSource.LongKill, events);
             }

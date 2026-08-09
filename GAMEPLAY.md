@@ -58,7 +58,9 @@ named the card the class opens with (D-242).
 
 **Charge conditions do not travel.** An alternate spender changes the spend and never the income:
 Retort is funded by the Vanguard causing collisions exactly as Wrecking Weight is, Whirl by the
-Fisher's displacements, Skyfall by the Archer's high ground, Breakwater by the Wardbearer's absorbs.
+Fisher's displacements, Skyfall by the Archer's **sweet spot**, Breakwater by the Wardbearer's
+absorbs. Skyfall is still gated on high ground to *use* — that is a condition on the spend, not on
+the income, and the two moved apart when her condition did (D-268).
 
 ### Ranges and minimum range
 
@@ -967,8 +969,9 @@ event on the board pays one unit and not another:
 | Archer | **she** lands a basic attack at her **sweet spot** (exactly range 3) | `SweetSpot` |
 | Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally, taken off the structure beside it, or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
 
-The Fisher is ranged, so a shot of hers from HighGround produces exactly the event the Archer
-charges on — and she still earns nothing from it. That is the binding doing its job, not a bug.
+**Nothing charges from high ground any more.** It was the Archer's condition and it was the only one
+the map could refuse (D-268); a hit from a ledge now pays its +2 damage and no Pluck to anyone.
+`Roost` still watches elevation, and it is a Second Wind rather than a class condition.
 
 **The haul and the landing are two separate charges, and a long drag pays both.**
 

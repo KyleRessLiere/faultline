@@ -18,6 +18,7 @@ namespace Faultline.Web.Shell.Playtest;
 /// <param name="Held">Pluck the duck is holding right now.</param>
 /// <param name="Ready">Whether <see cref="Held"/> has reached <see cref="Cost"/>.</param>
 /// <param name="EarnsFrom">§5's charge condition for the duck's class, in plain words.</param>
+/// <param name="ChargeLine">The same condition as the short line a card prints: "+1 on X".</param>
 /// <param name="Title">The one-line tooltip every surface hangs on the meter.</param>
 public sealed record MeterReading(
     VerveSpend Spend,
@@ -26,4 +27,5 @@ public sealed record MeterReading(
     int Held,
     bool Ready,
     string EarnsFrom,
+    string ChargeLine,
     string Title);

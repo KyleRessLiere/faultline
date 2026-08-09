@@ -107,7 +107,13 @@ public static class ClassCards
                 Verve.CostOf(spend) + " " + Naming.Meter + " · 0 AP");
         }
 
-        return new Card(Kits.NameOf(entry), "The class's plain swing.", "1 AP");
+        // The plain swing — but "plain" is a claim about the profile, not a licence to skip it. The
+        // Archer's is a band (MASTER_DESIGN §4), and a card that called it a plain swing and stopped
+        // would hide the one number her whole class is now about.
+        return new Card(
+            Kits.NameOf(entry),
+            EnemyBehaviour.Describe(UnitTemplate.For(Kits.KindOf(entry))),
+            "1 AP");
     }
 
     /// <summary>The technique modifiers this class can hold.</summary>

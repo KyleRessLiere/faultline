@@ -250,14 +250,14 @@ public class SecondWindTests
     [Fact]
     public void LongKill_ASweetSpotKill_PaysTwo()
     {
-        var state = LongShot(Verve.LongKillRange);
+        var state = LongShot(SweetSpot);
         var archer = state.Find(UnitKind.Archer);
         var husk = state.Units[1];
 
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
         var shot = result.All<UnitAttacked>().Single(a => a.TargetId == husk.Id);
-        Assert.Equal(Verve.LongKillRange, shot.From.DistanceTo(shot.To));
+        Assert.Equal(SweetSpot, shot.From.DistanceTo(shot.To));
         Assert.True(shot.SweetSpot);
         Assert.False(shot.FromHighGround);
         Assert.Equal(husk.Id, result.Single<UnitDowned>().UnitId);
@@ -276,14 +276,14 @@ public class SecondWindTests
     [Fact]
     public void LongKill_AKillOffTheSweetSpot_ChargesNothing()
     {
-        var state = LongShot(Verve.LongKillRange - 1, hp: 2);
+        var state = LongShot(SweetSpot - 1, hp: 2);
         var archer = state.Find(UnitKind.Archer);
         var husk = state.Units[1];
 
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
         var shot = result.All<UnitAttacked>().Single(a => a.TargetId == husk.Id);
-        Assert.Equal(Verve.LongKillRange - 1, shot.From.DistanceTo(shot.To));
+        Assert.Equal(SweetSpot - 1, shot.From.DistanceTo(shot.To));
         Assert.False(shot.SweetSpot);
         Assert.Equal(husk.Id, result.Single<UnitDowned>().UnitId);
         Assert.False(result.Has<VerveCharged>());
@@ -510,7 +510,7 @@ public class SecondWindTests
     {
         var state = BoardBuilder.Open(6, 2)
             .PlayerA(UnitKind.Threadcaster, 0, 0)
-            .Enemy(UnitKind.Husk, Verve.LongKillRange, 0, hp: 2)
+            .Enemy(UnitKind.Husk, SweetSpot, 0, hp: 2)
             .Enemy(UnitKind.Husk, 5, 1, hp: 12)
             .Build();
 
@@ -521,7 +521,7 @@ public class SecondWindTests
             .Step(new AttackCommand(caster.Id, husk.Id));
 
         var shot = result.Single<UnitAttacked>();
-        Assert.Equal(Verve.LongKillRange, shot.From.DistanceTo(shot.To));
+        Assert.Equal(SweetSpot, shot.From.DistanceTo(shot.To));
         Assert.Equal(husk.Id, result.Single<UnitDowned>().UnitId);
         Assert.False(result.Has<VerveCharged>());
         Assert.Equal(0, result.NewState.Get(caster.Id).Verve);
@@ -568,6 +568,9 @@ public class SecondWindTests
     }
 
     /// <summary>An Archer with Long Shot, and a Husk one shot from death at the given range.</summary>
+    /// <summary>Long Shot pays at her sweet spot, which is the only number it has ever meant.</summary>
+    private static int SweetSpot => UnitTemplate.For(UnitKind.Archer).SweetSpot;
+
     private static GameState LongShot(int range, int hp = 0)
     {
         var builder = BoardBuilder.Open(6, 2).PlayerA(UnitKind.Archer, 0, 0);

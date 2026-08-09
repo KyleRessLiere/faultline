@@ -64,7 +64,7 @@ replaces. A slot count is per class, not per duck:
 
 | Ability | AP | Range | What it does | Starts held |
 |---|---|---|---|---|
-| Vanguard's basic attack | 1 | 1 | The class's plain swing. | yes |
+| Vanguard's basic attack | 1 | melee | melee · 2 dmg · push 1 | yes |
 | Bull Rush | 2 | 3 | Charge up to 3 tiles in a straight line. The first enemy you reach is pushed 2 and you stop adjacent to it. | yes |
 | Overrun | 3 | 3 | Run up to 3 tiles in a straight line, shouldering every enemy in the path 1 tile aside as you pass. You end where you stop; a body with nowhere to go stops you. | — |
 
@@ -85,7 +85,7 @@ replaces. A slot count is per class, not per duck:
 
 | Ability | AP | Range | What it does | Starts held |
 |---|---|---|---|---|
-| Archer's basic attack | 1 | 1 | The class's plain swing. | yes |
+| Archer's basic attack | 1 | 2–4 | range 2–4 · 4 dmg at 3, else 2 | yes |
 | Stagger Shot | 1 | 2–3 | Range 3. Deals 2 damage and pushes the target 1 tile directly away from you. | yes |
 
 **Pluck spenders**
@@ -105,7 +105,7 @@ replaces. A slot count is per class, not per duck:
 
 | Ability | AP | Range | What it does | Starts held |
 |---|---|---|---|---|
-| Fisher's basic attack | 1 | 1 | The class's plain swing. | yes |
+| Fisher's basic attack | 1 | 3 | range 3 · 2 dmg · may pull 1 instead | yes |
 | Reel | 2 | 4 | Range 4. Pulls one enemy all the way in until it is adjacent to you, resolving every tile on the way. Nothing between you and it is consulted — the line flies over rock and body alike. | yes |
 | Punt | 2 | 3 | Range 3. Shoves one enemy 3 tiles directly away from you, every tile on the way resolved. The drain-shove she could only ever make standing at the edge. | — |
 
@@ -126,7 +126,7 @@ replaces. A slot count is per class, not per duck:
 
 | Ability | AP | Range | What it does | Starts held |
 |---|---|---|---|---|
-| Wardbearer's basic attack | 1 | 1 | The class's plain swing. | yes |
+| Wardbearer's basic attack | 1 | melee | melee · 2 dmg | yes |
 | Spear Thrust | 1 | 2 | The two tiles directly ahead. An enemy in the adjacent tile takes 2 damage; one in the tile beyond takes 4 — the tip is the sweet spot. Nothing is displaced. | yes |
 | Guard Stance | 1 | 1 | Costs the action only. Until your next activation, damage and displacement aimed at adjacent allies land on you instead — same damage, same direction, from your tile — and attack damage you take is halved, rounded up, minimum 1. Impact damage is never reduced. | yes |
 | Interpose | 1 | 1 | Offer to swap places with an adjacent ally. Placement, not displacement — neither body travels — and it happens only when that duck's owner accepts. | — |
