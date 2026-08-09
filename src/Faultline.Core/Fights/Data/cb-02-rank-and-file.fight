@@ -5,6 +5,7 @@
 id: cb-02-rank-and-file
 number: 502
 name: Rank and File
+pool: Ordinary
 description: Four Husks and a Lobber share one doorway. Shove the unit in the door back into the queue and two of them die at once.
 design: Combat Manoeuvre 2 — the doorway.
 design: No pits, no spikes. A sealed chamber with one tile of exit.

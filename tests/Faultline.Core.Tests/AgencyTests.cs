@@ -242,6 +242,7 @@ public class AgencyTests
             "\n",
             "id: the-teeth",
             "name: Teeth, with the swarm parked on Player B's doorstep",
+            "pool: Ordinary",
             "roster a: Vanguard, Threadcaster",
             "roster b: Wardbearer, Archer",
             "spawn h = Husk",

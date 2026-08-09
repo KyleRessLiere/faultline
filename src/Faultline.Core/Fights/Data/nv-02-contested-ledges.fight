@@ -6,6 +6,7 @@
 id: nv-02-contested-ledges
 number: 702
 name: Contested Ledges
+pool: Opener
 description: A Perch races you for the ridge and fires for 4 once it is up there. Take the high ground first or fight uphill all battle.
 design: The question: what is the high ground worth when something else wants it?
 design: The Perch spawns one tile from a ledge and nothing is in range 3 of it, so round 1 is the climb: Move 2 pays the +1 entry cost exactly. From round 2 it shoots for 4 instead of 2, and it will not come down while anything is in range — the Archer's favourite tile is now a contested objective. A Lesser Grappler works the other side of the same idea: HighGround outranks even the Archer in its target preference, so whoever climbs gets yanked off — but only from 2 tiles, not 3.

@@ -6,6 +6,7 @@
 id: the-shrine
 number: 5
 name: The Shrine
+pool: Ordinary
 description: Raiders walk two lanes at a twelve-hit-point shrine and never once look at you. Their intents name the shrine and print the hit points it will have left. Shove them off the lane, or lose it.
 design: Warrens node 3, edition A - OBJECTIVE/TWO LANES/WAVES (MASTER_DESIGN 8.8). The one question is which lane you can afford to leave open.
 design: TWO LANES, cut by hazards rather than by walls, and that choice is the board. The brambles at (1,2) and (5,2) and the drains at (1,4) and (5,4) leave a west channel and an east channel with the shrine between them, and a wall at (2,1) and another at (3,5) put a backstop on each. Hazards divide the traffic WITHOUT sheltering it: a wall bar across the shrine's approaches also walls the players out of their own objective, and the first cut of this edition did exactly that and lost the shrine on round 5 every time. Lanes you can shoot across are lanes.

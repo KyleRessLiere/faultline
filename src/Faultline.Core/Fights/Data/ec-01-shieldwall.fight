@@ -6,6 +6,7 @@
 id: ec-01-shieldwall
 number: 301
 name: Shieldwall
+pool: Hard
 description: An Anchor stands in the only gate and a second in front of it, while two Lobbers land rocks straight through the wall. Break the door, not the Anchors.
 design: Enemy composition 1 — the Anchor is the door, the Lobbers are the damage.
 

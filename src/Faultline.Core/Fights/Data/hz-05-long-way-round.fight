@@ -6,6 +6,7 @@
 id: hz-05-long-way-round
 number: 205
 name: The Long Way Round
+pool: Ordinary
 description: A wall splits the board and the only gap is at the top. Three units on one side can pull each other out; the one unit on the other side gets no second chance.
 design: Hazard Pressure 5 of 10 — rescue is a distance budget.
 design: A unit that falls in clings until the end of the round AFTER the one it fell in, and only an ADJACENT ally spending its whole activation gets it back. The wall runs the full height of the board with one gap at the top, so the two halves are about fourteen steps apart: Player A's three units can afford to lose one to a pit, and Player B's single Threadcaster cannot, because nobody can walk to it in time.

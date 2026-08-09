@@ -5,6 +5,7 @@
 id: as-09-glass
 number: 409
 name: Glass
+pool: Ordinary
 description: Two Archers and two Threadcasters, and nobody who can stand in front of anyone. Every unit dies to two hits and the Grappler picks Archers on purpose.
 design: Asymmetry 9 — missing tools. No Vanguard and no Wardbearer anywhere.
 design: Four units, eight HP each, thirty-two hit points on the whole board. Nothing shoves 2, and with no Wardbearer there is no Guard Stance and so no body to hide behind.

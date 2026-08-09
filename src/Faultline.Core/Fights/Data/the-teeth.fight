@@ -6,6 +6,7 @@
 id: the-teeth
 number: 2
 name: The Teeth
+pool: Opener
 description: A bar of brambles across the throat of the board, and a Husk standing one tile off it. Round one, before anything has walked at you, both flocks can already see a six-damage shove.
 design: Warrens node 2, edition A - BRAMBLES/RANGED/PUSH (MASTER_DESIGN 8.8). The one question is whether you use the teeth or walk around them.
 design: The board opens with a previewable BENEFICIAL bramble play, which is the constraint the old Teeth failed. The Husk at (3,3) sits directly north of the middle tooth at (3,4). The Fisher deploys at (0,5), spends two AP walking to (2,5) and flicks her line: range 3, pull 1, and the tile the Husk lands on is brambles for 6 - it has 4 hit points. Player B's Archer has the same opener from the other corner: two AP to (4,1), Stagger Shot at range 3, pushed away onto the same tooth. Both are drawn on the board before the click, so entering the teeth reads as something you DO to the enemy and never as self-harm.

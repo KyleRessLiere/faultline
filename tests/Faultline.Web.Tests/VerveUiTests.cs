@@ -412,6 +412,7 @@ public sealed class DeploymentThreatTests
             "\n",
             "id: the-teeth",
             "name: Teeth, with the swarm parked on the spots",
+            "pool: Ordinary",
             "roster a: Vanguard, Threadcaster",
             "roster b: Wardbearer, Archer",
             "spawn h = Husk",

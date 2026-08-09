@@ -14,6 +14,7 @@ public class ReinforcementTests
         id: waves
         number: 901
         name: Waves
+        pool: Ordinary
         spawn h = Husk
         spawn l = Lobber
         wave 2 = h@3,0
@@ -292,6 +293,7 @@ public class ReinforcementTests
             id: boxed
             number: 902
             name: Boxed
+            pool: Ordinary
             spawn h = Husk
             wave 2 = h@0,0
             roster a: Vanguard
@@ -312,6 +314,7 @@ public class ReinforcementTests
             id: guarded
             number: 903
             name: Guarded
+            pool: Ordinary
             spawn h = Husk
             objective: protect 3,3 hp 6
             turn-limit: 5

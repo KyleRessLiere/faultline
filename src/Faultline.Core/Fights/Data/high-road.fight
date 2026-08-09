@@ -6,6 +6,7 @@
 id: high-road
 number: 4
 name: High Road
+pool: Elite
 description: A causeway down the spine of the board, a Perch that wants to live on it, and a Grappler whose list names the Archer. Nobody is charged an entry fee - the ridge costs you what holding it costs.
 design: Warrens node 5, edition A - HIGH GROUND/PULL/RANGED (MASTER_DESIGN 8.8). The one question is who OWNS the ridge, not who can afford to climb it.
 design: NO ENTRY TAX. The climb surcharge is deleted on both sides (D-152), so stepping onto the causeway costs the same 1 AP as stepping anywhere else and the Archer's free climb is no longer a discount on a toll nobody else can pay. What the ridge is worth is what it does once you are on it: +2 on every ranged attack fired from it, and nothing can be shoved UP onto it, so the tile is a wall to everyone below and a firing step to whoever is standing there.

@@ -52,6 +52,10 @@ namespace Faultline.Core
             AppendKey(text, "id", fight.Id);
             AppendKey(text, "number", fight.Number.ToString(CultureInfo.InvariantCulture));
             AppendKey(text, "name", fight.Name);
+
+            // Always written: a board with no band does not load (MASTER_DESIGN §8, locked ag), so a
+            // writer that could omit it is a writer that can produce a file the parser refuses.
+            AppendKey(text, "pool", fight.Pool.ToString());
             AppendKey(text, "description", fight.Description);
 
             // Only a board that DECLARED its size writes the key, so every 7x7 file stays

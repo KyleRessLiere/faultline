@@ -6,6 +6,7 @@
 id: hz-06-the-second-shove
 number: 206
 name: The Second Shove
+pool: Ordinary
 description: Walls and pits set one tile apart. The first shove only staggers; the Stagger is what makes the second one lethal, and it expires at end of round.
 design: Hazard Pressure 6 of 10 — the chain.
 design: Three L-shaped cells: a wall on one axis, a pit one tile away on the other. Shove into the wall for 4 and a Stagger; the Stagger makes the NEXT displacement travel one tile further, which is exactly the tile that beats a Footing token. Stagger clears at end of round, so both halves of the chain have to happen inside one round, with two different units.

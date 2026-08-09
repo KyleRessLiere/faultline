@@ -52,14 +52,19 @@ public sealed class ActShape
     public int Rests { get; set; } = 1;
 
     /// <summary>
-    /// Whether to draw boards from the whole active library or only from the eight the Warrens fields.
+    /// A board-id prefix this territory is flavoured by — <c>hz-</c> for the Warrens' hazard boards.
+    /// Empty draws evenly.
     /// </summary>
     /// <remarks>
-    /// The small pool is the honest one for reading repetition: §8.5's act draws from an authored
-    /// handful, and 24–30 fillings against eight boards is where the repeat shows up. The whole library
-    /// is there for when someone is testing SHAPE and does not want the same eight names.
+    /// <b>Weight, never scope</b> (MASTER_DESIGN §8, locked ag). A preset leans toward its own
+    /// subjects; it may not shut the rest of the library out. Scoping is what produced the 12–21
+    /// repeats per act that looked like a content shortage: six preset boards feeding twenty-five
+    /// nodes while ten more of the same band sat undrawn. §10's host-tribe ~70% + guests is the shape.
     /// </remarks>
-    public bool WholeLibrary { get; set; }
+    public string HostPrefix { get; set; } = string.Empty;
+
+    /// <summary>How often the draw prefers a host board, in percent. Ignored with no host prefix.</summary>
+    public int HostShare { get; set; } = 70;
 
     /// <summary>A copy, so a preset can be dialled without editing the preset.</summary>
     /// <returns>The copy.</returns>
@@ -74,7 +79,8 @@ public sealed class ActShape
         MaxDoors = MaxDoors,
         Events = Events,
         Rests = Rests,
-        WholeLibrary = WholeLibrary,
+        HostPrefix = HostPrefix,
+        HostShare = HostShare,
     };
 
     /// <summary>The sizings the builder offers.</summary>
@@ -99,6 +105,7 @@ public sealed class ActShape
             MaxDoors = 2,
             Events = 1,
             Rests = 1,
+            HostPrefix = "hz-",
         },
         new ActShape
         {
@@ -112,6 +119,7 @@ public sealed class ActShape
             MaxDoors = 3,
             Events = 3,
             Rests = 2,
+            HostPrefix = "hz-",
         },
         new ActShape
         {
@@ -124,7 +132,6 @@ public sealed class ActShape
             MaxDoors = 2,
             Events = 1,
             Rests = 0,
-            WholeLibrary = true,
         },
     };
 }

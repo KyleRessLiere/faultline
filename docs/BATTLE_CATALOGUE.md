@@ -57,7 +57,7 @@ SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks,
 **Verdict:** KEEP — The control group and the only lint-clean 7×7. Nothing else is a teaching board.
 
 
-7×7 board · enemies: 3× Husk, 1× Lobber
+7×7 board · enemies: 3× Husk, 1× Lobber · pool: **Opener**
 
 | A | B |
 |---|---|
@@ -103,7 +103,7 @@ SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets; 6
 **Verdict:** KEEP — Spikes as a survivable hard stop everything must walk through.
 
 
-7×7 board · enemies: 3× Husk, 1× Lobber
+7×7 board · enemies: 3× Husk, 1× Lobber · pool: **Opener**
 
 | A | B |
 |---|---|
@@ -155,7 +155,7 @@ SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The s
 **Verdict:** KEEP — The simplest statement of the trench-and-fisherman shape; the campaign version.
 
 
-7×7 board · enemies: 4× Husk · breakable blockers: 6 HP each
+7×7 board · enemies: 4× Husk · pool: **Ordinary** · breakable blockers: 6 HP each
 
 | A | B |
 |---|---|
@@ -216,7 +216,7 @@ THE STAGE C FIX STILL HOLDS UNDER SPOTS. The defect was that the Grappler opened
 **Verdict:** KEEP — Teaches all four elevation clauses at once, at tutorial pace.
 
 
-7×7 board · enemies: 1× Anchor, 1× Grappler, 1× Husk, 1× Perch
+7×7 board · enemies: 1× Anchor, 1× Grappler, 1× Husk, 1× Perch · pool: **Elite**
 
 | A | B |
 |---|---|
@@ -272,7 +272,7 @@ The win is clearing the lanes inside eight rounds; losing the shrine is the loss
 SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets, one per lane mouth, and no central spot - the shrine's own approaches are inside round-1 reach and a spot there would hand the objective away before anybody had moved. The draft's addition is that neither pocket is owned: the lane question ('which lane can you afford to leave open') is now asked at deployment as well as during the fight, because both flocks may pile into one lane's mouth and concede the other.
 
 
-7×7 board · enemies: 3× Raider, 2× Husk · objective: `protect 3,3 hp 12` · turn limit: 8
+7×7 board · enemies: 3× Raider, 2× Husk · pool: **Ordinary** · objective: `protect 3,3 hp 12` · turn limit: 8
 
 | A | B |
 |---|---|
@@ -325,7 +325,7 @@ The Warden under the gate is the complication: Move 0, so unlike an Anchor he wi
 The two Lobbers are sealed north of the band and can never be reached until the gate falls, so there is no kill-all shortcut to be found by clearing the board: they lob 2 a round over a wall that has no line of sight to stop them. That is the ammunition clock - every round you spend swinging at masonry is a round they are paid for.
 
 
-7×7 board · enemies: 2× Husk, 2× Lobber, 1× Warden · objective: `destroy 3,1 hp 18`
+7×7 board · enemies: 2× Husk, 2× Lobber, 1× Warden · pool: **Hard** · objective: `destroy 3,1 hp 18`
 
 | A | B |
 |---|---|
@@ -365,7 +365,7 @@ The hole. Authored as the fifth of the original five boards; it is a trial now, 
 **Verdict:** KEEP — The one map where a pit is scale rather than a feature.
 
 
-7×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+7×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -400,7 +400,7 @@ He is Move 1 for the first half of the fight: that is a gift, and the fight is a
 SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots in the two eastern pockets, at the 6-8 band's ceiling, and deliberately unchanged in shape: this is the act's boss and its opening geometry is tuned against a boss who is Move 1 for the first half. Unowning them is the whole migration - both flocks may now open from the same pocket, which is a real choice against a boss that punishes a spread line.
 
 
-9×7 board · enemies: 6× Husk, 2× Lobber, 1× QuarryKing · objective: `kill-all`
+9×7 board · enemies: 6× Husk, 2× Lobber, 1× QuarryKing · pool: **Boss** · objective: `kill-all`
 
 | A | B |
 |---|---|
@@ -439,7 +439,7 @@ A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight
 SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks - the 6-8 band's ceiling - in the two eastern pockets either side of the gate's approach. They are not widened toward the centre because eight is already the cap and the corridor tiles are the fight rather than the setup. Unowned, both pockets are available to both flocks, so the two squads may stack one side of the gate and leave the other to be walked.
 
 
-9×7 board · enemies: 6× Husk, 1× Grappler, 1× Lobber, 1× Stalker · objective: `hold 4,3 4,4 for 7` · turn limit: 7
+9×7 board · enemies: 6× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Endurance** · objective: `hold 4,3 4,4 for 7` · turn limit: 7
 
 | A | B |
 |---|---|
@@ -490,7 +490,7 @@ A solid wall splits the map; the only way through is the single tile at (4,3), a
 **Verdict:** REWORK — Zero enemy actions for three rounds; the Anchor leaves the door round 1 and the Lobber walks through it.
 
 
-9×7 board · enemies: 2× Husk, 1× Lobber, 1× Warden
+9×7 board · enemies: 2× Husk, 1× Lobber, 1× Warden · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -530,7 +530,7 @@ A pit column cuts the map in half with bridges at (4,1) and (4,5). The two deplo
 **Verdict:** KEEP — The only map where the two crossings are far enough apart that concentrating costs real rounds.
 
 
-9×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber
+9×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -570,7 +570,7 @@ Outer ring, wall ring, middle ring, wall ring, one centre cell. The two gates ar
 **Verdict:** RETIRE — Its central claim — the centre Lobber never leaves — was falsified by D-029. The Stalker never acts.
 
 
-9×9 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+9×9 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -612,7 +612,7 @@ A pit column runs the full height except the top tile (5,0), which an Anchor is 
 **Verdict:** RETIRE — Duplicates `as-08-two-fires`; the Anchor on the link is inert and the fight ends in four rounds.
 
 
-11×7 board · enemies: 2× Husk, 1× Anchor, 1× Grappler, 1× Lobber, 1× Stalker
+11×7 board · enemies: 2× Husk, 1× Anchor, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -652,7 +652,7 @@ The high ground column at x=4 is the best firing line on the board and the worst
 **Verdict:** RETIRE — Duplicates `high-road` with more furniture; its Lobber takes zero actions in eight rounds.
 
 
-9×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+9×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -689,7 +689,7 @@ The pillar (x1-7, y3-5) blocks bodies but not arrows. The only ways from the sou
 **Verdict:** REWORK — Plays fine, but D-029 answered its question for it — enemies now path around. Needs a new thesis.
 
 
-9×9 board · enemies: 2× Husk, 1× Lobber, 1× Stalker
+9×9 board · enemies: 2× Husk, 1× Lobber, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -728,7 +728,7 @@ The wall fingers at x=2 and x=5 run from y=2 to the bottom edge, so the lanes me
 **Verdict:** KEEP — The only map about deciding under no information at all.
 
 
-8×9 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+8×9 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -770,7 +770,7 @@ Eight nooks are cut into the north and south wall bands. Each has three walls an
 **Verdict:** KEEP — The only map about false cover; nothing else teaches that walls are not protection.
 
 
-9×9 board · enemies: 2× Husk, 1× Lobber, 1× Stalker
+9×9 board · enemies: 2× Husk, 1× Lobber, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -812,7 +812,7 @@ A Stalker needs a hazard on one side of you and a tile it can stand on directly 
 **Verdict:** RETIRE — Half the roster (Anchor + one Stalker) takes zero actions in eight rounds; `hz-04` states the same inversion and plays.
 
 
-9×7 board · enemies: 2× Stalker, 1× Anchor, 1× Husk
+9×7 board · enemies: 2× Stalker, 1× Anchor, 1× Husk · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -849,7 +849,7 @@ Nothing in the sanctum can be reached from the west room: range is Manhattan dis
 **Verdict:** RETIRE — Four consecutive dead rounds; Lobber and Anchor both inert; wants an objective the format cannot express.
 
 
-11×7 board · enemies: 1× Anchor, 1× Grappler, 1× Husk, 1× Lobber, 1× Stalker
+11×7 board · enemies: 1× Anchor, 1× Grappler, 1× Husk, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -891,7 +891,7 @@ This fight grants every enemy one Footing token (D-028: nobody has one unless a 
 **Verdict:** KEEP — The overshoot rule, and the only map about it. Zero lints.
 
 
-7×7 board · enemies: 3× Husk, 1× Lobber · footing: `enemy=1`
+7×7 board · enemies: 3× Husk, 1× Lobber · pool: **Opener** · footing: `enemy=1`
 
 | A | B |
 |---|---|
@@ -931,7 +931,7 @@ Crossing IS the win: the far row is row 0, and 0,0 is the corner directly north 
 **Verdict:** KEEP — Spikes as a walking cost rather than a shove target — the other half of `the-teeth`.
 
 
-9×7 board · enemies: 2× Lobber, 1× Husk, 1× Stalker · objective: `reach 0,0` · turn limit: 8
+9×7 board · enemies: 2× Lobber, 1× Husk, 1× Stalker · pool: **Ordinary** · objective: `reach 0,0` · turn limit: 8
 
 | A | B |
 |---|---|
@@ -971,7 +971,7 @@ Nothing can be shoved UP onto the ledge — the lip collides — and the Anchor'
 **Verdict:** RETIRE — Ledge-versus-Grappler is `high-road` and `cb-03`; the instant-void tile is `hz-08`'s, stated better.
 
 
-7×7 board · enemies: 2× Husk, 1× Anchor, 1× Grappler
+7×7 board · enemies: 2× Husk, 1× Anchor, 1× Grappler · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1008,7 +1008,7 @@ The causeway is one tile wide, so a Stalker can never flank you on it: the tile 
 **Verdict:** KEEP — The Stalker cannot flank on a one-tile bridge; only a pull can touch you. Nothing else asks this and plays.
 
 
-9×7 board · enemies: 2× Grappler, 2× Husk, 1× Stalker
+9×7 board · enemies: 2× Grappler, 2× Husk, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1045,7 +1045,7 @@ A unit that falls in clings until the end of the round AFTER the one it fell in,
 **Verdict:** REWORK — Unique question, but the east half turns on picking one of three deploy slots the format cannot flag.
 
 
-9×7 board · enemies: 2× Husk, 2× Stalker · footing: `Stalker=1`
+9×7 board · enemies: 2× Husk, 2× Stalker · pool: **Ordinary** · footing: `Stalker=1`
 
 | A | B |
 |---|---|
@@ -1085,7 +1085,7 @@ No high ground here on purpose: this fight is entirely about the horizontal.
 **Verdict:** KEEP — §2 made into geometry: wall on one axis, pit one tile away on the other.
 
 
-7×7 board · enemies: 1× Grappler, 1× Husk, 1× Lobber, 1× Stalker · footing: `enemy=1`
+7×7 board · enemies: 1× Grappler, 1× Husk, 1× Lobber, 1× Stalker · pool: **Ordinary** · footing: `enemy=1`
 
 | A | B |
 |---|---|
@@ -1125,7 +1125,7 @@ No high ground here on purpose: the question is what you can convert before they
 **Verdict:** KEEP — The best "one round matters" board; A and B shop from genuinely different shelves.
 
 
-9×7 board · enemies: 4× Husk, 1× Lobber, 1× Stalker
+9×7 board · enemies: 4× Husk, 1× Lobber, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1165,7 +1165,7 @@ The HighGround at (1,4) is the trap: fall damage lands while the unit is already
 **Verdict:** KEEP — The only map about cling economics — the free kick, the rescue window, the instant-void ledge.
 
 
-7×7 board · enemies: 3× Husk, 1× Grappler, 1× Stalker
+7×7 board · enemies: 3× Husk, 1× Grappler, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1217,7 +1217,7 @@ SPOT LAYOUT - FLAGGED, NOT RE-CUT (MASTER_DESIGN 3, the deployment draft). The s
 **Verdict:** KEEP — "Pull, not push," proved: `Anchor=1` makes basic push and Bull Rush both literally Immovable.
 
 
-7×7 board · enemies: 2× Anchor, 2× Husk, 1× Grappler · footing: `Anchor=1`
+7×7 board · enemies: 2× Anchor, 2× Husk, 1× Grappler · pool: **Hard** · footing: `Anchor=1`
 
 | A | B |
 |---|---|
@@ -1257,7 +1257,7 @@ A displacement that runs into another unit is a collision: 4 damage to BOTH of t
 **Verdict:** KEEP — §1's best-value interaction as a round-one opportunity that disperses. A tempo question, not a combo.
 
 
-7×9 board · enemies: 4× Husk, 1× Anchor, 1× Grappler, 1× Stalker
+7×9 board · enemies: 4× Husk, 1× Anchor, 1× Grappler, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1298,7 +1298,7 @@ Enemy composition 1 — the Anchor is the door, the Lobbers are the damage.
 **Verdict:** RETIRE — **Four** dead rounds — the worst opener in the set. The gate Anchor takes zero actions.
 
 
-7×7 board · enemies: 2× Anchor, 2× Lobber
+7×7 board · enemies: 2× Anchor, 2× Lobber · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1332,7 +1332,7 @@ Enemy composition 2 — two Grapplers, one on each side, with a pit at each one'
 **Verdict:** KEEP — Standing adjacent switches a Grappler off (D-020) — the cleanest counter in the set.
 
 
-7×7 board · enemies: 2× Grappler, 2× Husk
+7×7 board · enemies: 2× Grappler, 2× Husk · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1366,7 +1366,7 @@ Enemy composition 3 — the Grappler delivers, the Stalker finishes.
 **Verdict:** KEEP — Two enemies, no damage between them, one voided unit per round. The sharpest D-021 test.
 
 
-7×7 board · enemies: 1× Grappler, 1× Stalker
+7×7 board · enemies: 1× Grappler, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1403,7 +1403,7 @@ Enemy composition 4 — Husks own the bridges, Lobbers ignore the bridges entire
 **Verdict:** RETIRE — Same trench-and-two-bridges board as `ec-08`, which asks the better question on it.
 
 
-7×7 board · enemies: 3× Husk, 2× Lobber
+7×7 board · enemies: 3× Husk, 2× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1437,7 +1437,7 @@ Enemy composition 5 — the ledge your Archer wants is the tile the Grappler hun
 **Verdict:** KEEP — A decoy on the far ledge redirects the Grappler by tier-then-lowest-id. Nothing else manipulates the AI.
 
 
-7×7 board · enemies: 2× Lobber, 1× Grappler, 1× Husk
+7×7 board · enemies: 2× Lobber, 1× Grappler, 1× Husk · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1474,7 +1474,7 @@ Enemy composition 6 — three Anchors two tiles apart, and something that puts y
 **Verdict:** KEEP — The only board that rewards the opposite of the standard instinct.
 
 
-7×7 board · enemies: 3× Anchor, 1× Grappler, 1× Lobber
+7×7 board · enemies: 3× Anchor, 1× Grappler, 1× Lobber · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1511,7 +1511,7 @@ Enemy composition 7 — the whole border is the hazard, so every tile is a Stalk
 **Verdict:** RETIRE — Its own writeup calls it unfair rather than hard, and blames D-026. It is `the-maw` inverted with more enemies.
 
 
-9×9 board · enemies: 2× Stalker, 1× Grappler, 1× Lobber
+9×9 board · enemies: 2× Stalker, 1× Grappler, 1× Lobber · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1547,7 +1547,7 @@ Enemy composition 8 — five intents, each survivable, one round's worth of them
 **Verdict:** KEEP — Five survivable intents on one head. The board that justifies the intent panel.
 
 
-7×7 board · enemies: 2× Lobber, 1× Anchor, 1× Husk, 1× Stalker
+7×7 board · enemies: 2× Lobber, 1× Anchor, 1× Husk, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1581,7 +1581,7 @@ Enemy composition 9 — the Lobbers run backwards on purpose, and something is w
 **Verdict:** KEEP — The only enemy behaviour that moves away from you, made into a trap.
 
 
-7×7 board · enemies: 2× Lobber, 1× Grappler, 1× Husk
+7×7 board · enemies: 2× Lobber, 1× Grappler, 1× Husk · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1618,7 +1618,7 @@ Enemy composition 10 — one of each, arranged so every one of them covers anoth
 **Verdict:** RETIRE — Six enemies is the §5 failure mode; it takes 20 of 21 player HP in three rounds and its gate Anchor is inert.
 
 
-9×7 board · enemies: 2× Husk, 1× Anchor, 1× Grappler, 1× Lobber, 1× Stalker
+9×7 board · enemies: 2× Husk, 1× Anchor, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1663,7 +1663,7 @@ Player A brings a single Vanguard. Player B brings three bodies.
 **Verdict:** KEEP — Establishes unequal airtime at the mildest survivable gap.
 
 
-7×7 board · enemies: 5× Husk, 1× Lobber
+7×7 board · enemies: 5× Husk, 1× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1700,7 +1700,7 @@ A starts on the west lip, B on the east lip. Almost every enemy is on B's side.
 **Verdict:** KEEP — Split deployment where reuniting is the correct answer.
 
 
-9×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+9×7 board · enemies: 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1740,7 +1740,7 @@ No Wardbearer anywhere, so nobody can Guard Stance in front of an Archer. No Thr
 **Verdict:** RETIRE — Near-identical board and enemy mix to `as-09-glass`, which states the same thesis harder.
 
 
-7×7 board · enemies: 2× Husk, 2× Stalker, 1× Grappler
+7×7 board · enemies: 2× Husk, 2× Stalker, 1× Grappler · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1777,7 +1777,7 @@ A's whole roster is a rope and a shield. The shield is now an action rather than
 **Verdict:** KEEP — The only map where one player's whole output is geometry.
 
 
-7×7 board · enemies: 3× Husk, 1× Anchor, 1× Lobber
+7×7 board · enemies: 3× Husk, 1× Anchor, 1× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -1817,7 +1817,7 @@ The tide, not the headcount: the objective is `survive 8`, so anyone still stand
 **Verdict:** KEEP — A chokepoint you *defend*, and a raised doorway that kills a Husk a round for free.
 
 
-7×7 board · enemies: 12× Husk · objective: `survive 8`
+7×7 board · enemies: 12× Husk · pool: **Endurance** · objective: `survive 8`
 
 | A | B |
 |---|---|
@@ -1864,7 +1864,7 @@ A pit trench spans the board; the only two crossings are the outer columns, and 
 **Verdict:** RETIRE — Both bridge Anchors step off their bridges in round 1. Premise dead; `hz-09` owns the question.
 
 
-7×7 board · enemies: 2× Anchor, 1× Grappler
+7×7 board · enemies: 2× Anchor, 1× Grappler · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1901,7 +1901,7 @@ Two high ridges wall off a central trench. Nobody climbs for free, and Bull Rush
 **Verdict:** KEEP — The only map that uses HighGround as a collision surface, and the only one that removes a class.
 
 
-7×7 board · enemies: 2× Husk, 2× Lobber, 1× Anchor
+7×7 board · enemies: 2× Husk, 2× Lobber, 1× Anchor · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1938,7 +1938,7 @@ The board is eleven wide and the two players start ten tiles apart, with a high 
 **Verdict:** KEEP — Split deployment where reuniting is wrong — the deliberate inverse of `as-02`.
 
 
-11×7 board · enemies: 3× Husk, 1× Grappler, 1× Lobber, 1× Stalker
+11×7 board · enemies: 3× Husk, 1× Grappler, 1× Lobber, 1× Stalker · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -1975,7 +1975,7 @@ Four units, eight HP each, thirty-two hit points on the whole board. Nothing sho
 **Verdict:** REWORK — Question is good and unique; the board is a copy of `as-03`'s generic furniture and does nothing for it.
 
 
-7×7 board · enemies: 3× Husk, 1× Grappler, 1× Stalker
+7×7 board · enemies: 3× Husk, 1× Grappler, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2015,7 +2015,7 @@ Player B has a single Wardbearer whose whole turn is choosing who to cover. Guar
 **Verdict:** RETIRE — Its own writeup answers no and points at `as-04`. Four-versus-one is `as-01`'s question with less to do.
 
 
-7×7 board · enemies: 3× Husk, 2× Grappler, 1× Lobber
+7×7 board · enemies: 3× Husk, 2× Grappler, 1× Lobber · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -2060,7 +2060,7 @@ No pits, no spikes. The only hard surfaces are walls and the board edge.
 **Verdict:** KEEP — Three enemies, no hazards, and the retreat rule is the entire fight.
 
 
-11×5 board · enemies: 2× Lobber, 1× Husk
+11×5 board · enemies: 2× Lobber, 1× Husk · pool: **Opener**
 
 | A | B |
 |---|---|
@@ -2098,7 +2098,7 @@ No pits, no spikes. A sealed chamber with one tile of exit.
 **Verdict:** RETIRE — Three of five Husks take zero actions in eight rounds; `cb-06` teaches the same shove with the player forming the queue.
 
 
-9×7 board · enemies: 4× Husk, 1× Lobber
+9×7 board · enemies: 4× Husk, 1× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2138,7 +2138,7 @@ No pits, no spikes. Four tiles of high ground down the middle and one Grappler t
 **Verdict:** KEEP — The hazard-free statement of the ridge question — the version `high-road` cannot make.
 
 
-7×7 board · enemies: 2× Lobber, 1× Grappler, 1× Husk
+7×7 board · enemies: 2× Lobber, 1× Grappler, 1× Husk · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2175,7 +2175,7 @@ No pits, no spikes, no walls, no high ground. Nothing on this board but units an
 **Verdict:** KEEP — Sixty-three tiles of floor and an Anchor. The purest §3 test in the set.
 
 
-9×7 board · enemies: 3× Husk, 1× Anchor
+9×7 board · enemies: 3× Husk, 1× Anchor · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2215,7 +2215,7 @@ No pits, no spikes. Two Stalkers sitting on top of the deploy corners, where wal
 **Verdict:** KEEP — The only map where the first decision is on the deployment screen.
 
 
-7×7 board · enemies: 2× Husk, 2× Stalker
+7×7 board · enemies: 2× Husk, 2× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2264,7 +2264,7 @@ SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots for four ducks, i
 **Verdict:** KEEP — The player creates the geometry with their own body — nothing else asks that.
 
 
-7×7 board · enemies: 5× Husk
+7×7 board · enemies: 5× Husk · pool: **Opener**
 
 | A | B |
 |---|---|
@@ -2304,7 +2304,7 @@ There is no line of sight in this game: the wall stops feet, not arrows.
 **Verdict:** REWORK — Good question; the wall was re-cut to appease the pre-D-029 planner and can now be restored. Its Stalker never acts.
 
 
-9×7 board · enemies: 2× Husk, 1× Lobber, 1× Stalker
+9×7 board · enemies: 2× Husk, 1× Lobber, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2341,7 +2341,7 @@ No pits, no spikes. Four wall tiles, all of them out on the rings, and a middle 
 **Verdict:** REWORK — The thesis is "the enemy does nothing" and the harness confirms three consecutive dead rounds. Needs pressure while the Stalkers idle.
 
 
-11×9 board · enemies: 2× Lobber, 2× Stalker
+11×9 board · enemies: 2× Lobber, 2× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2380,7 +2380,7 @@ No pits, no spikes. Two Grapplers on opposite edges and two tiles of high ground
 **Verdict:** KEEP — §1's best-value interaction used offensively. The most under-used trick in the game, on a board built for it.
 
 
-9×7 board · enemies: 2× Grappler, 2× Husk, 1× Lobber
+9×7 board · enemies: 2× Grappler, 2× Husk, 1× Lobber · pool: **Hard**
 
 | A | B |
 |---|---|
@@ -2420,7 +2420,7 @@ One pit, on the far edge behind the enemy line, and no spikes. It is the last st
 **Verdict:** RETIRE — Duplicates `hz-06` on Stagger and `cb-04` on the Anchor; its pit is explicitly optional, which makes it an easter egg rather than a question.
 
 
-9×7 board · enemies: 3× Husk, 1× Anchor, 1× Lobber
+9×7 board · enemies: 3× Husk, 1× Anchor, 1× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2469,7 +2469,7 @@ Reel is a Pull, and push resistance never reads a Pull. Player B can drag it cle
 Paying the toll is the third option: 12 HP and 4 damage a round to whoever stands next to it.
 
 
-7×7 board · enemies: 1× Husk, 1× Lobber, 1× Warden
+7×7 board · enemies: 1× Husk, 1× Lobber, 1× Warden · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2504,7 +2504,7 @@ The question: what is the high ground worth when something else wants it?
 The Perch spawns one tile from a ledge and nothing is in range 3 of it, so round 1 is the climb: Move 2 pays the +1 entry cost exactly. From round 2 it shoots for 4 instead of 2, and it will not come down while anything is in range — the Archer's favourite tile is now a contested objective. A Lesser Grappler works the other side of the same idea: HighGround outranks even the Archer in its target preference, so whoever climbs gets yanked off — but only from 2 tiles, not 3.
 
 
-7×9 board · enemies: 1× LesserGrappler, 1× Perch
+7×9 board · enemies: 1× LesserGrappler, 1× Perch · pool: **Opener**
 
 | A | B |
 |---|---|
@@ -2547,7 +2547,7 @@ Note that Hold caps distance, not damage: a push of exactly 1 into a body still 
 Two Vanguards on side A so the shove is always available and the denial is always visible.
 
 
-7×7 board · enemies: 3× Husk, 1× Bulwark
+7×7 board · enemies: 3× Husk, 1× Bulwark · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2594,7 +2594,7 @@ The Blunted Stalker has that tier switched off. Same speed, same shove, and on t
 Stand in a block and the Harrier has nothing to gain; spread out and it picks you off one at a time.
 
 
-7×7 board · enemies: 1× BluntedStalker, 1× Harrier, 1× Stalker
+7×7 board · enemies: 1× BluntedStalker, 1× Harrier, 1× Stalker · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2632,7 +2632,7 @@ Five Runts. 2 HP each, Move 4 — as fast as a Stalker, so a Runt three tiles aw
 The Heavy Husk on the south edge is the control: same plan, 6 HP, and it walks out of the collision that kills everything around it. Two Vanguards on side A so there is never an excuse to swing instead of shove.
 
 
-7×7 board · enemies: 5× Runt, 1× HeavyHusk
+7×7 board · enemies: 5× Runt, 1× HeavyHusk · pool: **Opener**
 
 | A | B |
 |---|---|
@@ -2670,7 +2670,7 @@ Push resistance 2. Push 1 does nothing and Push 2 does nothing, so the Vanguard'
 The Mobile Anchor is the second lesson in the same sentence: the shrug you can ignore at Move 1 arrives at Move 2 while the fight is still on.
 
 
-7×7 board · enemies: 1× Colossus, 1× MobileAnchor
+7×7 board · enemies: 1× Colossus, 1× MobileAnchor · pool: **Ordinary**
 
 | A | B |
 |---|---|
@@ -2719,7 +2719,7 @@ NO TURN LIMIT, deliberately. Section 3 makes turn limits size-sensitive and hand
 THE HAZARDS ARE PUNCTUATION, not the question. Two drains at the mouth of the channel and two bramble tiles inside it, so crossing has somewhere to go wrong; the high ground either side of centre is the ranged prize, and it is far enough east that taking it is a commitment rather than an opening.
 
 
-9×5 board · enemies: 2× Husk, 1× Anchor, 1× Lobber
+9×5 board · enemies: 2× Husk, 1× Anchor, 1× Lobber · pool: **Ordinary**
 
 | A | B |
 |---|---|

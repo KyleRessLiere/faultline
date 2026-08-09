@@ -3,6 +3,7 @@
 id: nv-01-the-toll
 number: 701
 name: The Toll
+pool: Ordinary
 description: A Warden plugs the only gap in the wall. It never moves, so the door stays shut until you push it, pull it, or pay for it.
 design: The question: what do you do about a thing that will not move?
 design: Player A is bottled behind a wall with exactly one way out, and a Warden is standing in it. Move 0 means the planner never even looks for a tile to walk to: its intent is Hold in round 1, Hold in round 2, and Hold in round 6. Every other enemy on this board closes; this one does not. Two counterplays are live on row 3 and both use the stat block honestly.

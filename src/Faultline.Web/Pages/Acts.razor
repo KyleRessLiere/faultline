@@ -88,11 +88,13 @@
                 <label class="dial">Rests <input type="number" min="0" max="6"
                     value="@_shape.Rests" @onchange="e => _shape.Rests = Read(e, _shape.Rests)" /></label>
 
-                <label class="dial check">
-                    <input type="checkbox" checked="@_shape.WholeLibrary"
-                           @onchange="e => _shape.WholeLibrary = e.Value is true" />
-                    Whole library
-                </label>
+                @* Weight, never scope (MASTER_DESIGN §8): the prefix leans the draw toward a
+                   territory's own subjects and never shuts the rest of the library out. *@
+                <label class="dial">Host <input type="text" size="4" placeholder="hz-"
+                    value="@_shape.HostPrefix"
+                    @onchange="e => _shape.HostPrefix = e.Value?.ToString() ?? string.Empty" /></label>
+                <label class="dial"><input type="number" min="0" max="100"
+                    value="@_shape.HostShare" @onchange="e => _shape.HostShare = Read(e, _shape.HostShare)" />%</label>
 
                 <button type="button" class="action primary" @onclick="GenerateAct">Generate</button>
             </div>

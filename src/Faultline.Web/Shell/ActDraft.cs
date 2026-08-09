@@ -76,6 +76,17 @@ public sealed class ActDraft
         public bool Gilt { get; set; }
 
         /// <summary>
+        /// Which band this node draws its board from (MASTER_DESIGN §8, locked ag), or
+        /// <see cref="FightPool.None"/> for a node the generator did not band.
+        /// </summary>
+        /// <remarks>
+        /// Recorded on the node rather than recomputed from its column, because the band is what the
+        /// generator DECIDED — the proof log names it, and a reader working it back out from the
+        /// column would be re-deriving a choice instead of reading it.
+        /// </remarks>
+        public FightPool Band { get; set; } = FightPool.None;
+
+        /// <summary>
         /// Keys of the nodes in the next column this one opens onto. <b>Empty means every node in the
         /// next column</b> — which is what a hand-built act wants and what a saved v1 act becomes.
         /// </summary>
@@ -509,6 +520,7 @@ public sealed class ActDraft
                 + "|" + step.Kind
                 + "|" + step.Lane
                 + "|" + (step.Gilt ? "1" : "0")
+                + "|" + step.Band
                 + "|" + step.Id);
 
             foreach (var door in step.Doors)
@@ -607,7 +619,8 @@ public sealed class ActDraft
     private static void ReadNode(ActDraft draft, string value)
     {
         var parts = value.Split('|');
-        if (parts.Length < 6 || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int column))
+        if (parts.Length < 6
+            || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int column))
         {
             return;
         }
@@ -619,6 +632,10 @@ public sealed class ActDraft
 
         Enum.TryParse<MapLane>(parts[3], out var lane);
 
+        // The band was added after the first saved acts, so an older line has the id where the band
+        // now sits. Reading it as a band and falling back keeps those acts loading.
+        bool banded = Enum.TryParse<FightPool>(parts[5], out var band);
+
         draft.Steps.Add(new Step
         {
             Key = parts[0],
@@ -626,9 +643,10 @@ public sealed class ActDraft
             Kind = kind,
             Lane = lane,
             Gilt = parts[4] == "1",
+            Band = banded ? band : FightPool.None,
 
             // Ids may not contain a bar, but rejoining is cheaper than trusting that forever.
-            Id = string.Join("|", parts.Skip(5)),
+            Id = string.Join("|", parts.Skip(banded ? 6 : 5)),
         });
 
         // Keys minted later must not collide with keys read back.

@@ -185,6 +185,7 @@ public class RetirementTests
         "id: scratch\n"
         + "number: 3\n"
         + "name: Scratch\n"
+        + "pool: Ordinary\n"
         + "roster a: Vanguard\n"
         + "roster b: Archer\n"
         + "\n"

@@ -6,6 +6,7 @@
 id: ec-10-full-composition
 number: 310
 name: Full Composition
+pool: Hard
 description: Anchor in the gate, Lobber behind it, Husks on the flanks, a Grappler west and a Stalker east. Every archetype in the game, each one covering the next one's weakness.
 design: Enemy composition 10 — one of each, arranged so every one of them covers another's weakness.
 retired: Six enemies is the §5 failure mode; it takes 20 of 21 player HP in three rounds and its gate Anchor is inert.

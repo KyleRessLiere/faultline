@@ -236,6 +236,27 @@ namespace Faultline.Core
                     header.Retired = value;
                     header.RetiredLine = lineNo;
                     break;
+                case "pool":
+                    // MASTER_DESIGN §8 (locked ag): every board declares the band it is FOR. Parsed
+                    // strictly — a misspelling that fell through to None would read as "unmarked",
+                    // and the whole point of the mark is that unmarked is not a state a board may be
+                    // in.
+                    header.PoolLine = lineNo;
+                    if (Enum.TryParse<FightPool>(value, ignoreCase: true, out var pool)
+                        && pool != FightPool.None)
+                    {
+                        header.Pool = pool;
+                    }
+                    else
+                    {
+                        issues.Add(new FightIssue(
+                            FightIssueCode.PoolMissing,
+                            "'" + value + "' is not a band. Use one of: "
+                            + "Opener, Ordinary, Hard, Elite, Endurance, Boss.",
+                            lineNo));
+                    }
+
+                    break;
                 case "number":
                     if (!int.TryParse(value, out int number))
                     {
@@ -787,6 +808,17 @@ namespace Faultline.Core
                 issues.Add(new FightIssue(FightIssueCode.MissingRequiredField, "Missing 'name:'.", 0));
             }
 
+            // Locked ag. Declared on every board, retired ones included: a retired board that comes
+            // back should come back knowing what it is for.
+            if (header.Pool == FightPool.None && header.PoolLine == 0)
+            {
+                issues.Add(new FightIssue(
+                    FightIssueCode.PoolMissing,
+                    "Missing 'pool:'. Every board declares the band it is for — "
+                    + "Opener, Ordinary, Hard, Elite, Endurance or Boss (MASTER_DESIGN §8).",
+                    0));
+            }
+
             if (header.RosterA.Count == 0)
             {
                 issues.Add(new FightIssue(FightIssueCode.RosterEmpty, "Missing or empty 'roster a:'.", header.RosterALine));
@@ -853,6 +885,7 @@ namespace Faultline.Core
                 Description = header.Description,
                 DesignNotes = header.Design,
                 RetiredReason = ReadRetired(header, issues),
+                Pool = header.Pool,
                 Board = board,
                 RosterA = header.RosterA,
                 RosterB = header.RosterB,
@@ -1540,6 +1573,10 @@ namespace Faultline.Core
             public int DesignLine { get; set; }
 
             public bool HasRetired { get; set; }
+
+            public FightPool Pool { get; set; } = FightPool.None;
+
+            public int PoolLine { get; set; }
 
             public string Retired { get; set; } = string.Empty;
 

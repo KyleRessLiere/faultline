@@ -5,6 +5,7 @@
 id: cb-10-the-long-answer
 number: 510
 name: The Long Answer
+pool: Ordinary
 description: An Anchor walks at you one tile a round with Husks behind it. Collide something into it to Stagger it, then spend the Stagger — the pit at its back is four correct decisions away.
 design: Combat Manoeuvre 10 — the whole chain.
 design: One pit, on the far edge behind the enemy line, and no spikes. It is the last step of a four-step answer, not the first: an Anchor only reaches it while Staggered.

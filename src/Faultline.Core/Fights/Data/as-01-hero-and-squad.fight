@@ -5,6 +5,7 @@
 id: as-01-hero-and-squad
 number: 401
 name: Hero and Squad
+pool: Ordinary
 description: One Vanguard against a swarm, with a three-body squad behind him. A activates once a round; B activates three times.
 design: Asymmetry 1 — one hero, one squad.
 design: Player A brings a single Vanguard. Player B brings three bodies.

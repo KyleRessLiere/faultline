@@ -270,8 +270,10 @@ in this file when the question comes back.
 | D-267 | [RULED: the Archer's basic attack is a BAND with a sweet spot — range 2–4, 4 damage at exactly 3, 2 at 2 and 4.](#d-267-ruled-the-archers-basic-attack-is-a-band-with-a-sweet-spot--range-24-4-damage-at-exactly-3-2-at-2-and-4) | 2026-08-09 |  |
 | D-268 | [RULED: her charge condition is +1 on a sweet-spot hit, banked per COMMAND.](#d-268-ruled-her-charge-condition-is-1-on-a-sweet-spot-hit-banked-per-command) | 2026-08-09 |  |
 | D-269 | [FOUND: the band collides with four cards, and every one of them is a designer call this session did not make.](#d-269-found-the-band-collides-with-four-cards-and-every-one-of-them-is-a-designer-call-this-session-did-not-make) | 2026-08-09 |  |
+| D-270 | [RULED: every board declares its band, and the band is authored rather than derived.](#d-270-ruled-every-board-declares-its-band-and-the-band-is-authored-rather-than-derived) | unreleased |  |
+| D-271 | [RULED: the generator draws from banded pools across the whole library. Presets weight; they never scope. The observed repetition was an artifact of scoping, and it is now zero.](#d-271-ruled-the-generator-draws-from-banded-pools-across-the-whole-library-presets-weight-they-never-scope-the-observed-repetition-was-an-artifact-of-scoping-and-it-is-now-zero) | unreleased |  |
 
-**251 rulings.**
+**253 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7282,3 +7284,75 @@ band did not touch, so it is mechanically unaffected. Crossing Shot's geometry i
 2 – CrossingShotMaxRange 3` and its own comment calls that "her basic attack's band" — a sentence the
 band has now made false. The constants are **left as they are**: widening the reaction to 2–4 changes
 what the card is worth, and the packet is explicit that the fix is a designer call.
+
+---
+
+**D-270 — RULED: every board declares its band, and the band is authored rather than derived.**
+
+MASTER_DESIGN §8 (locked ag). A `.fight` carries `pool:` — **Opener · Ordinary · Hard · Elite ·
+Endurance · Boss** — and a board without one **does not load**.
+
+**An error, not a lint.** The failure mode of letting an unmarked board through is silent: it would
+simply never be drawn into a generated act, and nothing would say which of thirty-nine boards had
+quietly stopped being content. Refusing the file says so at the moment it is written. Every retired
+board is marked too — they stay parseable and may return, and a board that comes back should come
+back knowing what it is for.
+
+**Authored, never derived, and `high-road` is the proof.** The act's elite sits at 32 total enemy hit
+points, the same number as two ordinary boards. Elite is a fact about the reward and the lane, and no
+arithmetic over a spawn list can see that. The derived-HP bands the Warrens content report cut were a
+draft for this marking and are retired by it.
+
+**Where the authored mark overrode the draft, and why.** Four boards:
+
+- **`high-road` → Elite** (draft: Hard). The ruling's own example.
+- **`the-shrine` → Ordinary** (draft: Opener). A protect objective with a reinforcement wave. An
+  opener is a control group; a board that adds bodies on round 3 is not one.
+- **`broken-bridge` → Ordinary** (draft: Opener). The lowest enemy total in the library, and the
+  hungry lane's column-3 board — drains and structures, two banks. Cheap in hit points, not gentle.
+- **`ec-03-handoff` → Ordinary** (draft: Opener). Eighteen hit points across **two** bodies, a
+  Grappler and a Stalker. The number is low because the roster is short, which is the derivation
+  reading thinness as ease.
+
+The other 62 took the draft's band unchanged. The final spread: Opener 7 · Ordinary 32 · Hard 23 ·
+Elite 1 · Endurance 2 · Boss 1, across active and retired.
+
+---
+
+**D-271 — RULED: the generator draws from banded pools across the whole library. Presets weight;
+they never scope. The observed repetition was an artifact of scoping, and it is now zero.**
+
+**The number this change exists to move**, over the same ten seeds, at the same sizing:
+
+| | before | after |
+|---|---|---|
+| board repeats per act | **12–21** | **0** |
+| distinct boards fielded | 9 | 21–30 |
+| Endurance boards placed | 0 (unreachable) | 1, every seed |
+
+Twelve to twenty-one repeats read as a content shortage and were not one: six preset boards were
+feeding twenty-five nodes while ten more boards of the same band sat undrawn. **No board was
+authored to fix this.** The library was already large enough and the draw was looking at a sixth of
+it.
+
+**A host prefix weights and never scopes.** `Warrens v2` leans 70% toward `hz-`, the territory's own
+subjects, and guests stay drawable — pinned by a test that sets the weight to 100 and still finds
+guests. **The realised host share is 26–38%, not 70%,** and that is the weight working rather than
+failing: eight `hz-` boards cannot fill twenty-five no-repeat nodes, so the preference exhausts and
+the draw falls through to the rest of the band. A share is capped by the subset, not by the dial.
+
+**Bands by third**, as constraints with the proof log naming each: the early third draws Ordinary
+*and Opener*, the middle Ordinary, the late Hard. Opener is included in the early third deliberately —
+a band nothing may draw is a band whose boards have stopped being content, which is the exact failure
+this ruling was written against.
+
+**Endurance is placeable, capped at one, late third only.** `the-door` and `hold-the-gate` were
+unreachable — the generator had no notion of an objective-shaped node — and that was a generator gap,
+not a content one. The cost was a placement rule.
+
+**The band is recorded on the node, not recomputed from its column.** The band is what the generator
+*decided*; a reader working it back out from the column would be re-deriving a choice instead of
+reading it, and the proof log has to be able to name it.
+
+**D-264's sizing dial is now the doc's number** (12 columns, 2–4 wide, 1–3 doors, 3 events, 2 mid-act
+Rests) and is pinned by a test, so drift is a failure rather than a discovery.

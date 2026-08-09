@@ -5,6 +5,7 @@
 id: cb-09-crossfire
 number: 509
 name: Crossfire
+pool: Hard
 description: Grapplers deal no damage; the damage is whatever you were standing in front of. Your own line is a collision waiting to happen — so put one of theirs in the lane instead.
 design: Combat Manoeuvre 9 — the pull lane.
 design: No pits, no spikes. Two Grapplers on opposite edges and two tiles of high ground they both want.

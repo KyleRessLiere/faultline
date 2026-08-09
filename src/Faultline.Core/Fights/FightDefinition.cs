@@ -45,6 +45,12 @@ namespace Faultline.Core
         /// </remarks>
         public string? RetiredReason { get; init; }
 
+        /// <summary>
+        /// Which band of an act this board is for (MASTER_DESIGN §8, locked ag) — the authored
+        /// <c>pool:</c> mark. Never <see cref="FightPool.None"/> on a board that parsed.
+        /// </summary>
+        public FightPool Pool { get; init; } = FightPool.None;
+
         /// <summary>True when a <c>retired:</c> key took this battle out of the playable set.</summary>
         public bool IsRetired => RetiredReason is not null;
 
@@ -279,6 +285,7 @@ namespace Faultline.Core
                 && string.Equals(Name, other.Name, StringComparison.Ordinal)
                 && string.Equals(Description, other.Description, StringComparison.Ordinal)
                 && string.Equals(RetiredReason, other.RetiredReason, StringComparison.Ordinal)
+                && Pool == other.Pool
                 && TurnLimit == other.TurnLimit
                 && SizeDeclared == other.SizeDeclared
                 && BlockerHp == other.BlockerHp
@@ -307,6 +314,7 @@ namespace Faultline.Core
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Name ?? string.Empty);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(Description ?? string.Empty);
                 hash = (hash * 31) + StringComparer.Ordinal.GetHashCode(RetiredReason ?? string.Empty);
+                hash = (hash * 31) + (int)Pool;
                 hash = (hash * 31) + TurnLimit;
                 hash = (hash * 31) + (SizeDeclared ? 1 : 0);
                 hash = (hash * 31) + BlockerHp;

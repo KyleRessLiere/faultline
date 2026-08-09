@@ -6,6 +6,7 @@
 id: hz-10-bone-yard
 number: 210
 name: Bone Yard
+pool: Hard
 description: Two queues of Husks with a pit at the head of each. Bodies are hazards too — a collision hurts both parties and staggers both, and the queue is what turns one shove into two kills.
 design: Hazard Pressure 10 of 10 — the other unit is terrain.
 design: A displacement that runs into another unit is a collision: 4 damage to BOTH of them and a Stagger on BOTH. Two Husks queued in a column are therefore one shove from being two corpses, and anything bigger comes out of the collision Staggered and travelling one tile further next time — with the pits at the head of each column waiting for it.

@@ -171,7 +171,10 @@ public class FightWriterTests
         var order = keys.Where((k, i) => i == 0 || keys[i - 1] != k).ToList();
 
         Assert.Equal(
-            new[] { "id", "number", "name", "description", "design", "roster a", "roster b", "board" },
+            new[]
+            {
+                "id", "number", "name", "pool", "description", "design", "roster a", "roster b", "board",
+            },
             order);
     }
 
@@ -225,6 +228,10 @@ public class FightWriterTests
             Id = "scratch-yard",
             Number = 12,
             Name = "Scratch Yard",
+
+            // Every board declares its band (MASTER_DESIGN §8, locked ag), so a definition without
+            // one round-trips into a file the parser refuses.
+            Pool = FightPool.Ordinary,
             Description = "Built in memory, exported to text.",
             Board = BoardLayout.Parse(rows),
             RosterA = new[] { UnitKind.Vanguard, UnitKind.Archer },

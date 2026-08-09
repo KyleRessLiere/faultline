@@ -4,6 +4,7 @@
 id: tp-09-back-to-the-wall
 number: 109
 name: Back to the Wall
+pool: Hard
 description: The narrow corridor is the only place a Stalker cannot shove you, and it dead-ends into twelve hit points of Anchor.
 design: Board topology 9 — a hazard field with one wall-lined rail through it.
 design: A Stalker needs a hazard on one side of you and a tile it can stand on directly opposite. Inside the rail at x=3 both flanks are walls, so no shove exists there at all. The open east field is the fast route and the Stalkers own every tile of it. The rail's north mouth is corked by an Anchor.

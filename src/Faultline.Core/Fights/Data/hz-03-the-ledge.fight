@@ -6,6 +6,7 @@
 id: hz-03-the-ledge
 number: 203
 name: The Ledge
+pool: Ordinary
 description: A four-tile ledge no shove can push you onto and the Anchor can never climb — and a Grappler that wants exactly the unit standing on it.
 design: Hazard Pressure 3 of 10 — elevation cuts both ways.
 design: Nothing can be shoved UP onto the ledge — the lip collides — and the Anchor's Move 1 cannot pay the 2 movement to climb it, so the ledge is genuinely a fortress against it. But a Grappler prefers targets standing on HighGround, a pull off the ledge costs 2 fall damage and KEEPS TRAVELLING, and the pit at (2,1) is one step down from it.

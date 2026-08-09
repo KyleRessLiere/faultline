@@ -4,6 +4,7 @@
 id: tp-07-three-lanes
 number: 107
 name: Three Lanes
+pool: Hard
 description: Pick a lane at deployment and live with it. The middle lane can be shot into and never walked into without going the long way round.
 design: Board topology 7 — a comb. Three lanes, joined only at the far end.
 design: The wall fingers at x=2 and x=5 run from y=2 to the bottom edge, so the lanes meet only across the top two rows, and the pivot tiles there are HighGround. Deploy commits each player to a lane before the enemy round is declared.

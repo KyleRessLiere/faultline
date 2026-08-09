@@ -4,6 +4,7 @@
 id: tp-03-spiral
 number: 103
 name: The Coil
+pool: Hard
 description: The centre is three tiles away and eleven steps away. Ranged fire ignores the walls; the Stalker inside the corridor does not.
 design: Board topology 3 — concentric rings, offset gates.
 design: Outer ring, wall ring, middle ring, wall ring, one centre cell. The two gates are spikes, so every layer costs blood to enter. There is no line of sight in this game: a bow crosses the coils that a body has to walk around.

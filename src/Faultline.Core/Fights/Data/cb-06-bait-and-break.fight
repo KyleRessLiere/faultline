@@ -6,6 +6,7 @@
 id: cb-06-bait-and-break
 number: 506
 name: Bait and Break
+pool: Opener
 description: Five Husks walk in one column at whoever is nearest. Two walled slots turn the swarm into a queue - but only for the flock that gets a body into a mouth first.
 design: Warrens node 2, edition A - SWARM/TRAFFIC (MASTER_DESIGN 8.8). The one question is who holds the mouth.
 design: Four wall tiles cut two slots out of the south rank, each two deep with a single mouth at (3,4) and (5,4). A duck standing in a slot can be reached by exactly one Husk at a time, so five bodies become five one-on-one fights instead of one surround. Nothing about a slot is free: the duck in it has given up the rest of the board, and the other flock is fighting in the open while it hides.

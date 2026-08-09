@@ -6,6 +6,7 @@
 id: ec-02-pincer
 number: 302
 name: Pincer
+pool: Ordinary
 description: Grapplers face each other across the board with a pit at each one's feet, so every tile on the middle row is somebody's pull target. Pick which one you stand next to.
 design: Enemy composition 2 — two Grapplers, one on each side, with a pit at each one's feet. Nothing ever starts standing on a hazard; the format writes Open under every spawn letter.
 

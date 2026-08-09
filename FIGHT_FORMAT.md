@@ -102,6 +102,7 @@ Everything above (or below) the board block. One `key: value` per line.
 |---|---|---|
 | `id:` | **yes** | Stable slug, e.g. `first-contact`. Used by `FightLibrary.ById` and written into command logs. |
 | `name:` | **yes** | Display name. |
+| `pool:` | **yes** | Which band of an act the board is FOR: `Opener` · `Ordinary` · `Hard` · `Elite` · `Endurance` · `Boss`. **Authored, never derived** — the band is the board's role, not its roster (MASTER_DESIGN §8). A board without one does not load. Retired boards are marked too: they stay parseable and may return. |
 | `roster a:` | **yes** | Player A's units, comma- or space-separated, in deployment order. |
 | `roster b:` | **yes** | Player B's units, same. |
 | `number:` | no | One-based index into the run. Sorts the library. Defaults to `0` if omitted — set it. |
@@ -313,6 +314,7 @@ is never quietly short an enemy.
 id: first-contact
 number: 1
 name: First Contact
+pool: Opener
 description: Husks walk at you while an emplaced lobber drops rocks from the north-west. Learn that a shove beats a swing.
 design: Fight 1 — the control group.
 design: Nothing here can hurt you before you have had a turn. Every deployment spot is outside every enemy's round-1 reach, which is the strict form of the agency-before-injury law (D-080). The lobber is walled in at (1,0) between the corner and (2,0) to make that possible: there is no line of sight in this game, so a lobber that can walk threatens a diamond of radius 5, and on a 7x7 there is nowhere to stand one where it does not cover a spot.

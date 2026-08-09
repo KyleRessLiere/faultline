@@ -6,6 +6,7 @@
 id: the-maw
 number: 7
 name: The Maw
+pool: Hard
 description: A pit the size of a room takes the whole centre, so every displacement anywhere near the rim is potentially lethal.
 design: The hole. Authored as the fifth of the original five boards; it is a trial now, and the-shrine holds campaign slot 5.
 

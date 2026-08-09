@@ -6,6 +6,7 @@
 id: hz-09-the-trench
 number: 209
 name: The Trench
+pool: Hard
 description: One trench, one crossing, two Anchors that no shove will move, and a Grappler doing to you exactly what your Fisher does to them.
 design: Warrens node 7, edition A - DRAINS/RESISTANCE/MIRROR (MASTER_DESIGN 8.8). The one question is what you are willing to pay to reach the far bank.
 design: THE FISHER'S THESIS. The Anchor shrugs one tile off every push and carries a Footing token here as well, so it will stand at the trench lip all day and refuse to be shoved in. Pull is the carve-out: Reel is not shortened by resistance, it drags all the way to adjacent, and the first tile the Anchor enters is the drain - which is the one case a Footing token cannot fix, because it is a whole refusal and Reel does not offer a tile to give up. She can do this from the south bank without crossing at all.

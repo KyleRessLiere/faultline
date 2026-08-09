@@ -5,6 +5,7 @@
 id: cb-07-two-gates
 number: 507
 name: Two Gates
+pool: Ordinary
 description: A wall you can shoot over but not walk through. Three ways past it, four of you, and a shelf behind each segment worth standing on.
 design: Combat Manoeuvre 7 — the curtain wall.
 design: No pits, no spikes. Two wall segments leave a centre gate and a lane down each flank, with a shelf of high ground behind each segment.

@@ -40,7 +40,7 @@ Measured over 10 fixed seeds:
 | Events placed | 2 | 3 | 3 |
 | Rests | 3 | 3 | 3 |
 | Elites | 1 | 1 | 1 |
-| Board repeats | 12 | 21 | 16 |
+| Board repeats | 0 | 0 | 0 |
 | Widest column | 4 | 4 | 4 |
 | Adjacent pair, widest | 6 | 8 | 7 |
 
@@ -68,19 +68,22 @@ marking pass, not the marking** — and it provably cannot answer one question: 
 the act's elite, sits at 32, the same as two ordinary boards. Elite is a fact about the
 reward and the lane, not about the roster.
 
-| Band | Enemy HP | Active boards | Role |
-|---|---|---|---|
-| **Opener** | 0–20 | 7 | column 1, and the gentlest of the early third |
-| **Ordinary** | 21–30 | 16 | the bulk of an act — early and middle columns |
-| **Hard** | 31–46 | 13 | the late third, and what an elite is cut from |
-| **Endurance** | 47–56 | 2 | objective-shaped rather than harder: survive, hold |
-| **Boss** | 57+ | 1 | terminals |
+| Band | Active boards | Role |
+|---|---|---|
+| **Opener** | 4 | column 1, and the gentlest of the early third |
+| **Ordinary** | 19 | the bulk of an act — early and middle columns |
+| **Hard** | 12 | the late third |
+| **Elite** | 1 | the gilt node's fight |
+| **Endurance** | 2 | objective-shaped rather than harder: survive, hold |
+| **Boss** | 1 | terminals |
 
-**Opener (7)** — Broken Bridge (16), First Contact (18), The Teeth (18), Dig In (18), Handoff (18), The Shrine (20), Bait and Break (20).
+**Opener (4)** — First Contact (18), The Teeth (18), Dig In (18), Bait and Break (20).
 
-**Ordinary (16)** — The Pillar (22), Two Gates (22), The Short Way (24), The Long Way Round (24), Dead Weight (24), One Door (26), Perch War (26), Undertow (26), The Long Channel (26), The Second Shove (28), Pincer (28), Open Order (28), Standing Room (30), Free Kick (30), Rope and Shield (30), Glass (30).
+**Ordinary (19)** — Broken Bridge (16), Handoff (18), The Shrine (20), The Pillar (22), Two Gates (22), The Short Way (24), The Long Way Round (24), Dead Weight (24), One Door (26), Perch War (26), Undertow (26), The Long Channel (26), The Second Shove (28), Pincer (28), Open Order (28), Standing Room (30), Free Kick (30), Rope and Shield (30), Glass (30).
 
-**Hard (13)** — High Road (32), Break the Gate (32), The Maw (32), Three Lanes (32), Both Sides of the Chasm (32), The Terraces (32), Crossfire (34), Causeway (36), Shieldwall (36), Triage (36), Two Fires (36), The Sanctum (40), The Trench (42).
+**Hard (12)** — Break the Gate (32), The Maw (32), Three Lanes (32), Both Sides of the Chasm (32), The Terraces (32), Crossfire (34), Causeway (36), Shieldwall (36), Triage (36), Two Fires (36), The Sanctum (40), The Trench (42).
+
+**Elite (1)** — High Road (32).
 
 **Endurance (2)** — The Door (48), Hold the Gate (48).
 
@@ -100,16 +103,16 @@ at every step. Below that the generator repeats and says so in its proof log (D-
 
 | Category | Fills | Have | v2 floor | v2 no-repeats | Shortfall |
 |---|---|---|---|---|---|
-| **Opener** | column 1, fixed | 7 | 1 | 1 | — |
-| **Ordinary** | early + middle thirds | 16 | 8 | 21 | **+5** |
-| **Hard** | late third | 13 | 8 | 8 | — |
+| **Opener** | column 1, fixed | 4 | 1 | 1 | — |
+| **Ordinary** | early + middle thirds | 19 | 8 | 21 | **+2** |
+| **Hard** | late third | 12 | 8 | 8 | — |
 | **Elite** | one gilt node | 1 | 1 | 1 | — |
 | **Event** | 3 scenes | 1 | 1 | 3 | **+2** |
 | **Boss** | the terminal | 1 | 1 | 1 | — |
 | **Endurance** | unplaced by the generator | 2 | — | — | — |
 | Rest | its own column | n/a | n/a | n/a | not authored content — a node type |
 
-**Whole act:** 30 combat nodes at the worst seed against 36 boards in the three bands the generator draws from — enough, if every band may fill any column.
+**Whole act:** 30 combat nodes at the worst seed against 35 boards in the three bands the generator draws from — enough, if every band may fill any column.
 
 ### What that means in one paragraph
 
@@ -118,7 +121,7 @@ against the 8 a single adjacent pair needs — so v2 walks today and its
 repetition is at distance rather than back to back.
 
 **The band that actually runs out is Ordinary.** The early and middle thirds both draw from
-it and together ask for up to 21 against 16 boards. Hard is comfortable at 13 for 8.
+it and together ask for up to 21 against 19 boards. Hard is comfortable at 12 for 8.
 
 **The one shortfall a player meets inside a single run is events**: v2 places up to 3 and 1 ships, so the same scene appears 3 times, three columns apart.
 
@@ -127,9 +130,9 @@ it and together ask for up to 21 against 16 boards. Hard is comfortable at 13 fo
 1. **Events — 2 more.** The only shortfall a player
    meets inside a single run: the same scene, twice or three times, columns apart. Everything
    else on this list is about how two runs differ; this one is about how one run reads.
-2. **Ordinary-band boards — 5 more.** The only band the arithmetic actually
+2. **Ordinary-band boards — 2 more.** The only band the arithmetic actually
    runs out of: two thirds of the act draw from it and together want 21
-   against 16.
+   against 19.
 3. **The `pool:` marking itself**, before more boards land. Boards authored with no way to
    say which band they belong to leave the generator drawing from one flat list, which is
    what makes an early column and a late one feel the same — and it is the marking, not the
@@ -137,6 +140,6 @@ it and together ask for up to 21 against 16 boards. Hard is comfortable at 13 fo
 4. **A second elite board.** Not a shortfall for one act — v2 places exactly one — but one
    board means every gilt node in every run is the same fight, and the elite is the node the
    hungry route is *for*.
-5. **Hard is comfortable** at 13 for 8, and **Endurance (2) is unreachable** —
+5. **Hard is comfortable** at 12 for 8, and **Endurance (2) is unreachable** —
    the generator never places an objective-shaped board, so `the-door` and `hold-the-gate`
    cannot appear in a generated act at all. That is a generator gap, not a content one.

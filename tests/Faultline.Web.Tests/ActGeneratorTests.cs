@@ -184,6 +184,111 @@ public class ActGeneratorTests
     }
 
     /// <summary>
+    /// <b>The scoping fix, pinned as a number</b> (MASTER_DESIGN §8, locked ag). Drawing from banded
+    /// pools across the whole library, an act of this size repeats nothing at all — the 12–21 repeats
+    /// per act it used to produce were a pool-scoping artifact, not a content shortage.
+    /// </summary>
+    [Fact]
+    public void DrawingFromBandedPools_TheActRepeatsNothing()
+    {
+        foreach (int seed in Seeds)
+        {
+            var draft = ActGenerator.Generate(WarrensTwo(), seed, "A");
+            var used = draft.Steps.Where(s => s.IsCombat && s.Id.Length > 0).Select(s => s.Id).ToList();
+
+            Assert.Equal(used.Count, used.Distinct(System.StringComparer.Ordinal).Count());
+        }
+    }
+
+    /// <summary>Every combat node draws a board that actually carries the band it was given.</summary>
+    [Fact]
+    public void EveryNode_FieldsABoardFromItsOwnBand()
+    {
+        foreach (int seed in Seeds)
+        {
+            var draft = ActGenerator.Generate(WarrensTwo(), seed, "A");
+
+            foreach (var step in draft.Steps.Where(s => s.IsCombat && s.Id.Length > 0))
+            {
+                if (step.Id == ActGenerator.OpenerId || step.Id == ActGenerator.BossId)
+                {
+                    continue;
+                }
+
+                var board = FightLibrary.All().Single(f => f.Id == step.Id);
+
+                // The early third may reach into Opener as well as Ordinary.
+                var legal = step.Band == FightPool.Ordinary
+                    ? new[] { FightPool.Ordinary, FightPool.Opener }
+                    : new[] { step.Band };
+
+                Assert.Contains(board.Pool, legal);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Endurance is placeable and capped at one — it was unreachable before, which was a generator
+    /// gap rather than a content one.
+    /// </summary>
+    [Fact]
+    public void ExactlyOneEnduranceBoard_LandsInTheLateThird()
+    {
+        foreach (int seed in Seeds)
+        {
+            var draft = ActGenerator.Generate(WarrensTwo(), seed, "A");
+            var endurance = draft.Steps.Where(s => s.Band == FightPool.Endurance).ToList();
+
+            Assert.Single(endurance);
+
+            var board = FightLibrary.All().Single(f => f.Id == endurance[0].Id);
+            Assert.Equal(FightPool.Endurance, board.Pool);
+
+            // Late third: past the two-thirds mark and before the pre-boss Rest.
+            int preBoss = draft.ColumnCount - 2;
+            Assert.True(
+                endurance[0].Column >= 1 + (2 * System.Math.Max(1, (preBoss - 1) / 3)),
+                "seed " + seed + ": the Endurance board landed at column " + endurance[0].Column);
+            Assert.True(endurance[0].Column < preBoss);
+        }
+    }
+
+    /// <summary>
+    /// A host prefix WEIGHTS and never SCOPES: guests still appear, whatever the weight says.
+    /// </summary>
+    [Fact]
+    public void AHostWeight_NeverShutsTheRestOfTheLibraryOut()
+    {
+        var shape = WarrensTwo();
+        shape.HostPrefix = "hz-";
+        shape.HostShare = 100;
+
+        var draft = ActGenerator.Generate(shape, 12345, "A");
+        var used = draft.Steps.Where(s => s.IsCombat && s.Id.Length > 0).Select(s => s.Id).ToList();
+
+        Assert.Contains(used, id => id.StartsWith("hz-", System.StringComparison.Ordinal));
+        Assert.Contains(used, id => !id.StartsWith("hz-", System.StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The v2 sizing is the doc's number now (§8 closes D-264), so drift is a failing test rather
+    /// than a discovery.
+    /// </summary>
+    [Fact]
+    public void TheWarrensTwoSizing_IsTheDocsNumber()
+    {
+        var shape = WarrensTwo();
+
+        Assert.Equal(12, shape.Columns);
+        Assert.Equal(2, shape.MinWidth);
+        Assert.Equal(4, shape.MaxWidth);
+        Assert.Equal(1, shape.MinDoors);
+        Assert.Equal(3, shape.MaxDoors);
+        Assert.Equal(3, shape.Events);
+        Assert.Equal(2, shape.Rests);
+    }
+
+    /// <summary>
     /// Repetition is accepted and must be <b>visible</b>: a board repeats in adjacent columns only when
     /// the pool cannot fill them both, and the proof log names the column when it does.
     /// </summary>

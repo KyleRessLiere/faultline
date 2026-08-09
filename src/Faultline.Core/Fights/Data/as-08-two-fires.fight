@@ -5,6 +5,7 @@
 id: as-08-two-fires
 number: 408
 name: Two Fires
+pool: Hard
 description: Two separate fights on one board, ten tiles apart. A faces things that hurt; B faces a Grappler and a Stalker that cannot deal a point of damage between them.
 design: Asymmetry 8 — split deployment where converging is the trap.
 design: The board is eleven wide and the two players start ten tiles apart, with a high ridge down the middle between them. West is a damage fight; east is a displacement fight with no damage in it at all.

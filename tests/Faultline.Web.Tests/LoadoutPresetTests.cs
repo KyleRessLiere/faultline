@@ -144,6 +144,7 @@ public class LoadoutPresetTests
             "\n",
             "id: twin-vanguards",
             "name: Twin Vanguards",
+            "pool: Ordinary",
             "roster a: Vanguard, Vanguard",
             "roster b: Archer",
             "spawn h = Husk",

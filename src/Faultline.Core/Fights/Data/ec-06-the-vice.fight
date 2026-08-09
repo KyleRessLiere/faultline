@@ -6,6 +6,7 @@
 id: ec-06-the-vice
 number: 306
 name: The Vice
+pool: Hard
 description: An Anchor line with two gaps in it, and a Grappler behind you that keeps putting people in the gaps. Push 1 cannot open a gap; splitting the party can.
 design: Enemy composition 6 — three Anchors two tiles apart, and something that puts you between them.
 retired: "splitting is right" twice; as-08 makes it a deployment-level truth

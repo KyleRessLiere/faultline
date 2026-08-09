@@ -6,6 +6,7 @@
 id: ec-08-triage
 number: 308
 name: Triage
+pool: Hard
 description: Two crossings over a trench, five enemies covering them, and a round where every intent lands on the same head. Read the whole board and break exactly one link.
 design: Enemy composition 8 — five intents, each survivable, one round's worth of them is not.
 

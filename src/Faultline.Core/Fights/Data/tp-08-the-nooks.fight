@@ -4,6 +4,7 @@
 id: tp-08-the-nooks
 number: 108
 name: The Nooks
+pool: Ordinary
 description: Cover with one exit is a coffin. A Lobber in a nook cannot kite, and neither can you.
 design: Board topology 8 — an open field lined with one-tile dead ends.
 design: Eight nooks are cut into the north and south wall bands. Each has three walls and one mouth, which is exactly what a Husk is for and exactly what a Stalker wants: a body in the mouth seals you in, a shove rams you into the back wall.

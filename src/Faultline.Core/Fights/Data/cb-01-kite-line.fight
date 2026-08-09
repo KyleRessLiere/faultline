@@ -5,6 +5,7 @@
 id: cb-01-kite-line
 number: 501
 name: Kite Line
+pool: Opener
 description: Two Lobbers between two deploy corners. Chasing one hands the other a free shot — squeeze instead, until the retreat runs out of board.
 design: Combat Manoeuvre 1 — the pincer.
 design: No pits, no spikes. The only hard surfaces are walls and the board edge.

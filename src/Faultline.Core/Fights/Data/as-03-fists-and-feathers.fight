@@ -5,6 +5,7 @@
 id: as-03-fists-and-feathers
 number: 403
 name: Fists and Feathers
+pool: Hard
 description: A brings two Vanguards, B brings two Archers. Nothing on the field can stand in front of anyone, and every Grappler on the board wants an Archer.
 design: Asymmetry 3 — duplicate classes on both sides. Two Vanguards versus two Archers.
 design: No Wardbearer anywhere, so nobody can Guard Stance in front of an Archer. No Threadcaster, so nothing pulls.

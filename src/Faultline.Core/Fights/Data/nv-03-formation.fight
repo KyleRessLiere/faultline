@@ -3,6 +3,7 @@
 id: nv-03-formation
 number: 703
 name: Formation
+pool: Ordinary
 description: A Bulwark turns an enemy crowd into a formation — adjacent allies cannot be displaced more than a tile. Kill it first, or stop pushing.
 design: The question: what is left of your best trick when they bring the counter to it?
 design: A shove into another unit is 4 damage to BOTH and the best value in the game. The two Husks on the north edge are two tiles apart with a Bulwark tucked behind the left one, which caps that Husk's displacement at 1 — so a Bull Rush that would normally slam it into its neighbour for a double stagger stops one tile short and touches nothing. Kill the Bulwark and the same shove works again; that restoration is the whole lesson and it fits inside two rounds.

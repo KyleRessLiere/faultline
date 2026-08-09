@@ -6,6 +6,7 @@
 id: sz-01-the-long-channel
 number: 801
 name: The Long Channel
+pool: Ordinary
 size: 9x5
 description: Nine tiles of channel with the whole enemy line at the far end. Nothing here is new except the distance, and the distance is the fight.
 design: THE SIZE IS THE THESIS (MASTER_DESIGN 3, locked ac - board size is per-board). 9x5, declared on the 'size:' line, and it is the one thing this board changes. Every range, every AP cost and every movement number is exactly what it is on a 7x7; what is different is that there are nine columns to cross instead of seven, and a 5-row board gives you no way around. The same four ducks face a different problem with no rule rewritten, which is what an authoring axis means.

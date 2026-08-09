@@ -90,7 +90,8 @@ public static class ActGenerator
         PlaceEvents(draft, rng, proof, shape.Events, preBoss);
         PlaceElite(draft, rng, proof, preBoss);
         KeepColumnsFightable(draft, proof, preBoss);
-        DealBoards(draft, rng, proof, shape.WholeLibrary, last);
+        BandColumns(draft, rng, proof, preBoss);
+        DealBoards(draft, rng, proof, shape, last);
         Wire(draft, rng, proof, minDoors, maxDoors, last);
         Summarise(draft, proof);
 
@@ -310,35 +311,117 @@ public static class ActGenerator
         }
     }
 
-    // ---- The content ---------------------------------------------------------------------------
-
-    /// <summary>Fills every combat node with an authored board.</summary>
+    /// <summary>
+    /// Says which band each combat node draws from, and places the act's one Endurance board.
+    /// </summary>
     /// <remarks>
-    /// <b>Repetition is accepted, and the exit is a bigger pool.</b> An act of this length against a
-    /// handful of boards will field the same board twice. That is a knowingly carried debt rather than
-    /// an oversight, and the way out is filling the pool out — plus, eventually, board editions and
-    /// objective and roster swaps on fixed terrain. So repeating is not an error here and is not
-    /// reported as one. What the generator still does is prefer: exhaust the pool before repeating, and
-    /// avoid an adjacent-column repeat while there is any board left that would avoid it. Every repeat
-    /// is written to the proof log, so the debt stays <em>measured</em> rather than assumed.
+    /// <para>
+    /// <b>Band-appropriateness by third</b> (MASTER_DESIGN §8, locked ag): the early third draws
+    /// Opener and Ordinary, the middle draws Ordinary, the late third draws Hard. The early third
+    /// takes Opener as well as Ordinary because the band's role is "column 1, and the gentlest of the
+    /// early third" — a band nothing may draw is a band whose boards have quietly stopped being
+    /// content, which is the exact failure this ruling was written against.
+    /// </para>
+    /// <para>
+    /// <b>Endurance is placeable, capped at one.</b> Legal in the late third only. It was unreachable
+    /// before — the generator had no notion of an objective-shaped node — and that was a generator gap
+    /// rather than a content one.
+    /// </para>
     /// </remarks>
-    private static void DealBoards(
-        ActDraft draft, SeededRng rng, List<string> proof, bool wholeLibrary, int last)
+    private static void BandColumns(ActDraft draft, SeededRng rng, List<string> proof, int preBoss)
     {
-        var pool = wholeLibrary ? LibraryPool() : WarrensPool();
-        if (pool.Count == 0)
+        int span = Math.Max(1, (preBoss - 1) / 3);
+        int middleFrom = 1 + span;
+        int lateFrom = 1 + (2 * span);
+
+        foreach (var step in draft.Steps)
         {
-            proof.Add("boards — bound: the pool is empty; combat nodes were left unchosen.");
-            return;
+            if (step.Kind == ActDraft.NodeKind.Boss)
+            {
+                step.Band = FightPool.Boss;
+                continue;
+            }
+
+            if (step.Kind == ActDraft.NodeKind.Elite)
+            {
+                step.Band = FightPool.Elite;
+                continue;
+            }
+
+            if (step.Kind != ActDraft.NodeKind.Fight)
+            {
+                continue;
+            }
+
+            step.Band = step.Column == 0 ? FightPool.Opener
+                : step.Column >= lateFrom ? FightPool.Hard
+                : FightPool.Ordinary;
         }
 
         proof.Add(
-            "boards — drawing from " + pool.Count.ToString(CultureInfo.InvariantCulture)
-            + (wholeLibrary ? " boards (the whole active library)." : " boards (the Warrens' pool)."));
+            "bands — columns 2–" + Col(middleFrom - 1) + " Ordinary (Opener eligible), "
+            + Col(middleFrom) + "–" + Col(lateFrom - 1) + " Ordinary, "
+            + Col(lateFrom) + "–" + Col(preBoss - 1) + " Hard.");
 
-        var elites = ElitePool;
+        var late = draft.Steps
+            .Where(s => s.Kind == ActDraft.NodeKind.Fight
+                && s.Column >= lateFrom
+                && s.Column < preBoss
+                && !s.Gilt)
+            .ToList();
+
+        if (late.Count == 0 || !PoolFor(FightPool.Endurance).Any())
+        {
+            proof.Add("endurance — none placed: no late-third node was free for one.");
+            return;
+        }
+
+        var chosen = late[rng.Next(late.Count)];
+        chosen.Band = FightPool.Endurance;
+        proof.Add(
+            "column " + Col(chosen.Column)
+            + " — one Endurance board, the act's only one. Late third by law (§8), cap 1 per act.");
+    }
+
+    // ---- The content ---------------------------------------------------------------------------
+
+    /// <summary>Fills every combat node with an authored board from its own band.</summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Banded, across the whole active library</b> (MASTER_DESIGN §8, locked ag). A node draws from
+    /// the band <see cref="BandColumns"/> gave it, and the candidates are every active board carrying
+    /// that <c>pool:</c> mark — not a preset's list. A preset WEIGHTS toward its host subjects and
+    /// never SCOPES to them; scoping is what made twenty-five nodes chew through six boards while ten
+    /// more of the same band sat undrawn.
+    /// </para>
+    /// <para>
+    /// Repetition is still accepted rather than solved: exhaust the band before repeating, avoid an
+    /// adjacent-column repeat while any board would avoid it, and write every repeat to the proof log
+    /// so the debt stays measured.
+    /// </para>
+    /// </remarks>
+    private static void DealBoards(
+        ActDraft draft, SeededRng rng, List<string> proof, ActShape shape, int last)
+    {
         var used = new List<string>();
         int recycles = 0;
+
+        foreach (var band in new[]
+        {
+            FightPool.Opener, FightPool.Ordinary, FightPool.Hard,
+            FightPool.Elite, FightPool.Endurance,
+        })
+        {
+            proof.Add("pool " + band + " — " + PoolFor(band).Count + " active board(s).");
+        }
+
+        if (shape.HostPrefix.Length > 0)
+        {
+            proof.Add(
+                "weighting — " + shape.HostShare + "% toward '" + shape.HostPrefix
+                + "', the territory's own subjects. A weight, never a scope: every banded board in the"
+                + " library stays drawable.");
+        }
 
         for (int c = 1; c < last; c++)
         {
@@ -347,15 +430,20 @@ public static class ActGenerator
 
             foreach (var node in draft.ColumnAt(c))
             {
-                if (node.Kind == ActDraft.NodeKind.Elite)
+                if (node.Kind != ActDraft.NodeKind.Fight && node.Kind != ActDraft.NodeKind.Elite)
                 {
-                    node.Id = elites[rng.Next(elites.Count)];
-                    here.Add(node.Id);
                     continue;
                 }
 
-                if (node.Kind != ActDraft.NodeKind.Fight)
+                // The early third may reach into Opener as well as its own band — see BandColumns.
+                var pool = node.Band == FightPool.Ordinary
+                    ? PoolFor(FightPool.Ordinary).Concat(PoolFor(FightPool.Opener)).ToList()
+                    : PoolFor(node.Band);
+
+                if (pool.Count == 0)
                 {
+                    proof.Add(
+                        "column " + Col(c) + " — bound: no active board carries pool " + node.Band + ".");
                     continue;
                 }
 
@@ -365,8 +453,8 @@ public static class ActGenerator
                     open = pool.Where(id => !here.Contains(id)).ToList();
                     proof.Add(
                         "column " + Col(c) + " — repeats a board from column " + Col(c - 1)
-                        + ": " + pool.Count + " boards cannot fill two adjacent columns. Accepted;"
-                        + " the exit is a bigger pool.");
+                        + ": pool " + node.Band + " holds " + pool.Count
+                        + " and cannot fill two adjacent columns.");
                 }
 
                 if (open.Count == 0)
@@ -382,7 +470,7 @@ public static class ActGenerator
                     fresh = open;
                 }
 
-                node.Id = fresh[rng.Next(fresh.Count)];
+                node.Id = Draw(fresh, shape, rng);
                 used.Add(node.Id);
                 here.Add(node.Id);
             }
@@ -391,29 +479,43 @@ public static class ActGenerator
         if (recycles > 0)
         {
             proof.Add(
-                "boards — the pool was exhausted " + recycles.ToString(CultureInfo.InvariantCulture)
-                + " time(s); from there on the act repeats boards at distance. Accepted for now — the"
-                + " exit is filling the pool out, not a cleverer draw.");
+                "boards — a band was exhausted " + recycles.ToString(CultureInfo.InvariantCulture)
+                + " time(s); from there on the act repeats at distance. Accepted (D-264) — the exit is"
+                + " filling the band out, not a cleverer draw.");
         }
     }
 
-    /// <summary>The eight-ish boards the authored Warrens fields, read off the authored map.</summary>
-    private static IReadOnlyList<string> WarrensPool() =>
-        ActMapLibrary.Act1.Nodes
-            .Where(n => n.Type == MapNodeType.Fight
-                && n.FightId.Length > 0
-                && !string.Equals(n.FightId, OpenerId, StringComparison.Ordinal))
-            .Select(n => n.FightId)
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
+    /// <summary>
+    /// Picks one board, leaning toward the territory's own subjects without ever shutting the rest out.
+    /// </summary>
+    private static string Draw(IReadOnlyList<string> candidates, ActShape shape, SeededRng rng)
+    {
+        if (shape.HostPrefix.Length > 0 && rng.Next(100) < Clamp(shape.HostShare, 0, 100))
+        {
+            var host = candidates
+                .Where(id => id.StartsWith(shape.HostPrefix, StringComparison.Ordinal))
+                .ToList();
 
-    /// <summary>Every active board that is not already spoken for by the opener, elite or boss.</summary>
-    private static IReadOnlyList<string> LibraryPool() =>
+            if (host.Count > 0)
+            {
+                return host[rng.Next(host.Count)];
+            }
+        }
+
+        return candidates[rng.Next(candidates.Count)];
+    }
+
+    /// <summary>Every active board carrying one band's <c>pool:</c> mark, in library order.</summary>
+    /// <remarks>
+    /// Read live off <see cref="FightLibrary"/>, so a board authored tomorrow with a mark is drawable
+    /// the same day — no list here to forget to update.
+    /// </remarks>
+    private static IReadOnlyList<string> PoolFor(FightPool band) =>
         FightLibrary.All()
+            .Where(f => f.Pool == band)
             .Select(f => f.Id)
             .Where(id => !string.Equals(id, OpenerId, StringComparison.Ordinal)
-                && !string.Equals(id, BossId, StringComparison.Ordinal)
-                && !ElitePool.Contains(id, StringComparer.Ordinal))
+                && !string.Equals(id, BossId, StringComparison.Ordinal))
             .ToList();
 
     // ---- The doors -----------------------------------------------------------------------------

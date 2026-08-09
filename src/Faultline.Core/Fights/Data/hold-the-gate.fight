@@ -7,6 +7,7 @@
 id: hold-the-gate
 number: 601
 name: Hold the Gate
+pool: Endurance
 description: One doorway, four defenders, nine attackers on a published timetable. Keep the gate clear at the end of round 7.
 design: A wall bisects the board. There is one 2-wide gate at 4,3 and 4,4, and the fight is decided by who is standing in it when round 7 ends. The timetable is published at fight start, so every wave is planning information rather than an ambush — same contract as enemy intents.
 design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots for four ducks - the 6-8 band's ceiling - in the two eastern pockets either side of the gate's approach. They are not widened toward the centre because eight is already the cap and the corridor tiles are the fight rather than the setup. Unowned, both pockets are available to both flocks, so the two squads may stack one side of the gate and leave the other to be walked.

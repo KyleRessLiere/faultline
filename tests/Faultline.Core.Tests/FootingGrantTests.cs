@@ -278,6 +278,7 @@ public class FootingGrantTests
             "id: footing-yard",
             "number: 3",
             "name: Footing Yard",
+            "pool: Ordinary",
             "description: A yard with one pit that matters.",
             string.Empty,
             "spawn h = Husk",

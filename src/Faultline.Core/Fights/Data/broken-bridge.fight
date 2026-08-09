@@ -6,6 +6,7 @@
 id: broken-bridge
 number: 3
 name: Broken Bridge
+pool: Ordinary
 description: A trench of drains splits the map and the two ways over it are barricaded. Break the masonry to open a crossing, then hold a one-tile choke with a hole on either side.
 design: Warrens node 3, edition A - DRAINS/STRUCTURES (MASTER_DESIGN 8.8). The one question is what a crossing is worth.
 design: Six-hit-point breakable blockers, and NO class is required to open one. Any attack chips masonry for 2 whatever the weapon (D-060), so three swings from anybody opens a crossing; a collision lands more in one go, so shoving a Husk into the barricade is the fast route and hurts the Husk as much as the wall; the Fisher's Reel does it as a drag rather than a shove. Four ways in, priced differently - gradients, not lock-and-key.

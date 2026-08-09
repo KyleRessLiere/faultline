@@ -165,6 +165,7 @@ public class DesignNotesTests
                 "id: design-yard",
                 "number: 3",
                 "name: Design Yard",
+                "pool: Ordinary",
                 "description: A yard with one pit that matters.",
             }
             .Concat(extra)

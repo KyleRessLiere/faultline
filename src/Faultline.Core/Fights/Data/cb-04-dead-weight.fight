@@ -5,6 +5,7 @@
 id: cb-04-dead-weight
 number: 504
 name: Dead Weight
+pool: Ordinary
 description: An Anchor in the middle of an empty field. Push does nothing to it and there is nothing to push it into — so stop pushing it and start pushing things at it.
 design: Combat Manoeuvre 4 — the bare field.
 design: No pits, no spikes, no walls, no high ground. Nothing on this board but units and the edge.

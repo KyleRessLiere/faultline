@@ -5,6 +5,7 @@
 id: as-10-bodyguard
 number: 410
 name: Bodyguard
+pool: Hard
 description: A fields four units and does all the killing; B fields one Wardbearer and each round picks exactly one ally to stand in front of.
 design: Asymmetry 10 — the widest roster gap in the batch. Four units against one.
 design: Player B has a single Wardbearer whose whole turn is choosing who to cover. Guard Stance reaches the adjacent ally only, so the choice is which one — and unlike the aura it replaced, the Wardbearer takes the blow itself, so it can be staggered, shoved into a pit and killed doing the job.

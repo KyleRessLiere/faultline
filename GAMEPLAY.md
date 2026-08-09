@@ -2046,7 +2046,22 @@ whole input, so the same pick and the same seed always start the same act. Anyth
 builder appears under **Saved acts** in the same picker. Both are internal-build only, and both start
 a **scratch** run (D-263): a reload ends it, and the picker says so before the button is pressed.
 
-**Boards repeat, and that is accepted for now.** The Warrens' pool is six ordinary boards and a
+**Every board declares its band** (D-270). A `.fight` carries `pool:` — `Opener` · `Ordinary` ·
+`Hard` · `Elite` · `Endurance` · `Boss` — and a board without one **does not load**. The band is
+authored, not derived from the roster: `high-road` is the act's elite at the same enemy total as two
+ordinary boards, and elite is a fact about the reward and the lane.
+
+**The generator draws from banded pools across the whole active library** (D-271). The early third
+draws Ordinary and Opener, the middle Ordinary, the late Hard; the gilt node draws Elite and the
+terminal draws Boss. **One Endurance board lands in the late third, capped at one per act** — before
+this, `the-door` and `hold-the-gate` could not appear in a generated act at all.
+
+A preset may **weight** toward a territory's own subjects (`Warrens v2` leans 70% toward `hz-`) and
+may never **scope** to them: every banded board in the library stays drawable. That distinction is
+what took repetition from 12–21 boards per act to **zero**, without a board being authored.
+
+**Boards no longer repeat at this sizing** — the paragraph below is the rule that still governs, and
+it now only binds if a band is emptied: The Warrens' pool is six ordinary boards and a
 twelve-column act four nodes wide needs eight distinct ones across two adjacent columns, so it cannot
 have them. Repeating is a carried debt, not an error — **the exit is filling the pool out**, not a
 cleverer draw. What stays enforced is *never silently*: the generator exhausts the pool before

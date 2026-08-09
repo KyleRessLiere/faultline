@@ -4,6 +4,7 @@
 id: tp-02-two-bridges
 number: 102
 name: Two Bridges
+pool: Ordinary
 description: A pit moat with two crossings a full board apart. Concentrate at one bridge and cede the other, or split and fight two fights.
 design: Board topology 2 — one moat, two crossings.
 design: A pit column cuts the map in half with bridges at (4,1) and (4,5). The two deploy zones sit at opposite ends of the west bank, one per bridge.

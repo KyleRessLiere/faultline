@@ -10,6 +10,7 @@
 id: break-the-gate
 number: 6
 name: Break the Gate
+pool: Hard
 description: An eighteen-hit-point gate, a Warden who will not move out of the gap, and two Lobbers dropping rocks over the wall. Attacks chip it; bodies break it.
 design: Warrens node 6, edition A - STRUCTURE/WAVES/AMMUNITION (MASTER_DESIGN 8.8). The one question is whether you spend actions on the gate or spend the enemy on it.
 design: GATE 18 HP, down from 24, and it is the anti-drag rule rather than a difficulty knob. Any attack chips masonry for 2 whatever the weapon (D-060), so nine direct actions is the costly baseline that always exists and always works; the intended fast route is three clean structure collisions. Do not raise the hit points until human wins routinely finish before round 5 with threats unresolved.

@@ -4,6 +4,7 @@
 id: tp-05-the-spine
 number: 105
 name: The Spine
+pool: Hard
 description: A ridge worth plus two damage and a fall on either side. The whole enemy roster exists to take you off it.
 design: Board topology 5 — an elevation spine with a broken pit trough beside it.
 design: The high ground column at x=4 is the best firing line on the board and the worst place to be standing: a Grappler prefers HighGround targets, and every other spine tile has a pit one step east.

@@ -184,6 +184,10 @@ def render(fights, verdicts):
             rows = f["board"]
             size = "%d×%d" % (len(rows[0]), len(rows)) if rows else "?"
             facts = ["%s board" % size, "enemies: %s" % composition(f)]
+            # The band the board is FOR (MASTER_DESIGN 8, locked ag). Authored, not derived, so the
+            # catalogue prints it beside the roster rather than inferring one from it.
+            if f.get("pool"):
+                facts.append("pool: **%s**" % f["pool"])
             if f.get("objective"):
                 facts.append("objective: `%s`" % f["objective"])
             if f.get("turn-limit"):

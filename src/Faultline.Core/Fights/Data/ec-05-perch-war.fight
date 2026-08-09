@@ -6,6 +6,7 @@
 id: ec-05-perch-war
 number: 305
 name: Perch War
+pool: Ordinary
 description: Two Lobbers make the floor expensive and two ledges make the Archer lethal, but a Grappler picks whoever is standing on high ground first. Somebody else has to want the view.
 design: Enemy composition 5 — the ledge your Archer wants is the tile the Grappler hunts.
 

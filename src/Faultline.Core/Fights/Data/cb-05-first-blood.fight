@@ -5,6 +5,7 @@
 id: cb-05-first-blood
 number: 505
 name: First Blood
+pool: Ordinary
 description: A Stalker starts one tile from each deploy zone, and your own corner is the wall they mean to use. Deployment is the first decision and Player A moves first.
 design: Combat Manoeuvre 5 — the opening.
 design: No pits, no spikes. Two Stalkers sitting on top of the deploy corners, where walls and edges are.

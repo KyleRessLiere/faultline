@@ -3,6 +3,7 @@
 id: nv-06-dead-weight
 number: 706
 name: Dead Weight
+pool: Ordinary
 description: A Colossus that Push 1 and Push 2 both fail to move. Pull is unaffected — bring the Threadcaster or bring a lot of attacks.
 design: The question: what do you do when the board is not a weapon?
 design: Push resistance 2. Push 1 does nothing and Push 2 does nothing, so the Vanguard's basic shove and Bull Rush are both dead against it as openers — the two verbs this game normally answers everything with. Only a Stagger unlocks it: staggered, Bull Rush is an effective Push 3 and moves it exactly 1. Pull is untouched, because resistance is a Push rule and not a weight rule. The Threadcaster is therefore the answer, and the pit sitting on row 0 two tiles east of the Colossus is the payoff — Reel resolves every tile on the way, so a pull along that row puts 20 HP over the lip.

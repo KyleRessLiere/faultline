@@ -109,6 +109,16 @@ namespace Faultline.Core
         /// </remarks>
         BoardSizeMismatch = 26,
 
+        /// <summary>The board declares no <c>pool:</c> band, or one that is not a band.</summary>
+        /// <remarks>
+        /// An <b>error</b>, not a lint (MASTER_DESIGN §8, locked ag). A board with no band is a board
+        /// the generator cannot place, and the failure mode of letting it load is silent: it would
+        /// simply never appear in a generated act, and nobody would know which of thirty-nine boards
+        /// had quietly stopped being content. Refusing the file says so at the moment it is written.
+        /// Retired boards are marked too — they stay parseable and may return.
+        /// </remarks>
+        PoolMissing = 27,
+
         // ---- Lints: playable, but it breaks a guideline in AGENT_BRIEF §2 -------------------
 
         /// <summary>Brief §2 specifies a 7x7 grid.</summary>

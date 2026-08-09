@@ -1,5 +1,16 @@
 # Changelog
 
+## Boards say what they are for
+
+- **Every `.fight` declares a `pool:` band** — Opener, Ordinary, Hard, Elite, Endurance or Boss — and
+  a board without one does not load (D-270). Authored, never derived: `high-road` is the elite at the
+  same enemy total as two ordinary boards. All 66 boards marked, retired ones included.
+- **The generator draws from banded pools across the whole library** (D-271). Repeats per act went
+  from **12–21 to zero** without a board being authored — the repetition was a scoping artifact.
+- **Endurance boards are placeable again**, one per act in the late third. `the-door` and
+  `hold-the-gate` could not appear in a generated act at all before this.
+- A preset now **weights** toward its territory's subjects instead of **scoping** to them.
+
 ## The Archer earns her damage with her feet
 
 - **Her basic attack is a band with a sweet spot** (D-267): range **2–4**, dealing **4 at exactly

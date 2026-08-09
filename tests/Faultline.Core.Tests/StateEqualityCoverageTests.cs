@@ -273,6 +273,7 @@ public class StateEqualityCoverageTests
                 ["Description"] = f => f with { Description = f.Description + "!" },
                 ["DesignNotes"] = f => f with { DesignNotes = new[] { "a different note" } },
                 ["RetiredReason"] = f => f with { RetiredReason = "retired for a reason" },
+                ["Pool"] = f => f with { Pool = FightPool.Hard },
                 ["Board"] = f => f with { Board = Board.Filled(3, 3) },
                 ["DeploymentZoneA"] = f => f with { DeploymentZoneA = new[] { new Coord(5, 5) } },
                 ["DeploymentZoneB"] = f => f with { DeploymentZoneB = new[] { new Coord(4, 4) } },

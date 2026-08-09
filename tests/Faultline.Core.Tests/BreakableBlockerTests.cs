@@ -256,6 +256,7 @@ public class BreakableBlockerTests
             "\n",
             "id: blocker-fixture",
             "name: Blocker Fixture",
+            "pool: Ordinary",
             "spawn h = Husk",
             "roster a: Vanguard",
             "roster b: Archer",

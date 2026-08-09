@@ -6,6 +6,7 @@
 id: hz-07-standing-room
 number: 207
 name: Standing Room
+pool: Ordinary
 description: Six enemies, every one of them standing beside the thing that kills it, and exactly one round before they all walk away from it.
 design: Hazard Pressure 7 of 10 — six enemies, one round, four activations.
 design: Nothing starts ON a hazard — the format forbids it — but everything starts NEXT to one, and on its own activation it walks away from it. Player A pushes away from itself; Player B only pulls toward itself, so A and B are shopping from two different shelves: A wants the hazard on the far side of an enemy, B wants it in between.

@@ -6,6 +6,7 @@
 id: ec-09-undertow
 number: 309
 name: Undertow
+pool: Ordinary
 description: Corner a Lobber and it retreats north up a pit column, straight into a Grappler's band. Chasing the ranged unit is the trap; the pull is only the invoice.
 design: Enemy composition 9 — the Lobbers run backwards on purpose, and something is waiting back there.
 

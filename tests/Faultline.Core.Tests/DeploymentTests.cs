@@ -301,6 +301,7 @@ public class DeploymentTests
             "\n",
             "id: snake-fixture",
             "name: Snake Fixture",
+            "pool: Ordinary",
             "roster a: " + string.Join(", ", Enumerable.Repeat("Vanguard", a)),
             "roster b: " + string.Join(", ", Enumerable.Repeat("Archer", b)),
             "spawn h = Husk",

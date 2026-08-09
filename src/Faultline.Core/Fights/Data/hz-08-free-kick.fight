@@ -6,6 +6,7 @@
 id: hz-08-free-kick
 number: 208
 name: Free Kick
+pool: Ordinary
 description: Four pits with room to stand around them. Dropping something in only half kills it — finishing it from the rim is free, and so is what they do to you.
 design: Hazard Pressure 8 of 10 — clinging is not dying.
 design: A unit shoved into a pit clings, holds its activation slot, and is only Voided at the end of the following round — unless somebody adjacent finishes it, which costs neither half of an activation. Each of the four pits has open tiles on several sides, so the second unit you bring is not wasted: it stands by the rim and takes the free kick.

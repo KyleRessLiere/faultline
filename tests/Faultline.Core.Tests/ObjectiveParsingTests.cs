@@ -28,6 +28,7 @@ public class ObjectiveParsingTests
                 "id: scratch",
                 "number: 900",
                 "name: Scratch",
+                "pool: Ordinary",
                 "spawn h = Husk",
                 "roster a: Vanguard, Wardbearer",
                 "roster b: Archer, Threadcaster",

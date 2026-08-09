@@ -4,6 +4,7 @@
 id: tp-10-the-sanctum
 number: 110
 name: The Sanctum
+pool: Hard
 description: One corridor, no cover, no support fire. The Grappler's pull is the fastest transport on the board and it delivers you to the Anchor.
 design: Board topology 10 — depth. A room, a five-tile single-file corridor, a room.
 design: Nothing in the sanctum can be reached from the west room: range is Manhattan distance and the sanctum is seven tiles away, so support fire is not an option until someone walks the corridor. The corridor mouth at (2,3) has a pit on either side of it and a Stalker living on it.

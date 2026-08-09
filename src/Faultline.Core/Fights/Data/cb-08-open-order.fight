@@ -5,6 +5,7 @@
 id: cb-08-open-order
 number: 508
 name: Open Order
+pool: Ordinary
 description: Stalkers need a wall or an edge to work with, and the middle of this board has neither. The Lobbers' whole job is to make you leave it.
 design: Combat Manoeuvre 8 — the parade ground.
 design: No pits, no spikes. Four wall tiles, all of them out on the rings, and a middle you can stand in.

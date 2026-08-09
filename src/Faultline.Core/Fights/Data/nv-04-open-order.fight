@@ -4,6 +4,7 @@
 id: nv-04-open-order
 number: 704
 name: Open Order
+pool: Ordinary
 description: No pits, no spikes, three shovers. A Harrier pulls your party apart while one Stalker uses the board edge and the other refuses to.
 design: The question: can displacement be a threat on a board with no hazards on it at all?
 design: No pits. No spikes. Nothing on this map deals damage except the units. Three shovers, and the contrast between them is the battle.

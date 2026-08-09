@@ -3,6 +3,7 @@
 id: nv-05-numbers
 number: 705
 name: Numbers
+pool: Opener
 description: Five Runts at 2 HP apiece, arriving in a clump. Every shove is a double kill — and the Heavy Husk beside them is not.
 design: The question: does the collision-into-another-unit double kill scale, or does a swarm just take longer?
 design: Five Runts. 2 HP each, Move 4 — as fast as a Stalker, so a Runt three tiles away is a Runt in your face. Every one of them dies to 4 collision damage, to 6 from spikes, and to the 2 damage of a fall off the ledge at the bottom right. They spawn in pairs and they close in a clump, which is exactly the shape a shove punishes hardest: one Vanguard basic attack aimed down a line of two is two kills for one action, no ability spent.

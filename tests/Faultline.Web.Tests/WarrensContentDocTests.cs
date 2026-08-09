@@ -30,19 +30,20 @@ public class WarrensContentDocTests
     /// <summary>Seeds the v2 sample is measured over. Fixed, so the doc is reproducible.</summary>
     private static readonly int[] Seeds = { 1, 777, 12345, 20260808, 31337, 4242, 99, 8, 555, 2024 };
 
-    private sealed record Band(string Name, int Low, int High, string Role);
+    private sealed record Band(FightPool Pool, string Role);
 
     /// <summary>
-    /// The bands, cut where the authored act's own ramp cuts: its opener sits at 16–20, its middle at
-    /// 20–32, its last fight at 42 and its boss at 64.
+    /// The bands, as each board's own <c>pool:</c> mark declares them (MASTER_DESIGN §8, locked ag).
+    /// The derived-HP bands this document used to cut are retired by that ruling.
     /// </summary>
     private static readonly Band[] Bands =
     {
-        new Band("Opener", 0, 20, "column 1, and the gentlest of the early third"),
-        new Band("Ordinary", 21, 30, "the bulk of an act — early and middle columns"),
-        new Band("Hard", 31, 46, "the late third, and what an elite is cut from"),
-        new Band("Endurance", 47, 56, "objective-shaped rather than harder: survive, hold"),
-        new Band("Boss", 57, int.MaxValue, "terminals"),
+        new Band(FightPool.Opener, "column 1, and the gentlest of the early third"),
+        new Band(FightPool.Ordinary, "the bulk of an act — early and middle columns"),
+        new Band(FightPool.Hard, "the late third"),
+        new Band(FightPool.Elite, "the gilt node's fight"),
+        new Band(FightPool.Endurance, "objective-shaped rather than harder: survive, hold"),
+        new Band(FightPool.Boss, "terminals"),
     };
 
     /// <summary>The doc on disk still says what the repo says.</summary>
@@ -194,13 +195,13 @@ public class WarrensContentDocTests
         W("the act's elite, sits at 32, the same as two ordinary boards. Elite is a fact about the");
         W("reward and the lane, not about the roster.");
         W("");
-        W("| Band | Enemy HP | Active boards | Role |");
-        W("|---|---|---|---|");
+        W("| Band | Active boards | Role |");
+        W("|---|---|---|");
 
         foreach (var band in Bands)
         {
             var boards = InBand(band);
-            W("| **" + band.Name + "** | " + Range(band) + " | " + boards.Count + " | " + band.Role + " |");
+            W("| **" + band.Pool + "** | " + boards.Count + " | " + band.Role + " |");
         }
 
         W("");
@@ -213,7 +214,7 @@ public class WarrensContentDocTests
                 continue;
             }
 
-            W("**" + band.Name + " (" + boards.Count + ")** — "
+            W("**" + band.Pool.ToString() + " (" + boards.Count + ")** — "
                 + string.Join(", ", boards.Select(f => f.Name + " " + Hp(f))) + ".");
             W("");
         }
@@ -248,11 +249,11 @@ public class WarrensContentDocTests
         var thirds = Thirds(shape.Columns).ToList();
 
         int ordinaryNeed = drafts.Max(d => thirds
-            .Where(t => BandFor(t.Name).Name == "Ordinary")
+            .Where(t => BandFor(t.Name).Pool == FightPool.Ordinary)
             .Sum(t => CombatIn(d, t.From, t.To)));
 
         int hardNeed = drafts.Max(d => thirds
-            .Where(t => BandFor(t.Name).Name == "Hard")
+            .Where(t => BandFor(t.Name).Pool == FightPool.Hard)
             .Sum(t => CombatIn(d, t.From, t.To)));
 
         int elites = ActGenerator.ElitePool.Count;
@@ -261,25 +262,25 @@ public class WarrensContentDocTests
 
         W("| Category | Fills | Have | v2 floor | v2 no-repeats | Shortfall |");
         W("|---|---|---|---|---|---|");
-        W("| **Opener** | column 1, fixed | " + InBand(Bands[0]).Count + " | 1 | 1 | — |");
-        W("| **Ordinary** | early + middle thirds | " + InBand(Bands[1]).Count + " | " + pairHigh
-            + " | " + ordinaryNeed + " | " + Short(InBand(Bands[1]).Count, ordinaryNeed) + " |");
-        W("| **Hard** | late third | " + InBand(Bands[2]).Count + " | " + pairHigh + " | " + hardNeed
-            + " | " + Short(InBand(Bands[2]).Count, hardNeed) + " |");
+        W("| **Opener** | column 1, fixed | " + InBand(ByPool(FightPool.Opener)).Count + " | 1 | 1 | — |");
+        W("| **Ordinary** | early + middle thirds | " + InBand(ByPool(FightPool.Ordinary)).Count + " | " + pairHigh
+            + " | " + ordinaryNeed + " | " + Short(InBand(ByPool(FightPool.Ordinary)).Count, ordinaryNeed) + " |");
+        W("| **Hard** | late third | " + InBand(ByPool(FightPool.Hard)).Count + " | " + pairHigh + " | " + hardNeed
+            + " | " + Short(InBand(ByPool(FightPool.Hard)).Count, hardNeed) + " |");
         W("| **Elite** | one gilt node | " + elites + " | 1 | 1 | " + Short(elites, 1) + " |");
         W("| **Event** | " + eventsNeeded + " scenes | " + events + " | 1 | " + eventsNeeded + " | "
             + Short(events, eventsNeeded) + " |");
         W("| **Boss** | the terminal | 1 | 1 | 1 | — |");
-        W("| **Endurance** | unplaced by the generator | " + InBand(Bands[3]).Count + " | — | — | — |");
+        W("| **Endurance** | unplaced by the generator | " + InBand(ByPool(FightPool.Endurance)).Count + " | — | — | — |");
         W("| Rest | its own column | n/a | n/a | n/a | not authored content — a node type |");
         W("");
         W("**Whole act:** " + combatHigh + " combat nodes at the worst seed against "
-            + (InBand(Bands[0]).Count + InBand(Bands[1]).Count + InBand(Bands[2]).Count)
+            + (InBand(ByPool(FightPool.Opener)).Count + InBand(ByPool(FightPool.Ordinary)).Count + InBand(ByPool(FightPool.Hard)).Count)
             + " boards in the three bands the generator draws from"
-            + (combatHigh <= InBand(Bands[0]).Count + InBand(Bands[1]).Count + InBand(Bands[2]).Count
+            + (combatHigh <= InBand(ByPool(FightPool.Opener)).Count + InBand(ByPool(FightPool.Ordinary)).Count + InBand(ByPool(FightPool.Hard)).Count
                 ? " — enough, if every band may fill any column."
                 : " — short by "
-                    + (combatHigh - (InBand(Bands[0]).Count + InBand(Bands[1]).Count + InBand(Bands[2]).Count))
+                    + (combatHigh - (InBand(ByPool(FightPool.Opener)).Count + InBand(ByPool(FightPool.Ordinary)).Count + InBand(ByPool(FightPool.Hard)).Count))
                     + " even drawing from all three.")); 
         W("");
         W("### What that means in one paragraph");
@@ -289,8 +290,8 @@ public class WarrensContentDocTests
         W("repetition is at distance rather than back to back.");
         W("");
         W("**The band that actually runs out is Ordinary.** The early and middle thirds both draw from");
-        W("it and together ask for up to " + ordinaryNeed + " against " + InBand(Bands[1]).Count
-            + " boards. Hard is comfortable at " + InBand(Bands[2]).Count + " for "
+        W("it and together ask for up to " + ordinaryNeed + " against " + InBand(ByPool(FightPool.Ordinary)).Count
+            + " boards. Hard is comfortable at " + InBand(ByPool(FightPool.Hard)).Count + " for "
             + hardNeed + ".");
         W("");
         W("**The one shortfall a player meets inside a single run is events**: v2 places up to "
@@ -302,10 +303,10 @@ public class WarrensContentDocTests
         W("1. **Events — " + Math.Max(0, eventsNeeded - events) + " more.** The only shortfall a player");
         W("   meets inside a single run: the same scene, twice or three times, columns apart. Everything");
         W("   else on this list is about how two runs differ; this one is about how one run reads.");
-        W("2. **Ordinary-band boards — " + Math.Max(0, ordinaryNeed - InBand(Bands[1]).Count)
+        W("2. **Ordinary-band boards — " + Math.Max(0, ordinaryNeed - InBand(ByPool(FightPool.Ordinary)).Count)
             + " more.** The only band the arithmetic actually");
         W("   runs out of: two thirds of the act draw from it and together want " + ordinaryNeed);
-        W("   against " + InBand(Bands[1]).Count + ".");
+        W("   against " + InBand(ByPool(FightPool.Ordinary)).Count + ".");
         W("3. **The `pool:` marking itself**, before more boards land. Boards authored with no way to");
         W("   say which band they belong to leave the generator drawing from one flat list, which is");
         W("   what makes an early column and a late one feel the same — and it is the marking, not the");
@@ -313,8 +314,8 @@ public class WarrensContentDocTests
         W("4. **A second elite board.** Not a shortfall for one act — v2 places exactly one — but one");
         W("   board means every gilt node in every run is the same fight, and the elite is the node the");
         W("   hungry route is *for*.");
-        W("5. **Hard is comfortable** at " + InBand(Bands[2]).Count + " for " + hardNeed
-            + ", and **Endurance (" + InBand(Bands[3]).Count + ") is unreachable** —");
+        W("5. **Hard is comfortable** at " + InBand(ByPool(FightPool.Hard)).Count + " for " + hardNeed
+            + ", and **Endurance (" + InBand(ByPool(FightPool.Endurance)).Count + ") is unreachable** —");
         W("   the generator never places an objective-shaped board, so `the-door` and `hold-the-gate`");
         W("   cannot appear in a generated act at all. That is a generator gap, not a content one.");
         W("");
@@ -322,12 +323,8 @@ public class WarrensContentDocTests
 
     // ---- helpers -------------------------------------------------------------------------------
 
-    private static Band BandFor(string third) => third switch
-    {
-        "Early" => Bands[1],
-        "Middle" => Bands[1],
-        _ => Bands[2],
-    };
+    private static Band BandFor(string third) =>
+        third == "Late" ? ByPool(FightPool.Hard) : ByPool(FightPool.Ordinary);
 
     private static IEnumerable<(string Name, int From, int To)> Thirds(int columns)
     {
@@ -378,13 +375,10 @@ public class WarrensContentDocTests
     private static string Short(int have, int need) =>
         have >= need ? "—" : "**+" + (need - have) + "**";
 
-    private static string Range(Band band) =>
-        band.High == int.MaxValue ? band.Low + "+" : band.Low + "–" + band.High;
-
     private static IReadOnlyList<FightDefinition> InBand(Band band) =>
-        FightLibrary.All().Where(f => EnemyHp(f) >= band.Low && EnemyHp(f) <= band.High)
-            .OrderBy(EnemyHp)
-            .ToList();
+        FightLibrary.All().Where(f => f.Pool == band.Pool).OrderBy(EnemyHp).ToList();
+
+    private static Band ByPool(FightPool pool) => Bands.Single(b => b.Pool == pool);
 
     private static int EnemyHp(FightDefinition fight) =>
         fight.Enemies.Select(e => e.Kind)
