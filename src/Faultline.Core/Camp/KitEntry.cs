@@ -24,7 +24,7 @@ namespace Faultline.Core
         /// <summary>Vanguard's basic attack: melee 2 and a push of 1 (§4).</summary>
         VanguardBasic = 0,
 
-        /// <summary>Archer's basic attack: range 3 for 4, minimum range 2 — the dead zone (§4).</summary>
+        /// <summary>Archer's basic attack: range 2–4, 4 at the sweet spot and 2 elsewhere; minimum range 2 — the dead zone (§4).</summary>
         ArcherBasic = 1,
 
         /// <summary>Fisher's basic attack, the flick: range 3 for 2 damage or a pull of 1 (§4).</summary>

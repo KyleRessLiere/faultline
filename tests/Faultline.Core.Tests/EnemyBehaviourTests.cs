@@ -372,7 +372,10 @@ public class EnemyBehaviourTests
     public void Describe_CoversThePlayerClassesToo()
     {
         Assert.Equal("melee · 2 dmg · push 1", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Vanguard)));
-        Assert.Equal("range 3 · 4 dmg", EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Archer)));
+        // A banded gun cannot be described by one range and one number (MASTER_DESIGN §4, locked af).
+        Assert.Equal(
+            "range 2–4 · 4 dmg at 3, else 2",
+            EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Archer)));
         Assert.Equal(
             "range 3 · 2 dmg · may pull 1 instead",
             EnemyBehaviour.Describe(UnitTemplate.For(UnitKind.Threadcaster)));

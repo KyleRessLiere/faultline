@@ -258,14 +258,62 @@ public class VerveTests
         Assert.False(result.Has<VerveCharged>());
     }
 
-    // ---- Archer: hits from high ground --------------------------------------------------
+    // ---- Archer: the sweet spot ---------------------------------------------------------
 
+    /// <summary>
+    /// Locked af: her income is the sweet spot, and elevation has nothing to do with it.
+    /// </summary>
     [Fact]
-    public void Archer_HittingAnEnemyFromHighGround_ChargesOne()
+    public void Archer_HittingAtTheSweetSpot_ChargesOne()
     {
-        var state = BoardBuilder.Rows("H...")
+        var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
             .Enemy(UnitKind.Husk, 3, 0, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AttackCommand(archer.Id, husk.Id));
+
+        Assert.True(result.Single<UnitAttacked>().SweetSpot);
+        Assert.Equal(1, result.NewState.Get(archer.Id).Verve);
+        Assert.Equal(VerveSource.SweetSpot, result.Single<VerveCharged>().Source);
+    }
+
+    /// <summary>
+    /// The hit lands, at the band's outer edge, and pays nothing. The number and the income are the
+    /// same decision, which is the whole of the rework.
+    /// </summary>
+    [Theory]
+    [InlineData(2)]
+    [InlineData(4)]
+    public void Archer_HittingOffTheSweetSpot_ChargesNothing(int distance)
+    {
+        var state = BoardBuilder.Open(6, 1)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, distance, 0, hp: 12)
+            .Build();
+
+        var archer = state.Find(UnitKind.Archer);
+        var husk = state.Find(UnitKind.Husk);
+
+        var result = state.Step(new AttackCommand(archer.Id, husk.Id));
+
+        Assert.False(result.Single<UnitAttacked>().SweetSpot);
+        Assert.False(result.Has<VerveCharged>());
+    }
+
+    /// <summary>
+    /// The retired condition, pinned as retired: a hit from a ledge that is NOT at the spot pays
+    /// nothing at all. High ground keeps its +2 damage and stops being her salary (locked af).
+    /// </summary>
+    [Fact]
+    public void Archer_HittingFromHighGroundOffTheSpot_ChargesNothing()
+    {
+        var state = BoardBuilder.Rows("H.....")
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 2, 0, hp: 12)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -274,14 +322,15 @@ public class VerveTests
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
         Assert.True(result.Single<UnitAttacked>().FromHighGround);
-        Assert.Equal(1, result.NewState.Get(archer.Id).Verve);
-        Assert.Equal(VerveSource.HighGround, result.Single<VerveCharged>().Source);
+        Assert.False(result.Single<UnitAttacked>().SweetSpot);
+        Assert.False(result.Has<VerveCharged>());
     }
 
+    /// <summary>A sweet-spot hit from a ledge is 6, and still charges exactly once.</summary>
     [Fact]
-    public void Archer_HittingAnEnemyFromLevelGround_ChargesNothing()
+    public void Archer_SweetSpotFromHighGround_DealsSixAndChargesOnce()
     {
-        var state = BoardBuilder.Open(4, 1)
+        var state = BoardBuilder.Rows("H.....")
             .PlayerA(UnitKind.Archer, 0, 0)
             .Enemy(UnitKind.Husk, 3, 0, hp: 12)
             .Build();
@@ -291,8 +340,8 @@ public class VerveTests
 
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
-        Assert.False(result.Single<UnitAttacked>().FromHighGround);
-        Assert.False(result.Has<VerveCharged>());
+        Assert.Equal(6, result.Single<UnitAttacked>().Damage);
+        Assert.Equal(1, result.NewState.Get(archer.Id).Verve);
     }
 
     // ---- Wardbearer: absorption ---------------------------------------------------------
@@ -369,12 +418,14 @@ public class VerveTests
     [InlineData(UnitKind.Vanguard, VerveSource.Collision, true)]
     [InlineData(UnitKind.Vanguard, VerveSource.Hazard, false)]
     [InlineData(UnitKind.Vanguard, VerveSource.HighGround, false)]
+    [InlineData(UnitKind.Vanguard, VerveSource.SweetSpot, false)]
     [InlineData(UnitKind.Vanguard, VerveSource.Guard, false)]
     [InlineData(UnitKind.Threadcaster, VerveSource.Collision, true)]
     [InlineData(UnitKind.Threadcaster, VerveSource.Hazard, true)]
     [InlineData(UnitKind.Threadcaster, VerveSource.HighGround, false)]
     [InlineData(UnitKind.Threadcaster, VerveSource.Guard, false)]
-    [InlineData(UnitKind.Archer, VerveSource.HighGround, true)]
+    [InlineData(UnitKind.Archer, VerveSource.SweetSpot, true)]
+    [InlineData(UnitKind.Archer, VerveSource.HighGround, false)]
     [InlineData(UnitKind.Archer, VerveSource.Collision, false)]
     [InlineData(UnitKind.Archer, VerveSource.Hazard, false)]
     [InlineData(UnitKind.Archer, VerveSource.Guard, false)]
@@ -382,6 +433,7 @@ public class VerveTests
     [InlineData(UnitKind.Wardbearer, VerveSource.Collision, false)]
     [InlineData(UnitKind.Wardbearer, VerveSource.Hazard, false)]
     [InlineData(UnitKind.Wardbearer, VerveSource.HighGround, false)]
+    [InlineData(UnitKind.Wardbearer, VerveSource.SweetSpot, false)]
     public void Charges_IsTheWholeClassBindingMatrix(UnitKind kind, VerveSource source, bool charges)
     {
         Assert.Equal(charges, Verve.Charges(kind, source));

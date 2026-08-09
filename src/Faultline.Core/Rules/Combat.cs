@@ -103,7 +103,14 @@ namespace Faultline.Core
                 return false;
             }
 
-            damage = template.Damage + (IsElevatedShot(state, attacker) ? HighGroundBonus : 0);
+            // The band, and the ONE place it is applied. Preview and resolution both arrive here
+            // (A1's contract), so the falloff cannot be right in the rules and wrong on the hover.
+            //
+            // High ground stacks on top rather than replacing it: a sweet-spot hit from a ledge is 6.
+            // Elevation is no longer the Archer's salary (§5, locked af) — it is still her bonus.
+            damage = template.DamageAtRange(distance)
+                + (IsElevatedShot(state, attacker) ? HighGroundBonus : 0);
+
             return true;
         }
 

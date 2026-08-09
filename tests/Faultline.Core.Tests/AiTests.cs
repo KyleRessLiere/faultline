@@ -670,10 +670,11 @@ public class AiTests
     [Fact]
     public void Intents_AreDroppedForEnemiesThatLeaveTheBoard()
     {
+        // The first Husk stands at her sweet spot, so one shot puts it down.
         var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
             .Enemy(UnitKind.Husk, 3, 0)
+            .Enemy(UnitKind.Husk, 4, 0)
             .Build()
             .WithIntents();
 

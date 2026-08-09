@@ -60,5 +60,17 @@ namespace Faultline.Core
 
         /// <summary>A one-shot out of a duck's pocket put it there — the Dried Minnow.</summary>
         Pocket = 14,
+
+        /// <summary>
+        /// The Archer landed a basic attack at exactly her sweet spot (MASTER_DESIGN §5, locked af).
+        /// </summary>
+        /// <remarks>
+        /// Replaces <see cref="HighGround"/> as her condition. Hers was the only one the map could
+        /// refuse — the other three charge on things the player does, and hers was gated on terrain she
+        /// does not control and often could not shoot from under min range. <see cref="HighGround"/>
+        /// survives as a source label because Skyfall's Updraft refund still reports under it; nothing
+        /// charges a class for it any more.
+        /// </remarks>
+        SweetSpot = 15,
     }
 }

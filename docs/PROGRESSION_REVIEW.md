@@ -227,7 +227,7 @@ Each hangs on one spender and moves one axis of it.
 | Impact | Vanguard | +1 when Bull Rush connects. |
 | Chum the Water | Fisher | +1 when an enemy she displaced this round is killed by anyone. |
 | Undertow | Fisher | +1 the first time each round an enemy ends a displacement adjacent to her. |
-| Long Shot | Archer | +1 on kills at range 3. |
+| Long Shot | Archer | +1 on a sweet-spot kill — on top of the hit's own charge, so the kill pays 2. |
 | Roost | Archer | +1 the first time each fight she ends a round on high ground. |
 | Patience | Wardbearer | +1 when Guard Stance expires unabsorbed — patience pays. |
 | Spear Tip | Wardbearer | +1 when the Spear's tip tile hits. |

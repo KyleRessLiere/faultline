@@ -20,24 +20,28 @@ public class ArcherMinimumRangeTests
         TestPlay.AssertIllegal(state, new AttackCommand(archer.Id, husk.Id));
     }
 
+    /// <summary>
+    /// The band and its falloff (MASTER_DESIGN §4, locked af): 2–4, with the 4 damage at exactly 3.
+    /// </summary>
     [Theory]
-    [InlineData(2)]
-    [InlineData(3)]
-    public void Archer_ShootsEverythingFromTwoTilesOut(int distance)
+    [InlineData(2, 2)]
+    [InlineData(3, 4)]
+    [InlineData(4, 2)]
+    public void Archer_ShootsEverythingFromTwoTilesOut(int distance, int expected)
     {
         var state = Board(enemyAt: distance);
         var archer = state.Find(UnitKind.Archer);
         var husk = state.Find(UnitKind.Husk);
 
         Assert.True(Combat.CanAttack(state, state.Get(archer.Id), state.Get(husk.Id), out int damage));
-        Assert.Equal(4, damage);
+        Assert.Equal(expected, damage);
         TestPlay.AssertLegal(state, new AttackCommand(archer.Id, husk.Id));
     }
 
     [Fact]
     public void Archer_StillCannotReachPastHerRange()
     {
-        var state = Board(enemyAt: 4);
+        var state = Board(enemyAt: 5);
 
         Assert.False(Combat.CanAttack(
             state, state.Get(state.Find(UnitKind.Archer).Id), state.Get(state.Find(UnitKind.Husk).Id), out _));
@@ -235,7 +239,11 @@ public class ArcherMinimumRangeTests
         var below = state.Units.Single(u => u.Position == new Coord(0, 1)).Id;
         state = state.WithUnit(state.Get(archer) with { Verve = Verve.Cap });
 
-        int expected = UnitTemplate.For(UnitKind.Archer).Damage + Combat.HighGroundBonus;
+        // Adjacent is not the sweet spot, so the downhill exception fires at the OUTER band's damage
+        // plus the ledge bonus (§4's band arithmetic applied without a special case). What range 1
+        // should pay is not a number the doc states — see DECISIONS D-269.
+        var template = UnitTemplate.For(UnitKind.Archer);
+        int expected = template.OffSpotDamage + Combat.HighGroundBonus;
 
         var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
         Assert.Equal(1, armed.Get(archer).ExtraAttacks);

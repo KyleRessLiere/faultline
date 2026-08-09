@@ -297,17 +297,24 @@ public class VerveSpendTests
         var first = armed.Step(new AttackCommand(archer, near));
         var second = first.NewState.Step(new AttackCommand(archer, far));
 
+        var template = UnitTemplate.For(UnitKind.Archer);
+
+        // The ledge pays BOTH shots. Their damage differs now only because they stand at different
+        // distances - the near one is off the sweet spot - so the assertion is per shot against the
+        // band, which is the honest form of "the bonus applies to each" (MASTER_DESIGN §4, locked af).
         Assert.True(first.Single<UnitAttacked>().FromHighGround);
         Assert.True(second.Single<UnitAttacked>().FromHighGround);
-        Assert.Equal(first.Single<UnitAttacked>().Damage, second.Single<UnitAttacked>().Damage);
+        Assert.Equal(template.OffSpotDamage + Combat.HighGroundBonus, first.Single<UnitAttacked>().Damage);
+        Assert.Equal(template.Damage + Combat.HighGroundBonus, second.Single<UnitAttacked>().Damage);
     }
 
     [Fact]
-    public void DoubleNock_FromHighGround_CostsFourAndEarnsTwoBack()
+    public void DoubleNock_AtTheSweetSpot_CostsFourAndEarnsTwoBack()
     {
-        // docs/archive/VERVE.md is explicit that this is the design and not an accident: two qualifying shots make
-        // a 4-point spend a net 2.
-        var state = ArcherOnHighGround(out var archer, out var near, out var far);
+        // Explicit design, not an accident: two qualifying shots make a 4-point spend a net 2. Under
+        // the (af) rework "qualifying" means AT THE SWEET SPOT rather than from a ledge, and the
+        // spender feeding the meter back is intended - see MASTER_DESIGN §5.
+        var state = ArcherAtTheSweetSpot(out var archer, out var near, out var far);
         int before = state.Get(archer).Verve;
 
         var armed = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
@@ -446,6 +453,26 @@ public class VerveSpendTests
         archer = state.Find(UnitKind.Archer).Id;
         near = state.Units.Single(u => u.Position == new Coord(2, 0)).Id;
         far = state.Units.Single(u => u.Position == new Coord(3, 0)).Id;
+
+        var id = archer;
+        return state.WithUnit(state.Get(id) with { Verve = Verve.Cap });
+    }
+
+    /// <summary>
+    /// Two enemies, both at exactly her sweet spot, on level ground - so the two shots are two
+    /// charges and nothing about elevation is in the way of reading that.
+    /// </summary>
+    private static GameState ArcherAtTheSweetSpot(out UnitId archer, out UnitId near, out UnitId far)
+    {
+        var state = BoardBuilder.Open(5, 4)
+            .PlayerA(UnitKind.Archer, 0, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 18)
+            .Enemy(UnitKind.Husk, 2, 1, hp: 18)
+            .Build();
+
+        archer = state.Find(UnitKind.Archer).Id;
+        near = state.Units.Single(u => u.Position == new Coord(3, 0)).Id;
+        far = state.Units.Single(u => u.Position == new Coord(2, 1)).Id;
 
         var id = archer;
         return state.WithUnit(state.Get(id) with { Verve = Verve.Cap });

@@ -1407,6 +1407,12 @@ namespace Faultline.Core
 
             Require(Combat.CanAttack(state, unit, target, out int damage), "Target cannot be attacked.");
 
+            // Measured against the unit the shot was RESOLVED against, before a guard redirects it.
+            // The event's To is the guard's tile when one intercepts, and the sweet spot is a fact
+            // about where she stood relative to what she aimed at (MASTER_DESIGN §4).
+            bool sweetSpot = unit.Template.HasSweetSpot
+                && unit.Position.DistanceTo(target.Position) == unit.Template.SweetSpot;
+
             state = CommitActivation(state, unit, events);
             unit = state.UnitById(unit.Id);
 
@@ -1438,7 +1444,8 @@ namespace Faultline.Core
                 unit.Position,
                 state.UnitById(victimId).Position,
                 Guard.Mitigate(state, victimId, damage, DamageSource.Attack),
-                Combat.IsElevatedShot(state, unit)));
+                Combat.IsElevatedShot(state, unit),
+                sweetSpot));
 
             state = Combat.ApplyDamage(state, victimId, damage, DamageSource.Attack, events);
 

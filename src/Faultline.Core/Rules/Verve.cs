@@ -61,7 +61,13 @@ namespace Faultline.Core
         /// <summary>
         /// The band <see cref="SecondWind.LongKill"/> pays out at: a kill at exactly this range.
         /// </summary>
-        public const int LongKillRange = 3;
+        /// <remarks>
+        /// <b>Read off the Archer's sweet spot, not typed.</b> Locked af makes Long Shot "+1 on a
+        /// sweet-spot kill" — additive on top of the base hit charge, so a sweet-spot kill pays 2. The
+        /// two numbers were already the same by coincidence; deriving it means moving the spot moves
+        /// the Second Wind with it, which is the only way the card can keep meaning what it says.
+        /// </remarks>
+        public static int LongKillRange => UnitTemplate.For(UnitKind.Archer).SweetSpot;
 
         /// <summary>Hit points Preen puts back, never past the unit's maximum.</summary>
         public const int PreenHeal = 4;
@@ -261,6 +267,19 @@ namespace Faultline.Core
                 state = Bank(state, guardId, VerveSource.Guard, events);
             }
 
+            // The sweet spot is charged per COMMAND, for the same reason guarding is: one attack action
+            // is one deed however many bodies it lands on. Nothing multi-target exists yet, and this is
+            // where that distinction will live when it does — a volley that hits three enemies emits
+            // three UnitAttacked events and must still pay once.
+            //
+            // A Double Nock at the spot still pays twice, and that is not an exception to this: the
+            // spender buys a second ATTACK ACTION (Unit.ExtraAttacks), so the two shots are two
+            // commands with two windows. The spender feeding the meter back is intended (§5).
+            foreach (var shooterId in SweetSpotted(state, events, produced))
+            {
+                state = Bank(state, shooterId, VerveSource.SweetSpot, events);
+            }
+
             for (int i = 0; i < produced; i++)
             {
                 if (!Earned(state, events, i, out var earnerId, out var source))
@@ -357,6 +376,41 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Who landed a sweet-spot hit in this command, each named once.
+        /// </summary>
+        /// <remarks>
+        /// <b>Per attacker per command, not per body.</b> The de-duplication is the whole point: it is
+        /// the seam MASTER_DESIGN §5's per-hit-tick reading needs the day an attack can hit two enemies.
+        /// Today one command is one shot, so the two readings agree and the seam costs nothing.
+        /// </remarks>
+        /// <param name="state">State after the command resolved.</param>
+        /// <param name="events">The command's events.</param>
+        /// <param name="produced">How many events the command produced, before charges were appended.</param>
+        /// <returns>Attacker ids, in the order their shots landed.</returns>
+        private static List<UnitId> SweetSpotted(
+            GameState state, IReadOnlyList<GameEvent> events, int produced)
+        {
+            var shooters = new List<UnitId>();
+
+            for (int i = 0; i < produced; i++)
+            {
+                if (events[i] is not UnitAttacked { SweetSpot: true } shot
+                    || shooters.Contains(shot.AttackerId))
+                {
+                    continue;
+                }
+
+                var unit = state.FindUnit(shot.AttackerId);
+                if (unit is not null && Charges(unit.Kind, VerveSource.SweetSpot))
+                {
+                    shooters.Add(shot.AttackerId);
+                }
+            }
+
+            return shooters;
+        }
+
+        /// <summary>
         /// Whether a class earns from a given source. Class-bound: a Wardbearer causing a collision
         /// charges nothing, because collisions are the Vanguard's condition and absorption is his.
         /// </summary>
@@ -369,7 +423,10 @@ namespace Faultline.Core
             UnitKind.Threadcaster => source == VerveSource.Collision
                 || source == VerveSource.Hazard
                 || source == VerveSource.LongPull,
-            UnitKind.Archer => source == VerveSource.HighGround,
+            // Locked af: the sweet spot replaces hits-from-high-ground. Hers was the only condition the
+            // MAP could refuse — the other three charge on things the player does. High ground keeps
+            // its +2 damage and its Skyfall gate; it is a reward, no longer her salary.
+            UnitKind.Archer => source == VerveSource.SweetSpot,
             UnitKind.Wardbearer => source == VerveSource.Guard,
             _ => false,
         };
@@ -386,7 +443,7 @@ namespace Faultline.Core
             UnitKind.Threadcaster =>
                 "your pulls ending in a collision or a hazard, and any drag of "
                 + LongPullTiles + " tiles or more",
-            UnitKind.Archer => "hitting an enemy from high ground",
+            UnitKind.Archer => "a sweet-spot hit",
             UnitKind.Wardbearer => "taking a hit in Guard Stance, aimed at you or an ally",
             _ => string.Empty,
         };
@@ -618,12 +675,9 @@ namespace Faultline.Core
 
             switch (events[index])
             {
-                case UnitAttacked e when e.FromHighGround:
-                    earnerId = e.AttackerId;
-                    affectedId = e.TargetId;
-                    source = VerveSource.HighGround;
-                    break;
-
+                // Hits from high ground used to earn here. Retired with the (af) condition rework —
+                // the sweet spot is banked per command above, not per event, so it is deliberately not
+                // one of these cases.
                 case Collision e:
                     affectedId = e.UnitId;
 

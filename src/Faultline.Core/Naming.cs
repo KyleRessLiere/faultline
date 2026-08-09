@@ -122,6 +122,7 @@ namespace Faultline.Core
             VerveSource.Patience => "patience",
             VerveSource.SpearTip => "the spear's tip",
             VerveSource.Refund => "a refund",
+            VerveSource.SweetSpot => "a shot at the sweet spot",
             VerveSource.Pocket => "something out of a pocket",
             _ => source.ToString(),
         };

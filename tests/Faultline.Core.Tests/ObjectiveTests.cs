@@ -15,9 +15,9 @@ public class ObjectiveTests
     [Fact]
     public void NoObjective_StillWinsOnTheLastEnemy()
     {
-        var state = BoardBuilder.Open(3, 1)
+        var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
             .Build();
 
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Archer).Id, state.Find(UnitKind.Husk).Id));
@@ -302,8 +302,8 @@ public class ObjectiveTests
     {
         var state = BoardBuilder.Open(6, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
-            .Objective(ObjectiveKind.Protect, tiles: new Coord(4, 0))
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Objective(ObjectiveKind.Protect, tiles: new Coord(5, 0))
             .Build();
 
         var result = state.Step(new AttackCommand(state.Find(UnitKind.Archer).Id, state.Find(UnitKind.Husk).Id));
@@ -515,9 +515,9 @@ public class ObjectiveTests
     [Fact]
     public void TurnLimit_AWinBeforeItExpiresStillWins()
     {
-        var state = BoardBuilder.Open(3, 1)
+        var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
             .TurnLimit(3)
             .Build();
 

@@ -171,8 +171,18 @@ namespace Faultline.Core
                     : "none";
             }
 
-            string reach = template.Attack == AttackKind.Melee ? "melee" : $"range {template.Range}";
-            string text = $"{reach} · {template.Damage} dmg";
+            // A banded gun cannot be described by one range and one number, and describing it with
+            // Range and Damage alone is how a screen ends up promising 4 damage at every tile she can
+            // reach. The Archer reads "range 2–4 · 4 dmg at 3, else 2" (MASTER_DESIGN §4, locked af).
+            string reach = template.Attack == AttackKind.Melee
+                ? "melee"
+                : template.HasSweetSpot
+                    ? $"range {template.MinRange}–{template.Range}"
+                    : $"range {template.Range}";
+
+            string text = template.HasSweetSpot
+                ? $"{reach} · {template.Damage} dmg at {template.SweetSpot}, else {template.OffSpotDamage}"
+                : $"{reach} · {template.Damage} dmg";
 
             if (template.AttackPush > 0)
             {

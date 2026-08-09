@@ -697,7 +697,9 @@ public class WardbearerTests
 
         var result = state.Step(new AttackCommand(archer.Id, husk.Id));
 
-        Assert.Equal(8, result.NewState.Get(husk.Id).Hp);
+        // Range 2 is the outer band, so the shot is 2 rather than 4 - unrelated to the guard, which
+        // is the point: it did not intercept.
+        Assert.Equal(10, result.NewState.Get(husk.Id).Hp);
         Assert.Equal(wardbearer.Hp, result.NewState.Get(wardbearer.Id).Hp);
         Assert.False(result.Has<GuardIntercepted>());
     }

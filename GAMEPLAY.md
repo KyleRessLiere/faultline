@@ -20,7 +20,7 @@ changes, this table and that test go red together. Numbers are the doubled scale
 | Vanguard | Basic attack | 1 | — | melee | 2 dmg + push 1 |
 | Vanguard | Bull Rush | 2 | — | charge 3 | first enemy hit pushed 2, threat range 4 |
 | Vanguard | Wrecking Weight (spend) | 0 | 2 | — | next push this activation +1 distance, +2 contact dmg |
-| Archer | Basic attack | 1 | — | 2–3 | 4 dmg |
+| Archer | Basic attack | 1 | — | 2–4 | **4 dmg at range 3, 2 at 2 and 4** — the sweet spot |
 | Archer | Stagger Shot | 1 | — | 2–3 | 2 dmg + push 1 away |
 | Archer | Double Nock (spend) | 0 | 4 | — | attack action fires twice |
 | Fisher | Basic attack | 1 | — | 3 | 2 dmg, or pull 1 instead |
@@ -65,6 +65,12 @@ Fisher's displacements, Skyfall by the Archer's high ground, Breakwater by the W
 **Only the Archer has a minimum range: 2** — for both her basic shot and Stagger Shot. Every other
 attacker on either side, player or enemy, has no minimum. Ranged attacks fired from HighGround deal
 **+2**.
+
+**The Archer's basic attack is a band with a sweet spot** (D-267): **range 2–4, dealing 4 at exactly
+range 3 and 2 at ranges 2 and 4.** Her damage is something she earns with feet. High ground's +2
+stacks on top, so a sweet-spot hit from a ledge is **6**; her minimum range and its adjacent-lower
+exception are untouched, and a shot taken through that exception pays the outer band's 2 (D-269 flags
+the reading). Stagger Shot is unchanged at range 3 for 2 — her flat fallback for a wrong-range turn.
 
 ### Terrain movement costs
 
@@ -864,7 +870,7 @@ available — *out of reach*, or *the pool is already spent* once she has moved.
 | Class | HP | Move | Basic attack | Ability |
 |---|---|---|---|---|
 | Vanguard | 14 | 3 | melee, 2 dmg **+ push 1** | **Bull Rush** — **2 AP**; charge up to 3 in a line, first enemy reached is pushed 2, you stop adjacent. Like every action it closes the move half (D-097), and at 2 it leaves one tile of run-up, so his threat range is **4** (D-126). |
-| Archer | 8 | 3 | range **2-3**, 4 dmg | **Stagger Shot** — range **2-3**, 2 dmg + push 1 away. Her **+2 from high ground** and her **adjacent-lower exception** are unchanged; her free-climb perk retired with the surcharge itself (D-152). |
+| Archer | 8 | 3 | range **2–4**, **4 dmg at 3, 2 at 2 and 4** | **Stagger Shot** — range **3**, 2 dmg + push 1 away, her flat fallback. Her **+2 from high ground** and her **adjacent-lower exception** are unchanged; her free-climb perk retired with the surcharge itself (D-152). |
 | **Fisher** | 8 | 3 | range **3**, 2 dmg **or pull 1** | **Reel** — range **4**, pull one enemy all the way to adjacent, resolving every tile. Nothing between her and it is consulted — no line of sight, no lane check; the line flies over rock and body alike (D-010). *(`Threadcaster` in the code — D-090.)* |
 | Wardbearer | **14** | 3 | melee, 2 dmg | **Spear Thrust** — Line 2, damage only: **2** to an enemy in the adjacent tile, **4** to one in the tile beyond — the tip is the sweet spot (D-086). Displaces nothing. Chips a structure on the line for 2. **Guard Stance** — action half; until its next activation, damage and displacement aimed at *adjacent allies* — and the siege claw aimed at an adjacent Protect structure — redirect onto it. Innate **push resistance 2**. |
 
@@ -958,7 +964,7 @@ event on the board pays one unit and not another:
 |---|---|---|
 | Vanguard | a collision **he** causes | `Collision` |
 | Fisher | a displacement **she** causes ends in a collision, spikes or a drain — her basic Pull, Reel and a Cast landing alike; **and, separately, any pull she causes that drags its target 3 or more tiles** | `Collision`, `Hazard`, `LongPull` |
-| Archer | **she** hits an enemy from HighGround | `HighGround` |
+| Archer | **she** lands a basic attack at her **sweet spot** (exactly range 3) | `SweetSpot` |
 | Wardbearer | **it** takes an attack in Guard Stance — **redirected off an ally, taken off the structure beside it, or aimed at it directly** — that dealt damage or moved it a tile | `Guard` |
 
 The Fisher is ranged, so a shot of hers from HighGround produces exactly the event the Archer
@@ -1849,7 +1855,7 @@ carries its own `VerveSource`, so the log says which condition paid.
 | | **Impact** | Bull Rush connects — the charge reaches a body |
 | Fisher | **Chum the Water** | an enemy **she displaced this round** is killed **by anyone** |
 | | **Undertow** | **first time each round** an enemy ends a displacement adjacent to her |
-| Archer | **Long Shot** | a kill at range **exactly 3** |
+| Archer | **Long Shot** | a **sweet-spot kill** — additive on top of the hit's own charge, so it pays **2** |
 | | **Roost** | **first time each fight** she ends a round on high ground |
 | Wardbearer | **Patience** | Guard Stance expires having absorbed **nothing** |
 | | **Spear Tip** | Spear Thrust hits its **tip tile** — an enemy exactly 2 tiles ahead |

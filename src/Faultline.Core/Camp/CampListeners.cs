@@ -151,7 +151,7 @@ namespace Faultline.Core
 
         /// <summary>
         /// Fisher: +1 when an enemy she displaced this round is killed by anyone. Archer: +1 on kills
-        /// at range 3, and Hunter's Refund hands one back on any killing shot.
+        /// at her sweet spot, and Hunter's Refund hands one back on any killing shot.
         /// </summary>
         private static GameState OnDowned(
             GameState state, List<GameEvent> events, int index, UnitDowned e)

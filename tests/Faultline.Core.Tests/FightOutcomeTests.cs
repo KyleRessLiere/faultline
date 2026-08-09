@@ -7,9 +7,10 @@ public class FightOutcomeTests
     [Fact]
     public void Fight_IsWonWhenTheLastEnemyGoesDown()
     {
-        var state = BoardBuilder.Open(3, 1)
+        // At the sweet spot: off it she deals 2 and a Husk survives (MASTER_DESIGN §4, locked af).
+        var state = BoardBuilder.Open(4, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -80,10 +81,10 @@ public class FightOutcomeTests
     [Fact]
     public void DownedUnit_StopsBlockingItsTile()
     {
-        var state = BoardBuilder.Open(4, 1)
+        var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
-            .Enemy(UnitKind.Anchor, 3, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Enemy(UnitKind.Anchor, 4, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -91,6 +92,6 @@ public class FightOutcomeTests
 
         var after = state.Then(new AttackCommand(archer.Id, husk.Id));
 
-        Assert.True(Movement.Reachable(after, after.Get(archer.Id)).ContainsKey(new Coord(2, 0)));
+        Assert.True(Movement.Reachable(after, after.Get(archer.Id)).ContainsKey(new Coord(3, 0)));
     }
 }

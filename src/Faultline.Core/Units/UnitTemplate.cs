@@ -62,6 +62,15 @@ namespace Faultline.Core
     /// Hit points at or below which <paramref name="Enraged"/> takes over. Meaningless when there is
     /// no second stat block.
     /// </param>
+    /// <param name="SweetSpot">
+    /// The one distance at which the basic attack deals <paramref name="Damage"/> rather than
+    /// <paramref name="OffSpotDamage"/>. Zero for every profile whose damage does not depend on
+    /// distance, which is everything but the Archer (MASTER_DESIGN §4, locked af).
+    /// </param>
+    /// <param name="OffSpotDamage">
+    /// What the basic attack deals anywhere in its band that is not the <paramref name="SweetSpot"/>.
+    /// Meaningless when there is no sweet spot.
+    /// </param>
     public sealed record UnitTemplate(
         UnitKind Kind,
         string RawName,
@@ -81,7 +90,9 @@ namespace Faultline.Core
         int MinRange = 0,
         bool Tramples = false,
         UnitTemplate? Enraged = null,
-        int EnrageAt = 0)
+        int EnrageAt = 0,
+        int SweetSpot = 0,
+        int OffSpotDamage = 0)
     {
         private static readonly Dictionary<UnitKind, UnitTemplate> Table = Build();
 
@@ -97,6 +108,35 @@ namespace Faultline.Core
         /// (D-099). Zero for everything without a stated minimum, which is everything but the Archer.
         /// </summary>
         public bool HasMinRange => MinRange > 1;
+
+        /// <summary>True when the basic attack's damage depends on how far away the target is.</summary>
+        public bool HasSweetSpot => SweetSpot > 0;
+
+        /// <summary>
+        /// What the basic attack deals at a given distance, before the HighGround bonus.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>MASTER_DESIGN §4, the Archer's sweet spot (locked af):</b> range 2–4, <b>4 at range 3</b>
+        /// and <b>2 at ranges 2 and 4</b> — the Wardbearer's spear tip as a gun, so her damage is
+        /// something she earns with feet rather than something her profile hands her.
+        /// </para>
+        /// <para>
+        /// One expression, and it is the <em>only</em> place the falloff exists: <see cref="Combat"/>
+        /// asks it for both the preview and the resolution, so the number on the hover and the number
+        /// that lands cannot disagree. Distance is whatever the caller already measured — this
+        /// deliberately does no measuring of its own, because a second distance metric for the band
+        /// would be a second geometry for the same bow.
+        /// </para>
+        /// <para>
+        /// A profile with no sweet spot answers <see cref="Damage"/> at every distance, which is every
+        /// profile but the Archer's.
+        /// </para>
+        /// </remarks>
+        /// <param name="distance">How far the target is, in the game's own distance.</param>
+        /// <returns>Damage before elevation.</returns>
+        public int DamageAtRange(int distance) =>
+            HasSweetSpot && distance != SweetSpot ? OffSpotDamage : Damage;
 
         /// <summary>True when the basic action may pull instead of dealing damage.</summary>
         public bool CanPullWithBasic => BasicPull > 0;
@@ -172,7 +212,12 @@ namespace Faultline.Core
                 // 'footing:' key in the .fight file.
                 // The Vanguard's basic shoves; the Threadcaster's may pull instead of hurting.
                 new UnitTemplate(UnitKind.Vanguard, "Vanguard", 14, 3, AttackKind.Melee, 1, 2, 0, AttackPush: 1),
-                new UnitTemplate(UnitKind.Archer, "Archer", 8, 3, AttackKind.Ranged, 3, 4, 0, MinRange: 2),
+                // The sweet spot (MASTER_DESIGN §4, locked af): the band is 2–4 and the 4 damage lives
+                // at exactly 3. Minimum range is untouched — the dead zone is a different rule and
+                // keeps its high-ground exception.
+                new UnitTemplate(
+                    UnitKind.Archer, "Archer", 8, 3, AttackKind.Ranged, 4, 4, 0,
+                    MinRange: 2, SweetSpot: 3, OffSpotDamage: 2),
                 new UnitTemplate(UnitKind.Threadcaster, "Threadcaster", 8, 3, AttackKind.Ranged, 3, 2, 0, BasicPull: 1),
                 // D-058: the Wardbearer's hold aura is gone and it is heavier instead — 7 HP behind
                 // push resistance 2, the Colossus's number on a player class. The aura mechanic

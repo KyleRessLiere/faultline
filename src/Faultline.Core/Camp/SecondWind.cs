@@ -28,7 +28,7 @@ namespace Faultline.Core
         /// </summary>
         DisplacedAdjacent = 3,
 
-        /// <summary>Archer: +1 on kills at range 3.</summary>
+        /// <summary>Archer, "Long Shot": +1 on a sweet-spot kill, on top of the hit's own charge.</summary>
         LongKill = 4,
 
         /// <summary>Archer: +1 the first time each fight she ends a round on high ground.</summary>

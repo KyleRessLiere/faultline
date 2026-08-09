@@ -242,8 +242,13 @@ public class SecondWindTests
 
     // ---- Archer: Long Shot --------------------------------------------------------------
 
+    /// <summary>
+    /// Locked af: Long Shot is <b>+1 on a sweet-spot kill, additive on top of the hit's own charge</b>
+    /// — so a sweet-spot kill pays 2. That is the opt-in leave-it-alive bet, and its whole value is
+    /// that it stacks rather than replaces.
+    /// </summary>
     [Fact]
-    public void LongKill_ChargesTheArcherForAKillAtExactlyHerLongBand()
+    public void LongKill_ASweetSpotKill_PaysTwo()
     {
         var state = LongShot(Verve.LongKillRange);
         var archer = state.Find(UnitKind.Archer);
@@ -253,20 +258,25 @@ public class SecondWindTests
 
         var shot = result.All<UnitAttacked>().Single(a => a.TargetId == husk.Id);
         Assert.Equal(Verve.LongKillRange, shot.From.DistanceTo(shot.To));
+        Assert.True(shot.SweetSpot);
         Assert.False(shot.FromHighGround);
         Assert.Equal(husk.Id, result.Single<UnitDowned>().UnitId);
 
-        var charged = result.Single<VerveCharged>();
-        Assert.Equal(archer.Id, charged.UnitId);
-        Assert.Equal(VerveSource.LongKill, charged.Source);
-        Assert.Equal(1, result.NewState.Get(archer.Id).Verve);
+        var sources = result.All<VerveCharged>().Select(c => c.Source).ToList();
+        Assert.Contains(VerveSource.SweetSpot, sources);
+        Assert.Contains(VerveSource.LongKill, sources);
+        Assert.All(result.All<VerveCharged>(), c => Assert.Equal(archer.Id, c.UnitId));
+        Assert.Equal(2, result.NewState.Get(archer.Id).Verve);
     }
 
+    /// <summary>
+    /// A kill off the spot pays nothing at all — neither the base charge nor the bet. The sweet spot
+    /// is the condition for both, which is the whole of "one number carries her income".
+    /// </summary>
     [Fact]
-    public void LongKill_AKillInsideTheLongBand_ChargesNothing()
+    public void LongKill_AKillOffTheSweetSpot_ChargesNothing()
     {
-        // "At range 3", not "at range 3 or more" and not "at any range" — the band is the condition.
-        var state = LongShot(Verve.LongKillRange - 1);
+        var state = LongShot(Verve.LongKillRange - 1, hp: 2);
         var archer = state.Find(UnitKind.Archer);
         var husk = state.Units[1];
 
@@ -274,6 +284,7 @@ public class SecondWindTests
 
         var shot = result.All<UnitAttacked>().Single(a => a.TargetId == husk.Id);
         Assert.Equal(Verve.LongKillRange - 1, shot.From.DistanceTo(shot.To));
+        Assert.False(shot.SweetSpot);
         Assert.Equal(husk.Id, result.Single<UnitDowned>().UnitId);
         Assert.False(result.Has<VerveCharged>());
         Assert.Equal(0, result.NewState.Get(archer.Id).Verve);
@@ -557,11 +568,14 @@ public class SecondWindTests
     }
 
     /// <summary>An Archer with Long Shot, and a Husk one shot from death at the given range.</summary>
-    private static GameState LongShot(int range)
+    private static GameState LongShot(int range, int hp = 0)
     {
-        var state = BoardBuilder.Open(6, 2)
-            .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, range, 0)
+        var builder = BoardBuilder.Open(6, 2).PlayerA(UnitKind.Archer, 0, 0);
+
+        // Off the sweet spot the shot is worth 2, so a quarry meant to die there is given 2 to lose.
+        var state = (hp > 0
+                ? builder.Enemy(UnitKind.Husk, range, 0, hp: hp)
+                : builder.Enemy(UnitKind.Husk, range, 0))
             .Enemy(UnitKind.Husk, 5, 1, hp: 12)
             .Build();
 

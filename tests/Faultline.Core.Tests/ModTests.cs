@@ -193,31 +193,40 @@ public class ModTests
             plain.Step(new SpendVerveCommand(other, VerveSpend.DoubleNock)).Single<VerveSpent>().Cost);
     }
 
+    /// <summary>
+    /// <b>Long Draw buys nothing any more, and that is a finding rather than a fix.</b>
+    /// </summary>
+    /// <remarks>
+    /// §8.6 words the mod "both shots range 4", stated as an absolute. The sweet spot (locked af)
+    /// widened her printed band to 2–4, so the absolute it names is now the range she already has:
+    /// fitting it changes no legality and no damage. Nothing here re-prices it — that is a designer
+    /// call, recorded in DECISIONS D-269 alongside the Double Nock cost cut the same ruling
+    /// superseded. This test pins the collision so it cannot be rediscovered as a bug.
+    /// </remarks>
     [Fact]
-    public void LongDraw_WidensTheBowToFourWhileDoubleNockIsLive()
+    public void LongDraw_NoLongerWidensAnything_BecauseTheBandAlreadyReachesFour()
     {
         var state = Archer(out var archer, out var distant);
         int printed = UnitTemplate.For(UnitKind.Archer).Range;
 
+        Assert.Equal(Combat.LongDrawRange, printed);
         Assert.Equal(
             Combat.LongDrawRange,
             state.Get(archer).Position.DistanceTo(state.Get(distant).Position));
 
-        // Fitted but unspent is still the printed bow: §8.6 buys the range with the spend.
+        // The tile the mod used to buy is inside the printed bow now, modded or not, spent or not.
+        Assert.True(Combat.CanAttack(state, state.Get(archer), state.Get(distant), out _));
+
         var drawn = state.WithMod(archer, Mod.LongDraw);
         Assert.Equal(printed, Combat.RangeOf(drawn.Get(archer)));
-        Assert.False(Combat.CanAttack(drawn, drawn.Get(archer), drawn.Get(distant), out _));
-        TestPlay.AssertNotLegal(drawn, new AttackCommand(archer, distant));
 
         var live = drawn.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
-        Assert.Equal(Combat.LongDrawRange, Combat.RangeOf(live.Get(archer)));
-        Assert.True(Combat.CanAttack(live, live.Get(archer), live.Get(distant), out _));
+        Assert.Equal(printed, Combat.RangeOf(live.Get(archer)));
         TestPlay.AssertLegal(live, new AttackCommand(archer, distant));
 
-        // The control: the spend on its own does not widen anything.
-        var unmodded = state.Then(new SpendVerveCommand(archer, VerveSpend.DoubleNock));
-        Assert.Equal(printed, Combat.RangeOf(unmodded.Get(archer)));
-        Assert.False(Combat.CanAttack(unmodded, unmodded.Get(archer), unmodded.Get(distant), out _));
+        // And it is the outer band, so the shot it reaches is worth 2 rather than 4.
+        Assert.True(Combat.CanAttack(live, live.Get(archer), live.Get(distant), out int damage));
+        Assert.Equal(UnitTemplate.For(UnitKind.Archer).OffSpotDamage, damage);
     }
 
     [Fact]
@@ -226,21 +235,26 @@ public class ModTests
         // Emptied so the point lands on the meter rather than against the cap, which is what makes
         // "a point came back" an assertion about the meter and not only about the log.
         var state = Archer(out var archer, out _).WithMod(archer, Mod.HuntersRefund).WithVerve(archer, 0);
-        var quarry = state.Units.First(u => u.Position == TestPlay.At(2, 1)).Id;
+        // At her sweet spot, so the shot is worth the 4 that kills (MASTER_DESIGN §4, locked af).
+        var quarry = state.Units.First(u => u.Position == TestPlay.At(3, 1)).Id;
 
         var killed = state.Step(new AttackCommand(archer, quarry));
 
+        // The shot is at her sweet spot, so her own condition banks 1 alongside the refund. The
+        // assertion the mod owns is the REFUND, which is why it is asserted by source and not only by
+        // the total (MASTER_DESIGN §5: a refund is the economy axis, not a new way to earn).
         Assert.True(killed.Has<UnitDowned>());
         Assert.Equal(archer, Assert.Single(Refunds(killed)).UnitId);
-        Assert.Equal(Verve.ModRefund, killed.NewState.Get(archer).Verve);
+        Assert.Equal(Verve.ModRefund + 1, killed.NewState.Get(archer).Verve);
 
-        // The control: the same shot at something that survives it pays nothing.
+        // The control: the same shot at something that survives it refunds nothing. The sweet-spot
+        // charge still lands, because that one is about where she stood and not about the kill.
         var tough = state.WithUnit(state.Get(quarry) with { Hp = 12 });
         var survived = tough.Step(new AttackCommand(archer, quarry));
 
         Assert.False(survived.Has<UnitDowned>());
         Assert.Empty(Refunds(survived));
-        Assert.Equal(0, survived.NewState.Get(archer).Verve);
+        Assert.Equal(1, survived.NewState.Get(archer).Verve);
     }
 
     // ---- Preen -------------------------------------------------------------------------------
@@ -398,7 +412,7 @@ public class ModTests
     {
         var state = BoardBuilder.Open(9, 3)
             .PlayerA(UnitKind.Archer, 0, 1)
-            .Enemy(UnitKind.Husk, 2, 1)
+            .Enemy(UnitKind.Husk, 3, 1)
             .Enemy(UnitKind.Husk, 4, 1, hp: 18)
             .Build();
 

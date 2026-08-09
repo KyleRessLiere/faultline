@@ -287,12 +287,11 @@ public static class ActionRows
 
         if (template.Attack != AttackKind.None)
         {
-            string reach = template.Attack == AttackKind.Melee ? "melee" : "range " + template.Range;
-            string effect = reach + " · " + template.Damage + " dmg";
-            if (template.AttackPush > 0)
-            {
-                effect += " · push " + template.AttackPush;
-            }
+            // Core's own sentence rather than a second copy of it. This row and the inspector had
+            // separately-built strings saying the same thing, and a banded gun is exactly the change
+            // that makes two copies disagree — one would still promise 4 damage at every reachable
+            // tile (MASTER_DESIGN §4, locked af).
+            string effect = EnemyBehaviour.Describe(template);
 
             yield return Priced(
                 session,

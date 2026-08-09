@@ -266,9 +266,12 @@ in this file when the question comes back.
 | D-263 | [RULED: an act built in the UI emits a MAPPED act, not a bare node list, and the event routing asks the run's current node rather than the map's.](#d-263-ruled-an-act-built-in-the-ui-emits-a-mapped-act-not-a-bare-node-list-and-the-event-routing-asks-the-runs-current-node-rather-than-the-maps) | 2026-08-08 |  |
 | D-264 | [RULED: the act builder generates a branching act from CONSTRAINTS and a seed, and the sizing is a dial rather than a ruling.](#d-264-ruled-the-act-builder-generates-a-branching-act-from-constraints-and-a-seed-and-the-sizing-is-a-dial-rather-than-a-ruling) | 2026-08-08 |  |
 | D-265 | [FIXED: `FightLibrary` parsed all sixty-six `.fight` files on every call.](#d-265-fixed-fightlibrary-parsed-all-sixty-six-fight-files-on-every-call) | 2026-08-08 |  |
-| D-266 | [RULED: the front door's run picker offers the generated sizings and the saved acts, and starting one is the same call the builder makes.](#d-266-ruled-the-front-doors-run-picker-offers-the-generated-sizings-and-the-saved-acts-and-starting-one-is-the-same-call-the-builder-makes) | unreleased |  |
+| D-266 | [RULED: the front door's run picker offers the generated sizings and the saved acts, and starting one is the same call the builder makes.](#d-266-ruled-the-front-doors-run-picker-offers-the-generated-sizings-and-the-saved-acts-and-starting-one-is-the-same-call-the-builder-makes) | 2026-08-08 |  |
+| D-267 | [RULED: the Archer's basic attack is a BAND with a sweet spot — range 2–4, 4 damage at exactly 3, 2 at 2 and 4.](#d-267-ruled-the-archers-basic-attack-is-a-band-with-a-sweet-spot--range-24-4-damage-at-exactly-3-2-at-2-and-4) | unreleased |  |
+| D-268 | [RULED: her charge condition is +1 on a sweet-spot hit, banked per COMMAND.](#d-268-ruled-her-charge-condition-is-1-on-a-sweet-spot-hit-banked-per-command) | unreleased |  |
+| D-269 | [FOUND: the band collides with four cards, and every one of them is a designer call this session did not make.](#d-269-found-the-band-collides-with-four-cards-and-every-one-of-them-is-a-designer-call-this-session-did-not-make) | unreleased |  |
 
-**248 rulings.**
+**251 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7175,3 +7178,97 @@ changed is that a *draft* is reachable from the screen where runs begin.
 restored by reload (D-263), and the browser check proves it the hard way: navigating to `/map` with
 `page.goto` ends the run, so the check has to click through in-app. That is the documented behaviour
 working, not a defect — but a player meeting it without warning would file it as one.
+
+---
+
+**D-267 — RULED: the Archer's basic attack is a BAND with a sweet spot — range 2–4, 4 damage at
+exactly 3, 2 at 2 and 4.**
+
+MASTER_DESIGN §4 (locked af). The Wardbearer's spear tip as a gun: her damage stops being something
+her profile hands her and becomes something she earns with feet, and a Husk closing 3 a turn makes
+holding the spot the kiting countdown with a reason.
+
+**The falloff lives in one expression, `UnitTemplate.DamageAtRange`, and `Combat.CanAttack` is its only
+caller.** Preview and resolution both arrive there, which is A1's contract holding by construction
+rather than by care — the band's failure mode was never a crash, it was a number that is right in the
+rules and wrong on a hover.
+
+**Distance is whatever the caller already measured.** `DamageAtRange` does no measuring of its own,
+because a second distance metric for the band would be a second geometry for the same bow.
+
+**Minimum range is untouched.** The dead zone is a different rule (D-099) and keeps its high-ground
+exception. **High ground stacks on top** rather than replacing the band: a sweet-spot hit from a ledge
+is 6. Elevation is a reward again, not her salary.
+
+**Rejected: a per-distance damage array.** The Spear's `TileDamage` is an array because a Line has an
+inherent tile order; a gun has one spot and one everywhere-else, and two numbers plus a distance is
+the minimal encoding of what §4 actually prints.
+
+**A banded gun cannot be described by one range and one number**, and `EnemyBehaviour.Describe` was
+doing exactly that — "range 3 · 4 dmg". It now prints `range 2–4 · 4 dmg at 3, else 2`, and the
+action bar was made to call it rather than keep its own copy of the same sentence. Two separately
+built strings saying the same thing is precisely the shape that a band makes disagree: one of them
+would still have promised 4 at every reachable tile.
+
+---
+
+**D-268 — RULED: her charge condition is +1 on a sweet-spot hit, banked per COMMAND.**
+
+MASTER_DESIGN §5 (locked af) retires hits-from-high-ground: hers was **the only condition the map
+could refuse**. The other three charge on things the player does — collisions, displacement into
+hazard, Guard absorbs — and hers was gated on terrain she does not control, might pay 1 AP to reach,
+and often could not shoot from under min range. Her income is now her positioning problem itself, so
+one number carries her damage, her income and her footwork.
+
+**Banked per command, the way guarding is (D-095), not per event.** One attack action is one deed
+however many bodies it lands on. Nothing multi-target ships, so today one command is one shot and the
+two readings agree — but `Verve.SweetSpotted` is the seam §5's per-hit-tick reading will need, and it
+costs nothing to have it now rather than to find it later under a volley.
+
+**A Double Nock at the spot still pays twice, and that is not an exception to the above.** The spender
+buys a second attack ACTION (`Unit.ExtraAttacks`), so the two shots are two commands with two charge
+windows. The spender feeding the meter back is intended, and it is pinned.
+
+**The sweet spot is recorded on `UnitAttacked` rather than recomputed by the listener.** A charge is a
+fact about the deed at the moment it happened; a listener re-measuring the distance afterwards would
+be reading a board that has already moved. It is measured against the unit the shot RESOLVED against,
+before a guard redirects it — the event's `To` is the guard's tile when one intercepts.
+
+**Long Shot becomes "+1 on a sweet-spot kill", additive**, so a sweet-spot kill pays 2. Its range
+constant is now derived from the Archer's sweet spot instead of typed: the two numbers were already
+equal by coincidence, and deriving it means moving the spot moves the card with it.
+
+---
+
+**D-269 — FOUND: the band collides with four cards, and every one of them is a designer call this
+session did not make.**
+
+Recorded together because they are one question asked four ways — *what does the band do to a card
+written against the old gun* — and none of them is safe to answer by inference.
+
+**1. The Double Nock cost cut is superseded**, as (af) states. At the spot the spender is 8 for 4
+Pluck. Not applied.
+
+**2. Long Draw now buys nothing.** §8.6 words it "both shots range 4", stated as an absolute; the band
+is 2–4, so the absolute it names is the range she already has. Fitting it changes no legality and no
+damage. **Nothing here re-prices it** — a test pins the collision so it cannot be rediscovered as a
+bug.
+
+**3. Range 1 has no stated damage, and two rules reach it.** The dead zone's high-ground exception
+(§4) and Point Blank's crime (§8.6, *unbuilt*) both make range 1 legal, and §4 says nothing about what
+it is worth. The band arithmetic pays the OUTER number with no special case, so the shipped reading is
+**2** — "range 1 joins the outer band". The alternative, "the spot extends inward" at 4, is equally
+defensible and is a different card. **Implemented as 2 because it required no new rule; flagged for a
+ruling.**
+
+**4. Two unbuilt Archer cards now read strangely, and one of them inverts the band.** *Ranging Shot*
+("on high ground her basic range is 4") duplicates the printed band exactly as Long Draw does. *The
+Long Eye* ("+4 at maximum range") pays at range 4 — which the band makes her WEAK tile — so it would
+deal 6 there against the sweet spot's 4, rewarding the position §4 just priced down. Neither ships, so
+neither is a defect today; both would be if written as printed.
+
+**Spotter and Crossing Shot are flagged, not rewritten.** Spotter suspends minimum range, which the
+band did not touch, so it is mechanically unaffected. Crossing Shot's geometry is `CrossingShotMinRange
+2 – CrossingShotMaxRange 3` and its own comment calls that "her basic attack's band" — a sentence the
+band has now made false. The constants are **left as they are**: widening the reaction to 2–4 changes
+what the card is worth, and the packet is explicit that the fix is a designer call.

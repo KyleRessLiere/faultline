@@ -39,16 +39,43 @@ public class QuickReferenceTests
         Assert.Equal(1, template.AttackPush);
     }
 
+    /// <summary>MASTER_DESIGN §4, locked af: range 2–4, 4 at the spot, 2 either side of it.</summary>
     [Fact]
-    public void QuickReference_ArcherBasic_RangedFourDamageMinRangeTwo()
+    public void QuickReference_ArcherBasic_TheSweetSpot()
     {
         var template = UnitTemplate.For(UnitKind.Archer);
 
         Assert.Equal(AttackKind.Ranged, template.Attack);
-        Assert.Equal(3, template.Range);
-        Assert.Equal(4, template.Damage);
         Assert.Equal(2, template.MinRange);
+        Assert.Equal(4, template.Range);
         Assert.True(template.HasMinRange);
+
+        Assert.True(template.HasSweetSpot);
+        Assert.Equal(3, template.SweetSpot);
+        Assert.Equal(4, template.Damage);
+        Assert.Equal(2, template.OffSpotDamage);
+
+        Assert.Equal(2, template.DamageAtRange(2));
+        Assert.Equal(4, template.DamageAtRange(3));
+        Assert.Equal(2, template.DamageAtRange(4));
+    }
+
+    /// <summary>Nobody else has a band: every other profile answers one number at every distance.</summary>
+    [Fact]
+    public void QuickReference_OnlyTheArcherHasASweetSpot()
+    {
+        foreach (var kind in UnitDefinition.Kinds)
+        {
+            var template = UnitTemplate.For(kind);
+            if (kind == UnitKind.Archer)
+            {
+                continue;
+            }
+
+            Assert.False(template.HasSweetSpot, kind + " grew a sweet spot.");
+            Assert.Equal(template.Damage, template.DamageAtRange(1));
+            Assert.Equal(template.Damage, template.DamageAtRange(9));
+        }
     }
 
     [Fact]

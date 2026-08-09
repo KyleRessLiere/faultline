@@ -56,11 +56,12 @@ public class CombatTests
     }
 
     [Fact]
-    public void Attack_RangedBeyondRangeThree_IsIllegal()
+    public void Attack_RangedBeyondHerBand_IsIllegal()
     {
-        var state = BoardBuilder.Open(6, 1)
+        // The band is 2-4 (MASTER_DESIGN §4, locked af), so 5 is the first tile out of reach.
+        var state = BoardBuilder.Open(7, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Anchor, 4, 0)
+            .Enemy(UnitKind.Anchor, 5, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -122,10 +123,11 @@ public class CombatTests
     [Fact]
     public void Attack_ThatDownsTarget_EmitsUnitDownedAndClearsTheTile()
     {
-        var state = BoardBuilder.Open(4, 1)
+        // At the sweet spot, so the shot is worth the 4 that puts a Husk down.
+        var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0)
-            .Enemy(UnitKind.Anchor, 3, 0)
+            .Enemy(UnitKind.Husk, 3, 0)
+            .Enemy(UnitKind.Anchor, 4, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);
@@ -135,8 +137,8 @@ public class CombatTests
 
         var downed = result.Single<UnitDowned>();
         Assert.Equal(husk.Id, downed.UnitId);
-        Assert.Equal(new Coord(2, 0), downed.At);
-        Assert.Null(result.NewState.UnitAt(new Coord(2, 0)));
+        Assert.Equal(new Coord(3, 0), downed.At);
+        Assert.Null(result.NewState.UnitAt(new Coord(3, 0)));
         Assert.False(result.NewState.Get(husk.Id).IsOnBoard);
     }
 
@@ -174,10 +176,11 @@ public class CombatTests
     [Fact]
     public void Damage_NeverDropsHitPointsBelowZero()
     {
-        var state = BoardBuilder.Open(4, 1)
+        // From the sweet spot: 4 into 2 hit points, so the overkill is the point of the test.
+        var state = BoardBuilder.Open(5, 1)
             .PlayerA(UnitKind.Archer, 0, 0)
-            .Enemy(UnitKind.Husk, 2, 0, hp: 2)
-            .Enemy(UnitKind.Anchor, 3, 0)
+            .Enemy(UnitKind.Husk, 3, 0, hp: 2)
+            .Enemy(UnitKind.Anchor, 4, 0)
             .Build();
 
         var archer = state.Find(UnitKind.Archer);

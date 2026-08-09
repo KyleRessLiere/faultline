@@ -1,5 +1,17 @@
 # Changelog
 
+## The Archer earns her damage with her feet
+
+- **Her basic attack is a band with a sweet spot** (D-267): range **2–4**, dealing **4 at exactly
+  range 3** and **2 at ranges 2 and 4**. High ground's +2 stacks on top, so the spot from a ledge is
+  6. Minimum range and its adjacent-lower exception are unchanged.
+- **Her Pluck condition is now +1 on a sweet-spot hit** (D-268), replacing hits-from-high-ground —
+  the only condition the map could refuse. Long Shot becomes a sweet-spot kill and pays on top, so a
+  kill at the spot is worth 2. A Double Nock at the spot still charges twice.
+- **Four cards written against the old gun now collide with the band** (D-269) — the Double Nock cost
+  cut is superseded, Long Draw buys nothing, and range 1's damage is unstated. All flagged, none
+  silently rewritten.
+
 ## The act builder generates a branching map, and is drawn as one
 
 - **Acts are graphs now, not corridors** — columns of nodes and the doors between them, edited on a
