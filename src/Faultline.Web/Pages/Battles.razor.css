@@ -339,3 +339,74 @@ code {
 .event-afford span { color: var(--pt-text-dim); }
 
 .pool-card { border-left: 3px solid var(--pt-amber); }
+
+/* ---- Filters and collapsible sections ------------------------------------------------------- */
+
+.picker-filters {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: 1rem 0 .5rem;
+}
+
+.board-search {
+    flex: 1 1 22rem;
+    font-size: .82rem;
+    max-width: 34rem;
+    padding: .3rem .5rem;
+}
+
+.act-pick { font-size: .78rem; padding: .3rem .4rem; }
+
+.filter-count {
+    color: var(--pt-text-dim);
+    font-size: .74rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.act-note { font-style: italic; margin-bottom: .8rem; }
+
+/* Collapsible, and the count rides on the summary so a shut section still answers "how many". */
+details.section {
+    border-top: 1px solid var(--pt-border);
+    margin-top: 1.4rem;
+    padding-top: .5rem;
+}
+
+details.section > summary {
+    align-items: baseline;
+    cursor: pointer;
+    display: flex;
+    gap: .6rem;
+    list-style: none;
+    padding: .2rem 0;
+}
+
+details.section > summary::-webkit-details-marker { display: none; }
+
+details.section > summary::before {
+    color: var(--pt-text-dim);
+    content: "▸";
+    font-size: .8rem;
+}
+
+details.section[open] > summary::before { content: "▾"; }
+
+.section-heading {
+    font-size: .95rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.section-count {
+    background: color-mix(in srgb, var(--pt-text-dim) 20%, transparent);
+    border-radius: 999px;
+    color: var(--pt-text-dim);
+    font-size: .7rem;
+    font-variant-numeric: tabular-nums;
+    padding: .05rem .45rem;
+}
+
+details.section > summary:hover .section-heading { color: var(--pt-blue); }

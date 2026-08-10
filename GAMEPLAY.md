@@ -2058,12 +2058,24 @@ bright one — the mask changes what is drawn and never what the fight allows, a
 asserts the count of legal tiles is identical with it on and off. It survives a reload like every
 other view preference.
 
-### The battle picker, cut by band
+### The battle picker — searching, filtering and collapsing
 
 Below the curated sections, `/battles` lists the library a second way: **one section per `pool:`
-band** — these are the boards a Warrens v2 act can field, which is what you want in front of you when
-testing one. A board appears in both cuts because it is in both; the cut is different, not the
-library.
+band** — the boards a Warrens v2 act can field. A board appears in both cuts because it is in both;
+the cut is different, not the library.
+
+**Every section collapses**, and the count rides on its summary so a shut one still answers "how
+many". The curated groups start open; the band cut starts shut, because it is the same library a
+second time.
+
+**Two filters narrow every section at once:**
+
+- **Search** over a board's name, id, description **and band** — so `endurance` finds the two boards
+  in that band, and `trench` finds the board plus anything whose design notes mention one.
+- **Act membership**, asked of the act rather than stored: *Act 1 — as authored* reads
+  `ActMapLibrary.Act1`'s own fight list (9 boards); *Warrens v2* is every board carrying a band the
+  generator draws; ***In no act — nothing draws these*** is the useful one, because it should always
+  be **empty**. If it is not, something authored is content nobody can reach.
 
 **Every board declares its band** (D-270). A `.fight` carries `pool:` — `Opener` · `Ordinary` ·
 `Hard` · `Elite` · `Endurance` · `Boss` — and a board without one **does not load**. The band is

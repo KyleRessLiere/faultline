@@ -7379,6 +7379,18 @@ and the moment the mask stops something being reachable it has stopped being a v
 board playable through the mask, which is what makes it usable *while* testing rather than only
 between tests.
 
+**The picker searches, filters by act, and collapses.** Sections are `<details>` with the count on
+the summary, so a shut section still answers "how many"; the curated groups start open and the band
+cut starts shut. A search box matches a board's name, id, description **and band** — a band is one of
+the things a board is remembered by now, so `endurance` finding its two boards costs one clause. The
+act filter asks the ACT for its membership rather than keeping a list here: Act 1's is
+`ActMapLibrary.Act1.FightIds()`, so a board leaving the authored map leaves the filter with it.
+
+**The filter worth having is the empty one.** *In no act — nothing draws these* exists to be zero. A
+board that no act fields and no band claims is authored content nobody can reach, and the only way to
+notice that reliably is a control that shows it. It reads 0 today, which is the answer that makes the
+control look pointless and is the reason to keep it.
+
 **The picker's band sections.** `/battles` now lists the library twice: the curated groups
 (CURATED_SET's campaign, trials, gauntlet) and then one section per `pool:` band. The second cut is
 what the generator sees — the boards a Warrens v2 act can field — and a board appears in both because

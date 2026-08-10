@@ -45,24 +45,62 @@
         <a class="action" href="@(Runs.InProgress ? RunScreens.RouteFor(Runs) : RunScreens.Home)">@(Runs.InProgress ? "Continue the run" : "Start a run")</a>
     </section>
 
+    @* Search and act filters. Both narrow every section at once rather than only one, because
+       "which boards are in this act" and "where is that board" are the same question asked from two
+       ends and answering them in different places would mean looking twice. *@
+    <div class="picker-filters">
+        <input type="search" class="board-search" placeholder="Search boards — name, id or description"
+               value="@_search" @oninput="e => _search = e.Value?.ToString() ?? string.Empty" />
+
+        <select class="act-pick" @onchange="e => _act = e.Value?.ToString() ?? string.Empty">
+            @foreach (var act in Acts)
+            {
+                <option value="@act.Key" selected="@(_act == act.Key)">@act.Label</option>
+            }
+        </select>
+
+        @if (_search.Length > 0 || _act.Length > 0)
+        {
+            <button type="button" class="action secondary" @onclick="ClearFilters">Clear</button>
+            <span class="filter-count">@Showing() of @Total() boards</span>
+        }
+    </div>
+
+    @if (ActNote() is { Length: > 0 } actNote)
+    {
+        <p class="section-note act-note">@actNote</p>
+    }
+
     @foreach (var section in Sections())
     {
-        <h2>@section.Heading</h2>
-        <p class="section-note">@section.Blurb</p>
+        var shown = Filter(section.Fights);
 
-        @if (section.Fights.Count == 0)
-        {
-            <p class="note empty">Nothing here yet.</p>
-        }
-        else
-        {
-            <div class="fight-grid">
-                @foreach (var result in section.Fights)
-                {
-                    @RenderFight(result, null)
-                }
-            </div>
-        }
+        @* Collapsible, and the count is on the summary so a shut section still answers "how many".
+           Bands start shut: the band cut is the same library a second time. *@
+        <details class="section" open="@(section.OpenByDefault && shown.Count > 0)">
+            <summary>
+                <span class="section-heading">@section.Heading</span>
+                <span class="section-count">@shown.Count</span>
+            </summary>
+
+            <p class="section-note">@section.Blurb</p>
+
+            @if (shown.Count == 0)
+            {
+                <p class="note empty">
+                    @(section.Fights.Count == 0 ? "Nothing here yet." : "Nothing here matches the filters.")
+                </p>
+            }
+            else
+            {
+                <div class="fight-grid">
+                    @foreach (var result in shown)
+                    {
+                        @RenderFight(result, null)
+                    }
+                </div>
+            }
+        </details>
     }
 
     @* EVENTS. Every one the game ships, with its prices, and the whole pool of boards tagged for
@@ -226,6 +264,12 @@
 @code {
     private int _seed = GameSession.DefaultSeed;
 
+    /// <summary>Free-text filter over a board's name, id and description.</summary>
+    private string _search = string.Empty;
+
+    /// <summary>Which act's boards to show, or empty for the whole library.</summary>
+    private string _act = string.Empty;
+
     /// <summary>The board whose bench is open, or null while none is.</summary>
     private FightDefinition? _benchFight;
 
@@ -246,13 +290,110 @@
     }
 
     /// <summary>One heading's worth of the picker.</summary>
-    private sealed record Section(string Heading, string Blurb, IReadOnlyList<FightParseResult> Fights);
+    /// <param name="Heading">What the section is called.</param>
+    /// <param name="Blurb">One line on what belongs in it.</param>
+    /// <param name="Fights">Its boards, already ordered.</param>
+    /// <param name="OpenByDefault">
+    /// Whether it starts expanded. The curated groups do; the band cut does not, because it is the
+    /// same library a second time and a page that shows every board twice at full height is a page
+    /// nobody scrolls.
+    /// </param>
+    private sealed record Section(
+        string Heading,
+        string Blurb,
+        IReadOnlyList<FightParseResult> Fights,
+        bool OpenByDefault = true);
 
     private readonly List<Section> _sections = new();
     private readonly List<FightParseResult> _unreadable = new();
     private IReadOnlyList<FightDefinition> _retired = Array.Empty<FightDefinition>();
 
     private IReadOnlyList<Section> Sections() => _sections;
+
+    // ---- Filters ---------------------------------------------------------------------------------
+
+    private sealed record ActFilter(string Key, string Label);
+
+    /// <summary>
+    /// The acts a board can belong to.
+    /// </summary>
+    /// <remarks>
+    /// <b>Membership is asked of the act, never stored here.</b> Act 1's is its authored map's own
+    /// fight list; Warrens v2's is every board carrying a band the generator draws — so a board
+    /// authored tomorrow with a <c>pool:</c> mark appears under v2 the same day, and a board removed
+    /// from the authored map disappears from Act 1's without anything here being edited.
+    /// </remarks>
+    private static readonly ActFilter[] Acts =
+    {
+        new ActFilter(string.Empty, "Every board"),
+        new ActFilter("act1", "Act 1 — The Warrens, as authored"),
+        new ActFilter("v2", "Warrens v2 — everything it can field"),
+        new ActFilter("unused", "In no act — nothing draws these"),
+    };
+
+    /// <summary>The bands a generated act draws from. Anything else is not act content.</summary>
+    private static readonly FightPool[] DrawnBands =
+    {
+        FightPool.Opener, FightPool.Ordinary, FightPool.Hard,
+        FightPool.Elite, FightPool.Endurance, FightPool.Boss,
+    };
+
+    private void ClearFilters()
+    {
+        _search = string.Empty;
+        _act = string.Empty;
+    }
+
+    /// <summary>Narrows a section's boards by the search text and the act filter.</summary>
+    private IReadOnlyList<FightParseResult> Filter(IReadOnlyList<FightParseResult> fights) =>
+        fights.Where(r => r.Fight is { } f && Matches(f) && InAct(f)).ToList();
+
+    /// <summary>Substring over the three things a person actually remembers a board by.</summary>
+    private bool Matches(FightDefinition fight)
+    {
+        if (_search.Length == 0)
+        {
+            return true;
+        }
+
+        var needle = _search.Trim();
+
+        return fight.Name.Contains(needle, StringComparison.OrdinalIgnoreCase)
+            || fight.Id.Contains(needle, StringComparison.OrdinalIgnoreCase)
+            || fight.Description.Contains(needle, StringComparison.OrdinalIgnoreCase)
+            || fight.Pool.ToString().Contains(needle, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool InAct(FightDefinition fight) => _act switch
+    {
+        "act1" => ActMapLibrary.Act1.FightIds().Contains(fight.Id, StringComparer.Ordinal),
+        "v2" => DrawnBands.Contains(fight.Pool),
+        "unused" => !ActMapLibrary.Act1.FightIds().Contains(fight.Id, StringComparer.Ordinal)
+            && !DrawnBands.Contains(fight.Pool),
+        _ => true,
+    };
+
+    /// <summary>How many distinct boards survive the filters, across every section.</summary>
+    private int Showing() =>
+        GameSession.Library
+            .Where(r => r.Fight is { } f && !f.IsRetired && Matches(f) && InAct(f))
+            .Select(r => r.Fight!.Id)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+
+    private static int Total() => FightLibrary.All().Count;
+
+    /// <summary>What the chosen act is, in one line, when one is chosen.</summary>
+    private string ActNote() => _act switch
+    {
+        "act1" => "The " + ActMapLibrary.Act1.FightIds().Count
+            + " boards the authored Warrens fields, read off its own map — not a list kept here.",
+        "v2" => "Every board carrying a band a generated act draws from. This is the pool Warrens v2 "
+            + "chooses from, not one act's worth: a single act fields about 25 of them.",
+        "unused" => "Active, authored, and drawn by nothing — no act fields them and no band claims "
+            + "them. If this is not empty, something is content nobody can reach.",
+        _ => string.Empty,
+    };
 
     private IReadOnlyList<FightParseResult> Unreadable => _unreadable;
 
@@ -375,9 +516,10 @@
             ByNumber(inBand);
 
             _sections.Add(new Section(
-                "Warrens v2 · " + heading + " — " + inBand.Count + " board(s)",
+                "Warrens v2 · " + heading,
                 blurb,
-                inBand));
+                inBand,
+                OpenByDefault: false));
         }
     }
 
