@@ -59,7 +59,7 @@
             }
         </select>
 
-        @if (_search.Length > 0 || _act.Length > 0)
+        @if (Filtering)
         {
             <button type="button" class="action secondary" @onclick="ClearFilters">Clear</button>
             <span class="filter-count">@Showing() of @Total() boards</span>
@@ -75,9 +75,13 @@
     {
         var shown = Filter(section.Fights);
 
-        @* Collapsible, and the count is on the summary so a shut section still answers "how many".
-           Bands start shut: the band cut is the same library a second time. *@
-        <details class="section" open="@(section.OpenByDefault && shown.Count > 0)">
+        @* EVERY section starts shut, and the count on the summary is what makes that liveable: a
+           collapsed section still answers "how many", so the page is an index rather than a wall.
+
+           A section opens on its own only while a filter is running and it has something to show —
+           otherwise searching would return a screen of closed headers, which is the same as
+           returning nothing. Clearing the filter puts them all away again. *@
+        <details class="section" open="@(Filtering && shown.Count > 0)">
             <summary>
                 <span class="section-heading">@section.Heading</span>
                 <span class="section-count">@shown.Count</span>
@@ -293,16 +297,10 @@
     /// <param name="Heading">What the section is called.</param>
     /// <param name="Blurb">One line on what belongs in it.</param>
     /// <param name="Fights">Its boards, already ordered.</param>
-    /// <param name="OpenByDefault">
-    /// Whether it starts expanded. The curated groups do; the band cut does not, because it is the
-    /// same library a second time and a page that shows every board twice at full height is a page
-    /// nobody scrolls.
-    /// </param>
     private sealed record Section(
         string Heading,
         string Blurb,
-        IReadOnlyList<FightParseResult> Fights,
-        bool OpenByDefault = true);
+        IReadOnlyList<FightParseResult> Fights);
 
     private readonly List<Section> _sections = new();
     private readonly List<FightParseResult> _unreadable = new();
@@ -337,6 +335,9 @@
         FightPool.Opener, FightPool.Ordinary, FightPool.Hard,
         FightPool.Elite, FightPool.Endurance, FightPool.Boss,
     };
+
+    /// <summary>Whether either filter is narrowing the list right now.</summary>
+    private bool Filtering => _search.Length > 0 || _act.Length > 0;
 
     private void ClearFilters()
     {
@@ -515,11 +516,7 @@
 
             ByNumber(inBand);
 
-            _sections.Add(new Section(
-                "Warrens v2 · " + heading,
-                blurb,
-                inBand,
-                OpenByDefault: false));
+            _sections.Add(new Section("Warrens v2 · " + heading, blurb, inBand));
         }
     }
 

@@ -2064,9 +2064,12 @@ Below the curated sections, `/battles` lists the library a second way: **one sec
 band** — the boards a Warrens v2 act can field. A board appears in both cuts because it is in both;
 the cut is different, not the library.
 
-**Every section collapses**, and the count rides on its summary so a shut one still answers "how
-many". The curated groups start open; the band cut starts shut, because it is the same library a
-second time.
+**Every section starts collapsed**, and the count rides on its summary — so the page is an index you
+scan rather than a wall you scroll, and a shut section still answers "how many".
+
+**A filter opens what it matched.** While a search or an act filter is running, any section with
+something to show expands on its own; clearing the filter puts them all away again. A search that
+returned a screen of closed headers would be the same as returning nothing.
 
 **Two filters narrow every section at once:**
 

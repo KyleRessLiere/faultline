@@ -7380,8 +7380,10 @@ board playable through the mask, which is what makes it usable *while* testing r
 between tests.
 
 **The picker searches, filters by act, and collapses.** Sections are `<details>` with the count on
-the summary, so a shut section still answers "how many"; the curated groups start open and the band
-cut starts shut. A search box matches a board's name, id, description **and band** — a band is one of
+the summary, and **every one of them starts shut** — the count is what makes that liveable, because a
+collapsed section still answers "how many" and the page becomes an index rather than a wall. **A
+filter opens what it matched** and clearing it puts them away again: a search returning a screen of
+closed headers is the same as returning nothing. A search box matches a board's name, id, description **and band** — a band is one of
 the things a board is remembered by now, so `endurance` finding its two boards costs one clause. The
 act filter asks the ACT for its membership rather than keeping a list here: Act 1's is
 `ActMapLibrary.Act1.FightIds()`, so a board leaving the authored map leaves the filter with it.

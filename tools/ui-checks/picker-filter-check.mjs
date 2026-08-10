@@ -19,13 +19,13 @@ await page.waitForSelector('details.section', { timeout: 90000 });
 
 const sections = await page.locator('details.section').count();
 const open = await page.locator('details.section[open]').count();
-note(`sections: ${sections}, open by default: ${open}`);
+note(`sections: ${sections}, open at rest: ${open}`);
 
 if (sections < 10) {
   fail.push(`expected the curated groups plus six bands, saw ${sections}`);
 }
-if (open >= sections) {
-  fail.push('every section is open — the band cut should start shut');
+if (open !== 0) {
+  fail.push(`every section should start collapsed, ${open} were open`);
 }
 
 const counts = await page.locator('details.section > summary .section-count').allInnerTexts();
@@ -43,6 +43,9 @@ if (!(await page.locator('details.section[open]').count()) > open) {
 }
 
 // ---- Search -------------------------------------------------------------------------------------
+//
+// Filtering opens what it matched: a search that returned a screen of closed headers would be the
+// same as returning nothing.
 
 const search = page.locator('.board-search');
 await search.fill('trench');
@@ -50,6 +53,12 @@ await page.waitForTimeout(400);
 
 const showing = (await page.locator('.filter-count').innerText()).trim();
 note(`searching "trench": ${showing}`);
+
+const openWhileSearching = await page.locator('details.section[open]').count();
+note(`sections opened by the search: ${openWhileSearching}`);
+if (openWhileSearching === 0) {
+  fail.push('searching left every section shut, so the matches are invisible');
+}
 
 const names = await page.locator('.fight-grid').first().innerText().catch(() => '');
 if (!/trench/i.test(names) && !/1 of/.test(showing)) {
@@ -66,7 +75,13 @@ if (!/^2 of/.test(byBand)) {
 }
 
 await search.fill('');
-await page.waitForTimeout(300);
+await page.waitForTimeout(400);
+
+const openAfterClearing = await page.locator('details.section[open]').count();
+note(`open again after clearing the search: ${openAfterClearing}`);
+if (openAfterClearing !== 0) {
+  fail.push('clearing the filters left sections open');
+}
 
 // ---- Act membership -----------------------------------------------------------------------------
 
