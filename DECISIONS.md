@@ -273,9 +273,10 @@ in this file when the question comes back.
 | D-270 | [RULED: every board declares its band, and the band is authored rather than derived.](#d-270-ruled-every-board-declares-its-band-and-the-band-is-authored-rather-than-derived) | 2026-08-09 |  |
 | D-271 | [RULED: the generator draws from banded pools across the whole library. Presets weight; they never scope. The observed repetition was an artifact of scoping, and it is now zero.](#d-271-ruled-the-generator-draws-from-banded-pools-across-the-whole-library-presets-weight-they-never-scope-the-observed-repetition-was-an-artifact-of-scoping-and-it-is-now-zero) | 2026-08-09 |  |
 | D-272 | [RULED: the board mask is a view, and the picker gains a second cut of the library by band.](#d-272-ruled-the-board-mask-is-a-view-and-the-picker-gains-a-second-cut-of-the-library-by-band) | 2026-08-09 |  |
-| D-273 | [RULED: the barrel is stored as a UNIT, not as a structure, and that is what lets it ride the existing displacement pipeline.](#d-273-ruled-the-barrel-is-stored-as-a-unit-not-as-a-structure-and-that-is-what-lets-it-ride-the-existing-displacement-pipeline) | unreleased |  |
+| D-273 | [RULED: the barrel is stored as a UNIT, not as a structure, and that is what lets it ride the existing displacement pipeline.](#d-273-ruled-the-barrel-is-stored-as-a-unit-not-as-a-structure-and-that-is-what-lets-it-ride-the-existing-displacement-pipeline) | 2026-08-10 |  |
+| D-274 | [the-cooperage: the artillery race, and the objective counter that had to learn what an object is.](#d-274-the-cooperage-the-artillery-race-and-the-objective-counter-that-had-to-learn-what-an-object-is) | unreleased |  |
 
-**255 rulings.**
+**256 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7443,3 +7444,47 @@ merely allowing it to: a barrel that started acting would be a defect too.
 state, because a barrel appearing is a fact a replay must reproduce. It is the only unit minted
 mid-fight — every other id, reinforcements included, is fixed at `Game.Start` — so its id is the next
 dense index, which is deterministic because a downed unit is never removed from the list.
+
+---
+
+**D-274 — the-cooperage: the artillery race, and the objective counter that had to learn what an
+object is.**
+
+MASTER_DESIGN §6's first board for the Cooper. 7×7, `pool: Ordinary`, Kill All, seven drafted spots,
+and a fighting roster of 26 — Cooper 8, two Husks, a Grappler — plus three barrels, which are objects
+and are not part of it.
+
+**Three barrels, three answers, each priced differently**, and each is a fact about geometry rather
+than about numbers, so each is pinned by a test:
+
+- **b1 is the lane you lose.** Two tiles from the Cooper, six from the nearest spot. He wins that race
+  and no base kit can beat him to it on foot — which is what makes the lane teach *don't draft there,
+  plug it, or vacate* rather than *run faster*. The test asserts the gap is at least three tiles: if
+  a policy ever wins the race, the geometry has drifted and that is a report, not a retune.
+- **b2 is the lane you steal.** One tile from the eastern spots, four from him, and the shove points
+  back at his own side.
+- **b3 is the trap.** It stands over the junction — the open tile with the most neighbours, so the
+  most blast exposure — with the Grappler in pull range of it. **No new rule: the existing pull is the
+  trap.**
+
+**Two spots stand inside lanes b1 and b3 fire down.** Volunteering as the plug is a draft decision
+made before anything has moved, which is the deployment draft doing the job it exists for.
+
+**FOUND: the objective counter counted barrels.** "Put down every enemy" read **0/7** on a board that
+is won at **4**, because `ObjectiveStatus` counted every `Team.Enemy` unit while `AnyEnemyLeft` had
+already learned to skip objects (D-273). A panel lying about the one thing it exists to state is
+worse than no panel; both now ask the same question. Caught by playing it, not by a test — the Core
+suite was green with the counter wrong.
+
+**The lints are deliberate.** The board trips `CentreNotClear` and `HazardOffOuterRings` four times
+each: it is a board *about* walled lanes, and lanes need walls in the middle. They are lints rather
+than errors precisely so a board can disagree with the brief's default shape on purpose.
+
+**Certification.** Parses with zero errors · D-080 safe deployment holds (`Threat.UnsafeSides` empty)
+· every fighter reachable by flood-fill from a spot, and every spot in the same pocket · **a base-kit
+policy wins it** — no cards, no spends, no pocket, and deliberately blind to barrels, so the board is
+beatable on foot before it is allowed to be interesting · replay-exact.
+
+**Still owed: S4b, the bonus objective.** §7 (ae) makes the-cooperage the first board to carry one —
+*pop a barrel into an enemy*, paying a 1-of-3 camp instead of 1-of-2. The mechanism does not exist and
+the board ships without it: playable, certified, and one payout short of what §6 intends.

@@ -2071,6 +2071,27 @@ He never attacks, never defends himself and never finishes a clinging duck — t
 player units anywhere in his list. **Killing him stops the clock, not the barrels**: everything already
 placed stays where it is and still goes off when something shoves it.
 
+### the-cooperage — the artillery race
+
+The first board the Cooper is fielded on (D-274). **7×7 · `pool: Ordinary` · Kill All · seven drafted
+spots.** Fighting roster **26** — Cooper 8, two Husks, a Grappler — plus **three barrels**, which are
+objects and are not part of it. The objective reads **0/4**, not 0/7.
+
+Three barrels, three answers, each priced in a different currency:
+
+| | Where | What it teaches |
+|---|---|---|
+| **b1** | two tiles from the Cooper, six from the nearest spot | **the lane you lose** — don't draft there, plug it, or vacate |
+| **b2** | one tile from the eastern spots, four from him | **the lane you steal**, and the shove points back at his side |
+| **b3** | over the junction, in the Grappler's pull range | **the trap** — the existing pull drags reachers into max-blast ground |
+
+**Two spots stand inside the lanes b1 and b3 fire down.** Volunteering as the plug is a draft decision
+made before anything has moved.
+
+**Not yet carrying its bonus objective.** §7 makes this the first board to carry one — *pop a barrel
+into an enemy*, paying a 1-of-3 camp — and the mechanism is unbuilt. The board is playable and
+certified without it.
+
 ### Reading one section of a board
 
 The board's view controls carry a **Mask**: a rectangle of interest that dims everything outside it,

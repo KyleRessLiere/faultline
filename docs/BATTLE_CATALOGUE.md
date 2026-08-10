@@ -24,12 +24,12 @@ conversation it is meant to force — see the batch write-ups in `docs/scenarios
 
 ---
 
-**66 battles — 39 active, 27 retired.**
+**67 battles — 40 active, 27 retired.**
 
 
 ## Campaign
 
-*the original run, plus the objective proof* — 9 battles.
+*the original run, plus the objective proof* — 10 battles.
 
 
 ### 1 · First Contact
@@ -423,6 +423,53 @@ Reinforcements, published at fight start:
 ```
 wave 3 = h@0,2 h@0,4
 wave 6 = h@0,1 h@0,5
+```
+
+### 11 · The Cooperage
+
+`the-cooperage`
+
+
+A Cooper rolls barrels down three walled lanes. Race him to one, plug another with a body, and eat the third.
+
+
+THE ARTILLERY RACE. Three barrels, three answers, and each is priced in a different currency. You can beat the Cooper to a barrel with feet, you can stand in a lane and let it pop on you instead of on the squad, or you can spend the hit and take the fight to him. The board's whole question is which of the three you can afford this turn, and it asks it three times at once.
+
+
+EVERY LANE POINTS BOTH WAYS. A barrel is a weapon that belongs to whoever shoved it last. The Cooper aims down the lane holding the most of you; the same barrel, shoved from the other side, aims at him. Nothing on this board is his rather than yours - only nearer to one of you.
+
+
+THE COOPER IS A CLOCK, NOT A FIGHTER. Eight hit points, Move 2, no attack at all. He cannot hurt you and he never tries; what he does is turn time into pressure. Killing him is cheap and stops the clock, and it does not remove a single barrel already standing - that is the trade the board keeps offering.
+
+
+b1, THE LANE YOU LOSE. The barrel at 1,0 is two tiles from the Cooper and six from the southern spots. He reaches it on turn 2 and no base kit can beat him there on foot, which is the point: this lane teaches don't-draft-there, or plug it, or vacate. If a base-kit policy ever wins that race, the geometry is wrong and wants reporting rather than retuning.
+
+
+b2, THE LANE YOU STEAL. The barrel at 6,2 is one tile from the eastern spots and four from the Cooper. Take it and the shove points back up his own side of the board. This is the lane that pays a draft decision made before anyone has moved.
+
+
+b3, THE TRAP. The barrel at 3,2 sits directly above the junction at 3,3 - the open tile with the most neighbours on the board, and therefore the most blast exposure. The Grappler at 4,3 needs no new rule to make that dangerous: its existing pull drags whoever comes for the barrel into exactly the tile the barrel is aimed at. The pull IS the trap.
+
+
+SPOT LAYOUT. Seven spots for four ducks, in two clusters - the south-west run and the south-east corner - and two of them (1,6 and 3,6) sit inside lanes b1 and b3 fire down. Volunteering as the plug is a draft decision made before a barrel has moved, which is the deployment draft doing the job it exists for.
+
+
+7×7 board · enemies: 3× Barrel, 2× Husk, 1× Cooper, 1× Grappler · pool: **Ordinary**
+
+| A | B |
+|---|---|
+| Vanguard, Threadcaster | Wardbearer, Archer |
+
+Legend: `b` Barrel, `c` Cooper, `g` Grappler, `h` Husk
+
+```
+#b#.c.#
+..#.#.h
+#.#b#.b
+..h.g#.
+#.#.#..
+*.#.#.*
+**.*.**
 ```
 
 ### 601 · Hold the Gate

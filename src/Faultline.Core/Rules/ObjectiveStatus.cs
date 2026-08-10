@@ -201,7 +201,12 @@ namespace Faultline.Core
                     int down = 0;
                     foreach (var unit in state.Units)
                     {
-                        if (unit.Team != Team.Enemy)
+                        // Objects are on the enemy side so that shoves and collisions treat them like
+                        // any other body, and they are NOT what "put down every enemy" counts — the
+                        // win condition skips them too (MASTER_DESIGN §6). A counter that included
+                        // barrels would read 0/7 on a board won at 4, which is a panel lying about the
+                        // objective it exists to state.
+                        if (unit.Team != Team.Enemy || unit.Template.IsObject)
                         {
                             continue;
                         }

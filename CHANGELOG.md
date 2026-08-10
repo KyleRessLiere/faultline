@@ -1,5 +1,14 @@
 # Changelog
 
+## the-cooperage
+
+- **A new board, the first to field a Cooper** (D-274): 7x7, Ordinary, Kill All, seven drafted spots.
+  Three barrels teaching three answers — the lane you lose, the lane you steal, and the junction trap
+  the Grappler's existing pull already guards.
+- **Fixed: the objective counter counted barrels.** "Put down every enemy" read 0/7 on a board won at
+  4, because the panel counted every enemy-side unit while the win condition already skipped objects.
+- It does not carry its bonus objective yet — that mechanism is still unbuilt.
+
 ## The Cooper and the Barrel
 
 - **Barrels pop.** 4 HP debris, shovable by anyone, and on collision or death it deals 6 to what it
