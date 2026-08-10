@@ -91,6 +91,27 @@ namespace Faultline.Core
         /// his armour, Move 3 and a Stampede once the harness breaks at 13 HP (MASTER_DESIGN §8.9).
         /// </summary>
         Rushmaster = 23,
+
+        /// <summary>
+        /// Enemy: HP 8, Move 2, no attack — the barrel clock (MASTER_DESIGN §6). He never fights;
+        /// killing him stops the clock, not the barrels already on the board.
+        /// </summary>
+        Cooper = 24,
+
+        /// <summary>
+        /// An OBJECT, not a fighter: 4 HP, immobile of its own accord, shovable by anything, and it
+        /// <b>pops</b> on collision or death (MASTER_DESIGN §6).
+        /// </summary>
+        /// <remarks>
+        /// <b>Stored as a unit, and that is an implementation ruling rather than a reclassification.</b>
+        /// The doc calls it debris-class, and debris is a <see cref="Structure"/> — but the
+        /// displacement pipeline takes a <see cref="Unit"/> as its target at every level, and nothing
+        /// in the game has ever moved a structure. A barrel that had to be shoved as a structure would
+        /// need a second resolution path threaded through the whole pipeline, which is exactly what
+        /// §6 forbids: "the displacement pipeline resolves the roll and the pipeline never checks who
+        /// pushed". As a unit it rides the existing path with no change to it at all. See D-273.
+        /// </remarks>
+        Barrel = 25,
     }
 
     /// <summary>
@@ -155,6 +176,18 @@ namespace Faultline.Core
         /// while the harness holds, and at the largest cluster once it breaks.
         /// </summary>
         Rushmaster = 11,
+
+        /// <summary>
+        /// The Cooper's published list (MASTER_DESIGN §6): adjacent to a barrel → shove it down the
+        /// lane holding the most players; else walk toward the nearest barrel; else place one.
+        /// </summary>
+        Cooper = 12,
+
+        /// <summary>
+        /// No clauses at all. An object's list: it never moves of its own accord and never acts. The
+        /// barrel's, and the only plan whose whole content is that there is nothing to plan.
+        /// </summary>
+        Inert = 13,
     }
 
     /// <summary>How a unit's basic attack reaches its target.</summary>

@@ -129,6 +129,7 @@ namespace Faultline.Core
             EnemyPlan.Melee, EnemyPlan.Lobber, EnemyPlan.Grappler, EnemyPlan.Stalker,
             EnemyPlan.Warden, EnemyPlan.Perch, EnemyPlan.Harrier, EnemyPlan.Raider,
             EnemyPlan.QuarryKing, EnemyPlan.Escort, EnemyPlan.Rushmaster,
+            EnemyPlan.Cooper, EnemyPlan.Inert,
         };
 
         private static readonly Dictionary<EnemyPlan, EnemyPlanDefinition> ByPlan = Build();
@@ -413,6 +414,61 @@ namespace Faultline.Core
                 {
                     PrefersLethalAttack = false,
                     TargetSelection = EnemyTargetSelection.MostSeparable,
+                },
+            };
+
+            table[EnemyPlan.Cooper] = new EnemyPlanDefinition(
+                EnemyPlan.Cooper,
+                "the barrel clock",
+                "Shove a barrel down the fullest lane, else walk at one, else set one down.",
+                Ai.PlanCooper)
+            {
+                // His list is about barrels and has no clause about player units at all, exactly like
+                // the Raider's — so it is planned before anybody asks who the players are (D-041).
+                IgnoresPlayerUnits = true,
+                Parameters = new EnemyPlanParameters { PrefersLethalAttack = false },
+                Priorities = Steps(
+                    ("Shove the barrel it is standing next to",
+                     "Picks the lane holding the most player units and rolls the barrel down it; a "
+                     + "tie goes to the lowest unit id. The shove is the ordinary displacement — the "
+                     + "pipeline never checks who pushed."),
+                    ("Otherwise walk at the nearest barrel",
+                     "The same breadth-first path field every archetype walks by (D-029), grown from "
+                     + "the barrels. Two tiles a turn, so a barrel two lanes away costs him a round."),
+                    ("Otherwise set a barrel down",
+                     "On an adjacent open tile, shovable from his next activation — so a Cooper with "
+                     + "nothing to roll spends a turn making something to roll.")),
+                Quirks = new[]
+                {
+                    "He never attacks, never defends himself, and never takes the free finish on a "
+                    + "clinging player — those are clauses about player units and this list has none, "
+                    + "exactly like the Raider's (D-041, D-045).",
+                    "Killing him stops the CLOCK, not the barrels: every barrel already on the board "
+                    + "stays exactly where it is and still pops when something shoves it.",
+                },
+            };
+
+            table[EnemyPlan.Inert] = new EnemyPlanDefinition(
+                EnemyPlan.Inert,
+                "an object",
+                "Nothing. It never moves of its own accord and never acts on anybody.",
+                Ai.PlanInert)
+            {
+                IgnoresPlayerUnits = true,
+                Parameters = new EnemyPlanParameters { PrefersLethalAttack = false },
+                Priorities = Steps(
+                    ("Be shoved",
+                     "Everything a barrel does to the board it does because somebody moved it. The "
+                     + "displacement pipeline resolves the roll and never checks who pushed, so this "
+                     + "branch belongs to whoever shoved it rather than to the barrel."),
+                    ("Otherwise stand still",
+                     "It has no activation worth spending and never takes one. An object's list is "
+                     + "the shortest in the game and this is the whole of it.")),
+                Quirks = new[]
+                {
+                    "It is on the enemy side so that shoves and collisions treat it like any other "
+                    + "body, but clearing the board does not mean destroying it: a kill-all is won "
+                    + "with barrels still standing (MASTER_DESIGN §6).",
                 },
             };
 

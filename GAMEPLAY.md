@@ -2046,6 +2046,31 @@ whole input, so the same pick and the same seed always start the same act. Anyth
 builder appears under **Saved acts** in the same picker. Both are internal-build only, and both start
 a **scratch** run (D-263): a reload ends it, and the picker says so before the button is pressed.
 
+### The Cooper and the Barrel
+
+**The Barrel** — 4 HP, no attack, no walk of its own, and it **blocks like any other body**. Shovable
+by anyone: the Cooper, a duck, a Husk blundering into it. **On collision or death it POPS** — 6 to
+whatever it arrived at and 2 to every tile around the blast, mitigated by nothing and blind to
+allegiance. The ordinary collision damage lands too, so a barrel arriving at a body costs that body
+**4 + 6**.
+
+- **A body in the lane is the plug.** The roll stops at the first thing it reaches, which takes the
+  6 — and the lane behind that body is never entered.
+- **Shoving one into the wall in front of you pops it in your face.** The preview shows the lane, the
+  collision and the blast before you commit.
+- **Clearing the board does not mean destroying it.** A kill-all is won with barrels standing, so a
+  Cooper placing more can never make a fight unwinnable (D-273).
+
+**The Cooper** — 8 HP, Move 2, **no attack at all**. A clock, not a fighter. His published list:
+
+1. **Adjacent to a barrel** → shove it down the lane holding the most player units (lowest id breaks a tie).
+2. **Else** walk at the nearest barrel.
+3. **Else** set one down on an adjacent open tile, shovable from his next activation.
+
+He never attacks, never defends himself and never finishes a clinging duck — there is no clause about
+player units anywhere in his list. **Killing him stops the clock, not the barrels**: everything already
+placed stays where it is and still goes off when something shoves it.
+
 ### Reading one section of a board
 
 The board's view controls carry a **Mask**: a rectangle of interest that dims everything outside it,

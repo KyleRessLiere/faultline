@@ -216,12 +216,20 @@ public class EnemyPlanDefinitionTests
     /// flag is the single source: <see cref="Ai"/> reads it to decline the free finish and to plan
     /// before the candidate search, and <see cref="EnemyBehaviour"/> reads it to word the rescue slot.
     /// </summary>
+    /// <summary>
+    /// <b>Only a list with no clause about player units may ignore them</b>, and there are three:
+    /// the Raider claws a structure, the Cooper rolls barrels, and a barrel does nothing at all
+    /// (MASTER_DESIGN §6). Every other list names a victim somewhere, and a list that named one while
+    /// claiming to ignore players would be planned against an empty candidate set (D-041).
+    /// </summary>
     [Fact]
-    public void OnlyTheRaidersList_IgnoresPlayerUnits()
+    public void OnlyListsWithNoClauseAboutPlayers_IgnoreThem()
     {
+        var blind = new[] { EnemyPlan.Raider, EnemyPlan.Cooper, EnemyPlan.Inert };
+
         foreach (var plan in EnemyPlanDefinition.All())
         {
-            Assert.Equal(plan.Plan == EnemyPlan.Raider, plan.IgnoresPlayerUnits);
+            Assert.Equal(blind.Contains(plan.Plan), plan.IgnoresPlayerUnits);
         }
     }
 

@@ -29,5 +29,12 @@ namespace Faultline.Core
         /// the clinging ally, and <see cref="EnemyIntent.DisplacementTo"/> is the tile it lands on.
         /// </summary>
         Rescue = 6,
+
+        /// <summary>
+        /// Set an object down on an adjacent tile — the Cooper's barrel (MASTER_DESIGN §6). Its own
+        /// verb because it is none of the others: nothing is attacked, nothing moves, and the enemy
+        /// is very much not holding. <see cref="EnemyIntent.TargetPosition"/> is the tile it lands on.
+        /// </summary>
+        Place = 7,
     }
 }

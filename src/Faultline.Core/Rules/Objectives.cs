@@ -700,7 +700,11 @@ namespace Faultline.Core
         {
             foreach (var unit in state.Units)
             {
-                if (unit.Team == Team.Enemy && unit.IsAlive)
+                // An OBJECT is not an enemy you have to kill (MASTER_DESIGN §6). A barrel stands on
+                // the enemy side so that shoves and collisions treat it like any other body, but a
+                // kill-all is won with barrels still standing — otherwise a Cooper who places one
+                // every turn would make the fight unwinnable by doing his job.
+                if (unit.Team == Team.Enemy && unit.IsAlive && !unit.Template.IsObject)
                 {
                     return true;
                 }

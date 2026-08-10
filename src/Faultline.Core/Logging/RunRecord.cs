@@ -183,6 +183,7 @@ namespace Faultline.Core
             AbilityCommand c => Join(
                 "Ability", c.UnitId.ToString(), c.Ability.ToString(), AbilityAim(c), TechniqueAim(c)),
             RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString(), c.To.ToString()),
+            PlaceBarrelCommand c => Join("Barrel", c.UnitId.ToString(), c.At.ToString()),
             FinishClingingCommand c => Join("Finish", c.UnitId.ToString(), c.ClingingId.ToString()),
             EndActivationCommand c => Join("End", c.UnitId.ToString()),
             SpendVerveCommand c => Join("Spend", c.UnitId.ToString(), c.Spend.ToString(), SpendAim(c)),
@@ -259,6 +260,11 @@ namespace Faultline.Core
                         ParseUnit(Field(fields, offset + 1)),
                         ParseUnit(Field(fields, offset + 2)),
                         ParseTile(Field(fields, offset + 3)));
+
+                case "Barrel":
+                    return new PlaceBarrelCommand(
+                        ParseUnit(Field(fields, offset + 1)),
+                        ParseTile(Field(fields, offset + 2)));
 
                 case "Finish":
                     return new FinishClingingCommand(ParseUnit(Field(fields, offset + 1)), ParseUnit(Field(fields, offset + 2)));

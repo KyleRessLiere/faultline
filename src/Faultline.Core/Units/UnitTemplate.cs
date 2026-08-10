@@ -71,6 +71,12 @@ namespace Faultline.Core
     /// What the basic attack deals anywhere in its band that is not the <paramref name="SweetSpot"/>.
     /// Meaningless when there is no sweet spot.
     /// </param>
+    /// <param name="IsObject">
+    /// True for a thing on the board that is not a fighter — the barrel (MASTER_DESIGN §6). It stands
+    /// on the enemy side so that collisions and shoves treat it like any other body, but <b>clearing
+    /// the board does not mean destroying it</b>: a kill-all is won with barrels still standing, and a
+    /// Cooper placing more of them can never make a fight unwinnable.
+    /// </param>
     public sealed record UnitTemplate(
         UnitKind Kind,
         string RawName,
@@ -92,7 +98,8 @@ namespace Faultline.Core
         UnitTemplate? Enraged = null,
         int EnrageAt = 0,
         int SweetSpot = 0,
-        int OffSpotDamage = 0)
+        int OffSpotDamage = 0,
+        bool IsObject = false)
     {
         private static readonly Dictionary<UnitKind, UnitTemplate> Table = Build();
 
@@ -265,6 +272,17 @@ namespace Faultline.Core
                 // boss's whole anti-displacement budget: three refusals, spent one per instance like
                 // everybody else's since D-143 retired the negating token.
                 new UnitTemplate(UnitKind.Raider, "Raider", 4, 3, AttackKind.Melee, 1, 2, 0, Plan: EnemyPlan.Raider),
+
+                // MASTER_DESIGN §6. The Cooper is a CLOCK, not a fighter: no attack at all, and two
+                // tiles of walk to reach the next barrel. Killing him stops the clock and leaves every
+                // barrel already on the board exactly where it is.
+                new UnitTemplate(UnitKind.Cooper, "Cooper", 8, 2, AttackKind.None, 0, 0, 0, Plan: EnemyPlan.Cooper),
+
+                // The barrel. Move 0 and no attack — it does nothing of its own accord, which is what
+                // an object is; everything it does to the board it does because somebody shoved it.
+                new UnitTemplate(
+                    UnitKind.Barrel, "Barrel", 4, 0, AttackKind.None, 0, 0, 0,
+                    Plan: EnemyPlan.Inert, IsObject: true),
                 new UnitTemplate(
                     UnitKind.QuarryKing, "Quarry King", 28, 1, AttackKind.Melee, 1, 6, 3,
                     AttackPush: 1, Plan: EnemyPlan.QuarryKing,

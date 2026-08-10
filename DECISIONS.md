@@ -272,9 +272,10 @@ in this file when the question comes back.
 | D-269 | [FOUND: the band collides with four cards, and every one of them is a designer call this session did not make.](#d-269-found-the-band-collides-with-four-cards-and-every-one-of-them-is-a-designer-call-this-session-did-not-make) | 2026-08-09 |  |
 | D-270 | [RULED: every board declares its band, and the band is authored rather than derived.](#d-270-ruled-every-board-declares-its-band-and-the-band-is-authored-rather-than-derived) | 2026-08-09 |  |
 | D-271 | [RULED: the generator draws from banded pools across the whole library. Presets weight; they never scope. The observed repetition was an artifact of scoping, and it is now zero.](#d-271-ruled-the-generator-draws-from-banded-pools-across-the-whole-library-presets-weight-they-never-scope-the-observed-repetition-was-an-artifact-of-scoping-and-it-is-now-zero) | 2026-08-09 |  |
-| D-272 | [RULED: the board mask is a view, and the picker gains a second cut of the library by band.](#d-272-ruled-the-board-mask-is-a-view-and-the-picker-gains-a-second-cut-of-the-library-by-band) | unreleased |  |
+| D-272 | [RULED: the board mask is a view, and the picker gains a second cut of the library by band.](#d-272-ruled-the-board-mask-is-a-view-and-the-picker-gains-a-second-cut-of-the-library-by-band) | 2026-08-09 |  |
+| D-273 | [RULED: the barrel is stored as a UNIT, not as a structure, and that is what lets it ride the existing displacement pipeline.](#d-273-ruled-the-barrel-is-stored-as-a-unit-not-as-a-structure-and-that-is-what-lets-it-ride-the-existing-displacement-pipeline) | unreleased |  |
 
-**254 rulings.**
+**255 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7398,3 +7399,47 @@ control look pointless and is the reason to keep it.
 what the generator sees — the boards a Warrens v2 act can field — and a board appears in both because
 it is in both. Read off `FightDefinition.Pool` rather than a list, so a board authored tomorrow with a
 mark lands in its band the same day.
+
+---
+
+**D-273 — RULED: the barrel is stored as a UNIT, not as a structure, and that is what lets it ride the
+existing displacement pipeline.**
+
+MASTER_DESIGN §6 calls the barrel "debris-class", and debris in this codebase is a
+<c>Structure</c> with <c>IsBlocker</c> — the Crate of Debris makes one. **It cannot be one here.**
+`Displacement.Simulate` and `Displacement.Collide` take a `Unit target` at every level, hit points and
+resistance and Footing are all read off a unit, and **nothing in this game has ever moved a
+structure**. A barrel that had to be shoved as a structure would need a second displaced-object path
+threaded through the whole pipeline.
+
+§6 forbids exactly that: *"the displacement pipeline resolves the roll and the pipeline never checks
+who pushed."* So the choice was between contradicting the doc's word (object) and contradicting its
+rule (no second path). **The rule wins**: as a unit with no attack and Move 0, the barrel rides the
+existing path with **no change to the pipeline at all**.
+
+**What falls out for free, rather than being coded:**
+
+- **A body in the lane IS the plug.** A shove already stops at the first occupied tile, so the barrel
+  collides there, pops there, and the lane behind is never entered. No clause was written for this.
+- **A Husk's jostle sets it off.** The pipeline never asks who pushed, so it never had to be told.
+- **Shoving one into the wall in front of you pops it in your face.** A terminal collision is a
+  collision.
+
+**The pop is a rider on the finished event stream** (`Barrels.Fire`), the same shape as
+`Verve.Charge` and the camp listeners — a rule that listens rather than one threaded through the
+thirteen files that emit events. Chains resolve because the scan continues over the events an earlier
+pop appended.
+
+**The struck body takes the 6 and not also the blast's 2** — the pop's damage to what it hit is that
+body's share, not a second helping. **The ordinary collision damage is additive**, because it is the
+pipeline's own physics and it happened: a barrel arriving at a body costs that body 4 + 6.
+
+**An object is not an enemy you must kill.** `AnyEnemyLeft` skips `IsObject`, so a kill-all is won
+with barrels standing — otherwise a Cooper doing his job would make a fight unwinnable. Two
+completeness tests gained the same exemption, and both assert the object *does* hold rather than
+merely allowing it to: a barrel that started acting would be a defect too.
+
+**Placing is a real command.** `PlaceBarrelCommand` rather than something the planner does to the
+state, because a barrel appearing is a fact a replay must reproduce. It is the only unit minted
+mid-fight — every other id, reinforcements included, is fixed at `Game.Start` — so its id is the next
+dense index, which is deterministic because a downed unit is never removed from the list.

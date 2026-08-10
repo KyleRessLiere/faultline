@@ -298,6 +298,13 @@ namespace Faultline.Core
             next = Retort.Fire(next, events, produced);
             next = Breakwater.Fire(next, events, produced);
 
+            // Barrels go off BEFORE the meter reads the stream, because a pop is a thing that
+            // happened in this command and its collisions are collisions like any other — a Vanguard
+            // who shoved a barrel into a Husk caused what the blast did, and charging for it is the
+            // same rule as charging for the shove (MASTER_DESIGN §6). Nothing here moves a barrel;
+            // the roll was the displacement pipeline's, untouched.
+            next = Barrels.Fire(next, events);
+
             // Verve reads the finished stream rather than being threaded through the rules that
             // produced it, so it goes here — after the command, before re-planning, so a charge is
             // logged next to the thing that earned it (D-073). It snapshots its own window, so the
@@ -339,6 +346,8 @@ namespace Faultline.Core
                     return ApplyAbility(state, ability, events);
                 case RescueCommand rescue:
                     return ApplyRescue(state, rescue, events);
+                case PlaceBarrelCommand place:
+                    return ApplyPlaceBarrel(state, place, events);
                 case FinishClingingCommand finish:
                     return ApplyFinish(state, finish, events);
                 case SpendVerveCommand spend:
@@ -1944,6 +1953,43 @@ namespace Faultline.Core
             return AfterAction(state, attacker.Id, events);
         }
 
+        /// <summary>
+        /// The Cooper sets a barrel down (MASTER_DESIGN §6). It spends his whole activation, and the
+        /// barrel is shovable from his next one — by anybody, him included.
+        /// </summary>
+        private static GameState ApplyPlaceBarrel(
+            GameState state, PlaceBarrelCommand command, List<GameEvent> events)
+        {
+            var unit = state.UnitById(command.UnitId);
+
+            Require(unit.Template.Plan == EnemyPlan.Cooper, "Only a Cooper sets barrels down.");
+            Require(unit.Position.DistanceTo(command.At) == 1, "A barrel is set down beside him.");
+            Require(state.Board.InBounds(command.At), "That tile is off the board.");
+            Require(state.Board.At(command.At) == TileType.Open, "A barrel needs open ground.");
+            Require(state.UnitAt(command.At) is null, "Something is already standing there.");
+            Require(state.StructureAt(command.At) is null, "Something is already standing there.");
+
+            state = CommitActivation(state, unit, events);
+            state = state.WithUnit(Activation.Spend(state.UnitById(unit.Id), Activation.ActionCost));
+
+            // Every other unit id in a fight is fixed at Start, reinforcements included. This is the
+            // one thing that appears mid-fight, so its id is the next dense index — deterministic
+            // because a downed unit is never removed from the list, only taken off the board, so the
+            // count is a function of the command log and nothing else.
+            var barrel = Unit.FromTemplate(new UnitId(state.Units.Count), UnitKind.Barrel, Team.Enemy) with
+            {
+                Position = command.At,
+                IsDeployed = true,
+            };
+
+            var units = new List<Unit>(state.Units) { barrel };
+            state = state with { Units = units };
+
+            events.Add(new BarrelPlaced(command.UnitId, barrel.Id, command.At));
+
+            return state;
+        }
+
         private static GameState ApplyEndActivation(GameState state, EndActivationCommand command, List<GameEvent> events)
         {
             var unit = RequireActivatable(state, command.UnitId);
@@ -2074,6 +2120,7 @@ namespace Faultline.Core
             AttackCommand c => c.UnitId,
             AbilityCommand c => c.UnitId,
             RescueCommand c => c.UnitId,
+            PlaceBarrelCommand c => c.UnitId,
             FinishClingingCommand c => c.UnitId,
             SpendVerveCommand c => c.UnitId,
             UseConsumableCommand c => c.UnitId,

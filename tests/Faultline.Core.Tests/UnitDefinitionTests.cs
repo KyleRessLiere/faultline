@@ -215,7 +215,19 @@ public class UnitDefinitionTests
 
             // A plan that holds with a player unit in the open in front of it is a plan the
             // dispatcher never found — the same teeth EnemyBehaviourTests keeps on the bestiary.
-            Assert.NotEqual(IntentAction.Hold, Ai.Declare(state, enemy).Action);
+            //
+            // An OBJECT is the one exemption, and it is not a loophole: a barrel holding is the whole
+            // of its list (MASTER_DESIGN §6). Everything it does to the board it does because somebody
+            // shoved it, so "it never acts" is the behaviour rather than a missing branch.
+            if (definition.Stats.IsObject)
+            {
+                Assert.Equal(IntentAction.Hold, Ai.Declare(state, enemy).Action);
+            }
+            else
+            {
+                Assert.NotEqual(IntentAction.Hold, Ai.Declare(state, enemy).Action);
+            }
+
             checked_++;
         }
 

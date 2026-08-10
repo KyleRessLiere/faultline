@@ -111,6 +111,15 @@ namespace Faultline.Core
                 }
             }
 
+            // Setting a barrel down names no unit, so it is read off the telegraph's tile rather than
+            // out of the target search above — the same shape the Raider's claw uses.
+            if (intent.Action == IntentAction.Place
+                && intent.TargetPosition is { } tile
+                && PlacementTile(state, enemy) is not null)
+            {
+                return new PlaceBarrelCommand(enemy.Id, tile);
+            }
+
             return end;
         }
 
@@ -1389,6 +1398,147 @@ namespace Faultline.Core
             return new EnemyIntent(
                 enemy.Id, enemy.Kind, enemy.Position, IntentAction.Retreat,
                 fled?.Id, fled?.Position, away, null, null, 0, null, 0);
+        }
+
+        // An OBJECT's list, and it has no clauses (MASTER_DESIGN §6). A barrel never moves of its own
+        // accord and never acts on anybody: everything it does to the board it does because somebody
+        // shoved it, which is what makes it an object rather than a very passive enemy.
+        internal static EnemyIntent PlanInert(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices) =>
+            Hold(enemy);
+
+        // The Cooper (MASTER_DESIGN §6). A CLOCK, not a fighter — his whole list is about barrels and
+        // none of it is about players:
+        //   1. adjacent to a barrel  -> SHOVE it down the lane holding the most players
+        //   2. else                  -> walk toward the nearest barrel
+        //   3. else                  -> PLACE one on an adjacent open tile
+        // He never attacks, never defends himself, and never takes the free finish on a clinger —
+        // those are clauses about player units and this list has none, exactly like the Raider's.
+        internal static EnemyIntent PlanCooper(
+            GameState state, Unit enemy, IReadOnlyList<Unit> all, IReadOnlyList<Unit> choices)
+        {
+            var barrels = new List<Unit>();
+            foreach (var unit in state.Units)
+            {
+                if (Barrels.IsBarrel(unit) && unit.IsOnBoard)
+                {
+                    barrels.Add(unit);
+                }
+            }
+
+            // 1. Adjacent to one: shove it down the lane with the most players in it. Lowest id
+            //    breaks a tie, like every other published list.
+            Unit? best = null;
+            Direction bestLane = Direction.Up;
+            int bestCount = -1;
+
+            foreach (var barrel in barrels)
+            {
+                if (enemy.Position.DistanceTo(barrel.Position) != 1)
+                {
+                    continue;
+                }
+
+                var lane = DirectionFrom(enemy.Position, barrel.Position);
+                int count = PlayersInLane(state, barrel.Position, lane);
+
+                if (count > bestCount || (count == bestCount && best is not null && barrel.Id.Value < best.Id.Value))
+                {
+                    best = barrel;
+                    bestLane = lane;
+                    bestCount = count;
+                }
+            }
+
+            if (best is not null)
+            {
+                return new EnemyIntent(
+                    enemy.Id, enemy.Kind, enemy.Position, IntentAction.Push,
+                    best.Id, best.Position, null, DisplacementKind.Push, bestLane, 1, null, 0);
+            }
+
+            // 2. Else walk at the nearest barrel, by the same breadth-first field every other
+            //    archetype walks by (D-029) — grown from the barrels, which block their own tiles, so
+            //    the tiles measuring 1 are exactly the ring he is trying to reach.
+            if (barrels.Count > 0)
+            {
+                var tiles = new List<Coord>();
+                foreach (var barrel in barrels)
+                {
+                    tiles.Add(barrel.Position);
+                }
+
+                var field = PathField.ToAnyOf(state, enemy, tiles);
+                var destination = BestTile(
+                    state, enemy, coord => new Score(field.At(coord), NearestTileDistance(coord, tiles)));
+
+                var nearest = Nearest(enemy.Position, barrels)!;
+                return Advance(
+                    enemy, nearest, destination == enemy.Position ? (Coord?)null : destination);
+            }
+
+            // 3. Else set one down. Nothing on the board to roll, so he makes something to roll.
+            var tile = PlacementTile(state, enemy);
+            return tile is null
+                ? Hold(enemy)
+                : new EnemyIntent(
+                    enemy.Id, enemy.Kind, enemy.Position, IntentAction.Place,
+                    null, tile, null, null, null, 0, null, 0);
+        }
+
+        /// <summary>How many player units stand in the lane a barrel would roll down.</summary>
+        private static int PlayersInLane(GameState state, Coord from, Direction lane)
+        {
+            int count = 0;
+            var at = from;
+
+            while (true)
+            {
+                at = at.Step(lane);
+                if (!state.Board.InBounds(at))
+                {
+                    return count;
+                }
+
+                var occupant = state.UnitAt(at);
+                if (occupant is not null && occupant.Team.IsPlayer())
+                {
+                    count++;
+                }
+            }
+        }
+
+        /// <summary>The direction one tile lies in from another. Both are adjacent by construction.</summary>
+        private static Direction DirectionFrom(Coord from, Coord to)
+        {
+            if (to.X > from.X) { return Direction.Right; }
+            if (to.X < from.X) { return Direction.Left; }
+            return to.Y > from.Y ? Direction.Down : Direction.Up;
+        }
+
+        /// <summary>Where the Cooper would set a barrel down: adjacent, in bounds, open and empty.</summary>
+        internal static Coord? PlacementTile(GameState state, Unit cooper)
+        {
+            foreach (var tile in Adjacent(cooper.Position))
+            {
+                if (state.Board.InBounds(tile)
+                    && state.Board.At(tile) == TileType.Open
+                    && state.UnitAt(tile) is null
+                    && state.StructureAt(tile) is null)
+                {
+                    return tile;
+                }
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<Coord> Adjacent(Coord at)
+        {
+            yield return new Coord(at.X, at.Y - 1);
+            yield return new Coord(at.X + 1, at.Y);
+            yield return new Coord(at.X, at.Y + 1);
+            yield return new Coord(at.X - 1, at.Y);
         }
 
         // ---- intent construction --------------------------------------------------------------

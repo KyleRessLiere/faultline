@@ -73,6 +73,8 @@ namespace Faultline.Core
             // with no bestiary entry fails EnemyBehaviourTests — but fielded by no .fight file and
             // named by no campaign or acquisition pool.
             UnitKind.EscortDuckling,
+            // The barrel clock and its ammunition (MASTER_DESIGN §6).
+            UnitKind.Cooper, UnitKind.Barrel,
         };
 
         private static readonly Dictionary<UnitKind, EnemyBehaviour> ByKind = Build();
@@ -1066,6 +1068,72 @@ namespace Faultline.Core
                     + "is decided by where you stand.",
                     "Cut off the tile it wants. With every reachable tile no better than its own it "
                     + "holds, and a duckling that holds is a duckling that is still where you left it.",
+                });
+
+            // ---- the barrel clock and its ammunition (MASTER_DESIGN §6) ------------------------
+
+            var cooper = UnitTemplate.For(UnitKind.Cooper);
+            table[UnitKind.Cooper] = new EnemyBehaviour(
+                UnitKind.Cooper,
+                "the barrel clock — he never fights",
+                $"{cooper.MaxHp} HP at Move {cooper.Move} and no attack at all. He shoves barrels down "
+                + "whichever lane holds the most of you, walks at the nearest one when he is not "
+                + "beside it, and sets a new one down when the board has none left to roll.",
+                Steps(
+                    ("Shove the barrel he is standing next to",
+                     "Down the lane holding the most player units; a tie goes to the lowest unit id. "
+                     + "The shove is the ordinary displacement, so the barrel rolls until it arrives "
+                     + "at something — and pops there."),
+                    ("Otherwise walk at the nearest barrel",
+                     $"Move {cooper.Move} by the same breadth-first path field every archetype walks "
+                     + $"by. Move {cooper.Move} is slow enough that a barrel across the board costs "
+                     + "him a round to reach."),
+                    ("Otherwise set a barrel down",
+                     "On an adjacent open tile, shovable from his next activation. A Cooper with "
+                     + "nothing to roll spends a turn making something to roll.")),
+                new[]
+                {
+                    "He never attacks, never defends himself and never finishes a clinging duck — "
+                    + "there is no clause about player units anywhere in his list.",
+                    "Killing him stops the CLOCK, not the barrels. Everything already on the board "
+                    + "stays where it is and still goes off when something shoves it.",
+                },
+                new[]
+                {
+                    "Kill the clock or clear the lane — both work, and they cost different turns. "
+                    + "He is 8 HP and unarmed, so he is cheap to remove and expensive to ignore.",
+                    "Stand out of the lanes. He aims at the lane with the most of you in it, so a "
+                    + "line of ducks is an invitation and a spread is not.",
+                });
+
+            var barrel = UnitTemplate.For(UnitKind.Barrel);
+            table[UnitKind.Barrel] = new EnemyBehaviour(
+                UnitKind.Barrel,
+                "an object — it does nothing until somebody moves it",
+                $"{barrel.MaxHp} HP at Move {barrel.Move}: no attack and no walk of its own. Shovable "
+                + "by anyone — the Cooper, "
+                + $"a duck, a Husk blundering into it — and on collision or death it POPS: "
+                + $"{Barrels.PopDamage} to whatever it arrived at and {Barrels.BlastDamage} to every "
+                + "tile around the blast, mitigated by nothing and blind to allegiance.",
+                Steps(
+                    ("Be shoved",
+                     "Everything it does to the board it does because somebody moved it — and the "
+                     + "pipeline never checks who. A duck, the Cooper and a blundering Husk all set "
+                     + "it off identically."),
+                    ("Otherwise stand still",
+                     "It never takes an activation of its own. The shortest list in the game.")),
+                new[]
+                {
+                    "Clearing the board does not mean destroying it: a kill-all is won with barrels "
+                    + "still standing, so a Cooper placing more can never make a fight unwinnable.",
+                    "A body in the lane IS the plug. The roll stops at the first thing it reaches, "
+                    + "which takes the 6 — and the lane behind that body is never entered.",
+                },
+                new[]
+                {
+                    "It is a weapon that belongs to whoever shoves it last. Aim it before he does.",
+                    "Shoving one into the wall in front of you pops it in your face. The preview "
+                    + "shows the lane, the collision and the blast before you commit.",
                 });
 
             foreach (var kind in Order)

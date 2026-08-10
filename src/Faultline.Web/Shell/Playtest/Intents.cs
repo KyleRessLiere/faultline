@@ -81,6 +81,10 @@ public static class Intents
             IntentAction.Push => IntentCategory.Shove,
             IntentAction.Advance or IntentAction.Retreat => IntentCategory.Move,
             IntentAction.Rescue => IntentCategory.Rescue,
+
+            // Setting a barrel down is a thing done TO the board rather than to anybody, so it reads
+            // as a shove: the tile it lands on is what a player needs to see.
+            IntentAction.Place => IntentCategory.Shove,
             _ => IntentCategory.Defend,
         };
     }

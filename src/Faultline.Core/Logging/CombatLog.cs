@@ -104,6 +104,8 @@ namespace Faultline.Core
             UnitAttacked => nameof(UnitAttacked),
             UnitDamaged => nameof(UnitDamaged),
             UnitDowned => nameof(UnitDowned),
+            BarrelPopped => nameof(BarrelPopped),
+            BarrelPlaced => nameof(BarrelPlaced),
             UnitPushed => nameof(UnitPushed),
             Collision => nameof(Collision),
             SpikeHit => nameof(SpikeHit),
@@ -213,6 +215,13 @@ namespace Faultline.Core
                 + ", hp " + Number(e.RemainingHp),
 
             UnitDowned e => "down at " + e.At + ", off the board",
+
+            BarrelPlaced e => "barrel set down at " + e.At + ", shovable from his next activation",
+
+            BarrelPopped e => "barrel pops at " + e.At
+                + (e.StruckId is null ? ", nothing in the lane" : ", on what it reached")
+                + " — " + Number(Barrels.PopDamage) + " to the target, "
+                + Number(Barrels.BlastDamage) + " to every tile around it",
 
             UnitPushed e => e.Kind == DisplacementKind.Throw
                 ? "thrown " + Number(e.Distance) + " " + e.From + " -> " + e.To + ", over everything between"
@@ -455,6 +464,8 @@ namespace Faultline.Core
             UnitAttacked e => e.AttackerId,
             UnitDamaged e => e.UnitId,
             UnitDowned e => e.UnitId,
+            BarrelPopped e => e.BarrelId,
+            BarrelPlaced e => e.CooperId,
             UnitPushed e => e.UnitId,
             Collision e => e.UnitId,
             SpikeHit e => e.UnitId,

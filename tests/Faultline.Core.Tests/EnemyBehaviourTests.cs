@@ -438,12 +438,30 @@ public class EnemyBehaviourTests
             var enemy = state.Find(behaviour.Kind);
             var intent = Ai.Declare(state, enemy);
 
-            Assert.True(
-                intent.Action != IntentAction.Hold,
-                $"{behaviour.Kind} is documented in the bestiary but Ai.Compute has no branch for it — "
-                + "it holds position with a player unit in the open in front of it.");
+            // An object holds, and that is its documented behaviour rather than a missing branch: a
+            // barrel never acts on anybody (MASTER_DESIGN §6). Everything else must do something.
+            if (behaviour.Template.IsObject)
+            {
+                Assert.Equal(IntentAction.Hold, intent.Action);
+            }
+            else
+            {
+                Assert.True(
+                    intent.Action != IntentAction.Hold,
+                    $"{behaviour.Kind} is documented in the bestiary but Ai.Compute has no branch for it — "
+                    + "it holds position with a player unit in the open in front of it.");
+            }
 
-            Assert.NotEqual(new EndActivationCommand(enemy.Id), Ai.Plan(state, enemy));
+            // An object ends its activation because it has nothing to spend one on; everything else
+            // must turn its declared intent into an actual command.
+            if (behaviour.Template.IsObject)
+            {
+                Assert.Equal(new EndActivationCommand(enemy.Id), Ai.Plan(state, enemy));
+            }
+            else
+            {
+                Assert.NotEqual(new EndActivationCommand(enemy.Id), Ai.Plan(state, enemy));
+            }
         }
     }
 

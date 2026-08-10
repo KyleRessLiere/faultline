@@ -1,5 +1,14 @@
 # Changelog
 
+## The Cooper and the Barrel
+
+- **Barrels pop.** 4 HP debris, shovable by anyone, and on collision or death it deals 6 to what it
+  arrived at and 2 to every tile around the blast — allegiance-blind and mitigated by nothing.
+- **The Cooper** is an 8 HP, Move 2, no-attack clock: shove a barrel down the fullest lane, else walk
+  at one, else set one down. Killing him stops the clock, not the barrels.
+- **The barrel rides the existing displacement pipeline with no change to it** (D-273) — the plug, the
+  jostle and the pop-in-your-face all fall out of physics that was already there.
+
 ## Boards say what they are for
 
 - **Every `.fight` declares a `pool:` band** — Opener, Ordinary, Hard, Elite, Endurance or Boss — and

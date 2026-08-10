@@ -154,6 +154,8 @@ namespace Faultline.Core
             UnitKind.QuarryKing => "QK",
             UnitKind.Rushmaster => "RM",
             UnitKind.EscortDuckling => "du",
+            UnitKind.Cooper => "CP",
+            UnitKind.Barrel => "()",
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "No glyph for unit kind."),
         };
 

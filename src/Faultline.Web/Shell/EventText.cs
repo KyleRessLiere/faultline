@@ -152,6 +152,10 @@ public static class EventText
             IntentAction.Advance => $"close on {target}, move to {intent.MoveTo}",
             IntentAction.Rescue => $"haul {target} out → {intent.DisplacementTo}",
 
+            // The Cooper setting a barrel down (MASTER_DESIGN §6). It names a tile rather than a
+            // unit, like the Raider's claw does.
+            IntentAction.Place => $"set a barrel down at {intent.TargetPosition}",
+
             // Hold is the only remaining action, and it is genuinely "stands still". Anything else
             // reaching here is a new IntentAction nobody taught this method about — and rendering an
             // unknown plan as "hold position" is a telegraph that lies, which is the one thing a
