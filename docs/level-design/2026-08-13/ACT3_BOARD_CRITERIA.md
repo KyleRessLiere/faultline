@@ -69,19 +69,83 @@ attacks the shove economy itself, and it attacks the map's permanence.**
 ### 1a · The spine — the Court, composition as the wall
 
 The Court fields an aristocratic guard, and the point of it is that *displacement stops being
-a universal answer*. The booked-but-unfielded bestiary is the vocabulary:
+a universal answer*.
 
-| Enemy | Numbers (MASTER §6, canonical) | What it does to the kit |
-|---|---|---|
-| **Bulwark** | 14 / Move 2 · aura: adjacent allies displaced max 1 | **Caps your shove economy locally — never cancels it.** Inside the aura a push still moves a body, just not far enough to reach the thing you wanted; a 2-tile shove becomes 1, so the drain at range 2 stops being reachable. Kill the aura, reposition the hazard, or pay more. A gradient, per MASTER §2. |
-| **Harrier** | 12 / Move 4 · pushes players *away from allies* | Un-makes your formation. Every other enemy pushes you into things; this one pushes you apart. |
-| **Colossus** | 30 / Move 1 · melee 6 · resist 2 | A body that arrives late and cannot be moved cheaply. |
-| **Runt** | 2 HP swarm, unscaled, Footing 0 | Chaff that screens the units that matter. Dies to anything, and that is the point. |
-| **Heavy Husk** | Footing 2 · the bloody shoulder (contact damage vs allies too) | The named elite. Its jostle hurts its own side — an enemy that supplies you ammunition *and* punishes you for crowding it. |
-| **Debris** (`o`) | 4 HP standing piece, blocks movement, allegiance-less | Cover you can make and cover you can lose. |
+> ### ⚠ NUMBERS: `UnitTemplate.cs` IS THE AUTHORITY, NOT MASTER §6
+>
+> **MASTER_DESIGN §6's stat lines are stale and disagree with the code.** §6 says Husk 6 HP,
+> Bulwark 14, Harrier 12, Colossus 30; the shipped rows are **4, 10, 8, 20**. §6 describes a
+> "Ratio Pass scale" that did not land as written. Per CLAUDE.md's own hierarchy, MASTER is
+> *intent* and the as-built numbers win for arithmetic.
+>
+> **Every board's arithmetic must be computed from
+> `src/Faultline.Core/Units/UnitTemplate.cs` `Build()`.** A board whose thesis is "a collision
+> is 4 and a Husk has 4, so it is a double kill" is *wrong* if it used §6's 6 HP. Quote the
+> code, never the doc.
+
+The as-built roster, read off `UnitTemplate.cs:236-296`. Damage 0 means it genuinely cannot
+hurt you — and per GAMEPLAY, *"the units that cannot hurt you are the ones that pull people
+out"*, because no lethal can ever outrank their rescue slot.
+
+| Enemy | HP | Move | Attack | Dmg | Notable | What it does to the kit |
+|---|---|---|---|---|---|---|
+| **Bulwark** | 10 | 2 | melee 1 | 2 | `HoldAura` | **Caps your shove economy locally — never cancels it.** Inside the aura a push still moves a body, just not far enough; a 2-tile shove becomes 1, so a drain at range 2 stops being reachable. Kill the aura, move the hazard, or pay more. A gradient, per MASTER §2. **Hold caps distance, not damage — a push of exactly 1 into a body still collides for 4.** |
+| **Harrier** | 8 | 4 | none | **0** | `BasicPush 1` | Un-makes your formation. Every other enemy pushes you *into* things; this one pushes you *apart*, scoring on ally distance. |
+| **Colossus** | 20 | 1 | melee 1 | **6** | `PushResistance 2` | The heaviest body in the game and the hardest to move. Move 1 means it is a slow problem you choose when to meet. |
+| **Runt** | 2 | 4 | melee 1 | 2 | — | Chaff. Two hit points and Move 4: it dies to literally anything and arrives first. Screens the units that matter. |
+| **Heavy Husk** | 6 | 3 | melee 1 | 2 | — | A Husk with more hit points **and nothing else** — note it does *not* trample and does *not* carry Footing, both of which §6 implies. The bloody shoulder is unimplemented. |
+| **Warden** | 12 | 0 | melee 1 | 4 | `Footing 2` | The door. Move 0, so it never leaves the gap. |
+| **Perch** | 6 | 2 | ranged 3 | 2 | seeks HighGround | The ranged half of any ridge question. |
+| **Colossus/Anchor contrast** | 20 vs 12 | 1 vs 1 | — | 6 vs 4 | resist 2 vs 1 | Two immovable bodies at different prices — useful for pricing the same question twice in one act. |
+
+Reference rows for arithmetic: **Husk 4/3/dmg 2 (`Tramples`)** · Lobber 6/2/r3/dmg 2 ·
+Anchor 12/1/dmg 4/resist 1 · Grappler 10/3/r3/**dmg 0**/pull 2 · Stalker 8/4/**dmg 0**/push
+1/`HazardRanks 3`.
+
+**Footing is granted per fight, not carried.** Shipped regulars carry Footing **0** — only
+Warden (2), BracedHusk (2), QuarryKing (3) and Rushmaster (1) carry any on the stat block.
+D-028: nobody has a token unless a fight says so, via a `footing:` line. `hz-01-dig-in` is the
+worked example.
+
+**Debris** is not a tile or a unit — it is a runtime `Structure` with `IsBlocker = true`
+(`Consumables.cs:676-691`), 4 HP, and the Crate of Debris demands a `TileType.Open` target.
 
 **Regalia** — destructible aura structures — are named in MASTER §12 for the true boss. The
 Locks act is where they are first fielded at act scale.
+
+### ⚠ These enemies are already implemented, and redeploying them is work the repo has declared owed
+
+All five ship in code with stat rows, priority lists, bestiary prose and passing tests. They are
+fielded by exactly six boards — `nv-01` … `nv-06` — and **every one of those carries a
+`retired:` line whose reason is:**
+
+> `bestiary fixtures, not designs — the enemies they prove are redeployed into the curated set`
+
+So the generator has never drawn one of these enemies, and the retirement note says plainly that
+someone already ruled they *should* be redeployed into curated boards and never did it. **Act 3
+is that curated set.** Fielding them is not invention and not even new content — it is
+completing a declared, unfinished migration. Read `nv-03-formation.fight` before authoring any
+Bulwark board: its `design:` lines already contain the worked arithmetic for the aura
+(*"a Bull Rush that would normally slam it into its neighbour for a double stagger stops one
+tile short and touches nothing. Kill the Bulwark and the same shove works again"*).
+
+### ⚠ The Rushmaster: a finished second boss that no board fields
+
+`UnitKind.Rushmaster` is a **complete boss implementation** — 26 HP, Move 1, melee 4, Footing 1,
+`PushResistance 1`, a Cut Loose phase change at 13 HP, its own planner, `Rules/Stampede.cs`,
+`Rules/CrewCover.cs`, two event types, and a 17-test suite. **No `.fight` file spawns him**, the
+only `objective: boss` board in the library is `quarry-king.fight`, and unlike the BracedHusk and
+EscortDuckling — whose non-fielding is deliberate and test-guarded — the Rushmaster's absence is
+guarded by nothing.
+
+MASTER §8.9 assigns him as **the Warrens boss** ("the shell is the Quarry King's and is reserved
+for the Locks"). The FE study listed the Warrens boss as owed content; it is not owed, it is
+**built and unused**. Fielding it is the cheapest fix in the entire pool for the Boss n=1 defect,
+and it costs one board file and zero Core code.
+
+**It is out of Act 3's scope** — a Warrens board is not a Locks board — and it is recorded here
+as the single highest-value adjacent item, to be raised with the designer rather than silently
+absorbed into this run.
 
 The design consequence to hold onto: a Bulwark aura is the first thing in the game that makes
 **the player's own core verb priced rather than free**. That is the Locks' teaching, and boards
@@ -116,6 +180,71 @@ Hard constraints on the family, so it lands as a question rather than a gimmick:
   operates is a button.
 - **Nobody starts submerged**, and a unit standing on a tile that changes class gets a defined,
   previewed outcome — not a silent death. Determinism is non-negotiable.
+
+### 1b-i · Implementation reality: the mechanism already exists
+
+`src/Faultline.Core/Rules/TerrainMutation.cs` is a general, tested runtime terrain-change system,
+and its own type-level remarks state it was generalised out of the Thorn Pouch **specifically so
+that a second caller like this one would call it rather than copy it** (D-191). The water level is
+that second caller.
+
+What it gives us free: the change is *real* — `Mutate` writes the new `TileType` into
+`GameState.Board`, so movement cost, displacement, the walk-on price, AI path fields, every
+preview and the inspector all read it with **zero new cases and no possibility of disagreeing**.
+Determinism is free (pure function, value-compared board, no RNG). Stacking is already correct —
+water rising over brambles and receding restores brambles, not floor. Reversion happens at round
+end in one seam (`Game.cs:2279`), after the cling sweep and before the objective clock.
+
+**Do not model water as a `Structure`, and do not model a sluice gate as a `TileType`.** The
+codebase has two orthogonal axes and mixing them is the documented error: terrain is a dense
+`TileType` array; structures are a sparse HP-bearing occupant list whose tile underneath stays
+`Open`. A **sluice gate is a `Structure`** (`IsBlocker = true` if it is nobody's objective);
+**canal water is a `TileType`** driven through `TerrainMutation`.
+
+Also note two places the design docs are stale and the code is right: **multi-tile structures do
+NOT share one HP pool** — `Objectives.cs:263-283` gives every tile its own full HP, and
+`break-the-gate` ships as a single tile at 18 HP, not the doc's 3 tiles at 24. And **there is no
+exhaustive switch over `TileType` anywhere in the codebase**: every one has a `default`. A new
+tile class will therefore behave *silently* as open ground in every display surface and as
+"not a hazard" in the AI, and **no test will report it**. The ~35-touchpoint checklist must be
+worked deliberately — in particular `Ai.HazardRank`, or enemies will neither avoid nor exploit
+the water.
+
+### 1b-ii · ⚠ THE ONE GENUINE DESIGN RULING — DO NOT INVENT PAST THIS
+
+`TerrainMutation.Mutate` **throws** `IllegalCommandException` when the target tile is occupied:
+
+> *"The ground cannot be changed under something standing on it."*
+
+A rising water level cannot honour that. Something must happen when the canal floods a tile a
+duck is standing on, and **the codebase deliberately refuses to guess** — the seam is
+`TerrainMutation.ExpiryBeneathUnit` (today a documented no-op) whose remarks enumerate exactly
+three candidate rulings and decline to pick one, on the stated grounds that *"a rule that has to
+invent an answer to ship is a rule shipping a guess"*:
+
+1. the unit pays the tile's entry price;
+2. the change defers while the tile is occupied;
+3. the unit is displaced to the nearest legal tile.
+
+This is a material game-design ruling under MASTER §2's pillars, so per prime directive 6 it is
+**the designer's call, not an agent's.**
+
+**The provisional implementation is option 2 — defer while occupied** — chosen because it is the
+only one of the three that *preserves the existing invariant exactly* rather than replacing it,
+which is the conservative reading CLAUDE.md §0 asks for. It also happens to be the most
+thematic: the water laps at your feet and comes in the moment you step away.
+
+**And it is paired with a telegraph that makes deferral a feature rather than a fudge:** the
+sluice publishes its next step a full round ahead, like the wave timetable and enemy intents, so
+a duck in the path has a round's warning. That satisfies pillar 3 — *"lethality is fine, surprise
+lethality is not"* — and means the deferral is almost never load-bearing in practice, because a
+player who ignores a published flood chose to.
+
+Recorded as a **provisional ruling in `DECISIONS.md` with all three alternatives**, flagged to the
+designer, and implemented as a symmetric `CreationBeneathUnit` hook beside the existing
+`ExpiryBeneathUnit` so that changing the answer later is a one-method change with no second call
+site — exactly as that file's remarks prescribe. **No board's thesis may depend on which of the
+three is chosen.**
 
 ### 1c · Prefix and numbering
 
@@ -196,9 +325,33 @@ reachable from every deployment spot.
 **G11 · Determinism.** Seed plus command log replays to identical state. Any new enemy, tile
 class or ability ships with its determinism coverage.
 
-**G12 · Base-kit win band.** The board is winnable by base kits and not trivially. The harness
-supplies the number; `high-road`'s 0/4 base-kit wins is the failure precedent, and a board that
-no base-kit policy can win is a defect and not a difficulty setting.
+**G12 · Base-kit win band — measured across POLICIES, not seeds.**
+
+> ⚠ **"Win rate across seeds" is unobtainable and must never be quoted.** Nothing in
+> `Faultline.Core` consumes an RNG inside a fight, so every deterministic policy plays
+> byte-identically at every seed — re-running at another seed is not a second sample. The six
+> `random-*` policies *are* seeded, from `policy.Name.GetHashCode()`, which .NET randomises **per
+> process**, so those rows are not reproducible either. The repo measures **wins across
+> policies**, n=1 per cell, and any figure quoted must say so.
+
+The threshold is MASTER §8.8's: *"at least one base-kit policy wins each hungry edition —
+upgrades improve consistency and tempo, never legal possibility."* The floor is therefore **≥1 of
+4**, working practice across the Warrens prompts is **≥2 of 4**, and Act 3 adopts **≥2 of the four
+§8.8 policies** (`board-first`, `shover`, `objective-first`, `random-a`). `high-road` shipping at
+**0/4** is the failure precedent — and the ruling that came out of it is the one to remember: the
+deployment was the defect, not the tuning.
+
+`--certify` **cannot see a new board** — `Certification.Boards` is a hardcoded array of the eight
+act-1 nodes. The command is `--levels`, and its policy×board grid is the evidence:
+
+```powershell
+dotnet run --project tools/Faultline.Playtest -c Release -- --levels lk-01-your-board `
+  --out C:\Users\ressl\AppData\Local\Temp\playtest-lk01
+```
+
+A **stall** (round > 60) is a distinct failure from a loss, and on a kill-all board it usually
+means a connectivity or reachability defect rather than a difficulty one — check
+`-- --connectivity` before touching the roster.
 
 **G13 · Adversarial break.** Dedicated agents attempt the degenerate solution — the flier-skip
 equivalent. A board fails if a break is found and **unpriced**. Three distinct lenses required:
@@ -332,6 +485,73 @@ separate agent with its own context:
 
 Passes 5–11 return **defects, never verdicts**. A board with any unresolved defect goes back to
 pass 12 and round-trips again. Boards batch **five at a time**.
+
+## 4a · Traps: pinned lists a new board WILL break
+
+Recon found four hand-maintained lists that fail on addition. These are not optional; the suite
+goes red until each is handled, and the parent — never an authoring agent — owns the edit.
+
+1. **`HoldTheGateTests.EveryFightWithoutAnObjectiveKey_IsStillAKillAll`** asserts the set of all
+   active non-kill-all boards is **exactly** `{hz-02-the-short-way, as-05-the-door, the-shrine,
+   break-the-gate, hold-the-gate}`. **G15 breaks this on the very first Destroy board.** Highest-
+   probability breakage in the batch; the list must become derived or extended deliberately.
+2. **`PoolDocTests` and `WarrensContentDocTests`** regenerate their docs from the library and
+   byte-compare, so **every** board addition makes both red. Fix, never hand-edit:
+   `PLUCK_WRITE_DOCS=1 dotnet test tests/Faultline.Web.Tests --filter PoolDoc` (then
+   `--filter WarrensContentDoc`).
+3. **`number:` must be unique across active *and* retired boards.** In use: 1–7, 10–11, 101–110,
+   201–210, 301–310, 401–410, 501–510, 601, 701–706, 801. **`lk-` boards take 901+.**
+4. **`StateEqualityCoverageTests.EveryShippedFight_SurvivesTheWriterWhole`** — anything
+   `FightWriter` cannot re-emit is a hard failure. Check the writer before using an unusual key
+   combination.
+
+Two further facts that change how boards are verified:
+
+- **`pool:` makes a board drawable by the act generator immediately**, and `ActGeneratorTests`
+  sweeps 40 seeds. A board's band mark must be honest from the first commit or generated-act
+  assertions fail.
+- **The D-080 agency lint only fires on campaign boards.** `UnsafeRound1Deployment` is scoped by
+  `CampaignLibrary.IsCampaignFight`, and `AgencyTests.TheLint_DoesNotFireOutsideTheCampaign`
+  asserts it must *not* fire elsewhere. `lk-` boards are outside the campaign, so **G6 is not
+  enforced by any lint and must be carried by a per-board test** using `Threat.UnsafeSides` /
+  `Threat.SafeDeploymentTiles`, plus `-- --agency <board-id>` as the instrument.
+- **Wave arrival tiles are unlinted.** Nothing asserts an arrival tile is `Open` or outside a
+  deploy pocket. Any board using waves writes that assertion itself — the precedents are
+  `CuratedSetBoardTests.TheDoor_ArrivalTilesAreOnTheBoardOpenAndOutsideBothDeployZones` and
+  `BreakTheGate_LandsItsWaveOnThePlayersSideOfTheWall`.
+- **Three certification cells are already red before this run touches anything**: `high-road` and
+  `hz-09-the-trench` fail "no false preview", `break-the-gate` fails reachability on its two
+  sealed Lobbers. Pre-existing, not ours, and not to be "fixed" by an authoring agent.
+
+## 4b · The new player class — sequenced LAST, with the reason
+
+The designer authorised new classes. Recon measured the cost and it is far higher than the
+ability system's cleanliness suggests: **~28 source files and ~20 test files**, ten separate
+registration points (`UnitKind`, `UnitTemplate`, `GlyphFor`, `RoleFor`, `Ability`,
+`AbilityDefinition` **plus** its private `PlayerOrder` array, `KitEntry`, seven switches in
+`Kits`, six in `Verve`, `DefaultTeams`), fourteen hardcoded four-element arrays across shell,
+harness and tests, and fourteen tests that encode "four" as a literal.
+
+Three of those sites fail **silently**, which is the worst possible property for autonomous work:
+
+- **`DefaultTeams.SideFor` returns `null`** for an unlisted class, and three call sites treat it
+  as total and `continue` past it. A fifth class would deploy, fight and win correctly — and
+  receive **no camp card, no legendary offer and no camp-screen line, forever, with every test
+  green.**
+- `EnemyBehaviour.RoleFor` prints `"unclassified"`.
+- `UnitArt.razor` renders an **empty SVG** — no default arm, no test.
+
+**And it forces a design ruling I am forbidden to record.** MASTER §11 books *"6 hybrid subclasses
+from base pairs"* with six named hybrids — that 6 is `C(4,2)`. A fifth class makes it `C(5,2) =
+10`, re-authoring the hybrid roster by 67%. The Generations system does not exist in code (zero
+hits outside markdown), so this costs nothing today and everything later — and **MASTER_DESIGN is
+inbound-only**, so the corrected number cannot be written from here.
+
+Therefore: **the class is sequenced last, after the boards ship.** It delivers *zero* board-
+authoring capability — boards roster existing classes — so nothing in Act 3 waits on it, and the
+hybrid recount wants a designer ruling before the code lands. Also note a 5-duck board needs **≥6
+spots**, and the §3 "6–8 spots for 4 ducks" floor becomes wrong, which would re-lint boards this
+run is otherwise not touching.
 
 ## 5a · Fan-out rules (from `docs/practices/SUBAGENTS.md`)
 
