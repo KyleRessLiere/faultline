@@ -275,14 +275,16 @@ in this file when the question comes back.
 | D-272 | [RULED: the board mask is a view, and the picker gains a second cut of the library by band.](#d-272-ruled-the-board-mask-is-a-view-and-the-picker-gains-a-second-cut-of-the-library-by-band) | 2026-08-09 |  |
 | D-273 | [RULED: the barrel is stored as a UNIT, not as a structure, and that is what lets it ride the existing displacement pipeline.](#d-273-ruled-the-barrel-is-stored-as-a-unit-not-as-a-structure-and-that-is-what-lets-it-ride-the-existing-displacement-pipeline) | 2026-08-10 |  |
 | D-274 | [the-cooperage: the artillery race, and the objective counter that had to learn what an object is.](#d-274-the-cooperage-the-artillery-race-and-the-objective-counter-that-had-to-learn-what-an-object-is) | 2026-08-10 |  |
-| D-275 | [RULED: canal water is a tile class that costs tempo and never hit points; and PROVISIONAL: a flood defers while a body stands on the tile.](#d-275-ruled-canal-water-is-a-tile-class-that-costs-tempo-and-never-hit-points-and-provisional-a-flood-defers-while-a-body-stands-on-the-tile) | unreleased |  |
-| D-276 | [RULED: the Locks is the act where displacement stops being free, and the Bulwark aura is a price rather than a wall.](#d-276-ruled-the-locks-is-the-act-where-displacement-stops-being-free-and-the-bulwark-aura-is-a-price-rather-than-a-wall) | unreleased |  |
-| D-277 | [RULED: a board buys its round-3 question with architecture OR with an objective, so the blocking floor has a third clause.](#d-277-ruled-a-board-buys-its-round-3-question-with-architecture-or-with-an-objective-so-the-blocking-floor-has-a-third-clause) | unreleased |  |
-| D-278 | [RULED: the non-kill-all census is an invariant, not a list.](#d-278-ruled-the-non-kill-all-census-is-an-invariant-not-a-list) | unreleased |  |
-| D-279 | [RULED: Act 3 ships at 40% or better non-kill-all, and the number is a floor.](#d-279-ruled-act-3-ships-at-40-or-better-non-kill-all-and-the-number-is-a-floor) | unreleased |  |
-| D-280 | [RULED: a reworked board ships beside its original, and the reason is technical before it is editorial.](#d-280-ruled-a-reworked-board-ships-beside-its-original-and-the-reason-is-technical-before-it-is-editorial) | unreleased |  |
+| D-275 | [RULED: canal water is a tile class that costs tempo and never hit points; and PROVISIONAL: a flood defers while a body stands on the tile.](#d-275-ruled-canal-water-is-a-tile-class-that-costs-tempo-and-never-hit-points-and-provisional-a-flood-defers-while-a-body-stands-on-the-tile) | 2026-08-13 |  |
+| D-276 | [RULED: the Locks is the act where displacement stops being free, and the Bulwark aura is a price rather than a wall.](#d-276-ruled-the-locks-is-the-act-where-displacement-stops-being-free-and-the-bulwark-aura-is-a-price-rather-than-a-wall) | 2026-08-13 |  |
+| D-277 | [RULED: a board buys its round-3 question with architecture OR with an objective, so the blocking floor has a third clause.](#d-277-ruled-a-board-buys-its-round-3-question-with-architecture-or-with-an-objective-so-the-blocking-floor-has-a-third-clause) | 2026-08-13 |  |
+| D-278 | [RULED: the non-kill-all census is an invariant, not a list.](#d-278-ruled-the-non-kill-all-census-is-an-invariant-not-a-list) | 2026-08-13 |  |
+| D-279 | [RULED: Act 3 ships at 40% or better non-kill-all, and the number is a floor.](#d-279-ruled-act-3-ships-at-40-or-better-non-kill-all-and-the-number-is-a-floor) | 2026-08-13 |  |
+| D-280 | [RULED: a reworked board ships beside its original, and the reason is technical before it is editorial.](#d-280-ruled-a-reworked-board-ships-beside-its-original-and-the-reason-is-technical-before-it-is-editorial) | 2026-08-13 |  |
+| D-281 | [RULED: any duck may aim its ordinary attack at a structure, and it lands for the flat chip whatever the weapon.](#d-281-ruled-any-duck-may-aim-its-ordinary-attack-at-a-structure-and-it-lands-for-the-flat-chip-whatever-the-weapon) | unreleased |  |
+| D-282 | [RULED: damage to a Protect objective scores negative for every harness policy, and damage to a blocker never does.](#d-282-ruled-damage-to-a-protect-objective-scores-negative-for-every-harness-policy-and-damage-to-a-blocker-never-does) | unreleased |  |
 
-**262 rulings.**
+**264 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7745,3 +7747,87 @@ Every shape that passes the gates is already shipped as `ec-01-shieldwall`, `tp-
 Warden's one genuinely unique property — its position is permanently transferable for a single shove,
 and its Footing is a real countdown beside a drain — wants a board built around a drain from the
 start, which is new design and the designer's call.
+
+---
+
+**D-281 — RULED: any duck may aim its ordinary attack at a structure, and it lands for the flat chip whatever the weapon.**
+
+**Decided:** `AttackStructureCommand(UnitId, Coord)` — a basic attack aimed at a tile instead of a
+body. It is offered wherever a swing at a body would be, costs the same action half, and deals
+`Objectives.AttackDamageToStructure` through the one sink that already forces that figure for
+`DamageSource.Attack` (D-060). Nothing on the weapon reaches it: not the range band, not the
+Archer's sweet spot, not the HighGround bonus. An Archer's 4-damage sweet spot chips a wall for 2,
+and that flatness *is* the reduced damage — a wall is a poor target for a good shot.
+
+**What forced it.** D-060 has said since it was written that "any attack chips a structure for
+exactly `AttackDamageToStructure`, whoever swung", and the rule was unreachable. `AttackCommand`
+names a `UnitId`, structures live in a separate sparse `GameState.Structures` list, and the only
+player-side action that could damage masonry directly was the Wardbearer's Spear Thrust — a line
+ability aimed at tiles. Everything else had to be a collision at 6. That made two shipped design
+notes false in their own files: `broken-bridge`'s *"any attack chips masonry for 2 whatever the
+weapon (D-060), so three swings from anybody opens a crossing"* — only a Wardbearer could — and
+`break-the-gate`'s *"nine direct actions at 2 a swing is the costly baseline that always exists and
+always works"*, which existed for one class. The rule was right; it had no verb.
+
+*Rejected: a tile field on `AttackCommand`.* That record is in every replay log already, and its
+`TargetId` would have to become meaningless for one of its shapes — a logged line naming a unit id
+nothing was aimed at replays as a different fight. This is the argument `PlaceBarrelCommand` is on,
+and the log verb is `Chip` rather than a second shape of `Attack` for the same reason.
+
+*Rejected: a mode, an aim, or a technique on the command.* You cannot push a wall, so there is no
+displacement to aim, and a technique election is a fact about the body being struck (§8.6) — masonry
+elects nothing and grants nothing.
+
+*Rejected: letting the sweet spot or high ground raise the chip.* D-060's number is flat *whatever
+the weapon*, and a ledge that raised it would make the shortest answer to a gate a hill race —
+exactly what Design Log (u) flagged as the thing to watch.
+
+**The minimum range applies with no downhill carve-out, and that is a ruling rather than a
+consequence.** §4 lifts the Archer's dead zone when she fires from a ledge at somebody standing
+lower, and the exception is written about the arc — she is firing down at them, not bending a bow
+around a body in her face. A structure is not a body in anyone's face, so the exception does not
+obviously transfer either way. **Decided conservatively: the dead zone holds against masonry.** An
+Archer standing next to a gate on a ledge still may not chip it. The designer may want the opposite
+reading; it is one predicate in `Combat.CanAttackStructure` and nothing else depends on it.
+
+**Blockers are attackable, as objective structures are.** `Objectives.Build` puts both in one list
+because they are the same physics and only the win condition tells them apart (D-114). Sparing
+blockers would have spared `broken-bridge` its own thesis.
+
+**What it moved.** `break-the-gate` and `lk-20-the-head-gate` both read zero deterministic wins
+because their intended answer was unreachable — D-279 recorded exactly this and warned against tuning
+either board to make a policy win it. Neither was tuned. With the verb in place, `break-the-gate`
+goes from **0 of 9 deterministic policies to 5**, and `lk-20-the-head-gate` from **0 to 1**. Those
+boards were never as hard as the instrument said; the instrument had no way to press the button they
+were built around.
+
+---
+
+**D-282 — RULED: damage to a Protect objective scores negative for every harness policy, and damage to a blocker never does.**
+
+**Decided:** `Masonry.Sign` — one copy, read off the structure that was hit. `+1` for anything the
+players are meant to bring down, `-1` for the one they are meant to keep standing, and `+1` for a
+blocker whatever the board's objective is.
+
+**What forced it.** `Evaluator.Displaced` added `DamageToStructure * (Damage + ObjectiveDamage)` with
+no sign, so a Protect board paid its own players to demolish the thing they were defending.
+`objective-first`, which weights the objective hardest, was the worst offender: a four-face cut of
+`lk-09-the-pumphouse` was demolished by its own side — 16–20 self-damage — before round 5 in every
+run (`docs/level-design/2026-08-13/HANDOFF_ACT3.md`). Masonry has no team, so none of the
+`Team.IsPlayer()` forks elsewhere in the evaluator could catch it. D-281 makes it far worse: before
+it, only a shove or a Spear Thrust could reach the shrine at all, and after it every policy is
+offered a swing at it on every activation.
+
+**`relay` had the same hole in a second place, and it is the reason this is one shared helper rather
+than a fix at the reported line.** `RelayPolicy` scores `ActionOutlook.LineHits` unsigned, so it was
+already payable for clipping a shrine with a Spear Thrust, and D-281's new outlook widened that to
+every duck: the first run after the command landed dropped `the-shrine` from `won 5` to `LOST` for
+`relay` alone. Signed at both sites, it is back to `won 5`.
+
+*Rejected: reading `state.Fight.Objective.Kind`.* A blocker on a Protect board is still scenery to
+break (D-114) — `broken-bridge`'s masonry *is* the crossing, and a policy that would not break it
+could not cross. The per-structure `Role` is the only thing that answers correctly.
+
+*Rejected: pricing it as `SelfHarm`.* Symmetric negation keeps `ObjectiveDamage` meaningful in both
+directions — a policy that cares more about the objective now avoids breaking it more strongly,
+which is the behaviour the weight's own name promises.

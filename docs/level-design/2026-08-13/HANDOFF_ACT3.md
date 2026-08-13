@@ -145,7 +145,25 @@ win it.** What still applies is agency, *no stall*, and arithmetic that closes �
 defect a policy sweep will never distinguish from a hard board. **`lk-20`, `lk-08`, `quarry-king-v2`
 and `rushmaster` owe a human playtest.**
 
-### 3a. A player cannot aim an ordinary attack at a structure — two harness/rule findings
+### 3a. ~~A player cannot aim an ordinary attack at a structure~~ — RESOLVED, D-281/D-282
+
+**The designer ruled this shut, and the fix is shipped.** A basic attack is now aimable at a
+structure tile for the flat 2 D-060 always specified, under the same Attack mode and range band.
+`break-the-gate` went from **0 of 9 deterministic policies to 5** and `lk-08` from 4 to 7, **with no
+board edited** — the answer those boards were built around simply became reachable. At the previous
+commit `break-the-gate` stalled at round 61 with its gate untouched at 18/18 and certified
+`FAIL 0/4`; it now passes at 2/4.
+
+Fixing it exposed a third bug the report below did not know about: `RelayPolicy` scored structure
+damage unsigned too, so giving the preview a structure arm made `relay` start chipping the shrine it
+was guarding (`the-shrine`, `won 5` → `LOST`). Both sites now share one signed helper. **A bug that
+only appears once you make a thing reachable is the argument for making it reachable.**
+
+The original finding is kept below because the reasoning still matters for the next destroy board.
+
+---
+
+### 3a-original. A player cannot aim an ordinary attack at a structure — two harness/rule findings
 
 **`AttackCommand` names a target *unit*, and structures are not units.** The only player-side action
 that chips masonry directly is the **Wardbearer's Spear Thrust**, a line ability that damages tiles.

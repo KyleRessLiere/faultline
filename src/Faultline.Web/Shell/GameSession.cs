@@ -846,6 +846,7 @@ public sealed class GameSession
         DeployCommand deploy => "undo placing " + NameOf(state, deploy.UnitId) + " on " + BoardCoords.Of(deploy.At),
         AttackCommand { Mode: AttackMode.Pull } pull => "undo pull on " + NameOf(state, pull.TargetId),
         AttackCommand attack => "undo attack on " + NameOf(state, attack.TargetId),
+        AttackStructureCommand chip => "undo chipping " + MasonryOf(state, chip.At),
         AbilityCommand ability => "undo " + AbilityDefinition.For(ability.Ability).Name,
         SpendVerveCommand spend => "undo " + Naming.Of(spend.Spend),
         RescueCommand rescue => "undo rescue of " + NameOf(state, rescue.ClingingId),
@@ -864,6 +865,15 @@ public sealed class GameSession
 
     private static string NameOf(GameState? state, UnitId id) =>
         state?.FindUnit(id)?.Name ?? "the unit";
+
+    /// <summary>
+    /// What the player calls the masonry on a tile — the Gate, the Shrine, the Debris — falling back
+    /// to the coordinate once it is rubble and there is nothing left to name.
+    /// </summary>
+    private static string MasonryOf(GameState? state, Coord at) =>
+        state?.StructureAt(at) is { } structure
+            ? Naming.Of(structure)
+            : "the structure on " + BoardCoords.Of(at);
 
     /// <summary>One applied command, and everything the undo rule needs to know about its step.</summary>
     private readonly record struct Applied(
@@ -1487,6 +1497,23 @@ public sealed class GameSession
                     AddHoveredDisplacement(marks);
                     break;
 
+                case AttackStructureCommand chip:
+                {
+                    // Read off Core's own projection rather than the constant, so the number drawn on
+                    // the tile is the number the command will deliver by construction.
+                    var promised = Abilities.Outlook(State, chip);
+                    if (promised is null || promised.LineHits.Count == 0)
+                    {
+                        break;
+                    }
+
+                    var hit = promised.LineHits[0];
+                    var masonry = State.StructureAt(chip.At);
+                    Add(marks, chip.At, hit.Damage, DisplacementStop.RanOut,
+                        masonry is not null && hit.Damage >= masonry.Hp);
+                    break;
+                }
+
                 case AbilityCommand ability:
                 {
                     var descriptor = AbilityDefinition.For(ability.Ability);
@@ -1687,6 +1714,8 @@ public sealed class GameSession
                     return DescribeAttack(unit, attack);
                 case AttackCommand:
                     return Describe("Pull 1", HoveredDisplacement());
+                case AttackStructureCommand chip:
+                    return DescribeChip(chip);
                 case AbilityCommand ability:
                     return DescribeAbility(unit, ability);
                 case RescueCommand:
@@ -2069,6 +2098,14 @@ public sealed class GameSession
                     Add(map, attack.TargetId, attack);
                     break;
 
+                // Under the same Attack mode, because it is the same swing (D-281): a player who has
+                // armed their attack aims it at whatever is in front of them, body or masonry. The
+                // tile is the command's own, so it needs no unit to look a position up on — and a
+                // structure's tile can never collide with a unit's, since masonry occupies it.
+                case AttackStructureCommand chip when mode == ActionMode.Attack:
+                    map[chip.At] = chip;
+                    break;
+
                 case AttackCommand attack when mode == ActionMode.Pull && attack.Mode == AttackMode.Pull:
                     Add(map, attack.TargetId, attack);
                     break;
@@ -2357,6 +2394,34 @@ public sealed class GameSession
         return push is null ? text : text + ", then " + Describe("push " + unit.Template.AttackPush, push);
     }
 
+    /// <summary>
+    /// What a swing at masonry promises: the flat chip, what is left of the wall, and the fact that
+    /// a good shot does not help (D-060, D-281).
+    /// </summary>
+    /// <remarks>
+    /// The number comes off <see cref="Abilities.Outlook"/>, not off the constant and not off the
+    /// attacker's profile — the same projection the board's mark is drawn from, so the sentence and
+    /// the tile cannot disagree about what is about to happen.
+    /// </remarks>
+    private string DescribeChip(AttackStructureCommand chip)
+    {
+        var masonry = State.StructureAt(chip.At);
+        var promised = Abilities.Outlook(State, chip);
+
+        if (masonry is null || promised is null || promised.LineHits.Count == 0)
+        {
+            return "Nothing standing there to strike.";
+        }
+
+        int damage = promised.LineHits[0].Damage;
+        string name = Naming.Of(masonry);
+
+        return damage >= masonry.Hp
+            ? $"{damage} to {name} — brings it down"
+            : $"{damage} to {name} — {masonry.Hp - damage} of {masonry.MaxHp} left. "
+                + "Masonry takes the same from every weapon.";
+    }
+
     private string DescribeAbility(Unit unit, AbilityCommand command)
     {
         var descriptor = AbilityDefinition.For(command.Ability);
@@ -2561,6 +2626,7 @@ public sealed class GameSession
     {
         MoveCommand m => m.UnitId,
         AttackCommand a => a.UnitId,
+        AttackStructureCommand a => a.UnitId,
         AbilityCommand a => a.UnitId,
         RescueCommand r => r.UnitId,
         FinishClingingCommand f => f.UnitId,

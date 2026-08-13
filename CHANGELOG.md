@@ -1,5 +1,21 @@
 # Changelog
 
+## Any duck may swing at masonry
+
+- **D-060 always said an attack chips a structure for 2 whatever the weapon.** Until now only the
+  Wardbearer's Spear Thrust could reach one — a basic attack names a target *unit* — so
+  `broken-bridge` and `break-the-gate` both described a baseline no ordinary attack could take. The
+  swing is now aimable at a tile, for the same flat 2, under the same Attack mode and range band
+  (D-281). An Archer's sweet spot does not raise it and neither does high ground.
+- **`break-the-gate` goes from 0 of 9 deterministic policies to 5**, and `lk-08-the-lower-gate` from
+  4 to 7, with **no board touched** — the answer they were built around simply became reachable. At
+  the previous commit that board stalled at round 61 with its gate untouched at 18/18 and certified
+  `FAIL 0/4`; it now passes at 2/4.
+- **Fixed: the harness paid policies to demolish their own Protect objective.** Structure damage was
+  scored unsigned, in two places rather than the one that was reported — giving the preview a
+  structure arm made `relay` start chipping the shrine it was guarding. Signed once, shared by both
+  (D-282).
+
 ## Act 3 — the Locks
 
 - **Twenty-four new boards** under the `lk-` prefix, spot-native from birth, each naming the decision

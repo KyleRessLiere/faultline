@@ -581,6 +581,29 @@ namespace Faultline.Core
                         cover);
                 }
 
+                case AttackStructureCommand chip:
+                {
+                    var unit = state.FindUnit(chip.UnitId);
+                    if (unit is null || !Combat.CanAttackStructure(state, unit, chip.At))
+                    {
+                        return null;
+                    }
+
+                    // Carried as a tile hit, in the same channel Spear Thrust's masonry damage
+                    // already uses: the blow lands on a tile and no body is named, which is exactly
+                    // what LineHit describes. Damage stays 0 because that field is damage to
+                    // TargetId, and there is no TargetId — a renderer reading it as "what this does"
+                    // would have been told nothing happens.
+                    //
+                    // The figure is the constant, not a number retyped here (D-163), so the promise
+                    // and Objectives.Damage cannot disagree: the preview cannot lie about the chip
+                    // because it is quoting the same rule the resolution applies.
+                    var hit = new LineHit(chip.At, Objectives.AttackDamageToStructure, null, true);
+
+                    return new ActionOutlook(
+                        unit.Id, null, 0, new[] { hit }, null, null);
+                }
+
                 case AbilityCommand ability:
                 {
                     var unit = state.FindUnit(ability.UnitId);

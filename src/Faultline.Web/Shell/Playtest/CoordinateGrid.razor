@@ -734,7 +734,9 @@
         }
         else if (targetable)
         {
-            classes.Add("movable");
+            // Masonry is aimed at, not walked onto. Drawing a gate you may chip with the same
+            // highlight a walkable tile gets was the wrong word for it (D-281).
+            classes.Add(State.StructureAt(coord) is not null ? "targetable" : "movable");
         }
 
         // §3: spots are BOARD facts, drawn on their tiles from before the first pick and never
@@ -793,7 +795,11 @@
 
         if (State.StructureAt(coord) is { } structure)
         {
-            return $"{PlaytestText.Structure(structure)} — {terrain} {at}";
+            // The affordance, when the armed action really can reach it: a wall a duck may swing at
+            // reads as clickable, and one it may not says nothing it cannot deliver (D-281).
+            string swing = Session.Targets.ContainsKey(coord) ? " · click to strike it" : string.Empty;
+
+            return $"{PlaytestText.Structure(structure)} — {terrain} {at}{swing}";
         }
 
         if (spot is SpotState.Open or SpotState.Yours)

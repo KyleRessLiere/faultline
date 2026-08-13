@@ -374,16 +374,24 @@ means a connectivity or reachability defect rather than a difficulty one — che
 >   reachable face and a clock it could not beat; that is a real defect a policy sweep will never
 >   distinguish from a hard board.
 >
-> **⚠ A PLAYER CANNOT AIM AN ORDINARY ATTACK AT A STRUCTURE.** `AttackCommand` names a target
-> **unit**, and structures are not units. The only player-side action that chips masonry directly is
-> the **Wardbearer's Spear Thrust**, a line ability that damages tiles. D-060's *"any attack chips a
-> structure for 2"* is a true statement about the rule — enemies reach it, and that one ability
-> reaches it — but **it is not a baseline every roster can pay**, and `break-the-gate`'s own design
-> note describing "nine direct actions at 2 a swing" is Wardbearer-only.
+> **RESOLVED — any duck may now swing at masonry (D-281).** This section previously read *"a player
+> cannot aim an ordinary attack at a structure"*, which was true of the code and false of the rule:
+> D-060 has always said an attack chips a structure for a flat 2 whatever the weapon, and only the
+> Wardbearer's Spear Thrust could reach one. The designer ruled the gap shut. A basic attack is now
+> aimable at a structure tile, under the same Attack mode and the same range band, for the same flat
+> 2 — an Archer's sweet spot does not raise it and neither does high ground.
 >
-> **So a `destroy` board must close on COLLISIONS alone** — 6 apiece, source-blind, and the enemy
-> supplies the bodies — or it silently depends on a roster and fails G9. **Size the structure in
-> multiples of 6, not of 2.**
+> **So a `destroy` board now has two honest routes**: the swing, at HP ÷ 2 direct actions, which
+> every roster can pay; and the collision at 6, which the enemy supplies the bodies for. Size the
+> structure so **both** close inside the turn limit, and state both in a design line.
+>
+> **The Archer's dead zone still holds against masonry** — §4 lifts her minimum range only when she
+> shoots downhill at a *body*. From a ledge one tile from a gate she may not chip it. That is the
+> conservative reading and D-281 flags it as revisitable.
+>
+> *The measurement that justified the ruling: at the previous commit `break-the-gate` stalled at
+> round 61 with its gate untouched at 18/18 and certified `FAIL 0/4` on base-kit win. It now passes
+> at 2/4, and went 0 of 9 deterministic policies to 5, with no board edited.*
 >
 > **These boards owe a human playtest, and the handoff must say so.** Nothing in the harness can
 > currently tell you whether a `destroy` board is winnable at a fair price.

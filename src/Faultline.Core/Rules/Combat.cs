@@ -115,6 +115,55 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Whether <paramref name="attacker"/> may aim its basic attack at the structure standing on
+        /// <paramref name="at"/> (DECISIONS.md D-060, D-281).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The range band is the one <see cref="CanAttack"/> uses, so a swing that reaches a body on a
+        /// tile reaches a wall on it. What it deals is not asked here and is not a band: D-060 makes
+        /// every attack chip a structure for exactly
+        /// <see cref="Objectives.AttackDamageToStructure"/>, whatever the weapon, and
+        /// <see cref="Objectives.Damage"/> is the one place that is applied.
+        /// </para>
+        /// <para>
+        /// <b>The minimum range applies with no downhill carve-out.</b> §4's exception is written
+        /// about the arc — she is firing down at them rather than bending a bow around a body in her
+        /// face — and a structure is not a body in anyone's face. The conservative reading, recorded
+        /// as such in D-281.
+        /// </para>
+        /// <para>
+        /// A blocker is attackable, exactly as an objective structure is: <see cref="Objectives"/>
+        /// builds both into the same list because they are the same physics (D-114), and only the win
+        /// condition tells them apart. `broken-bridge`'s masonry IS the crossing, so a rule that
+        /// spared blockers would be a rule that spared the board its own thesis.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state.</param>
+        /// <param name="attacker">Attacking unit.</param>
+        /// <param name="at">Tile the structure stands on.</param>
+        /// <returns>Whether the attack is legal.</returns>
+        public static bool CanAttackStructure(GameState state, Unit attacker, Coord at)
+        {
+            var template = attacker.Template;
+            if (template.Attack == AttackKind.None || !attacker.IsOnBoard)
+            {
+                return false;
+            }
+
+            // StructureAt already filters on IsStanding, so rubble is not a target.
+            if (state.StructureAt(at) is null)
+            {
+                return false;
+            }
+
+            // distance >= 1 for the reason CanAttack's hostility test gives it for free: nothing
+            // swings at the tile it is standing on.
+            int distance = attacker.Position.DistanceTo(at);
+            return distance >= 1 && distance <= RangeOf(attacker) && distance >= template.MinRange;
+        }
+
+        /// <summary>
         /// Whether this shot is taken from a ledge at somebody standing lower, which is what lifts
         /// the minimum range (MASTER_DESIGN §4).
         /// </summary>

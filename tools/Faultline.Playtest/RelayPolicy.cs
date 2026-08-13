@@ -65,7 +65,10 @@ public sealed class RelayPolicy : Policy
 
         foreach (var hit in outlook.LineHits)
         {
-            score += hit.Damage * 4;
+            // Signed, for the reason Masonry.Sign gives: a line that clips the shrine this policy is
+            // defending is a cost, and the preview cannot say so on its own — it reports what the
+            // action does, not whose side the wall is on.
+            score += hit.Damage * 4 * (hit.HitsStructure ? Masonry.Sign(state, hit.At) : 1);
         }
 
         if (outlook.Displacement is { } shove)

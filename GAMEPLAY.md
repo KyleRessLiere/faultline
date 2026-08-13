@@ -122,7 +122,8 @@ via the `footing:` key). Bulwark: hold aura caps displacement on adjacent allies
 | Protect (default) | 12 |
 | Destroy (default) | 16 |
 
-An attack takes **2** off a structure regardless of weapon; a collision takes **6** — more than
+An attack takes **2** off a structure regardless of weapon, and **any duck may aim its ordinary
+attack at one** (D-281); a collision takes **6** — more than
 the **4** it costs a body, because masonry is what a slam is for (D-186).
 
 ### Bedraggled — the downed return
@@ -2384,16 +2385,24 @@ doing both jobs is what stopped §8.8's arithmetic closing: break-the-gate is **
 collisions or nine swings, and broken-bridge's 6-point blockers open in **one** slam rather than a
 slam plus a swing.
 
-In practice only two things a player has reach masonry at all: a **collision**, and the Wardbearer's
-**Spear Thrust**, which is the only attack aimed at a tile rather than at a unit. A basic attack
-names a target unit and so can never be pointed at a structure.
+A player reaches masonry three ways: an **ordinary attack aimed at the tile** (D-281), a
+**collision**, and the Wardbearer's **Spear Thrust**. The swing is the baseline that always exists —
+it costs the action half of an activation exactly as a swing at a body does, is offered under the
+same Attack mode and the same range band, and lands for the flat 2 whatever swung it. An Archer's
+sweet spot does not raise it and neither does high ground: D-060's number is flat *whatever the
+weapon*, and that flatness is what keeps the board the better answer without being the only one.
+
+**The Archer's dead zone holds against masonry.** §4 lifts her minimum range when she shoots
+downhill at a body; a structure is not a body, so from a ledge one tile from a gate she still may not
+chip it (D-281). Every other unit states no minimum and so may swing at anything it can reach.
 
 **Breakable blockers** are structures that are nobody's objective (D-114). A board writes one as `X`
 on the grid with a `blocker-hp: N` key; the terrain underneath is Open, so the tile is ordinary floor
 once the masonry is down. They are the same physics as an objective structure — they occupy their
-tile, take 2 from an attack and 4 from a collision, and leave rubble that stops blocking — and differ
-in exactly one way: **bringing one down neither wins nor loses the fight, and no enemy ever besieges
-one.** A 6 HP blocker is three Spear Thrusts, or one shove plus one thrust.
+tile, take 2 from an attack and **6** from a collision, and leave rubble that stops blocking — and
+differ in exactly one way: **bringing one down neither wins nor loses the fight, and no enemy ever
+besieges one.** A 6 HP blocker is therefore three swings from anybody, or a single clean slam — which
+is what makes `broken-bridge`'s stated arithmetic true (D-281).
 
 `broken-bridge` is the board that has them: two 6 HP blockers at `(2,2)` and `(4,4)`, one over each
 crossing of the trench. Until one falls the two halves of that board cannot reach each other.

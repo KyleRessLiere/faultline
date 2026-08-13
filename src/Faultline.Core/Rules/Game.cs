@@ -342,6 +342,8 @@ namespace Faultline.Core
                     return ApplyMove(state, move, events);
                 case AttackCommand attack:
                     return ApplyAttack(state, attack, events);
+                case AttackStructureCommand chip:
+                    return ApplyAttackStructure(state, chip, events);
                 case AbilityCommand ability:
                     return ApplyAbility(state, ability, events);
                 case RescueCommand rescue:
@@ -598,6 +600,19 @@ namespace Faultline.Core
                         if (Combat.CanPush(state, unit, target))
                         {
                             commands.Add(new AttackCommand(unit.Id, target.Id, AttackMode.Push));
+                        }
+                    }
+
+                    // The same swing, aimed at masonry (D-281). Offered off the structure list rather
+                    // than off every tile in range, because that list is short and already filtered to
+                    // the ones still standing.
+                    foreach (var structure in canAct
+                        ? state.Structures
+                        : (IReadOnlyList<Structure>)Array.Empty<Structure>())
+                    {
+                        if (Combat.CanAttackStructure(state, unit, structure.At))
+                        {
+                            commands.Add(new AttackStructureCommand(unit.Id, structure.At));
                         }
                     }
 
@@ -1495,6 +1510,54 @@ namespace Faultline.Core
         }
 
         /// <summary>
+        /// Spends the action half of an activation swinging at a structure, for the flat chip D-060
+        /// sets (D-281).
+        /// </summary>
+        /// <remarks>
+        /// <b>The amount is not computed here.</b> It is handed to
+        /// <see cref="Objectives.Damage"/> as <see cref="Objectives.AttackDamageToStructure"/> and
+        /// arrives at the one place a structure loses hit points, which already forces that figure for
+        /// <see cref="DamageSource.Attack"/> whatever was swung. Nothing on the weapon reaches it —
+        /// not the range band, not the Archer's sweet spot and not the HighGround bonus — because
+        /// D-060's number is flat, and that flatness is what makes a wall a poor target for a good
+        /// shot rather than a good one.
+        /// </remarks>
+        private static GameState ApplyAttackStructure(
+            GameState state, AttackStructureCommand command, List<GameEvent> events)
+        {
+            var unit = RequireActivatable(state, command.UnitId);
+            Require(!unit.HasActed, "Unit has already acted this activation.");
+
+            // The owed shot from Double Nock was bought by the mod that granted it (D-079), and a
+            // swing at masonry is a swing: the same gate LegalCommands offers this on.
+            int attackCost = unit.ExtraAttacks > 0 ? Activation.Free : Activation.ActionCost;
+            Require(Activation.CanAfford(unit, attackCost), "Not enough action points left to attack.");
+
+            Require(
+                Combat.CanAttackStructure(state, unit, command.At),
+                "That structure cannot be attacked.");
+
+            state = CommitActivation(state, unit, events);
+            unit = state.UnitById(unit.Id);
+
+            state = unit.ExtraAttacks > 0
+                ? state.WithUnit(unit with { ExtraAttacks = unit.ExtraAttacks - 1, MoveClosed = true })
+                : state.WithUnit(Activation.Spend(unit, Activation.ActionCost));
+
+            // The same pair of events a Spear Thrust into masonry emits, in the same order: who swung
+            // and from where, then what the masonry lost. Every log surface that already reads
+            // StructureAttacked — the combat log's line, the harness's per-class chip tally — gets
+            // this swing for nothing, and none of them has to learn a second shape.
+            events.Add(new StructureAttacked(
+                unit.Id, unit.Position, command.At, Objectives.AttackDamageToStructure));
+
+            state = Objectives.Damage(
+                state, command.At, Objectives.AttackDamageToStructure, DamageSource.Attack, events);
+
+            return AfterAction(state, unit.Id, events);
+        }
+
+        /// <summary>
         /// Crew Cover: a worker swaps places with the Rushmaster and takes the blow aimed at him
         /// (MASTER_DESIGN §8.9).
         /// </summary>
@@ -2125,6 +2188,7 @@ namespace Faultline.Core
             DeployCommand c => c.UnitId,
             MoveCommand c => c.UnitId,
             AttackCommand c => c.UnitId,
+            AttackStructureCommand c => c.UnitId,
             AbilityCommand c => c.UnitId,
             RescueCommand c => c.UnitId,
             PlaceBarrelCommand c => c.UnitId,

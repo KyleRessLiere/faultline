@@ -84,6 +84,31 @@ namespace Faultline.Core
                 }
             }
 
+            // Masonry is something to aim at (D-281). Only the damage half — you cannot pull or shove
+            // a wall — and asked of the same predicate the legal list is built from, so a duck facing
+            // a gate with no enemy in reach never reads "no target in range" under a button its own
+            // rules would accept.
+            if (mode == AttackMode.Damage)
+            {
+                foreach (var structure in state.Structures)
+                {
+                    if (Combat.CanAttackStructure(state, unit, structure.At))
+                    {
+                        return TargetingBlock.None;
+                    }
+
+                    int distance = unit.Position.DistanceTo(structure.At);
+                    if (structure.IsStanding
+                        && distance >= 1
+                        && distance <= reach
+                        && distance < template.MinRange
+                        && block == TargetingBlock.OutOfRange)
+                    {
+                        block = TargetingBlock.TooClose;
+                    }
+                }
+            }
+
             return block;
         }
 

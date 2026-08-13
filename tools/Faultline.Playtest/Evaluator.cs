@@ -103,6 +103,9 @@ public abstract class EvaluatorPolicy : Policy
             case AttackCommand c:
                 return Attack(state, c);
 
+            case AttackStructureCommand c:
+                return Chip(state, c);
+
             case AbilityCommand c:
                 return AbilityScore(state, c);
 
@@ -178,9 +181,56 @@ public abstract class EvaluatorPolicy : Policy
             }
         }
 
-        score += preview.DamageToStructure * (w.Damage + w.ObjectiveDamage);
+        score += StructureTerm(state, preview.StructureAt, preview.DamageToStructure);
 
         return score;
+    }
+
+    /// <summary>
+    /// What taking hit points off masonry is worth — positive for a wall the players are meant to
+    /// bring down, negative for the one they are meant to keep standing.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The sign used to be missing entirely: the term was unconditionally positive, so a Protect
+    /// board paid its own players to demolish the thing they were defending, and
+    /// <c>objective-first</c> — which weights the objective hardest — was the worst offender. A
+    /// four-face cut of <c>lk-09-the-pumphouse</c> was demolished by its own side, 16–20 self-damage,
+    /// before round 5 in every run. Masonry has no team, so nothing else in <see cref="Displaced"/>
+    /// could have caught it: every other term forks on <c>Team.IsPlayer()</c>.
+    /// </para>
+    /// <para>
+    /// <b>Read off the structure that was hit, not off the board's objective.</b> A blocker is
+    /// scenery on any board and stays positive whatever the objective is (D-114) — broken-bridge's
+    /// masonry <i>is</i> the crossing, and a policy that would not break it could not cross.
+    /// </para>
+    /// </remarks>
+    /// <param name="state">Board as it stands.</param>
+    /// <param name="at">Tile the masonry stands on, when one is named.</param>
+    /// <param name="amount">Hit points it would lose.</param>
+    /// <returns>Points; negative for a Protect objective.</returns>
+    protected int StructureTerm(GameState state, Coord? at, int amount)
+    {
+        if (amount <= 0)
+        {
+            return 0;
+        }
+
+        int worth = amount * (Taste.Damage + Taste.ObjectiveDamage);
+
+        return at is { } tile ? worth * Masonry.Sign(state, tile) : worth;
+    }
+
+    /// <summary>Prices a swing at masonry: the flat chip, signed by whose wall it is (D-060, D-281).</summary>
+    private int Chip(GameState state, AttackStructureCommand command)
+    {
+        var attacker = state.FindUnit(command.UnitId);
+
+        // Asked of the same predicate the legal list was built from, so a refused swing is worth
+        // nothing rather than worth the chip it would never land.
+        return attacker is null || !Combat.CanAttackStructure(state, attacker, command.At)
+            ? 0
+            : StructureTerm(state, command.At, Objectives.AttackDamageToStructure);
     }
 
     private int AbilityScore(GameState state, AbilityCommand command)

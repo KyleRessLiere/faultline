@@ -180,6 +180,10 @@ namespace Faultline.Core
             AttackCommand c => Join(
                 "Attack", c.UnitId.ToString(), c.TargetId.ToString(), c.Mode.ToString(),
                 c.Technique.ToString()),
+            // A verb of its own, never an Attack with a tile in the target column: the two aim at
+            // different kinds of thing, and a reader that had to guess which one a line meant would
+            // replay a swing at a wall as a swing at unit 3 (D-281).
+            AttackStructureCommand c => Join("Chip", c.UnitId.ToString(), c.At.ToString()),
             AbilityCommand c => Join(
                 "Ability", c.UnitId.ToString(), c.Ability.ToString(), AbilityAim(c), TechniqueAim(c)),
             RescueCommand c => Join("Rescue", c.UnitId.ToString(), c.ClingingId.ToString(), c.To.ToString()),
@@ -251,6 +255,11 @@ namespace Faultline.Core
                         Enum.TryParse(Field(fields, offset + 4), out TechniqueOption elected)
                             ? elected
                             : TechniqueOption.None);
+
+                case "Chip":
+                    return new AttackStructureCommand(
+                        ParseUnit(Field(fields, offset + 1)),
+                        ParseTile(Field(fields, offset + 2)));
 
                 case "Ability":
                     return ParseAbility(fields, offset);

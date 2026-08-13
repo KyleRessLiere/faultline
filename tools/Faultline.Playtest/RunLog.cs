@@ -65,6 +65,7 @@ public sealed class RunLog
         DeployCommand c => c.UnitId,
         MoveCommand c => c.UnitId,
         AttackCommand c => c.UnitId,
+        AttackStructureCommand c => c.UnitId,
         AbilityCommand c => c.UnitId,
         RescueCommand c => c.UnitId,
         FinishClingingCommand c => c.UnitId,

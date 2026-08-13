@@ -329,6 +329,17 @@ public static class View
                     + $"{elevated}{Outcome(state, command)}";
             }
 
+            case AttackStructureCommand c:
+            {
+                // Named by what stands there, not by the tile alone: "Chip Vanguard -> Gate (3,0)"
+                // is a line a reader can choose between, which a coordinate on its own is not.
+                var masonry = state.StructureAt(c.At);
+                string what = masonry is null ? "structure" : Naming.Of(masonry);
+                string left = masonry is null ? string.Empty : $"  ({masonry.Hp}/{masonry.MaxHp} HP)";
+
+                return $"Chip {Name(state, c.UnitId)} -> {what} {c.At}{left}{Outcome(state, command)}";
+            }
+
             case AbilityCommand c:
             {
                 string aim = c.TargetId.HasValue

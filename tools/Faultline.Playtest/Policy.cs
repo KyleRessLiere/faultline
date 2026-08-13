@@ -101,6 +101,10 @@ public sealed class BrawlerPolicy : Policy
             DeployCommand => 50,
             MoveCommand m => Walk(state, m, 40),
             RescueCommand => 30,
+
+            // Below a swing at a body and above nothing. The brawler has not noticed the board, and
+            // a wall is the board — but it does swing at what is in front of it (D-281).
+            AttackStructureCommand => 20,
             AbilityCommand => 10,
             _ => 0,
         });
@@ -134,8 +138,36 @@ public sealed class ShoverPolicy : Policy
             DeployCommand => 50,
             MoveCommand m => Walk(state, m, 40),
             RescueCommand => 35,
+
+            // The shover's whole thesis is that the board breaks masonry better than a swing does,
+            // so the swing is its last resort rather than its answer (D-281).
+            AttackStructureCommand => 20,
             _ => 0,
         });
+}
+
+/// <summary>
+/// Whose wall a piece of masonry is: <c>+1</c> for one the players are meant to bring down,
+/// <c>-1</c> for the one they are meant to keep standing.
+/// </summary>
+/// <remarks>
+/// <para>
+/// One copy, because every policy that prices structure damage had the same hole and none of the
+/// team forks elsewhere in the harness could catch it: masonry has no team, so a term that read only
+/// the amount was unconditionally positive and paid a Protect board's own players to demolish the
+/// thing they were defending. A four-face cut of <c>lk-09-the-pumphouse</c> was demolished by its own
+/// side before round 5, every run.
+/// </para>
+/// <para>
+/// <b>Read off the structure that was hit, never off the board's objective.</b> A blocker is scenery
+/// on any board and stays positive whatever the objective is (D-114) — <c>broken-bridge</c>'s masonry
+/// <i>is</i> the crossing, and a policy that would not break it could not cross.
+/// </para>
+/// </remarks>
+internal static class Masonry
+{
+    internal static int Sign(GameState state, Coord at) =>
+        state.StructureAt(at) is { IsBlocker: false, Role: ObjectiveKind.Protect } ? -1 : 1;
 }
 
 /// <summary>
@@ -171,6 +203,10 @@ public sealed class CarefulPolicy : Policy
             AbilityCommand => 40,
             AttackCommand => 35,
             FinishClingingCommand => 30,
+
+            // Nothing swings back at a duck that hits a wall, which is exactly this policy's taste
+            // — but it would still rather reposition (D-281).
+            AttackStructureCommand => 32,
             _ => 0,
         });
 }
