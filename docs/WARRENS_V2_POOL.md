@@ -21,13 +21,13 @@ board here stays drawable (D-271).
 | Band | Boards | What it fills |
 |---|---|---|
 | **Opener** | 8 | Column 1, and the gentlest of an act's early third. A control group: nothing here can hurt you before you have had a turn. |
-| **Ordinary** | 34 | The bulk of an act — its early and middle columns, and the band Warrens v2 draws most heavily from. |
+| **Ordinary** | 36 | The bulk of an act — its early and middle columns, and the band Warrens v2 draws most heavily from. |
 | **Hard** | 22 | The late third: the fights a squad arrives at already spent. |
 | **Elite** | 3 | A gilt node's fight. It costs more and the map says so before you take it. |
 | **Endurance** | 4 | Objective-shaped rather than harder — survive, hold. One per generated act, in the late third. |
 | **Boss** | 3 | Terminals. |
 
-**74 boards in total**, and 27 retired ones the generator never sees.
+**76 boards in total**, and 27 retired ones the generator never sees.
 
 ---
 
@@ -249,7 +249,7 @@ h....**
 
 ---
 
-# Ordinary — 34 board(s)
+# Ordinary — 36 board(s)
 
 The bulk of an act — its early and middle columns, and the band Warrens v2 draws most heavily from.
 
@@ -1095,6 +1095,64 @@ board:
 - THE GRAPPLER ARRIVES ON ROUND 2 AT 4,3, AND THAT IS THE POINT. It is published at fight start like every timetable in this pool, and it means nothing on this board reaches a deployment spot before you have had a turn - not with damage and not with a pull, which is the defect high-road shipped. From the middle mouth its band is range 3 and its pull is 2 toward itself: a duck standing on the west rim at 1,3 is exactly 3 away and the pull vector runs east into the drain at 2,3, which the planner prefers because a clinging outcome outranks everything else it can score. That is the pull lane, and it is the same tile as the free kick and the same tile as the only path.
 - SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two diagonal pockets - north-west 0,0 1,0 0,1 and south-east 8,5 7,6 8,6 - unowned, and the barrier runs between them so whichever pocket a flock drafts it has to cross. The strict form of agency before injury holds (D-080) in both halves: a Husk covers a diamond of 4 and the nearest Husk to any spot is 5 away; a Stalker covers 5 with a shove that deals no damage of its own, and the Stalker at 3,4 is 6 from every spot. Nothing on this board can damage you, shove you, or pull you before you have had a turn.
 - THE ENEMIES ARE THE CONTENT. The Stalker at 3,4 stands with its back to the west drain and ranks drain above brambles above the edge, so it is the reason walking a rim is a decision. The three Husks at 5,2, 6,1 and 2,5 are the bodies that make the rims crowded - a shove into another unit is 4 to BOTH and both Staggered, and on a one-tile rim the unit behind you is the only thing you can be shoved into. The Grappler that arrives at the mouth does no damage at all and is the most dangerous thing here, because it is the one that puts you where the drain is.
+
+## Both Drains at Once · `ec-02-pincer-v2`
+
+11×7 · objective **kill all** · 3× Husk, 2× Grappler (32 HP of fighters) · 6 deployment spots
+
+> Two Grapplers still face each other with a drain at each one's feet, and the drains are three tiles deep now with a one-tile rim beside each. The ledge in the dead centre is the tile both of them rank first.
+
+```
+**.........
+*..##^##h..
+#.O.#h#.O.#
+#.Og.H.gO.#
+#.O.#.#.O.#
+..h##^##..*
+.........**
+```
+
+`h = Husk · g = Grappler`
+
+- SUPERSEDE CANDIDATE for ec-02-pincer - two lone pits at 4 percent with open field between them, so the pincer had nothing to pin you against and every tile of the middle was the same tile.
+- THE ROUND-3 QUESTION - which Grappler are you standing next to. By round 3 both alcoves have emptied into the middle corridor and the ledge at 5,3 is the one tile on the board that both priority lists rank FIRST, because a Grappler picks a body on HighGround before it picks anything else. Hold it and you are the pincer's declared target from two sides in the same round; leave it and you are walking a one-tile rim with a three-deep drain on one side of you for three steps running.
+- THE RIMMED CLUSTER, in numbers. Twenty-four impassable tiles on 77 is 31.2 percent, in eight connected formations of three or more and not one lone tile: the two drains at 2,2 2,3 2,4 and 8,2 8,3 8,4; the two edge walls at 0,2 0,3 0,4 and 10,2 10,3 10,4; and the four alcove brackets 3,1 4,1 4,2 - 3,5 4,5 4,4 - 6,1 7,1 6,2 - 6,5 7,5 6,4. The original carried two pit tiles on 49 - 4 percent - and both were alone. Eighteen wall tiles against six pit tiles, so this is a wall board with drains in it rather than the other way round.
+- WHAT THE FUSION BOUGHT, AND IT IS ROUTING. A single pit is a place to put a body; three of them in a column with a wall behind is a place nobody can walk. Each drain now has exactly one rim - 1,2 1,3 1,4 on the west, 9,2 9,3 9,4 on the east - one tile wide with masonry on the far side, and those rims are the only way past the drains at all. So the same tile is where you stand to take the free kick on a clinging body, where the Grappler's pull ends, and the only floor between the two halves of the flank. Three systems, one tile, which is what the review asked for.
+- THE PULL LANE, in numbers. A Grappler's band is range 3 and its pull is 2 toward itself, and the alcove at 3,2 3,3 3,4 sits exactly 2 tiles from the west rim across the drain. A duck standing on 1,3 is 2 away from a Grappler at 3,3, inside the band, and the pull vector runs east - 2,3, which is the drain. The planner prefers that aim over any other because a clinging outcome outscores every collision it could take instead. The east rim reads the same from the other alcove. Standing on a rim is not a mistake; it is the price of the flank, and it is previewable because the intent is drawn before the round.
+- TWO ROUTES, UNEQUAL PRICES, in numbers. From 1,0 to 9,6 down the middle: 2,0 3,0 4,0 5,0 then the centre column 5,1 5,2 5,3 5,4 5,5 5,6 then east along the bottom - 16 AP, because 5,1 and 5,5 are brambles at 2 AP each, plus 2 damage a body for each bramble tile walked, so 4 hit points on top of the bill. By the west rim instead: 1,1 1,2 1,3 1,4 1,5 1,6 then east - 14 AP and no self-inflicted damage at all. Two AP cheaper and no bramble bill, and it is the worse route, because on the middle route the worst thing that happens to you is a 4 and on the rim the worst thing is permanent.
+- THE CENTRE IS THE THESIS AND IT IS OWNED. 5,3 is HighGround in the dead centre of the board, reachable only through the two alcove mouths at 4,3 and 6,3 or up the walled column from 5,0 and 5,6. Ranged attacks from it deal +2 and nothing can be shoved UP onto it, so it is the strongest tile here - and it is the tile a Grappler's priority list puts above the Archer and above everything else. A duck pulled off it pays 2 for the drop and the displacement keeps travelling, which on this board means into a wall for 4 or into the ledge below for 4. That is the pincer stated as terrain: the best tile and the most-wanted tile are the same tile.
+- SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two diagonal pockets - north-west 0,0 1,0 0,1 and south-east 10,5 9,6 10,6 - unowned, either flock may draft either. Agency before injury holds in its strict form and it holds for DISPLACEMENT as well as damage (D-080, and the high-road defect that a zero-damage pull nobody's threat check saw). A Husk covers a diamond of 4 and the nearest Husk to any spot is 5 away. A Grappler covers 3 from wherever it can stand, and the alcove brackets hold each one to eight tiles - 3,2 3,3 3,4 4,3 5,2 5,3 5,4 6,3 for the west one - every one of which is 4 or more from every spot. Nothing on this board can damage you, shove you, or pull you before you have had a turn.
+- THE ENEMIES ARE THE CONTENT. Two Grapplers, 10 hit points each, damage 0 - they cannot take a hit point off you and they are the reason this board is dangerous, because they are the ones that decide where you are standing. The Husk at 5,2 is the body that makes holding the ledge cost something: it is adjacent to 5,3 and it swings for 2 while the pincer works. The Husks at 2,5 and 8,1 are one per flank, and a shove into another unit is 4 to BOTH with both Staggered, which in a one-tile rim or a one-tile column is the only collision on offer.
+- NOT MERGED WITH ec-03-handoff, and the reason is the house rule rather than the review's convenience. This board asks a SPATIAL question - which of two symmetrical threats do you stand between - and ec-03 asks a TEMPORAL one - the telegraph you read is not the shove you get, because the puller activates before the pusher. Folding them together produces a board with two questions, which is the failure DESIGN_PRINCIPLES 5 names, and it would leave one of the two originals with no supersede candidate at all, which the marking convention in ACT3_BOARD_CRITERIA 4 does not allow for.
+
+## The Handoff, Rimmed · `ec-03-handoff-v2`
+
+9×7 · objective **kill all** · 2× Husk, 1× Grappler, 1× Lobber, 1× Stalker (32 HP of fighters) · 6 deployment spots
+
+> The Grappler still delivers and the Stalker still finishes, and now the delivery has somewhere to put you. One three-deep drain, one rim lane beside it, and a ledge on the rim that the puller wants more than anything else on the board.
+
+```
+....g.s..
+.h#lO#.h.
+..#.O....
+..#HO#...
+..#..#...
+*.^...^.*
+**.....**
+```
+
+`h = Husk · l = Lobber · g = Grappler · s = Stalker`
+
+- SUPERSEDE CANDIDATE for ec-03-handoff - a real composite read carried on 4 percent blocking and 18 hit points of enemy, so the best idea in the pool was being asked on a bare floor by two bodies that could not hold a board.
+- THE ROUND-3 QUESTION - the Lobber has backed up the rim lane and the Grappler is standing on its far cap. Do you follow it into the one-tile lane at 3,1 3,2 3,3, where the drain is your east neighbour for three steps running and the pull that is drawn on the board ends inside it, or do you let it keep shooting and pay twelve AP for the way round. The lane is 5 AP. Every other crossing is 12. That gap does not close, and it is still the live decision after the first exchange because the Lobber retreats rather than dying where it stands.
+- THE RIMMED CLUSTER, in numbers. Ten impassable tiles on 63 is 15.9 percent, in two connected formations and not one lone tile: the west wall 2,1 2,2 2,3 2,4, four tiles; and the drain-and-sleeve 4,1 4,2 4,3 with 5,1 5,3 5,4 welded to it, six tiles. The original carried two pit tiles on 49 - 4 percent - one at 2,1 and one at 5,1, each one alone and each one nothing but a place to put a body. Three pit tiles against seven wall tiles: this is not a hole board.
+- WHAT THE FUSION BOUGHT. The three pits at 4,1 4,2 4,3 are a column, and the wall at 2,1 2,2 2,3 2,4 is a column beside it, and the one tile of floor between them - 3,1 3,2 3,3 - is the rim. It is one tile wide by construction, it is adjacent to a drain tile at every step, and it is the short way from one half of the board to the other. Free kick, pull lane, only path, on the same three tiles. Every drain tile can be finished from it, and 4,0 and 4,4 cap the column north and south so the drain is never sealed away from a rescue or a finish.
+- THE HANDOFF, PRESERVED AND SHARPENED. The HighGround at 3,3 sits ON the rim, one tile west of the drain at 4,3. A Grappler ranks a body standing on HighGround ABOVE the Archer and above everything else, so a duck who takes that ledge is the declared target the moment a Grappler is within its band of 3 - from 5,2, say, which is 3 away. The pull is 2 toward the puller: the duck leaves the ledge for 2, the displacement KEEPS TRAVELLING because that is what leaving high ground does, and the next tile east is 4,3. Delivered and finished in one action. That is the original's two-enemy sentence compressed into terrain, and it is drawn on the board before the click.
+- AND THE TELEGRAPH STILL LIES, WHICH IS THE ORIGINAL'S WHOLE POINT. Intents are declared at the top of the round against the tiles bodies are standing on THEN. The Grappler activates and moves you. The Stalker's plan locks its target and re-derives its geometry live, so the push you read at round start is aimed at where you were and the push you get is aimed at where the pull left you. The two tiles from which a shove can put a body into this drain are 5,2 pushing west and 4,5 pushing north into 4,4 - both of them one step off the rim, both of them reachable by a Move 4 Stalker, and neither of them where it was standing when it told you what it was going to do.
+- TWO ROUTES, UNEQUAL PRICES, in numbers. From 3,0 to 3,5 down the rim: 3,1 3,2 3,3 3,4 3,5 - five AP, and three of those five steps have a drain tile beside them. The west way round: 2,0 1,0 0,0 0,1 0,2 0,3 0,4 0,5 1,5 1,6 2,6 3,6 3,5 - twelve AP, or eleven if you take the brambles at 2,5 for 2 AP and 2 damage. The east way round is the same twelve. Seven extra AP is more than two whole activations, and what it buys is that nothing on that route is permanent - the worst the long way can do to you is 6 on brambles with a hard stop, and the worst the rim can do is take the duck off the board.
+- THE DRAIN IS THE PLAYER'S TOO, WHICH IS WHY THE SLEEVE HAS A GAP. 5,2 is deliberately open where 5,1 and 5,3 are wall: it is a one-tile alcove on the drain's east face, and it is the tile a Vanguard charges from or a Fisher pulls across. An enemy standing on 5,2 shoved west goes into 4,2. An enemy on the rim pulled east by a Fisher standing at 6,2 travels into 4,2 the same way, because a pull of 1 at range 3 crosses the drain rather than stopping short of it. Both sides get the hole; the difference is that the enemy side has two bodies whose entire job is putting somebody in it.
+- SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets on the south edge - south-west 0,5 0,6 1,6 and south-east 8,5 8,6 7,6 - unowned, and the enemy line is drawn across the north with the drain between. Agency before injury holds strictly, for displacement as well as damage (D-080): a Husk covers a diamond of 4 and the nearest is 5 away; a Lobber covers 5 and it is 7 away; a Stalker covers 5 with a shove that deals nothing of its own and it is 7 away; a Grappler covers 6 with a pull that deals nothing either, and at 4,0 it is 9 away from the nearest spot. Nothing here reaches a spot on round 1 by any means at all, which is the check high-road failed.
+- THE ENEMIES ARE THE CONTENT, and there are 32 hit points of them where the original had 18. The Lobber at 3,1 stands IN the rim lane and retreats when you close, which is what makes the lane a chase rather than a corridor. The Grappler at 4,0 caps the drain from the north and does no damage at all. The Stalker at 6,0 ranks drain above brambles above the edge, so the two bramble tiles at 2,5 and 6,5 are what it settles for when the drain is out of reach - 6 with a hard stop instead of a void. The two Husks at 1,1 and 7,1 are one per flank and they are the collision stock: a shove into another unit is 4 to BOTH and both Staggered, which is the best value on the board and the only thing here that does not need the hole.
 
 ## Perch War II · `ec-05-perch-war-v2`
 

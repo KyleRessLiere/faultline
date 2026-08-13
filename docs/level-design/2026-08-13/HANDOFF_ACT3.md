@@ -55,12 +55,47 @@ and the board is cut so that only row 3 is collinear — which is also the lane 
 
 ### Reworks (shipping beside their originals, never over them — D-280)
 
-`the-teeth-v2` · `ec-05-perch-war-v2` · `cb-09-crossfire-v2` · `ec-09-undertow-v2` ·
-`as-02-both-sides-of-the-chasm-v2` · `as-07-the-terraces-v2` · `quarry-king-v2`.
+**Eleven shipped**, numbers 951–962: `the-teeth-v2` (funnel) · `hz-08-free-kick-v2`,
+`ec-02-pincer-v2`, `ec-03-handoff-v2` (rimmed cluster) · `ec-05-perch-war-v2`, `cb-09-crossfire-v2`
+(contested shelf) · `ec-09-undertow-v2` (walled retreat) · `as-02-both-sides-of-the-chasm-v2`
+(spot-split) · `as-07-the-terraces-v2` (rebuilt) · `cb-06-bait-and-break-v2` (roster kinds) ·
+`quarry-king-v2` (the finale).
+
+**One was refused rather than forced** — `tp-01-one-door`, see flag 4.
+
+`cb-06-bait-and-break-v2` is the one that took the *cross-reading's* verdict over the review's: the
+review prescribed a third terrain feature, the cross-reading found the defect was its
+single-enemy-type roster of five Husks, and the board's own note argued against adding a hazard
+(*"if this one would be improved by a hole in the floor then the enemy placement is wrong"*). It ships
+with **no hazard added** and a mixed roster instead — a collision is 4, which kills a Husk and does
+not kill a Heavy Husk, and an Anchor at resist 1 in the passage is the body a shove answers least.
 
 The contested-shelf pair went from **0% blocking to 15.9%** by backing each ledge with wall mass so
 it is reachable from one side only — which is Radiant Dawn's ledge system, where the praise is
 specifically that climbing points matter most *when they are also chokepoints*.
+
+**Three of the four originals in the final batch measured 0% by the floor's own accounting** — every
+impassable tile lone or in a pair, so none of it counted as connected mass.
+
+### The best finding of the run: the Quarry King's shell was never the wall
+
+`quarry-king` went **0 of 9 deterministic policies → 5 of 9** (3 of the four §8.8), median 9 rounds,
+no stalls. The diagnosis is a code fact the pool review did not have:
+
+**The King carries no `PushResistance`, and the enemy Footing policy is drain-bound only** —
+`Displacement.EnemyWouldRefuse` refuses a shove *only* when its preview stops in a Pit. So on the
+shipped open field, every shove against him resolved, travelled across empty floor, and dealt
+**zero**. The shell was not what made him immovable. **The empty floor was.** Give him a backstop and
+the identical shove is 4 damage, a Stagger, and one token stripped.
+
+That is worth holding onto beyond this board: on an open board, a shove that lands nowhere is not a
+weak shove, it is a *no-op*, and no stat line will tell you so.
+
+**Read the improvement carefully, though.** It is evidence the architecture works — a one-ply shove
+now scores 4 where it scored 0, because there is finally something behind him. It says nothing new
+about whether a planning human finds the fight easier, because nothing made the *payoff* easier to
+plan; the token strip is still a turn-away investment. Both claims are written into the board's own
+certification line.
 
 ---
 
@@ -129,6 +164,14 @@ Protect, so `objective-first` is the worst offender. A four-face cut of `lk-09-t
 demolished by its own players — 16–20 self-damage — before round 5, every run. Two faces and 24 HP is
 what makes it pass. **That is a harness bug, not a board bug**, and it deserves either a sign flip in
 the evaluator or a `DECISIONS.md` note; it will mislead the next protect board too.
+
+### 3b. `ObjectiveTileNotOpen` is a false positive on high ground
+
+It fires six times on `as-07-the-terraces-v2`, whose `hold` tiles are HighGround. The lint's message
+("nothing can stand there") is written for walls and pits; **HighGround is walkable**, and
+`Objectives.HeldTilesAreClear` only asks whether an enemy occupies the tile. Verified working
+end-to-end. Documented in that board's design lines so nobody "fixes" it by moving the objective off
+the terraces — the terraces *are* the objective.
 
 ### 4. Recommendation: retire `tp-01-one-door` in `ec-01-shieldwall`'s favour
 
