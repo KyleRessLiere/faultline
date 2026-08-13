@@ -20,18 +20,18 @@ board here stays drawable (D-271).
 
 | Band | Boards | What it fills |
 |---|---|---|
-| **Opener** | 6 | Column 1, and the gentlest of an act's early third. A control group: nothing here can hurt you before you have had a turn. |
+| **Opener** | 7 | Column 1, and the gentlest of an act's early third. A control group: nothing here can hurt you before you have had a turn. |
 | **Ordinary** | 33 | The bulk of an act — its early and middle columns, and the band Warrens v2 draws most heavily from. |
 | **Hard** | 21 | The late third: the fights a squad arrives at already spent. |
 | **Elite** | 3 | A gilt node's fight. It costs more and the map says so before you take it. |
 | **Endurance** | 4 | Objective-shaped rather than harder — survive, hold. One per generated act, in the late third. |
 | **Boss** | 3 | Terminals. |
 
-**70 boards in total**, and 27 retired ones the generator never sees.
+**71 boards in total**, and 27 retired ones the generator never sees.
 
 ---
 
-# Opener — 6 board(s)
+# Opener — 7 board(s)
 
 Column 1, and the gentlest of an act's early third. A control group: nothing here can hurt you before you have had a turn.
 
@@ -189,6 +189,34 @@ r.rah.r
 - SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven spots, all unowned, in three clusters - the two south corners at 0,6 / 1,6 and 5,6 / 6,6, and a spaced southern row at 1,5 / 3,5 / 5,5. The strict form of agency before injury holds (D-080) and it holds against DISPLACEMENT as well as damage, which is the check high-road shipped without: a Runt walks 4 and swings 1 for a diamond of 5, a Heavy Husk covers 4, and the Harrier covers 5 with a shove worth nothing. The nearest spot to anything is 5 tiles from the Heavy Husk and 6 from every Runt and from the Harrier. Threat.DamageRound1 and Threat.DisplacementRound1 both return zero of the seven spots.
 - NO PIT AND NO SPIKES ANYWHERE, by decision rather than omission (scenarios/DESIGN_PRINCIPLES 1). The five ways displacement matters are wall, body, spikes, ledge and pit, and this board is built on the first two and the fourth: a wall or a ledge is 4 and a Stagger, a body is 4 to BOTH, a fall off 2,3 is 2 and the shove keeps going. A drain in the floor would answer the question before it finished being asked, because a Runt shoved anywhere at all is a dead Runt already.
 - CERTIFICATION, quoted across POLICIES rather than seeds. Seven of the nine deterministic harness policies clear it, median 3 rounds, and that includes all three deterministic policies of MASTER_DESIGN 8.8 - board-first in 3, shover in 10, objective-first in 3 - against the section's floor of one and the Warrens working practice of two. The random-* rows are seeded from policy.Name.GetHashCode(), which .NET randomises per process, so they are quoted nowhere and moved between two invocations of the identical board: nothing in Faultline.Core consumes an RNG inside a fight, so a deterministic policy plays byte-identically at every seed and re-running at another seed is not a second sample. One policy - careful - stalls past round 60, which is what a 0-damage shover does to a policy that will not close: the reference Harrier board nv-04-open-order stalls four of them, and this one stalls one.
+
+## The Teeth Walled · `the-teeth-v2`
+
+7×7 · objective **kill all** · 2× Husk, 1× Anchor (20 HP of fighters) · 6 deployment spots
+
+> The same bar of brambles, and now the only way round it is one mouth with an Anchor standing in it. Round one still shows both flocks a six-damage shove before anything has walked at you.
+
+```
+.....**
+......*
+#.h...#
+##^^^a#
+#...h.#
+*.....#
+**.....
+```
+
+`h = Husk · a = Anchor`
+
+- SUPERSEDE CANDIDATE for the-teeth - the bar was 0 percent blocking with both flanks open floor for their whole length, so walking around the teeth was free and the board's one question priced nothing.
+- THE ROUND-3 QUESTION - the bar is still where it was and the mouth has moved. The Anchor walks one tile a round, so by round 3 it has stepped off 5,3 and is loose in the middle, and the crossing you priced on round 1 is not the crossing you have on round 3. Pay 3 AP and 2 damage a body to come over the teeth while the teeth still cut both ways, or pay the 6 AP detour into a mouth that is finally open and walk a 12 hit point body's length to use it.
+- THE FUNNEL, and what it costs. Eight wall tiles on a 49-tile board is 16.3 percent impassable, in two connected formations of four - the west L at 0,2 0,3 1,3 0,4 and the east column at 6,2 6,3 6,4 6,5. Neither is a lone wall and neither is decoration: together they seal the whole west flank and all but one tile of the east, so the board has exactly one gap at 5,3 and three teeth at 2,3 3,3 4,3. The old Teeth had 0 percent and a three-tile bar on a seven-wide board, which is a bar with four tiles of open floor either side of it. That is not a funnel, it is an ornament.
+- TWO ROUTES, UNEQUAL PRICES, in numbers. Crossing the bar from 3,4 to 3,2 is 2 AP to enter the bramble and 1 to leave it - 3 AP, and 2 damage for having stood on it. Going round from 3,4 to 3,2 through the mouth is 4,4 5,4 5,3 5,2 4,2 3,2 - 6 AP, no damage, and it walks you past the Anchor. Three extra AP is a whole activation for every class in the game, so the detour is a round rather than a shrug, and the two routes disagree on exposure as well as on cost: the teeth deal 2 for walking and 6 for being shoved, the mouth deals 4 in the face from something with 12 hit points and push resistance 1.
+- THE ROUND-1 BENEFICIAL PLAY IS PRESERVED, which was the one thing the review said not to touch. Each Husk stands directly off a tooth: the north one at 2,2 above 2,3, the south one at 4,4 below 4,3. A Fisher drafted into 0,5 spends two AP walking to 2,5 and flicks her line - range 3, pull 1, straight up the column, and the Husk lands on 2,3 for 6 with 4 hit points to its name. A Fisher drafted into 6,1 has the mirror: two AP to 4,1, pull 1 straight down the column, and the south Husk lands on 4,3 for the same 6. An Archer drafted into 1,6 walks two AP to 3,6 and Stagger Shots the south Husk at range 3, aiming the diagonal onto 4,3. Every one of those is drawn on the board before the click, and every one is 2 AP of walk plus a 1 AP action out of a 3 AP pool. Entering the teeth still reads as something you DO to the enemy.
+- WHY THE FISHER AND NOT THE ARCHER IS THE DISCOVERY. Her basic deals 2. The tooth deals 6. A tooth is three of her activations in one action, and it is the only line in the opener's vocabulary where the board hits harder than the duck does - which is what a hazard is for (scenarios/DESIGN_PRINCIPLES 1). The Archer's basic already deals 4 at her sweet spot and kills a 4 hit point Husk outright, so for her the teeth are a convenience; for the Fisher they are the answer.
+- THE ANCHOR IS THE DOOR, AND THE DOOR IS ONE SHOVE FROM THE TEETH. It starts at 5,3, the single mouth in the bar, and Move 1 means it is a slow problem you choose when to meet rather than a race. It carries push resistance 1, so a Bull Rush that pushes 2 moves it exactly 1 - and 1 tile west out of 5,3 is 4,3, which is a tooth: 6 damage, hard stop, half its hit points gone, and the mouth open behind it. That is the board answering the question it asked, and it is available to any duck who can shove, which is all four of them.
+- SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets - north-east 5,0 6,0 6,1 and south-west 0,5 0,6 1,6 - unowned, either flock may draft into either. The pockets sit on opposite sides of the bar on purpose: whoever takes one has the north Husk's tooth and whoever takes the other has the south Husk's, and both pockets are the same two AP from their firing tile. The strict form of agency before injury holds (D-080): a Husk walks 3 and swings 1 so it covers a diamond of 4, an Anchor walks 1 and swings 1 so it covers 2, and every one of the six spots is exactly 5 or more from both Husks and 3 or more from the Anchor. Nothing on this board can hurt you before you have had a turn, which is the Opener band's job, and nothing here pulls either - there is no zero-damage displacer on the board, so the high-road defect cannot apply.
+- NO PIT ANYWHERE, on purpose. The rework pattern for this board is the funnel and not the rimmed cluster: the teeth are a floor you can be shoved onto from either side and walk over for a price, which is the opposite of a hole. Every kill this board offers is a collision, a bramble or a swing.
 
 ---
 
@@ -814,34 +842,35 @@ board:
 
 ## The Lower Gate · `lk-08-the-lower-gate`
 
-7×9 · objective **break it down** · 4× Husk, 1× Bulwark, 1× Lobber (32 HP of fighters) · 6 deployment spots · turn limit 10 · 1 reinforcement wave(s)
+7×9 · objective **break it down** · 4× Husk, 2× Warden, 1× Bulwark, 1× Lobber (56 HP of fighters) · 7 deployment spots · turn limit 10 · 1 reinforcement wave(s)
 
-> Twelve hit points of lock gate standing in open floor with four bare faces. A player cannot swing at masonry at all - the answer is bodies, and a Bulwark is walking at you to charge a tile for every one of them.
+> Twelve hit points of lock gate sitting in the only corridor across the board, with a Warden bolted to each shoulder and a bramble bed at each end. Every shove in that corridor is worth 6 to something, and only one of the somethings ends the fight.
 
 ```
 .h.l.h.
-.#.b.#.
-.##^##.
-.......
-...D...
-.......
-.##^##.
-*#...#*
-**...**
+#..b..#
+#.....#
+#.###.#
+^.wDw.^
+#.###.#
+#.....#
+#.*.*.#
+**.*.**
 ```
 
-`h = Husk · l = Lobber · b = Bulwark`
+`h = Husk · l = Lobber · w = Warden · b = Bulwark`
 
-- THE ROUND-3 QUESTION - two more Husks land at 0,5 and 6,5 at the start of round 3, on YOUR side of the gate, which is the first ammunition that does not have to be walked the length of the board. The question is what the round buys: a body walked onto the gate's ring so that next round's one-tile shove is worth 6, the ten hit points of Bulwark that are the reason a two-tile slam stops one tile short, or the brambles at 3,2 and 3,6, which will take the same body off the board for nothing and leave the gate untouched.
+- THE ROUND-3 QUESTION - two more Husks land south of the corridor at the start of round 3, and from 1,4 or 5,4 the same one-tile shove is worth exactly 6 in either direction: east into the gate, which is half the win condition, or west into the brambles at 0,4, which takes 6 off a body instead. The question the board keeps asking from round 3 to round 10 is which of the two sinks this round's shove goes into, and it asks it while a Warden is taking 4 a round off whoever is standing on the tile.
 - THE OBJECTIVE IS DESTROY, WHICH IS AN UNFIELDED KIND, AND ITS RULES ARE NOT THE OTHERS'. Clearing the board does NOT win this fight - the gate is the only win condition there is - and reaching the turn limit is a LOSS rather than a draw, so the clock is on the file because without one nothing could ever end the board (D-223). Twelve hit points and ten rounds. Every player unit down still loses, as always.
-- BODIES ARE THE ANSWER, AND THAT IS A RULE RATHER THAN A PREFERENCE. There is no player command that aims an ordinary attack at a tile, so no duck can simply walk up and hit the gate: a collision does the full Displacement.StructureCollisionDamage of 6, and TWELVE IS EXACTLY TWO COLLISIONS. That is the whole arithmetic and it is deliberately short, because the expensive part of this board is arranging the second slam rather than surviving the first.
-- THE ONE BY-HAND ROUTE IS A LINE ATTACK AND IT IS NOT REQUIRED. A Wardbearer's Spear Thrust is the only attack in the game aimed at tiles rather than at a body, and against masonry it lands the flat chip of 2 whatever the weapon (D-060) - six thrusts, one a round, from as far as two tiles away. A flock that drafted one has a slow, safe second answer; a flock that did not still wins on two collisions. No board may depend on a roster (as-04 and as-09 are the retired precedents), so the collision line is the one that has to close, and it does.
-- THE BULWARK IS WHERE THE COLLISION IS PRICED. HoldAura caps the displacement of every ally ADJACENT to the Bulwark at one tile - never its own carrier (D-019), never to zero, because the Locks prices your verbs and never switches them off (MASTER_DESIGN 2, gradients not immunities). So a Bull Rush of 2 fired from 0,4 at a Husk standing on 1,4, meant to run it through 2,4 and into the gate, travels one tile, stops on 2,4 and touches nothing. The same Husk shoved from 1,4 while it stands on 2,4 needs one tile, and one tile is exactly what the cap allows: 6 into the masonry, aura or no aura. HOLD CAPS DISTANCE, NOT DAMAGE. The aura does not forbid the slam - it charges a round of walking the body one tile closer, or ten hit points.
-- THE BRAMBLES ARE THE COMPETING SINK, AND THAT IS WHY THEY ARE ON THE CENTRAL LANE RATHER THAN THE RING. A displacement into spikes deals 6 and STOPS THERE. So 3,2 and 3,6 offer the identical number the gate offers - 6 for one shove - except that it comes off a Husk instead of off the win condition. Every body on this board can be spent twice over and only one of the two spendings ends the fight, which is the choice the board keeps re-asking. Walking onto them costs 2 hit points, which is the toll on the short approach rather than a wall across it.
-- TWO ROUTES, UNEQUAL PRICES. From the spot at 1,8 the CENTRAL route is 2,8 to 2,7 to 3,7 to 3,6 to 3,5 - five steps, standing on the gate's south face at the end of round 2, and the fourth step costs 2 hit points because 3,6 is brambles. From the same spot the WEST route is 0,8 to 0,7 to 0,6 to 0,5 to 0,4 to 1,4 to 2,4 - seven steps, no damage at all, and it ends on the gate's west face with an open tile behind it at 1,4, which is what a charge needs and what the south face, backed by brambles, does not have. Two AP dearer, two hit points cheaper, and only one of the two is a firing position.
-- THE LOBBER AT 3,0 IS THE AMMUNITION CLOCK. Move 2, range 3, 2 a round, and it retreats the moment anything closes. Every round spent arranging masonry is a round it is paid for, which is the pressure a ten-round limit alone would not supply. Both flanking columns run the whole height of the board, so unlike break-the-gate's pair nothing here is sealed away from the fight.
-- BLOCKING MASS. Twelve wall tiles plus the gate on a 7x9, 20.6 percent, in four connected formations of three: 1,1 1,2 2,2 and 5,1 5,2 4,2 and 1,6 2,6 1,7 and 5,6 4,6 5,7. They leave three lanes - x0, the central column and x6 - and the middle one is the one with the brambles in it. G3 is satisfied here by the objective alone; the architecture is on the board because a gate standing in a field is a chore rather than a question.
-- SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots, both flocks south of the gate and neither pocket owned, and every one outside every enemy's round-1 reach. The Lobber's deepest round-1 stand is 2,1 and its range is 3, which reaches the gate's own ring and stops three rows short of the spots. The round-3 arrivals land at 0,5 and 6,5 - open floor, outside both pockets, and on the players' side of the gate on purpose (D-046): a wave authored behind the objective seals the bodies you are told to use as ammunition where you cannot use them.
+- BODIES ARE THE ANSWER, AND THAT IS A RULE RATHER THAN A PREFERENCE. There is no player command that aims an ordinary attack at a tile, so no duck can simply walk up and hit the gate. A collision does the full Displacement.StructureCollisionDamage of 6, and TWELVE IS EXACTLY TWO COLLISIONS. The Wardbearer's Spear Thrust is the one attack in the game aimed at tiles rather than at a body and chips masonry for the flat 2 whatever the weapon (D-060), six thrusts at one a round - but no board may depend on a roster (as-04 and as-09 are the retired precedents), so the two-collision line is the one that has to close, and it does.
+- THE WARDENS ARE THE AMMUNITION AND THE REASON IS THEIR MOVE. A Warden is 12 hit points, damage 4, Footing 2 and MOVE 0: its list is attack whatever is adjacent, otherwise nothing. It is a door and a door does not chase, so unlike every Husk on the board it cannot be baited off the gate's shoulder and is still standing there on round 10. Its Footing is drain-bound and refuses nothing here (Displacement.EnemyWouldRefuse is Pit-only), so the shove always lands. Stand on 1,4, push east, and the Warden on 2,4 travels one tile into the gate: 6 off the masonry, and the Warden is still standing there for you to do it again.
+- KILLING THE AMMUNITION IS HOW YOU LOSE THIS BOARD, and that is the trap worth naming. Two Wardens is 24 hit points of the easiest target on the map - Move 0, it cannot even follow you - and a flock that spends the fight clearing them arrives at round 10 with nothing left to slam and a gate at 12 of 12. The evaluator sweep does exactly that: the policies that play the board rather than the objective clear every enemy and lose on the bell with the masonry untouched. It is priced, it is legible from the intents, and it is the point.
+- WHERE THE AURA BITES, IN TILES. HoldAura caps the displacement of every ally ADJACENT to the Bulwark at one tile - never its own carrier (D-019), never to zero, because the Locks prices your verbs and never switches them off (MASTER_DESIGN 2, gradients not immunities). One tile is exactly what the Warden slam needs, so a covered Warden is slammed anyway: HOLD CAPS DISTANCE, NOT DAMAGE. Where it bites is everything else in the corridor - a Husk standing on 1,4 with the Bulwark beside it can no longer be run two tiles west into the brambles at 0,4, it stops on 0,4's doorstep, and the cheap 6 you were going to take off it is gone until you have walked it one tile further or spent ten hit points on the aura.
+- THE CORRIDOR IS THE BOARD AND IT IS DECLARED (tp-10-the-sanctum is the licensed precedent for a board whose single crossing IS the question). Two wall bands at y3 and y5 leave exactly two ways from the southern half to the northern half - 1,5 to 1,4 to 1,3 on the west, and 5,5 to 5,4 to 5,3 on the east - and the gate stands in the middle of the row they both pass through. Everything that walks at you comes through one of those two tiles, and both of them are a Warden's swing away from the win condition.
+- TWO ROUTES, UNEQUAL PRICES, AND THEY ARE NOT THE SAME ROUTE DRAWN TWICE. From the western spot at 1,8 the WEST CROSSING is three steps - 1,7 to 1,6 to 1,5 - and 1,4 on the fourth, which is where the west Warden is already swinging. From the same spot the EAST CROSSING is 2,8 3,8 4,8 5,8 5,7 5,6 5,5, seven steps, and the tile it delivers you to is the mirror image with the Bulwark four rounds further away from it. Four AP dearer and four rounds quieter: the cheap crossing is the one the Bulwark reaches first, because it walks at whoever is nearest.
+- THE BRAMBLE BEDS ARE THE COMPETING SINK AND THAT IS WHY THEY ARE AT THE CORRIDOR'S DEAD ENDS. A displacement into spikes deals 6 and STOPS THERE, so 0,4 and 6,4 pay exactly what the gate pays and take it off a body instead. Two sinks, one tile apart, same verb, same number - and only one of them is the win condition.
+- BLOCKING MASS. Eighteen wall tiles plus the gate on a 7x9, 30.2 percent, in six connected formations of three: 0,1 0,2 0,3 and 6,1 6,2 6,3 and 2,3 3,3 4,3 and 2,5 3,5 4,5 and 0,5 0,6 0,7 and 6,5 6,6 6,7. G3 would be satisfied here by the objective alone; the architecture is on the board because a gate standing in a field is a chore rather than a question.
+- SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven spots, unowned, both flocks south of the corridor, and the two forward ones at 2,7 and 4,7 are the draft's version of the crossing question - the flock that takes them is committed to a side before anybody has moved. Every spot is outside every enemy's round-1 reach: the Wardens have Move 0 and threaten only 1,4 and 5,4 between them, a Husk's deepest round-1 stand is 1,3 and its swing is 1, and the Lobber's deepest stand is 2,1 with range 3, which reaches the gate's own row and stops three rows short of the spots. The round-3 arrivals land at 1,6 and 5,6, open floor, outside every spot and on the players' side of the corridor on purpose (D-046).
 
 ## The Pumphouse · `lk-09-the-pumphouse`
 

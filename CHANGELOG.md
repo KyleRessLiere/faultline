@@ -1,5 +1,27 @@
 # Changelog
 
+## Act 3 — the Locks
+
+- **Twenty-four new boards** under the `lk-` prefix, spot-native from birth, each naming the decision
+  still live on round 3. Eleven are not won by clearing the room — the act ships at 46% non-kill-all
+  against Warrens v2's 12.5% — and every Hard and Elite board carries a clock or an arrival (D-276,
+  D-279).
+- **The Court is fielded.** Bulwark, Harrier, Colossus, Runt and Heavy Husk shipped in code but were
+  drawn by nothing: their only boards were retired bestiary fixtures whose own note said the enemies
+  should be redeployed into the curated set. This is that set.
+- **Canal water (`~`)**: a walkable tile class that costs 2 AP to wade, deals no damage, Staggers and
+  stops any shove into it — plus sluice gates that raise the water level mid-fight, published a round
+  ahead and deferring under a standing unit (D-275).
+- **The first `destroy` and `reach` boards in the game.** Both objective kinds have been in the format
+  since §7 and no shipped board used either.
+- **The Rushmaster is fielded**, ending the Boss band's n=1: a finished 26 HP boss with a phase
+  change, two rules modules and seventeen passing tests that no `.fight` file had ever spawned.
+- **Reworks ship beside their originals**, never over them — spawn letters carry row-major unit ids,
+  so editing a shipped board invalidates every replay of it (D-280).
+- Fixed: two tests were written as a census where they meant an invariant, so every objective-shaped
+  board added was a failure (D-278).
+
+
 ## the-cooperage
 
 - **A new board, the first to field a Cooper** (D-274): 7x7, Ordinary, Kill All, seven drafted spots.

@@ -1,0 +1,34 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: the-teeth-v2
+number: 951
+name: The Teeth Walled
+pool: Opener
+description: The same bar of brambles, and now the only way round it is one mouth with an Anchor standing in it. Round one still shows both flocks a six-damage shove before anything has walked at you.
+design: SUPERSEDE CANDIDATE for the-teeth - the bar was 0 percent blocking with both flanks open floor for their whole length, so walking around the teeth was free and the board's one question priced nothing.
+design: THE ROUND-3 QUESTION - the bar is still where it was and the mouth has moved. The Anchor walks one tile a round, so by round 3 it has stepped off 5,3 and is loose in the middle, and the crossing you priced on round 1 is not the crossing you have on round 3. Pay 3 AP and 2 damage a body to come over the teeth while the teeth still cut both ways, or pay the 6 AP detour into a mouth that is finally open and walk a 12 hit point body's length to use it.
+design: THE FUNNEL, and what it costs. Eight wall tiles on a 49-tile board is 16.3 percent impassable, in two connected formations of four - the west L at 0,2 0,3 1,3 0,4 and the east column at 6,2 6,3 6,4 6,5. Neither is a lone wall and neither is decoration: together they seal the whole west flank and all but one tile of the east, so the board has exactly one gap at 5,3 and three teeth at 2,3 3,3 4,3. The old Teeth had 0 percent and a three-tile bar on a seven-wide board, which is a bar with four tiles of open floor either side of it. That is not a funnel, it is an ornament.
+design: TWO ROUTES, UNEQUAL PRICES, in numbers. Crossing the bar from 3,4 to 3,2 is 2 AP to enter the bramble and 1 to leave it - 3 AP, and 2 damage for having stood on it. Going round from 3,4 to 3,2 through the mouth is 4,4 5,4 5,3 5,2 4,2 3,2 - 6 AP, no damage, and it walks you past the Anchor. Three extra AP is a whole activation for every class in the game, so the detour is a round rather than a shrug, and the two routes disagree on exposure as well as on cost: the teeth deal 2 for walking and 6 for being shoved, the mouth deals 4 in the face from something with 12 hit points and push resistance 1.
+design: THE ROUND-1 BENEFICIAL PLAY IS PRESERVED, which was the one thing the review said not to touch. Each Husk stands directly off a tooth: the north one at 2,2 above 2,3, the south one at 4,4 below 4,3. A Fisher drafted into 0,5 spends two AP walking to 2,5 and flicks her line - range 3, pull 1, straight up the column, and the Husk lands on 2,3 for 6 with 4 hit points to its name. A Fisher drafted into 6,1 has the mirror: two AP to 4,1, pull 1 straight down the column, and the south Husk lands on 4,3 for the same 6. An Archer drafted into 1,6 walks two AP to 3,6 and Stagger Shots the south Husk at range 3, aiming the diagonal onto 4,3. Every one of those is drawn on the board before the click, and every one is 2 AP of walk plus a 1 AP action out of a 3 AP pool. Entering the teeth still reads as something you DO to the enemy.
+design: WHY THE FISHER AND NOT THE ARCHER IS THE DISCOVERY. Her basic deals 2. The tooth deals 6. A tooth is three of her activations in one action, and it is the only line in the opener's vocabulary where the board hits harder than the duck does - which is what a hazard is for (scenarios/DESIGN_PRINCIPLES 1). The Archer's basic already deals 4 at her sweet spot and kills a 4 hit point Husk outright, so for her the teeth are a convenience; for the Fisher they are the answer.
+design: THE ANCHOR IS THE DOOR, AND THE DOOR IS ONE SHOVE FROM THE TEETH. It starts at 5,3, the single mouth in the bar, and Move 1 means it is a slow problem you choose when to meet rather than a race. It carries push resistance 1, so a Bull Rush that pushes 2 moves it exactly 1 - and 1 tile west out of 5,3 is 4,3, which is a tooth: 6 damage, hard stop, half its hit points gone, and the mouth open behind it. That is the board answering the question it asked, and it is available to any duck who can shove, which is all four of them.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets - north-east 5,0 6,0 6,1 and south-west 0,5 0,6 1,6 - unowned, either flock may draft into either. The pockets sit on opposite sides of the bar on purpose: whoever takes one has the north Husk's tooth and whoever takes the other has the south Husk's, and both pockets are the same two AP from their firing tile. The strict form of agency before injury holds (D-080): a Husk walks 3 and swings 1 so it covers a diamond of 4, an Anchor walks 1 and swings 1 so it covers 2, and every one of the six spots is exactly 5 or more from both Husks and 3 or more from the Anchor. Nothing on this board can hurt you before you have had a turn, which is the Opener band's job, and nothing here pulls either - there is no zero-damage displacer on the board, so the high-road defect cannot apply.
+design: NO PIT ANYWHERE, on purpose. The rework pattern for this board is the funnel and not the rimmed cluster: the teeth are a floor you can be shoved onto from either side and walk over for a price, which is the opposite of a hole. Every kill this board offers is a collision, a bramble or a swing.
+
+spawn h = Husk
+spawn n = Anchor
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+board:
+  .....**
+  ......*
+  #.h...#
+  ##^^^n#
+  #...h.#
+  *.....#
+  **.....

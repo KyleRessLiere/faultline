@@ -81,6 +81,7 @@ the reading). Stagger Shot is unchanged at range 3 for 2 — her flat fallback f
 | Open, Cracked | 1 | 1 |
 | Brambles (`Spikes`) | **2** (Sure-Footed: 1) | 1 |
 | HighGround | **1** — no climb surcharge on either side (D-152) | 1 |
+| Canal water | **2** — wading, the bramble surcharge (D-275) | 1 |
 | Wall, Drain (`Pit`) | cannot be entered on foot | cannot be entered on foot |
 
 ### Collision and terrain damage
@@ -92,6 +93,7 @@ the reading). Stagger Shot is unchanged at range 3 for 2 — her flat fallback f
 | Spikes — shoved onto | 6 | stops there, Staggered |
 | Spikes — walked onto voluntarily | 2 | no Stagger |
 | HighGround, shoved off (falling) | 2 | displacement continues travelling |
+| Canal water, shoved or thrown in | **0** | Staggered, and the displacement stops |
 | Husk Shoulder — trample contact | 2 | victim knocked 1 tile perpendicular |
 
 Collision, spike and fall damage all ignore mitigation.
@@ -182,8 +184,8 @@ double.
 - **Ranges, AP costs and movement do not change with size.** A bigger board is more expensive to
   cross, and that is the point rather than a side effect — nothing compensates for it anywhere.
   `sz-01-the-long-channel` (9×5) is the worked example: the same four ducks, a different question.
-- Terrain: **Open**, **Wall**, **Pit**, **Spikes**, **HighGround**. (`Cracked` exists for the M4
-  collapse clock but nothing produces it yet.)
+- Terrain: **Open**, **Wall**, **Pit**, **Spikes**, **HighGround**, **Water** (the canal, `~`).
+  (`Cracked` exists for the M4 collapse clock but nothing produces it yet.)
 - The board edge behaves as a wall, not a pit — **at the declared bounds**, whatever they are.
 
 | Terrain | Walking onto it | Being shoved onto it |
@@ -194,8 +196,36 @@ double.
 | Spikes | costs 1 movement, **2 damage**, no Stagger — and the router will walk you over them if that is the fastest way (D-097) | **6 damage**, stops there, Staggers |
 | HighGround | costs **1** movement — an ordinary step, for every class and every enemy (D-152) | **impossible from below** — the ledge collides |
 | HighGround → down | free | **2 damage**, and the displacement *continues* |
+| Canal water (`~`) | costs **2** — the same surcharge brambles charge, AP users only | **no damage**, Staggers, and the shove **stops there**. Not a drain: it does not kill and nobody clings |
 
 Ranged attacks fired *from* HighGround deal **+2**. There is no line of sight (D-010).
+
+### Canal water
+
+The Locks' signature ground. Walkable and priced: wading in costs 2 AP, the same surcharge brambles
+charge, and enemies pay nothing extra for it exactly as they pay nothing extra for brambles.
+
+Being **shoved or thrown into it costs no hit points at all**. The unit is Staggered and the
+displacement **stops there**. It is the only outcome in the game that takes nothing off a body and
+still takes the rest of the travel, and that is what it is for: the canal eats the tail of a shove.
+A duck you meant to slam into a wall for 4 ends up standing in the water instead, one tile short and
+Staggered, which is a tempo and position cost rather than a wound.
+
+It does **not** kill and does **not** leave anybody clinging. It is not a drain.
+
+**Sluices and the water level.** Some Locks boards hold the canal back with **sluice gates** —
+ordinary breakable masonry. When a gate comes down, the water takes a named set of tiles and the
+approach through them changes for the rest of the fight.
+
+- **The whole schedule is published from deployment.** Which gate is next, and exactly which tiles it
+  floods, is inspectable before a point is spent — the same contract the reinforcement timetable
+  keeps.
+- **The flood lands when the round turns**, not the instant the gate falls. A gate broken during a
+  round gives everyone the rest of that round to move.
+- **A tile somebody is standing on stays dry** until they step off it. Nobody is ever flooded
+  beneath, and nobody takes anything for being in the way (D-275, provisional).
+- **Either side can open a gate.** Shoving an enemy through one works, and so does an enemy shoving
+  you.
 
 **The Archer alone has a minimum range of 2** (D-099). Neither her shot nor Stagger Shot reaches the
 tile next to her, so closing on her is a real answer rather than a slower way of dying. Her way out

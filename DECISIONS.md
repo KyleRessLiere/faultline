@@ -274,9 +274,15 @@ in this file when the question comes back.
 | D-271 | [RULED: the generator draws from banded pools across the whole library. Presets weight; they never scope. The observed repetition was an artifact of scoping, and it is now zero.](#d-271-ruled-the-generator-draws-from-banded-pools-across-the-whole-library-presets-weight-they-never-scope-the-observed-repetition-was-an-artifact-of-scoping-and-it-is-now-zero) | 2026-08-09 |  |
 | D-272 | [RULED: the board mask is a view, and the picker gains a second cut of the library by band.](#d-272-ruled-the-board-mask-is-a-view-and-the-picker-gains-a-second-cut-of-the-library-by-band) | 2026-08-09 |  |
 | D-273 | [RULED: the barrel is stored as a UNIT, not as a structure, and that is what lets it ride the existing displacement pipeline.](#d-273-ruled-the-barrel-is-stored-as-a-unit-not-as-a-structure-and-that-is-what-lets-it-ride-the-existing-displacement-pipeline) | 2026-08-10 |  |
-| D-274 | [the-cooperage: the artillery race, and the objective counter that had to learn what an object is.](#d-274-the-cooperage-the-artillery-race-and-the-objective-counter-that-had-to-learn-what-an-object-is) | unreleased |  |
+| D-274 | [the-cooperage: the artillery race, and the objective counter that had to learn what an object is.](#d-274-the-cooperage-the-artillery-race-and-the-objective-counter-that-had-to-learn-what-an-object-is) | 2026-08-10 |  |
+| D-275 | [RULED: canal water is a tile class that costs tempo and never hit points; and PROVISIONAL: a flood defers while a body stands on the tile.](#d-275-ruled-canal-water-is-a-tile-class-that-costs-tempo-and-never-hit-points-and-provisional-a-flood-defers-while-a-body-stands-on-the-tile) | unreleased |  |
+| D-276 | [RULED: the Locks is the act where displacement stops being free, and the Bulwark aura is a price rather than a wall.](#d-276-ruled-the-locks-is-the-act-where-displacement-stops-being-free-and-the-bulwark-aura-is-a-price-rather-than-a-wall) | unreleased |  |
+| D-277 | [RULED: a board buys its round-3 question with architecture OR with an objective, so the blocking floor has a third clause.](#d-277-ruled-a-board-buys-its-round-3-question-with-architecture-or-with-an-objective-so-the-blocking-floor-has-a-third-clause) | unreleased |  |
+| D-278 | [RULED: the non-kill-all census is an invariant, not a list.](#d-278-ruled-the-non-kill-all-census-is-an-invariant-not-a-list) | unreleased |  |
+| D-279 | [RULED: Act 3 ships at 40% or better non-kill-all, and the number is a floor.](#d-279-ruled-act-3-ships-at-40-or-better-non-kill-all-and-the-number-is-a-floor) | unreleased |  |
+| D-280 | [RULED: a reworked board ships beside its original, and the reason is technical before it is editorial.](#d-280-ruled-a-reworked-board-ships-beside-its-original-and-the-reason-is-technical-before-it-is-editorial) | unreleased |  |
 
-**256 rulings.**
+**262 rulings.**
 
 <!-- toc:end -->
 ---
@@ -7488,3 +7494,254 @@ beatable on foot before it is allowed to be interesting · replay-exact.
 **Still owed: S4b, the bonus objective.** §7 (ae) makes the-cooperage the first board to carry one —
 *pop a barrel into an enemy*, paying a 1-of-3 camp instead of 1-of-2. The mechanism does not exist and
 the board ships without it: playable, certified, and one payout short of what §6 intends.
+
+---
+
+**D-275 — RULED: canal water is a tile class that costs tempo and never hit points; and
+PROVISIONAL: a flood defers while a body stands on the tile.**
+
+MASTER_DESIGN §1's vision says the world is *"ponds, canals and locks, and the deadliest thing on any
+board is the plumbing"*. The Locks act is where that is cashed in, and it needs a tile class the act
+can raise and lower mid-fight (`docs/level-design/2026-08-13/ACT3_BOARD_CRITERIA.md` §1b).
+
+**`TileType.Water` — the canal. Walkable, priced, and harmless.**
+
+- **Wading costs `Activation.WadeCost`, which is defined as `Activation.BrambleCost`** rather than as
+  a second 2 that happens to agree today. Same terms as brambles in every respect: an AP surcharge
+  for player units, movement-point semantics unchanged for enemies. **Sure-Footed is deliberately not
+  extended to it** — the unlock buys a way through the thorns, and quietly making it a swimming
+  certificate would be a kit change nobody authored.
+- **A unit shoved in takes NO damage, is Staggered, and the displacement STOPS**
+  (`DisplacementStop.Water`). It is the only stop in the game that costs a body nothing and still
+  takes the rest of the travel. A throw lands on the same answer, because being put down hard is
+  being put down hard.
+- **It does not kill and does not cling.** `Pits.cs` is untouched.
+
+*Rejected: making the canal a second lethal hazard.* `docs/scenarios/DESIGN_PRINCIPLES.md` §1 says
+the drain is already the finisher and should feel rare; a second drowning class would have made the
+Locks a pit act under another name. What the water is for is the **shove economy** — it eats the tail
+of a shove and hands back a Stagger, so it changes where bodies end up rather than how many of them
+there are. *Also rejected: pricing the wade at its own number.* Two prices for "difficult ground" is
+two things to balance and one of them would have been forgotten.
+
+**`Ai.HazardRank` gained a fourth tier, at the bottom: pit 0, brambles 1, edge 2, canal 3.** A tile
+the ladder does not rank is a tile a Stalker will neither avoid nor aim at, which is the silent
+failure the whole sweep exists to prevent. **The water took the new highest index rather than being
+slotted in**, because `HazardRanks` on the stat block is a count read as `maxRank = HazardRanks - 1`:
+renumbering would have silently changed what the shipped `HazardRanks: 3` Stalker is allowed to use.
+At 3 it still means pit, brambles, edge and nothing else. The clamp moved from "the edge" to "the
+deepest tier that exists" so a future stat block saying 4 can reach the water at all.
+
+**A sluice gate is a `Structure`; the canal is a `TileType`.** Those are two orthogonal axes and
+mixing them is the documented error — terrain is a dense array, structures are a sparse HP-bearing
+occupant list whose tile underneath stays walkable once the masonry is rubble. The gate is an
+ordinary breakable blocker, so **either side can drive it**: an enemy shoved through one opens the
+water on the player's behalf, and a gate only the player can operate is a button rather than a fight.
+
+**The water level is authored, published, and holds no state.** One `sluice: <gate> = <tiles...>`
+line per step on the fight definition. `Sluice.Level`, `Sluice.Next` and `Sluice.Pending` are pure
+functions of the authored schedule, which gates are still standing, and what the board already says —
+so **nothing was added to `GameState`** and replay is exact for free. The whole timetable is
+inspectable from deployment, the same contract the wave timetable keeps (D-035), and the flood is
+applied at the **start of a round** rather than the instant a gate falls: a gate broken at any point
+in round *n* appears in `Sluice.Pending` immediately and the water arrives when round *n+1* opens.
+That is pillar 3 — lethality is fine, surprise lethality is not.
+
+**It calls `TerrainMutation` rather than copying it.** That system's remarks (D-191) say it was
+generalised out of the Thorn Pouch precisely so a second caller would call it; the water level is
+that caller. Everything follows for free: the change is real, so movement cost, displacement, the
+walk-on price, AI path fields, every projection and the inspector read the new tile with no new case;
+water rising over brambles and receding restores brambles rather than floor; and a rise booked to a
+real round rather than to `Sluice.Permanent` is the whole of *lowering* the level, handled by the
+existing round-end seam with no second mechanism.
+
+**PROVISIONAL — what happens when the canal floods a tile a duck is standing on.**
+`TerrainMutation.Mutate` throws on an occupied tile (*"The ground cannot be changed under something
+standing on it."*), and a rising water level cannot honour that: the water has nowhere else to be.
+`TerrainMutation.ExpiryBeneathUnit`'s remarks enumerate three candidate rulings for the mirror case
+and decline to pick one, on the stated grounds that *"a rule that has to invent an answer to ship is a
+rule shipping a guess"*. The same three apply here:
+
+1. **the unit pays the tile's entry price** — the honest reading if a flood is a kind of arrival, but
+   nobody arrived, and on a class that ever became lethal it would take a body before the designer
+   had ruled;
+2. **the change defers while the tile is occupied, and flows in the moment it is vacated**;
+3. **the unit is displaced to the nearest legal tile** — the reading that treats the water as
+   physically pushing, which invents a displacement with no source tile and therefore no direction,
+   and would need a tie-break invented alongside it.
+
+**Option 2 ships, provisionally, and it is the designer's call to confirm.** It is the only one of
+the three that *preserves* the existing invariant rather than replacing it — the ground still never
+changes under a body, it simply waits — which is the conservative reading CLAUDE.md §0 asks for.
+Nothing a player has paid for is taken back and no body is moved or hurt by an event it could not
+answer. It is also the most thematic: the water laps at your feet and comes in as you step away.
+
+It is implemented as `TerrainMutation.CreationBeneathUnit`, sitting symmetrically beside
+`ExpiryBeneathUnit`, with exactly one call site (`Sluice.Flood`). **Changing the answer is one
+method.** The deferral needs no bookkeeping because it is derived: a tile that is owed water and has
+not got it is exactly a tile that is not yet `Water`. **No board's thesis may depend on which of the
+three is chosen** — the deferral is the safety net under a player who ignored a published flood, not
+the mechanism.
+
+**The sweep, because nothing would have failed.** There is no exhaustive switch over `TileType`
+anywhere in the codebase — every one has a `default` — so a missed site behaves silently as open
+ground and no test reports it. Worked deliberately: `TileType`, `Movement.IsWalkable`,
+`Movement.StepCost`, the router's tie-break, `Displacement.Simulate`/`Resolve`, `Throw.Land`,
+`Ai.HazardRank`/`HazardDistance`, `CombatLog.Ground`, `BoardLayout`, `FightParser`
+(`TryParseTile`, `IsReserved`, both hardcoded terrain-character error strings), `FightWriter`
+(`TileChar`, `IsReserved`), `EventText.TileClass`, five surfaces in `PlaytestText`,
+`PreviewMark`, `GameSession`'s preview sentence, the board legend, the creator palette, five CSS
+files, and the harness view.
+
+**The board character is `~`.** Checked against all three reserved lists — it is not terrain, not a
+deploy mark, not a structure mark, not the breakable blocker, and not a letter, so it can never be
+mistaken for a spawn.
+
+**The player-facing noun is "the canal", and the gate is "a sluice".** Never `Water`, which is the
+enum identifier. Same rule Drain-never-Pit and Brambles-never-Spikes follow.
+
+---
+
+**D-276 — RULED: the Locks is the act where displacement stops being free, and the Bulwark aura is a price rather than a wall.**
+
+Every territory attacks a different part of the kit — Warrens the economy, Bogs arcing and slowing
+ground, Hedgerows pure displacement, Setts immovability. **The Locks was named by its faction and by
+nothing mechanical** (§10), so its board pool could not be authored without first deciding what it
+does to the player.
+
+**Decided:** the Locks attacks the shove economy itself. Elsewhere displacement is a universal
+answer; here it is priced, and the Court's guard is the vocabulary — Bulwark, Harrier, Colossus,
+Runt, Heavy Husk. All five shipped in code and were fielded only by the retired `nv-` bestiary
+fixtures, whose own retirement reason reads *"the enemies they prove are redeployed into the curated
+set."* Act 3 is that curated set; redeploying them completes a migration the repo had already
+declared owed.
+
+**The load-bearing half is that the cap is a gradient.** A capped shove still shoves — it simply no
+longer *reaches*, so the drain two tiles away stops being an option and the double kill stops one
+tile short. §2's accumulated law is explicit: *"in a permadeath game, 'only X works' is a soft-lock
+waiting for the roster that lacks X. Thesis lives in price gaps, never hard walls."* A first draft of
+the authoring contract described the aura as *switching the shove economy off*, which is precisely
+that soft-lock, and it was corrected before a board was authored against it. Hold caps **distance**,
+never damage: a push of exactly 1 into a body is still 4 to both.
+
+*Rejected: the Locks as a denial and lockdown act* — gates, keys, one-way passages. It reads well
+against the name and duplicates Setts, leaving two of five territories asking one question.
+*Rejected: a purely thematic Locks* fielding the existing vocabulary at higher difficulty, which is
+"more enemies" and is already refused as a design.
+
+---
+
+**D-277 — RULED: a board buys its round-3 question with architecture OR with an objective, so the blocking floor has a third clause.**
+
+A board pool review proposed a blocking floor — a drawable board outside the Opener band carries
+≥15% impassable tiles in connected formations of 3+, or a dimension that does the same job. The floor
+is well founded: every board the review retired for being an open field sat at 0–6% scattered
+terrain, and the density number predicted the verdicts.
+
+**What forced the amendment:** crossing that review against an objective audit of the same forty
+boards produced a result neither pass could see alone. **Every non-kill-all board passes the terrain
+audit, and every board that fails it is kill-all.** All five — `hz-02` at 3%, `as-05` at 8%,
+`the-shrine` at 10%, `hold-the-gate` at 11%, `break-the-gate` at 14% — sit *below* the proposed floor
+and all five are sound. All eighteen boards carrying a RETIRED or REWORK verdict are kill-all.
+
+**Decided:** the floor reads ≥15% in formations of 3+, **or** a dimension that does the same job,
+**or** a non-kill-all objective supplying the pressure. There are two currencies for a round-3
+question: architecture, or a clock.
+
+*What this rejects is the floor as drafted*, which would have put five of the review's own KEEP
+verdicts in violation of the law shipping beside them, and which already needed an unwritten
+exception for `ec-08-triage` at 8% (*"acceptable because the read is the question"*). An exception
+used twice and written down nowhere is a missing clause.
+
+**A trap for the next session:** the floor and four of the five rework patterns all *add wall mass*,
+while no Ordinary or Hard kill-all board carries a clock or an arrival. Raising the floor alone
+produces better-fortified boards with no more reason to leave the fort — the failure the Fire Emblem
+critical literature names in Conquest Ch. 17, where terrain let the player hold a choke against
+reinforcements and turned an escalating fight into a queue. The floor cannot land alone, which is why
+every Hard and Elite board of Act 3 carries a clock or an arrival.
+
+---
+
+**D-278 — RULED: the non-kill-all census is an invariant, not a list.**
+
+`HoldTheGateTests.EveryFightWithoutAnObjectiveKey_IsStillAKillAll` asserted that the set of active
+boards using the objective vocabulary was **exactly** five named ids.
+
+The test's own name states an invariant — a board plays as Kill All *unless its file says otherwise*
+— but it was implemented as a census, so every objective-shaped board added was a test failure. That
+taught the wrong lesson at the wrong moment: the pool is deliberately growing the share of boards not
+won by clearing the room. **Decided:** it reads the `.fight` sources and asserts that a board with no
+`objective:` key parses as Kill All. It still catches a board acquiring an objective silently.
+
+A second census had the same shape. `ObjectiveParsingTests.FightsWithNoObjectiveKeys_WriteNoObjectiveKeys`
+grepped the whole serialised file for `"wave "`, so a `design:` line explaining that a board keeps
+*"the same contract the wave timetable keeps"* failed it. Anchored to line starts: the claim is about
+**keys**, and a design line is prose.
+
+*Rejected: extending the pinned array.* It goes stale on the next board, and a list that must be
+edited to add content is a tax on content rather than a guard on correctness.
+
+---
+
+**D-279 — RULED: Act 3 ships at 40% or better non-kill-all, and the number is a floor.**
+
+Warrens v2 is **35 of 40 boards kill-all — 87.5%** — and because a generated act draws by band, with
+18 of 20 Ordinary and 11 of 12 Hard boards kill-all, a generated act presents a near-uniform win
+condition for most of its length.
+
+The critical literature on the tactics games with the strongest map-design reputations is unanimous
+that objective variety is the primary defence against solved play: *"games where rout is the only
+objective tend to be solved the same way each and every time."* Objective is not flavour on top of a
+map — it decides which of the map's features matter. The same tiles under Rout, Defend and Escape are
+three boards, because the direction of travel and the value of holding ground invert.
+
+**Decided:** Act 3 ships ≥40% non-kill-all, enforced by `LocksActTests`. The engine already supported
+six objective kinds and two of them — `destroy` and `reach` — were fielded by no shipped board, so
+the shortfall was never a format gap.
+
+*Rejected: retrofitting Warrens v2's boards.* Changing a shipped board's objective changes what it
+asks, and those boards were authored to their current questions.
+
+**A measurement the harness cannot make.** `destroy` and `boss` boards are not gradeable by the
+evaluator policies: the shipped `break-the-gate` reads **0/15 with six stalls** and `quarry-king`
+reads 0/13. Both are shipped, certified content. The policies are one ply deep with no planning and
+both objective types ask for a set-up-then-payoff shape. **Never tune a `destroy` or `boss` board to
+make a policy win it** — that is tuning to a broken instrument. What still applies to them is agency,
+*no stall* (the board must resolve), and arithmetic that closes, stated in a design line. An early cut
+of `lk-20-the-head-gate` had one reachable gate face and a clock it could not beat; that is a real
+defect a policy sweep will never distinguish from a hard board. **These boards owe a human playtest.**
+
+**HELD, with its trigger: anti-turtling pressure for the existing kill-all bulk.** D-114 warns off
+the bare turn limit — *"a turn limit turns a fight with no agency into a loss with no agency"* — and
+the alternatives that work in the source material (a second force already walking, arrivals behind
+the player, a reward that costs time) are all new board content. **Unblocked by:** a designer ruling
+on which the Warrens may adopt.
+
+---
+
+**D-280 — RULED: a reworked board ships beside its original, and the reason is technical before it is editorial.**
+
+**Decided:** every reworked board ships as a new file with a new id and a
+`SUPERSEDE CANDIDATE for <original-id>` design line. Both stay in the pool, drawable, simultaneously.
+
+**What forced it:** unit ids are assigned in row-major order from the spawn letters on the grid, so
+**moving a spawn letter renumbers the units and invalidates every existing replay of that board**
+(`docs/scenarios/DESIGN_PRINCIPLES.md` §8). The editorial argument — that keeping both lets the
+comparison be judged rather than assumed — is real but secondary.
+
+*Rejected: editing the originals in place*, for the replay reason. *Rejected: retiring the originals
+as the reworks land.* The reworks are candidates no human has played, and retiring a board on the
+strength of a policy sweep would be deciding with an instrument `docs/LEVEL_ANALYSIS.md` explicitly
+marks as one ply deep and non-predictive of fun.
+
+**One rework was refused rather than shipped, and the refusal is the useful part.** `tp-01-one-door`
+has no v2: its stated premise — *"Move 0: it never advances, so the door stays corked for as long as
+the Warden is alive"* — is false in code. The Warden carries `PushResistance 0`, and
+`Displacement.EnemyWouldRefuse` refuses only when a shove would end in a Pit, so on a pit-free board
+its Footing 2 is inert and a Vanguard's basic attack evicts it from the gap on round 2. Move 0 then
+means it can never come back: the question expires, which is `hz-07-standing-room`'s retired failure.
+Every shape that passes the gates is already shipped as `ec-01-shieldwall`, `tp-06-the-pillar` or
+`cb-07-two-gates`. **Recommendation: retire `tp-01-one-door` in `ec-01-shieldwall`'s favour.** The
+Warden's one genuinely unique property — its position is permanently transferable for a single shove,
+and its Footing is a real countdown beside a drain — wants a board built around a drain from the
+start, which is new design and the designer's call.
