@@ -1,0 +1,36 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: ec-02-pincer-v2
+number: 953
+name: Both Drains at Once
+pool: Ordinary
+size: 11x7
+description: Two Grapplers still face each other with a drain at each one's feet, and the drains are three tiles deep now with a one-tile rim beside each. The ledge in the dead centre is the tile both of them rank first.
+design: SUPERSEDE CANDIDATE for ec-02-pincer - two lone pits at 4 percent with open field between them, so the pincer had nothing to pin you against and every tile of the middle was the same tile.
+design: THE ROUND-3 QUESTION - which Grappler are you standing next to. By round 3 both alcoves have emptied into the middle corridor and the ledge at 5,3 is the one tile on the board that both priority lists rank FIRST, because a Grappler picks a body on HighGround before it picks anything else. Hold it and you are the pincer's declared target from two sides in the same round; leave it and you are walking a one-tile rim with a three-deep drain on one side of you for three steps running.
+design: THE RIMMED CLUSTER, in numbers. Twenty-four impassable tiles on 77 is 31.2 percent, in eight connected formations of three or more and not one lone tile: the two drains at 2,2 2,3 2,4 and 8,2 8,3 8,4; the two edge walls at 0,2 0,3 0,4 and 10,2 10,3 10,4; and the four alcove brackets 3,1 4,1 4,2 - 3,5 4,5 4,4 - 6,1 7,1 6,2 - 6,5 7,5 6,4. The original carried two pit tiles on 49 - 4 percent - and both were alone. Eighteen wall tiles against six pit tiles, so this is a wall board with drains in it rather than the other way round.
+design: WHAT THE FUSION BOUGHT, AND IT IS ROUTING. A single pit is a place to put a body; three of them in a column with a wall behind is a place nobody can walk. Each drain now has exactly one rim - 1,2 1,3 1,4 on the west, 9,2 9,3 9,4 on the east - one tile wide with masonry on the far side, and those rims are the only way past the drains at all. So the same tile is where you stand to take the free kick on a clinging body, where the Grappler's pull ends, and the only floor between the two halves of the flank. Three systems, one tile, which is what the review asked for.
+design: THE PULL LANE, in numbers. A Grappler's band is range 3 and its pull is 2 toward itself, and the alcove at 3,2 3,3 3,4 sits exactly 2 tiles from the west rim across the drain. A duck standing on 1,3 is 2 away from a Grappler at 3,3, inside the band, and the pull vector runs east - 2,3, which is the drain. The planner prefers that aim over any other because a clinging outcome outscores every collision it could take instead. The east rim reads the same from the other alcove. Standing on a rim is not a mistake; it is the price of the flank, and it is previewable because the intent is drawn before the round.
+design: TWO ROUTES, UNEQUAL PRICES, in numbers. From 1,0 to 9,6 down the middle: 2,0 3,0 4,0 5,0 then the centre column 5,1 5,2 5,3 5,4 5,5 5,6 then east along the bottom - 16 AP, because 5,1 and 5,5 are brambles at 2 AP each, plus 2 damage a body for each bramble tile walked, so 4 hit points on top of the bill. By the west rim instead: 1,1 1,2 1,3 1,4 1,5 1,6 then east - 14 AP and no self-inflicted damage at all. Two AP cheaper and no bramble bill, and it is the worse route, because on the middle route the worst thing that happens to you is a 4 and on the rim the worst thing is permanent.
+design: THE CENTRE IS THE THESIS AND IT IS OWNED. 5,3 is HighGround in the dead centre of the board, reachable only through the two alcove mouths at 4,3 and 6,3 or up the walled column from 5,0 and 5,6. Ranged attacks from it deal +2 and nothing can be shoved UP onto it, so it is the strongest tile here - and it is the tile a Grappler's priority list puts above the Archer and above everything else. A duck pulled off it pays 2 for the drop and the displacement keeps travelling, which on this board means into a wall for 4 or into the ledge below for 4. That is the pincer stated as terrain: the best tile and the most-wanted tile are the same tile.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two diagonal pockets - north-west 0,0 1,0 0,1 and south-east 10,5 9,6 10,6 - unowned, either flock may draft either. Agency before injury holds in its strict form and it holds for DISPLACEMENT as well as damage (D-080, and the high-road defect that a zero-damage pull nobody's threat check saw). A Husk covers a diamond of 4 and the nearest Husk to any spot is 5 away. A Grappler covers 3 from wherever it can stand, and the alcove brackets hold each one to eight tiles - 3,2 3,3 3,4 4,3 5,2 5,3 5,4 6,3 for the west one - every one of which is 4 or more from every spot. Nothing on this board can damage you, shove you, or pull you before you have had a turn.
+design: THE ENEMIES ARE THE CONTENT. Two Grapplers, 10 hit points each, damage 0 - they cannot take a hit point off you and they are the reason this board is dangerous, because they are the ones that decide where you are standing. The Husk at 5,2 is the body that makes holding the ledge cost something: it is adjacent to 5,3 and it swings for 2 while the pincer works. The Husks at 2,5 and 8,1 are one per flank, and a shove into another unit is 4 to BOTH with both Staggered, which in a one-tile rim or a one-tile column is the only collision on offer.
+design: NOT MERGED WITH ec-03-handoff, and the reason is the house rule rather than the review's convenience. This board asks a SPATIAL question - which of two symmetrical threats do you stand between - and ec-03 asks a TEMPORAL one - the telegraph you read is not the shove you get, because the puller activates before the pusher. Folding them together produces a board with two questions, which is the failure DESIGN_PRINCIPLES 5 names, and it would leave one of the two originals with no supersede candidate at all, which the marking convention in ACT3_BOARD_CRITERIA 4 does not allow for.
+
+spawn g = Grappler
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  **.........
+  *..##^##h..
+  #.O.#h#.O.#
+  #.Og.H.gO.#
+  #.O.#.#.O.#
+  ..h##^##..*
+  .........**

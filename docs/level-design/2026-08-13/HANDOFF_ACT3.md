@@ -110,6 +110,26 @@ win it.** What still applies is agency, *no stall*, and arithmetic that closes �
 defect a policy sweep will never distinguish from a hard board. **`lk-20`, `lk-08`, `quarry-king-v2`
 and `rushmaster` owe a human playtest.**
 
+### 3a. A player cannot aim an ordinary attack at a structure — two harness/rule findings
+
+**`AttackCommand` names a target *unit*, and structures are not units.** The only player-side action
+that chips masonry directly is the **Wardbearer's Spear Thrust**, a line ability that damages tiles.
+D-060's *"any attack chips a structure for 2"* is a true statement about the rule — enemies reach it
+and that one ability reaches it — but **it is not a baseline every roster can pay**. `break-the-gate`'s
+own design note describing *"nine direct actions at 2 a swing"* is Wardbearer-only, and a first cut of
+`lk-20-the-head-gate` repeated the same mistake before it was caught.
+
+**Consequence: a `destroy` board must close on collisions alone** (6 apiece, source-blind, the enemy
+supplying the bodies), or it silently depends on a roster and fails G9. Size destroy structures in
+multiples of 6. Both shipped destroy boards now do.
+
+**And on a `protect` board the base evaluator rewards destroying your own objective.**
+`Evaluator.cs:181` adds `DamageToStructure * (Damage + ObjectiveDamage)` with no sign flip for
+Protect, so `objective-first` is the worst offender. A four-face cut of `lk-09-the-pumphouse` was
+demolished by its own players — 16–20 self-damage — before round 5, every run. Two faces and 24 HP is
+what makes it pass. **That is a harness bug, not a board bug**, and it deserves either a sign flip in
+the evaluator or a `DECISIONS.md` note; it will mislead the next protect board too.
+
 ### 4. Recommendation: retire `tp-01-one-door` in `ec-01-shieldwall`'s favour
 
 No `tp-01-one-door-v2` was shipped, and the refusal is the finding. Its stated premise — *"Move 0: it

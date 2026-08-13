@@ -369,10 +369,21 @@ means a connectivity or reachability defect rather than a difficulty one — che
 > - **agency** (`ok`, `0` unsafe spots per side),
 > - **no stall** — the board must always resolve. A stall means it could not even finish, which
 >   *is* a defect. `lk-20-the-head-gate` reads 0 stalls against `break-the-gate`'s six.
-> - **arithmetic that closes** — state, in a design line, the direct-action baseline (structure
->   HP ÷ 2, since any attack chips masonry for 2) against the number of reachable faces and the
->   turn limit. An earlier cut of `lk-20` had one reachable face and a clock it could not beat;
->   that is a real defect a policy sweep will never distinguish from a hard board.
+> - **arithmetic that closes** — state, in a design line, how the structure actually comes down
+>   against the number of reachable faces and the turn limit. An earlier cut of `lk-20` had one
+>   reachable face and a clock it could not beat; that is a real defect a policy sweep will never
+>   distinguish from a hard board.
+>
+> **⚠ A PLAYER CANNOT AIM AN ORDINARY ATTACK AT A STRUCTURE.** `AttackCommand` names a target
+> **unit**, and structures are not units. The only player-side action that chips masonry directly is
+> the **Wardbearer's Spear Thrust**, a line ability that damages tiles. D-060's *"any attack chips a
+> structure for 2"* is a true statement about the rule — enemies reach it, and that one ability
+> reaches it — but **it is not a baseline every roster can pay**, and `break-the-gate`'s own design
+> note describing "nine direct actions at 2 a swing" is Wardbearer-only.
+>
+> **So a `destroy` board must close on COLLISIONS alone** — 6 apiece, source-blind, and the enemy
+> supplies the bodies — or it silently depends on a roster and fails G9. **Size the structure in
+> multiples of 6, not of 2.**
 >
 > **These boards owe a human playtest, and the handoff must say so.** Nothing in the harness can
 > currently tell you whether a `destroy` board is winnable at a fair price.
