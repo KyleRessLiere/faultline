@@ -22,12 +22,12 @@ board here stays drawable (D-271).
 |---|---|---|
 | **Opener** | 7 | Column 1, and the gentlest of an act's early third. A control group: nothing here can hurt you before you have had a turn. |
 | **Ordinary** | 33 | The bulk of an act — its early and middle columns, and the band Warrens v2 draws most heavily from. |
-| **Hard** | 21 | The late third: the fights a squad arrives at already spent. |
+| **Hard** | 22 | The late third: the fights a squad arrives at already spent. |
 | **Elite** | 3 | A gilt node's fight. It costs more and the map says so before you take it. |
 | **Endurance** | 4 | Objective-shaped rather than harder — survive, hold. One per generated act, in the late third. |
 | **Boss** | 3 | Terminals. |
 
-**71 boards in total**, and 27 retired ones the generator never sees.
+**72 boards in total**, and 27 retired ones the generator never sees.
 
 ---
 
@@ -1102,7 +1102,7 @@ board:
 
 ---
 
-# Hard — 21 board(s)
+# Hard — 22 board(s)
 
 The late third: the fights a squad arrives at already spent.
 
@@ -1639,6 +1639,37 @@ AA..g....
 - THE ASYMMETRY SURVIVES, as a property of the board rather than of ownership. One Lobber on the west lip and four bodies on the east - Husks at 6,4 and 7,6, the Stalker at 6,5, the Grappler at 6,6, with a fifth Husk arriving on the loud lip on round 4. The quiet lip is quiet, the loud lip is four-on-however-many-you-drafted, and the ledge at 7,3 - the only high ground on the board - is on the loud side, so the reason to draft east is real and priced. The west Lobber is not decoration: it walks two and throws three across the gap, so a west party that only stands and watches is shooting nothing and being shot.
 - SPOT LAYOUT (MASTER_DESIGN 3). Six unowned spots, three per lip, and this is the one board in the rework batch whose spot COUNT is the fix rather than an incidental. Agency before injury holds strictly (D-080), pull reach included, which is the check high-road failed. A Husk walks 3 and swings 1, and neither east Husk can put a reachable tile within one of a spot - the wall at 5,4 and the bodies behind it hold them to x=6 territory. The Stalker walks 4 and reaches 1. The Grappler is the one that matters, because a Move 3 haul at range 3 covers a diamond of six and its damage is zero, so no damage-based check would ever see it: the wall at 5,5 and the two bodies at 6,5 and 7,6 pen it into row 6, from which its furthest reachable tile is 3,6 and every spot is at y of 1 or less. Nothing reaches a spot on round 1, with a swing or with a rope.
 - ONE ARRIVAL, ON THE LOUD LIP (G14). A Husk at 8,6 on round 4. Every Hard board in this pool is meant to carry a clock or an arrival, and on a board about being split the honest pressure is that the outnumbered half gets MORE outnumbered while the other half is still walking. The arrival tile is open floor, outside both pockets, and the timetable is published at fight start like every other schedule in this game.
+
+## The Terraces - Contested · `as-07-the-terraces-v2`
+
+7×9 · objective **hold the ground** · 2× Anchor, 2× Perch, 1× Harrier (44 HP of fighters) · 8 deployment spots
+
+> Two terraces with their backs to the stone, a trench between them nothing can reach from outside, and Perches that climb. The ground itself is the win condition.
+
+```
+**...**
+.......
+.##.##.
+.#HHH#.
+.aphpa.
+.#HHH#.
+.#####.
+.......
+**...**
+```
+
+`a = Anchor · p = Perch · h = Harrier`
+
+- THE ROUND-3 QUESTION - the deadline judges BOTH terraces at once and round 3 is the first round either crown can be reached, so the standing decision is which one you are actually going to own and by which door. The stair at 3,2 is the only break in the north back-wall: six steps from a north corner and it puts a body on the north crown on round 3 - but only the north crown, and it arrives on high ground where the Harrier's shove is a fall of two that keeps going. The gutters reach either terrace and arrive a round later, on low ground, where the ledge is a wall you slam bodies into and cannot be knocked off. Own one crown early, or arrive late with the option of both.
+- SUPERSEDE CANDIDATE for as-07-the-terraces - both of the original's stated dependencies are dead, and what is left is the contested shelf.
+- VERDICT - REBUILT, NOT DROPPED, and here is the honest accounting of what was salvageable. The original's two design lines are "there is no Archer in this fight at all" and "nobody climbs for free". The first is a thesis about the PLAYER roster, which the Dock draft now owns, and G9 retires exactly that shape (as-04-rope-and-shield and as-09-glass are the precedents). The second was voided when D-152 deleted the climb surcharge - climbing is free for everyone now, so the sentence describes a rule that no longer exists. What survived is the third fact the original never wrote down and never used: a ledge is a WALL for displacement. Nothing can be shoved up onto one, being shoved off costs 2 and the shove CONTINUES, and a ranged attack from one deals +2. That is a whole subsystem and the original spent it on scenery. This board is that sentence made into a fight.
+- BLOCKING, BEFORE AND AFTER. Original as-07 - one wall tile at 6,6 on a 7x7, so 1 of 49 impassable, 2%, and it is a lone tile counting toward nothing. High ground and spikes are priced floor and never count toward the floor, which is why a board covered in ridges still read as empty. This board - 13 walls on a 7x9, 13 of 63, 20.6%, in three connected formations: 1,2-2,2-1,3 and 4,2-5,2-5,3 backing the north terrace, and the seven-tile L of 1,5-1,6-2,6-3,6-4,6-5,6-5,5 backing the south one. Every impassable tile sits in a formation of three or more and there are no lone walls.
+- THE CONTESTED SHELF, which is the pattern the review names for a ledge and never applied here. Each terrace has its back to masonry, so each is reachable from ONE side - the trench - plus the single stair at 3,2 on the north one. That is Radiant Dawn's ledge system and the reason the literature praises it: a climbing point matters most when it is also a chokepoint. The consequence in this game's arithmetic is direct. A Perch standing on 2,3 shoved north from the trench travels nowhere at all and collides with the wall at 2,2 anyway, which is 4 and a Stagger; a Perch has 6 hit points, so the back wall of its own terrace kills it in two shoves. The ledge is not cover. It is the far side of a vice.
+- WHY THE OBJECTIVE IS HOLD, and why that is the fix rather than a decoration. The board's subject is ground, so the win condition is ground: at the end of round 8 no enemy may be standing on either crown. That does two things the original could not. It gives the board a clock, which every Hard board in this pool is meant to carry, and it makes the Perches' own behaviour the problem - a Perch seeks and holds high ground, so the enemy WANTS the tiles you have to clear and walks there on its own activation without a script. You may still win by clearing the board; you do not have to. Killing the two Anchors in the gutter mouths is optional, and noticing that is most of the board.
+- TWO ROUTES, UNEQUAL PRICES, in numbers. THE STAIR - from the spot at 1,0 walk 2,0 - 3,0 - 3,1 - 3,2 and you are on 3,3 in five steps, six from 0,0. It is the cheapest line to a crown by two AP and it is the only line that can hold a crown on round 3. What it costs: you arrive alone on high ground with two Perches shooting at 4 from their own crowns, and the Harrier in the trench pushes 1 for no damage at all, which off a ledge is 2 and a shove that keeps going. THE GUTTER - from 0,0 walk 0,1 - 0,2 - 0,3 - 0,4 - 1,4 - 2,4 and you are under the north crown in six steps and on it in eight, or on the SOUTH crown in eight, which the stair can never do. What it costs: two AP, a round, and an Anchor at 1,4 standing in a one-tile doorway with 12 hit points and push resistance 1. Cost and reach disagree on purpose.
+- THE ROSTER IS THREE KINDS AND NONE OF THEM IS A REQUIREMENT ON YOURS. Two Anchors plug the gutter mouths at 1,4 and 5,4 - Move 1, so they are doors rather than pursuers. Two Perches start in the trench at 2,4 and 4,4 because nothing may START on high ground and climb it themselves on round 1, which is precisely what that archetype exists to solve. One Harrier at 3,4 deals no damage and pushes 1, and it is the only thing on the board that can move a duck: on a board of ledges an enemy that shoves you apart is an enemy that shoves you off. The Archer is legal here, and so is any other draft - the board asks about ground, not about what you brought.
+- SPOT LAYOUT (MASTER_DESIGN 3). Eight unowned spots in four corner pairs on a 7x9, and the shape is forced by arithmetic rather than chosen for looks. A Perch walks 2 and throws 3, and a trench Perch can climb to a crown on its first move, so its diamond of five covers the whole middle of the board; the corners of a nine-row board are the only tiles outside it. From 3,3 the nearest spot is 1,0 at five. Agency before injury therefore holds in its strict form (D-080), and it holds for the zero-damage bodies too: the Harrier walks 4 and reaches 1, and the stair pens its northward escape to column 3, so its furthest threatened tile is 2,0 - which is deliberately not a spot. The Anchors can each reach exactly one tile.
+- NO PIT, NO SPIKES, ANY WHERE. This is one of the act's hazard-free boards on purpose (DESIGN_PRINCIPLES 3). Every displacement outcome the board needs is already in the terrain: into masonry is 4 and a Stagger, off a ledge is 2 and the shove continues, into another body is 4 to both. A drain here would answer the question the ledge is already asking, and the board would be worse for it. The zero-spike lint fires and is left alone.
 
 ---
 

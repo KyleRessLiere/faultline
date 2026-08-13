@@ -3,9 +3,12 @@
 ## Act 3 — the Locks
 
 - **Twenty-four new boards** under the `lk-` prefix, spot-native from birth, each naming the decision
-  still live on round 3. Eleven are not won by clearing the room — the act ships at 46% non-kill-all
-  against Warrens v2's 12.5% — and every Hard and Elite board carries a clock or an arrival (D-276,
-  D-279).
+  still live on round 3. Ten are not won by clearing the room — two each of `survive`, `reach`,
+  `protect`, `hold` and `destroy`, so the act ships at **42% non-kill-all against Warrens v2's
+  12.5%** — and every Hard and Elite board carries a clock or an arrival (D-276, D-279).
+  Bands land exactly on target: Opener 2, Ordinary 11, Hard 7, Elite 2, Endurance 2. Fourteen of the
+  twenty-four carry no pit and no spikes at all, against a floor of five — the counterweight to a
+  blocking floor that otherwise pulls every board toward pit-and-wall.
 - **The Court is fielded.** Bulwark, Harrier, Colossus, Runt and Heavy Husk shipped in code but were
   drawn by nothing: their only boards were retired bestiary fixtures whose own note said the enemies
   should be redeployed into the curated set. This is that set.

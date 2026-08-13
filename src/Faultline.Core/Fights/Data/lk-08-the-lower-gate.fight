@@ -26,11 +26,11 @@ spawn l = Lobber
 spawn b = Bulwark
 spawn w = Warden
 
-roster a: Vanguard, Threadcaster
-roster b: Wardbearer, Archer
+roster a: Vanguard, Archer
+roster b: Wardbearer, Threadcaster
 
-objective: destroy 3,4 hp 6
-turn-limit: 10
+objective: destroy 3,4 hp 12
+turn-limit: 14
 
 wave 3 = h@1,6 h@5,6
 

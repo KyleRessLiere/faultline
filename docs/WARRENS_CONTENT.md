@@ -57,7 +57,7 @@ Column 1 is the fixed opener and the last two columns are the pre-boss Rest and 
 
 ## The board pool today
 
-**71 active boards** (27 retired). Nothing marks difficulty: a `.fight` carries `id · name · number · size ·
+**72 active boards** (27 retired). Nothing marks difficulty: a `.fight` carries `id · name · number · size ·
 description · design · protected · retired · footing · objective` and no tier, role or pool.
 The library's organising axis is **subject** — `tp-` topology, `hz-` hazard, `ec-` enemy
 composition, `as-` asymmetry, `cb-` manoeuvre, `nv-` variant proofs — not difficulty.
@@ -72,7 +72,7 @@ reward and the lane, not about the roster.
 |---|---|---|
 | **Opener** | 7 | column 1, and the gentlest of the early third |
 | **Ordinary** | 33 | the bulk of an act — early and middle columns |
-| **Hard** | 21 | the late third |
+| **Hard** | 22 | the late third |
 | **Elite** | 3 | the gilt node's fight |
 | **Endurance** | 4 | objective-shaped rather than harder: survive, hold |
 | **Boss** | 3 | terminals |
@@ -81,7 +81,7 @@ reward and the lane, not about the roster.
 
 **Ordinary (33)** — Broken Bridge (16), Handoff (18), Widen the Cut (18), The Shrine (20), The Pillar (22), Two Gates (22), The Short Way (24), The Long Way Round (24), Dead Weight (24), One Door (26), Perch War (26), Undertow (26), The Long Channel (26), The Pumphouse (26), The Gallery (26), The Rim (26), Undertow II (26), The Second Shove (28), Pincer (28), Open Order (28), The Short Lock (28), Standing Room (30), Free Kick (30), Rope and Shield (30), Glass (30), Back to the Wall (30), One Step Down (30), Off the Ring (34), Dead Weight (34), Perch War II (34), The Cooperage (38), The Anvil (40), The Lower Gate (56).
 
-**Hard (21)** — The Tail Gate (28), Break the Gate (32), The Maw (32), Three Lanes (32), Both Sides of the Chasm (32), The Terraces (32), The Wicket (32), Crossfire (34), The Sill (34), The Head Gate (34), Causeway (36), Shieldwall (36), Triage (36), Two Fires (36), Both Sides of the Chasm - Drafted (36), The Sanctum (40), Crossfire II (40), The Trench (42), The Crown (48), The Cork (50), The Coping (68).
+**Hard (22)** — The Tail Gate (28), Break the Gate (32), The Maw (32), Three Lanes (32), Both Sides of the Chasm (32), The Terraces (32), The Wicket (32), Crossfire (34), The Sill (34), The Head Gate (34), Causeway (36), Shieldwall (36), Triage (36), Two Fires (36), Both Sides of the Chasm - Drafted (36), The Sanctum (40), Crossfire II (40), The Trench (42), The Terraces - Contested (44), The Crown (48), The Cork (50), The Coping (68).
 
 **Elite (3)** — High Road (32), The Assay (40), The Chamber (48).
 
@@ -105,23 +105,23 @@ at every step. Below that the generator repeats and says so in its proof log (D-
 |---|---|---|---|---|---|
 | **Opener** | column 1, fixed | 7 | 1 | 1 | — |
 | **Ordinary** | early + middle thirds | 33 | 8 | 21 | — |
-| **Hard** | late third | 21 | 8 | 8 | — |
+| **Hard** | late third | 22 | 8 | 8 | — |
 | **Elite** | one gilt node | 1 | 1 | 1 | — |
 | **Event** | 3 scenes | 1 | 1 | 3 | **+2** |
 | **Boss** | the terminal | 1 | 1 | 1 | — |
 | **Endurance** | unplaced by the generator | 4 | — | — | — |
 | Rest | its own column | n/a | n/a | n/a | not authored content — a node type |
 
-**Whole act:** 30 combat nodes at the worst seed against 61 boards in the three bands the generator draws from — enough, if every band may fill any column.
+**Whole act:** 30 combat nodes at the worst seed against 62 boards in the three bands the generator draws from — enough, if every band may fill any column.
 
 ### What that means in one paragraph
 
-The **floor is met with room to spare** — 71 active boards
+The **floor is met with room to spare** — 72 active boards
 against the 8 a single adjacent pair needs — so v2 walks today and its
 repetition is at distance rather than back to back.
 
 **The band that actually runs out is Ordinary.** The early and middle thirds both draw from
-it and together ask for up to 21 against 33 boards. Hard is comfortable at 21 for 8.
+it and together ask for up to 21 against 33 boards. Hard is comfortable at 22 for 8.
 
 **The one shortfall a player meets inside a single run is events**: v2 places up to 3 and 1 ships, so the same scene appears 3 times, three columns apart.
 
@@ -140,6 +140,6 @@ it and together ask for up to 21 against 33 boards. Hard is comfortable at 21 fo
 4. **A second elite board.** Not a shortfall for one act — v2 places exactly one — but one
    board means every gilt node in every run is the same fight, and the elite is the node the
    hungry route is *for*.
-5. **Hard is comfortable** at 21 for 8, and **Endurance (4) is unreachable** —
+5. **Hard is comfortable** at 22 for 8, and **Endurance (4) is unreachable** —
    the generator never places an objective-shaped board, so `the-door` and `hold-the-gate`
    cannot appear in a generated act at all. That is a generator gap, not a content one.
