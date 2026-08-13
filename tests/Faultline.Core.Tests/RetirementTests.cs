@@ -149,6 +149,16 @@ public class RetirementTests
             // The variant proofs: bestiary fixtures, not designs.
             "nv-01-the-toll", "nv-02-contested-ledges", "nv-03-formation",
             "nv-04-open-order", "nv-05-numbers", "nv-06-dead-weight",
+
+            // Superseded by their -v2 reworks (D-280, D-283). Each failed one of the two tests the
+            // pool review graded on - a question still live on round 3, and impassable tiles in
+            // connected mass rather than scattered points - and each has a replacement carrying the
+            // same thesis. They stay parseable because the replay log of every run that played them
+            // still names these ids.
+            "as-02-both-sides-of-the-chasm", "as-07-the-terraces",
+            "cb-06-bait-and-break", "cb-09-crossfire",
+            "ec-02-pincer", "ec-03-handoff", "ec-05-perch-war", "ec-09-undertow",
+            "hz-08-free-kick", "quarry-king", "the-teeth",
         };
 
         Assert.Equal(

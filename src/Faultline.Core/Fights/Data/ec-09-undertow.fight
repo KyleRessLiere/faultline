@@ -8,6 +8,7 @@ number: 309
 name: Undertow
 pool: Ordinary
 description: Corner a Lobber and it retreats north up a pit column, straight into a Grappler's band. Chasing the ranged unit is the trap; the pull is only the invoice.
+retired: superseded by ec-09-undertow-v2, which carries the same thesis over connected blocking mass and a question still live on round 3 (D-280). Kept parseable: the replay logs of every run that played it still name this id.
 design: Enemy composition 9 — the Lobbers run backwards on purpose, and something is waiting back there.
 
 spawn g = Grappler

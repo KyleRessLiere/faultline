@@ -225,15 +225,15 @@ public class RunTests
             new[]
             {
                 "first-contact",
-                "cb-06-bait-and-break",
-                "the-teeth",
+                "cb-06-bait-and-break-v2",
+                "the-teeth-v2",
                 "broken-bridge",
                 "the-shrine",
                 "break-the-gate",
                 "high-road",
                 "hz-09-the-trench",
                 "hold-the-gate",
-                "quarry-king",
+                "quarry-king-v2",
             },
             CampaignLibrary.Faultline.FightIds());
     }

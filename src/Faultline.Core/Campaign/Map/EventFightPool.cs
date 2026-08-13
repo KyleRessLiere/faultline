@@ -68,7 +68,7 @@ namespace Faultline.Core
                 "Forces a choice about who is spent. Reads as a bargain even before an event frames "
                 + "it as one."),
             new EventFightEntry(
-                "as-02-both-sides-of-the-chasm",
+                "as-02-both-sides-of-the-chasm-v2",
                 EventFightFitness.Escort,
                 "A split board: the escortee is on one side of a problem and the squad on the other. "
                 + "Escort-suitable, and the only pool board where the terrain is the antagonist."),

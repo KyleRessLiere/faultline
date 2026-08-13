@@ -7,6 +7,7 @@ number: 402
 name: Both Sides of the Chasm
 pool: Hard
 description: A pit chasm splits the board with one bridge across it. A holds the quiet west; B is alone on the east with a Grappler working the rim.
+retired: superseded by as-02-both-sides-of-the-chasm-v2, which carries the same thesis over connected blocking mass and a question still live on round 3 (D-280). Kept parseable: the replay logs of every run that played it still name this id.
 design: Asymmetry 2 — split deployment across a chasm, one bridge, and you must reunite.
 design: A starts on the west lip, B on the east lip. Almost every enemy is on B's side.
 

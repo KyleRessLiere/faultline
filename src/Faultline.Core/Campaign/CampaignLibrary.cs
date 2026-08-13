@@ -116,8 +116,8 @@ namespace Faultline.Core
             Nodes = new CampaignNode[]
             {
                 new FightNode("first-contact"),
-                new FightNode("cb-06-bait-and-break"),
-                new FightNode("the-teeth"),
+                new FightNode("cb-06-bait-and-break-v2"),
+                new FightNode("the-teeth-v2"),
                 new FightNode("broken-bridge"),
                 new RestNode(),
                 new FightNode("the-shrine"),
@@ -126,7 +126,7 @@ namespace Faultline.Core
                 new FightNode("hz-09-the-trench"),
                 new RestNode(),
                 new FightNode("hold-the-gate"),
-                new FightNode("quarry-king"),
+                new FightNode("quarry-king-v2"),
             },
         };
 

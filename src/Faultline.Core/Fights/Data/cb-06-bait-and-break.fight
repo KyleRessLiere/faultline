@@ -8,6 +8,7 @@ number: 506
 name: Bait and Break
 pool: Opener
 description: Five Husks walk in one column at whoever is nearest. Two walled slots turn the swarm into a queue - but only for the flock that gets a body into a mouth first.
+retired: superseded by cb-06-bait-and-break-v2, which carries the same thesis over connected blocking mass and a question still live on round 3 (D-280). Kept parseable: the replay logs of every run that played it still name this id.
 design: Warrens node 2, edition A - SWARM/TRAFFIC (MASTER_DESIGN 8.8). The one question is who holds the mouth.
 design: Four wall tiles cut two slots out of the south rank, each two deep with a single mouth at (3,4) and (5,4). A duck standing in a slot can be reached by exactly one Husk at a time, so five bodies become five one-on-one fights instead of one surround. Nothing about a slot is free: the duck in it has given up the rest of the board, and the other flock is fighting in the open while it hides.
 design: No drains and no brambles. The pressure is entirely traffic - five bodies, three move each, and a board with two doorways on it. A map with no hazards is not a lesser map, and if this one would be improved by a hole in the floor then the enemy placement is wrong.

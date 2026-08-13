@@ -31,23 +31,23 @@ public static class CuratedSet
         "hz-02-the-short-way",
         "hz-04-causeway",
         "hz-06-the-second-shove",
-        "hz-08-free-kick",
+        "hz-08-free-kick-v2",
         "the-maw",
-        "ec-02-pincer",
-        "ec-03-handoff",
-        "ec-05-perch-war",
+        "ec-02-pincer-v2",
+        "ec-03-handoff-v2",
+        "ec-05-perch-war-v2",
         "ec-08-triage",
-        "ec-09-undertow",
+        "ec-09-undertow-v2",
         "cb-04-dead-weight",
-        "cb-09-crossfire",
-        "as-07-the-terraces",
+        "cb-09-crossfire-v2",
+        "as-07-the-terraces-v2",
         "tp-07-three-lanes",
     };
 
     /// <summary>The four boards about the partnership itself (CURATED_SET §3).</summary>
     public static IReadOnlyList<string> Gauntlet { get; } = new[]
     {
-        "as-02-both-sides-of-the-chasm",
+        "as-02-both-sides-of-the-chasm-v2",
         "as-08-two-fires",
         "as-04-rope-and-shield",
         "as-05-the-door",

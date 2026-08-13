@@ -40,7 +40,7 @@ public static class ActGenerator
     public const string OpenerId = "first-contact";
 
     /// <summary>The board the act terminates on.</summary>
-    public const string BossId = "quarry-king";
+    public const string BossId = "quarry-king-v2";
 
     /// <summary>The boards an elite node may field.</summary>
     /// <remarks>

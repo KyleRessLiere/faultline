@@ -85,7 +85,7 @@ public sealed class CuratedSetTests
             .ToList();
 
         Assert.NotEqual(CuratedSet.Spine, byNumber);
-        Assert.Equal(1, CuratedSet.SlotOf("cb-06-bait-and-break"));
+        Assert.Equal(1, CuratedSet.SlotOf("cb-06-bait-and-break-v2"));
     }
 
     [Fact]

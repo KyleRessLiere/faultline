@@ -8,6 +8,7 @@ number: 303
 name: Handoff
 pool: Ordinary
 description: A Grappler yanks somebody up into the pit row and a Stalker, activating later in the same round, walks round and shoves them in. The telegraph you read is not the shove you get.
+retired: superseded by ec-03-handoff-v2, which carries the same thesis over connected blocking mass and a question still live on round 3 (D-280). Kept parseable: the replay logs of every run that played it still name this id.
 design: Enemy composition 3 — the Grappler delivers, the Stalker finishes.
 
 spawn g = Grappler
