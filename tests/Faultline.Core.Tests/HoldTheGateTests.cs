@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Faultline.Core;
 
 namespace Faultline.Core.Tests;
@@ -319,28 +322,81 @@ public class EveryFightStillPlaysTests
     [Fact]
     public void EveryFightWithoutAnObjectiveKey_IsStillAKillAll()
     {
-        var withObjectives = new List<string>();
+        // The claim in this test's name is an INVARIANT, not a census: a board plays as the Kill
+        // All it always was unless its own file says otherwise, and a board must never acquire an
+        // objective silently.
+        //
+        // It used to be written as a pinned list of the five boards that used the objective
+        // vocabulary, which made every new objective-shaped board a test failure. That was the
+        // wrong lesson to teach: the pool is deliberately growing its share of non-kill-all
+        // boards, because an act where every board is won the same way is solved the same way.
+        // Derived from the files instead, so it still catches the thing worth catching.
+        var declared = ObjectiveKeysByFightId();
 
         foreach (var fight in FightLibrary.All())
         {
-            if (fight.Objective.Kind != ObjectiveKind.KillAll)
+            Assert.True(
+                declared.ContainsKey(fight.Id),
+                $"No source file declares the id '{fight.Id}'.");
+
+            if (!declared[fight.Id])
             {
-                withObjectives.Add(fight.Id);
+                Assert.Equal(ObjectiveKind.KillAll, fight.Objective.Kind);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every id in <c>Fights/Data</c>, mapped to whether its file carries an <c>objective:</c> key.
+    /// Read off the files rather than the parsed definition, because the question is what the
+    /// AUTHOR wrote — a parsed board reports Kill All whether that was chosen or merely defaulted.
+    /// </summary>
+    private static Dictionary<string, bool> ObjectiveKeysByFightId()
+    {
+        var directory = Path.Combine(RepoRoot(), "src", "Faultline.Core", "Fights", "Data");
+        var map = new Dictionary<string, bool>();
+
+        foreach (var path in Directory.GetFiles(directory, "*.fight"))
+        {
+            string? id = null;
+            bool hasObjective = false;
+
+            foreach (var line in File.ReadAllLines(path))
+            {
+                var trimmed = line.TrimStart();
+
+                if (id is null && trimmed.StartsWith("id:", StringComparison.OrdinalIgnoreCase))
+                {
+                    id = trimmed.Substring("id:".Length).Trim();
+                }
+                else if (trimmed.StartsWith("objective:", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasObjective = true;
+                }
+            }
+
+            if (id is not null)
+            {
+                map[id] = hasObjective;
             }
         }
 
-        // Exactly these active fights use the objective vocabulary; every other file has no
-        // objective key and still plays as the Kill All it always was. quarry-king writes
-        // `objective: kill-all` explicitly, which is the same thing said out loud, so it is absent.
-        Assert.Equal(
-            new[]
-            {
-                "hz-02-the-short-way",
-                "as-05-the-door",
-                "the-shrine",
-                "break-the-gate",
-                "hold-the-gate",
-            }.OrderBy(id => id),
-            withObjectives.OrderBy(id => id));
+        return map;
+    }
+
+    /// <summary>
+    /// The repo root, found from this file's own compile-time path rather than from the working
+    /// directory — a test runner's cwd is not something to build on.
+    /// </summary>
+    private static string RepoRoot([CallerFilePath] string here = "")
+    {
+        var dir = Directory.GetParent(here);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "FIGHT_FORMAT.md")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.NotNull(dir);
+        return dir!.FullName;
     }
 }
