@@ -115,6 +115,14 @@
         60deg, rgba(0, 0, 0, .5) 0 1px, transparent 1px 5px);
 }
 
+/* Canal water: a blue that cannot be read as the drain's black or the ledge's green, hatched
+   horizontally so the surface reads as a level rather than a pit. */
+.sw.water {
+    background-color: #1f4f6b;
+    background-image: repeating-linear-gradient(
+        0deg, rgba(190, 230, 255, .26) 0 1px, transparent 1px 4px);
+}
+
 .sw.deploy {
     background-color: #242c38;
     border: 1px dashed var(--pt-cyan);

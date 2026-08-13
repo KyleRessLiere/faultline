@@ -207,6 +207,7 @@ button.brush.on {
 .sw.pit    { background: #0b0c10; border: 1px solid #333; }
 .sw.spikes { background: #6d3a2f; }
 .sw.high   { background: #3f4b3a; }
+.sw.water  { background: #1f4f6b; }
 .sw.slot-a { background: transparent; border: 1px dashed var(--player-a); }
 .sw.slot-b { background: transparent; border: 1px dashed var(--player-b); }
 .sw.eraser { background: transparent; border: 1px solid var(--muted); }
@@ -250,6 +251,7 @@ button.pcell {
 .pcell.spikes  { background: #6d3a2f; }
 .pcell.high    { background: #3f4b3a; }
 .pcell.cracked { background: #2b303a; }
+.pcell.water   { background: #1f4f6b; }
 
 .pcell.zone-a {
     outline: 2px dashed var(--player-a);

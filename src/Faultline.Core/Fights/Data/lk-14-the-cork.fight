@@ -1,0 +1,44 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-14-the-cork
+number: 914
+name: The Cork
+pool: Hard
+size: 7x9
+description: A Colossus stands in the one-tile gate and cannot be shoved out of it. The corridor round the east side is four steps dearer, and the second file lands on round 3 whichever you pick.
+design: THE ROUND-3 QUESTION - two Heavy Husks arrive at 0,0 and 6,0 at the start of round 3, published from the first second of the fight, and by then the Colossus has taken its third step down the gate. It is 20 hit points and push resistance 2, so a Bull Rush's 2 tiles becomes 0 and a Punt's 3 becomes 1: you cannot move it out of the gate and you were never going to. What you can do is slam other bodies INTO it for 4 apiece, and there are three Runts at 2 hit points each to spend. Round 3 asks whether you feed the gate now while the east corridor is still empty, or take the corridor's seven steps and leave 20 hit points standing between you and the arrivals.
+design: THE ARITHMETIC, off UnitTemplate.cs and not off MASTER 6, whose stat lines are stale. Colossus 20 HP / Move 1 / melee 6 / push resistance 2. Runt 2 HP / Move 4 / melee 2. Harrier 8 HP / Move 4 / DAMAGE 0 / Push 1. Heavy Husk 6 HP / Move 3 / melee 2. Thirty-four hit points on the board at the bell of round 1, forty-six once the first file lands on round 3, fifty once the second lands on round 6. A collision is 4 to BOTH bodies: five bodies put into the Colossus is 20 and it is dead, and every one of those five collisions also kills a Runt outright or leaves a Heavy Husk on 2.
+design: MOVE 1 IS THE WHOLE POINT OF FIELDING IT. The Colossus is the heaviest body in the game and the slowest, so it is a problem you choose when to meet rather than one that arrives. It takes five rounds to walk the gate from 3,3 to 3,8. Every round you spend on it is a round the arrivals spend closing, and every round you spend avoiding it is a round it spends putting itself between you and the way home. That is the clock this board carries (G14), and the wave is the second half of it.
+design: TWO ROUTES, UNEQUAL PRICES. From the central spot at 3,7 the gate is THREE steps - 3,6 3,5 3,4 - and you are adjacent to a body that deals 6 in a corridor one tile wide with masonry on both shoulders, where you cannot walk round it and neither can anything behind it. From the eastern pocket at 6,8 the corridor is SEVEN steps to 6,1 and it is empty for the first two rounds; it arrives north of the gate, past a body that turns at one tile a round. Four steps dearer, and the exposure is inverted: the gate is contact on round 1 and the corridor is contact on round 3, which is exactly when the file lands on top of it.
+design: THE GATE IS A COLLISION MACHINE AND THAT IS WHY IT IS WORTH TAKING. Row 3 leaves one open tile at 3,3 with masonry at 2,3 and 4,3; row 4 the same at 3,4; row 5 has the ledge at 3,5 with masonry at 2,5 and 4,5. Nothing can be shoved up onto high ground, so the ledge collides like a wall from the north and drops for 2 and keeps travelling from the south. Anything shoved sideways anywhere in the gate hits masonry for 4. The two bramble tiles at 2,2 and 4,2 are the gate's north shoulders: a body shoved off the mouth lands on them for 6 and stops there, which is a hard stop rather than a kill and is repeatable.
+design: THE HARRIER IS THE TAX ON THE PLAN, NOT ON THE HIT POINTS. It deals no damage at all, so it can never hold a lethal and its list is pure separation - it flanks and shoves whichever duck it can put furthest from its nearest ally. In a board whose answer is stacking bodies into a corridor, the enemy that takes your line apart costs more than the enemy that takes your hit points. Eight hit points, and deciding when to spend the action on it is the second half of round 3.
+design: THE ARCHITECTURE. Twelve wall tiles of sixty-three, 19 percent, in two connected formations - five at 0,3 1,3 2,3 2,4 2,5 and seven at 5,1 5,2 5,3 4,3 4,4 5,4 4,5. They cut a nine-row board down to two crossings and leave a dead-end alcove at 0,4 1,4 0,5 1,5 that is reachable, worthless and deliberately there: a pocket you can be shoved into is a shape, and the board says so rather than pretending the ground is even. Two bramble tiles and no drain anywhere - the hazard on this board is a hard stop, not a finisher.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight unowned spots: six across the south edge, one at 3,7 in the gate's mouth and one at 6,7 in the corridor's. The two forward spots are the two routes made explicit, and both are outside every enemy's round-1 reach. The Colossus at 3,3 walks 1 and swings 1, so it covers 2 and reaches 3,5. A Runt covers 5 and the one at 6,1 reaches 6,6, one tile short of 6,7. The Runts at 1,1 and 2,1 cannot get south at all on round 1: the gate is corked by the Colossus and the only other crossing is column 6. Nothing here can hurt you before you have had a turn.
+design: WAVE ARRIVALS VERIFIED BY HAND, because nothing lints them. 0,0, 3,0 and 6,0 are all Open floor on row 0, all outside every deployment spot - the nearest spot is 3,7, seven rows away - and all on the far side of the wall banks from the flock. The timetable is published at fight start, so an arrival is planning information rather than an ambush.
+design: TWO ARRIVALS, BECAUSE ONE IS NOT A CLOCK. A single file on round 3 rewards waiting for it and then playing slowly forever afterwards, which is the failure the pressure gate exists to close. The second file is two Runts at 4 hit points between them - almost no weight and all timetable - and they land at 3,0 and 6,0, which are the north mouths of the two routes. A flock that has parked in either corridor and is grinding it round by round gets the queue refilled from the end it was not watching, on a round it was told about at the start.
+design: DELIBERATE LINTS. CentreNotClear and HazardOffOuterRings fire and are noise at this size (DESIGN_PRINCIPLES 7). SpawnsNotOnOppositeEdges fires because the Court holds the north and the gate; the arrivals hold the north too, which is the shape a board with a published second file has.
+
+spawn c = Colossus
+spawn r = Runt
+spawn x = Harrier
+spawn d = HeavyHusk
+
+roster a: Vanguard, Archer
+roster b: Wardbearer, Threadcaster
+
+wave 3 = d@0,0 d@6,0
+wave 6 = r@3,0 r@6,0
+
+board:
+  .......
+  .rr.x#r
+  ..^.^#.
+  ###c##.
+  ..#.##.
+  ..#H#..
+  .......
+  ...*..*
+  ***.***

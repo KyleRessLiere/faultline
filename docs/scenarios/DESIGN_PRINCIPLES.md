@@ -44,7 +44,11 @@ usually the enemy placement, not the terrain.
 It already does four distinct things, and most maps use none of them:
 
 - Ranged attacks **from** it deal +2.
-- Climbing costs an extra movement point — **except** for the Archer, who climbs free.
+- Climbing is **free**, for everybody, on both sides (D-152). *This line used to say it cost an
+  extra movement point except for the Archer; `Movement.StepCost` deleted the surcharge and the
+  Archer's free-climb perk with it, since both bought a discount on a step that is no longer
+  expensive. Position is already the price.* Two separate board authors priced routes off the
+  stale wording before it was caught.
 - A unit **cannot be shoved up onto it**; the ledge collides like a wall.
 - Being shoved **off** it costs 2 and the displacement keeps going.
 

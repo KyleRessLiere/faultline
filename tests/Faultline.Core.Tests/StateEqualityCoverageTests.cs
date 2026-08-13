@@ -291,6 +291,16 @@ public class StateEqualityCoverageTests
                 ["TurnLimit"] = f => f with { TurnLimit = f.TurnLimit + 1 },
                 ["SizeDeclared"] = f => f with { SizeDeclared = !f.SizeDeclared },
                 ["Waves"] = f => f with { Waves = Array.Empty<ReinforcementWave>() },
+
+                // The water level is authored, never stored on GameState: two fights differing only
+                // in their sluice schedule flood different tiles, so Equals has to see it (D-275).
+                ["SluiceSteps"] = f => f with
+                {
+                    SluiceSteps = new[]
+                    {
+                        new SluiceStep(new Coord(0, 0), new[] { new Coord(1, 1), new Coord(1, 2) }),
+                    },
+                },
                 ["FootingGrants"] = f => f with
                 {
                     FootingGrants = new[] { FootingGrant.ForSide(Team.Enemy, 2) },

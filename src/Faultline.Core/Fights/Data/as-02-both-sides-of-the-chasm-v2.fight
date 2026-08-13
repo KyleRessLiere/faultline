@@ -1,0 +1,39 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: as-02-both-sides-of-the-chasm-v2
+number: 960
+name: Both Sides of the Chasm - Drafted
+pool: Hard
+size: 9x7
+description: The chasm still splits the board and there is still one bridge. What is new is that the pockets hold three and the flocks field four, so the split is drafted rather than assigned - and somebody is always on the loud lip.
+design: THE ROUND-3 QUESTION - by round 3 the far party is three or four steps from the bridgehead and the loud lip is already trading, and the choice is which of the two crossings it buys. The tunnel at 3,3 - 4,3 - 5,3 is eight steps from the west pocket and it is one tile wide with a drain to the north and a drain to the south of its middle tile, so a body that commits to it cannot step aside for the rest of the fight. The south edge at 4,6 is fourteen, six AP dearer, and it walks you along the strip where the Grappler, the Stalker and the Lobber all stand - but it is the only line that ends up WEST of the east cluster, with the drains behind them instead of in front of you. Cross cheap into a tube, or cross dear onto the right side of the hole.
+design: SUPERSEDE CANDIDATE for as-02-both-sides-of-the-chasm - its split thesis died the moment deployment stopped being owned, because shared spots let both flocks draft onto the same lip.
+design: THE DEFECT, precisely. The original's whole design line is "A starts on the west lip, B on the east lip. Almost every enemy is on B's side." That is a sentence about ZONE OWNERSHIP, and MASTER_DESIGN 3 deleted zone ownership: A and B became one published list either flock may draft into. On the shipped board the two three-tile columns at 0,2-0,4 and 8,2-8,4 union into a six-spot list and nothing stops four ducks stacking on the quiet lip, which is the whole board undone in one deployment. Nothing about the geography is wrong. The DEPLOYMENT was the defect, which is the same ruling high-road produced.
+design: THE FIX IS ARITHMETIC, NOT A NEW MECHANIC. Two pockets of THREE - 0,0 1,0 0,1 on the west lip, 7,0 8,0 8,1 on the east - and two rosters of two, which is four ducks into pockets that hold three. Four will not fit in one pocket. The worst case a flock can draft is three and one, so the split survives every draft and is still CHOSEN rather than handed out: who is stranded, and on which lip, is now the first decision of the fight instead of a line in the header. Six spots, which is inside the 6-8 band anyway, so the split costs nothing against G7 - the pockets are small because that is the thesis, not because the board ran out of room.
+design: BLOCKING, BEFORE AND AFTER. Original - six pits in the x=4 column and nothing else impassable, 6 of 63 tiles, 9.5%, in two formations of three. This board - five pits and five walls, 10 of 63, 15.9%, and every one of the ten sits in a formation of five. North: the drains at 4,0 4,1 4,2 with the buttresses at 3,2 and 5,2. South: the drains at 4,4 4,5 with 3,4 5,4 and 5,5. The buttresses are what turn a gap in a pit column into a bridge - 3,3 and 5,3 are now walled above and below, so the crossing is a three-tile tunnel rather than a wide-open row.
+design: THE RIM IS THE DANGER, NOT THE BRIDGE, and that is deliberate. Nothing can stand on a drain, so nothing can shove a body sideways off the middle of the bridge; the crossing is safe and slow. The rim is where the fight is. A Grappler hauls 2 at range 3 and there is no line of sight in this game, so a Grappler standing at 5,1 pulls a duck off 3,1 straight through the drain at 4,1 - across the chasm, from the far lip, for no damage at all. The Stalker ranks a drain above spikes above the edge and needs only to get adjacent. Standing on the lip to shoot across the gap is the obvious play and it is the one the board punishes.
+design: THE ASYMMETRY SURVIVES, as a property of the board rather than of ownership. One Lobber on the west lip and four bodies on the east - Husks at 6,4 and 7,6, the Stalker at 6,5, the Grappler at 6,6, with a fifth Husk arriving on the loud lip on round 4. The quiet lip is quiet, the loud lip is four-on-however-many-you-drafted, and the ledge at 7,3 - the only high ground on the board - is on the loud side, so the reason to draft east is real and priced. The west Lobber is not decoration: it walks two and throws three across the gap, so a west party that only stands and watches is shooting nothing and being shot.
+design: SPOT LAYOUT (MASTER_DESIGN 3). Six unowned spots, three per lip, and this is the one board in the rework batch whose spot COUNT is the fix rather than an incidental. Agency before injury holds strictly (D-080), pull reach included, which is the check high-road failed. A Husk walks 3 and swings 1, and neither east Husk can put a reachable tile within one of a spot - the wall at 5,4 and the bodies behind it hold them to x=6 territory. The Stalker walks 4 and reaches 1. The Grappler is the one that matters, because a Move 3 haul at range 3 covers a diamond of six and its damage is zero, so no damage-based check would ever see it: the wall at 5,5 and the two bodies at 6,5 and 7,6 pen it into row 6, from which its furthest reachable tile is 3,6 and every spot is at y of 1 or less. Nothing reaches a spot on round 1, with a swing or with a rope.
+design: ONE ARRIVAL, ON THE LOUD LIP (G14). A Husk at 8,6 on round 4. Every Hard board in this pool is meant to carry a clock or an arrival, and on a board about being split the honest pressure is that the outnumbered half gets MORE outnumbered while the other half is still walking. The arrival tile is open floor, outside both pockets, and the timetable is published at fight start like every other schedule in this game.
+
+spawn h = Husk
+spawn l = Lobber
+spawn g = Grappler
+spawn s = Stalker
+
+roster a: Vanguard, Wardbearer
+roster b: Archer, Threadcaster
+
+wave 4 = h@8,6
+
+board:
+  **..O..**
+  *.^.O.^.*
+  ...#O#...
+  .......H.
+  ...#O#h..
+  ....O#s..
+  .l....gh.

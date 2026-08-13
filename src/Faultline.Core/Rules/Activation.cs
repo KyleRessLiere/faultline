@@ -41,6 +41,19 @@
         /// </summary>
         public const int BrambleCost = 2;
 
+        /// <summary>
+        /// Cost to wade into canal water (<see cref="TileType.Water"/>) — the same surcharge
+        /// brambles charge, and deliberately defined as that rather than as a second 2.
+        /// </summary>
+        /// <remarks>
+        /// The two prices are the same number because they are the same idea: crossing costs you a
+        /// step you would rather have spent elsewhere. Written as <see cref="BrambleCost"/> so that
+        /// re-pricing the wade is a decision somebody has to make on purpose, and so that a sweep
+        /// for "what does difficult ground cost" finds one answer instead of two literals that
+        /// happen to agree today.
+        /// </remarks>
+        public const int WadeCost = BrambleCost;
+
         /// <summary>Basic attacks, Stagger Shot, Spear Thrust, Guard Stance, the Fisher's flick, interact.</summary>
         public const int ActionCost = 1;
 

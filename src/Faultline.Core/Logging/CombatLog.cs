@@ -120,6 +120,7 @@ namespace Faultline.Core
             EnemyBrokeOnBreakwater => nameof(EnemyBrokeOnBreakwater),
             BramblesGrew => nameof(BramblesGrew),
             TerrainReverted => nameof(TerrainReverted),
+            CanalRose => nameof(CanalRose),
             GreasedFeatherSpent => nameof(GreasedFeatherSpent),
             HandOffGranted => nameof(HandOffGranted),
             StepBanked => nameof(StepBanked),
@@ -342,6 +343,9 @@ namespace Faultline.Core
 
             BramblesGrew e => "scatters brambles on " + e.At
                 + ", until the end of round " + Number(e.ThroughRound),
+
+            CanalRose e => "the canal comes in over " + e.At
+                + ", the sluice at " + e.Gate + " being down",
 
             TerrainReverted e => "the ground at " + e.At + " goes back to " + Ground(e.Now)
                 + (e.Beneath is { } beneath
@@ -646,6 +650,7 @@ namespace Faultline.Core
             TileType.Spikes => "brambles",
             TileType.HighGround => "high ground",
             TileType.Cracked => "cracked ground",
+            TileType.Water => "the canal",
             _ => "open ground",
         };
     }

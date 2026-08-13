@@ -82,6 +82,7 @@ public static class EventText
         StructureAttacked e => $"{Name(state, e.AttackerId)} strikes the structure at {e.At} for {e.Damage}.",
         StructureDamaged e => $"Structure at {e.At} → {e.RemainingHp} HP ({e.Source}).",
         StructureDestroyed e => $"✖ The structure at {e.At} comes down.",
+        CanalRose e => $"≈ The canal comes in over {e.At} — the sluice at {e.Gate} is down.",
         ReinforcementScheduled e => $"⏱ {UnitTemplate.For(e.Kind).Name} due round {e.Round} at {e.At}.",
         ReinforcementArrived e => e.At == e.Scheduled
             ? $"⇥ {UnitTemplate.For(e.Kind).Name} arrives at {e.At}."
@@ -228,6 +229,7 @@ public static class EventText
         TileType.Spikes => "spikes",
         TileType.HighGround => "high",
         TileType.Cracked => "cracked",
+        TileType.Water => "water",
         _ => "open",
     };
 }

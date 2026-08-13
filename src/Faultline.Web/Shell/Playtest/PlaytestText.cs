@@ -40,6 +40,10 @@ public static class PlaytestText
         TileType.Spikes => "Brambles",
         TileType.HighGround => "High ground",
         TileType.Cracked => "Cracked",
+
+        // Never "Water": the enum identifier is not a player-facing noun. The canal is what the
+        // world calls it, and a sluice is what moves it (D-275).
+        TileType.Water => "Canal",
         _ => "Open",
     };
 
@@ -55,6 +59,7 @@ public static class PlaytestText
         TileType.HighGround => Activation.StepCost + " " + ActionPoints.Label
             + " to climb · +" + Combat.HighGroundBonus + " on a ranged shot from here.",
         TileType.Cracked => Activation.StepCost + " " + ActionPoints.Label + " to enter · it is going to give way.",
+        TileType.Water => Activation.WadeCost + " " + ActionPoints.Label + " to wade in · no damage.",
         _ => Activation.StepCost + " " + ActionPoints.Label + " to enter.",
     };
 
@@ -67,6 +72,7 @@ public static class PlaytestText
         TileType.Pit => "Left clinging on the lip · the shove stops here.",
         TileType.Spikes => Displacement.SpikeDamage + " damage and a stagger · the shove stops here.",
         TileType.HighGround => "Cannot be shoved up onto it.",
+        TileType.Water => "No damage · a stagger · the shove stops here.",
         _ => "No effect · the shove carries on.",
     };
 
@@ -83,10 +89,18 @@ public static class PlaytestText
     /// <summary>Whether being shoved onto this terrain staggers.</summary>
     /// <param name="tile">Terrain to ask about.</param>
     /// <returns>Whether it staggers.</returns>
+    /// <remarks>
+    /// The canal is here and absent from <see cref="TerrainDamage"/>, which is the whole of what it
+    /// is: it staggers without hurting (D-275).
+    /// </remarks>
     public static bool TerrainStaggers(TileType tile) =>
-        tile is TileType.Wall or TileType.Spikes;
+        tile is TileType.Wall or TileType.Spikes or TileType.Water;
 
     /// <summary>Whether a shove carries on across this terrain rather than stopping on it.</summary>
+    /// <remarks>
+    /// Canal water is deliberately not in the list: it costs a body nothing and still ends the
+    /// travel, which is the only stop in the game that does (D-275).
+    /// </remarks>
     /// <param name="tile">Terrain to ask about.</param>
     /// <returns>Whether travel continues.</returns>
     public static bool TerrainContinues(TileType tile) =>
@@ -341,6 +355,7 @@ public static class PlaytestText
         TileType.Spikes => Terrain(TileType.Spikes).ToLowerInvariant() + " " + Displacement.SpikeDamage,
         TileType.Pit => Terrain(TileType.Pit).ToLowerInvariant(),
         TileType.HighGround => Terrain(TileType.HighGround).ToLowerInvariant(),
+        TileType.Water => Terrain(TileType.Water).ToLowerInvariant(),
         _ => Terrain(TileType.Open).ToLowerInvariant(),
     };
 

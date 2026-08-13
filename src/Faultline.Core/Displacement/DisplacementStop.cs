@@ -17,5 +17,11 @@ namespace Faultline.Core
 
         /// <summary>Went into a pit and is now Clinging.</summary>
         Pit = 4,
+
+        /// <summary>
+        /// Went into the canal: no damage, Staggered, and the shove stops there (D-275). The only
+        /// stop that costs a body nothing at all and still ends the travel.
+        /// </summary>
+        Water = 5,
     }
 }

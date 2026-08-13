@@ -1,0 +1,40 @@
+# Coordinates are x,y with 0,0 top-left (DECISIONS.md D-042).
+#
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it     S  the protect structure
+
+id: lk-09-the-pumphouse
+number: 909
+name: The Pumphouse
+pool: Ordinary
+description: Raiders walk two channels at a twelve-hit-point pumphouse and never once look at you. The east channel ends in masonry and the west channel ends in a drain, and a Bulwark decides which of the two you can still afford.
+design: THE ROUND-3 QUESTION - the second pair of Raiders lands at the start of round 3, one at each end of the board, and by then the Bulwark has caught up with the first pair. The question is which wall you fight against for the rest of the fight: the east masonry, where a one-tile shove is 4 and the aura changes nothing at all, or the west drain, where the same removal needs two tiles of travel and therefore costs you the Bulwark first.
+design: THE TWO CHANNELS ARE NOT THE SAME ROUTE DRAWN TWICE, AND THAT IS THE BOARD. East is a solid three-tile bank of masonry at 5,1 5,2 5,3. West is the same bank with its middle tile replaced by a drain: 1,1 wall, 1,2 DRAIN, 1,3 wall. A collision into masonry is 4 and a Stagger, which kills a 4-hit-point Raider outright and does nothing whatever to a 10-hit-point Bulwark. A shove into the drain is Clinging and then permanent, and it does not care what the hit points were. Same verb, same one action, two completely different prices - and the expensive answer is the only one that removes the aura.
+design: WHERE THE AURA ACTUALLY BITES, IN TILES. HoldAura caps the displacement of every ally ADJACENT to the Bulwark at one tile - never its own carrier (D-019), never to zero (MASTER_DESIGN 2, gradients not immunities). A Raider standing on 2,2 needs one tile of shove to reach the drain at 1,2, and one tile is exactly what the cap allows, so the aura is irrelevant there. A Raider standing on 3,2 needs two, and inside the aura it travels one and stops on 2,2 with the drain still a tile away. The aura is not a wall across the drain; it is a tile of extra walking, paid before every shove, until somebody spends ten hit points on it.
+design: HOLD CAPS DISTANCE, NOT DAMAGE, and the east bank is the proof. A Raider adjacent to the masonry is one tile from a collision whatever else is standing beside it, so the aura never protects anybody from the east wall. That is why the cheap answer stays available all game and why this board is a price gap rather than a lock.
+design: THE RAIDERS DO NOT CARE ABOUT YOU. PlanRaider has exactly two clauses - claw the structure if adjacent, else path to it - and no clause about player units at all, so nothing you do to them personally makes them stop wanting the pumphouse. A Raider is 4 hit points, Move 3 and 2 damage a claw, and its intent names the structure and prints the hit points it will have left (D-164). Twelve hit points and two Raiders adjacent is three rounds. The escort Husk DOES hunt you, so standing on the ring and swinging is not a plan.
+design: SHOVING AN ENEMY INTO THE THING YOU ARE GUARDING DAMAGES THE THING YOU ARE GUARDING. A collision into a structure is source-blind and lands the full 6, which is half the pumphouse for one careless push. The ring tiles 2,3 4,3 3,2 and 3,4 are all places where an aimed shove has a wrong answer, and the board never says which direction is which - the preview does.
+design: TWO ROUTES, UNEQUAL PRICES, AND THE SPOT POCKETS ARE DELIBERATELY LOPSIDED. Four spots sit east at 4,6 5,6 6,6 and 6,5; two sit west at 0,6 and 1,6. From 5,6 the east bank is three steps - 5,5 to 5,4 to 4,4 - and a duck there is answering the east channel from round 2 at 4 damage a slam. From 0,6 the west drain's firing tile at 0,2 is four steps and its useful tile 2,3 is five, and from either of them the east channel is five tiles away and cannot be answered at all. Cheap, near and shallow against dear, far and decisive.
+design: NO TURN LIMIT, AND THAT IS A FORMAT FACT RATHER THAN A CHOICE. The format refuses a deadline on protect - it cannot be won by the bell (D-167) - so the win here is clearing both channels and the loss is the pumphouse falling. Recorded rather than worked around, exactly as the-shrine records it.
+design: TERRAIN BUDGET. Six impassable tiles in two connected formations of three, plus the structure: 14.3 percent with the structure counted, below the 15 percent floor and legal because a non-kill-all objective supplies the pressure directly - G3's third clause, the amendment the Warrens cross-reading made and the reason all five of its non-kill-all boards are sound below the floor. ONE drain on the whole board against four wall tiles, because a pit is the finisher and should feel rare.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots, unowned, and the lopsided pockets are the thesis stated at deployment: both flocks may pile into the eastern cluster and concede the west channel, or split and cover both at half strength. Every spot is outside every enemy's round-1 reach - a Raider's walk is 3 and its swing 1, and the banks at x1 and x5 are what force the walk round rather than down.
+
+spawn r = Raider
+spawn b = Bulwark
+spawn h = Husk
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: protect 3,3 hp 16
+
+wave 3 = r@3,6
+
+board:
+  .r.b.r.
+  .#.h.#.
+  .O...#.
+  .#.S.#.
+  .......
+  ......*
+  **..***

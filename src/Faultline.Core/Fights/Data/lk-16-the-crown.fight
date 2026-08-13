@@ -1,0 +1,41 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-16-the-crown
+number: 916
+name: The Crown
+size: 9x7
+pool: Hard
+description: One raised sill through the middle of a lock chamber, a Bulwark walking down into its mouth, and a Colossus that lands behind you at the start of round three. The tile you are holding faces the wrong way from then on.
+design: THE ROUND-3 QUESTION - the timetable is published at fight start and it says a Colossus arrives at 4,6, in the mouth of your own deployment pocket, at the start of round 3. Round 3 is the round where the sill you have been fighting for stops being the front of the board and becomes the back of it. The question is whether the ducks who crossed keep going north with 20 hit points of Move 1 behind them, or turn round and spend the rest of the fight walking back to a body that walks one tile a round.
+design: ACT 3, HARD BAND. Hard is the late third - the fights a squad arrives at already spent - and every Hard board carries a clock or an arrival. This one carries an arrival, and it is deliberately an arrival that lands BEHIND the players rather than in front of them, which is break-the-gate's move: a wave authored on the far side of the wall seals the pressure on the wrong side of the door. A Colossus is a deadline with legs. It moves 1, so it is never a surprise and always a bill.
+design: THE ARITHMETIC, AND IT IS THE LEDGE. The crown at 4,3 is the only HighGround on the board and it sits in the middle of a one-tile sill. A unit cannot be shoved UP onto high ground - the ledge collides exactly like a wall - so anything standing in either mouth of the sill, at 4,2 or 4,4, is standing one tile from a free wall. Shove it into the crown and that is Displacement.CollisionDamage, 4, plus a Stagger. A Runt has 2 hit points, so the tile kills it outright and no duck has to spend an action doing it. That is the point of the sill: three of the five bodies on this board can be answered with terrain, and the two that cannot are the ten-hit-point aura and the twenty-hit-point arrival.
+design: AND THE BULWARK IS WHY IT IS NOT FREE. The Bulwark at 4,1 walks down into the sill's north mouth at Move 2, and every ally adjacent to it has its displacement capped at ONE TILE. That is a cap on distance, never on damage: a push of exactly 1 into the crown still collides for the full 4. So the aura does not switch the trick off, it moves where you have to be standing to use it - from two tiles out the shove now stops short and touches nothing, and from one tile out it kills exactly as it always did. Pay differently, never do not act (MASTER_DESIGN 2, gradients not immunities).
+design: TWO ROUTES, UNEQUAL PRICES, in action points. A duck has a pool of 3 AP an activation and an orthogonal step costs 1. From the central spot at 4,5 the sill is 4 AP to stand north of the wall band - 4,4 then 4,3 then 4,2 then 4,1 - which is two activations with an action left over. The west flank from the same spot is 8 AP: 3,5 2,5 1,5 0,5 then down column 0 to 0,1. Three activations, twice the walk. The flank buys you a crossing nobody is queued in; the sill buys you four action points and a Bulwark standing in the far end of it. Cost and exposure disagree on purpose.
+design: THE CHOKEPOINT IS NOT A DOOR, and this is the specific break this board was tested against. A duck can absolutely stand on the crown at 4,3 and make the sill a one-at-a-time problem - but the sill seals nothing. Column 0 and column 8 are open floor for the whole height of the board, so the tide simply walks round for 4 extra action points, and the crown is a firing step rather than a gate. On top of that the arrival is behind you: from round 3 the thing you most need to be standing near is at 4,6, and the tile you are holding is four steps the wrong way. Holding the choke costs you the other end of the board, which is cb-06-bait-and-break's shape - the slot works, and the duck in it has given up the rest of the fight.
+design: THE COURT, AND WHAT EACH BODY IS FOR. Three Runts at 2 hit points and Move 4 arrive first and screen; that is the whole archetype and it is why they are the wave body too. The Bulwark at 10 hit points and Move 2 arrives a round behind them, exactly as it does in lk-01-close-ranks, so the line comes apart as it advances and there is a window before the aura re-forms. The Harrier at 1,1 deals ZERO damage, which means no lethal can ever outrank its rescue slot and nothing will ever distract it from the one thing it does: it scores a shove by how much further from its nearest ally the target lands, so it is the answer to a flock that stacks the sill's mouth. It pulls you apart; everything else pushes you together.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven spots, all unowned, in one south block plus two shoulders - 3,5 4,5 5,5 on the approach row and 2,6 3,6 5,6 6,6 behind it, with 4,6 left deliberately empty because that is where the Colossus lands. Agency before injury holds in its strict form (D-080), and it holds because of the two wall masses rather than because of distance: the only ways south are column 0, column 8 and the sill at column 4, so a Move 4 Runt gets no further than 8,4 down the east lane and the Harrier no further than 0,4 down the west. The deepest tiles anything can touch on round 1 are therefore 8,5 and 0,5, both open floor at the extreme edges, and every one of the seven spots sits between x=2 and x=6. Nothing on this board can damage you or move you before you have had a turn.
+design: CERTIFICATION, seed 1, and the figure to quote is wins across POLICIES rather than across seeds - nothing in Faultline.Core consumes an RNG inside a fight, so every deterministic policy plays byte-identically at every seed and a re-run is not a second sample. Three of the four MASTER_DESIGN 8.8 policies clear it: shover in 10 rounds, board-first in 8, objective-first in 8, against the section's floor of one and Act 3's adopted bar of two. Six of the nine deterministic policies win - those three plus blade-first 8, preserver 8 and relay 9 - every one of them between rounds 8 and 10, and no deterministic policy stalls. first-legal, brawler and careful lose. The random-* rows are excluded from every figure above, and that is not tidying: they seed from policy.Name.GetHashCode(), which .NET randomises PER PROCESS, so the same command gives different random rows on two invocations. The nine deterministic policies are the reproducible sample.
+design: NO PIT AND NO SPIKES ANYWHERE, on purpose. Displacement matters five ways and a pit is only one of them (scenarios/DESIGN_PRINCIPLES 1); this board is built entirely on the two that need no hazard at all - into a wall for 4, and into another unit for 4 to BOTH. The ledge at 4,3 is the wall, the sill's two mouths are where the bodies queue, and the Bulwark is the price on the shove that reaches them. A drain in the floor would have made it a different and worse board.
+
+spawn r = Runt
+spawn h = Harrier
+spawn b = Bulwark
+spawn c = Colossus
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+wave 3 = c@4,6
+wave 5 = r@0,6 r@8,6
+
+board:
+  ..r...r..
+  .h..b..r.
+  .###.###.
+  .#..H..#.
+  .###.###.
+  ...***...
+  ..**.**..

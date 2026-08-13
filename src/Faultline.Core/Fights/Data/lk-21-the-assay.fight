@@ -1,0 +1,44 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-21-the-assay
+number: 921
+name: The Assay
+pool: Elite
+size: 9x7
+description: The Court counts its coin behind a lock wall with two gates. The near one has a Warden standing in it and the far one is four steps further, and the clock will not let you take both.
+design: THE ROUND-3 QUESTION - the Perch reaches the counting walkway at 4,3 on round 2 and never comes down off a ledge it has taken, and from up there its range 3 covers 4,6, so the deployment row is under fire for the rest of the fight. The walkway's only neighbour is 4,2, and 4,2 is NINE steps from the east pocket at 7,6 and TEN from the west pocket at 2,6, because both gates open at the ends of the lock wall and 4,2 sits in the middle of it. Round 3 asks whether a duck peels off to make that crossing - three rounds of walking out of the twelve the board gives you - or whether the flock eats 4 a round from above and spends every action point it has on the Court's line instead.
+design: ACT 3 ELITE, and deliberately not high-road's question. high-road asks who OWNS a five-tile causeway that both flocks can walk onto from either end. This board's high ground is a single tile with exactly one approach, and the question is not ownership but PRICE - what a gilt node costs is stated on the map before you take it, in two numbers: four extra steps, or four hit points. The Elite band had one board in the whole game before this one, which meant every generated act's gilt node was the same fight; this one is the second and it asks the opposite half of the question.
+design: THE ARITHMETIC, and it is the Locks' whole teaching. The Bulwark at 2,1 stands between two Runts at 1,1 and 3,1, one tile from each, and its Hold aura caps the displacement of every ally adjacent to it at ONE TILE. A Bull Rush pushes 2 and costs 2 action points; inside the aura it moves a Runt one tile instead of two. One tile is all the distance the collision needs - the Runt travels into the Bulwark, that is 4 to BOTH bodies, and a Runt has 2 hit points. It dies and the Bulwark drops from 10 to 6. HOLD CAPS DISTANCE, NEVER DAMAGE. The cap took two tiles off the shove and none of the arithmetic.
+design: WHAT THE CAP ACTUALLY COSTS YOU, because it is a price gap and not a wall (MASTER_DESIGN 2, gradients not immunities). The aura never reaches its own carrier, so the Bulwark itself shoves the full 2 and the whole knot is a collision farm - a crowd is a liability, which is the most overlooked value in the game (scenarios/DESIGN_PRINCIPLES 1). What the cap denies is REACH: a capped shove cannot post a body two tiles out of the gate mouth and leave you a clean lane. Clearing a tile costs you two shoves instead of one, or ten hit points of Bulwark first and then one shove. That is the choice, and the turn limit is what makes it cost something.
+design: TWO ROUTES, UNEQUAL PRICES, AND THE NUMBERS ARE ON THE MAP. The lock wall runs 3,2 to 6,4 with two gates, each two tiles wide. THE WEST GATE - columns 1 and 2 at y 2,3,4 - is FOUR steps from the west pocket at 2,6 to the tile that touches the Bulwark, and the third of those four steps is 2,3, which is inside the Warden's swing at 1,3 for 4 damage. A duck spends three action points on its first move and ends standing on exactly that tile. THE EAST GATE - columns 7 and 8 - is EIGHT steps to the Court's line at 3,1 and nothing on the way can put a hit point on you. Four extra action points, or four hit points. Cost and safety disagree on purpose.
+design: THE WARDEN IS THE TOLL AND ALSO THE BILL. Move 0, 12 hit points, 4 damage, Footing 2: it never leaves 1,3, so taking the east lane does not avoid it - kill-all still owes it twelve hit points and the walk back west to collect them. Three tiles touch it - 1,2, 1,4 and 2,3 - so three ducks can work on it at once and it answers exactly one of them a round. It is a toll on the short road and a debt on the long one, which is the same fact written twice.
+design: THE MIDDLE IS THE COUNTING WALKWAY. The true centre 3x3 is x 3-5 by y 2-4 and it holds the lock wall's shoulders and the raised walk at 4,3. That tile touches open ground on one side only, 4,2, because 3,3, 5,3 and 4,4 are all masonry. Nothing can be shoved UP onto high ground, so nobody is ever delivered there - it is taken on foot or not at all, and the single approach tile is the entire contest. The Perch starts at 4,0, two steps below it, walks up on round 2 and shoots for 2 plus the 2 that firing from a ledge is worth. From 4,3 its range 3 covers 4,6, so the deployment row is under fire from round 2 onward and standing still is a decision with a price.
+design: THE CLOCK (G14). Turn limit 12. Every Elite board carries a clock or an arrival, and this one is the clock: the Warden has Move 0 and the Perch does not come down off a ledge it has taken, so two of the six bodies here - 18 of the 40 enemy hit points - will never walk to you. Slow play does not shorten that walk, it only spends the rounds you needed for it.
+design: THE CHOKEPOINT ANSWER (G13), asked plainly. Can a duck hold a gate and let the fight break on it for free? No, and for a reason that is mechanical rather than rhetorical: both gates are TWO tiles wide, so no single body plugs either, and the two enemies that would have to come to you cannot. A flock that stands in a gate mouth and waits arrives at round 12 with a Warden and a Perch still standing and loses on the bell. The turtle lens fails here by construction and that is what the clock is for.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven spots, all unowned, all on row 6: a west pocket at 0,6 1,6 2,6 that faces the near gate, an east pocket at 6,6 7,6 8,6 that faces the far one, and 4,6 alone in the middle under the walkway, which is the tile that belongs to neither plan. The strict form of agency before injury holds (D-080): every one of the seven sits outside every enemy's round-1 reach, damage AND displacement. The furthest south anything gets on round 1 is a Runt to 2,4 threatening 2,5, and the Harrier to 7,4 threatening 7,5 - and the Harrier deals no damage at all, so its round-1 reach is counted here as position rather than hit points, which is the check high-road's Grappler defeated.
+design: CERTIFICATION, MEASURED ACROSS POLICIES AND NEVER ACROSS SEEDS. Three of the four MASTER_DESIGN 8.8 policies clear it - shover, board-first and objective-first - against the section's floor of one and Act 3's working bar of two. Seven of the nine deterministic policies win it; the two that do not are first-legal and careful. Median 5 rounds against the 12-round limit, worst win 7, ZERO STALLS, so the board terminates well inside its own clock. Quote the deterministic rows and nothing else: nothing in Faultline.Core consumes an RNG inside a fight, so those nine play byte-identically at every seed and re-running at another seed is not a second sample, while the six random-* rows are seeded from a hash .NET randomises per process and do not repeat between invocations.
+design: NO PIT AND NO SPIKES ANYWHERE, on purpose. The act is about displacement being priced, and this board says it with bodies and masonry - a shove into another unit is 4 to both, a shove into a wall is 4 and a Stagger, and neither needs a hole in the floor. This is one of Act 3's hazard-free boards by design rather than by omission, and it would be strictly worse with a drain on it.
+
+spawn b = Bulwark
+spawn r = Runt
+spawn p = Perch
+spawn k = Harrier
+spawn w = Warden
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: kill-all
+turn-limit: 12
+
+board:
+  ....p..k.
+  .rbr.....
+  #..#..#..
+  #w.#H##..
+  #..####..
+  .........
+  ***.*.***

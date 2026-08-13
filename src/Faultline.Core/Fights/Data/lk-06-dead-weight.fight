@@ -1,0 +1,39 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-06-dead-weight
+number: 906
+name: Dead Weight
+pool: Ordinary
+size: 9x7
+description: Twenty hit points that walk one tile a round, and two hit points that walk four. The Colossus cannot be moved until something has been thrown at it, and the Runts are the only thing on the board light enough to throw.
+design: THE ROUND-3 QUESTION - the second pair of Runts lands at the start of round 3, which is the round the Colossus has finally cleared the north edge. The question is whether you spend the arriving Runts as ammunition against it - a collision is 4 to BOTH bodies and Staggers both, and the Stagger is the only thing that makes the Colossus movable at all - or simply kill them at 2 hit points apiece and grind the Colossus down by hand while it walks at you one tile a round.
+design: THE ARITHMETIC, off UnitTemplate.cs and not off the design docs. Colossus 20 HP, Move 1, melee damage 6, PushResistance 2. A Vanguard basic attack pushes 1, which is 1 - 2 = 0 tiles: nothing. A Bull Rush pushes 2, which is 2 - 2 = 0 tiles: still nothing. STAGGER IS THE WHOLE ANSWER. The Stagger bonus lands before the resistance subtraction (Brief 4), so a Staggered Colossus takes 2 + 1 - 2 = 1 tile, and one tile is enough to collide.
+design: HOW YOU BUY THE STAGGER. A Runt is 2 hit points and Move 4, so it arrives first and dies to anything. Shove one into the Colossus and the collision deals 4 to both: the Runt is removed, the Colossus is at 16, and BOTH are Staggered. That is one action buying a kill and a Stagger, and it is the best rate on the board.
+design: WHAT THE STAGGER BUYS WHILE THE COLOSSUS IS STILL ON THE NORTH EDGE. It opens at 4,0, standing on row 0. Bull Rush it northward and the effective 1 tile runs straight off the board: an edge collides exactly as a wall does, for 4 and a fresh Stagger, and a fresh Stagger means the same charge works again next round. Five of those is 20 and the Colossus never moves. It is also the only window: the Colossus walks 1 tile a round, so every round you spend elsewhere is a row of edge you will not get back - unless somebody stands at 4,1 and holds it there, which costs 6 hit points a round against a Vanguard's 14.
+design: NO ROSTER DEPENDS ON THIS. The Colossus dies perfectly well to an Archer at its sweet spot, 4 a round for five rounds while it closes at one tile a round, and to any two melee bodies at 2 apiece. The collision line is the fast answer, not the only one - a board whose thesis dies when the draft comes up short is a board that fails (as-04 and as-09 are the retired precedents).
+design: TWO ROUTES, UNEQUAL PRICES. The wall bar runs 1,4 to 5,4 and it is deliberately off centre. The WEST pocket has exactly one column out of it - x0 - so leaving it is single file and 9 steps to a tile adjacent to the Colossus at 4,0: 1,5 to 0,5 to 0,4 to 0,3 to 1,3 to 2,3 to 3,3 to 3,2 to 3,1 to 3,0. The EAST pocket has three columns out - x6, x7, x8 - and the same trip is 7 steps: 7,5 to 7,4 to 7,3 to 6,3 to 5,3 to 5,2 to 5,1 to 5,0. Two AP cheaper and open ground the whole way, against two AP dearer down a lane a single Runt can plug.
+design: THE THIRD ROUTE IS UPWARD AND IT IS PRICED IN MOVEMENT, NOT STEPS. The shelves at 2,2 and 6,2 are each backed by masonry on two faces. Climbing costs an extra movement point, so 1,5 to 0,5 to 0,4 to 0,3 to 1,3 to 2,3 is five steps and the last step onto 2,2 costs two - seven movement points, or six for the Archer, who climbs free. What it buys: a ranged attack fired from the ledge deals +2, nothing can be shoved UP onto the ledge because it collides like a wall, and the Lobber at 4,1 has to come off its own ground to answer.
+design: THE LOBBER IS THE ANTI-TURTLE CLAUSE. It sits at 4,1 above the gap in the northern masonry, Move 2 and range 3, and it retreats the moment anything closes on it. Standing still and waiting for the Colossus to arrive costs 2 a round for as long as you do it, which is the price this board charges for the patient answer rather than forbidding it.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots, two 2x2 pockets, all unowned, and every one of them outside every enemy's round-1 reach - the strict form of agency before injury (D-080). A Runt is Move 4 and reach 1, which is a diamond of 5 on open ground; the masonry at 1,1 2,1 1,2 and 6,1 7,1 7,2 is what keeps it from getting there, because reach is measured through the walk and the walk has to go round. The Lobber's deepest stand is 4,3 and its range is 3, which stops two tiles short of row 5.
+design: NO PIT AND NO SPIKES ANYWHERE. This is one of the act's hazard-free boards by design: the whole question is a body too heavy to move and a body light enough to throw, and a drain in the floor would answer both without either of them being read (scenarios/DESIGN_PRINCIPLES 1). The board deliberately trips SpikeCountOutOfRange, as nv-04-open-order does, because a hazard-free board is the premise rather than an omission.
+
+spawn c = Colossus
+spawn u = Runt
+spawn l = Lobber
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+wave 3 = u@0,0 u@8,0
+
+board:
+  ..u.c.u..
+  .##.l.##.
+  .#H...H#.
+  .........
+  .#####...
+  **.....**
+  **.....**

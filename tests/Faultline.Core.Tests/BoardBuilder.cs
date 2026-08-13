@@ -6,7 +6,8 @@ namespace Faultline.Core.Tests;
 
 /// <summary>
 /// Builds a small battle-phase state from string art so rule tests read like the board they test.
-/// Layout characters match <see cref="BoardLayout"/>: '.' open, '#' wall, 'O' pit, '^' spikes, 'H' high ground.
+/// Layout characters match <see cref="BoardLayout"/>: '.' open, '#' wall, 'O' pit, '^' spikes,
+/// 'H' high ground, '~' canal water.
 /// </summary>
 public sealed class BoardBuilder
 {
@@ -14,6 +15,7 @@ public sealed class BoardBuilder
     private readonly List<Placement> _placements = new();
     private readonly List<ReinforcementWave> _waves = new();
     private readonly List<Coord> _blockers = new();
+    private readonly List<SluiceStep> _sluices = new();
     private int _blockerHp;
     private Team? _activeTeam;
     private int _seed = 1;
@@ -110,6 +112,17 @@ public sealed class BoardBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds one step of the board's water level: the gate tile that holds it back, then the tiles
+    /// the canal takes when it comes down (D-275). Pair it with <see cref="Blockers"/> on the gate
+    /// tile — a gate with no masonry on it reads as already fallen, which is the parser's own rule.
+    /// </summary>
+    public BoardBuilder Sluice(Coord gate, params Coord[] tiles)
+    {
+        _sluices.Add(new SluiceStep(gate, tiles));
+        return this;
+    }
+
     /// <summary>Starts the state on a round other than round 1.</summary>
     public BoardBuilder Round(int round)
     {
@@ -178,6 +191,7 @@ public sealed class BoardBuilder
             Waves = _waves,
             Blockers = _blockers,
             BlockerHp = _blockerHp,
+            SluiceSteps = _sluices,
         };
 
         return new GameState

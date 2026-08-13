@@ -277,6 +277,68 @@ namespace Faultline.Core
             return state;
         }
 
+        /// <summary>
+        /// <b>The seam beside <see cref="ExpiryBeneathUnit"/>, for the other half of the question.</b>
+        /// What becomes of a unit standing on a tile a mutation wants to create underneath it — today,
+        /// the change waits.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>PROVISIONAL (D-275).</b> <see cref="Mutate"/> refuses to change the ground under a body
+        /// and throws saying so, which is right for a Thorn Pouch reaching one tile and wrong for a
+        /// canal filling. A rising water level cannot honour an invariant that says "not there" — the
+        /// water has nowhere else to be. So the caller asks this instead of calling
+        /// <see cref="Mutate"/>, and this decides.
+        /// </para>
+        /// <para>
+        /// <b>Shipped answer: the change DEFERS while the tile is occupied, and flows in the moment
+        /// the tile is vacated.</b> Of the three candidates <see cref="ExpiryBeneathUnit"/>'s remarks
+        /// enumerate, deferral is the only one that <em>preserves</em> the existing invariant rather
+        /// than replacing it: the ground still never changes under a body, it simply waits. Nothing a
+        /// player has already paid for is taken back and no body is moved or hurt by an event it could
+        /// not answer, which is the conservative reading CLAUDE.md §0 asks for. It is also the most
+        /// thematic reading — the water laps at your feet and comes in as you step away.
+        /// </para>
+        /// <para>
+        /// <b>The alternatives, recorded so that changing the answer is this one method.</b> (a) The
+        /// unit pays the tile's entry price, the honest reading if a flood is a kind of arrival — but
+        /// nobody arrived, and on a lethal class it would kill a body before the designer had ruled.
+        /// (c) The unit is displaced to the nearest legal tile, the reading that treats the water as
+        /// physically pushing — which invents a displacement with no source tile and therefore no
+        /// direction, and would have to invent a tie-break too. Both are a change to this method and
+        /// to nothing else: the caller asks "did it take?" and reacts to the answer, so no second call
+        /// site knows which ruling is in force.
+        /// </para>
+        /// <para>
+        /// <b>Deferral is not a fudge because it is paired with a telegraph.</b> A sluice publishes
+        /// which tiles the next step floods before it floods them (<see cref="Sluice"/>), so a duck in
+        /// the path has warning; the deferral is the safety net under a player who ignored it, not the
+        /// mechanism.
+        /// </para>
+        /// </remarks>
+        /// <param name="state">Current state, with the tile still unchanged.</param>
+        /// <param name="standing">The unit on the tile.</param>
+        /// <param name="at">Tile the mutation wanted.</param>
+        /// <param name="becomes">What it would have become.</param>
+        /// <param name="throughRound">The round the booking would have run to.</param>
+        /// <param name="events">Sink for any resulting events.</param>
+        /// <returns>The state after the ruling. Today, unchanged — the change waits its turn.</returns>
+        public static GameState CreationBeneathUnit(
+            GameState state,
+            Unit standing,
+            Coord at,
+            TileType becomes,
+            int throughRound,
+            List<GameEvent> events)
+        {
+            _ = standing;
+            _ = at;
+            _ = becomes;
+            _ = throughRound;
+            _ = events;
+            return state;
+        }
+
         private static int IndexOf(GameState state, Coord at)
         {
             if (state is null)

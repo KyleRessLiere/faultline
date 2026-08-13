@@ -1,0 +1,45 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: quarry-king-v2
+number: 959
+name: The Quarry King - Cut Stone
+pool: Boss
+size: 9x7
+description: The finale, rebuilt out of the thing a quarry is made of. He stands in a cut bay with his back to the stone, and every shove that used to do nothing now does four and takes a token.
+design: THE ROUND-3 QUESTION - by round 3 the shell is down to one or two tokens and you have to decide what the next one costs. A shove west into his own backstop takes a token AND four hit points but leaves him exactly where he stands, in the tile he is strongest in. Driving him up a finger takes a token for free at round end because 4,1 and 4,5 are drain rims, and it is the only line that ends with him in the hole - but it costs a round of walking and it puts the duck doing it out at 4,4 where the escort can reach it. Damage now, or position for the finish.
+design: SUPERSEDE CANDIDATE for quarry-king - the finale was an open field at 3% blocking where displacement, the whole point of the fight, did nothing at all.
+design: WHY THE ORIGINAL FAILS ITS OWN THESIS, in arithmetic. The Quarry King carries no push resistance, so on the shipped board every shove against him resolves, travels across open floor and deals ZERO. The three shell tokens are not even spent, because the enemy Footing policy is drain-bound only (Displacement.EnemyWouldRefuse) - it refuses a shove that would end in a drain and eats everything else. So on an open field the shell is not the wall the design note claims; the FLOOR is. Give him a wall to be slammed against and the same shove is 4 damage, a Stagger, and one token knocked loose (Displacement.cs strips on any collision the unit suffers). A quarry is cut stone. The theme hands you the counterplay for free, and the original spent it on two lone pits.
+design: BLOCKING, BEFORE AND AFTER. Original quarry-king - 2 pits and 2 spikes on a 9x7, zero walls, so 2 of 63 tiles are impassable and both of them are lone. 3% and nothing in a connected formation. This board - 9 walls and 2 pits, 11 of 63 impassable, 17.5%, and every one of the eleven sits in a connected formation of three or more. The bay 2,2-3,2-3,3-3,4-2,4 is five tiles; each shelf, 5,2-6,2 with the drain at 5,1 and 5,4-6,4 with the drain at 5,5, is three. Lone pits and lone walls count toward neither floor and there are none.
+design: THE BAY, AND WHY THE BOSS IS THE DOOR TO IT. He starts at 4,3 - the true centre of the board - with the stone at 3,3 behind him. Exactly three tiles touch him: 4,2 to the north, 4,4 to the south, 5,3 to the east. A shove west from 5,3 travels nothing at all and collides with 3,3 anyway, which is 4 damage, a Stagger and a token, because a displacement that moves a body zero tiles into masonry still collides. The Vanguard's plain swing does it too - 2 for the swing, then Attack Push 1 puts him in the wall for another 4. That is the board's whole gift, and it is a gift the open field could not give.
+design: TWO ROUTES, UNEQUAL PRICES, in numbers. THE THROAT - from the spot at 8,2 walk 8,3 - 7,3 - 6,3 - 5,3. Four steps to the only tile that slams him, and the corridor between the shelves is one tile wide so exactly one duck is ever in contact. It costs six damage a round from a melee that also pushes you back a tile, so you pay one AP every round just to stay in it, and nothing you do from that tile ever puts him in a drain. THE NORTH FINGER - from the spot at 8,0 walk 7,0 - 6,0 - 6,1 - 7,1 is the wrong way; the real line is 7,0 - 6,0 - 5,0 - 4,0 - 4,1 - 4,2, six steps and two of them priced: 4,0 is spikes and costs 2 hit points to cross (SpikeWalkDamage), and 4,1 is open ground the Husks and the west Lobber both cover. Two AP dearer and paid for in blood - and it is the route that reaches the drain at 5,1, the rim the whole endgame is about.
+design: HOW THE SHELL ACTUALLY COMES OFF, all three ways, and every one of them is now geography. ONE - slam him into 3,3. Four damage and a token, repeatable, and the price is standing in his arc. TWO - drive him up a finger. He is Move 1, so a push north from 4,4 puts him on 4,2 and a second puts him on 4,1, which is orthogonally adjacent to the drain at 5,1: the round-end strip takes a token whether or not anybody touched him (Footing.StripAtRoundEnd). THREE - shove him AT a drain. He refuses it and pays a token to do so, which is the one case where a shove that fails is the shove you wanted. Three tokens, three currencies, and the board now supplies all three instead of asking for them on bare floor.
+design: THE PAYOFF INVERTS AT 14. The enraged block is Move 3 with a standalone Bull Rush of 2, and his planner scores a shove that would leave a duck Clinging at plus one hundred. On an open field that phase change was a dash across a parking lot. Here it is a charge down a walled finger at a drain, and the drains are the ones you spent the first half of the fight walking him toward. Nobody in the flock carries Footing, so the second half of this fight is the first half aimed back at you - which is what a finale is for.
+design: THE ESCORT IS AMMUNITION AND THE WEST IS SLOW. Two Husks and two Lobbers, plus four more Husks on rounds 3 and 6, and the whole escort starts west of a bay whose only crossings are the spike tiles at 4,0 and 4,6. A Husk has 4 hit points and a collision is 4 to BOTH parties, so slamming one into the King kills it, deals 4, and strips a token - the original's stated line, kept, and now with somewhere to do it. The corridor at 7,3 opens north to 7,2 and south to 7,4 on purpose: the throat is a duel lane, not a sealed tube, and the escort can reach a duck that camps in it from round four or so.
+design: TURN LIMIT 14, and it is required rather than decorative. Under objective boss a cleared board does NOT win - the win is a body falling (D-223) - so a board with no limit has nothing to end it. Fourteen rounds is roughly twice what the fastest line needs: at 6 a round from one Vanguard in the throat, 28 hit points is five contacts, and the Archer's sweet spot adds 4 a round from outside his reach. It prices the turtle without pricing the fight.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight unowned spots in two pockets - 7,0 8,0 8,1 8,2 north and 8,4 8,5 8,6 7,6 south - at the 6-8 band's ceiling, and 8,3 is deliberately NOT a spot: it is the mouth of the throat and entering it should be a decision made on round 1 rather than a deployment. Agency before injury holds in its strict form (D-080). The King is Move 1 with reach 1, so his diamond stops at x=6. A Husk walks 3 and swings 1 for a diamond of 4, and the bay walls hold both of them west of x=5. A Lobber walks 2 and throws 3, and from 0,0 or 0,6 it cannot stand further east than x=2, so it covers x=5 at the most. Nothing on this board can reach a spot before the flocks have had a turn.
+design: NO HIGH GROUND, on purpose, and two spikes rather than none. The quarry is a floor cut downward - benches and drains, not hills - and the elevation subsystem would be a fifth thing to read on the board the act ends on. The spikes at 4,0 and 4,6 are the fingers' tips: crossing one costs 2, and being SHOVED onto one costs 6 and stops there, so the tip of a finger is an anvil for the same shove that the rim beside it turns into a token.
+
+spawn q = QuarryKing
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: boss
+turn-limit: 14
+
+wave 3 = h@0,2 h@0,4
+wave 6 = h@0,1 h@0,5
+
+board:
+  l...^..**
+  ..h..O..*
+  ..##.##.*
+  ...#q....
+  ..##.##.*
+  ..h..O..*
+  l...^..**

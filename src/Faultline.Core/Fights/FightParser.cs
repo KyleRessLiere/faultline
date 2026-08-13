@@ -163,7 +163,7 @@ namespace Faultline.Core
                 {
                     issues.Add(new FightIssue(
                         FightIssueCode.MalformedLine,
-                        "'" + symbol[0] + "' already means something on the board (terrain . # O ^ H, deploy slot A B, "
+                        "'" + symbol[0] + "' already means something on the board (terrain . # O ^ H ~, deploy slot A B, "
                         + "structure mark S D, or blocker X). Pick another letter for this spawn — lower-case reads best.",
                         lineNo));
                     return;
@@ -289,6 +289,13 @@ namespace Faultline.Core
                     break;
                 case "roster a": header.RosterA = ReadRoster(value, lineNo, issues); header.RosterALine = lineNo; break;
                 case "roster b": header.RosterB = ReadRoster(value, lineNo, issues); header.RosterBLine = lineNo; break;
+                case "sluice":
+                    // Repeatable, like design and spawn: one line is one step of the water level, and
+                    // the order they are written in is the order the canal takes them (D-275). Kept
+                    // raw here because a coordinate cannot be bounds-checked until the board below has
+                    // been read.
+                    header.Sluices.Add(new RawSluice(value, lineNo));
+                    break;
                 case "protected": header.Protected = value; header.ProtectedLine = lineNo; break;
                 case "footing": header.Footing = value; header.FootingLine = lineNo; break;
                 case "objective": header.Objective = value; header.ObjectiveLine = lineNo; break;
@@ -773,7 +780,7 @@ namespace Faultline.Core
                     var code = char.IsLetter(c) ? FightIssueCode.SpawnCharUndefined : FightIssueCode.BoardUnknownChar;
                     issues.Add(new FightIssue(
                         code,
-                        "Character '" + c + "' at " + at + " is not terrain (. # O ^ H), a deploy slot (A B), "
+                        "Character '" + c + "' at " + at + " is not terrain (. # O ^ H ~), a deploy slot (A B), "
                         + "a structure mark (S D), a breakable blocker (X), or a declared spawn. Add 'spawn " + c
                         + " = <UnitKind>' above the board.",
                         lineNo));
@@ -877,6 +884,8 @@ namespace Faultline.Core
             CheckStructureMarks(grid.StructureMarks, objective, issues);
             CheckBlockers(grid.Blockers, header, boardStartLine, issues);
 
+            var sluices = ReadSluices(header, grid, objective, board, issues);
+
             return new FightDefinition
             {
                 Id = header.Id,
@@ -901,7 +910,120 @@ namespace Faultline.Core
                 TurnLimit = header.TurnLimit,
                 SizeDeclared = header.DeclaredWidth > 0,
                 Waves = waves,
+                SluiceSteps = sluices,
             };
+        }
+
+        /// <summary>
+        /// Reads the <c>sluice:</c> lines — one step of the water level each, written
+        /// <c>sluice: &lt;gate&gt; = &lt;tile&gt; &lt;tile&gt; ...</c> (D-275).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>The gate must actually be a structure.</b> A sluice is a <see cref="Structure"/> and the
+        /// canal is a <see cref="TileType"/>; naming a gate tile that carries neither an <c>X</c>
+        /// blocker nor a structure mark would author a step that is open from round 1, because
+        /// "no standing structure" is exactly how <see cref="Sluice.IsOpen"/> reads a fallen gate. That
+        /// is a board whose water is already in before anybody moves, and it is worth failing loudly
+        /// rather than shipping.
+        /// </para>
+        /// <para>
+        /// Nothing here asks what the flooded tiles currently are. Water rising over brambles and
+        /// receding to brambles is <see cref="TerrainMutation"/>'s stacking rule already working, and a
+        /// step that eats a hazard is a legitimate board.
+        /// </para>
+        /// </remarks>
+        private static IReadOnlyList<SluiceStep> ReadSluices(
+            Header header,
+            Grid grid,
+            Objective objective,
+            Board board,
+            List<FightIssue> issues)
+        {
+            if (header.Sluices.Count == 0)
+            {
+                return new SluiceStep[0];
+            }
+
+            var steps = new List<SluiceStep>(header.Sluices.Count);
+
+            foreach (var raw in header.Sluices)
+            {
+                int equals = raw.Value.IndexOf('=');
+                if (equals < 0)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.MalformedLine,
+                        "A sluice line is 'sluice: <gate x,y> = <tile x,y> <tile x,y> ...'. "
+                        + "'" + raw.Value + "' has no '='.",
+                        raw.Line));
+                    continue;
+                }
+
+                var gates = ReadCoords(raw.Value.Substring(0, equals), raw.Line, board, issues);
+                var tiles = ReadCoords(raw.Value.Substring(equals + 1), raw.Line, board, issues);
+
+                if (gates.Count != 1)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.BadValue,
+                        "A sluice step names exactly one gate before the '='; this one names "
+                        + gates.Count + ".",
+                        raw.Line));
+                    continue;
+                }
+
+                if (tiles.Count == 0)
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.BadValue,
+                        "The sluice at " + gates[0] + " floods nothing. A step that changes no tile is "
+                        + "a gate with no water behind it.",
+                        raw.Line));
+                    continue;
+                }
+
+                if (!IsStructureTile(gates[0], grid, objective))
+                {
+                    issues.Add(new FightIssue(
+                        FightIssueCode.BadValue,
+                        "The sluice at " + gates[0] + " is not a structure. A gate is a breakable "
+                        + "blocker ('" + Blocker + "') or a structure mark ('" + StructureProtect
+                        + "' / '" + StructureDestroy + "'); with nothing standing there the step counts "
+                        + "as already open and the board starts flooded.",
+                        raw.Line));
+                    continue;
+                }
+
+                steps.Add(new SluiceStep(gates[0], tiles));
+            }
+
+            return steps;
+        }
+
+        private static bool IsStructureTile(Coord at, Grid grid, Objective objective)
+        {
+            if (grid.Blockers.Contains(at))
+            {
+                return true;
+            }
+
+            // An objective's tiles only become structures when the objective builds them — a
+            // hold-tiles board names tiles too, and standing on one is not a gate.
+            if (objective is null || !objective.HasStructure)
+            {
+                return false;
+            }
+
+            foreach (var tile in objective.Tiles)
+            {
+                if (tile == at)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1528,6 +1650,7 @@ namespace Faultline.Core
                 case BoardLayout.Pit: tile = TileType.Pit; return true;
                 case BoardLayout.Spikes: tile = TileType.Spikes; return true;
                 case BoardLayout.HighGround: tile = TileType.HighGround; return true;
+                case BoardLayout.Water: tile = TileType.Water; return true;
                 default: tile = TileType.Open; return false;
             }
         }
@@ -1616,9 +1739,25 @@ namespace Faultline.Core
 
             public List<RawWave> Waves { get; } = new List<RawWave>();
 
+            public List<RawSluice> Sluices { get; } = new List<RawSluice>();
+
             public Dictionary<char, UnitKind> Spawns { get; } = new Dictionary<char, UnitKind>();
 
             public Dictionary<char, int> SpawnLines { get; } = new Dictionary<char, int>();
+        }
+
+        /// <summary>A <c>sluice:</c> line as written, before its coordinates meet the board.</summary>
+        private sealed class RawSluice
+        {
+            public RawSluice(string value, int line)
+            {
+                Value = value;
+                Line = line;
+            }
+
+            public string Value { get; }
+
+            public int Line { get; }
         }
 
         /// <summary>A <c>wave</c> line as written, before its letters are resolved against the spawns.</summary>

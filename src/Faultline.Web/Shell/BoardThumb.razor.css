@@ -21,6 +21,7 @@
 .t.spikes  { background: #6d3a2f; }
 .t.high    { background: #3f4b3a; }
 .t.cracked { background: #2b303a; outline: 1px dashed #7a6a3a; outline-offset: -2px; }
+.t.water   { background: #1f4f6b; }
 
 .slot {
     font-size: .6rem;

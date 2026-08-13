@@ -1,0 +1,43 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+# The reach tile at 8,2 carries no board mark - the format only marks protect and destroy
+# structures - so it is written on the objective line and nowhere else.
+# Deliberate lints, two of them, checked rather than guessed: CentreNotClear (the channel's throat
+# is the middle) and NoHighGround. size: 9x5 is declared and both wall bars sit on ring 1, so
+# BoardNotSevenBySeven and HazardOffOuterRings do not fire.
+
+id: lk-05-the-short-lock
+number: 905
+name: The Short Lock
+pool: Ordinary
+size: 9x5
+description: The lock gate at the east end is eight steps up a one-tile channel with two bodies in it, or twelve steps round the south with a Grappler slamming you into the wall the whole way. Standing on it wins the fight outright.
+design: THE ROUND-3 QUESTION - round 3 is when the two routes stop being interchangeable, and it asks whether you spend the round breaking the aura at 6,2 (ten hit points, and moving it turns a 1-tile shove back into a 2-tile shove onto the spikes at 3,2, which is 6 damage and a dead Heavy Husk) or write the channel off and send the flock the twelve-step way round the south, where a unit that deals no damage at all is the only thing between you and the tile.
+design: REACH, and why the objective is the pressure (G3, third clause). A player unit standing on 8,2 wins that instant - no clearing, no bell - so every enemy here is an obstacle rather than a health bar and the arithmetic that matters is steps rather than hit points. Clearing the board wins it too, which is the floor under any roster that cannot get a body through.
+design: TWO ROUTES, UNEQUAL PRICES, measured on the actual grid. THE CHANNEL: 0,2 to 8,2 is EIGHT steps straight down row 2. It runs one tile wide from x=3 to x=5 - wall above at 3,1 / 4,1 / 5,1, wall below at 3,3 / 4,3 / 5,3 - it crosses spikes at 3,2 and again at 7,2 for 2 damage apiece walking (Displacement.SpikeWalkDamage, and walking spikes does not Stagger), and it has a Heavy Husk and a Bulwark standing in single file across it. THE SOUTH SWEEP with the channel closed: TWELVE steps, four dearer, no spikes, nothing standing in the way, and it arrives at the gate from 8,3 - a direction the channel's occupants do not cover at all.
+design: THE GRAPPLER IS THE CHANNEL'S REAL TAX, and it is the enemy behaving exactly as Rules/Ai.cs says it does: 0 damage, Pull 2 at range 3, preferring high ground, then the Archer, then whoever is nearest. What makes it bite is the wall bar UNDER the channel. A duck standing at 4,2 with the Grappler at 4,4 is pulled toward it, the first tile of that pull is 4,3, and 4,3 is masonry - so Displacement.Preview reports effective distance 2, destination 4,2 unchanged, stop Collision, 4 damage and a Stagger. The one unit on the board that cannot deal damage is doing 4 a round to anybody standing in the short route.
+design: THE AURA BITE, stated exactly and checked. The Heavy Husk opens at 5,2 with the Bulwark beside it at 6,2, so every displacement against the Husk is capped at 1 tile. A Reel from 2,2 would otherwise drag it two tiles west, resolving every tile on the way, into the spikes at 3,2 for 6 - and 6 is a whole Heavy Husk, so that is a kill and a cleared channel for one action. Capped, the identical Reel moves it exactly one tile to 4,2, deals nothing, and it walks back at Move 3 the same round. Note that Reel bypasses PushResistance and the Hold cap is NOT bypassed (Displacement.EffectiveDistance applies it last, to a pull exactly as to a push).
+design: AND THE ORDER THAT BEATS IT, which needs no particular class. The aura never protects its own carrier (D-019), so the Bulwark takes its full shove: from 5,2 a Push 2 sends it east and it stops on the spikes at 7,2 for 6, taking it from 10 to 4 AND vacating 6,2. That is now the tile a charge fires from, and the Husk at 5,2 is now two tiles from the aura rather than one - so the identical Push 2 aimed west carries it through 4,2 onto the spikes at 3,2 for 6, which kills it and empties the channel. Two shoves, in that order, no ability spent that a Vanguard does not open with. Reversed, the first shove is worth one tile and nothing else. That is a price gap and not a wall (MASTER_DESIGN 2).
+design: THE MIDDLE IS THE THROAT (G5). The true centre 3x3 of a 9x5 board is centred on 4,2, and it is six wall tiles - 3,1 / 4,1 / 5,1 and 3,3 / 4,3 / 5,3 - closed around the two channel tiles at 3,2 and 4,2, with the first of those being spikes. That is the cheap route's neck: the tiles both flocks want, the tiles the Grappler farms, and the only three tiles on the board where a body cannot step sideways out of a shove.
+design: SPOT LAYOUT (MASTER_DESIGN 3). Seven spots, unowned, all at the west end - 0,0 / 1,0 / 0,1 / 0,2 / 0,3 / 0,4 / 1,4 - because both flocks start at the same end of a channel and the race is the board. The list is short and clustered on purpose: MASTER_DESIGN 3 blesses that as a thesis rather than a gap, and the decision it publishes is which ROW you set off down, not which corner you own. Agency before injury holds in its strict form (D-080), against displacement as well as damage: the Heavy Husk covers a diamond of 4 and its nearest spot is 5 away, the Bulwark covers 3 and is 6 away, the Runt covers 5 and is 7 away, and the Grappler - whose Pull 2 counts for this even though its damage is 0, which is precisely the defect high-road shipped with - covers 6 and its nearest spot is 7. Threat.DamageRound1 and Threat.DisplacementRound1 both return zero of the seven spots.
+design: ROW 0 IS A DEAD END AND THAT IS DELIBERATE. The north wall bar runs 3,1 to 8,1 unbroken, so a flock that sets off along the top edge arrives at 8,0 with masonry between it and the gate, and from 8,0 the gate is FOURTEEN steps away - the whole board, back and round. It is the Runt's lane, not a route, and the board says so here rather than letting somebody find out on round 4.
+design: CERTIFICATION, quoted across POLICIES rather than seeds. Seven of the nine deterministic harness policies clear it, median 5 rounds, no stalls, and that includes all three deterministic policies of MASTER_DESIGN 8.8 - board-first in 5, shover in 3, objective-first in 5 - against the section's floor of one and the Warrens working practice of two. Shover is the fastest of the nine at THREE rounds, which is the right shape for a board whose short route is cleared by shoving rather than by killing. The random-* rows are seeded from policy.Name.GetHashCode(), which .NET randomises per process, and are quoted nowhere: no RNG runs inside a fight, so a deterministic policy is byte-identical at every seed and a second seed is not a second sample.
+
+spawn u = Runt
+spawn k = HeavyHusk
+spawn b = Bulwark
+spawn g = Grappler
+
+roster a: Archer, Threadcaster
+roster b: Vanguard, Wardbearer
+
+objective: reach 8,2
+
+board:
+  **......u
+  *..######
+  *..^.kb^.
+  *..###...
+  **......g

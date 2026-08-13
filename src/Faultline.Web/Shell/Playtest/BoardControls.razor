@@ -183,6 +183,9 @@
     /// The terrain kinds a legend has to explain. Cracked is deliberately absent: it is produced
     /// only at runtime by the collapse clock and no authored board fields it, so a swatch for it
     /// would document a tile a player cannot yet meet.
+    ///
+    /// The canal is present, unlike Cracked, because a board authors it directly with '~' as well as
+    /// having a sluice raise it mid-fight — it is terrain a player meets from round 1 (D-275).
     /// </summary>
     private static readonly TileType[] Legend =
     {
@@ -191,5 +194,6 @@
         TileType.Pit,
         TileType.Spikes,
         TileType.HighGround,
+        TileType.Water,
     };
 }

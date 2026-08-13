@@ -1,0 +1,40 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   ~  canal       X  breakable blocker (here, the sluice gate)
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-13-widen-the-cut
+number: 913
+name: Widen the Cut
+pool: Ordinary
+size: 9x7
+description: One canal, three tiles wide, and a sluice gate that makes it nine. Breaking it slows their advance and your own crossing by exactly the same amount.
+design: THE ROUND-3 QUESTION - the gate has eight hit points and any attack chips masonry for 2, so round 3 is the round somebody has spent enough on it to matter. The question is whether you finish it. Widening the cut costs the Court its fast approach and costs you the crossing you were about to make, in the same instant and by the same amount.
+design: THE LOCKS' SIGNATURE, and the first board in the game where the terrain changes underneath the fight. A sluice is ordinary masonry: it is a Structure, the water is a TileType, and breaking the one writes the other. Every step is published from fight start - which gate, which tiles, in what order - so this is planning information and never an ambush, the same contract the wave timetable and enemy intents keep.
+design: THE ARITHMETIC OF A CROSSING. The canal at 3,3 to 5,3 is one tile deep and wading costs the bramble surcharge, so crossing it on foot is 2 AP instead of 1 - a duck with 3 AP crosses and still acts. Break the gate at 2,3 and the water takes 3,2 4,2 5,2 and 3,4 4,4 5,4, so the cut becomes three tiles deep: 6 AP to wade, which is two full activations and no action at either end. The crossing does not close. It gets dearer, which is a price gap and not a wall.
+design: BOTH ARMIES USE THE SAME FORD. There is no second way through - the wall blocks at the west and east ends run the full height of the middle band - so the water you put down is water you will stand in. That symmetry is the whole board: a flood is not a weapon you point, it is a toll you install on a road you are also using.
+design: EITHER SIDE CAN DRIVE IT. The gate is masonry with 8 hit points and a collision does full damage, so shoving a Husk into it opens the canal in one go and hurts the Husk as much as the wall. The Court has no interest in the gate and will never attack it - but a Husk shoved the wrong way will break it for you, or for them, and the pipeline never checks who pushed.
+design: A TILE SOMEBODY IS STANDING ON STAYS DRY and takes the water at the first round start after it is vacated (D-275, provisional). Nobody is ever flooded beneath. So standing in the cut is a way to hold a tile dry, which is a real tactic and an accident of the ruling rather than a designed one - it is recorded here because a board should say what it does, and if the ruling changes this line changes with it. No thesis on this board depends on it.
+design: THE BULWARK IS WHY THE WATER IS TWO TILES AWAY. It opens at 4,1 with the Husks either side of it, and a shove of 2 from the Husks' rank reaches the canal while a shove capped to 1 by the aura does not. Putting a Court body in the water is therefore a question about which Husk is covered rather than about whether you own a push - the same question lk-01 asks, asked again with the canal as the answer instead of another body.
+design: SHOVED INTO THE CANAL IS A SOFT LANDING - no damage, Staggered, and the displacement stops. It is not a drain and it does not kill. What it costs is the round it takes to wade back out, which on a board where both armies want the same three tiles is the whole point. The drain is the finisher; this is a toll.
+design: BLOCKING MASS 14 of 63 tiles, 22%, in two connected formations of six and seven plus the gate. The wall blocks are what make the ford a ford - without them the cut is a line you walk around, and the flood is a hazard rather than a routing decision.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six unowned spots in two southern pockets, every one outside every enemy's round-1 reach - a Husk walks 3 and swings 1 for a diamond of 4, and the nearest spot is five tiles from either. The pockets are on opposite flanks of the ford's southern mouth, so the draft decides which side of the cut a flock arrives on before the first point is spent.
+
+blocker-hp: 8
+sluice: 2,3 = 3,2 4,2 5,2 3,4 4,4 5,4
+
+spawn h = Husk
+spawn b = Bulwark
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+board:
+  ...h.h...
+  ....b....
+  ##.....##
+  ##X~~~###
+  ##.....##
+  *.......*
+  **.....**

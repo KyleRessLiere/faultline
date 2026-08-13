@@ -33,6 +33,10 @@ public sealed record PreviewMark(
         // The drain's glyph is the Icon and the outcome is the Note ("paddling"), so a label here
         // would draw the same ring twice on one chip.
         DisplacementStop.Pit => Damage > 0 ? "→ " + Damage : string.Empty,
+
+        // Same reason as the drain: the glyph carries it and the Note says "stagger", so a "→ 0"
+        // here would be a third opinion about a shove that dealt nothing.
+        DisplacementStop.Water => Damage > 0 ? "→ " + Damage : string.Empty,
         DisplacementStop.Immovable => Damage > 0 ? "→ " + Damage : string.Empty,
         _ => (Damage > 0 ? "→ " + Damage : "→"),
     };
@@ -43,6 +47,10 @@ public sealed record PreviewMark(
         DisplacementStop.Collision => "✸",
         DisplacementStop.Spikes => "✷",
         DisplacementStop.Pit => "◍",
+
+        // The canal: a stop that costs nothing and still ends the travel, so the chip has to say
+        // WHY it stopped or a reader takes it for the shove simply running out (D-275).
+        DisplacementStop.Water => "≈",
         _ => string.Empty,
     };
 

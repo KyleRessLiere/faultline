@@ -123,6 +123,18 @@ namespace Faultline.Core
         public IReadOnlyList<ReinforcementWave> Waves { get; init; } = new ReinforcementWave[0];
 
         /// <summary>
+        /// The board's water level, one <c>sluice:</c> line per step, in file order. Empty on every
+        /// board without a canal (D-275).
+        /// </summary>
+        /// <remarks>
+        /// Authored rather than computed, and published from fight start, so the whole timetable is
+        /// planning information exactly as <see cref="Waves"/> is. <see cref="Sluice"/> reads it
+        /// alongside the standing structures to answer where the water is; nothing about the level
+        /// lives in <see cref="GameState"/>.
+        /// </remarks>
+        public IReadOnlyList<SluiceStep> SluiceSteps { get; init; } = new SluiceStep[0];
+
+        /// <summary>
         /// Footing tokens this scenario hands out, in the order the <c>footing:</c> key wrote them.
         /// Empty means nobody has any: Footing is scenario-granted, never automatic.
         /// </summary>
@@ -301,6 +313,7 @@ namespace Faultline.Core
                 && Same(ProtectedZone, other.ProtectedZone)
                 && Same(Blockers, other.Blockers)
                 && Same(FootingGrants, other.FootingGrants)
+                && Same(SluiceSteps, other.SluiceSteps)
                 && SameWaves(Waves, other.Waves);
         }
 
@@ -330,6 +343,10 @@ namespace Faultline.Core
                 hash = Fold(hash, ProtectedZone);
                 hash = Fold(hash, Blockers);
                 hash = Fold(hash, FootingGrants);
+
+                // SluiceStep hand-writes its own value equality and hash over its tile list, so the
+                // ordinary fold is honest here where SameWaves had to be written by hand.
+                hash = Fold(hash, SluiceSteps);
 
                 foreach (var wave in Waves)
                 {

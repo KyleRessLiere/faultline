@@ -1,0 +1,49 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   X  breakable blocker, blocker-hp hit points
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: rushmaster
+number: 12
+name: The Rushmaster
+size: 11x7
+pool: Boss
+description: The Warrens foreman stands in his own bin with a shift around him. His crowd is his armour and your ammunition, and the one line that turns it into ammunition is the line he takes over at 13 hit points.
+design: THE ROUND-3 QUESTION - the aisle is row 3, it is nine tiles long, and it is the ONLY line on this board from which his crew is ammunition. By round 3 the front rank is spent and he is somewhere near 18, so the question is whether to keep working that line or step off it before 13 arrives. At 13 the harness breaks, he becomes Move 3 with a two-tile shove, and the same nine tiles become his run - where a worker in the lane is hit exactly as hard as you are.
+design: WHY IT IS ONE LINE, and this is the whole geometry. A shove only reaches him through a worker when the shover, the worker and the Rushmaster are collinear with him immediately beyond. He stands at 5,3; his four neighbours are 4,3 and 6,3, which are open, and 5,2 and 5,4, which are rubble stacks. So the shover must stand on row 3 with a worker between. Everywhere else on the board a Husk is just a Husk. On row 3 a Husk is 4 damage to him.
+design: THE ARITHMETIC OF ONE WORKER. Vanguard at 7,3 swings at the Husk on 6,3 - 2 damage, Attack Push 1, the Husk travels one tile into 5,3 and collides. A collision is 4 to BOTH bodies, so the Husk takes 2+4 on 4 hit points and dies and he takes 4 on 26. An Archer does it at range: Stagger Shot from 8,3 or 9,3 pushes 6,3 one tile away from the archer, which is into him. That is the engine - and it is only ever aimed along row 3.
+design: CREW COVER IS A TWO-SLOT QUESTION, which is what the stacks at 5,2 and 5,4 are for. Once per round a standing Husk adjacent to him swaps places and takes a direct attack instead; the two rubble stacks occupy two of his four sides, so he has exactly two cover slots and they are the two aisle tiles. Kill both workers or stand a duck on both tiles and the blades start landing. Note the swap is a placement toward his declared target, so covering WALKS him one tile along the aisle - toward the drain if his intent points west.
+design: BREAKING A STACK IS A TRADE AND NOT AN UPGRADE. A stack is 6 hit points and a collision into a structure is 6, so one clean slam brings one down. Doing it costs you a cover slot in the wrong direction - rubble stops blocking, so 5,2 becomes a third tile a Husk can cover him from. What it buys is a second firing line: with 5,2 clear, an Archer on the catwalk at 5,0 can Stagger Shot a worker standing there straight down into him, and there is no line of sight in this game so the wall at 5,1 does not argue. Two ammunition lines instead of one, and one more slot for his shift to stand in.
+design: CUT LOOSE AND THE RANKING. At 13 hit points the harness breaks - Move 3, a standalone two-tile shove, allies included, 2 contact damage before the shove lands. He takes that shove only for one of four endings and he ranks them: a drain entry, a collision with a unit, a collision with a Bell, a collision with debris. Three of the four are on this board and each has an address. The drain at 1,3 makes 2,3 and 3,3 - the west door and its apron - a one-shove trip into the hole. A crowded row 3 is the unit collision, which is what he takes while the aisle is full. The ring stacks at 4,1 and 6,5 are the debris, reached by a north run out of 4,3 or a south run out of 6,3.
+design: HE WILL SPEND HIS OWN SHIFT. Ties inside a band break by direction in the fixed order up, right, down, left, so with the line intact he shoves east into his own crowd for a double stagger, and as the east half empties he turns west and puts whoever holds the west door into the drain - his worker or yours, at the same price. That is the phase change doing something other than raising numbers.
+design: WHAT HIS RUN WILL NOT DO. A shove into solid masonry is 4 damage and is worth nothing on his list - only a drain, a body or a structure with hit points scores - so he will not cross the room to slam somebody into the ring. And the run itself stops on the first tile it cannot enter, which is why the two stacks beside him matter twice: from 5,3 there is no north or south run at all, and his lane is east-west or nothing.
+design: THREE APPROACHES, PRICED IN MOVEMENT POINTS. Straight up the aisle from 10,3 is 2 points to stand on 8,3 beside the front rank - the cheapest approach on the board and the one that puts you on his run. The catwalk over the north bin is 4 points from 9,0 for an Archer, who climbs free, and 5 for anybody else; from 5,0 the boss is at range 3, which is the sweet spot, and high ground adds 2, so that is 6 a shot - and it is under the Lobber at 2,1 from round 2. The west door at 3,3 is 11 points round the south gallery, under both Lobbers, and it is the only approach that arrives on the drain side.
+design: THE MIDDLE IS HIS ROOM. The true centre 3x3 of an 11x7 board is 4,2 to 6,4 and it is the bin - his tile, his two cover slots and both stacks. Blocking mass is 17 of 77 tiles at 22 percent, and 16 of those sit in two connected formations of 8 - the ring above the bin and the ring below it - so the board buys its question with architecture rather than with holes in the floor. One pit, no spikes. If the drain were filled in the fight would still work, which is the test scenarios/DESIGN_PRINCIPLES 1 sets.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven spots, unowned, in three clusters - the north-east corner, the south-east corner, and ONE forward spot at 10,3 on the mouth of the aisle. Six of the seven are outside every enemy's round-1 reach: a Husk walks 3 and swings 1 for a diamond of 4, a Lobber walks 2 and throws 3 for a diamond of 5, and the boss walks 1 for a diamond of 2. 10,3 is priced and deliberate - the Husk on 7,3 walks two tiles to 9,3 and swings, so drafting there costs 2 damage on round 1 and buys the only straight walk to the chamber.
+design: THE MOUTH CANNOT BE SHUT. Two more workers arrive at 2,0 and 2,6 on round 4 - the shift change, and it restores cover slots as fast as you empty them. There is nothing on this board to break that stops it: the thing that would is a Work Bell, and no board can carry one.
+design: THE CLOCK IS TEN ROUNDS. A boss board is won by the body falling and nothing else, so clearing the ground does not end it and reaching the limit is a loss (D-223) - the turn limit is the pressure the objective cannot supply on its own. Ten is set against a measured median of six rounds for the policies that win: four rounds of slack is room to be careful in and not room to wait in.
+design: CERTIFICATION - MEASURED. Four of fifteen evaluator policies win it, including board-first and objective-first, which is 2 of the four MASTER_DESIGN 8.8 base-kit policies against that section's floor of one. Median six rounds, no stalls. Quote the deterministic policies rather than the /15: nothing in a fight consumes an RNG, so the random-* rows reseed per process and that figure is not stable between invocations. The number worth reading is the board's share of the damage the players dealt - 53 percent here against 36 on quarry-king. On a board whose thesis is that the crowd is ammunition, more than half the damage coming off the terrain rather than off the blades is the thesis showing up in the log.
+design: THE CHOKE IS PRICED, NOT SEALED. A duck on 8,3 plugs the east door and lets the shift file out one at a time, which is a real hold and it is meant to be available. It costs the aisle: 8,3 is on row 3, both galleries flank it, and after 13 hit points it is the tile his run is aimed at. Holding it is a trade rather than a free win, which is the bar cb-06-bait-and-break set.
+
+spawn r = Rushmaster
+spawn h = Husk
+spawn l = Lobber
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: boss
+turn-limit: 10
+blocker-hp: 6
+
+wave 4 = h@2,0 h@2,6
+
+board:
+  ....HHH..**
+  ..l#X###..*
+  ...#.X.#...
+  .O.hhrhh..*
+  ...#.X.#...
+  ..l###X#..*
+  .........**

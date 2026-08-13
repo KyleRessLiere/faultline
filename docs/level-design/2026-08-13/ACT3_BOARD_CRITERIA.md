@@ -353,6 +353,30 @@ A **stall** (round > 60) is a distinct failure from a loss, and on a kill-all bo
 means a connectivity or reachability defect rather than a difficulty one — check
 `-- --connectivity` before touching the roster.
 
+> ### ⚠ G12 DOES NOT APPLY TO `destroy` OR `boss` BOARDS — measured, not assumed
+>
+> **The shipped `break-the-gate` scores 0/15 with six stalls.** `quarry-king` scores 0/13. Both
+> are shipped, certified content. The evaluator policies are **one ply deep with no planning**,
+> and both objective types ask for a set-up-then-payoff shape — sustain a siege on a structure
+> while under fire; strip a token this round and cash it next — that no one-ply policy can hold.
+> `docs/LEVEL_ANALYSIS.md` already marks the `quarry-king` figure as *hypothesis, not
+> measurement*.
+>
+> **Therefore: never tune a `destroy` or `boss` board to make a policy win it.** That is tuning
+> to a broken instrument, and it will make the board worse for the humans who can plan.
+>
+> What still applies to these boards, and must pass:
+> - **agency** (`ok`, `0` unsafe spots per side),
+> - **no stall** — the board must always resolve. A stall means it could not even finish, which
+>   *is* a defect. `lk-20-the-head-gate` reads 0 stalls against `break-the-gate`'s six.
+> - **arithmetic that closes** — state, in a design line, the direct-action baseline (structure
+>   HP ÷ 2, since any attack chips masonry for 2) against the number of reachable faces and the
+>   turn limit. An earlier cut of `lk-20` had one reachable face and a clock it could not beat;
+>   that is a real defect a policy sweep will never distinguish from a hard board.
+>
+> **These boards owe a human playtest, and the handoff must say so.** Nothing in the harness can
+> currently tell you whether a `destroy` board is winnable at a fair price.
+
 **G13 · Adversarial break.** Dedicated agents attempt the degenerate solution — the flier-skip
 equivalent. A board fails if a break is found and **unpriced**. Three distinct lenses required:
 1. **Degenerate policy** — is there one repeated action that wins regardless of the board?

@@ -243,6 +243,7 @@ h2 {
 .cell.spikes  { background: #6d3a2f; }
 .cell.high    { background: #3f4b3a; }
 .cell.cracked { background: #2b303a; border-style: dashed; border-color: #7a6a3a; }
+.cell.water   { background: #1f4f6b; }
 
 .cell.movable {
     outline: 2px solid rgba(90, 169, 255, .8);
@@ -359,6 +360,7 @@ h2 {
 .sw.pit    { background: #0b0c10; border: 1px solid #333; }
 .sw.spikes { background: #6d3a2f; }
 .sw.high   { background: #3f4b3a; }
+.sw.water  { background: #1f4f6b; }
 
 /* Panels */
 

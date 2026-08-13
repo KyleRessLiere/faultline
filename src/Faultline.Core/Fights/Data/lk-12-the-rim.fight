@@ -1,0 +1,35 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-12-the-rim
+number: 912
+name: The Rim
+pool: Ordinary
+description: A three-drain cluster with one tile of rim around it, and a Bulwark standing where it turns a two-tile shove into a one-tile shove. The drain does not move. You do.
+design: THE ROUND-3 QUESTION - round 3 is the round the Court is standing on the rim. A Bull Rush pushes 2, so a body with a drain two tiles beyond it goes in; with the Bulwark adjacent the same charge pushes 1 and the body stops on the rim having cost you an action. The drain ADJACENT to a body is still reachable by a shove of 1. So round 3 asks which you spend the round on: the Bulwark's 10 hit points, or one tile of your own footwork so the shove you are still allowed lands in the water.
+design: THE ARITHMETIC, off UnitTemplate.cs. Bulwark 10 HP / Move 2 / melee 2, aura caps ADJACENT ALLIES at one tile and never its own carrier (D-019). Husk 4 HP / Move 3 / melee 2 and it tramples. Stalker 8 HP / Move 4 / DAMAGE 0 / Push 1, ranking drains above brambles above the edge. Twenty-six hit points across four bodies and three kinds. A collision is 4 to BOTH, which is one whole Husk and half a Stalker, so the cheapest kill on this board is still two enemies standing in a line.
+design: THE CAP IS A PRICE, NEVER A WALL (MASTER_DESIGN 2). Hold shortens the shove; it does not switch it off, and it never touches damage. Inside the aura you still get 4 into a body, 4 into a wall, 4 into the board edge and a drain that is one tile away. What you lose is exactly the second tile of reach - which is worth naming, because that second tile is what turned the rim from a hazard into a kill zone. Kill the Bulwark and the rim comes back.
+design: THE STALKER IS THE OTHER HALF OF THE RIM. It deals no damage at all, so it never has a lethal and it will always take a shove over anything else, and its list ranks a drain first. It flanks a duck that is standing next to a drain and pushes 1 - which means the rim is dangerous to whoever is standing on it, both ways. A duck at 3,3 has the drain at 2,3 on its west and the flank tile at 4,3 is open, so that particular tile is bought and paid for. A duck at 0,2 has the drain at 1,2 on its east and the flank tile is off the board, so that one is free. Read the flank, not the drain.
+design: TWO ROUTES, UNEQUAL PRICES. The wall block and the drain cluster leave exactly two ways across row 2 - column 0 and column 3. From the south-west pocket the western crossing is FIVE steps to contact with the Husk at 0,0 - 0,5 0,4 0,3 0,2 0,1 - and it delivers you into a fight fought at 1,1 and 2,1, which are the cluster's northern rim, both flankable from row 0, and all four bodies are within two tiles of you at once. The centre crossing is EIGHT steps from either pocket - 0,6 or 6,6 to 3,1 by way of 3,6 3,5 3,4 3,3 3,2 - three steps dearer, and it costs exactly ONE tile of exposure rather than four bodies of it: 3,3, whose drain is west at 2,3 and whose flank tile 4,3 is open. Its mirror at 3,2 is free, because the tile a Stalker would have to stand on to use the drain at 2,2 is masonry. Cost and exposure disagree on purpose.
+design: THE LEDGE AT 3,4 IS THE CENTRE CROSSING'S PAYMENT. Nothing can be shoved up onto high ground, so a body shoved south into it collides for 4 exactly as it would into masonry; a body shoved OFF it takes 2 and the displacement keeps travelling, which on this board means it keeps travelling toward the drains. A ranged duck standing there shoots for two more. It costs no extra movement to climb (MASTER_DESIGN 3 deleted the climb surcharge) - what it costs is the three extra steps of the crossing.
+design: THE ARCHITECTURE. Eight impassable tiles of forty-nine, 16 percent, in two connected formations - three drains at 1,2 2,2 2,3 and five wall tiles at 4,2 5,2 6,2 6,3 6,4. Three drains is a cluster with a rim rather than three separate holes, which is the whole difference between a shove-target and a shape that changes where you may walk. The wall block is the same size and does the same job from the other side of the crossing.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six unowned spots in two pockets of three, and the split is the route choice - the western pocket owns the cheap crossing and the rim, the eastern pocket owns nothing but distance and has to walk to the centre either way. Every spot is outside every enemy's round-1 reach, including the Stalker's, which is 5 and which the drain cluster itself shortens - the Stalker at 1,0 cannot path down column 1 at all, because 1,2 is a drain, so its nearest spot at 0,5 is six steps away. A Husk covers 4 and the nearest spot to the one at 0,0 is 0,5 at five steps. Nothing here can hurt you before you have had a turn.
+design: DELIBERATE LINTS. CentreNotClear and HazardOffOuterRings fire because the drain cluster is the middle of the board and owning the middle is the point (G5 is that lint inverted). SpikeCountOutOfRange fires because this board has drains and no brambles - one hazard family per board reads better than two.
+
+spawn b = Bulwark
+spawn h = Husk
+spawn s = Stalker
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+board:
+  hsbh...
+  .......
+  .OO.###
+  ..O...#
+  ...H..#
+  *.....*
+  **...**

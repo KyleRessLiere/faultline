@@ -1182,6 +1182,13 @@ namespace Faultline.Core
 
             events.Add(new RoundStarted(state.Round));
 
+            // The water level moves first, so everything that follows plans against the board as it
+            // now is: an arrival lands on the terrain the canal has already taken, and every intent is
+            // pathed over it. A gate broken during the last round shows up in Sluice.Pending the
+            // instant it falls and the water arrives here, which is the published-a-round-ahead
+            // contract the wave timetable keeps (D-275).
+            state = Sluice.Rise(state, events);
+
             // Arrivals land before intents are declared, so an enemy that walks on this round has its
             // plan on the table with everyone else's.
             state = Objectives.Reinforce(state, events);

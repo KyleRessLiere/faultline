@@ -1,0 +1,44 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   ~  canal       D  the destroy objective      X  breakable blocker (here, a sluice)
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-20-the-head-gate
+number: 920
+name: The Head Gate
+pool: Hard
+size: 9x7
+description: Bring down the head gate in ten rounds. There is a moat in front of it, two lobbers over it, and a second sluice behind you that floods the ground the Court has to cross - if you can spare the swings.
+design: THE ROUND-3 QUESTION - you have ten rounds, sixteen hit points of masonry to remove, and a second gate at 4,4 that does nothing for the objective at all. Round 3 is the round the Court's line arrives and the two jobs start competing. The question is whether you spend actions on the sluice that slows them or keep every swing on the gate that wins.
+design: THE FIRST DESTROY BOARD IN THE GAME. The objective vocabulary has carried `destroy` since MASTER_DESIGN 7 and no shipped board has ever used it. Its terms are the sharp part: there is NO kill-all win, so clearing the board does nothing, and turn-limit expiry is a LOSS rather than a draw (D-223). Killing every Court body on this map and standing on the rubble at round 11 is a defeat. That is the whole reason the band is Hard.
+design: SPEND ACTIONS OR SPEND THE ENEMY. Any attack chips masonry for 2 whatever the weapon (D-060), so sixteen hit points is eight direct actions - the costly baseline that always exists and always works. A collision does full damage at 6, so three clean slams is the fast route, and the bodies to slam are the ones walking at you. The Court supplies its own ammunition, and the gate does not care who pushed.
+design: TWO ROUTES, UNEQUAL PRICES. The canal at 2,2 to 6,2 is the moat, and the gate's only southern face is 4,2 - standing in the water. Wading costs the bramble surcharge, so the wet approach is 2 AP a tile and puts a duck in the open under both Lobbers, but it is four tiles from the northern spots. The dry route runs up column 0 or column 8, over the top at row 0 and back along to 4,0: eleven tiles instead of four, no wading, no Lobber arc worth the name, and three rounds of the clock. Short and wet under fire, or long and dry and late.
+design: THE SECOND SLUICE IS THE REAL DECISION. The blocker at 4,4 holds back nothing the objective needs - break it and the canal takes the whole of row 3, which is the band the Court's line has to cross to reach either pocket. It costs eight hit points of swings you were going to spend on the head gate, and it buys you a wet approach for everything that walks at you afterwards. That trade is live from round 1 and it is the board.
+design: IT SLOWS YOU TOO, AND THAT IS NOT A FLAW. Row 3 is also the band YOUR line crosses to reach the moat, so flooding it is a toll you install on a road you are still using. The asymmetry is that you cross it once and they keep coming - which is a real edge and a small one, and a flock that floods early and then finds itself wading to a gate it has run out of rounds to break has made a legible mistake rather than an unlucky one.
+design: THE BULWARK AND THE ANCHOR STAND ON THE FLOOD BAND, at 2,3 and 6,3, and a tile somebody is standing on stays dry until it is vacated (D-275, provisional). So the Court's own line holds two tiles of the crossing open for as long as it refuses to advance, and the water closes behind it the moment it moves. That falls out of the ruling rather than being designed, and no part of this board's thesis depends on which way that ruling finally goes.
+design: WHY AN ANCHOR RATHER THAN A THIRD HUSK. It shrugs one tile off every push and it is the body you most want to slam into masonry, which are the same fact read from two ends: 12 hit points of ammunition that will not be moved cheaply into position. The Bulwark caps the displacement of whatever stands beside it at one tile, so a Court body that has closed ranks cannot be shoved the two tiles into the gate face - break the aura first, or find a body standing alone. That is the Locks asking its own question inside a siege.
+design: CERTIFICATION, AND WHAT IT CANNOT TELL US. Agency is strict - ok, A 6/0 B 6/0, every spot outside every enemy's round-1 reach - and the board always resolves: 0 stalls across all fifteen policies. The win rate is 0/15, and that number is NOT evidence about this board. The shipped destroy board, break-the-gate, reads 0/15 WITH SIX STALLS on the same sweep, so a zero here is the objective type's baseline rather than a defect: the evaluator policies are one ply deep with no planning, and a destroy board asks for sustained commitment to a structure while under fire, which is a set-up-and-payoff shape no one-ply policy can hold. docs/LEVEL_ANALYSIS.md marks the same result on quarry-king as hypothesis rather than measurement, and the same caveat applies here.
+design: SO THE NUMBERS WERE NOT TUNED TO THE INSTRUMENT. An earlier cut sat at 16 hit points behind a sealed wall bar with a ten-round limit, which left the gate one reachable face at 4,2 and a squad chipping 2 a round against a clock it could not beat. That was real arithmetic that did not close and it was fixed - the bar now leaves 3,1 and 5,1 open, so the gate has four faces and the approach has choices. The subsequent move to 12 hit points and thirteen rounds is deliberate generosity for content that cannot currently be measured, and it is the number a human playtest should challenge first. WHAT IS OWED: this board and break-the-gate both need a human sitting down with them, because nothing in the harness can currently say whether a destroy board is winnable at a fair price.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six unowned spots in two southern pockets, all outside every enemy's round-1 reach - the Anchor walks 1 and swings 1, the Bulwark 2 and 1, and the Lobbers are five tiles of walk-and-arc from the nearest spot. Both pockets are behind the sluice at 4,4, so whichever flock takes which pocket, the flood decision belongs to both of them.
+
+blocker-hp: 8
+objective: destroy 4,1 hp 12
+turn-limit: 13
+sluice: 4,4 = 2,3 3,3 4,3 5,3 6,3
+
+spawn l = Lobber
+spawn b = Bulwark
+spawn a = Anchor
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+board:
+  ..l...l..
+  .##.D.##.
+  ..~~~~~..
+  ..b...a..
+  ....X....
+  *.......*
+  **.....**

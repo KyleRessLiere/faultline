@@ -115,7 +115,7 @@ public static class View
             text.Append('\n');
         }
 
-        text.Append("legend: . open   # wall   O drain   ^ spikes   + high ground   ~ cracked   [] structure\n");
+        text.Append("legend: . open   # wall   O drain   ^ spikes   + high ground   ~ cracked   w canal   [] structure\n");
         text.Append("        UPPERCASE = your squad, lowercase = enemy, number = unit id\n");
 
         var objective = state.Fight.Objective;
@@ -313,6 +313,7 @@ public static class View
                 string note = tile == TileType.HighGround ? "  HIGH GROUND (+1 ranged)"
                     : tile == TileType.Cracked ? "  CRACKED (may collapse)"
                     : tile == TileType.Spikes ? "  SPIKES"
+                    : tile == TileType.Water ? "  CANAL (wade)"
                     : string.Empty;
                 return $"Move {Name(state, c.UnitId)} to {c.To}{note}";
             }
@@ -496,6 +497,9 @@ public static class View
             case DisplacementStop.Spikes:
                 parts.Add($"ONTO SPIKES for {preview.DamageToUnit}");
                 break;
+            case DisplacementStop.Water:
+                parts.Add("INTO THE CANAL, staggered, no damage");
+                break;
             case DisplacementStop.Immovable:
                 parts.Add("braced, barely shifts");
                 break;
@@ -561,6 +565,11 @@ public static class View
         TileType.Spikes => "^",
         TileType.HighGround => "+",
         TileType.Cracked => "~",
+
+        // Not '~' — the ASCII view already spends it on Cracked, and two terrain kinds rendering as
+        // the same glyph is exactly the silent-as-open-ground failure the tile class was swept for.
+        // The .fight format's character for the canal is '~'; this view is its own alphabet.
+        TileType.Water => "w",
         _ => "?",
     };
 

@@ -1,0 +1,53 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-24-both-gates
+number: 924
+name: Both Gates
+pool: Endurance
+size: 7x9
+description: Two lock gates, one pier between them, and a flock that cannot stand in both. The bell judges 2,4 and 4,4 together, and everything before round 7 is rehearsal.
+design: THE ROUND-3 QUESTION - the pier at x 3 runs unbroken from 3,3 to 3,6 and the drain at 2,6 closes the short way past its foot, so the two gate mouths at 2,5 and 4,5 are EIGHT steps apart and neither half of the flock can support the other inside one round. Round 3 asks whether you are still holding both gates with two ducks each, or whether you have given one of them up on purpose to make the other unbreakable - and if so, which, because the Anchors land at 2,1 and 4,1 on round 5 and walk one tile a round, which puts one of them on each gate at the end of round 7 exactly.
+design: ENDURANCE, OBJECTIVE-SHAPED. Hold 2,4 and 4,4 for 7. There is NO EARLY LOSS: an enemy standing in a gate on round 2 costs nothing at all and only the deadline check judges it. The whole board is the last round, and every round before it is you deciding what the last round is going to look like.
+design: THE CHOKE IS WHAT THE ENEMY NEEDS, WHICH IS THE INVERSION hold-the-gate ALREADY SHIPPED - and this board turns it once more. There the players held one two-tile gate against a published timetable. Here the wall line at y 4 has exactly two openings, 2,4 and 4,4, and both of them are the objective, so the tide's only road to you IS the thing you are defending. Standing a duck on a gate denies it outright - only an ENEMY on those tiles loses it - and that is a legitimate tactic rather than a bug. What it is not is free, and the pricing is below.
+design: WHY THE PLUG IS NOT FREE (G13, the chokepoint lens). One: a body in a gate is adjacent to the whole queue on the far side and can be answered by every one of them in turn, and it cannot be relieved quickly - the walk from 2,5 to 4,5 is EIGHT steps - 1,5 1,6 1,7 2,7 3,7 4,7 4,6 4,5 - because the pier runs 3,3 to 3,6 and the drain at 2,6 closes the short way past its foot, so a duck that dies in one gate is not replaced from the other for the better part of three rounds. Two: the west lane is one tile wide from 1,5 to 1,6 with a drain at 2,6 cut into the side of it, and the Harrier deals no damage at all, which means it always has an activation free to spend on putting a duck one tile further from its nearest ally. Three: 2,4 and 4,4 have masonry at both shoulders, so a body standing in one can only ever be shoved north or south. Shoved north it collides with whatever is next in the queue for 4 to both and does not leave the tile; shoved south it leaves the gate and is now standing on your side of the wall. YOU CANNOT PUSH THEM BACK OUT - you can only pull them through - and that is the whole shape of the endgame.
+design: THE ANCHOR IS THE DEADLINE AND THE GRADIENT. Twelve hit points, Move 1, 4 damage, Push Resistance 1. A Bull Rush pushes 2 and resistance takes one off it, so it still moves ONE tile - and one tile is all it takes to leave a gate. That is a price gap and not a wall (MASTER_DESIGN 2): the heaviest body on the timetable is still shovable, just not far, and where it lands is your doorstep rather than theirs. Both Anchors arrive on round 5, two tiles north of a gate each, and take one tile a round for the rounds that remain. If you are already standing in the gates on round 5 they never get on. If you have been shoved out, round 7 is a shove-or-kill problem with 12 hit points in it.
+design: THE BULWARK IS WHY THAT SHOVE STAYS SHORT. Move 2, aura caps the displacement of every adjacent ally at one tile. Its job here is to walk to 2,3 or 4,3 and stand at a gate's north shoulder, so the body IN the gate can only be moved one tile - which still clears the gate, and still puts the body on your side rather than back in the queue. Hold caps distance, never damage: a capped one-tile shove into another body is 4 to BOTH, and that is the cheapest way to spend a gate-clearing shove on this board.
+design: TWO ROUTES, UNEQUAL PRICES, MEASURED FROM THE SPOTS. THE EAST GATE is four steps from the spot at 4,8 - 4,7, 4,6, 4,5, 4,4 - and the three tiles behind it, 4,5 5,5 5,6, are an open room where three ducks stand abreast and relieve each other. THE WEST GATE is SIX steps from 2,8 - 2,7, 1,7, 1,6, 1,5, 2,5, 2,4 - because 2,6 is a drain and the lane bends around it, and every one of those six is a single-file tile with masonry on one side and the drain on the other. Two extra action points, and an approach where a Harrier's one-tile shove has somewhere to put you. The near gate is the dangerous one, which is the opposite of how it reads.
+design: THE MIDDLE IS THE OBJECTIVE. The true centre 3x3 is x 2-4 by y 3-5 and it is exactly the two gates and the pier between them - 2,3 and 4,3 above, 2,4 and 4,4 as the objective tiles, the pier at 3,3 3,4 3,5, and 2,5 and 4,5 below. There is nothing decorative in it.
+design: THE WHOLE TIMETABLE, PUBLISHED AT FIGHT START. Round 2: a Harrier at 3,0. Round 3: two Heavy Husks at 1,0 and 5,0. Round 4: a Lobber at 3,0. ROUND 5: TWO ANCHORS AT 2,1 AND 4,1, one aimed at each gate. Round 6: a Runt at 3,0, which is Move 4 and therefore exactly four steps from a gate's north face - it lands on one at the bell for the same reason the Anchors do, from the other end of the speed range. Ten bodies in total, 66 enemy hit points. Every arrival tile is open ground on the tide's side of the wall and none of them is a deployment spot - the same assertion break-the-gate and as-05 carry, written out because nothing lints an arrival tile.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots, unowned, all on row 8 in two pockets of three either side of 3,8. THE SPLIT IS DRAFTED AND NEVER ASSIGNED: both pockets are open to both flocks, so a squad may put all four ducks behind one gate and hand the other to the timetable, which is a real plan and is what the round-3 question is about. Agency before injury holds in its strict form (D-080): the fastest starter is a Runt at Move 4 and from 1,1 it reaches 2,4 at the outside, threatening 2,5 - four rows short of any spot. Nothing on this board can put damage or displacement on a spot before you have had a turn.
+design: CERTIFICATION, MEASURED ACROSS POLICIES AND NEVER ACROSS SEEDS. Three of the four MASTER_DESIGN 8.8 policies clear it - shover, board-first and objective-first - against the section's floor of one and Act 3's working bar of two. Six of the nine deterministic policies win it; the three that do not are first-legal, brawler and relay, and all three lose the same way - they chase bodies instead of standing in the gates, and the bell finds an Anchor on one. ZERO STALLS, and every win lands on round 7 because the objective resolves on the bell rather than by clearing the board. Quote the deterministic rows and nothing else: nothing in Faultline.Core consumes an RNG inside a fight, so those nine play byte-identically at every seed, while the six random-* rows are seeded from a hash .NET randomises per process and do not repeat between invocations.
+design: ONE DRAIN, AND IT IS LOAD-BEARING. 2,6 is the only pit on the board and it is cut into the side of the west lane, one tile from 2,5 and one from 1,6. It is the reason the short road is the expensive one: it is where a leaker that gets through the west gate goes, and it is equally where a Harrier's one-tile shove puts a duck who was holding 2,5. A pit is the finisher and should feel rare (scenarios/DESIGN_PRINCIPLES 1); there is one here and the board is built so that it is aimed at both sides.
+
+spawn r = Runt
+spawn b = Bulwark
+spawn k = Harrier
+spawn d = HeavyHusk
+spawn l = Lobber
+spawn n = Anchor
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: hold 2,4 4,4 for 7
+turn-limit: 7
+
+wave 2 = k@3,0
+wave 3 = d@1,0 d@5,0
+wave 4 = l@3,0
+wave 5 = n@2,1 n@4,1
+wave 6 = r@3,0
+
+board:
+  .......
+  .r.b.r.
+  .......
+  .#.#.#.
+  ##.#.##
+  #..#..#
+  ..O#...
+  .......
+  ***.***

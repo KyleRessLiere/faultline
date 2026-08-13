@@ -1,0 +1,35 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-07-back-to-the-wall
+number: 907
+name: Back to the Wall
+pool: Ordinary
+description: A Harrier that refuses any shove which does not move you, a Grappler that wants whoever is standing highest, and two Heavy Husks that only ever kill the duck who is alone. Masonry is the answer to one of them and the trap of the other.
+design: THE ROUND-3 QUESTION - by round 3 the Grappler has closed to range and the Harrier has taken its first flank, and the two safeties on this board are both still open and cannot both be held. The question is whether you back the flock into the wall pockets, where the Harrier cannot score and the Heavy Husks can corner you two on one, or take the open floor and the ledges back, where you can support each other and are worth shoving again.
+design: THE HARRIER IS THE CONTENT AND IT IS READ OFF Rules/Ai.cs, NOT OFF PROSE. PlanHarrier scores a shove by how much further from its nearest ally the target lands, and it SKIPS any candidate whose preview destination equals the tile it is already on. A shove that does not move you is worth nothing to it. That is a fact about masonry: a duck with a wall or a ledge behind it in the shove direction is simply not a target, and the Harrier goes and takes somebody else's formation apart instead.
+design: THE ARITHMETIC OF THE POCKETS. 1,3 and 5,3 each have three impassable faces - wall, wall, wall - and the fourth face is a high-ground tile, which collides like a wall because nothing can be shoved UP onto a ledge. A duck standing in one of them cannot be displaced in any direction at all, by the Harrier or by anything else. It also cannot be reached except from the ledge beside it, and it cannot reach anything else. This is priced and it is not a hole in the board: the duck in the pocket has given up the rest of the board, which is exactly the trade cb-06-bait-and-break licenses. One duck fits. Four do not.
+design: THE LEDGES ARE THE OTHER SAFETY AND THEY ARE THE GRAPPLER'S FIRST CHOICE. PickGrab tiers its targets: HighGround first, then the Archer, then whoever is left. So 2,3 and 4,3 buy a ranged attack at +2 and buy immunity from being shoved onto them, and they cost you the top of the Grappler's list - a pull of 2 straight off the ledge, which is 2 damage on the way down and a shove that keeps travelling. Two safeties, each of which is the other one's trap, is the whole board.
+design: TWO ROUTES, UNEQUAL PRICES. From the south-east spot at 5,6 the FLOOR route is 3,6 to 3,5 to 3,4 to 3,3 - four steps up the open central column, contact on round 2, and it lands you between both Heavy Husks with nothing behind you. The LEDGE route is 5,6 to 4,6 to 4,5 to 4,4 to 4,3, which is four steps of which the last costs two movement points because climbing does - five movement points, and four for the Archer, who climbs free. One AP dearer, and what it buys is +2 on every shot and a tile the Harrier cannot move you off. Cost and exposure disagree, which is the choice.
+design: THE HEAVY HUSK IS A HUSK WITH MORE HIT POINTS AND NOTHING ELSE - 6 HP, Move 3, damage 2, and it does NOT trample and carries no Footing whatever the design docs imply. Two of them is 12 hit points of ordinary melee, and their whole job is to make an isolated duck a two-on-one. They are the reason the Harrier's separation is a threat rather than an inconvenience: on their own they are the easiest thing on the board.
+design: BLOCKING MASS. Ten wall tiles on a 7x7, which is 20.4 percent, in two connected formations of five - the west block at 0,2 1,2 0,3 0,4 1,4 and the east block at 5,2 6,2 6,3 5,4 6,4. Neither is a lone wall and neither is decoration: they are what makes the central three columns the only floor there is, and they are what makes a back to the masonry a real position rather than a figure of speech.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots in two pockets, unowned, and every one outside every enemy's round-1 reach including the reaches that deal no damage - the high-road defect was a round-1 pull nobody's threat check saw, so the Grappler is measured too. Its deepest round-1 stand is 3,4 and its range is 3, which lands one tile short of every spot; the Harrier cannot get past 3,2 because the Grappler is standing in its lane.
+design: NO PIT AND NO SPIKES ANYWHERE. Every displacement outcome on this board is masonry, ledge, board edge or another body, and that is the point - the Harrier never uses a wall and the players always can. The board trips SpikeCountOutOfRange on purpose, as nv-04-open-order does with the same premise.
+
+spawn k = HeavyHusk
+spawn r = Harrier
+spawn g = Grappler
+
+roster a: Vanguard, Archer
+roster b: Wardbearer, Threadcaster
+
+board:
+  .k.r.k.
+  ...g...
+  ##...##
+  #.H.H.#
+  ##...##
+  *.....*
+  **...**

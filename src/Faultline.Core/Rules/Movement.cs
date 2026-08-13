@@ -40,7 +40,7 @@ namespace Faultline.Core
             var board = state.Board;
             var best = new Dictionary<Coord, Node>();
             var settled = new HashSet<Coord>();
-            best[unit.Position] = new Node(0, 0, null, Array.Empty<int>(), true);
+            best[unit.Position] = new Node(0, 0, 0, null, Array.Empty<int>(), true);
 
             while (true)
             {
@@ -90,7 +90,8 @@ namespace Faultline.Core
                     }
 
                     int spikes = node.Spikes + (tile == TileType.Spikes ? 1 : 0);
-                    var candidate = new Node(spikes, cost, current, Extend(node.Steps, d), false);
+                    int wet = node.Wet + (tile == TileType.Water ? 1 : 0);
+                    var candidate = new Node(spikes, wet, cost, current, Extend(node.Steps, d), false);
 
                     if (!best.TryGetValue(next, out var existing) || IsBetter(candidate, existing))
                     {
@@ -138,10 +139,14 @@ namespace Faultline.Core
         /// <summary>True for terrain a unit may voluntarily walk onto.</summary>
         /// <param name="tile">Terrain to test.</param>
         /// <returns>Whether it can be entered on foot.</returns>
-        /// <remarks>Pits are not voluntarily enterable — Brief §2 only ever puts units in them by displacement (DECISIONS.md D-004).</remarks>
+        /// <remarks>
+        /// Pits are not voluntarily enterable — Brief §2 only ever puts units in them by displacement
+        /// (DECISIONS.md D-004). Canal water is: it is priced ground, not a hazard you are only ever
+        /// thrown into, and wading is meant to be a decision a player can take (D-275).
+        /// </remarks>
         public static bool IsWalkable(TileType tile) =>
             tile == TileType.Open || tile == TileType.Spikes || tile == TileType.HighGround
-            || tile == TileType.Cracked;
+            || tile == TileType.Cracked || tile == TileType.Water;
 
         /// <summary>
         /// Movement points to enter a tile, from its terrain alone. A body standing on it costs
@@ -166,6 +171,16 @@ namespace Faultline.Core
             if (tile == TileType.Spikes && Activation.UsesActionPoints(unit))
             {
                 return unit.Has(Unlock.SureFooted) ? Activation.StepCost : Activation.BrambleCost;
+            }
+
+            // Canal water is priced exactly as brambles are, on exactly the same terms: the wade is
+            // an AP surcharge, enemies keep movement-point semantics, and the price of the step is
+            // not the same question as what the tile does to somebody shoved into it. Sure-Footed is
+            // deliberately NOT extended to it — the unlock buys a way through the thorns, and
+            // silently making it a swimming certificate too would be a kit change nobody authored.
+            if (tile == TileType.Water && Activation.UsesActionPoints(unit))
+            {
+                return Activation.WadeCost;
             }
 
             return Activation.StepCost;
@@ -214,6 +229,17 @@ namespace Faultline.Core
                 return candidate.Spikes < existing.Spikes;
             }
 
+            // Then the wade. Canal water does no damage, so it cannot ride on the damage count above,
+            // but it is not free either: it stops a shove dead and it costs an AP user an extra point
+            // (D-275). Without this arm the router would treat an equally-priced route through the
+            // canal as identical to the dry one and pick by compass heading — which is a costly tile
+            // the router thinks is free, and that is a bug even when the arithmetic ties. It sits
+            // BELOW damage on purpose: a wade is a nuisance, brambles are a wound.
+            if (candidate.Wet != existing.Wet)
+            {
+                return candidate.Wet < existing.Wet;
+            }
+
             // Equally fast and equally safe: N/E/S/W decides, compared from the first step rather
             // than the last, so "north then east" beats "east then north" the way a reader of the
             // rule would expect. Same route on any machine, in any order, every time.
@@ -259,7 +285,8 @@ namespace Faultline.Core
             return next;
         }
 
-        private static bool Ties(Node a, Node b) => a.Spikes == b.Spikes && a.Cost == b.Cost;
+        private static bool Ties(Node a, Node b) =>
+            a.Spikes == b.Spikes && a.Wet == b.Wet && a.Cost == b.Cost;
 
         private static bool Precedes(Coord a, Coord b) => a.Y != b.Y ? a.Y < b.Y : a.X < b.X;
 
@@ -288,9 +315,10 @@ namespace Faultline.Core
 
         private readonly struct Node
         {
-            public Node(int spikes, int cost, Coord? prev, IReadOnlyList<int> steps, bool isStart)
+            public Node(int spikes, int wet, int cost, Coord? prev, IReadOnlyList<int> steps, bool isStart)
             {
                 Spikes = spikes;
+                Wet = wet;
                 Cost = cost;
                 Prev = prev;
                 Steps = steps;
@@ -298,6 +326,9 @@ namespace Faultline.Core
             }
 
             public int Spikes { get; }
+
+            /// <summary>How many canal tiles this route wades through. See <see cref="IsBetter"/>.</summary>
+            public int Wet { get; }
 
             public int Cost { get; }
 

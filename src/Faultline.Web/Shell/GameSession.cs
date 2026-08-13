@@ -2464,6 +2464,12 @@ public sealed class GameSession
                 // outcome differently would read as a second, disagreeing prediction.
                 return $"{verb} into the drain — {name} is left {PlaytestText.PaddlingNote}";
 
+            case DisplacementStop.Water:
+                // No number, because there is none. What the sentence has to carry is that the shove
+                // ENDED here — the canal is the only stop that takes nothing off a body and still
+                // takes the rest of the travel (D-275).
+                return $"{verb} into the canal — no damage, {PlaytestText.StaggerNote}, the shove stops";
+
             default:
                 string tail = preview.DamageToUnit > 0 ? $" · {preview.DamageToUnit} falling damage" : string.Empty;
                 return $"{verb} {preview.EffectiveDistance} to {preview.Destination}{tail}";

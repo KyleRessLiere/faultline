@@ -72,6 +72,7 @@ cross, and that is the point rather than a side effect — do not compensate for
 | `O` | Pit (capital letter O, not zero) |
 | `^` | Spikes |
 | `H` | HighGround |
+| `~` | Canal water — walkable, and a wade costs 2 AP (D-275) |
 | `*` | A deployment spot — either player may draft into it (tile underneath is Open) |
 | `A` | **Legacy.** Player A deploy slot, on boards not yet migrated to `*` |
 | `B` | **Legacy.** Player B deploy slot, on boards not yet migrated to `*` |
@@ -81,8 +82,8 @@ cross, and that is the point rather than a side effect — do not compensate for
 | any other letter | an enemy, declared by a `spawn` line above the board |
 
 Each character in the board is checked in this order: `A`, then `B`, then `*`, then declared spawn
-letters, then terrain. Because a spawn letter would otherwise win that race, **the eleven characters
-that already mean something — `.` `#` `O` `^` `H` `A` `B` `*` `S` `D` `X` — cannot be used as spawn
+letters, then terrain. Because a spawn letter would otherwise win that race, **the twelve characters
+that already mean something — `.` `#` `O` `^` `H` `~` `A` `B` `*` `S` `D` `X` — cannot be used as spawn
 symbols.** Declaring `spawn H = Husk` is a `MalformedLine` error rather than a board that silently
 loses its high ground.
 
@@ -116,6 +117,7 @@ Everything above (or below) the board block. One `key: value` per line.
 | `turn-limit:` | no | Round cap, 1 or more. Reaching it loses the fight unless the objective wins on expiry. |
 | `blocker-hp:` | when the board uses `X` | Hit points every breakable blocker on this board starts with. 1 or more. |
 | `wave <n> = <c>@<x>,<y> ...` | no | Enemies arriving at the start of round `n`, one line per round. Letters come from `spawn` lines. |
+| `sluice: <gate> = <tiles...>` | no | **Repeatable.** One step of the water level: the gate tile that holds it back, then the tiles the canal takes when that gate comes down. The gate must carry a structure (`X`, `S` or `D`) or the step counts as already open. See below. |
 | `spawn <c> = <UnitKind>` | when the board uses enemy letters | Declares one board letter as an enemy kind. |
 | `board:` | **yes** | Starts the board block. |
 
@@ -245,6 +247,36 @@ a question about the board, not a chore.
 An `X` with no `blocker-hp:` is an error, and so is a `blocker-hp:` with no `X`. Neither can be
 right, and both are the kind of mistake that reads fine.
 
+### Sluices and the water level
+
+```
+blocker-hp: 8
+sluice: 3,0 = 3,1 3,2 3,3
+sluice: 3,4 = 2,3 4,3
+```
+
+One `sluice:` line is one step of the board's water level. Before the `=` is **the tile the gate
+stands on**; after it are **the tiles the canal takes** when that gate comes down. Lines are read in
+file order and that is the order the steps are numbered in.
+
+- **A gate is a `Structure`; the water is a `TileType`.** The gate tile must carry an `X`, an `S` or
+  a `D` on the grid — the parser rejects a gate that carries nothing, because "no standing structure"
+  is exactly how a *fallen* gate reads and the board would start flooded.
+- **Nothing is stored.** The level is derived from which gates are still standing and which tiles the
+  board has already taken, so a replayed fight has identical water with no state to compare.
+- **It is published from fight start.** Every step, its gate and every tile it floods is inspectable
+  before a point is spent — the same contract the wave timetable keeps.
+- **The flood lands at the start of a round**, never at the instant a gate falls. A gate broken at any
+  point in round *n* puts its tiles in the pending list immediately and the water arrives when round
+  *n+1* opens.
+- **A tile somebody is standing on stays dry** and takes the water at the first round start after it
+  is vacated (D-275, provisional). Nobody is ever flooded beneath.
+- **Either side can drive it.** A sluice is ordinary masonry: an enemy shoved through one opens the
+  water for you.
+
+Water can also be authored directly with `~` on a board with no sluice at all — a canal that is
+simply there is a perfectly good board.
+
 ### Retiring a battle
 
 ```
@@ -368,12 +400,12 @@ silently absent.
 
 | Code | Triggered by | Fix |
 |---|---|---|
-| `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `A` `B` `*` `S` `D` `X`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain, a spot or a structure. |
-| `UnknownKey` | A key not in the header-key table above. | Fix the typo. The known keys are `id`, `name`, `description`, `design`, `number`, `roster a`, `roster b`, `objective`, `turn-limit`, `blocker-hp`, `protected`, `footing`, `retired`, plus `spawn`, `wave` and `board:`. |
+| `MalformedLine` | A non-comment line outside the board with no `:`; a `spawn` line with no `=` or with `=` first; a `sluice:` line with no `=`; a spawn symbol that is not exactly one character, or one of the reserved characters `.` `#` `O` `^` `H` `~` `A` `B` `*` `S` `D` `X`. | Write `key: value`, or `spawn <one char> = <UnitKind>` using a character that is not already terrain, a spot or a structure. |
+| `UnknownKey` | A key not in the header-key table above. | Fix the typo. The known keys are `id`, `name`, `description`, `design`, `number`, `roster a`, `roster b`, `objective`, `turn-limit`, `blocker-hp`, `protected`, `footing`, `retired`, `sluice`, plus `spawn`, `wave` and `board:`. |
 | `MissingRequiredField` | `id:` or `name:` absent or blank. | Add it. Reported against line 0 — it is about the file, not a line. |
 | `BoardMissing` | The file is empty, there is no `board:` line, or `board:` is followed by no indented rows. | Add `board:` and indent the rows beneath it. |
 | `BoardRagged` | A board row is a different width from the first row. | Make every row the same length. Watch for a stray trailing character or an indented comment. |
-| `BoardUnknownChar` | A non-letter board character that is not `. # O ^ H`. | Use a legal terrain character. `0` is not `O`, and a breakable blocker is `X`. |
+| `BoardUnknownChar` | A non-letter board character that is not `. # O ^ H ~`. | Use a legal terrain character. `0` is not `O`, and a breakable blocker is `X`. |
 | `SpawnCharUndefined` | A letter on the board with no matching `spawn` line. | Add `spawn <letter> = <UnitKind>` above the board. |
 | `DuplicateSpawnChar` | The same spawn letter declared twice. | Delete one, or use a different letter for the second kind. |
 | `UnknownUnitKind` | A name in a roster or a `spawn` line that is not a `UnitKind`. | Check the spelling against `UnitKind` — the four player classes and every enemy archetype, `/bestiary` lists them all. |

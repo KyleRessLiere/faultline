@@ -153,13 +153,18 @@ namespace Faultline.Core
                 ? Settle(target.Position, source, kind, aim)
                 : DisplacementAim.Default;
 
+            // The canal staggers without hurting, so "does this Stagger?" is the stop as well as the
+            // hit list. One local, read by the preview flag and by the Footing question below, so
+            // the two cannot come apart (D-275).
+            bool staggers = StaggersUnit(sim, targetId) || sim.Stop == DisplacementStop.Water;
+
             // Whether the owner is being offered a real choice: enough Footing to refuse, and
             // something worth refusing.
             bool footingMatters = !refused
                 && Footing.CanRefuseDisplacement(target)
                 && (sim.Path.Count > 0
                     || DamageTo(sim, targetId) > 0
-                    || StaggersUnit(sim, targetId)
+                    || staggers
                     || sim.Clings);
 
             // Everything the shove costs this body, contact bite included: one number, because a
@@ -181,7 +186,7 @@ namespace Faultline.Core
                 selfDamage,
                 sim.ObstacleId,
                 sim.ObstacleId.HasValue ? DamageTo(sim, sim.ObstacleId.Value) : 0,
-                StaggersUnit(sim, targetId),
+                staggers,
                 sim.Clings,
                 target.Hp - routeDamage <= 0,
                 consumesStagger,
@@ -365,6 +370,22 @@ namespace Faultline.Core
                     });
                     events.Add(new Clinging(targetId, sim.Destination));
                     break;
+                case DisplacementStop.Water:
+                {
+                    // No damage and no Clinging: the canal is not a drain (D-275). What it takes is
+                    // the rest of the shove and the target's footing in the loose sense — the Stagger
+                    // is applied here rather than through sim.Hits because Hits are damage, and
+                    // pushing a zero through Combat.ApplyDamage to buy a flag would emit a wound
+                    // nobody took.
+                    var soaked = state.UnitById(targetId);
+                    if (soaked.IsAlive && !soaked.Staggered)
+                    {
+                        state = state.WithUnit(soaked with { Staggered = true });
+                        events.Add(new Staggered(targetId));
+                    }
+
+                    break;
+                }
             }
 
             foreach (var hit in sim.StructureHits)
@@ -940,6 +961,16 @@ namespace Faultline.Core
                 {
                     sim.Clings = true;
                     sim.Stop = DisplacementStop.Pit;
+                    break;
+                }
+
+                // The canal takes the body and none of its hit points. No Hit is recorded, because
+                // a Hit is damage and there is none — the Stagger is hung off the stop instead, in
+                // the one place Resolve already reads it. A soft landing that costs tempo and
+                // position rather than blood (D-275).
+                if (tile == TileType.Water)
+                {
+                    sim.Stop = DisplacementStop.Water;
                     break;
                 }
             }

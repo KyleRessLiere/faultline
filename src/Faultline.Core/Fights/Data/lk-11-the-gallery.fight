@@ -1,0 +1,37 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-11-the-gallery
+number: 911
+name: The Gallery
+pool: Ordinary
+size: 9x7
+description: Two wall banks leave one tile of gallery running the width of the board. Out in the open a capped shove moves a body and touches nothing; inside the gallery the same capped shove is worth four to two bodies at once.
+design: THE ROUND-3 QUESTION - the Court walks at you from the north-west and reaches the gallery's western mouth at 1,3 on round 1, the ledge in the middle of it on round 2, and your half of it on round 3. Out on the open ground the Bulwark's aura turns a Bull Rush's 2 tiles into 1 and the body it would have hit is a tile out of reach; inside the one-tile gallery there is nowhere for a body to travel that is not another body, the ledge or masonry, so the same capped 1 is still 4 to both. Round 3 asks whether you give up the open south and fight where the aura is worth nothing, or hold the south and pay the Bulwark's 10 hit points first.
+design: THE ARITHMETIC, off UnitTemplate.cs and not off any doc. Bulwark 10 HP / Move 2 / melee 2, aura caps ADJACENT ALLIES at one tile of displacement and never its own carrier (D-019). Heavy Husk 6 HP / Move 3 / melee 2, and note it does NOT trample - that is the plain Husk. Runt 2 HP / Move 4 / melee 2. Lobber 6 HP / Move 2 / range 3 / 2. Five bodies, 26 hit points, four kinds. A collision is 4 to BOTH, so a Runt slammed into the Heavy Husk dies outright and leaves the Heavy Husk on 2, and a second collision finishes it. Every body on this board is ammunition for the next one.
+design: WHY THE CAP DOES NOT BITE IN THE GALLERY. Hold caps DISTANCE, not damage. Row 3 is one tile tall with six wall tiles above it and six below, so a shove along it travels into a body, into the ledge at 4,3 and 5,3 - which collides exactly like a wall, because nothing can be shoved UP onto high ground - or into the board edge. Every one of those is 4 and a Stagger. A capped shove of 1 reaches all of them; an uncapped shove of 2 reaches nothing better. The Bulwark is a price gap and not a wall (MASTER_DESIGN 2, gradients not immunities), and this board is where the price happens to be zero.
+design: TWO ROUTES, UNEQUAL PRICES. From the western pocket the Heavy Husk at 1,1 is FOUR steps away - 1,6 1,5 1,4 1,3 1,2 - which is contact at the top of round 2 on open ground with the whole Court converging on it. From the same pocket the ledge at 4,3 is SIX steps - 1,5 1,4 1,3 2,3 3,3 4,3 - two dearer, and two dearer is the whole of it: six steps out of a three-point pool is two rounds of pure walking with no action left in either, so you arrive on the ledge holding nothing. The Runt at 0,0 needs seven steps to the same tile and it moves 4 with its swing still free. The gallery is a dead heat you enter one action down. From the eastern pocket the Court's line is TEN steps by way of column 8 and row 0, which is the flanking price and is deliberately steep.
+design: THE CORRIDOR IS AN OFFER, AND IT IS PRICED. A one-tile gallery with masonry on both faces is a queue, and a queue is the best thing that can happen to a shover - so yes, a flock can hold it and let the Court file in. Two things charge for it. The gallery has TWO mouths, 1,3 in the west and 8,3 in the east, and both are ten steps or fewer from the Court's line by way of row 0, so a duck holding the middle is pincered rather than protected. And there is no line of sight in this game: the Lobber never has to enter the corridor at all. Standing at 6,1 or 7,1 in the north field it drops rocks straight through the wall bank onto 6,3 and 8,3 for 2 a round, and the masonry that makes the queue is exactly the masonry that cannot stop it.
+design: THE BANKS ARE THE ARCHITECTURE. Twelve wall tiles of sixty-three, 19 percent, in two connected banks of six - rows 2 and 4 from column 2 to column 7. They are not decoration: they reduce a nine-wide board to three crossings, they make row 3 a corridor rather than a lane, and they are the collision surface the whole thesis is built on. No pit and no spikes anywhere on this board, on purpose - if a battle would still work with the pits filled in it is probably a better battle, and this one never had any (scenarios/DESIGN_PRINCIPLES 1).
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight unowned spots in two pockets of four, and the pockets are the two routes: the south-west pocket buys the cheap contact, the south-east pocket buys column 8 and the gallery's far mouth. Every spot is outside every enemy's round-1 reach. A Runt walks 4 and swings 1, so it covers 5; the nearest spot to the Runt at 0,0 is 0,6 at six steps and 2,5 at seven, because the wall bank at row 2 forces its walk down column 0. A Heavy Husk covers 4 and the nearest spot to the one at 1,1 is 2,5 at five. The Lobber walks 2 and throws 3, and it is the one enemy the masonry genuinely does constrain - not its throw, which ignores walls, but its feet: every tile it can stand on at the end of round 1 is in the north field above the bank, and the nearest spot to any of those is 2,5 or 8,5 at five, which is two clear of its range. Nothing here can hurt you before you have had a turn.
+design: WHAT GOES WRONG IF YOU RUSH. The Court comes apart as it advances - Runts move 4, the Heavy Husk 3, the Bulwark and the Lobber 2 - so over the seven steps from row 0 to the ledge the Runts arrive a full round ahead of their aura. Killing a 2 hit point Runt with a swing is the worst trade on the board: it is the body you wanted to shove into something. A flock that spends round 2 swinging at Runts meets the Heavy Husk with nothing left to slam it into.
+design: DELIBERATE LINTS. CentreNotClear and HazardOffOuterRings both fire and are noise at this size - DESIGN_PRINCIPLES 7 records that they were written against a 7x7 and do not scale. SpikeCountOutOfRange fires because there are no brambles, which is the point. SpawnsNotOnOppositeEdges fires because the whole Court is one formation in the north-west, which is what makes the two routes unequal.
+
+spawn b = Bulwark
+spawn d = HeavyHusk
+spawn l = Lobber
+spawn r = Runt
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+board:
+  r.b.r....
+  .d...l...
+  ..######.
+  ....HH...
+  ..######.
+  ..*.....*
+  ***...***

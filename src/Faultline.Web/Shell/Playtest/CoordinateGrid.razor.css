@@ -164,6 +164,14 @@
         20deg, rgba(232, 179, 65, .35) 0 1px, transparent 1px 9px);
 }
 
+/* Canal water. Horizontal hatch on purpose: spikes are a 135deg hatch and cracked is a 20deg one,
+   so a level surface is the one direction still free and reads as water rather than as damage. */
+.cell.water {
+    background-color: #1f4f6b;
+    background-image: repeating-linear-gradient(
+        0deg, rgba(190, 230, 255, .22) 0 2px, transparent 2px 7px);
+}
+
 /* Overlays. The threat wash is drawn behind the contents so it never eats the hit points. */
 
 .cell::before {
@@ -734,6 +742,13 @@
 }
 
 .hit.pit {
+    border-color: var(--pt-cyan);
+    color: var(--pt-cyan);
+}
+
+/* The canal borrows the cyan the drain uses — both are water and neither is red, because red on
+   this board means the chip carries damage and this one never does. */
+.hit.water {
     border-color: var(--pt-cyan);
     color: var(--pt-cyan);
 }

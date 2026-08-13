@@ -285,6 +285,22 @@ namespace Faultline.Core
                     events.Add(new Clinging(targetId, destination));
                     return state;
 
+                case TileType.Water:
+                {
+                    // The canal does to something dropped in it exactly what it does to something
+                    // shoved in: nothing to its hit points, and a Stagger (D-275). Being put down
+                    // hard is being put down hard, and the ground gives the same answer either way —
+                    // which is the whole reason this switch exists rather than a second table.
+                    var soaked = state.UnitById(targetId);
+                    if (soaked.IsOnBoard && !soaked.Staggered)
+                    {
+                        state = state.WithUnit(soaked with { Staggered = true });
+                        events.Add(new Staggered(targetId));
+                    }
+
+                    return state;
+                }
+
                 default:
                     // Open ground, or high ground the lob went over the lip of. A push cannot go up
                     // onto a ledge; a throw is not travelling along the ground to be stopped by one.

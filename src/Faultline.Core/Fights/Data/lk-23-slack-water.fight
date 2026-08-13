@@ -1,0 +1,47 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-23-slack-water
+number: 923
+name: Slack Water
+pool: Endurance
+description: One mitre sill, two thorn shoulders, and a published tide. Nobody has to die for you to win - you only have to be standing at the end of round 7.
+design: THE ROUND-3 QUESTION - the sill at 3,3 is the only free tile in the only gap, and by round 3 the first two waves have landed and there is a body on it or there is not. Round 3 asks who is standing there, whether you can afford to keep them there once the Harrier starts scoring on how far it can put a duck from its nearest ally, and whether the two ducks holding the thorn shoulders are worth 2 hit points each to have arrived.
+design: ENDURANCE, WHICH MEANS OBJECTIVE-SHAPED AND NOT HARDER. Survive 7: anyone still standing at the end of round 7 wins, and killing the last body stops being the point. The tide is the fight, not the headcount.
+design: TUNED FOR FOUR DUCKS, WHICH IS THE FIX as-05-the-door NEEDS. That board was authored for one duck per player and its own note records the flaw - four ducks against the same timetable is an easier fight. This timetable is written against four: FOURTEEN bodies and 80 enemy hit points against a squad that fields 44 - Vanguard 14, Wardbearer 14, Archer 8, Threadcaster 8 - and three of the five waves land on the far side of the wall line rather than queuing behind it, because a tide that all arrives at one door is a queue and not a tide.
+design: THE WHOLE TIMETABLE, PUBLISHED AT FIGHT START, because a hidden schedule is dread and a published one is planning - the same contract as enemy intents (Pillar 3: lethality is fine, surprise lethality is not). Round 2: two Runts at 2,2 and 4,2, already at the mitre's mouth. Round 3: two Heavy Husks at 1,0 and 5,0, which have the whole wall line to walk. ROUND 4: TWO RUNTS AT 0,5 AND 6,5 - BEHIND YOU, on your own bank, one row above the deployment line. Round 5: the Colossus at 3,2, two tiles north of the sill and already past the wall. ROUND 6: TWO HEAVY HUSKS AT 0,4 AND 6,4, behind you again. Every arrival tile is open ground and none of the nine is a deployment spot.
+design: THE COLOSSUS IS A DEADLINE WITH LEGS, and it is the reason this is a survive board rather than a kill-all one. 20 hit points, Move 1, 6 damage, Push Resistance 2 - a Bull Rush pushes 2, so it moves that body ZERO tiles. You are not meant to move it and you are not meant to kill it. It lands at 3,2 on round 5 and takes one tile a round for the three rounds that are left, which puts it in contact around the sill just as the bell rings. Outlasting it is the win condition; it is the clock wearing armour.
+design: THE MIDDLE IS THE MITRE. The true centre 3x3 is x 2-4 by y 2-4 and it holds the entire gap: brambles at 2,3, the raised sill at 3,3, brambles at 4,3. The wall line at y 3 runs edge to edge otherwise, so those three tiles are the only way from the tide's half of the board to yours. Walking into brambles costs 2 hit points and double the movement for a duck; being SHOVED into them costs 6 and stops there. The sill costs nothing to stand on and cannot be shoved onto by anybody, which is exactly why it is worth having and exactly why losing it is expensive - you walk back up, you are never put back.
+design: THE CHOKEPOINT ANSWER (G13), and this board is where the lens bites hardest. Yes, three bodies plug the gap, and yes that is a legitimate tactic - as-05 is the precedent that two units in a doorway against eight is a design rather than a defect. It is NOT free here, on five counts, and every one of them is a rule rather than an opinion. ZERO, AND IT IS THE ONE THAT SETTLES THE LENS: the mitre is a dam and not a door, and the timetable says which rounds the water gets behind it - rounds 4 and 6 land four bodies at 0,5 6,5 0,4 and 6,4, on YOUR bank, south of the wall line the plug is standing in. A flock that has committed three ducks to three tiles facing north has one duck facing the half of the tide that did not come through the gap. One: two of the three tiles are brambles, so two of the three plugs pay 2 hit points to arrive and 2 movement to step. Two: the Harrier deals no damage at all and therefore always has an activation to spend, and its scoring function is literally how much further from its nearest ally a shove lands the target - a three-in-a-row plug is the arrangement that function maximises. Three: a duck shoved off the sill takes 2 for the fall and the shove keeps travelling, and it cannot be shoved back up. Four: the Colossus lands at 3,2 on round 5, one tile from the sill's north face, and hits the plug for 6 a round with nothing the plug can do about it. The queue is priced.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots, unowned, all on row 6 - the far bank, three tiles behind the wall line. The strict form of agency before injury holds (D-080): the fastest thing on the board is a Runt at Move 4 with reach 1, and from row 0 the furthest it gets on round 1 is 3,4, which threatens 3,5 and no further. Nothing here can put a hit point or a tile of displacement on a spot before you have had a turn, which is what lets the whole tide start on the board rather than arriving as a surprise.
+design: THE BULWARK IS THE REASON A LANE STAYS SHUT. It walks Move 2 and it caps the displacement of every ally adjacent to it at one tile. On a survive board the shove is how you keep a tile clear, and the aura is what stops one shove clearing two bodies out of the gap. It is still a price and never a wall - the collision arithmetic is untouched, a capped one-tile shove into another body is still 4 to both, and a Runt has 2 hit points.
+design: CERTIFICATION, MEASURED ACROSS POLICIES AND NEVER ACROSS SEEDS. Three of the four MASTER_DESIGN 8.8 policies clear it - shover, board-first and objective-first - against the section's floor of one and Act 3's working bar of two. Seven of the nine deterministic policies win it; the two that do not are first-legal and careful, and they lose by being wiped rather than by running out of clock, which is the shape a survive board is supposed to fail in. ZERO STALLS, and every win lands on round 7 because that is the bell and not because the board ran out of bodies - the tide is 80 hit points against a squad of 44 and roughly two thirds of the squad's health is gone by the time it rings. Quote the deterministic rows and nothing else: nothing in Faultline.Core consumes an RNG inside a fight, so those nine play byte-identically at every seed, while the six random-* rows are seeded from a hash .NET randomises per process and do not repeat between invocations.
+design: HAZARDS: TWO BRAMBLE TILES AND ONE LEDGE, NO PIT ANYWHERE. Nothing on this board is voided; everything here is survivable and repeatable, which is what a survive objective wants. A drain would end the fight for whoever fell in and turn an endurance board into a coin toss.
+
+spawn r = Runt
+spawn k = Harrier
+spawn b = Bulwark
+spawn d = HeavyHusk
+spawn c = Colossus
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: survive 7
+
+wave 2 = r@2,2 r@4,2
+wave 3 = d@1,0 d@5,0
+wave 4 = r@0,5 r@6,5
+wave 5 = c@3,2
+wave 6 = d@0,4 d@6,4
+
+board:
+  .r.k.r.
+  ..b.d..
+  #.....#
+  ##^H^##
+  .......
+  .......
+  ***.***

@@ -1,0 +1,38 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-18-the-wicket
+number: 918
+name: The Wicket
+pool: Hard
+description: A wall band with one thorned wicket through it and a Warden who cannot leave the gap. Ten rounds to clear the board, and the ten hit points of escort standing between you and the door are the only thing you cannot afford to buy twice.
+design: THE ROUND-3 QUESTION - by round 3 the two Runts and the Heavy Husk have come round the flanks and are on you, the Bulwark is two tiles behind them, and the clock has eaten a third of itself. While the Bulwark stands beside them every ally adjacent to it has its displacement capped at ONE TILE, so a Bull Rush that would slam a 2-hit-point Runt two tiles into the wall band for 4 stops one short and touches nothing at all. Ten rounds buys either the ten hit points to break that aura or the walk to the wicket and the twelve-hit-point door in it. Round 3 is where you have to pick one, because it will not buy both.
+design: ACT 3, HARD BAND. Every Hard board carries a clock or an arrival and this one is the clock: kill-all with a turn limit of 10, so reaching the bell is a loss. That is the direct fix for the finding that no Ordinary or Hard kill-all board in the Warrens has any pressure at all, which makes maximally slow play strictly optimal. Here every round spent standing still is a round spent losing, and the board is small - 7x7, the default - precisely so that the clock is about decisions rather than about walking.
+design: THE BLOCKING FLOOR. Ten wall tiles out of 49 is 20.4 percent, in two connected formations of five: 1,2 2,2 1,3 1,4 2,4 to the west and 4,2 5,2 5,3 4,4 5,4 to the east. Spikes are priced floor rather than architecture and count toward none of it (they are 2 tiles here, at 3,2 and 3,4, which is inside the 2-3 band the layout guideline wants). The band leaves exactly three ways from the south half to the north half: column 0, column 6, and the wicket.
+design: THE ARITHMETIC OF THE DOOR. The Warden is 12 hit points, Move 0, and hits for 4. It will still be standing in the gap on round 8, which is the whole point of the archetype - a door does not chase. It carries Footing 2 and on this board those two tokens are worth NOTHING: Footing refuses whole displacement instances rather than shortening them, and an enemy only ever spends one to stay out of a drain. There is no pit on this board. So the door can be moved, and the cheapest way to move it is the one that costs no action points at all - a Threadcaster's basic pull is 1 tile at range 3, and pulling the Warden south out of 3,3 puts it on the thorns at 3,4 for 6 damage and a Stagger, half its hit points, from a tile that is ordinary floor. The melee answer is the same 6 for 2 AP and 2 hit points: step into the thorns and shove. Neither is required and both work, which is what keeps this a board rather than a roster check.
+design: TWO ROUTES, UNEQUAL PRICES, in action points. A duck has 3 AP an activation, an orthogonal step costs 1, and a step into thorns costs 2 and 2 hit points. From the back spot at 2,6 to the north-centre at 3,1: through the wicket is 2,5 then 3,5 then 3,4 then 3,3 then 3,2 then 3,1, which is EIGHT AP and 4 hit points of thorn, and it does not open at all until twelve hit points of Warden are down. Round the west flank is 1,6 0,6 0,5 0,4 0,3 0,2 0,1 then east along row 1 to 3,1, which is TEN AP, no damage and no door. So the wicket is two action points cheaper and costs four hit points of thorn plus twelve of Warden, and the flank is two dearer and free - and because this is kill-all the door has to come down either way. The flank is not an escape from the wicket, it is the decision to fight the north half FIRST and come back to a door with nothing standing behind it. On a ten-round clock that ordering is the whole board.
+design: THE CHOKEPOINT BELONGS TO THE ENEMY, which is hold-the-gate's inversion and it is the answer to the specific break this board was tested for. Can a player hold one tile and let the fight come to them for nothing? No, twice over. First there is no wave to hold against - the clock runs the other way, and at round 10 a fight that has not been cleared is lost, so waiting is not a tactic here, it is the losing line. Second the only real choke on the board is the wicket, and there is already a 12-hit-point Warden standing in it. The chokepoint is a thing the player has to BUY, not a thing the terrain hands out, and the price is written on the door.
+design: THE COURT, AND WHAT EACH BODY IS FOR. The Warden is the fixture the rest of the roster is measured against: it never moves, so it is the only enemy whose position on round 9 is knowable on round 1. The Bulwark at 3,1 is the mobile half of the same idea - 10 hit points at Move 2, too slow to keep up with what it escorts, so it arrives a round behind the Runts and re-forms the cap on whichever of them it ends up beside. The two Runts at 1,0 and 5,1 are 2 hit points and Move 4: they die to literally anything and they are here to be the bodies the aura is worth capping. The Heavy Husk at 6,0 is 6 hit points of the same walk and nothing else - it does not trample and it carries no Footing.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven spots, unowned. Six sit on the back row in two pockets - 0,6 1,6 2,6 and 4,6 5,6 6,6 - and ONE is forward and central at 3,5, directly under the wicket. The forward spot is 2 AP and one thorn step from swinging at the door, which on a ten-round clock is a whole activation of the fight, and it is the tile every enemy that comes round a flank will path toward. Agency before injury holds in its strict form (D-080): the deepest real-path reach any enemy has on round 1 is 6,5 down the east lane, 0,4 down the west and 3,4 in the wicket's south thorns, and not one of the three is a spot. The forward spot at 3,5 is safe for a reason worth stating - the only tile that threatens it is 3,4, and 3,4 can only be entered through 3,3, which is where the Warden is standing. The door defends the tile in front of it until you move it. Nothing on this board deals zero damage either, so there is no shove-only reach to price separately.
+design: CERTIFICATION, seed 1, and the figure to quote is wins across POLICIES rather than across seeds - no RNG runs inside a fight. Three of the four MASTER_DESIGN 8.8 policies clear it inside the limit: board-first and objective-first on round 4, shover on round 8 with two rounds of clock to spare. Seven of the nine deterministic policies win - those three plus brawler 5, blade-first 4, preserver 4 and relay 3 - every one of them between rounds 3 and 8, and no deterministic policy stalls. A clocked board that cannot terminate fails outright, so the zero is the number that matters here: every run reaches a verdict, and the two that lose, first-legal and careful, lose with the door still standing rather than by running out of moves. The random-* rows are excluded from every figure above, and that is not tidying: they seed from policy.Name.GetHashCode(), which .NET randomises PER PROCESS, so the same command gives different random rows on two invocations. The nine deterministic policies are the reproducible sample.
+
+spawn r = Runt
+spawn b = Bulwark
+spawn k = HeavyHusk
+spawn w = Warden
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+turn-limit: 10
+
+board:
+  .r....k
+  ...b.r.
+  .##^##.
+  .#.w.#.
+  .##^##.
+  ...*...
+  ***.***

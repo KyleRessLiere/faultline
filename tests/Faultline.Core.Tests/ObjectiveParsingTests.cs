@@ -333,9 +333,20 @@ public class ObjectiveParsingTests
 
             var text = FightWriter.Write(fight);
 
-            Assert.DoesNotContain("objective:", text);
-            Assert.DoesNotContain("turn-limit:", text);
-            Assert.DoesNotContain("wave ", text);
+            // Anchored to the start of a line, because the claim is about KEYS and a `design:`
+            // line is prose. A board that explains it keeps "the same contract the wave timetable
+            // keeps" is not a board that writes a wave, and matching the bare substring anywhere
+            // in the file made describing the format a test failure.
+            foreach (var line in text.Replace("\r\n", "\n").Split('\n'))
+            {
+                var key = line.TrimStart();
+
+                Assert.False(
+                    key.StartsWith("objective:", StringComparison.Ordinal)
+                    || key.StartsWith("turn-limit:", StringComparison.Ordinal)
+                    || key.StartsWith("wave ", StringComparison.Ordinal),
+                    $"{fight.Id} is a plain Kill All but writes '{key}'.");
+            }
         }
     }
 }

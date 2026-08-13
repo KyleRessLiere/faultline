@@ -165,6 +165,18 @@ namespace Faultline.Core
                 AppendKey(text, "footing", Join(fight.FootingGrants));
             }
 
+            // One line per step of the water level, in the order the canal takes them (D-275). A board
+            // with no sluice writes nothing, so every board that predates the Locks round-trips
+            // byte-identically.
+            if (fight.SluiceSteps is not null && fight.SluiceSteps.Count > 0)
+            {
+                text.Append(Newline);
+                foreach (var step in fight.SluiceSteps)
+                {
+                    AppendKey(text, "sluice", Join(new[] { step.Gate }) + " = " + Join(step.Tiles));
+                }
+            }
+
             text.Append(Newline).Append("board:").Append(Newline);
             for (int y = 0; y < fight.Board.Height; y++)
             {
@@ -358,7 +370,7 @@ namespace Faultline.Core
         }
 
         /// <summary>
-        /// The ten characters that already mean something on the board — five terrain, two deploy
+        /// The eleven characters that already mean something on the board — six terrain, two deploy
         /// slots, two structure marks and the breakable blocker. A spawn letter would win the
         /// parser's matching race against terrain, so <see cref="FightParser"/> rejects these
         /// outright.
@@ -373,7 +385,8 @@ namespace Faultline.Core
             || c == BoardLayout.Wall
             || c == BoardLayout.Pit
             || c == BoardLayout.Spikes
-            || c == BoardLayout.HighGround;
+            || c == BoardLayout.HighGround
+            || c == BoardLayout.Water;
 
         private static char LetterFor(List<SpawnLetter> letters, UnitKind kind)
         {
@@ -397,6 +410,7 @@ namespace Faultline.Core
                 case TileType.Pit: return BoardLayout.Pit;
                 case TileType.Spikes: return BoardLayout.Spikes;
                 case TileType.HighGround: return BoardLayout.HighGround;
+                case TileType.Water: return BoardLayout.Water;
                 default:
                     throw new ArgumentException(
                         tile + " has no character in the .fight format, so this board cannot be written.",

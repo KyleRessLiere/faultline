@@ -47,7 +47,7 @@ public class FightFormatDocTests
         {
             "id", "name", "description", "design", "number", "roster a", "roster b",
             "objective", "turn-limit", "blocker-hp", "protected", "footing", "retired", "spawn",
-            "wave", "board",
+            "wave", "board", "sluice",
         })
         {
             Assert.True(

@@ -1308,17 +1308,21 @@ namespace Faultline.Core
 
             // How far down the ladder this shover is willing to go is a number on the stat block: the
             // Stalker takes all three tiers, a Blunted Stalker stops at spikes and never trades on the
-            // board edge that is always available (docs/ENEMY_ROSTER.md).
+            // board edge that is always available (docs/ENEMY_ROSTER.md). The clamp is the DEEPEST
+            // tier that exists, not the edge — pinning it to the edge would make the canal
+            // unreachable by any stat block however high it counted (D-275).
             int maxRank = enemy.Template.HazardRanks - 1;
-            if (maxRank > HazardRankEdge)
+            if (maxRank > HazardRankDeepest)
             {
-                maxRank = HazardRankEdge;
+                maxRank = HazardRankDeepest;
             }
 
             bool edgeCounts = maxRank >= HazardRankEdge;
+            bool waterCounts = maxRank >= HazardRankWater;
 
-            // Hazards are ranked pit, then spikes, then a solid edge — a pit ends the fight for the
-            // unit it swallows, so it outranks 3 damage, which outranks 2 (D-024).
+            // Hazards are ranked pit, then spikes, then a solid edge, then the canal — a pit ends the
+            // fight for the unit it swallows, so it outranks 6 damage, which outranks 4, which
+            // outranks a wetting that costs nothing but the turn (D-024, D-275).
             for (int rank = 0; rank <= maxRank; rank++)
             {
                 foreach (var target in choices)
@@ -1356,7 +1360,7 @@ namespace Faultline.Core
             int best = int.MaxValue;
             foreach (var candidate in choices)
             {
-                if (HazardDistance(state, candidate.Position, edgeCounts) > 2)
+                if (HazardDistance(state, candidate.Position, edgeCounts, waterCounts) > 2)
                 {
                     continue;
                 }
@@ -1916,8 +1920,27 @@ namespace Faultline.Core
         private const int HazardRankSpikes = 1;
         private const int HazardRankEdge = 2;
 
+        /// <summary>
+        /// The canal, and the least bad of the four: no damage at all, a Stagger, and the shove stops
+        /// (D-275). It is a tier a shover will take when nothing better is adjacent, which is why it
+        /// has to be ranked rather than left to fall through to <see cref="int.MaxValue"/> — an
+        /// unranked tile is one a Stalker will neither avoid nor aim at.
+        /// </summary>
+        /// <remarks>
+        /// <b>It takes the new highest index rather than being slotted in.</b> The existing tiers keep
+        /// their numbers because <c>UnitTemplate.HazardRanks</c> is a count read as
+        /// <c>maxRank = HazardRanks - 1</c>: renumbering would silently change what the shipped
+        /// <c>HazardRanks: 3</c> Stalker is allowed to use. At 3 it still means "pit, brambles, edge"
+        /// and nothing else; only a stat block that says 4 reaches the water.
+        /// </remarks>
+        private const int HazardRankWater = 3;
+
+        /// <summary>The deepest tier any stat block can name — the clamp on <c>HazardRanks</c>.</summary>
+        private const int HazardRankDeepest = HazardRankWater;
+
         // Brief §2 names "Pit/Spikes/board edge"; a wall sits with the edge because the brief also
         // says the board edge acts as a wall, so both produce the identical Displacement.CollisionDamage.
+        // The canal is a fourth tier below all three (D-275).
         private static int HazardRank(GameState state, Coord tile)
         {
             if (!state.Board.InBounds(tile))
@@ -1943,10 +1966,15 @@ namespace Faultline.Core
                 return HazardRankPit;
             }
 
-            return terrain == TileType.Spikes ? HazardRankSpikes : int.MaxValue;
+            if (terrain == TileType.Spikes)
+            {
+                return HazardRankSpikes;
+            }
+
+            return terrain == TileType.Water ? HazardRankWater : int.MaxValue;
         }
 
-        private static int HazardDistance(GameState state, Coord from, bool edgeCounts)
+        private static int HazardDistance(GameState state, Coord from, bool edgeCounts, bool waterCounts)
         {
             var board = state.Board;
             int best = int.MaxValue;
@@ -1964,7 +1992,8 @@ namespace Faultline.Core
             {
                 var terrain = board.At(coord);
                 if (terrain != TileType.Pit && terrain != TileType.Spikes
-                    && (terrain != TileType.Wall || !edgeCounts))
+                    && (terrain != TileType.Wall || !edgeCounts)
+                    && (terrain != TileType.Water || !waterCounts))
                 {
                     continue;
                 }

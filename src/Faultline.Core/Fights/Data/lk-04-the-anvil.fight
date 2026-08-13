@@ -1,0 +1,47 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+# Deliberate lints, four of them, checked rather than guessed: SpikeCountOutOfRange (no spikes),
+# CentreNotClear and HazardOffOuterRings (wall mass and two ledges in the middle), and
+# SpawnsNotOnOppositeEdges (every opening body stands in column 3, off every edge). size: 7x9 is
+# declared, so BoardNotSevenBySeven does not fire.
+
+id: lk-04-the-anvil
+number: 904
+name: The Anvil
+pool: Ordinary
+size: 7x9
+description: Twenty hit points of Colossus stands in the only short crossing on a tall board, and Push 2 minus resistance 2 is zero tiles. It does not move at all until something else has been slammed into it.
+design: THE ROUND-3 QUESTION - a Bull Rush is Push 2 and a Colossus resists 2, so the shove does not happen: Displacement.Preview reports effective distance 0, stop Immovable, no travel, no collision, no damage, nothing. Round 3 asks whether you spend the BULWARK as the hammer - a shove that carries it into the Colossus for 4 to BOTH and Staggers both, which is the only thing on this board that gets 20 hit points moving - or leave the pair plugging the three-tile corridor and pay the six extra steps round the east edge.
+design: WHY A TALL BOARD. 7x9 is the shape and the shape is the thesis (FIGHT_FORMAT: size is an authoring axis). Ranges and Move do not scale with the board, so nine rows makes the north half and the south half genuinely separate places, and there are exactly two ways between them: the corridor at 3,3 / 3,4 / 3,5 and the open east edge at column 6. A Move 1 body standing in the first of those is worth more than the same body standing anywhere on a 7x7.
+design: TWO ROUTES, UNEQUAL PRICES, counted. The corridor: 3,2 to 3,6 is FOUR steps, one tile wide the whole way, and it is the only entrance to both shelves. The east edge: the same crossing by way of 6,2 / 6,3 / 6,4 / 6,5 / 6,6 is TEN steps - six dearer, open ground, no cover and no elevation at either end. Corner to corner the difference is the same shape: 1,0 to 1,8 is TWELVE steps through the corridor and EIGHTEEN with it plugged. The west edge is not a third route: 0,3 and 0,4 and 0,5 are wall, so that side is sealed outright and the choice is genuinely two.
+design: THE SHELVES ARE THE MIDDLE, and both hang off the corridor's centre tile. 2,4 has wall at 1,4 and 2,3 and 2,5; 4,4 has wall at 5,4 and 4,3 and 4,5. Each ledge is therefore ONE step from 3,4 and unreachable from anywhere else on the board - the Radiant Dawn reading of a ledge, where a climbing point matters most when it is also the chokepoint. Ranged attacks from a shelf are +2 (Combat.HighGroundBonus), so an Archer up there puts 6 on anything at her sweet spot of range 3; being shoved off costs 2 and the shove KEEPS GOING, which on this board means going into the corridor, where the Colossus is.
+design: THE ARITHMETIC OF THE HAMMER, read off Units/UnitTemplate.cs rather than off any document. Colossus 20 hit points, Move 1, melee range 1 for 6 damage, PushResistance 2. Bulwark 10, Move 2, HoldAura. Heavy Husk 6, Move 3, and nothing else - it does not trample and it carries no Footing. A Bull Rush aimed south from 3,1 drives the Bulwark into the Colossus at 3,3: the Bulwark travels zero tiles and collides, which is 4 to the Bulwark (10 down to 6) and 4 to the Colossus (20 down to 16), and it Staggers BOTH. Staggered, the Colossus finally reads Push 2 plus 1 minus 2 = 1 tile, and the preview confirms it moves to 3,4. One tile is what twenty hit points costs to shift, and you paid four of the Bulwark's ten for it.
+design: WHERE THE AURA DOES NOTHING, which is worth writing down. The Bulwark opens adjacent to the Colossus, so the Colossus stands inside a hold aura - and the aura changes nothing whatsoever about it, because Hold only caps a distance already greater than 1 and PushResistance 2 has already taken every ordinary shove to zero. Two brakes overlapping do not stack; the tighter one is simply the one in force. That is what a gradient looks like from underneath, and it is the reason the aura is worth killing on lk-03 and is not worth killing here.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots, unowned, two in each corner of a tall board - 0,0 / 1,0 / 5,0 / 6,0 and 0,8 / 1,8 / 5,8 / 6,8 - so the draft's real question is whether the flock splits across the crossing or piles into one end of it, and the wave on round 4 lands one Runt at each end to punish the flock that guessed. Agency before injury holds in its strict form (D-080): the Bulwark covers a diamond of 3 and its nearest spot is 4 away, the Colossus covers 2 and its nearest spot is 5, the Heavy Husk covers 4 and its nearest spot is 5. Nothing deals 0 damage, so there is no displacement-only reach to price, and Threat.DamageRound1 returns zero of the eight spots.
+design: THE WAVE IS THE CLOCK AND IT IS PUBLISHED. Two Runts arrive at the start of round 4, one at 3,0 and one at 3,8, both on Open floor and neither on a deployment spot - and the whole timetable is on screen from the first click, because a hidden schedule is dread and a published one is planning. Two hit points and Move 4 apiece: they die to anything the board does and they arrive at the two corridor mouths at the moment a flock that chose to wait is furthest from both. G14 requires an arrival only of Hard and Elite boards; this Ordinary one takes it anyway, because an Ordinary kill-all with no clock at all makes slow play strictly optimal and that is the FE study's Finding 2.
+design: NO PIT AND NO SPIKES ANYWHERE. Thirteen wall tiles, two ledges, and the whole fight is bodies against masonry (scenarios/DESIGN_PRINCIPLES 1 and 3). The heaviest body in the game does not need a drain beside it to be a problem - it needs one tile of floor it will not leave - and the shove that matters most here puts a Bulwark into a Colossus rather than either of them into a hole.
+design: CERTIFICATION, quoted across POLICIES rather than seeds. Seven of the nine deterministic harness policies clear it, median 5 rounds, no stalls, and that includes all three deterministic policies of MASTER_DESIGN 8.8 - board-first in 5, shover in 6, objective-first in 5 - against the section's floor of one and the Warrens working practice of two. The two that lose it are first-legal and careful. The random-* rows are seeded from policy.Name.GetHashCode(), which .NET randomises per process, and are quoted nowhere: no RNG runs inside a fight, so a deterministic policy is byte-identical at every seed and a second seed is not a second sample.
+design: THE TURTLE, REPORTED RATHER THAN EXCUSED (G13). Kiting is live: the Colossus is Move 1 and the Archer's band is 4, so a flock that kills the Bulwark and the Heavy Husk first can walk backwards around a nine-row board and take the last twenty hit points off for free. What the round-4 arrival charges is the waiting itself, and what the board charges is position - standing in the corridor is standing next to 6 damage a round, and standing outside it hands the Colossus the one tile that makes ten steps out of four.
+
+spawn b = Bulwark
+spawn c = Colossus
+spawn k = HeavyHusk
+spawn u = Runt
+
+wave 4 = u@3,0 u@3,8
+
+roster a: Vanguard, Wardbearer
+roster b: Archer, Threadcaster
+
+board:
+  **...**
+  .......
+  ...b...
+  ###c##.
+  ##H.H#.
+  ###k##.
+  .......
+  .......
+  **...**

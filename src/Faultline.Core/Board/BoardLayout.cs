@@ -25,6 +25,14 @@ namespace Faultline.Core
         public const char HighGround = 'H';
 
         /// <summary>
+        /// Canal water (D-275). <c>~</c> because it reads as water at a glance and collides with
+        /// nothing: not a terrain character, not a deploy mark (<c>A B *</c>), not a structure mark
+        /// (<c>S D</c>), not the breakable blocker (<c>X</c>), and not a letter, so it can never be
+        /// mistaken for a spawn.
+        /// </summary>
+        public const char Water = '~';
+
+        /// <summary>
         /// Builds a board from equal-length rows. Each character is one tile; whitespace inside a row
         /// is not permitted so that the text lines up with the grid exactly.
         /// </summary>
@@ -73,6 +81,7 @@ namespace Faultline.Core
                 case Pit: return TileType.Pit;
                 case Spikes: return TileType.Spikes;
                 case HighGround: return TileType.HighGround;
+                case Water: return TileType.Water;
                 default:
                     throw new ArgumentException(
                         "Unknown layout character '" + c + "' at (" + x + "," + y + ").");

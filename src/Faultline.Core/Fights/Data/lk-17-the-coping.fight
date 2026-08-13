@@ -1,0 +1,47 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-17-the-coping
+number: 917
+name: The Coping
+size: 7x9
+pool: Hard
+description: A drained lock chamber with one stone coping across it and a drain down either side. Six rounds, a published tide, and the only crossing worth having is the one tile where a single shove takes a whole duck.
+design: THE ROUND-3 QUESTION - the timetable puts a Harrier at 3,2 at the start of round 3, one step from the coping's north mouth, and a Harrier deals ZERO damage so nothing it could ever do outranks the shove. The crown at 3,4 is the only tile on this board where a one-tile push removes a unit outright: leaving high ground is 2 fall damage and the shove KEEPS GOING, and what it keeps going into is the drain at 2,4 or 4,4. Round 3 asks whether the duck on the coping - the only plus-two firing step on the board - is still worth standing on, or comes down now and hands the crossing back to the tide.
+design: ACT 3, HARD BAND, and the objective is the pressure. Killing the last body stops being the point: the fight is won at the end of round 6 by anyone still standing, so the tide is the fight (as-05-the-door is the precedent for the shape). That is also this board's answer to the blocking floor - a non-kill-all objective supplies the pressure directly - though it happens to carry 15 impassable tiles anyway, 9 walls and 6 pits out of 63, which is 23.8 percent in four connected formations: the six-tile wall block at 0-1 by 3-5, the wall column at 5 by 3-5, and the two drain columns at 2 and 4.
+design: TEN BODIES ON A PUBLISHED TIMETABLE. Three stand on the board at fight start and seven arrive on the clock - round 2 two Runts at 6,2 and 6,6, round 3 the Harrier at 3,2, round 4 two Heavy Husks at 0,2 and 0,6, round 5 two Runts at 6,3 and 6,5. The whole schedule is legible before the first click, same contract as enemy intents: a hidden schedule is dread, a published one is planning. Nothing here is sprung on you and every arrival tile is open floor outside both deployment pockets.
+design: TWO ROUTES, UNEQUAL PRICES, in action points. A duck has 3 AP an activation and an orthogonal step costs 1. The flock deploys in two pockets, one at each end of the chamber, and joining up is the whole geometry. Over the coping, 3,1 to 3,7 is SIX AP - 3,2 3,3 3,4 3,5 3,6 3,7 - two activations. Round the east lane it is TWELVE: 4,1 5,1 6,1 then down column 6 through 6,2 to 6,7 and back west along row 7. Four activations, exactly double, and the two are not the same walk drawn twice. The coping is one tile wide with a drain on each flank and a fall that continues. The east lane is level the whole way and three tiles clear of any hole - and it is where four of the seven arrivals land, with 20 hit points of Colossus already standing in it at round 1.
+design: THE CHOKEPOINT IS PRICED, NOT REMOVED, and the price is named. Yes, one duck on the crown at 3,4 makes the coping a single-file problem, and that is a real and legal play. It costs three things. First, the crown is the one tile where Push 1 is lethal, because leaving high ground is 2 damage and then the drain - and the unit that does it deals no damage at all, so it can never be baited into doing something else. Second, holding the crown means the flock is split at the two ends of the chamber and the join costs 6 AP through the crown itself or 12 round the lane. Third, the coping seals nothing: the east lane at column 6 crosses the chamber just as well, so the tide arrives whether or not the crown is held. It is a firing step you may pay for, not a door you get for free.
+design: THE ARITHMETIC OF THE LEDGE, BOTH WAYS. Ranged attacks from the crown deal plus 2, so a Threadcaster shooting off it does 4 and an Archer at its sweet spot of exactly 3 tiles does 6. Nothing can be shoved UP onto it - the ledge collides like a wall for 4 and a Stagger - so a body standing at 3,3 or 3,5 shoved toward the crown takes 4 and does not climb. And a body already on it, shoved off, takes 2 and keeps travelling. One tile, three different rules, and which one applies is a fact about where the shover is standing.
+design: THE COURT, AND WHAT EACH BODY IS FOR. The Colossus at 6,4 is 20 hit points at Move 1 with push resistance 2, parked in the long lane: it is not a problem you have to solve, it is a problem you have to be somewhere else for, which is exactly what a survive objective is allowed to ask. The two Bulwarks stand in the coping's two mouths at 3,3 and 3,5 and cap the displacement of every ally adjacent to them at one tile - and note the aura never protects its own carrier (D-019), so the two of them are three tiles apart and neither covers the other. The Runts screen, the Heavy Husks are 6 hit points of the same walk, and the Harrier is the one that reads the terrain.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots - the 6-8 band's ceiling - in two pockets at the far ends, 1,0 2,0 4,0 5,0 and 1,8 2,8 4,8 5,8. Unowned, so both flocks may stack one end and leave the other to be walked, and the board is honest that this is the decision: the chamber is between them. Agency before injury holds in its strict form (D-080). The only starters are a Move 1 Colossus, which cannot touch anything north of row 2 or south of row 6, and two Move 2 Bulwarks whose deepest round-1 reach is exactly 3,0 and 3,8 - the centre tile of each end row. That is why the centre of each end row is deliberately NOT a spot and the four in each pocket sit at x=1, 2, 4 and 5. Nothing can damage you or move you before you have had a turn, and every fast body on this board arrives on a published round instead.
+design: CERTIFICATION, seed 1, and the figure to quote is wins across POLICIES rather than across seeds - no RNG runs inside a fight, so a deterministic policy plays byte-identically at every seed. Three of the four MASTER_DESIGN 8.8 policies clear it: shover, board-first and objective-first all win at the bell on round 6, against the section's floor of one and Act 3's adopted bar of two. Seven of the nine deterministic policies survive all six rounds and win at the bell; only first-legal and careful fail to last, and no deterministic policy stalls. That is the high end of the band and it is the right shape for a survive objective - nothing has to be cleared, so a policy has to actively throw the squad away to lose it, which is what those two do. The random-* rows are excluded from every figure above, and that is not tidying: they seed from policy.Name.GetHashCode(), which .NET randomises PER PROCESS, so the same command gives different random rows on two invocations. The nine deterministic policies are the reproducible sample.
+
+spawn c = Colossus
+spawn b = Bulwark
+spawn r = Runt
+spawn a = Harrier
+spawn k = HeavyHusk
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: survive 6
+
+wave 2 = r@6,2 r@6,6
+wave 3 = a@3,2
+wave 4 = k@0,2 k@0,6
+wave 5 = r@6,3 r@6,5
+
+board:
+  .**.**.
+  .......
+  .......
+  ##ObO#.
+  ##OHO#c
+  ##ObO#.
+  .......
+  .......
+  .**.**.

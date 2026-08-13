@@ -1,0 +1,44 @@
+# Coordinates are x,y with 0,0 top-left (DECISIONS.md D-042).
+#
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it     D  the destroy structure
+
+id: lk-08-the-lower-gate
+number: 908
+name: The Lower Gate
+pool: Ordinary
+size: 7x9
+description: Twelve hit points of lock gate standing in open floor with four bare faces. A player cannot swing at masonry at all - the answer is bodies, and a Bulwark is walking at you to charge a tile for every one of them.
+design: THE ROUND-3 QUESTION - two more Husks land at 0,5 and 6,5 at the start of round 3, on YOUR side of the gate, which is the first ammunition that does not have to be walked the length of the board. The question is what the round buys: a body walked onto the gate's ring so that next round's one-tile shove is worth 6, the ten hit points of Bulwark that are the reason a two-tile slam stops one tile short, or the brambles at 3,2 and 3,6, which will take the same body off the board for nothing and leave the gate untouched.
+design: THE OBJECTIVE IS DESTROY, WHICH IS AN UNFIELDED KIND, AND ITS RULES ARE NOT THE OTHERS'. Clearing the board does NOT win this fight - the gate is the only win condition there is - and reaching the turn limit is a LOSS rather than a draw, so the clock is on the file because without one nothing could ever end the board (D-223). Twelve hit points and ten rounds. Every player unit down still loses, as always.
+design: BODIES ARE THE ANSWER, AND THAT IS A RULE RATHER THAN A PREFERENCE. There is no player command that aims an ordinary attack at a tile, so no duck can simply walk up and hit the gate: a collision does the full Displacement.StructureCollisionDamage of 6, and TWELVE IS EXACTLY TWO COLLISIONS. That is the whole arithmetic and it is deliberately short, because the expensive part of this board is arranging the second slam rather than surviving the first.
+design: THE ONE BY-HAND ROUTE IS A LINE ATTACK AND IT IS NOT REQUIRED. A Wardbearer's Spear Thrust is the only attack in the game aimed at tiles rather than at a body, and against masonry it lands the flat chip of 2 whatever the weapon (D-060) - six thrusts, one a round, from as far as two tiles away. A flock that drafted one has a slow, safe second answer; a flock that did not still wins on two collisions. No board may depend on a roster (as-04 and as-09 are the retired precedents), so the collision line is the one that has to close, and it does.
+design: THE BULWARK IS WHERE THE COLLISION IS PRICED. HoldAura caps the displacement of every ally ADJACENT to the Bulwark at one tile - never its own carrier (D-019), never to zero, because the Locks prices your verbs and never switches them off (MASTER_DESIGN 2, gradients not immunities). So a Bull Rush of 2 fired from 0,4 at a Husk standing on 1,4, meant to run it through 2,4 and into the gate, travels one tile, stops on 2,4 and touches nothing. The same Husk shoved from 1,4 while it stands on 2,4 needs one tile, and one tile is exactly what the cap allows: 6 into the masonry, aura or no aura. HOLD CAPS DISTANCE, NOT DAMAGE. The aura does not forbid the slam - it charges a round of walking the body one tile closer, or ten hit points.
+design: THE BRAMBLES ARE THE COMPETING SINK, AND THAT IS WHY THEY ARE ON THE CENTRAL LANE RATHER THAN THE RING. A displacement into spikes deals 6 and STOPS THERE. So 3,2 and 3,6 offer the identical number the gate offers - 6 for one shove - except that it comes off a Husk instead of off the win condition. Every body on this board can be spent twice over and only one of the two spendings ends the fight, which is the choice the board keeps re-asking. Walking onto them costs 2 hit points, which is the toll on the short approach rather than a wall across it.
+design: TWO ROUTES, UNEQUAL PRICES. From the spot at 1,8 the CENTRAL route is 2,8 to 2,7 to 3,7 to 3,6 to 3,5 - five steps, standing on the gate's south face at the end of round 2, and the fourth step costs 2 hit points because 3,6 is brambles. From the same spot the WEST route is 0,8 to 0,7 to 0,6 to 0,5 to 0,4 to 1,4 to 2,4 - seven steps, no damage at all, and it ends on the gate's west face with an open tile behind it at 1,4, which is what a charge needs and what the south face, backed by brambles, does not have. Two AP dearer, two hit points cheaper, and only one of the two is a firing position.
+design: THE LOBBER AT 3,0 IS THE AMMUNITION CLOCK. Move 2, range 3, 2 a round, and it retreats the moment anything closes. Every round spent arranging masonry is a round it is paid for, which is the pressure a ten-round limit alone would not supply. Both flanking columns run the whole height of the board, so unlike break-the-gate's pair nothing here is sealed away from the fight.
+design: BLOCKING MASS. Twelve wall tiles plus the gate on a 7x9, 20.6 percent, in four connected formations of three: 1,1 1,2 2,2 and 5,1 5,2 4,2 and 1,6 2,6 1,7 and 5,6 4,6 5,7. They leave three lanes - x0, the central column and x6 - and the middle one is the one with the brambles in it. G3 is satisfied here by the objective alone; the architecture is on the board because a gate standing in a field is a chore rather than a question.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six spots, both flocks south of the gate and neither pocket owned, and every one outside every enemy's round-1 reach. The Lobber's deepest round-1 stand is 2,1 and its range is 3, which reaches the gate's own ring and stops three rows short of the spots. The round-3 arrivals land at 0,5 and 6,5 - open floor, outside both pockets, and on the players' side of the gate on purpose (D-046): a wave authored behind the objective seals the bodies you are told to use as ammunition where you cannot use them.
+
+spawn h = Husk
+spawn l = Lobber
+spawn b = Bulwark
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: destroy 3,4 hp 12
+turn-limit: 10
+
+wave 3 = h@0,5 h@6,5
+
+board:
+  .h.l.h.
+  .#.b.#.
+  .##^##.
+  .......
+  ...D...
+  .......
+  .##^##.
+  *#...#*
+  **...**

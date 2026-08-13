@@ -1,0 +1,40 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-15-the-sill
+number: 915
+name: The Sill
+pool: Hard
+size: 9x7
+description: A walled chamber with a door at each end, a Warden standing in the north one and a Bulwark standing behind it. Nothing that happens before round 7 counts. Only what is standing on the sill when the bell rings.
+design: THE ROUND-3 QUESTION - hold has no early loss, so an enemy on the sill in round 2 costs exactly nothing and only the deadline judges. That makes round 3 pure arithmetic about round 7. The Warden in the door at 4,1 has 12 hit points and Move 0, so it never leaves of its own accord; the Bulwark behind it at 4,2 caps its displacement at one tile AND occupies the only tile that shove could use, so while both stand there a push from 4,0 is a 4-damage collision that moves nobody. Round 3 asks whether you start the Warden's 12 now, or spend the round getting a body to the far side so that the shove clears the door on the round it actually matters.
+design: THE ARITHMETIC, off UnitTemplate.cs. Warden 12 HP / MOVE 0 / melee 4 - the door, and a door does not chase. Bulwark 10 HP / Move 2 / melee 2, aura caps adjacent allies at one tile and never itself. Runt 2 HP / Move 4 / melee 2. Harrier 8 HP / Move 4 / DAMAGE 0 / Push 1. Thirty-four hit points, four kinds, and only 12 of them are actually required: the objective is two tiles, not a body count.
+design: WHICH WAY YOU PUSH IS THE WHOLE BOARD. The Warden's neighbours are masonry at 3,1 and 5,1, so it can only travel north to 4,0 or south to 4,2. Push it from OUTSIDE, standing at 4,0, and it goes south - onto 4,2, which is the other objective tile, so a successful shove moves it from one held tile to the other and buys you nothing. Push it from INSIDE, standing at 4,2, and it goes north to 4,0 and off both. The tile that clears the door is inside a chamber whose only other way in is the south door at 4,5.
+design: TWO ROUTES, UNEQUAL PRICES, AND THE CHEAP ONE IS THE WRONG ONE. From the north-west pocket at 1,0 the north door is THREE steps - 2,0 3,0 4,0 - and it puts you nose to nose with 4 damage a round at the one tile whose shove does not help. From the same pocket the south door at 4,5 is TEN steps - down column 1, east along row 6, up to 4,5 - seven steps dearer, undefended, and it is the side the shove works from. From the south-east pocket at 8,5 the south door is SIX steps and the north door is NINE. The draft is the route choice, which is what an unowned spot list is for.
+design: THE COURT CORKS ITSELF IN, AND THEN IT DOES NOT. On round 1 the chamber's north door is blocked by its own Warden and its south door by the Harrier, so nothing inside can reach you and nothing outside is in reach of a spot. From round 2 the chamber drains south and the aura walks with it - and the round the Bulwark steps off 4,2 is the round a shove from 4,0 finally has somewhere to put the Warden, at the cost of leaving it on the other held tile. Reading when that happens is the fight. Every melee list walks at the nearest duck, so where you stand at the end of round 6 decides who is standing on the sill at the end of round 7.
+design: THE LAST ANSWER IS A BODY. The condition is that no ENEMY stands on 4,1 and 4,2 when round 7 ends. A duck standing on them satisfies it, and standing in a one-tile door with masonry on both shoulders is the cheapest defence on the board - nothing can walk past you and anything shoved into you is 4 to both. Killing the whole Court also wins it, as it wins every objective except destroy and boss; with 34 hit points and seven rounds that is a real second route rather than a formality.
+design: THE ARCHITECTURE. Fourteen wall tiles of sixty-three, 22 percent, in two connected banks of seven, and they make a chamber with exactly two doors rather than a wall with a gap in it. The ledge at 4,3 sits between the two doors: nothing can be shoved up onto it, so it collides like masonry, and a body shoved off it takes 2 and keeps travelling toward whichever door it was nearest. No drain and no brambles anywhere - this board is architecture and a clock, and it would be worse with a hole in the floor.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Seven unowned spots, deliberately lopsided: four in the north-west corner beside the objective and three down the south-east edge beside the back door. That is the two routes drafted rather than assigned, and the asymmetry is the point - four spots at the cheap end and three at the useful one. Every spot is outside every enemy's round-1 reach. The Warden covers exactly 4,0 and 4,2. The Harrier at 4,4 covers 5 and gets as far as 1,6 and 7,6 - one tile short of every spot on either side. The two Runts cannot leave the chamber at all on round 1, because the north door holds their own Warden and the Harrier is standing in the chamber's south mouth at 4,4.
+design: DELIBERATE LINTS. CentreNotClear and HazardOffOuterRings fire because the chamber IS the middle of the board and G5 is that lint inverted. SpikeCountOutOfRange fires because there are no brambles. SpawnsNotOnOppositeEdges fires because the Court is one garrison rather than two edges, which is what a lock chamber is.
+
+spawn w = Warden
+spawn b = Bulwark
+spawn r = Runt
+spawn x = Harrier
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: hold 4,1 4,2 for 7
+turn-limit: 7
+
+board:
+  **.......
+  **##w##..
+  ..#rbr#..
+  ..#.H.#..
+  ..#.x.#.*
+  ..##.##.*
+  ........*

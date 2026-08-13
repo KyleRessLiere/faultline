@@ -1,0 +1,41 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: ec-09-undertow-v2
+number: 957
+name: Undertow II
+size: 7x9
+pool: Ordinary
+description: The Lobber's escape route is now a five-tile masonry throat with a Grappler at the far end. Chasing it means entering architecture, and the pull runs you the wrong way up it.
+design: SUPERSEDE CANDIDATE for ec-09-undertow - 4% blocking, so the retreat it was named for crossed open field and two lone pits rather than a corridor.
+design: THE ROUND-3 QUESTION - the Lobber has backed into the throat and it is the one enemy left that will not come to you. Round 3 asks whether you follow it in. The throat is one tile wide for five tiles, so exactly one duck can be in contact, nobody can flank, and the Grappler at the far end pulls whoever is inside two tiles further from the flock. Standing at the south mouth instead costs you nothing but the round, and the round is what the rest of the board is spending.
+design: THE WALLED RETREAT. The original's escape route was two pits and two spikes on the second row - 4 percent of the board impassable, none of it connected, and a Lobber that retreated across open ground where the whole flock could still reach it. Here the route is masonry: 10 walls on 63 tiles, 15.9 percent, in two connected columns of five, 2,1 down to 2,5 and 4,1 down to 4,5. Between them runs the throat at x=3 from 3,1 to 3,5, with one mouth at 3,0 and one at 3,6 and no other way in or out.
+design: THE DRAIN IS FILLED IN, ON PURPOSE. There is not a pit or a spike anywhere on this board. DESIGN_PRINCIPLES 1 is explicit that if a battle would still work with the pits filled in it is probably a better battle, and this one is strictly better for it: the original's holes were the loud part and the retreat was the idea, so the retreat is what got built. Every point of damage here comes from a body, a wall or the board edge - which is available on every map and needs no terrain gimmick.
+design: THE ARITHMETIC OF THE THROAT. A Lobber moves 2 and shoots 3, and its published list retreats the moment anything is adjacent, to the reachable tile furthest from the nearest hostile. Inside the throat that tile is always two north, because the walls give it nowhere else to be - so closing to contact costs you a step and buys you nothing, twice a round, all the way up. Meanwhile the Grappler at the far end covers 3,1, 3,2 and 3,3 from 3,0. Its pull is 2 toward itself and it deals no damage of its own; what it is worth is what is standing in the two tiles behind you. Pulled into an empty throat it costs position only. Pulled into the Lobber it was chasing, or into the Grappler's own second rank, it is a collision - 4 to you and 4 to the body, both Staggered - and a Staggered duck travels one tile further on the next pull, which in a corridor means one tile deeper.
+design: TWO ROUTES, UNEQUAL PRICES. The Lobber in the throat can only be reached through the throat: from the spot at 1,8 the south approach is 2,8 - 3,8 - 3,7 - 3,6 - 3,5, six steps to contact, and every one of them inside a lane one tile wide. The north approach to the same body is 1,7 up the west flank to 1,0, then 2,0 and 3,0 and down through 3,1 and 3,2 to 3,3 - thirteen steps, and the last three of them are spent standing where the Grappler already is. Six AP at maximum exposure against thirteen at the cost of the whole fight's tempo. The east flank reads the same in mirror at thirteen, past the Husk instead of past the Lobber.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six unowned spots in two corner pockets - 0,7 0,8 1,8 in the south-west and 5,8 6,8 6,7 in the south-east - and the corridor mouth at 3,8 is deliberately not one of them. The board is 7 wide and the pockets are four tiles apart, so drafting into both is drafting a split flock, and a split flock is the one thing the throat punishes: whoever goes in cannot be supported by whoever did not.
+design: AGENCY BEFORE INJURY, STRICT (D-080). Every spot is outside every enemy's round-1 reach in damage AND in displacement. The numbers: the Lobber at 3,4 walks 2 and shoots 3, and the walls mean the only tiles it can walk to are 3,2 3,3 3,5 and 3,6, so its furthest reach into the south field is 4 from the nearest spot. The Lobber at 1,1 covers 5 and the nearest spot is 7. The Husk at 5,1 walks 3 and swings 1, covering 4, nearest spot 7. The Grappler at 3,0 covers 6 with its pull and the nearest spot is 10 - the throat boxes it as thoroughly as it boxes you. Nothing on this board can hurt you, or move you, before you have had a turn.
+design: THE ENEMIES ARE THE CONTENT, in mutual-cover chunks. The throat Lobber is bait and it is the only enemy that runs; its job is to be worth chasing. The Grappler is the reason chasing is a mistake, and it does not have to be adjacent to anything - it works at range 3 down a lane the walls guarantee is straight. The flank Lobber and the flank Husk are the reason you cannot simply ignore the throat and wait: they walk at you down open ground on both sides while the throat costs you nothing to leave alone and everything to enter, and by the time they are dead the Lobber has backed to the far end and the walk is thirteen steps instead of six.
+design: NO HIGH GROUND, AND THAT IS THE DEVIATION. The board trips the NoHighGround lint on purpose: elevation is the contested-shelf pattern's currency and this is the walled-retreat board, whose currency is a lane one tile wide. Two ledges were tried on the flanks at 0,5 and 6,5 to buy the long route a firing position, and they cost the board its question - the median dropped from five rounds to four and the shover policy stalled, because a Grappler ranks HighGround above the Archer and started hunting the flanks instead of the throat. Measured, then removed.
+design: CERTIFICATION. All three DETERMINISTIC MASTER_DESIGN 8.8 policies win it - board-first at five rounds, objective-first at five, shover at seven - against the section's floor of one and the Warrens working practice of two, and that is the same deterministic three the original clears, bought here with architecture instead of an open field. Do not read the random-* rows as further samples: no RNG runs inside a fight, so every deterministic policy plays identically at every seed, and those rows reseed from a per-process hash - random-a lost this board in one invocation of the sweep and won it in the next. Nine of fifteen policies overall, zero stalls, median five rounds.
+design: DELIBERATE LINTS, nineteen of them. Sixteen are CentreNotClear and HazardOffOuterRings firing on the two wall columns, and on a 7x9 board those are noise by DESIGN_PRINCIPLES 7 - the centre 3x3 they complain about IS the throat and its two walls, which is exactly what G5 asks a board to own. NoHighGround and SpikeCountOutOfRange fire because there is no elevation and no spikes here on purpose. SpawnsNotOnOppositeEdges fires because every enemy holds the north half: this board is one flock walking north into a held corridor, not a pincer.
+
+spawn g = Grappler
+spawn l = Lobber
+spawn h = Husk
+
+roster a: Vanguard, Archer
+roster b: Threadcaster, Wardbearer
+
+board:
+  ...g...
+  .l#.#h.
+  ..#.#..
+  ..#.#..
+  ..#l#..
+  ..#.#..
+  .......
+  *.....*
+  **...**

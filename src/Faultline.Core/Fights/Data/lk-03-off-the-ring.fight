@@ -1,0 +1,42 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it    S  the protect structure
+#   any other letter = an enemy declared by a 'spawn' line below
+# Deliberate lints, two of them, checked rather than guessed: CentreNotClear (the objective IS the
+# middle, which inverts that lint on a protect board) and NoHighGround. size: 9x7 is declared, so
+# BoardNotSevenBySeven does not fire, and the four wall bars all sit on ring 1, so
+# HazardOffOuterRings does not either.
+
+id: lk-03-off-the-ring
+number: 903
+name: Off the Ring
+pool: Ordinary
+size: 9x7
+description: A Warden with Move 0 stands on the lock gate's ring and chips it for 2 a round forever. One tile of shove ends that for good - but the wall behind it and the gate in front of it make two of the four directions worse than doing nothing.
+design: THE ROUND-3 QUESTION - by round 3 the Warden has taken 6 off the gate and the Bulwark has walked back to whichever duck is nearest, so the question is which body you spend the round on: the Warden, which stops costing you 2 a round the instant it is moved ONE tile and can never return because Move 0 means it has no walk to make, or the Bulwark, which cannot be stopped from coming back and is capping every shove you aim at anything standing beside it.
+design: WHY THE OBJECTIVE IS THE PRESSURE (G3, third clause). No enemy here is a Raider and none of them is walking at the gate on purpose - Objectives.Besiege is a RULE, not a priority list (D-034): any enemy with an attack that ENDS ITS ACTIVATION adjacent to the structure takes 2 off it, whoever it happened to swing at. The clock is therefore not a schedule, it is a fact about where bodies are standing, and the rule's own note says the answer out loud: shove it off the ring.
+design: FOUR DIRECTIONS, FOUR PRICES, and every number here is Displacement.Preview's, not a guess. The Warden opens at 4,2 with the wall bar 3,1 / 4,1 / 5,1 directly behind it and the gate at 4,3 directly in front. Shove it NORTH: it hits the bar for 4 damage and a Stagger and its destination is still 4,2 - on the ring, still chipping. Shove it SOUTH: it hits the gate for 4 to itself and SIX to the gate, because a collision does full damage to masonry (D-186) and a collision into a structure is source-blind, so you have just spent a third of your own objective. Shove it EAST from 3,2 and it lands on 6,2; WEST from 5,2 and it lands on 2,2. Both leave the ring, take 0 damage, and end the siege permanently. Two of the four directions are worse than doing nothing.
+design: WHERE THE AURA ACTUALLY BITES, said plainly because the honest answer is not the flattering one. Against the Warden the Bulwark's cap costs you nothing at all: any one tile clears the ring, and a body with Move 0 cannot walk back from one tile any more than from two. Where the cap bites is the Heavy Husks, which have Move 3 - shoved 2 tiles they need a whole activation to re-occupy the ring, shoved 1 they are back on it the same round with movement to spare. That is a price gap and not a wall (MASTER_DESIGN 2), and it is exactly the difference between buying a round and buying nothing.
+design: THE SPIKES ARE THE THIRD PRICE, and they are deliberately NOT on the shove line through the gate. 2,3 and 6,3 sit two tiles out on the gate's own row, and because the gate occupies 4,3 nothing can be driven along that row through it - so the spikes are reached by shoving a body sideways off an approach lane, from 2,2 or 2,4 onto 2,3 and from 6,2 or 6,4 onto 6,3, which Displacement.Preview reports as 6 damage, a hard stop and a Stagger. Six is a whole Heavy Husk and half a Warden. Walking them costs 2 instead, and does not Stagger. Nothing starts on them: spots and spawn letters always write Open underneath (G8).
+design: TWO ROUTES, UNEQUAL PRICES, counted in steps. The west pocket at 0,2 / 0,3 / 0,4 sits behind a three-tile bar and reaches 3,2 - the tile that shoves the Warden east off the ring - in SIX steps, up column 0 and along row 1. The east pocket at 8,2 / 8,3 / 8,4 sits behind a SIX-tile bar with one mouth at 8,6, and its shortest line to a ring tile is EIGHT, out the bottom and back along row 6 past the southern Heavy Husk, landing at 5,4 beside the BULWARK rather than beside the Warden; reaching the Warden's own flank at 5,2 from there is TEN. Six against eight against ten, three different enemies met on the way, and the draft therefore decides which body you intend to answer first before anybody has moved.
+design: SPOT LAYOUT (MASTER_DESIGN 3). Six spots, unowned, three per pocket, and the pockets are deliberately unequal - MASTER_DESIGN 3 blesses a short published list as a board thesis, and the thesis here is that one pocket is two steps cheaper and lands you on the harder half of the problem. Agency before injury holds in its strict form (D-080): a Heavy Husk walks 3 and swings 1 for a diamond of 4 and its nearest spot is 6 away, a Bulwark covers 3 and its nearest spot is 4, a Warden covers 1 and never moves. Nothing here deals 0 damage, so there is no displacement-only reach to price separately, and Threat.DamageRound1 returns zero of the six spots.
+design: EIGHTEEN HIT POINTS AND NO BELL. The format refuses a deadline on protect outright, so this board cannot be won by the clock and is not given one (D-167). It is won by clearing the board, or by still having a gate when the last enemy falls, and it is lost the moment the gate falls. Eighteen is nine rounds of the Warden alone, four and a half with one Husk beside it, and exactly THREE collisions if you keep shoving things into your own objective - which the rule permits and a board therefore has to warn about.
+design: CERTIFICATION, quoted across POLICIES rather than seeds. Six of the nine deterministic harness policies clear it, no stalls, and that includes all three deterministic policies of MASTER_DESIGN 8.8 - board-first in 9, shover in 6, objective-first in 4 - against the section's floor of one and the Warrens working practice of two. The three that lose it are first-legal, brawler and careful - the three that never spend an action on displacement, which on a board whose answer is stated as "shove it off the ring" is the failure the design wants. The random-* rows are seeded from policy.Name.GetHashCode(), which .NET randomises per process, and are quoted nowhere: no RNG runs inside a fight, so a deterministic policy is byte-identical at every seed and a second seed is not a second sample.
+
+spawn w = Warden
+spawn b = Bulwark
+spawn k = HeavyHusk
+
+roster a: Vanguard, Archer
+roster b: Wardbearer, Threadcaster
+
+objective: protect 4,3 hp 18
+
+board:
+  ....k..#.
+  ...###.#.
+  *#..w..#*
+  *#^.S.^#*
+  *#..b..#*
+  ...###.#.
+  ....k....

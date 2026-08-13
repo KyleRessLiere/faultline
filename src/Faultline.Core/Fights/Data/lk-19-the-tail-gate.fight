@@ -1,0 +1,39 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-19-the-tail-gate
+number: 919
+name: The Tail Gate
+size: 11x5
+pool: Hard
+description: Eleven tiles of lock wall with one stone coping down the middle of it and the tail gate at the far end. Twelve rounds to stand on 10,2, and the fast way across is a single file with a shooter on the roof.
+design: THE ROUND-3 QUESTION - the Perch starts at 9,1 and its whole priority list is climb to the nearest ledge it can reach and then never come down of its own accord, so by round 3 it is standing on the coping and every shot it fires from up there is 4 rather than 2. The Harrier at 10,0 walks 4 and by round 3 the lane is inside its move. Round 3 asks whether the flock stays on the coping - 9 action points from the west spots to the gate, in single file, sharing a one-tile lane with a shooter that is on the same elevation you are - or drops into a gallery and pays 13 for a crossing where a shove has nothing to slam anybody into.
+design: ACT 3, HARD BAND, and the objective is a crossing under pressure. The win is reach 10,2 the instant a player unit stands there; clearing the board wins it too, because an empty board cannot stop any objective except destroy and boss. The clock is a turn limit of 12 - the board is eleven tiles wide and a duck has 3 action points an activation, so twelve rounds is thirty-six action points of walking and the limit is the reason the long gallery is a real price rather than a free alternative.
+design: THE SIZE IS THE THESIS. 11x5 declared, and the shape is doing the work sz-01-the-long-channel's 9x5 does: ranges, AP costs and movement do not change with the board, so a bigger board is simply more expensive to cross and that is the point rather than a side effect. Five rows means the two wall bars at row 1 and row 3 - seven tiles each, x=2 through x=8, 14 impassable out of 55, which is 25.5 percent in two connected formations of seven - leave exactly three lanes and no fourth.
+design: TWO ROUTES, UNEQUAL PRICES, in action points. From the forward spot at 1,2 the coping is NINE AP: 2,2 then the five ledge tiles 3,2 to 7,2 then 8,2 9,2 10,2, three activations and change. The north gallery from the same spot is THIRTEEN: 1,1 1,0 then the whole of row 0 from 2,0 to 10,0 then 10,1 10,2. Four AP and a whole extra activation apart, on a twelve-round clock. And they are not the same walk twice: the coping is one tile wide with a wall above and a wall below it, so every displacement on it is a collision - 4 damage and a Stagger, to both parties when it is a body. The gallery is three tiles clear of any wall, so a shove there costs position and nothing else.
+design: THE LEDGE IS A WALL AT BOTH ENDS, and that is the arithmetic worth knowing. Nothing can be shoved UP onto high ground; the lip collides exactly like masonry. So a body standing at 2,2 or 8,2 - the two open tiles at the mouths of the coping - is standing one tile from a free wall in both directions, and shoving it into the lip is Displacement.CollisionDamage, 4, plus a Stagger. A Runt has 2 hit points and dies to the tile. A Perch has 6 and comes off the ledge Staggered, which means the NEXT displacement against it travels one tile further, and one tile further along the coping is another body.
+design: THE CHOKEPOINT IS WORTHLESS HERE, and that is the point of putting it on a reach board. A duck can stand at 2,2 and hold the coping's west mouth against anything - the lane is one tile wide and nothing can climb the lip to get round it. It buys nothing, because the win condition is at the other end of the board and the two galleries are eleven tiles of open floor that nobody has to walk past you to use. Holding a choke on a reach board with a clock is the same move as standing still, and standing still loses on round 12. The Conquest chapter-17 failure needs a fight that comes to you; this one does not.
+design: THE COURT, AND WHAT EACH BODY IS FOR. The Perch is the reason the coping is contested rather than free: 6 hit points, Move 2, range 3, and a list that says take the ledge and hold it, which is also why it starts at 9,1 on ordinary floor and climbs on its own activation - nothing may start on high ground and the archetype exists to solve exactly that. The Bulwark at 9,3 guards the gate's approach and caps the displacement of every ally adjacent to it at one tile, so the shove that would knock the Perch off the ledge stops short while the two of them are together - kill the aura or come at the ledge from the other end. The Harrier deals zero damage and scores a shove by how much further from its nearest ally the target lands, which on a one-tile lane means it is trying to make your file into a queue with gaps. The two Runts at 8,0 and 8,4 screen the galleries.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Eight spots, unowned, in one western block: 0,0 1,0 0,1 0,2 1,2 0,3 0,4 1,4. The two forward spots at 1,0 and 1,4 open the galleries and the forward spot at 1,2 opens the coping, so which route a duck is on is decided in the draft rather than on round 2, which is the deployment being an authoring axis rather than a rectangle. Agency before injury holds in its strict form (D-080): the westmost tiles anything can touch on round 1 are 3,0 and 3,4 - the two Runts, Move 4 and a reach of 1, running the galleries - while the Perch's shot off the coping's east end stops at x=5 and the Harrier's shove at x=7. Every spot is at x=0 or x=1. Nothing on this board can damage you or move you before you have had a turn.
+design: CERTIFICATION, seed 1, and the figure to quote is wins across POLICIES rather than across seeds - no RNG runs inside a fight. Three of the four MASTER_DESIGN 8.8 policies clear it: board-first and objective-first stand on the gate on round 7, shover on round 12 with the bell in the same breath. Seven of the nine deterministic policies win - those three plus brawler 9, blade-first 7, preserver 7 and relay 10 - every one of them between rounds 7 and 12, and no deterministic policy stalls. The limit was 10 first and shover lost to it by a single round; 12 is the number that lets a policy spending its actions on shoves rather than on steps still finish the crossing, which is the honest reading of a board whose thesis is that the long lane is a real price. A clocked board that cannot terminate fails outright - every run reaches a verdict. The random-* rows are excluded from every figure above, and that is not tidying: they seed from policy.Name.GetHashCode(), which .NET randomises PER PROCESS, so the same command gives different random rows on two invocations. The nine deterministic policies are the reproducible sample.
+design: NO PIT AND NO SPIKES ANYWHERE, on purpose. This is the plain-combat half of the batch: the interest is manoeuvre, elevation and who gets the first activation, and every point of board damage on it comes from a collision into masonry or into a lip or into another body. A map with no hazards is not a lesser map (scenarios/DESIGN_PRINCIPLES 3), and a drain on this one would have turned a crossing into a shoving gallery.
+
+spawn r = Runt
+spawn p = Perch
+spawn b = Bulwark
+spawn h = Harrier
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+objective: reach 10,2
+turn-limit: 12
+
+board:
+  **......r.h
+  *.#######p.
+  **.HHHHH...
+  *.#######b.
+  **......r..

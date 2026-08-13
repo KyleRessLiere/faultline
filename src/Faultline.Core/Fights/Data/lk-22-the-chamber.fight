@@ -1,0 +1,44 @@
+# Terrain and placement share one grid, so the board is what it looks like.
+#   .  open        #  wall        O  pit        ^  spikes      H  high ground
+#   ~  canal       X  breakable blocker (here, a sluice gate)
+#   *  deployment spot - either player may draft into it; no spot belongs to a side
+#   any other letter = an enemy declared by a 'spawn' line below
+
+id: lk-22-the-chamber
+number: 922
+name: The Chamber
+pool: Elite
+size: 9x7
+description: A lock chamber with a gate at each shoulder and a coping stone in the middle. Two floods are on offer, each one drowns a flank, and you can afford to buy one.
+design: THE ROUND-3 QUESTION - both sluices are eight hit points and both are in reach by round 2, so round 3 is the round one of them is nearly down. The question is which flank you are willing to make expensive, knowing you have to walk back across whichever one you chose.
+design: THE ELITE BAND'S JOB is to cost more and to say so before you take it, and this board says it in the roster: a Colossus at 20 hit points behind push resistance 2, two Bulwarks capping every shove made near them, and a Harrier that spends its whole existence taking your line apart. Forty-eight hit points of Court, none of it cheap, and a twelve round clock so you cannot grind it down at leisure. It is not high-road's question asked louder - high-road is about who owns one ridge, and this is about which of two doors you nail shut.
+design: A LOCK IS TWO GATES, which is the mechanism the act is named for and the reason this board exists. The chamber is the central corridor between the wall bars; the sluices at 1,1 and 7,1 are its shoulders. Break the west gate and the canal takes 0,2 1,2 0,4 and 1,4, drowning the west lane; break the east and it takes 7,2 8,2 7,4 8,4. Every step is published from fight start, so this is a menu and never a surprise.
+design: THREE ROUTES, AND THE FLOOD CHOOSES BETWEEN THEM FOR YOU. The chamber corridor at x=3 to 5 is the short road and the contested one: it holds the coping stone at 4,3, the only high ground on the board, and the Colossus and the Harrier are standing in it. The two outer lanes at x=0-1 and x=7-8 are the long way round, one tile wide beside the canal, and they are what the sluices drown. Flooding a flank does not close it - wading is 2 AP a tile rather than 1 - so what you are buying is tempo on one side and paying for it in tempo on the other.
+design: THE COPING STONE IS THE PRIZE AND THE TRAP. Ranged attacks from 4,3 deal +2, nothing can be shoved up onto it, and being shoved off costs 2 with the displacement continuing. It is also the one tile both Bulwarks can cover from the shoulders of the chamber, so an archer who takes it is standing inside the aura that stops you shoving anything away from her. Taking the stone is correct and it is not free.
+design: THE HARRIER IS WHY THE CHAMBER IS NARROW. It deals no damage at all and pushes players AWAY FROM their allies, which in a three-wide corridor means shoving somebody out of the corridor entirely and into the lane you may have just flooded. A unit that can never have a lethal always takes the rescue slot when it can, so it will also haul its own out of trouble. It is the piece that makes a tidy line impossible to keep.
+design: THE COLOSSUS IS THE CLOCK MADE FLESH. Move 1 and 20 hit points at push resistance 2, so it cannot be shoved out of the corridor cheaply and it cannot be outrun in a corridor either - it simply arrives, eventually, hitting for 6. Against a twelve round limit it is the reason you cannot fight defensively on both flanks at once.
+design: BLOCKING MASS 10 of 63 tiles, 16%, in two connected bars of four plus the two gates. The bars are what make the chamber a chamber - without them the board is a field with water on it, and the flood is a hazard rather than a routing decision.
+design: CERTIFICATION. Agency ok, A 6/0 B 6/0, and worth reading closely: the report adds 33 shove-only tiles, which is the Harrier's reach counted separately because the agency law is worded as damage and a Harrier deals none. No deployment spot is inside either figure. That distinction is exactly the blind spot that shipped as a defect on high-road, where a round-1 pull the threat check could not see slammed the Archer into the Wardbearer.
+design: Two of the four MASTER_DESIGN 8.8 policies win it - board-first and objective-first - which is the floor rather than the middle, and it is deliberate for an Elite. The shipped Elite, high-road, reads three of four on the same sweep BUT STALLS TWICE; this board stalls not at all, so it always resolves into a win or a loss rather than into nothing. Median six rounds against high-road's seven. Quote the deterministic policies rather than the /15: no RNG runs inside a fight, so the random-* rows reseed per process and that figure moves between invocations.
+design: SPOT LAYOUT (MASTER_DESIGN 3, the deployment draft). Six unowned spots in two southern pockets, one at each lane mouth, every one outside every enemy's round-1 reach - the Colossus walks 1 and swings 1, the Bulwarks 2 and 1, and the Harrier's Move 4 and push 1 reaches five tiles from 4,2 and touches no spot. The pockets sit at the feet of the two lanes the sluices drown, so the flood question is asked at deployment as well as during the fight: draft into a lane and you have told the other flock which gate you would rather they broke.
+
+blocker-hp: 8
+turn-limit: 12
+sluice: 1,1 = 0,2 1,2 0,4 1,4
+sluice: 7,1 = 7,2 8,2 7,4 8,4
+
+spawn b = Bulwark
+spawn c = Colossus
+spawn r = Harrier
+
+roster a: Vanguard, Threadcaster
+roster b: Wardbearer, Archer
+
+board:
+  ..b...b..
+  .X#.c.#X.
+  ..#.r.#..
+  ~~#.H.#~~
+  ..#...#..
+  *.......*
+  **.....**
