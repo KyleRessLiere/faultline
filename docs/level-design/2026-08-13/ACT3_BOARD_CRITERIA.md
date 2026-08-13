@@ -7,6 +7,43 @@
 >
 > Companion reading: [pool-review-cross-reading](pool-review-cross-reading-2026-08-13.md) ·
 > [fire-emblem-map-design-study](fire-emblem-map-design-study-2026-08-13.md)
+>
+> **Mandatory for every authoring agent, per `docs/practices/BATTLE_AUTHORING.md`:**
+> `docs/scenarios/DESIGN_PRINCIPLES.md` goes in the prompt of any agent that authors a battle.
+> It is the standing house style and it outranks this file wherever the two disagree.
+
+## 0a · Standing constraints this contract must not contradict
+
+Read before the gates. These come from `MASTER_DESIGN` §1–2 and
+`docs/scenarios/DESIGN_PRINCIPLES.md`, and each one has already been violated by a draft of
+this document.
+
+1. **Gradients, not immunities** (MASTER §2). *"In a permadeath game, 'only X works' is a
+   soft-lock waiting for the roster that lacks X. Thesis lives in price gaps, never hard walls."*
+   The Bulwark aura therefore **caps displacement at 1 — it never negates it.** Its canonical
+   number is "adjacent allies displaced max 1", which is a gradient by construction. No Locks
+   board may make a player verb *useless*; it may make it *expensive or insufficient*.
+2. **Pits are not the game; displacement is.** The everyday outcomes are wall/edge (4 +
+   Stagger), **unit into unit (4 to BOTH — the most overlooked value in the game)**, spikes
+   (6, hard stop), high ground (2 and the shove *continues*). A pit is the finisher and should
+   feel rare. *"If a battle would still work with the pits filled in, it is probably a better
+   battle."* The rimmed-cluster rework pattern fuses pits into **architecture**, which is a
+   legitimate reframe — but a board that fuses pits and then has nothing else has drifted into
+   the failure this principle names.
+3. **Nothing starts on a hazard OR ON HIGH GROUND.** Spawn letters and `*` spots always write
+   Open underneath. "A Perch holding the ridge at round 1" is unauthorable — put it below and
+   let it climb. The water family inherits this: nobody starts submerged.
+4. **Moving a spawn letter changes unit ids** — ids are row-major, so any edit to a shipped
+   board invalidates every existing replay of it. *This is the technical reason the rework batch
+   ships as new files, not a stylistic preference.*
+5. **The enemies are the content.** Design against what `Rules/Ai.cs` actually does, not against
+   this document's prose. A Grappler is inert in melee, a Lobber retreats when closed on, an
+   Anchor ignores Push 1, a Stalker ranks drain > spikes > edge. Those behaviours are the
+   puzzle; terrain is what makes them bite.
+6. **Plain combat must carry its weight.** *"A map with no hazards is not a lesser map."* A
+   share of Act 3 must be ordinary ground where the interest is manoeuvre, reach and
+   initiative — see G17.
+7. **One question per battle.** "More enemies" is not a design.
 
 ## 0 · Designer rulings of 2026-08-13 (authority for everything below)
 
@@ -36,7 +73,7 @@ a universal answer*. The booked-but-unfielded bestiary is the vocabulary:
 
 | Enemy | Numbers (MASTER §6, canonical) | What it does to the kit |
 |---|---|---|
-| **Bulwark** | 14 / Move 2 · aura: adjacent allies displaced max 1 | **Switches the shove economy off locally.** Your whole displacement kit degrades inside its aura. Kill the aura or fight without your verbs. |
+| **Bulwark** | 14 / Move 2 · aura: adjacent allies displaced max 1 | **Caps your shove economy locally — never cancels it.** Inside the aura a push still moves a body, just not far enough to reach the thing you wanted; a 2-tile shove becomes 1, so the drain at range 2 stops being reachable. Kill the aura, reposition the hazard, or pay more. A gradient, per MASTER §2. |
 | **Harrier** | 12 / Move 4 · pushes players *away from allies* | Un-makes your formation. Every other enemy pushes you into things; this one pushes you apart. |
 | **Colossus** | 30 / Move 1 · melee 6 · resist 2 | A body that arrives late and cannot be moved cheaply. |
 | **Runt** | 2 HP swarm, unscaled, Footing 0 | Chaff that screens the units that matter. Dies to anything, and that is the point. |
@@ -47,9 +84,15 @@ a universal answer*. The booked-but-unfielded bestiary is the vocabulary:
 Locks act is where they are first fielded at act scale.
 
 The design consequence to hold onto: a Bulwark aura is the first thing in the game that makes
-**the player's own core verb conditional**. That is the Locks' teaching, and boards should ask
-it as a question ("which aura do you break first, and what walks at you while you do") rather
-than as a tax.
+**the player's own core verb priced rather than free**. That is the Locks' teaching, and boards
+should ask it as a question ("which aura do you break first, and what walks at you while you
+do") rather than as a tax. Per MASTER §2 the aura is a **price gap, never a wall** — a capped
+shove still shoves, and the answer is always "pay differently", never "you may not act".
+
+The theme is not decoration here. MASTER §1's vision states the world is *"ponds, canals and
+locks, and the deadliest thing on any board is the plumbing"* — the Locks is where that sentence
+is finally cashed in, which is why the sluice family is the act's signature rather than an
+invention bolted on.
 
 ### 1b · The signature family — sluices and water level (4–6 boards)
 
@@ -114,10 +157,17 @@ cost and exposure. Two open lanes are one route drawn twice. A single effective 
 **only** when the corridor IS the declared question, and the `design:` line must say so
 (`tp-10-the-sanctum` is the licensed precedent).
 
-**G5 · The middle is owned.** The centre 3×3 contains something worth contesting — terrain, an
-objective, high ground, or a structure. An empty middle fails. *This is the existing centre-3×3
-lint inverted: the good Warrens boards are the ones that override it, so as written it is
-backwards.*
+**G5 · The middle is owned.** The **true centre 3×3** — the nine tiles centred on the board's
+midpoint — contains something worth contesting: terrain, an objective, high ground, or a
+structure. An empty middle fails.
+
+*Two cautions. First, this is the existing `CentreNotClear` lint **inverted**: the good Warrens
+boards are the ones that override it, so as shipped it is backwards. Second, do not reuse its
+definition of "centre" — `DESIGN_PRINCIPLES.md` §7 records that it treats the centre as `x` in
+`2 … width-3`, which on an 11-wide board is a 7×3 slab rather than a 3×3. G5 means a real 3×3.
+Both `CentreNotClear` and `HazardOffOuterRings` are noise on non-7×7 boards; a board may trip
+them freely and must not be contorted to silence them — `the-cooperage` trips each four times on
+purpose.*
 
 **G6 · Agency before injury (D-080).** Every deployment spot sits outside every enemy's round-1
 damage reach — **or** a forward spot is explicitly priced in a `design:` line naming which enemy
@@ -127,7 +177,10 @@ round-1 *pull* reach counts too, even from an enemy whose Damage is 0.
 **G7 · Spot-native.** Deployment is `*` spots, unowned, either flock may draft into any of them.
 Count inside the 6–8 band per MASTER §3. No zone-era `A`/`B` letters in any new board.
 
-**G8 · Nothing starts on a hazard.** Existing format rule.
+**G8 · Nothing starts on a hazard or on high ground.** Format rule: spawn letters and `*` spots
+always write Open terrain underneath. A design requiring an enemy to hold a ridge or stand in
+water at round 1 is **unauthorable** — place it adjacent and let it move there on its own
+activation. The Perch's whole behaviour (seeks and holds HighGround) exists to solve this.
 
 **G9 · Roster kinds and roster freedom.** At least two distinct enemy types, unless the declared
 question IS the uniform tide (`as-05-the-door` is the precedent, and it must be declared). No
@@ -180,6 +233,20 @@ boards:
 
 Warrens v2 is 87.5% kill-all. Act 3 shipping at 54% is the single largest design improvement in
 this run, and it costs nothing — the format already supports all six types.
+
+**G17 · Balance the set, not the battle.** `DESIGN_PRINCIPLES.md` §9: across the 24 boards, vary
+board size, roster size and shape, which classes are present, enemy count, **whether hazards
+feature at all**, and how far apart the two flocks start. *"A batch where every map is 7×7 with
+two units a side and a pit in the middle has one idea in it."* Concrete floors for Act 3:
+
+- **≥5 boards carry no pit and no spikes at all** — walls, elevation and enemy behaviour only.
+  This is the "plain combat carries its weight" quota, and it is the direct counterweight to the
+  blocking floor's pull toward pit-and-wall boards.
+- **≤14 of 24 boards are 7×7.** Warrens v2 is 23 of 40 at 7×7; the size dial is an authoring
+  axis (`sz-01`'s 9×5 is the precedent that a dimension can be the whole thesis).
+- **No more than 3 consecutive board numbers share an objective type.**
+- Pit tiles across the whole act must not exceed the count of wall tiles. If they do, the act has
+  drifted into "fifty variations of shove them in the hole".
 
 **G16 · No band of one.** Elite ships **2+** boards; the review's finding stands that a gilt
 node drawing the same fight every run makes the comfort gradient meaningless. Act 3's Boss is the
@@ -265,6 +332,19 @@ separate agent with its own context:
 
 Passes 5–11 return **defects, never verdicts**. A board with any unresolved defect goes back to
 pass 12 and round-trips again. Boards batch **five at a time**.
+
+## 5a · Fan-out rules (from `docs/practices/SUBAGENTS.md`)
+
+- **Disjoint files are the hard rule.** Before launching a batch, write down which files each
+  agent owns. Two agents on one file clobber each other and no parallelism is worth that.
+- **Shared docs are a conflict magnet.** `GAMEPLAY.md`, `DECISIONS.md`, `CHANGELOG.md` — agents
+  **report what they would write** and the parent applies it. No authoring agent edits them.
+- **The parent owns the commit.** Build, test and read the diff before anything lands.
+  *Parallelism raises throughput, not trust.*
+- **Concurrent builds share `obj/` and `bin/`.** Transient file-lock failures ("being used by
+  another process") are expected and are not bugs — retry once, investigate only on repeat. Every
+  agent gets told this so it does not go hunting.
+- **Every agent gets the acceptance criteria, not just the task.** They cannot ask follow-ups.
 
 ## 6 · What an agent may never do
 
